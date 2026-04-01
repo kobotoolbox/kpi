@@ -1294,6 +1294,17 @@ class AssetMetadataListSerializer(AssetListSerializer):
         return request.parser_context['kwargs']['uid_project_view']
 
 
+class AssetMinimalListSerializer(serializers.ModelSerializer):
+    """
+    Lightweight serializer returning only uid, name and deployment_status.
+    Used by the /api/v2/assets/minimal-list/ endpoint and its org/project-view variants.
+    """
+
+    class Meta:
+        model = Asset
+        fields = ('uid', 'name', 'deployment_status')
+
+
 class AssetListCountSerializer(serializers.Serializer):
 
     deployed_count = serializers.SerializerMethodField()

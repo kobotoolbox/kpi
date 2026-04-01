@@ -7421,6 +7421,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/AssetMetadataResponse'
           description: null
+  /api/v2/assets/minimal-list/:
+    get:
+      operationId: api_v2_assets_minimal_list_retrieve
+      description: |
+        ## Return a minimal listing of assets with their deployment status
+
+        Returns a paginated list of assets visible to the current user, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+        Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+        Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of results to return per page.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: The initial index from which to return the results.
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetMinimalListList'
+          description: null
   /api/v2/audit-logs/:
     get:
       operationId: api_v2_audit_logs_list
@@ -8057,6 +8096,62 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetListCount'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/organizations/{uid_organization}/assets/minimal-list/:
+    get:
+      operationId: api_v2_organizations_assets_minimal_list_retrieve
+      description: |
+        ## Return a minimal listing of assets in an organization
+
+        Returns a paginated list of assets owned by the organization, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+        Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+        Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of results to return per page.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: The initial index from which to return the results.
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: A unique value identifying this organization.
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetMinimalListList'
           description: null
         '404':
           content:
@@ -9688,6 +9783,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetListCount'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/project-views/{uid_project_view}/assets/minimal-list/:
+    get:
+      operationId: api_v2_project_views_assets_minimal_list_retrieve
+      description: |
+        ## Return a minimal listing of assets in a project view
+
+        Returns a paginated list of assets visible within the project view, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+        Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+        Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of results to return per page.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: The initial index from which to return the results.
+      - in: path
+        name: uid_project_view
+        schema:
+          type: string
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetMinimalListList'
           description: null
         '404':
           content:
@@ -12492,6 +12642,24 @@ components:
       - languages
       - organizations
       - sectors
+    AssetMinimalList:
+      type: object
+      description: |-
+        Lightweight serializer returning only uid, name and deployment_status.
+        Used by the /api/v2/assets/minimal-list/ endpoint and its org/project-view variants.
+      properties:
+        uid:
+          type: string
+          maxLength: 22
+        name:
+          type: string
+          maxLength: 255
+        deployment_status:
+          type: string
+          readOnly: true
+      required:
+      - deployment_status
+      - uid
     AssetSnapshotCreateRequest:
       oneOf:
       - type: object
@@ -15428,6 +15596,29 @@ components:
               type: string
             example:
             - Kobotoolbox
+    PaginatedAssetMinimalListList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+        previous:
+          type:
+          - string
+          - 'null'
+          nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetMinimalList'
     PaginatedAssetSnapshotResponseList:
       type: object
       required:

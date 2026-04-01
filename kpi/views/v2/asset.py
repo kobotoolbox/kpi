@@ -43,7 +43,7 @@ from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
-from kpi.paginators import AssetPagination
+from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.permissions import (
     AssetPermission,
     PostMappedToChangePermission,
@@ -89,6 +89,7 @@ from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListCountSerializer,
     AssetListSerializer,
+    AssetMinimalListSerializer,
     AssetSerializer,
 )
 from kpi.serializers.v2.deployment import DeploymentSerializer
@@ -206,6 +207,39 @@ from kpi.utils.strings import to_bool
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+    ),
+    minimal_list=extend_schema(
+        description=read_md('kpi', 'assets/minimal_list.md'),
+        responses=open_api_200_ok_response(
+            AssetMinimalListSerializer(many=True),
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Number of results to return per page.',
+            ),
+            OpenApiParameter(
+                name='start',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='The initial index from which to return the results.',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'assets/list.md'),
@@ -366,7 +400,9 @@ class AssetViewSet(
     - xform          → GET /api/v2/assets/{uid_asset}/xform/
     - xls            → GET /api/v2/assets/{uid_asset}/xls/
     - bulk           → POST /api/v2/assets/bulk/
+    - counts         → GET /api/v2/assets/counts/
     - hash           → GET /api/v2/assets/hash/
+    - minimal_list   → GET /api/v2/assets/minimal-list/
     - metadata       → GET /api/v2/assets/metadata/
 
     Documentation:
@@ -382,7 +418,9 @@ class AssetViewSet(
     - docs/api/v2/assets/xform.md
     - docs/api/v2/assets/xls.md
     - docs/api/v2/assets/bulk.md
+    - docs/api/v2/assets/counts.md
     - docs/api/v2/assets/hash.md
+    - docs/api/v2/assets/minimal_list.md
     - docs/api/v2/assets/metadata.md
     """
 
@@ -746,8 +784,9 @@ class AssetViewSet(
     def get_serializer_class(self):
         if self.action == 'list':
             return AssetListSerializer
-        else:
-            return AssetSerializer
+        if self.action == 'minimal_list':
+            return AssetMinimalListSerializer
+        return AssetSerializer
 
     def get_serializer_context(self):
         """
@@ -907,6 +946,20 @@ class AssetViewSet(
             self._filtered_queryset, context={'request': request}
         )
         return Response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        pagination_class=NoCountPagination,
+        url_path='minimal-list',
+    )
+    def minimal_list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(
+            self.get_queryset().only('uid', 'name', '_deployment_status')
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def hash(self, request):
