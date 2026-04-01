@@ -27466,6 +27466,10 @@
                     },
                     "active_project_count": {
                         "type": "integer"
+                    },
+                    "last_updated": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "required": [
@@ -27482,6 +27486,7 @@
                     "is_superuser",
                     "last_login",
                     "last_name",
+                    "last_updated",
                     "mfa_is_active",
                     "organizations",
                     "service_usage",
@@ -27554,17 +27559,12 @@
                     "current_period_end": {
                         "type": "string",
                         "format": "date-time"
-                    },
-                    "last_updated": {
-                        "type": "string",
-                        "format": "date-time"
                     }
                 },
                 "required": [
                     "balances",
                     "current_period_end",
                     "current_period_start",
-                    "last_updated",
                     "total_nlp_usage",
                     "total_storage_bytes",
                     "total_submission_count"
