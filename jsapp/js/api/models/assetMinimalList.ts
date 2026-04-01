@@ -18,7 +18,6 @@ Used by the /api/v2/assets/minimal-list/ endpoint and its org/project-view varia
 export interface AssetMinimalList {
   /** @maxLength 22 */
   uid: string
-  /** @maxLength 255 */
-  name?: string
+  readonly name: string
   readonly deployment_status: AssetDeploymentStatusEnum
 }

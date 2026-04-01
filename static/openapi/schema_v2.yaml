@@ -12666,13 +12666,14 @@ components:
           maxLength: 22
         name:
           type: string
-          maxLength: 255
+          readOnly: true
         deployment_status:
           allOf:
           - $ref: '#/components/schemas/AssetDeploymentStatusEnum'
           readOnly: true
       required:
       - deployment_status
+      - name
       - uid
     AssetSnapshotCreateRequest:
       oneOf:

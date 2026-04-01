@@ -17732,7 +17732,7 @@
                     },
                     "name": {
                         "type": "string",
-                        "maxLength": 255
+                        "readOnly": true
                     },
                     "deployment_status": {
                         "allOf": [
@@ -17745,6 +17745,7 @@
                 },
                 "required": [
                     "deployment_status",
+                    "name",
                     "uid"
                 ]
             },

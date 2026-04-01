@@ -1305,6 +1305,8 @@ class AssetMinimalListSerializer(AssetSerializer):
     Used by the /api/v2/assets/minimal-list/ endpoint and its org/project-view variants.
     """
 
+    name = serializers.CharField(read_only=True)
+
     class Meta:
         model = Asset
         fields = ('uid', 'name', 'deployment_status')
