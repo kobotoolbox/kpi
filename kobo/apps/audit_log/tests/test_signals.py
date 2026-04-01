@@ -6,6 +6,7 @@ from ddt import data, ddt
 from django.contrib.auth.signals import user_logged_in
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
+from rest_framework import status
 from freezegun import freeze_time
 
 from kobo.apps.accounts.mfa.tests.utils import (
@@ -13,9 +14,10 @@ from kobo.apps.accounts.mfa.tests.utils import (
     get_mfa_code_for_user,
 )
 from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.audit_log.signals import create_access_log
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import Organization
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
@@ -23,6 +25,8 @@ from kpi.constants import (
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.transaction import immediate_on_commit
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import (
     post_assign_partial_perm,
     post_assign_perm,
@@ -139,10 +143,17 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         with skip_login_access_log():
             self.client.login(username='user', password='pass')
         self.client.post(reverse('loginas-user-login', args=[new_user.id]))
-        self.assertEqual(AuditLog.objects.count(), 1)
-        audit_log = AuditLog.objects.first()
+
+        # django-loginas triggers an AccessLog (AUTH) and a LogEntry (ADMIN_UPDATE)
+        self.assertEqual(AuditLog.objects.count(), 2)
+        audit_log = AuditLog.objects.get(action=AuditAction.AUTH)
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+
+        # Verify that the ADMIN_UPDATE log was also created
+        admin_update_log = AuditLog.objects.get(action=AuditAction.ADMIN_UPDATE)
+        self.assertEqual(admin_update_log.user.id, AccessLogsSignalsTestCase.user.id)
+        self.assertEqual(admin_update_log.action, AuditAction.ADMIN_UPDATE)
 
 
 @ddt
@@ -235,3 +246,148 @@ class ProjectHistoryLogsSignalsTestCase(BaseTestCase):
         self.asset.assign_perm(self.user, PERM_VIEW_ASSET, deny=True)
         # nothing added since the permission was denied
         self.assertDictEqual(self.wsgi_request.partial_permissions_added, {})
+
+
+class TestAdminAuditLogIntegration(BaseTestCase):
+    fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse(self._get_endpoint('audit-log-list'))
+        self.admin = User.objects.get(username='adminuser')
+        self.someuser = User.objects.get(username='someuser')
+        self.organization = Organization.objects.create(
+            id='org999', name='Test Org for Audit', mmo_override=False
+        )
+        self.organization.add_user(self.someuser)
+        self.client.force_login(self.admin)
+
+    def test_admin_create_triggers_audit_log(self):
+        """
+        Tests that creating a new object via the Admin generates an ADMIN_CREATE log
+        """
+        url = reverse('admin:organizations_organization_add')
+
+        payload = {
+            'name': 'Brand New Organization',
+            'mmo_override': 'on',
+            'owner-TOTAL_FORMS': 0,
+            'owner-INITIAL_FORMS': 0,
+            'owner-MIN_NUM_FORMS': 0,
+            'owner-MAX_NUM_FORMS': 1,
+            'organization_users-TOTAL_FORMS': 0,
+            'organization_users-INITIAL_FORMS': 0,
+            'organization_users-MIN_NUM_FORMS': 0,
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.ADMIN_CREATE,
+            model_name='organization'
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.log_type, AuditType.ADMIN_INTERFACE)
+        self.assertIn('created organization', latest_log.metadata['message'].lower())
+        self.assertIn('Brand New Organization', latest_log.metadata['message'])
+
+        # Check that the log is returned in the API response
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_log = response.data['results'][0]
+        self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
+        self.assertEqual(audit_log['action'], AuditAction.ADMIN_CREATE)
+
+    def test_admin_update_triggers_audit_log(self):
+        """
+        Tests that submitting a change via the Admin generates an ADMIN_UPDATE log
+        """
+        url = reverse(
+            'admin:organizations_organization_change',
+            kwargs={'object_id': self.organization.id},
+        )
+
+        payload = {
+            'name': 'Updated Test Org Name',
+            'mmo_override': 'on',
+            'owner-0-id': self.organization.owner.id,
+            'owner-0-organization': self.organization.id,
+            'owner-TOTAL_FORMS': 1,
+            'owner-INITIAL_FORMS': 1,
+            'owner-MIN_NUM_FORMS': 0,
+            'owner-MAX_NUM_FORMS': 1,
+            'organization_users-TOTAL_FORMS': 0,
+            'organization_users-INITIAL_FORMS': 0,
+            'organization_users-MIN_NUM_FORMS': 0,
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.ADMIN_UPDATE,
+            object_id=self.organization.id
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.model_name, 'organization')
+        self.assertIn(
+            "adminuser updated organization 'Updated Test Org Name' (pk: org999)",
+            latest_log.metadata['message']
+        )
+        self.assertIn(
+            'Changed Name and Make organization multi-member (necessary for adding users)',  # noqa: E501
+            latest_log.metadata['message']
+        )
+
+        # Check that the log is returned in the API response
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_log = response.data['results'][0]
+        self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
+        self.assertEqual(audit_log['action'], AuditAction.ADMIN_UPDATE)
+
+    def test_admin_delete_triggers_audit_log(self):
+        """
+        Tests that deleting an object via the Admin generates an ADMIN_DELETE log
+        """
+        url = reverse(
+            'admin:organizations_organization_delete',
+            kwargs={'object_id': self.organization.id},
+        )
+
+        # To bypass the admin "Are you sure?" confirmation page,
+        # we need to pass a POST request with the "post" parameter set to "yes"
+        payload = {'post': 'yes'}
+
+        with immediate_on_commit():
+            response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Organization.objects.filter(id=self.organization.id).exists())
+
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.ADMIN_DELETE,
+            object_id=self.organization.id
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.model_name, 'organization')
+        self.assertIn(
+            "adminuser deleted organization 'Test Org for Audit' (pk: org999)",
+            latest_log.metadata['message']
+        )
+
+        # Check that the log is returned in the API response
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_log = response.data['results'][0]
+        self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
+        self.assertEqual(audit_log['action'], AuditAction.ADMIN_DELETE)
