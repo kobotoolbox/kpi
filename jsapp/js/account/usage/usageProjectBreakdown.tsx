@@ -31,7 +31,7 @@ const ProjectBreakdown = () => {
   const [order, setOrder] = useState<ProjectsTableOrder>({})
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
-    offset: 0,
+    start: 0,
   })
 
   function getQueryParams() {
