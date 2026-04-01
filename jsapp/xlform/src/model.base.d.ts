@@ -1,85 +1,87 @@
-// Note: please be cautious in trusting those types. They should be fine, but AI helped build them.
-//
-// Context: this types definition file was built with AI assistance to significantly cut the time on building them.
-// It was reviewed by a dev, but one who doesn't have full understanding of Backbone, plus Form Builder code written in
-// CoffeeScript is quite old and rarely maintained - increasing the risk of having errors in here.
-import * as Backbone from 'backbone'
+// // FIXME: Incorporate these comments (if accurate) into model.base
 
-/** Base configuration for the XLForm model structure */
-export interface BaseOptions {
-  _parent?: any
-}
+// // Note: please be cautious in trusting those types. They should be fine, but AI helped build them.
+// //
+// // Context: this types definition file was built with AI assistance to significantly cut the time on building them.
+// // It was reviewed by a dev, but one who doesn't have full understanding of Backbone, plus Form Builder code written in
+// // CoffeeScript is quite old and rarely maintained - increasing the risk of having errors in here.
+// import * as Backbone from 'backbone'
 
-/** Enhanced Collection that supports tree traversal back to the root Survey */
-export class BaseCollection<T extends Backbone.Model> extends Backbone.Collection<T> {
-  _parent: any
-  constructor(models?: TModel[] | any[], options?: BaseOptions)
+// /** Base configuration for the XLForm model structure */
+// export interface BaseOptions {
+//   _parent?: any
+// }
 
-  /** Traverses up the parent chain until it finds the root Survey object */
-  getSurvey(): any
-}
+// /** Enhanced Collection that supports tree traversal back to the root Survey */
+// export class BaseCollection<T extends Backbone.Model> extends Backbone.Collection<T> {
+//   _parent: any
+//   constructor(models?: TModel[] | any[], options?: BaseOptions)
 
-/** Enhanced Model providing XLSForm-specific lifecycle and traversal methods */
-export class BaseModel extends Backbone.Model {
-  _parent: any
-  constructor(attributes?: any, options?: BaseOptions)
+//   /** Traverses up the parent chain until it finds the root Survey object */
+//   getSurvey(): any
+// }
 
-  // Lifecycle placeholders
-  parse(): void
-  linkUp(ctx: any): void
-  finalize(): void
+// /** Enhanced Model providing XLSForm-specific lifecycle and traversal methods */
+// export class BaseModel extends Backbone.Model {
+//   _parent: any
+//   constructor(attributes?: any, options?: BaseOptions)
 
-  /**
-   * Retrieves the value of an attribute from the RowDetail model.
-   * Note: This usually returns a RowDetail object, not the raw string value.
-   * Use `.getValue()` if you want the actual content.
-   */
-  get(attributeName: string): any
+//   // Lifecycle placeholders
+//   parse(): void
+//   linkUp(ctx: any): void
+//   finalize(): void
 
-  /** Sets a hash of attributes (one or many) on the model */
-  set(attributeName: string, value: any, options?: any): this
-  set(attributes: any, options?: any): this
+//   /**
+//    * Retrieves the value of an attribute from the RowDetail model.
+//    * Note: This usually returns a RowDetail object, not the raw string value.
+//    * Use `.getValue()` if you want the actual content.
+//    */
+//   get(attributeName: string): any
 
-  /**
-   * Smart getter: if the attribute is a RowDetail, returns its inner value.
-   * If 'what' is omitted, looks for the "value" attribute.
-   */
-  getValue(what?: string): any
+//   /** Sets a hash of attributes (one or many) on the model */
+//   set(attributeName: string, value: any, options?: any): this
+//   set(attributes: any, options?: any): this
 
-  /** Sets an attribute as a RowDetail object rather than a primitive */
-  setDetail(what: string, value: any): void
+//   /**
+//    * Smart getter: if the attribute is a RowDetail, returns its inner value.
+//    * If 'what' is omitted, looks for the "value" attribute.
+//    */
+//   getValue(what?: string): any
 
-  /** Navigation Helpers */
-  parentRow(): any
-  precedingRow(): any
-  nextRow(): any
+//   /** Sets an attribute as a RowDetail object rather than a primitive */
+//   setDetail(what: string, value: any): void
 
-  /** Traverses up through parents or collections to find the root Survey */
-  getSurvey(): any
-}
+//   /** Navigation Helpers */
+//   parentRow(): any
+//   precedingRow(): any
+//   nextRow(): any
 
-/**
- * Represents a single "cell" or property of a Row (e.g. its label or name).
- * Supports complex mixins and cell-level validation.
- */
-export class RowDetail extends BaseModel {
-  key: string
-  _order: number
-  hidden: boolean
-  idAttribute: 'name'
+//   /** Traverses up through parents or collections to find the root Survey */
+//   getSurvey(): any
+// }
 
-  constructor(attributes: { key: string; value: any }, options: BaseOptions)
+// /**
+//  * Represents a single "cell" or property of a Row (e.g. its label or name).
+//  * Supports complex mixins and cell-level validation.
+//  */
+// export class RowDetail extends BaseModel {
+//   key: string
+//   _order: number
+//   hidden: boolean
+//   idAttribute: 'name'
 
-  /** Hook for post-constructor logic */
-  postInitialize(): void
+//   constructor(attributes: { key: string; value: any }, options: BaseOptions)
 
-  /** Validation logic that checks for uniqueness (for `name`) and requirements based on the key type */
-  validation(): any
-}
+//   /** Hook for post-constructor logic */
+//   postInitialize(): void
 
-declare const base: {
-  BaseCollection: typeof BaseCollection
-  BaseModel: typeof BaseModel
-  RowDetail: typeof RowDetail
-}
-export default base
+//   /** Validation logic that checks for uniqueness (for `name`) and requirements based on the key type */
+//   validation(): any
+// }
+
+// declare const base: {
+//   BaseCollection: typeof BaseCollection
+//   BaseModel: typeof BaseModel
+//   RowDetail: typeof RowDetail
+// }
+// export default base

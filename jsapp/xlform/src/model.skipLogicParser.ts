@@ -1,4 +1,6 @@
 // 📘 generated from ./model.skipLogicParser.civet 
+// DONE: model.skipLogicParser
+
 import $factory from './model.validationLogicParserFactory'
 
 /* debug method for regexes

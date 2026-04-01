@@ -1,58 +1,70 @@
 "civet coffeeCompat"
 
-_ = require 'underscore'
-$skipLogicParser = require './model.skipLogicParser'
-$validationLogicParser = require './model.validationLogicParser'
+// TODO file: model.utils
 
-module.exports = do ->
+import _ from 'underscore'
+import $skipLogicParser from './model.skipLogicParser'
+import $validationLogicParser from'./model.validationLogicParser'
 
-  utils =
-    skipLogicParser: $skipLogicParser
-    validationLogicParser: $validationLogicParser
+function _trim(str: string)
+  return str.replace(/^[\s\t\uFEFF\xA0]+|[\s\t\uFEFF\xA0]+$/g, '')
 
-  _trim = (str)->
-    return str.replace(/^[\s\t\uFEFF\xA0]+|[\s\t\uFEFF\xA0]+$/g, '')
+// export
+// TODO(docs): add a better comment than in model.utils.d.ts
+function split_paste(str: string)
+  out = []
+  for row in str.split('\n')
+    trimmed = _trim(row)
+    unless trimmed.match(/^\s*$/)
+      out.push(trimmed.split(/\t/))
+  out_out = []
+  for row in out[1..]
+    orow = []
+    for n in [0...row.length]
+      key = out[0][n]
+      val = row[n]
+      if val.length > 0
+        orow.push([key, val])
+    out_out.push(_.object(orow))
+  return out_out
 
-  utils.split_paste = (str)->
-    out = []
-    for row in str.split('\n')
-      trimmed = _trim(row)
-      unless trimmed.match(/^\s*$/)
-        out.push(trimmed.split(/\t/))
-    out_out = []
-    for row in out[1..]
-      orow = []
-      for n in [0...row.length]
-        key = out[0][n]
-        val = row[n]
-        if val.length > 0
-          orow.push([key, val])
-      out_out.push(_.object(orow))
-    return out_out
+// TODO(phil): When does this get called?
+// // export
+// function parseSkipLogic(collection, value, parent_row)
+//   collection.meta.set("rawValue", value)
+//   try
+//     parsedValues = $skipLogicParser(value)
+//     collection.reset()
+//     collection.parseable = true
+//     for crit in parsedValues.criteria
+//       opts = {
+//         name: crit.name
+//         expressionCode: crit.operator
+//       }
+//       if crit.operator is "multiplechoice_selected"
+//         opts.criterionOption = collection.getSurvey().findRowByName(crit.name).getList().options.get(crit.response_value)
+//       else
+//         criterion = crit.response_value
+//       collection.add(opts, silent: true, _parent: parent_row)
+//     if parsedValues.operator
+//       collection.meta.set("delimSelect", parsedValues.operator.toLowerCase())
+//       return
+//   catch e
+//     collection.parseable = false
+//     return
+
+parseHelper := { parseSkipLogic }
+
+utils := do ->
+
+  // utils :=
+  //   skipLogicParser: $skipLogicParser
+  //   validationLogicParser: $validationLogicParser
+
+  // utils.split_paste
 
   utils.parseHelper =
     parseSkipLogic: (collection, value, parent_row) ->
-      collection.meta.set("rawValue", value)
-      try
-        parsedValues = $skipLogicParser(value)
-        collection.reset()
-        collection.parseable = true
-        for crit in parsedValues.criteria
-          opts = {
-            name: crit.name
-            expressionCode: crit.operator
-          }
-          if crit.operator is "multiplechoice_selected"
-            opts.criterionOption = collection.getSurvey().findRowByName(crit.name).getList().options.get(crit.response_value)
-          else
-            opts.criterion = crit.response_value
-          collection.add(opts, silent: true, _parent: parent_row)
-        if parsedValues.operator
-          collection.meta.set("delimSelect", parsedValues.operator.toLowerCase())
-          return
-      catch e
-        collection.parseable = false
-        return
 
   utils.sluggifyLabel = (str, other_names=[])->
     return utils.sluggify(str, {
@@ -150,3 +162,5 @@ module.exports = do ->
     return str
 
   return utils
+
+export default utils
