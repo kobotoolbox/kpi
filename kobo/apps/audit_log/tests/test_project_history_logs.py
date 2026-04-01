@@ -193,7 +193,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'action': action,
             }
         }
-        url = reverse('api_v2:asset-bulk')
+        url = reverse(self._get_endpoint('asset-bulk'))
         response = self.client.post(url, data=payload, format='json')
         return response
 

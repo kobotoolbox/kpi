@@ -2688,6 +2688,8 @@ class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
 
 
 class TestAssetMetadataViewSet(BaseAssetTestCase):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
     # don't use test_data fixture here because we need control over how many assets
     # each user has and what they contain
     @classmethod
