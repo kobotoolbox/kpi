@@ -1,45 +1,43 @@
 // 📘 generated from ./model.aliases.civet 
 
-var _; var indexOf: <T>(this: T[], searchElement: T) => number = [].indexOf as any
-_ = require('underscore')
+var indexOf: <T>(this: T[], searchElement: T) => number = [].indexOf as any
+import _ from 'underscore'
 
-module.exports = (function() {
-  var aliases_dict, aliases, q
-  aliases_dict = {
-    group: [
-      'begin group',
-      'end group',
-      'begin_group',
-      'end_group',
-    ],
-    repeat: [
-      'begin repeat',
-      'end repeat',
-      'begin_repeat',
-      'end_repeat',
-    ],
-    kobomatrix: [
-      'begin_kobomatrix',
-      'end_kobomatrix',
-    ],
-    score: [
-      'begin score',
-      'end score',
-      'begin_score',
-      'end_score',
-    ],
-    rank: [
-      'begin_rank',
-      'end_rank',
-      'begin rank',
-      'end rank',
-    ],
-  }
+const aliases_dict = {
+  group: [
+    'begin group',
+    'end group',
+    'begin_group',
+    'end_group',
+  ],
+  repeat: [
+    'begin repeat',
+    'end repeat',
+    'begin_repeat',
+    'end_repeat',
+  ],
+  kobomatrix: [
+    'begin_kobomatrix',
+    'end_kobomatrix',
+  ],
+  score: [
+    'begin score',
+    'end score',
+    'begin_score',
+    'end_score',
+  ],
+  rank: [
+    'begin_rank',
+    'end_rank',
+    'begin rank',
+    'end rank',
+  ],
+}
 
-  aliases = function(name){ return aliases_dict[name] || [name] }
+const aliases = (name: string) => aliases_dict[name as keyof typeof aliases_dict] || [name]
 
-  q = {}
-  q.groupable = function(){
+const q = {
+  groupable() {
     return _.flatten([
       aliases('group'),
       aliases('repeat'),
@@ -47,23 +45,20 @@ module.exports = (function() {
       aliases('rank'),
       aliases('kobomatrix'),
     ])
-  }
+  },
 
-  q.groupsOrRepeats = function(){
+  groupsOrRepeats() {
     return _.flatten([aliases('group'), aliases('repeat')])
-  }
+  },
 
-  q.requiredSheetNameList = function(){
+  requiredSheetNameList() {
     return ['survey']
-  }
+  },
 
-  q.testGroupable = function(type){
-    
-    
-    var out
+  testGroupable(type: string) {
     // Returns an object if type is group or repeat (begin or end)
     //  otherwise, returns false
-    out = false
+    let out
     if (indexOf.call(aliases_dict.group, type) >= 0) {
       out = {type: 'group'}
     } else if (indexOf.call(aliases_dict.repeat, type) >= 0) {
@@ -75,18 +70,18 @@ module.exports = (function() {
     } else if (indexOf.call(aliases_dict.kobomatrix, type) >= 0) {
       out = {type: 'kobomatrix'}
     }
-    if (out && out.type) {
-      out.begin = !type.match(/end/)
-    }
-    return out
-  }
+    if (!out) return false
 
-  q.testGroupOrRepeat = function(type){
+    const begin = !type.match(/end/)
+    return { begin, ...out }
+  },
+
+  testGroupOrRepeat(type: string) {
     console.error('q.testGroupOrRepeat is renamed to q.testGroupable')
     return q.testGroupable(type)
-  }
+  },
 
-  q.hiddenTypes = function(){
+  hiddenTypes() {
     return _.flatten([
       ['imei', 'deviceid'],
       ['start'],
@@ -97,10 +92,10 @@ module.exports = (function() {
       ['phonenumber', 'phone_number'],
       ['audit'],
     ])
-  }
+  },
+}
 
-  aliases.custom = q
+aliases.custom = aliases.q = q
 
-  aliases.q = aliases.custom
-  return aliases
-})()
+export default aliases
+

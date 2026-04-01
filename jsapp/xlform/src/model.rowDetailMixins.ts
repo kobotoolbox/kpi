@@ -34,8 +34,9 @@ const SkipLogicDetailMixin = {
 
     this.facade = new $skipLogicHelpers.SkipLogicPresentationFacade(
       model_factory, helper_factory, view_factory)
-    
+    return
   },
+
 
   serialize: function(){
     // @hidden = false
