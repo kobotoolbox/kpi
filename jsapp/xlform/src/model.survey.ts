@@ -30,7 +30,7 @@ import csv                from './csv'
 import { LOCKING_PROFILES_PROP_NAME } from '#/components/locking/lockingConstants'
 import { txtid } from '#/utils'
 
-
+// extends SurveyFragment, which extends Collection
 class Survey extends $surveyFragment.SurveyFragment {
   constructor(options={}, addlOpts){
     var sname, r
@@ -538,7 +538,10 @@ class Settings extends $base.BaseModel {
   }
 }
 
-
+export {
+  Survey,
+  Settings,
+}
 export default {
   Survey,
   Settings,
