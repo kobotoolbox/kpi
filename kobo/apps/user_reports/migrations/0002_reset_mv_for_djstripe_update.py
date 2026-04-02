@@ -7,6 +7,7 @@ from kobo.apps.user_reports.utils.migrations import (
     DROP_MV_SQL,
 )
 
+
 def recreate_mv(apps, schema_editor):
     if settings.SKIP_HEAVY_MIGRATIONS:
         reset_lrm_0019(apps)
