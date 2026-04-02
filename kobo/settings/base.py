@@ -1394,6 +1394,12 @@ CSP_REPORT_ONLY = env.bool('CSP_REPORT_ONLY', False)
 
 CELERY_TIMEZONE = 'UTC'
 
+# Use a throttled scheduler to prevent Beat from reloading its entire schedule
+# on every PeriodicTask change signal. On high-volume servers, one_off task
+# completions trigger hundreds of reload signals per minute, starving dispatch.
+# See kobo/apps/beat/schedulers.py for details.
+CELERY_BEAT_SCHEDULER = 'kobo.apps.beat.schedulers.ThrottledDatabaseScheduler'
+
 # helpful for certain debugging
 CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', False)
 
