@@ -65,6 +65,7 @@ class MassEmailConfig(AbstractTimeStampedModel):
     )
     frequency = models.IntegerField(default=-1)
     live = models.BooleanField(default=False)
+    errors = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
