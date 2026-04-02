@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
 
+from hub.models import V1UserTracker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.constants import UsageType
@@ -269,3 +270,20 @@ def get_all_test_users() -> QuerySet:
     # remove empty strings
     test_emails = [email for email in test_emails if len(email) > 0]
     return User.objects.filter(email__in=test_emails)
+
+
+def get_users_who_are_accessing_v1_endpoints(days: int = 365) -> QuerySet:
+    """
+    Retrieve users who have accessed v1 endpoints within a specified number of days
+    """
+    days = days or 365
+    activity_threshold = now() - timedelta(days=days)
+
+    v1_user_ids = V1UserTracker.objects.filter(
+        last_accessed__gte=activity_threshold
+    ).values_list('user_id', flat=True)
+
+    excluded_users = get_users_inactive_or_in_trash()
+    return User.objects.filter(id__in=v1_user_ids).exclude(
+        Q(id__in=excluded_users) | Q(pk=settings.ANONYMOUS_USER_ID)
+    )
