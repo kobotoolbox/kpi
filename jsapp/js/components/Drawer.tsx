@@ -8,6 +8,7 @@ import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
+import { getCurrentPath } from '#/router/routerUtils'
 import { MODAL_TYPES } from '../constants'
 import { routerIsActive } from '../router/legacy'
 import SidebarFormsList from '../sidebar/SidebarFormsList'
@@ -83,7 +84,15 @@ export default function Drawer() {
               </Button>
             </div>
 
-            <SidebarFormsList />
+            <SidebarFormsList
+              context={
+                getCurrentPath() === PROJECTS_ROUTES.MY_ORG_PROJECTS
+                  ? 'my-org-projects'
+                  : getCurrentPath().startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
+                    ? 'custom-view-projects'
+                    : 'my-projects'
+              }
+            />
           </bem.FormSidebarWrapper>
         )}
       </bem.KDrawer__sidebar>
