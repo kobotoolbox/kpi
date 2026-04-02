@@ -706,7 +706,7 @@ class XLSDataFrameWriter:
 
     def write_to_excel(self, excel_writer, sheet_name, header=False,
                        index=False):
-        self.dataframe.to_excel(excel_writer, sheet_name, header=header,
+        self.dataframe.to_excel(excel_writer, sheet_name=sheet_name, header=header,
                                 index=index)
 
 
