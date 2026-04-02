@@ -8,6 +8,7 @@ from typing import Any, Union
 import constance
 from django.conf import settings
 from django.core.cache import cache
+from google.api_core import client_options
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech
 
@@ -78,7 +79,16 @@ class GoogleTranscriptionService(GoogleService):
         total_seconds = int(duration.total_seconds())
 
         # Create the parameters required for the transcription
-        speech_client = speech.SpeechClient(credentials=self.credentials)
+        client_opts = None
+        speech_location = constance.config.ASR_MT_GOOGLE_SPEECH_LOCATION
+        if speech_location and speech_location.lower() != 'global':
+            client_opts = client_options.ClientOptions(
+                api_endpoint=f'{speech_location}-speech.googleapis.com'
+            )
+
+        speech_client = speech.SpeechClient(
+            credentials=self.credentials, client_options=client_opts
+        )
         config = speech.RecognitionConfig(
             language_code=source_lang,
             enable_automatic_punctuation=True,

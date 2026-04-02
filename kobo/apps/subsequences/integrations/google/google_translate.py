@@ -39,15 +39,21 @@ class GoogleTranslationService(GoogleService):
         self.translate_client = translate.TranslationServiceClient(
             credentials=google_credentials_from_constance_config()
         )
-        self.translate_parent = (
-            f'projects/{constance.config.ASR_MT_GOOGLE_PROJECT_ID}'
-        )
+        translation_location = constance.config.ASR_MT_GOOGLE_TRANSLATION_LOCATION
+        project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
+        if translation_location and translation_location.lower() != 'global':
+            self.translate_parent = (
+                f'projects/{project_id}/'
+                f'locations/{translation_location}'
+            )
+        else:
+            self.translate_parent = f'projects/{project_id}'
         # "The global location is not supported for batch translation." See:
         # https://googleapis.dev/python/translation/2.0.0/gapic/v3/api.html
         # https://www.googlecloudcommunity.com/gc/AI-ML/location-variable-setting-for-the-Google-Cloud-Translation-API/m-p/543622/highlight/true#M1652
         self.translate_async_parent = (
-            f'projects/{constance.config.ASR_MT_GOOGLE_PROJECT_ID}/'
-            f'locations/{constance.config.ASR_MT_GOOGLE_TRANSLATION_LOCATION}'
+            f'projects/{project_id}/'
+            f'locations/{translation_location}'
         )
         self.bucket_prefix = (
             constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX
