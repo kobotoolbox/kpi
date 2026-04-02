@@ -28,6 +28,7 @@ dict2xml
 defusedxml
 dj-static
 dj-stripe
+stripe<15  # breaking change in version 15
 django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces

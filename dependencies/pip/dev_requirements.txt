@@ -649,8 +649,10 @@ static3==0.7.0
     #   dj-static
 statistics==1.0.3.5
     # via formpack
-stripe==15.0.1
-    # via dj-stripe
+stripe==14.4.1
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   dj-stripe
 tablib==3.9.0
     # via django-import-export
 tabulate==0.10.0
