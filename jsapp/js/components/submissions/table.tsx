@@ -1,9 +1,8 @@
 import './table.scss'
-
-import React from 'react'
-
+import { Group } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
+import React from 'react'
 import { DebounceInput } from 'react-debounce-input'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
@@ -957,9 +956,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           // This identifies supplemental details column
           if (row.value === undefined && q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+            const supplementalValue = getSupplementalDetailsContent(row.original, key)
+            if (key.endsWith('verified')) {
+              return <Group h='100%'>{supplementalValue}</Group>
+            }
             return (
               <TextModalCell
-                text={getSupplementalDetailsContent(row.original, key) || ''}
+                text={supplementalValue}
                 columnName={columnName}
                 submissionIndex={row.index + 1}
                 submissionTotal={this.state.submissions.length}
