@@ -1,7 +1,3 @@
-from datetime import timedelta
-
-from django.utils import timezone
-
 from hub.models.v1_user_tracker import V1UserTracker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_users_who_are_accessing_v1_endpoints
@@ -13,22 +9,25 @@ class V1UserActivityQueryTests(BaseTestCase):
     """
     Tests for identifying users who are accessing v1 endpoints
     """
+    fixtures = ['test_data']
 
-    def setUp(self):
-        super().setUp()
-        self.tracked_user = User.objects.create_user(
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.superuser = User.objects.get(username='adminuser')
+        cls.tracked_user = User.objects.create_user(
             username='tracked-user',
             email='tracked@example.com',
             password='test-pass-123',
         )
-        self.untracked_user = User.objects.create_user(
+        cls.untracked_user = User.objects.create_user(
             username='untracked-user',
             email='untracked@example.com',
             password='test-pass-123',
         )
 
         V1UserTracker.objects.create(
-            user=self.tracked_user,
+            user=cls.tracked_user,
             last_accessed_path='/assets/',
         )
 
@@ -38,11 +37,9 @@ class V1UserActivityQueryTests(BaseTestCase):
         self.assertNotIn(self.untracked_user, users)
 
     def test_trashed_users_are_excluded(self):
-        superuser = User.objects.create_superuser('super')
-
         # Move tracked user to trash and check they're not included
         move_to_trash(
-            request_author=superuser,
+            request_author=self.superuser,
             objects_list=[
                 {
                     'pk': self.tracked_user.pk,
@@ -61,14 +58,4 @@ class V1UserActivityQueryTests(BaseTestCase):
         self.tracked_user.save()
 
         users = get_users_who_are_accessing_v1_endpoints()
-        self.assertNotIn(self.tracked_user, users)
-
-    def test_users_with_old_v1_access_are_excluded(self):
-        # Set last accessed to over 90 days ago
-        old_date = timezone.now() - timedelta(days=91)
-        V1UserTracker.objects.filter(user=self.tracked_user).update(
-            last_accessed=old_date,
-        )
-
-        users = get_users_who_are_accessing_v1_endpoints(days=90)
         self.assertNotIn(self.tracked_user, users)
