@@ -20,5 +20,4 @@ export interface UserReportsServiceUsageResponse {
   balances: ServiceUsageBalances
   current_period_start: string
   current_period_end: string
-  last_updated: string
 }

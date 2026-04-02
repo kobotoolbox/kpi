@@ -1,4 +1,5 @@
 import copy
+import time
 import uuid
 from datetime import timedelta
 from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
@@ -8,8 +9,9 @@ import pytest
 from botocore.exceptions import ClientError
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -56,6 +58,7 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_VALIDATION_MAIN_UUID,
 )
 from kobo.apps.subsequences.tests.utils import MockLLMClient
+from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
 from kpi.models import Asset
@@ -616,10 +619,24 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert result.get('error') == 'LLM returned empty response'
 
 
+@override_settings(CACHES={
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+})
 class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
     def setUp(self):
         super().setUp()
         cache.clear()
+        # SimpleRateThrottle.timer is a direct reference to time.time captured
+        # at import time. freeze_time patches time.time at the module level but
+        # cannot reach this stored reference. We replace it with a lambda that
+        # calls time.time() dynamically so freeze_time can take effect.
+        patcher = patch.object(
+            AutomaticQARateThrottle, 'timer', new=staticmethod(lambda: time.time())
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.submission_uuid = self._add_submission()
         self.transcript_dict = self._add_manual_transcription(self.submission_uuid)
         self.supplement_details_url = reverse(
