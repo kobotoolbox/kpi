@@ -151,13 +151,12 @@ class MassEmailSender:
         limit_by_type: dict[Enum, int],
     ) -> int:
         """
-                Determine the number of emails to be sent for the given config
+        Determine the number of emails to be sent for the given config
 
-                :param email_config: MassEmailConfig
-                :param current_total: Total limits already calculated (for both types)
-                :param total_records_by_type: Total enqueued records for all sends
-                :param limit_by_type: Send limits for recurring and one-time sends<!-- Delete this section if summary already said everything. -->
-        <!-- Full description for the public changelog, worded for non-technical seasoned Kobo users. -->
+        :param email_config: MassEmailConfig
+        :param current_total: Total limits already calculated (for both types)
+        :param total_records_by_type: Total enqueued records for all sends
+        :param limit_by_type: Send limits for recurring and one-time sends
         """
         email_type = email_config.type
         total_records = total_records_by_type[email_type]
