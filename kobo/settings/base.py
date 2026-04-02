@@ -1370,8 +1370,17 @@ _csp_directives = {
 _csp_report_uri = env.url('CSP_REPORT_URI', None)
 
 if _csp_report_uri:  # Let environ validate uri, but set as string
+    # _csp_directives is mutated in place here; the same dict is later
+    # assigned (by reference) to whichever setting branch is taken below,
+    # so report-uri ends up in the active policy regardless of REPORT_ONLY.
     _csp_directives['report-uri'] = [_csp_report_uri.geturl()]
 
+# CONTENT_SECURITY_POLICY (or its REPORT_ONLY counterpart) is always
+# defined at module load time, even when ENABLE_CSP=False. django-csp 4.0
+# is inert without its middleware, so this is harmless in practice.
+# This mirrors the old behaviour (flat CSP_* settings were also always set).
+# Do not use the presence of these settings as a proxy for "CSP is enabled";
+# check ENABLE_CSP or the middleware list instead.
 if env.bool('CSP_REPORT_ONLY', False):
     CONTENT_SECURITY_POLICY_REPORT_ONLY = {'DIRECTIVES': _csp_directives}
 else:
