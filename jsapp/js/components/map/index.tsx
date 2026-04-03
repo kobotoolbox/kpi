@@ -15,7 +15,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { check } from '@placemarkio/check-geojson'
 
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
-import LoadingSpinner from '../../../js/components/common/loadingSpinner'
 import Modal from '../../../js/components/common/modal'
 // Partial components
 import PopoverMenu from '../../../js/popoverMenu'
@@ -240,7 +239,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     this.createDataQuery(this.props.viewby)
-    this.rebuildMap(map)
+    this.rebuildMapLayers(map)
     this.unlisteners.push(
       actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
       actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
@@ -478,8 +477,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.props.setFields(JSON.stringify(fq))
   }
 
-  rebuildMap(map: L.Map) {
+  rebuildMapLayers(map: L.Map) {
     this.buildMarkers(map)
+    // TODO: when heat map is selected and the user refteches data (changes question or selects a disaggregation) the
+    // map will rebuild and display both markers and heat map
     this.buildHeatMap(map)
   }
 
@@ -633,7 +634,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
 
-      if (prepPoints.length === 0 && !this.props.isLoading) {
+      if (prepPoints.length === 0) {
         map.fitBounds([[42.373, -71.124]])
         this.setState({ noData: true })
       } else {
@@ -815,21 +816,26 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     if ((prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0) {
       console.log('i am supposed to be here every time')
       this.setState({ submissions: this.props.allData as SubmissionResponse[] }, () => {
-        const newMap = this.refreshMap()
+        const newMap = this.removeOldMapLayers()
         if (newMap) {
-          this.rebuildMap(newMap)
+          this.rebuildMapLayers(newMap)
         }
       })
     }
     if (prevProps.viewby !== this.props.viewby) {
-      const newMap = this.refreshMap()
+      this.createDataQuery(this.props.viewby)
+      const newMap = this.removeOldMapLayers()
       if (newMap) {
-        this.rebuildMap(newMap)
+        this.rebuildMapLayers(newMap)
       }
     }
   }
 
-  refreshMap() {
+  /**
+   * If map needs to display a new set of markers, either from changing the question or selecting a disaggregation, we
+   * need to remove the old markers and return an empty map to be populated.
+   */
+  removeOldMapLayers() {
     const map = this.state.map
     if (map && this.state.markers) {
       map.removeLayer(this.state.markers)
@@ -875,11 +881,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         overridenStyles: mapStyles,
       },
       () => {
-        const newMap = this.refreshMap()
+        const newMap = this.removeOldMapLayers()
 
         if (newMap) {
           this.createDataQuery(this.props.viewby)
-          this.rebuildMap(newMap)
+          this.rebuildMapLayers(newMap)
         }
       },
     )
@@ -1090,6 +1096,16 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </div>
         )}
 
+        {this.props.isLoading && (
+          <div className='map-transparent-background'>
+            <div className='map-no-geopoint-wrapper'>
+              <p className='map-no-geopoint'>
+                {t('Fetching points...')}
+              </p>
+            </div>
+          </div>
+        )}
+
         {this.state.markerMap && this.state.markersVisible && (
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
@@ -1144,7 +1160,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
             </div>
           </bem.FormView__mapList>
         )}
-        {((!this.state.markers && !this.state.heatmap) || this.props.isLoading) && <LoadingSpinner message={false} />}
+
         {this.state.showMapSettings && (
           <Modal open onClose={this.toggleMapSettings.bind(this)} title={t('Map Settings')}>
             <MapSettings

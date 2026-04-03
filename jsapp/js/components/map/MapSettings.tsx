@@ -359,7 +359,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                     'By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.',
                   ).replace('##QUERY_LIMIT_DEFAULT##', String(QUERY_LIMIT_DEFAULT))}
                   <p className='change-limit-warning'>
-                    Warning: Displaying a large number of points requires a lot of memory.
+                    {t('Warning: Displaying a large number of points can take a long time to load')}
                   </p>
                   <form className='change-limit-form'>
                     <input
