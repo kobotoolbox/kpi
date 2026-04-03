@@ -33,10 +33,7 @@ export function resolveSidebarContext(): SidebarContext {
     return 'my-projects'
   }
 
-  if (
-    currentPath !== PROJECTS_ROUTES.MY_PROJECTS &&
-    currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
-  ) {
+  if (currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))) {
     return 'custom-view-projects'
   }
 
