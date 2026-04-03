@@ -6,7 +6,7 @@ import { queryClient } from '../queryClient'
  * Unfortunately, it will invalidate all specific users as well.
  *
  * It's because our API structure + Orval key generation rules are, in short, as follows:
- * - `['api', 'v2', 'users', pagination]` for lists, where `pagination` is an object e.g. `{limit: 10, offset: 0}`.
+ * - `['api', 'v2', 'users', pagination]` for lists, where `pagination` is an object e.g. `{limit: 10, start: 0}`.
  * - `['api', 'v2', 'users', userId]` for specific items, where `userId` is a string.
  * - `['api', 'v2', 'users']` thus this will select both above.
  *

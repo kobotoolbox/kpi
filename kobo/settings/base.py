@@ -1052,6 +1052,7 @@ SPECTACULAR_SETTINGS = {
         'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
         'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
         'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
+        'AssetDeploymentStatusEnum': 'kpi.serializers.v2.asset.DEPLOYMENT_STATUS_ENUM',
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -2227,5 +2228,5 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
     default='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
 )
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
-    'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-safeguard-120b'
+    'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
 )
