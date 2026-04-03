@@ -141,7 +141,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
             </Center>
           )}
 
-          {!isLoading && rows.length === 0 && <Text p='sm'>{t('No forms found')}</Text>}
+          {!isLoading && !query.isError && rows.length === 0 && <Text p='sm'>{t('No forms found')}</Text>}
 
           {!isLoading &&
             rows.map((asset) => {
