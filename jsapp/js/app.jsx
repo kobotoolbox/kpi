@@ -2,7 +2,6 @@
  * A component with common layout elements for all routes.
  */
 import '#/bemComponents' // importing it so it exists
-import '#/surveyCompanionStore' // importing it so it exists
 
 import React from 'react'
 
