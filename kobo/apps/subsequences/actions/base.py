@@ -394,6 +394,9 @@ class BaseAction:
             format_checker=jsonschema.FormatChecker(),
         )
 
+    def reconcile_actions(self, full_question_supplement_dict):
+        return full_question_supplement_dict
+
     @property
     def result_schema(self):
         """

@@ -74,7 +74,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 feature.action: feature.params
                 for feature in feature_configs_for_this_question
             }
-
+            actions = []
+            question_supplemental_data = supplemental_data.setdefault(
+                question_xpath, {}
+            )
             for action_id, action_data in data_for_this_question.items():
                 if not ACTION_IDS_TO_CLASSES.get(action_id):
                     raise InvalidAction
@@ -83,9 +86,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 except QuestionAdvancedFeature.DoesNotExist as e:
                     raise InvalidAction from e
 
-                question_supplemental_data = supplemental_data.setdefault(
-                    question_xpath, {}
-                )
+
                 action_supplemental_data = question_supplemental_data.setdefault(
                     action_id, {}
                 )
@@ -96,6 +97,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 }
                 action = feature.to_action(prefetched_dependencies)
                 action.check_limits(asset.owner)
+                actions.append(action)
 
                 if not (
                     action_supplemental_data := action.revise_data(
@@ -114,6 +116,8 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 # retrieved_supplemental_data.setdefault(question_xpath, {})[
                 #    action_id
                 # ] = action.retrieve_data(action_supplemental_data)
+            for action in actions:
+                action.reconcile_actions(question_supplemental_data)
 
         supplemental_data['_version'] = schema_version
         validate_submission_supplement(asset, supplemental_data)

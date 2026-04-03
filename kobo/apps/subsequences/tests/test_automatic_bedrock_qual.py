@@ -32,11 +32,11 @@ from kobo.apps.subsequences.constants import (
     Action,
 )
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     ManualQualNotFound,
-    AnalysisQuestionIncorrectlyConfigured,
 )
-from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.prompts import (
     PROMPTS_BY_QUESTION_TYPE,
     InvalidResponseFromLLMException,
@@ -134,9 +134,47 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
         transcript = response.data['q1'][Action.MANUAL_TRANSCRIPTION]['_versions'][0]
         return transcript
 
+    def _add_automatic_transcription(self, submission_uuid) -> dict:
+        feature, _ = QuestionAdvancedFeature.objects.get_or_create(
+            asset=self.asset,
+            action=Action.AUTOMATIC_GOOGLE_TRANSCRIPTION,
+            question_xpath='q1',
+            defaults={'params': [{'language': 'en'}]},
+        )
+        action = feature.to_action()
+
+        mock_service = MagicMock()
+        mock_service.process_data.return_value = {
+            'value': 'This is a transcript',
+            'status': 'complete',
+        }
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
+            return_value=mock_service,
+        ):
+            supplement_details_url = reverse(
+                'api_v2:submission-supplement',
+                args=[self.asset.uid, submission_uuid],
+            )
+
+            payload = {
+                '_version': '20250820',
+                'q1': {
+                    Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: {
+                        'language': 'en',
+                    },
+                },
+            }
+            response = self.client.patch(
+                supplement_details_url, data=payload, format='json'
+            )
+            transcript = response.data['q1'][Action.AUTOMATIC_GOOGLE_TRANSCRIPTION][
+                '_versions'
+            ][0]
+            return transcript
 
 @ddt
-class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
+class TestAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
 
     @data(
         # uuid, extra, should pass
@@ -335,6 +373,38 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         # take the initial note because the most recent request to overwrite failed
         assert text_item['value'] == 'Initial note'
         assert 'error' not in text_item
+
+    def test_auto_accept_transcriptions(self):
+        submission_uuid = self._add_submission()
+        self._add_automatic_transcription(submission_uuid)
+        supplement = SubmissionSupplement.retrieve_data(self.asset, submission_uuid)
+        transcript = supplement['q1'][Action.AUTOMATIC_GOOGLE_TRANSCRIPTION][
+            '_versions'
+        ][0]
+        assert transcript.get('_dateAccepted') is None
+        supplement_details_url = reverse(
+            'api_v2:submission-supplement',
+            args=[self.asset.uid, submission_uuid],
+        )
+
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                Action.AUTOMATIC_BEDROCK_QUAL: {
+                    'uuid': BEDROCK_QUAL_TEXT_UUID,
+                },
+            },
+        }
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
+            return_value=MockLLMClient('LLM text'),
+        ):
+            self.client.patch(supplement_details_url, data=payload, format='json')
+        supplement = SubmissionSupplement.retrieve_data(self.asset, submission_uuid)
+        transcript = supplement['q1'][Action.AUTOMATIC_GOOGLE_TRANSCRIPTION][
+            '_versions'
+        ][0]
+        assert transcript['_dateAccepted'] is not None
 
 
 @ddt

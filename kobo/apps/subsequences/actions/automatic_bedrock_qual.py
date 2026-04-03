@@ -25,9 +25,9 @@ from kobo.apps.subsequences.constants import (
     SOURCE_TYPE_AUTOMATIC,
 )
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     ManualQualNotFound,
-    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
@@ -99,6 +99,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         action_data_key='uuid',
         review_type=ReviewType.VERIFICATION,
     )
+    auto_accept_transcriptions = True
 
     def __init__(
         self,
