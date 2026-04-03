@@ -96,7 +96,7 @@ export default function SidebarFormsList() {
   // Single query hook with conditional function switching to make sure we avoid
   // "more/fewer hooks than during previous render" error
   const countsQuery = useQuery({
-    queryKey: countsQueryKey,
+    queryKey: [resolvedContext, ...countsQueryKey],
     queryFn: () => {
       switch (resolvedContext) {
         case 'my-org-projects':

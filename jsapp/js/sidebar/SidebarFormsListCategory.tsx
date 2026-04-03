@@ -156,7 +156,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
                   className={styles.projectLink}
                 >
                   <Text fz='12' p='3 6'>
-                    <AssetName asset={asset as any} />
+                    <AssetName asset={asset} />
                   </Text>
                 </Link>
               )
