@@ -145,6 +145,10 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
 
           {!isLoading &&
             rows.map((asset) => {
+              // The minimal-list endpoints used by this sidebar only return a subset of asset fields
+              // (for example `uid`, `name`, and `deployment_status`). They do not provide enough
+              // information to reproduce the previous conditional routing to summary/landing views,
+              // so sidebar items intentionally link to the canonical form route instead.
               const href = ROUTES.FORM.replace(':uid', asset.uid)
               const isActiveProject = asset.uid === getRouteAssetUid()
 
