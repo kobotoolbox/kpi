@@ -20,35 +20,30 @@ export const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIE
 
 export type SidebarContext = 'my-projects' | 'my-org-projects' | 'custom-view-projects'
 
-interface SidebarFormsListProps {
-  context?: SidebarContext
-  customViewUid?: string
-}
-
-function resolveContext(currentContext?: SidebarContext): SidebarContext {
-  if (currentContext) {
-    return currentContext
-  }
-
+function resolveContext(): SidebarContext {
   const currentPath = getCurrentPath()
 
   if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
     return 'my-org-projects'
   }
 
-  if (currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))) {
+  if (currentPath === PROJECTS_ROUTES.MY_PROJECTS) {
+    return 'my-projects'
+  }
+
+  if (
+    currentPath !== PROJECTS_ROUTES.MY_PROJECTS &&
+    currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
+  ) {
     return 'custom-view-projects'
   }
 
+  // Fallback
   return 'my-projects'
 }
 
-function resolveCustomViewUid(currentContext: SidebarContext, providedCustomViewUid?: string): string | undefined {
+function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
   if (currentContext === 'custom-view-projects') {
-    if (providedCustomViewUid) {
-      return providedCustomViewUid
-    }
-
     const currentPath = getCurrentPath()
     const pathSegments = currentPath.split('/')
 
@@ -64,12 +59,12 @@ function resolveCustomViewUid(currentContext: SidebarContext, providedCustomView
 /**
  * A list of projects grouped by status (deployed, draft, archived). It's meant to be displayed in the sidebar area.
  */
-export default function SidebarFormsList({ context, customViewUid }: SidebarFormsListProps) {
+export default function SidebarFormsList() {
   const session = useSession()
   const orgUid = session.currentLoggedAccount?.organization?.uid
 
-  const resolvedContext = resolveContext(context)
-  const resolvedCustomViewUid = resolveCustomViewUid(resolvedContext, customViewUid)
+  const resolvedContext = resolveContext()
+  const resolvedCustomViewUid = resolveCustomViewUid(resolvedContext)
 
   const countsQuery =
     resolvedContext === 'my-projects'
