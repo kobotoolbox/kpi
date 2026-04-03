@@ -9,18 +9,18 @@ import type { ActivityLogsItem, AssetHistoryActionsResponse } from './activity.c
 /**
  * Fetches the activity logs from the server.
  * @param limit Pagination parameter: number of items per page
- * @param offset Pagination parameter: offset of the page
+ * @param start Pagination parameter: initial index of the page
  */
 export const getActivityLogs = async ({
   assetUid,
   actionFilter,
   limit,
-  offset,
+  start,
 }: {
   assetUid: string
   actionFilter: string
   limit: number
-  offset: number
+  start: number
 }) => {
   // Filter out unwanted actions (e.g. UI doesn't support them yet).
   let q = `NOT action:'${HIDDEN_AUDIT_ACTIONS.join(',')}'`
@@ -31,7 +31,7 @@ export const getActivityLogs = async ({
 
   const params = new URLSearchParams({
     limit: limit.toString(),
-    offset: offset.toString(),
+    start: start.toString(),
     q: q,
   })
 

@@ -7,7 +7,7 @@ import { mockAssetUid } from './assetHistory.mocks'
  * Mock API for listing all available history actions. Use it in Storybook tests in `parameters.msw.handlers[]`.
  * Uses same assetUid as assetHistory mock.
  */
-const assetHistoryMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, AssetHistoryActionsResponse>(
+const assetHistoryMock = http.get<PathParams<'limit' | 'start' | 'q'>, never, AssetHistoryActionsResponse>(
   endpoints.ASSET_HISTORY_ACTIONS.replace(':asset_uid', mockAssetUid),
   () => HttpResponse.json(assetHistoryActionsResponse),
 )
