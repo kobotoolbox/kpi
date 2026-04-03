@@ -99,6 +99,8 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
       isProjectsListVisible &&
       (props.context !== 'my-org-projects' || !!props.organizationId) &&
       (props.context !== 'custom-view-projects' || !!props.projectViewUid),
+    // For now let's not refetch, as sometimes there might be multiple pages loaded at once
+    refetchOnWindowFocus: false,
   })
 
   const rows = useMemo(() => {
