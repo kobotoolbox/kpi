@@ -92,7 +92,7 @@ class CustomAssetUsageSerializer(AssetUsageSerializer):
         fields = AssetUsageSerializer.Meta.fields + ('deployment_status',)
 
     @extend_schema_field(serializers.ChoiceField(choices=AssetDeploymentStatus))
-    def get_deployment_status(self, asset):
+    def get_deployment_status(self, asset) -> str:
         return asset.deployment_status
 
 

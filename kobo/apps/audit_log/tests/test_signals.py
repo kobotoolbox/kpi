@@ -1,8 +1,10 @@
 import contextlib
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from allauth.account.models import EmailAddress
+from constance.signals import config_updated
 from ddt import data, ddt
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.signals import user_logged_in
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
@@ -391,3 +393,100 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         audit_log = response.data['results'][0]
         self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
         self.assertEqual(audit_log['action'], AuditAction.ADMIN_DELETE)
+
+
+class TestConstanceAuditLogSignal(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        self.admin = User.objects.get(username='adminuser')
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_triggers_audit_log(self, mock_get_request):
+        """
+        Tests that firing the Constance config_updated signal successfully
+        generates an AuditLog entry with the correct user context and model naming
+        """
+        # Mock the request to simulate the admin user context
+        mock_request = Mock()
+        mock_request.user = self.admin
+        mock_get_request.return_value = mock_request
+
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        # Fire the Constance signal directly
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        # Assert the AuditLog was created
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count + 1
+        )
+
+        # Verify the AuditLog data integrity
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.log_type, AuditType.ADMIN_INTERFACE)
+        self.assertEqual(latest_log.app_label, 'constance')
+        self.assertEqual(latest_log.model_name, 'constance')
+        self.assertEqual(latest_log.object_id, 'SUPPORT_EMAIL')
+        self.assertEqual(latest_log.metadata['old_value'], 'old@example.com')
+        self.assertEqual(latest_log.metadata['new_value'], 'new@example.com')
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_ignored_without_request(self, mock_get_request):
+        """
+        Tests that programmatic config updates (no web request) are ignored safely
+        """
+        mock_get_request.return_value = None
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count
+        )
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_ignored_unauthenticated_user(self, mock_get_request):
+        """
+        Tests that config updates by unauthenticated/anonymous users are ignored
+        """
+        mock_request = Mock()
+        mock_request.user = AnonymousUser()
+        mock_get_request.return_value = mock_request
+
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count
+        )

@@ -35,6 +35,8 @@ import type { AssetsCountsListParams } from '../models/assetsCountsListParams'
 
 import type { AssetsListParams } from '../models/assetsListParams'
 
+import type { AssetsMinimalListRetrieveParams } from '../models/assetsMinimalListRetrieveParams'
+
 import type { AssetsRetrieveParams } from '../models/assetsRetrieveParams'
 
 import type { AssetsVersionsListParams } from '../models/assetsVersionsListParams'
@@ -60,6 +62,8 @@ import type { ImportsListParams } from '../models/importsListParams'
 import type { PaginatedAssetCountResponseList } from '../models/paginatedAssetCountResponseList'
 
 import type { PaginatedAssetList } from '../models/paginatedAssetList'
+
+import type { PaginatedAssetMinimalListList } from '../models/paginatedAssetMinimalListList'
 
 import type { PaginatedImportResponseList } from '../models/paginatedImportResponseList'
 
@@ -1539,6 +1543,103 @@ export function useAssetsMetadataRetrieve<
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsMetadataRetrieveQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return a minimal listing of assets with their deployment status
+
+Returns a paginated list of assets visible to the current user, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+
+ */
+export type assetsMinimalListRetrieveResponse200 = {
+  data: PaginatedAssetMinimalListList
+  status: 200
+}
+
+export type assetsMinimalListRetrieveResponseComposite = assetsMinimalListRetrieveResponse200
+
+export type assetsMinimalListRetrieveResponse = assetsMinimalListRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsMinimalListRetrieveUrl = (params?: AssetsMinimalListRetrieveParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/minimal-list/?${stringifiedParams}`
+    : `/api/v2/assets/minimal-list/`
+}
+
+export const assetsMinimalListRetrieve = async (
+  params?: AssetsMinimalListRetrieveParams,
+  options?: RequestInit,
+): Promise<assetsMinimalListRetrieveResponse> => {
+  return fetchWithAuth<assetsMinimalListRetrieveResponse>(getAssetsMinimalListRetrieveUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsMinimalListRetrieveQueryKey = (params?: AssetsMinimalListRetrieveParams) => {
+  return ['api', 'v2', 'assets', 'minimal-list', ...(params ? [params] : [])] as const
+}
+
+export const getAssetsMinimalListRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsMinimalListRetrieve>>,
+  TError = unknown,
+>(
+  params?: AssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsMinimalListRetrieveQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>> = ({ signal }) =>
+    assetsMinimalListRetrieve(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsMinimalListRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsMinimalListRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>>
+export type AssetsMinimalListRetrieveQueryError = unknown
+
+export function useAssetsMinimalListRetrieve<
+  TData = Awaited<ReturnType<typeof assetsMinimalListRetrieve>>,
+  TError = unknown,
+>(
+  params?: AssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsMinimalListRetrieveQueryOptions(params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 

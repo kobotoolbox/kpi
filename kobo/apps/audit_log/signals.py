@@ -1,6 +1,8 @@
+import json
 from collections import defaultdict
 
 from celery.signals import task_success
+from constance.signals import config_updated
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_delete, post_save
@@ -181,6 +183,42 @@ def save_log_entry_to_audit_log(instance, created, **kwargs):
     )
 
 
+@receiver(config_updated)
+def log_constance_update(key, old_value, new_value, **kwargs):
+    """
+    Listens for updates to Constance config values and logs them in the AuditLog
+    """
+    request = get_current_request()
+
+    if request is None:
+        logging.debug(
+            f'Config key "{key}" updated but no request found to log it with.'
+        )
+        return
+
+    user = request.user
+    if not user.is_superuser:
+        logging.debug(
+            f'Config key "{key}" updated but no authenticated superuser found to'
+            f' log it with.'
+        )
+        return
+
+    AuditLog.objects.create(
+        user=user,
+        app_label='constance',
+        model_name='constance',
+        object_id=key,
+        action=AuditAction.UPDATE_CONSTANCE,
+        log_type=AuditType.ADMIN_INTERFACE,
+        metadata={
+            'key': key,
+            'old_value': _sanitize_for_json(old_value),
+            'new_value': _sanitize_for_json(new_value),
+        }
+    )
+
+
 def _build_human_readable_log_message(log_entry, model_name):
     """
     Constructs a human-readable message from a Django LogEntry
@@ -200,3 +238,13 @@ def _build_human_readable_log_message(log_entry, model_name):
         return f"{user} deleted {model_name} '{obj_repr}' (pk: {obj_id})"
 
     return log_entry.get_change_message()
+
+
+def _sanitize_for_json(value):
+    """
+    Sanitizes a value for JSON serialization
+    """
+    try:
+        return json.loads(json.dumps(value))
+    except (TypeError, ValueError):
+        return str(value)
