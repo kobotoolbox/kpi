@@ -2,7 +2,11 @@ import { Stack, Text } from '@mantine/core'
 import React, { useEffect } from 'react'
 import { actions } from '#/actions'
 import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
-import { getAssetsListQueryKey, useAssetsCountsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
+import {
+  getAssetsCountsRetrieveQueryKey,
+  getAssetsListQueryKey,
+  useAssetsCountsRetrieve,
+} from '#/api/react-query/manage-projects-and-library-content'
 import {
   getOrganizationsAssetsCountsRetrieveQueryKey,
   getProjectViewsAssetsCountsRetrieveQueryKey,
@@ -20,42 +24,6 @@ export const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIE
 
 export type SidebarContext = 'my-projects' | 'my-org-projects' | 'custom-view-projects'
 
-function resolveContext(): SidebarContext {
-  const currentPath = getCurrentPath()
-
-  if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
-    return 'my-org-projects'
-  }
-
-  if (currentPath === PROJECTS_ROUTES.MY_PROJECTS) {
-    return 'my-projects'
-  }
-
-  if (
-    currentPath !== PROJECTS_ROUTES.MY_PROJECTS &&
-    currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
-  ) {
-    return 'custom-view-projects'
-  }
-
-  // Fallback
-  return 'my-projects'
-}
-
-function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
-  if (currentContext === 'custom-view-projects') {
-    const currentPath = getCurrentPath()
-    const pathSegments = currentPath.split('/')
-
-    // expecting `/projects/<viewUid>`
-    if (pathSegments.length >= 3) {
-      return pathSegments[2]
-    }
-  }
-
-  return undefined
-}
-
 /**
  * A list of projects grouped by status (deployed, draft, archived). It's meant to be displayed in the sidebar area.
  */
@@ -63,41 +31,92 @@ export default function SidebarFormsList() {
   const session = useSession()
   const orgUid = session.currentLoggedAccount?.organization?.uid
 
+  function resolveContext(): SidebarContext {
+    const currentPath = getCurrentPath()
+
+    if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
+      return 'my-org-projects'
+    }
+
+    if (currentPath === PROJECTS_ROUTES.MY_PROJECTS) {
+      return 'my-projects'
+    }
+
+    if (
+      currentPath !== PROJECTS_ROUTES.MY_PROJECTS &&
+      currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
+    ) {
+      return 'custom-view-projects'
+    }
+
+    // Fallback
+    return 'my-projects'
+  }
+
+  function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
+    if (currentContext === 'custom-view-projects') {
+      const currentPath = getCurrentPath()
+      const pathSegments = currentPath.split('/')
+
+      // expecting `/projects/<viewUid>`
+      if (pathSegments.length >= 3) {
+        return pathSegments[2]
+      }
+    }
+
+    return undefined
+  }
+
   const resolvedContext = resolveContext()
   const resolvedCustomViewUid = resolveCustomViewUid(resolvedContext)
 
+  function getCountsQueryKey() {
+    switch (resolvedContext) {
+      case 'my-org-projects':
+        return getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? '')
+      case 'custom-view-projects':
+        return getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? '')
+      case 'my-projects':
+      default:
+        return getAssetsCountsRetrieveQueryKey()
+    }
+  }
+
   const countsQuery =
     resolvedContext === 'my-projects'
-      ? useAssetsCountsRetrieve()
+      ? useAssetsCountsRetrieve({
+          query: {
+            queryKey: getCountsQueryKey(),
+          },
+        })
       : resolvedContext === 'my-org-projects'
         ? useOrganizationsAssetsCountsRetrieve(orgUid ?? '', {
             query: {
-              queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
+              queryKey: getCountsQueryKey(),
               enabled: !!orgUid,
             },
           })
         : useProjectViewsAssetsCountsRetrieve(resolvedCustomViewUid ?? '', {
             query: {
-              queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? ''),
+              queryKey: getCountsQueryKey(),
               enabled: !!resolvedCustomViewUid,
             },
           })
 
   useEffect(() => {
+    const countsQueryKey = getCountsQueryKey()
     const unlisteners = [
-      actions.resources.deleteAsset.completed.listen(() => invalidatePaginatedList(['api', 'v2', 'assets'])),
-      actions.resources.cloneAsset.completed.listen(() => invalidatePaginatedList(['api', 'v2', 'assets'])),
-      actions.resources.deployAsset.completed.listen(() => invalidatePaginatedList(['api', 'v2', 'assets'])),
-      actions.resources.setDeploymentActive.completed.listen(() => invalidatePaginatedList(['api', 'v2', 'assets'])),
-      actions.resources.updateAsset.completed.listen(() => invalidatePaginatedList(['api', 'v2', 'assets'])),
-      actions.permissions.removeAssetPermission.completed.listen(() =>
-        invalidatePaginatedList(['api', 'v2', 'assets']),
-      ),
+      actions.resources.deleteAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
+      actions.resources.cloneAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
+      actions.resources.deployAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
+      actions.resources.setDeploymentActive.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
+      actions.resources.updateAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
+      actions.permissions.removeAssetPermission.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
     ]
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [])
+  }, [resolvedContext, orgUid, resolvedCustomViewUid])
 
   if (countsQuery.isLoading) {
     return <LoadingSpinner />
