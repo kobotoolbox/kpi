@@ -9,6 +9,7 @@ from django.db.models import Case, Count, F, Min, Q, Value, When
 from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
 
+from hub.models import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
@@ -115,7 +116,17 @@ class AuditLog(models.Model):
         update_fields=None,
     ):
         if not self.user_uid:
-            self.user_uid = self.user.extra_details.uid
+            if self.user_id:
+                # Try to get `extra_details` from memory to avoid an extra query
+                if not (extra_details := getattr(self.user, 'extra_details', None)):
+                    # In rare cases, a user may be missing their `extra_details`
+                    # profile so to avoid crashes, create it if it does not exist
+                    extra_details, _ = ExtraUserDetail.objects.get_or_create(
+                        user_id=self.user_id
+                    )
+                self.user_uid = extra_details.uid
+            else:
+                self.user_uid = ''
 
         super().save(
             force_insert=force_insert,

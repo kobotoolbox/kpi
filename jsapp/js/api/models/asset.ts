@@ -7,6 +7,7 @@ import type { AssetDataSharing } from './assetDataSharing'
 import type { AssetDeployedVersions } from './assetDeployedVersions'
 import type { AssetDeploymentDataDownloadLinks } from './assetDeploymentDataDownloadLinks'
 import type { AssetDeploymentLinks } from './assetDeploymentLinks'
+import type { AssetDeploymentStatusEnum } from './assetDeploymentStatusEnum'
 import type { AssetDownloadsItem } from './assetDownloadsItem'
 import type { AssetEffectivePermissionsItem } from './assetEffectivePermissionsItem'
 import type { AssetEmbedsItem } from './assetEmbedsItem'
@@ -59,7 +60,7 @@ export interface Asset {
   readonly deployment__last_submission_time: string
   readonly deployment__encrypted: boolean
   readonly deployment__uuid: string
-  readonly deployment_status: string
+  readonly deployment_status: AssetDeploymentStatusEnum
   report_styles?: AssetReportStyles
   report_custom?: AssetReportCustom
   advanced_features?: AssetAdvancedFeatures

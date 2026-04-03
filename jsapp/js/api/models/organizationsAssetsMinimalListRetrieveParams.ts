@@ -10,16 +10,17 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-/**
- * * `archived` - archived
- * `deployed` - deployed
- * `draft` - draft
- */
-export type DeploymentStatusEnum = (typeof DeploymentStatusEnum)[keyof typeof DeploymentStatusEnum]
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DeploymentStatusEnum = {
-  archived: 'archived',
-  deployed: 'deployed',
-  draft: 'draft',
-} as const
+export type OrganizationsAssetsMinimalListRetrieveParams = {
+  /**
+   * Number of results to return per page.
+   */
+  limit?: number
+  /**
+   * Filter the results with search query
+   */
+  q?: string
+  /**
+   * The initial index from which to return the results.
+   */
+  start?: number
+}
