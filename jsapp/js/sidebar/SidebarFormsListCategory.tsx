@@ -60,6 +60,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
       props.deploymentStatus,
       props.organizationId,
       props.projectViewUid,
+      queryFilter,
     ],
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }: { pageParam: number }) => {
