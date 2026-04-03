@@ -2,10 +2,9 @@ import { Stack, Text } from '@mantine/core'
 import type { QueryKey } from '@tanstack/react-query'
 import React, { useEffect } from 'react'
 import { actions } from '#/actions'
-import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
+import { queryClient } from '#/api/queryClient'
 import {
   getAssetsCountsRetrieveQueryKey,
-  getAssetsListQueryKey,
   useAssetsCountsRetrieve,
 } from '#/api/react-query/manage-projects-and-library-content'
 import {
@@ -14,14 +13,11 @@ import {
   useOrganizationsAssetsCountsRetrieve,
   useProjectViewsAssetsCountsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
-import { COMMON_QUERIES } from '#/constants'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
 import { useSession } from '#/stores/useSession'
 import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
-
-export const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIES.s, limit: 200, ordering: 'name' })
 
 export type SidebarContext = 'my-projects' | 'my-org-projects' | 'custom-view-projects'
 
@@ -61,20 +57,20 @@ export function resolveCustomViewUid(currentContext: SidebarContext): string | u
   return undefined
 }
 
-export function useSidebarCountsQueryKey(): QueryKey {
-  const session = useSession()
-  const orgUid = session.currentLoggedAccount?.organization?.uid
-  const resolvedContext = resolveSidebarContext()
+export function invalidateSidebarQueries() {
+  // Invalidate all sidebar counts queries (any query key ending with 'counts')
+  queryClient.invalidateQueries({
+    predicate: (query) => {
+      const key = query.queryKey
+      return key[key.length - 1] === 'counts'
+    },
+  })
 
-  switch (resolvedContext) {
-    case 'my-org-projects':
-      return getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? '')
-    case 'custom-view-projects':
-      return getProjectViewsAssetsCountsRetrieveQueryKey(resolveCustomViewUid(resolvedContext) ?? '')
-    case 'my-projects':
-    default:
-      return getAssetsCountsRetrieveQueryKey()
-  }
+  // Refetch all active sidebar infinite queries (starting with 'sidebarAssetsMinimalList')
+  queryClient.refetchQueries({
+    queryKey: ['sidebarAssetsMinimalList'],
+    type: 'active',
+  })
 }
 
 /**
@@ -87,7 +83,17 @@ export default function SidebarFormsList() {
   const resolvedContext = resolveSidebarContext()
   const resolvedCustomViewUid = resolveCustomViewUid(resolvedContext)
 
-  const countsQueryKey = useSidebarCountsQueryKey()
+  const countsQueryKey: QueryKey = (() => {
+    switch (resolvedContext) {
+      case 'my-org-projects':
+        return getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? '')
+      case 'custom-view-projects':
+        return getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? '')
+      case 'my-projects':
+      default:
+        return getAssetsCountsRetrieveQueryKey()
+    }
+  })()
 
   const countsQuery =
     resolvedContext === 'my-projects'
@@ -112,17 +118,17 @@ export default function SidebarFormsList() {
 
   useEffect(() => {
     const unlisteners = [
-      actions.resources.deleteAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
-      actions.resources.cloneAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
-      actions.resources.deployAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
-      actions.resources.setDeploymentActive.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
-      actions.resources.updateAsset.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
-      actions.permissions.removeAssetPermission.completed.listen(() => invalidatePaginatedList(countsQueryKey)),
+      actions.resources.deleteAsset.completed.listen(invalidateSidebarQueries),
+      actions.resources.cloneAsset.completed.listen(invalidateSidebarQueries),
+      actions.resources.deployAsset.completed.listen(invalidateSidebarQueries),
+      actions.resources.setDeploymentActive.completed.listen(invalidateSidebarQueries),
+      actions.resources.updateAsset.completed.listen(invalidateSidebarQueries),
+      actions.permissions.removeAssetPermission.completed.listen(invalidateSidebarQueries),
     ]
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [countsQueryKey])
+  }, [])
 
   if (countsQuery.isLoading) {
     return <LoadingSpinner />
