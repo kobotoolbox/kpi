@@ -1,17 +1,18 @@
 import { Stack, Text } from '@mantine/core'
 import type { QueryKey } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import React, { useEffect } from 'react'
 import { actions } from '#/actions'
 import { queryClient } from '#/api/queryClient'
 import {
+  assetsCountsRetrieve,
   getAssetsCountsRetrieveQueryKey,
-  useAssetsCountsRetrieve,
 } from '#/api/react-query/manage-projects-and-library-content'
 import {
   getOrganizationsAssetsCountsRetrieveQueryKey,
   getProjectViewsAssetsCountsRetrieveQueryKey,
-  useOrganizationsAssetsCountsRetrieve,
-  useProjectViewsAssetsCountsRetrieve,
+  organizationsAssetsCountsRetrieve,
+  projectViewsAssetsCountsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
@@ -95,26 +96,32 @@ export default function SidebarFormsList() {
     }
   })()
 
-  const countsQuery =
-    resolvedContext === 'my-projects'
-      ? useAssetsCountsRetrieve({
-          query: {
-            queryKey: countsQueryKey,
-          },
-        })
-      : resolvedContext === 'my-org-projects'
-        ? useOrganizationsAssetsCountsRetrieve(orgUid ?? '', {
-            query: {
-              queryKey: countsQueryKey,
-              enabled: !!orgUid,
-            },
-          })
-        : useProjectViewsAssetsCountsRetrieve(resolvedCustomViewUid ?? '', {
-            query: {
-              queryKey: countsQueryKey,
-              enabled: !!resolvedCustomViewUid,
-            },
-          })
+  // Single query hook with conditional function switching to make sure we avoid
+  // "more/fewer hooks than during previous render" error
+  const countsQuery = useQuery({
+    queryKey: countsQueryKey,
+    queryFn: () => {
+      switch (resolvedContext) {
+        case 'my-org-projects':
+          if (!orgUid) {
+            throw new Error('Organization uid is required for org projects counts')
+          }
+          return organizationsAssetsCountsRetrieve(orgUid)
+        case 'custom-view-projects':
+          if (!resolvedCustomViewUid) {
+            throw new Error('View uid is required for custom project view counts')
+          }
+          return projectViewsAssetsCountsRetrieve(resolvedCustomViewUid)
+        case 'my-projects':
+        default:
+          return assetsCountsRetrieve()
+      }
+    },
+    enabled:
+      resolvedContext === 'my-projects' ||
+      (resolvedContext === 'my-org-projects' && !!orgUid) ||
+      (resolvedContext === 'custom-view-projects' && !!resolvedCustomViewUid),
+  })
 
   useEffect(() => {
     const unlisteners = [
