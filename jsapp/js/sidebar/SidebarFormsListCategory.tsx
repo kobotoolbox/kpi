@@ -171,7 +171,8 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
               }
             }}
             onRequestFetchNextPage={query.fetchNextPage}
-            showEndMessage={!query.hasNextPage && rows.length > 0}
+            // Never show the end message
+            showEndMessage={false}
           />
         </Stack>
       )}
