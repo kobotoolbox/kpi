@@ -956,7 +956,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           // This identifies supplemental details column
           if (row.value === undefined && q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const supplementalValue = getSupplementalDetailsContent(row.original, key)
+            const supplementalValue = getSupplementalDetailsContent(row.original, key) || ''
             if (key.endsWith('verified')) {
               return <Group h='100%'>{supplementalValue}</Group>
             }
