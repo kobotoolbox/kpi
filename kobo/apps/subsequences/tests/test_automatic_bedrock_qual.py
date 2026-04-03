@@ -135,13 +135,12 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
         return transcript
 
     def _add_automatic_transcription(self, submission_uuid) -> dict:
-        feature, _ = QuestionAdvancedFeature.objects.get_or_create(
+        QuestionAdvancedFeature.objects.get_or_create(
             asset=self.asset,
             action=Action.AUTOMATIC_GOOGLE_TRANSCRIPTION,
             question_xpath='q1',
             defaults={'params': [{'language': 'en'}]},
         )
-        action = feature.to_action()
 
         mock_service = MagicMock()
         mock_service.process_data.return_value = {
@@ -172,6 +171,7 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
                 '_versions'
             ][0]
             return transcript
+
 
 @ddt
 class TestAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
