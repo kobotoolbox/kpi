@@ -24,19 +24,13 @@ export type SidebarContext = 'my-projects' | 'my-org-projects' | 'custom-view-pr
 
 export function resolveSidebarContext(): SidebarContext {
   const currentPath = getCurrentPath()
-
   if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
     return 'my-org-projects'
-  }
-
-  if (currentPath === PROJECTS_ROUTES.MY_PROJECTS) {
+  } else if (currentPath === PROJECTS_ROUTES.MY_PROJECTS) {
     return 'my-projects'
-  }
-
-  if (currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))) {
+  } else if (currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))) {
     return 'custom-view-projects'
   }
-
   // Fallback
   return 'my-projects'
 }
@@ -45,13 +39,11 @@ export function resolveCustomViewUid(currentContext: SidebarContext): string | u
   if (currentContext === 'custom-view-projects') {
     const currentPath = getCurrentPath()
     const pathSegments = currentPath.split('/')
-
     // expecting `/projects/<viewUid>`
     if (pathSegments.length >= 3) {
       return pathSegments[2]
     }
   }
-
   return undefined
 }
 
@@ -64,7 +56,8 @@ export function invalidateSidebarQueries() {
     },
   })
 
-  // Refetch all active sidebar infinite queries (starting with 'sidebarAssetsMinimalList')
+  // Refetch all active sidebar infinite queries (starting with 'sidebarAssetsMinimalList'). For some reason
+  // `invalidateQueries` wasn't working for me here.
   queryClient.refetchQueries({
     queryKey: ['sidebarAssetsMinimalList'],
     type: 'active',
@@ -93,8 +86,8 @@ export default function SidebarFormsList() {
     }
   })()
 
-  // Single query hook with conditional function switching to make sure we avoid
-  // "more/fewer hooks than during previous render" error
+  // Single query hook with conditional function switching to make sure we avoid "more/fewer hooks than during previous
+  // render" error
   const countsQuery = useQuery({
     queryKey: [resolvedContext, ...countsQueryKey],
     queryFn: () => {
@@ -142,17 +135,12 @@ export default function SidebarFormsList() {
     return <Text>{t('Could not load asset counts')}</Text>
   }
 
-  const assetCounts = countsQuery.data.data
-  const deployedCount = assetCounts?.deployed_count ?? 0
-  const draftCount = assetCounts?.draft_count ?? 0
-  const archivedCount = assetCounts?.archived_count ?? 0
-
   return (
     <Stack style={{ minHeight: 0 }}>
       <SidebarFormsListCategory
         context={resolvedContext}
         deploymentStatus='deployed'
-        totalCount={deployedCount}
+        totalCount={countsQuery.data.data?.deployed_count ?? 0}
         organizationId={resolvedContext === 'my-org-projects' ? orgUid : undefined}
         projectViewUid={resolvedContext === 'custom-view-projects' ? resolvedCustomViewUid : undefined}
       />
@@ -160,7 +148,7 @@ export default function SidebarFormsList() {
       <SidebarFormsListCategory
         context={resolvedContext}
         deploymentStatus='draft'
-        totalCount={draftCount}
+        totalCount={countsQuery.data.data?.draft_count ?? 0}
         organizationId={resolvedContext === 'my-org-projects' ? orgUid : undefined}
         projectViewUid={resolvedContext === 'custom-view-projects' ? resolvedCustomViewUid : undefined}
       />
@@ -168,7 +156,7 @@ export default function SidebarFormsList() {
       <SidebarFormsListCategory
         context={resolvedContext}
         deploymentStatus='archived'
-        totalCount={archivedCount}
+        totalCount={countsQuery.data.data?.archived_count ?? 0}
         organizationId={resolvedContext === 'my-org-projects' ? orgUid : undefined}
         projectViewUid={resolvedContext === 'custom-view-projects' ? resolvedCustomViewUid : undefined}
       />

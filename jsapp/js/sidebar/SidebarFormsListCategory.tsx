@@ -26,6 +26,11 @@ import styles from './SidebarFormsList.module.scss'
 
 const ITEMS_PER_PAGE = 20
 
+type SidebarFormsListCategoryResponse =
+  | assetsMinimalListRetrieveResponse
+  | organizationsAssetsMinimalListRetrieveResponse
+  | projectViewsAssetsMinimalListRetrieveResponse
+
 interface SidebarFormsListCategoryProps {
   context: SidebarContext
   deploymentStatus: 'deployed' | 'draft' | 'archived'
@@ -35,17 +40,12 @@ interface SidebarFormsListCategoryProps {
 }
 
 /**
- * Displays a toggleable button and a list of projects for a specific deployment status.
+ * Displays a toggleable button with total count and a list of projects for a specific context and deployment status.
  */
 export default function SidebarFormsListCategory(props: SidebarFormsListCategoryProps) {
   const [isProjectsListVisible, projectsListHandlers] = useDisclosure(false)
 
   const queryFilter = `asset_type:survey AND _deployment_status:${props.deploymentStatus}`
-
-  type SidebarFormsListCategoryResponse =
-    | assetsMinimalListRetrieveResponse
-    | organizationsAssetsMinimalListRetrieveResponse
-    | projectViewsAssetsMinimalListRetrieveResponse
 
   const query = useInfiniteQuery<
     SidebarFormsListCategoryResponse,
@@ -72,16 +72,12 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
 
       if (props.context === 'my-projects') {
         return assetsMinimalListRetrieve(params)
-      }
-
-      if (props.context === 'my-org-projects') {
+      } else if (props.context === 'my-org-projects') {
         if (!props.organizationId) {
           throw new Error('organizationId is required for org-projects context')
         }
         return organizationsAssetsMinimalListRetrieve(props.organizationId, params)
-      }
-
-      if (props.context === 'custom-view-projects') {
+      } else if (props.context === 'custom-view-projects') {
         if (!props.projectViewUid) {
           throw new Error('projectViewUid is required for custom-view-projects context')
         }
@@ -97,6 +93,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
       return undefined
     },
     enabled:
+      // Only call API when component is toggle-opened
       isProjectsListVisible &&
       (props.context !== 'my-org-projects' || !!props.organizationId) &&
       (props.context !== 'custom-view-projects' || !!props.projectViewUid),
@@ -112,7 +109,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
 
   const isLoading = isProjectsListVisible && query.isLoading
 
-  const contextLabel =
+  const categoryLable =
     props.deploymentStatus === 'deployed'
       ? t('Deployed')
       : props.deploymentStatus === 'draft'
@@ -128,7 +125,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
         className={styles.categoryButton}
       >
         <Group gap='xs'>
-          <Box flex={1}>{contextLabel}</Box>
+          <Box flex={1}>{categoryLable}</Box>
           <Badge label={props.totalCount} color='light-storm' size='xs' />
         </Group>
       </UnstyledButton>
@@ -141,14 +138,13 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
             </Center>
           )}
 
-          {!isLoading && !query.isError && rows.length === 0 && <Text p='sm'>{t('No forms found')}</Text>}
+          {!isLoading && !query.isError && rows.length === 0 && <Text p='sm'>{t('No projects found')}</Text>}
 
           {!isLoading &&
             rows.map((asset) => {
-              // The minimal-list endpoints used by this sidebar only return a subset of asset fields
-              // (for example `uid`, `name`, and `deployment_status`). They do not provide enough
-              // information to reproduce the previous conditional routing to summary/landing views,
-              // so sidebar items intentionally link to the canonical form route instead.
+              // The minimal-list endpoints only return a subset of asset fields, they do not provide enough information
+              // to reproduce the previous conditional routing to summary/landing views, so sidebar items intentionally
+              // link to the default form route instead.
               const href = ROUTES.FORM.replace(':uid', asset.uid)
               const isActiveProject = asset.uid === getRouteAssetUid()
 
