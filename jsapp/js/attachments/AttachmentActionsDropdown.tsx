@@ -12,6 +12,45 @@ import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
 
+function getDeletedNotification(questionType: string | undefined): string {
+  if (questionType === QuestionTypeName.audio) {
+    return t('Audio recording deleted')
+  } else if (questionType === QuestionTypeName.video) {
+    return t('Video recording deleted')
+  } else if (questionType === QuestionTypeName.image) {
+    return t('Image deleted')
+  } else if (questionType === QuestionTypeName['background-audio']) {
+    return t('Background audio recording deleted')
+  }
+  return t('Attachment deleted')
+}
+
+function getDeleteModalTitle(questionType: string | undefined): string {
+  if (questionType === QuestionTypeName.audio) {
+    return t('Delete audio recording')
+  } else if (questionType === QuestionTypeName.video) {
+    return t('Delete video recording')
+  } else if (questionType === QuestionTypeName.image) {
+    return t('Delete image')
+  } else if (questionType === QuestionTypeName['background-audio']) {
+    return t('Delete background audio recording')
+  }
+  return t('Delete attachment')
+}
+
+function getDeleteConfirmMessage(questionType: string | undefined): string {
+  if (questionType === QuestionTypeName.audio) {
+    return t('Are you sure you want to delete this audio recording?')
+  } else if (questionType === QuestionTypeName.video) {
+    return t('Are you sure you want to delete this video recording?')
+  } else if (questionType === QuestionTypeName.image) {
+    return t('Are you sure you want to delete this image?')
+  } else if (questionType === QuestionTypeName['background-audio']) {
+    return t('Are you sure you want to delete this background audio recording?')
+  }
+  return t('Are you sure you want to delete this attachment?')
+}
+
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
   submission: SubmissionResponse | DataResponse
@@ -45,30 +84,20 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     return null
   }
 
+  // We find the question that the attachment belongs to, to determine the text to display in the modal.
+  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === attachment.question_xpath)?.type
+
   const handleConfirmDelete = async () => {
     setIsDeletePending(true)
 
     try {
       await removeAttachmentMutation.mutateAsync({ uidAsset: props.asset.uid, id: attachment.uid as any }) // TODO: number or string?
       setIsDeleteModalOpen(false)
-      notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
+      notify(getDeletedNotification(questionType))
       props.onDeleted?.()
     } finally {
       setIsDeletePending(false)
     }
-  }
-
-  // We find the question that the attachment belongs to, to determine the text to display in the modal.
-  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === attachment.question_xpath)?.type
-  let attachmentTypeName = t('attachment')
-  if (questionType === QuestionTypeName.audio) {
-    attachmentTypeName = t('audio recording')
-  } else if (questionType === QuestionTypeName.video) {
-    attachmentTypeName = t('video recording')
-  } else if (questionType === QuestionTypeName.image) {
-    attachmentTypeName = t('image')
-  } else if (questionType === QuestionTypeName['background-audio']) {
-    attachmentTypeName = t('background audio recording')
   }
 
   const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submission)
@@ -107,17 +136,14 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
         onClose={() => {
           setIsDeleteModalOpen(false)
         }}
-        title={t('Delete ##attachment_type##').replace('##attachment_type##', attachmentTypeName)}
+        title={getDeleteModalTitle(questionType)}
       >
         {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
         <FocusTrap.InitialFocus />
 
         <Stack>
           <p>
-            {t('Are you sure you want to delete this ##attachment_type##?').replace(
-              '##attachment_type##',
-              attachmentTypeName,
-            )}
+            {getDeleteConfirmMessage(questionType)}
           </p>
 
           <Group justify='flex-end'>
