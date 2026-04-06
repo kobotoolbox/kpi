@@ -28,13 +28,8 @@ describe "SkipLogicBuilder", ->
     # Integer fields support relational operators like <, >, >=, <=
     # The builder should succeed and return criteria rather than false
     result = @builder.build_criterion_builder("age_int < 18")
-    if Array.isArray(result)
-      # Successfully parsed and built criteria
-      expect(result.length).toBe(2)
-    else
-      # If it cannot find the field or parse, it returns false
-      # This is acceptable for this test - we just verify no crash occurs
-      expect(result).toBe(false)
+    expect(Array.isArray(result)).toBe(true)
+    expect(result.length).toBe(2)
 
   it "falls back to hand coded logic when text fields use relational operators", ->
     result = @builder.build_criterion_builder("age_text < 18")
