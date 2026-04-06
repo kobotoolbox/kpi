@@ -136,7 +136,8 @@ class ProjectSettings extends React.Component {
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
       const value = asset?.settings?.[field.name]
-      fields[field.name] = value || (field.type === 'multi_select' ? [] : '')
+      const defaultValue = field.type === 'multi_select' ? [] : field.type === 'select' ? null : ''
+      fields[field.name] = value !== undefined ? value : defaultValue
     })
 
     return fields
@@ -699,7 +700,7 @@ class ProjectSettings extends React.Component {
     envStore.data.extra_project_metadata_fields.forEach((field) => {
       const val = this.state.fields[field.name]
       if (field.required) {
-        const isSelectField = field.type === 'select' || field.type === 'select'
+        const isSelectField = field.type === 'select'
         const isEmpty =
           field.type === 'multi_select' ? !Array.isArray(val) || val.length === 0 : isSelectField ? !val : !val?.trim()
         if (isEmpty) fieldsWithErrors.push(field.name)
@@ -999,7 +1000,7 @@ class ProjectSettings extends React.Component {
           {envStore.data.extra_project_metadata_fields.map((field) => {
             const label = envStore.data.getExtraFieldLabel(field)
             const hasError = this.hasFieldError(field.name)
-            const options = field.options.map((opt) => {
+            const options = (field.options ?? []).map((opt) => {
               return { value: opt.name, label: opt.label }
             })
 
