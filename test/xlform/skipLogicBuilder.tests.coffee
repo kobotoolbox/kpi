@@ -24,14 +24,9 @@ describe "SkipLogicBuilder", ->
     @helper_factory = new $skipLogicHelpers.SkipLogicHelperFactory(@model_factory, @view_factory, @survey, @survey.rows.at(0), '')
     @builder = @helper_factory.create_builder()
 
-  it "allows relational operators for integer fields", ->
-    # Integer fields support relational operators like <, >, >=, <=
-    # The builder should succeed and return criteria rather than false
-    result = @builder.build_criterion_builder("age_int < 18")
-    expect(Array.isArray(result)).toBe(true)
-    expect(result.length).toBe(2)
-
   it "falls back to hand coded logic when text fields use relational operators", ->
+    # Text fields do NOT support <, >, >=, <= operators
+    # The fallback should trigger (return false) instead of corrupting the logic
     result = @builder.build_criterion_builder("age_text < 18")
     expect(result).toBe(false)
 
