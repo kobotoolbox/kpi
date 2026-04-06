@@ -103,7 +103,6 @@ interface DataTableProps {
 }
 
 interface DataTableState {
-  isInitialized: boolean
   loading: boolean
   submissions: SubmissionResponse[]
   columns: any[]
@@ -153,7 +152,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   constructor(props: DataTableProps) {
     super(props)
     this.state = {
-      isInitialized: Boolean(props.asset?.content), // DataTable can render once asset content is present
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
@@ -207,10 +205,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   componentDidUpdate(prevProps: DataTableProps) {
-    if (this.props.asset?.content) {
-      this.setState({ isInitialized: true })
-    }
-
     let prevSettings = prevProps.asset?.settings?.[DATA_TABLE_SETTING]
     if (!prevSettings) {
       prevSettings = {}
@@ -1380,10 +1374,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <CenteredMessage message={this.state.error} />
         </bem.FormView>
       )
-    }
-
-    if (!this.state.isInitialized) {
-      return <LoadingSpinner />
     }
 
     const pages = Math.floor((this.state.resultsTotal - 1) / this.state.pageSize + 1)
