@@ -153,7 +153,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   constructor(props: DataTableProps) {
     super(props)
     this.state = {
-      isInitialized: Boolean(props.asset && props.asset.content), // DataTable can render once asset content is present
+      isInitialized: Boolean(props.asset?.content), // DataTable can render once asset content is present
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
@@ -207,7 +207,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   componentDidUpdate(prevProps: DataTableProps) {
-    if (!prevProps.asset?.content && this.props.asset?.content) {
+    if (this.props.asset?.content) {
       this.setState({ isInitialized: true })
     }
 
