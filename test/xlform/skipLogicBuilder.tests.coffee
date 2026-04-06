@@ -26,13 +26,9 @@ describe "SkipLogicBuilder", ->
     @builder = @helper_factory.create_builder()
 
   it "allows relational operators for integer questions and builds proper criteria", ->
-    # Integer fields DO support relational operators like <, >, >=
-    # The builder should return [criteria_array, operator_string] instead of false
     result = @builder.build_criterion_builder("${age_int} < 18")
-    # Success case: should return [criteria_array, operator_string]
-    # If unsupported, returns false
     expect(Array.isArray(result) && result[0] && result[0].length > 0).toBe(true)
-    expect(result[1]).toBe(undefined)  # Single criterion has no join operator
+    expect(result[1]).toBe(undefined)
 
   it "allows greater-than operator for integer questions", ->
     result = @builder.build_criterion_builder("${age_int} > 18")
