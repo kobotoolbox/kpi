@@ -84,7 +84,7 @@ export interface ExtraProjectMetadataField {
     [key: string]: string
     default: string
   }
-  type: 'text' | 'select' | 'multi_select'
+  type: 'text' | 'single_select' | 'multi_select'
   required: boolean
   options: ExtraProjectMetadataOption[]
 }
