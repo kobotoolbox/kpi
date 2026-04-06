@@ -155,12 +155,18 @@ module.exports = do ->
 
   class skipLogicHelpers.SkipLogicBuilder
     constructor: (@model_factory, @view_factory, @survey, @current_question, @helper_factory) -> return
+
+    # Build UI-ready criterion presenters from an existing serialized skip logic string.
+    # - If the serialized expression is empty, return a single empty condition.
+    # - If the parser can read the expression but the parsed criteria contain unsupported  operators for the referenced
+    #   question types, return false so the caller can fall back to the manual skip logic editor.
     build_criterion_builder: (serialized_criteria) ->
       if serialized_criteria == ''
         return [[@build_empty_criterion()], 'and']
 
       try
         parsed = @_parse_skip_logic_criteria serialized_criteria
+        return false unless @_criteria_supported(parsed.criteria)
 
         criteria = _.filter(_.map(parsed.criteria, (criterion) =>
             @criterion = criterion
@@ -176,8 +182,28 @@ module.exports = do ->
         return false
       return [criteria, parsed.operator]
 
+    # Delegate actual parsing to the shared skip logic parser module.
     _parse_skip_logic_criteria: (criteria) ->
       return $skipLogicParser criteria
+
+    # Verify that every parsed criterion is supported by the corresponding question type.
+    # This is the key guard that prevents invalid text-question relational logic from being modified in the background
+    # unknown to the user
+    _criteria_supported: (criteria) ->
+      return _.all(criteria, (criterion) =>
+        operator_type = @_operator_type_for(criterion.operator)
+        return false unless operator_type
+
+        question = @survey.findRowByName criterion.name
+        return false unless question
+
+        operator_type.id in question.get_type().operators
+      )
+
+    # Map a parsed operator symbol back to the internal operator metadata entry.
+    _operator_type_for: (operator) ->
+      return _.find skipLogicHelpers.operator_types, (op_type) ->
+        operator in op_type.parser_name
 
     build_operator_logic: (question_type) =>
       return [
