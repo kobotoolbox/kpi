@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 
 import cx from 'classnames'
 import { UsageLimitTypes } from '#/account/stripe.types'
-import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import {
   type OrganizationsServiceUsageSummary,
   useOrganizationsServiceUsageSummary,
@@ -13,12 +12,12 @@ import type { LanguageBase, LanguageCode } from '#/components/languages/language
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
-import NlpUsageLimitBlockModal from './nlpUsageLimitBlockModal'
 import TransxAutomaticButton from './transxAutomaticButton'
 
 interface Props {
   onBack: () => void
   onNext: (step: CreateSteps.Manual | CreateSteps.Automatic) => void
+  onLimitExceeded: () => void
   languageCode: LanguageCode | null
   setLanguageCode: (languageCode: LanguageCode | null) => void
   hiddenLanguages?: LanguageCode[]
@@ -32,6 +31,7 @@ interface Props {
 export default function StepSelectLanguage({
   onBack,
   onNext,
+  onLimitExceeded,
   languageCode,
   setLanguageCode,
   hiddenLanguages = [],
@@ -41,7 +41,6 @@ export default function StepSelectLanguage({
   disableAutomatic,
 }: Props) {
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
-  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const usageLimitBlock = useMemo(
     () =>
       serviceUsageData?.status === 200 &&
@@ -52,11 +51,6 @@ export default function StepSelectLanguage({
       envStore.data.usage_limit_enforcement,
     ],
   )
-  const { billingPeriod } = useBillingPeriod()
-
-  function handleDismissModal() {
-    setIsLimitBlockModalOpen(false)
-  }
 
   function handleChangeLanguage(newVal: LanguageBase | null) {
     setLanguageCode(newVal?.code ?? null)
@@ -78,7 +72,7 @@ export default function StepSelectLanguage({
 
   function handleClickNextAutomatic() {
     if (usageLimitBlock) {
-      setIsLimitBlockModalOpen(true)
+      onLimitExceeded()
     } else {
       onNext(CreateSteps.Automatic)
     }
@@ -111,12 +105,6 @@ export default function StepSelectLanguage({
             selectedLanguage={languageCode}
             type='transcript'
             disabled={disableAutomatic}
-          />
-          <NlpUsageLimitBlockModal
-            isModalOpen={isLimitBlockModalOpen}
-            usageType={UsageLimitTypes.TRANSCRIPTION}
-            dismissed={handleDismissModal}
-            interval={billingPeriod}
           />
         </div>
       </footer>

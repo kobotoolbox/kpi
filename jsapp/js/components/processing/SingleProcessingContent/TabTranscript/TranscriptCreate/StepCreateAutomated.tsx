@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
+import { ServerError } from '#/api/ServerError'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -24,6 +25,7 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse
   onBack: () => void
+  onLimitExceeded: () => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
 
@@ -33,6 +35,7 @@ export default function StepCreateAutomated({
   languageCode,
   submission,
   onBack,
+  onLimitExceeded,
   advancedFeatures,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
@@ -54,6 +57,13 @@ export default function StepCreateAutomated({
           transcriptVersion?._data.status === 'failed'
         ) {
           notify(transcriptVersion?._data.error, 'error', {}, transcriptVersion?._data.error)
+        }
+      },
+      onError: (err) => {
+        if (err instanceof ServerError && err.response.status === 402) {
+          onLimitExceeded()
+        } else {
+          notify.error(t('Failed to create automatic transcript. Please try again later.'))
         }
       },
     },
@@ -99,16 +109,20 @@ export default function StepCreateAutomated({
       })
     }
 
-    await mutationCreateAutomaticTranscript.mutateAsync({
-      uidAsset: asset.uid,
-      rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
-      data: {
-        _version: SUBSEQUENCES_SCHEMA_VERSION,
-        [questionXpath]: {
-          automatic_google_transcription: { language: languageCode, locale },
+    try {
+      await mutationCreateAutomaticTranscript.mutateAsync({
+        uidAsset: asset.uid,
+        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        data: {
+          _version: SUBSEQUENCES_SCHEMA_VERSION,
+          [questionXpath]: {
+            automatic_google_transcription: { language: languageCode, locale },
+          },
         },
-      },
-    })
+      })
+    } catch {
+      // Error is handled by the onError callback above
+    }
   }
 
   if (!languageCode) return null
