@@ -462,10 +462,6 @@ export function manageAssetLanguages(asset: AssetResponse) {
   })
 }
 
-export function manageAssetEncryption(uid: string) {
-  pageState.showModal({ type: MODAL_TYPES.ENCRYPT_FORM, assetUid: uid })
-}
-
 /** Opens a modal for modifying asset tags (also editable in Details Modal). */
 export function modifyAssetTags(asset: AssetResponse | ProjectViewAsset) {
   pageState.showModal({ type: MODAL_TYPES.ASSET_TAGS, asset: asset })
