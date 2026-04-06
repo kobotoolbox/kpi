@@ -39,7 +39,7 @@ class GoogleTranslationService(GoogleService):
         self.translate_client = translate.TranslationServiceClient(
             credentials=google_credentials_from_constance_config()
         )
-        translation_location = constance.config.ASR_MT_GOOGLE_TRANSLATION_LOCATION
+        translation_location = constance.config.ASR_MT_GOOGLE_REGION
         project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
         if translation_location and translation_location.lower() != 'global':
             self.translate_parent = (

@@ -13,7 +13,7 @@ from kpi.models import Asset
 class TestGoogleTranscribe(TestCase):
     fixtures = ['test_data']
 
-    @override_config(ASR_MT_GOOGLE_SPEECH_LOCATION='eu')
+    @override_config(ASR_MT_GOOGLE_REGION='eu')
     def test_transcription_service_uses_regional_endpoint(self):
         asset = Asset.objects.get(pk=2)
         submission = {
@@ -56,7 +56,7 @@ class TestGoogleTranscribe(TestCase):
                                 == 'eu-speech.googleapis.com'
                             )
 
-    @override_config(ASR_MT_GOOGLE_SPEECH_LOCATION='global')
+    @override_config(ASR_MT_GOOGLE_REGION='global')
     def test_transcription_service_uses_global_endpoint(self):
         asset = Asset.objects.get(pk=2)
         submission = {
