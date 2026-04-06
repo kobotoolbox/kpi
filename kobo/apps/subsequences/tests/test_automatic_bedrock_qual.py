@@ -9,7 +9,6 @@ import pytest
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.conf import settings
 from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
@@ -673,10 +672,11 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         )
         assert len(patched_get_response_from_llm.call_args) == 2
 
-    @pytest.mark.skipif(
-        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
-    )
+    @override_settings(STRIPE_ENABLED=False)
     def test_run_external_process_updates_llm_usage(self):
+        """
+        Test that counter gets updated even if STRIPE_ENABLED is False
+        """
         today = timezone.now().date()
         current_counters = NLPUsageCounter.objects.filter(
             user=self.asset.owner, asset=self.asset, date=today
