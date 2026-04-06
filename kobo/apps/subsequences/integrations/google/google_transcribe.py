@@ -80,7 +80,7 @@ class GoogleTranscriptionService(GoogleService):
 
         # Create the parameters required for the transcription
         client_opts = None
-        speech_location = constance.config.ASR_MT_GOOGLE_SPEECH_LOCATION
+        speech_location = constance.config.ASR_MT_GOOGLE_REGION
         if speech_location and speech_location.lower() != 'global':
             client_opts = client_options.ClientOptions(
                 api_endpoint=f'{speech_location}-speech.googleapis.com'

@@ -365,17 +365,10 @@ CONSTANCE_CONFIG = {
             ' variable `GS_BUCKET_NAME`.'
         ),
     ),
-    'ASR_MT_GOOGLE_TRANSLATION_LOCATION': (
-        env.str('CONSTANCE_ASR_MT_GOOGLE_TRANSLATION_LOCATION', 'us-central1'),
+    'ASR_MT_GOOGLE_REGION': (
+        env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'global'),
         (
-            'Google Cloud location to use for large translation tasks. It'
-            ' cannot be `global`, and Google only allows certain locations.'
-        ),
-    ),
-    'ASR_MT_GOOGLE_SPEECH_LOCATION': (
-        'global',
-        (
-            'Google Cloud location for Speech-To-Text processing. If not `global`,'
+            'Google Cloud regional location for ASR/MT processing. If not `global`,'
             ' it directs traffic to regional endpoints (e.g. `eu`).'
         ),
     ),
@@ -755,8 +748,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_INVITEE_USERNAMES',
         'ASR_MT_GOOGLE_PROJECT_ID',
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
-        'ASR_MT_GOOGLE_SPEECH_LOCATION',
+        'ASR_MT_GOOGLE_REGION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
         'AUTOMATIC_QA_REQUESTS_PER_SECOND'
