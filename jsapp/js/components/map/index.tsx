@@ -638,10 +638,15 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
         map.fitBounds(markers.getBounds())
       }
+
       if (prepPoints.length === 0) {
         map.fitBounds([[42.373, -71.124]])
         this.setState({ noData: true })
+      } else {
+        // If the user changed questions, we need to reset the overlay
+        this.setState({ noData: false })
       }
+
       this.setState({
         markers: markers as FeatureGroupExtended,
       })
@@ -945,10 +950,13 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       formViewModifiers.push('fullscreen')
     }
 
+    // If there exists geopoint questions at all AND the currently selected geopoint question has data
+    const hasGeopointAndData = this.state.hasGeoPoint && !this.state.noData
+
     return (
       <bem.FormView m={formViewModifiers} className='right-tooltip'>
         <bem.FormView__mapButton
-          m={'expand'}
+          m={`expand ${hasGeopointAndData ? '' : 'disabled'}`}
           onClick={this.toggleFullscreen.bind(this)}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.isFullscreen ? 'active' : ''}
@@ -956,18 +964,22 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
-          m={'markers'}
+          m={`markers ${hasGeopointAndData ? '' : 'disabled'}`}
           onClick={this.showMarkers.bind(this)}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active' : ''}
         >
           <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
-        <bem.FormView__mapButton m={'layers'} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
+        <bem.FormView__mapButton
+          m={`layers ${hasGeopointAndData ? '' : 'disabled'}`}
+          onClick={this.showLayerControls.bind(this)}
+          data-tip={t('Toggle layers')}
+        >
           <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
-          m={'map-settings'}
+          m={`map-settings ${this.state.hasGeoPoint ? '' : 'disabled'}`}
           onClick={this.toggleMapSettings.bind(this)}
           data-tip={t('Map display settings')}
         >
@@ -975,7 +987,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         </bem.FormView__mapButton>
         {!viewby && (
           <bem.FormView__mapButton
-            m={'heatmap'}
+            m={`heatmap ${hasGeopointAndData ? '' : 'disabled'}`}
             onClick={this.showHeatmap.bind(this)}
             data-tip={t('Show as heatmap')}
             className={this.state.markersVisible ? '' : 'active'}
@@ -984,7 +996,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </bem.FormView__mapButton>
         )}
 
-        {this.state.hasGeoPoint && !this.state.noData && (
+        {hasGeopointAndData && (
           <PopoverMenu
             type='viewby-menu'
             triggerLabel={label}
@@ -1037,9 +1049,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         {this.state.noData && !this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
-              <p className='map-no-geopoint'>
-                {t('The map does not show data because this form does not have a "geopoint" field.')}
-              </p>
+              <p className='map-no-geopoint'>{t('This project does not include geographical data.')}</p>
+              <p className='map-no-geopoint'>{t('To visualize data in the map, create a "geopoint" question.')}</p>
             </div>
           </div>
         )}
@@ -1047,7 +1058,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         {this.state.noData && this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
-              <p className='map-no-geopoint'>{t('No "geopoint" responses have been received')}</p>
+              <p className='map-no-geopoint'>
+                {t('No "geopoint" responses have been received for the selected question.')}
+              </p>
             </div>
           </div>
         )}

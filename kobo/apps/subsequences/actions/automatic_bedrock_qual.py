@@ -83,7 +83,7 @@ ClaudeSonnet = LLModel(
     supports_reasoning=False,
 )
 OSS120 = LLModel(
-    model_id='openai.gpt-oss-safeguard-120b',
+    model_id='openai.gpt-oss-120b-1:0',
     model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
@@ -435,13 +435,12 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         prompt = self.generate_llm_prompt(action_data)
         error = ''
         self.client = self.create_bedrock_client()
-        if settings.STRIPE_ENABLED:
-            update_nlp_counter(
-                'bedrock_llm_requests',
-                1,
-                self.asset.owner_id,
-                self.asset.id,
-            )
+        update_nlp_counter(
+            'bedrock_llm_requests',
+            1,
+            self.asset.owner_id,
+            self.asset.id,
+        )
         # for now, hardcode OSS to be primary and Claude to be backup
         # eventually this will be configurable
         for index, model in enumerate([OSS120, ClaudeSonnet]):
