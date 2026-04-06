@@ -158,7 +158,7 @@ module.exports = do ->
 
     # Build UI-ready criterion presenters from an existing serialized skip logic string.
     # - If the serialized expression is empty, return a single empty condition.
-    # - If the parser can read the expression but the parsed criteria contain unsupported  operators for the referenced
+    # - If the parser can read the expression but the parsed criteria contain unsupported operators for the referenced
     #   question types, return false so the caller can fall back to the manual skip logic editor.
     build_criterion_builder: (serialized_criteria) ->
       if serialized_criteria == ''
