@@ -699,7 +699,9 @@ class ProjectSettings extends React.Component {
     envStore.data.extra_project_metadata_fields.forEach((field) => {
       const val = this.state.fields[field.name]
       if (field.required) {
-        const isEmpty = field.type === 'multi_select' ? !val?.length : !val?.trim()
+        const isSelectField = field.type === 'select' || field.type === 'select'
+        const isEmpty =
+          field.type === 'multi_select' ? !Array.isArray(val) || val.length === 0 : isSelectField ? !val : !val?.trim()
         if (isEmpty) fieldsWithErrors.push(field.name)
       }
     })
@@ -953,18 +955,6 @@ class ProjectSettings extends React.Component {
             </div>
           )}
 
-          {operationalPurposeField && (
-            <div className={styles.input}>
-              <WrappedSelect
-                label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
-                value={this.state.fields.operational_purpose}
-                onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
-                options={envStore.data.operational_purpose_choices}
-                error={this.hasFieldError('operational_purpose') ? t('Required') : false}
-              />
-            </div>
-          )}
-
           {/* Operational Purpose of Data */}
           {operationalPurposeField && (
             <div className={styles.input}>
@@ -1013,7 +1003,7 @@ class ProjectSettings extends React.Component {
               return { value: opt.name, label: opt.label }
             })
 
-            if (field.type === 'single_select' || field.type === 'multi_select') {
+            if (field.type === 'select' || field.type === 'multi_select') {
               return (
                 <div className={styles.input} key={field.name}>
                   <WrappedSelect

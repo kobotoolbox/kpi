@@ -141,6 +141,7 @@ export class EnvStoreData {
   }
 
   public getProjectMetadataFieldsAsSimpleDict() {
+    // dict[name] => {name, required, label}
     const dict: Partial<{
       [fieldName in ProjectMetadataFieldKey]: EnvStoreFieldItem
     }> = {}
@@ -235,6 +236,7 @@ class EnvStore {
     }
 
     this.data.asr_mt_features_enabled = response.asr_mt_features_enabled
+
     this.data.enable_custom_password_guidance_text = response.enable_custom_password_guidance_text
     this.data.custom_password_localized_help_text = response.custom_password_localized_help_text
     this.data.enable_password_entropy_meter = response.enable_password_entropy_meter
