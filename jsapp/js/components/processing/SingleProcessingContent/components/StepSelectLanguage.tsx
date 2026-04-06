@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 
 import cx from 'classnames'
-import { UsageLimitTypes } from '#/account/stripe.types'
+import type { UsageLimitTypes } from '#/account/stripe.types'
 import {
   type OrganizationsServiceUsageSummary,
   useOrganizationsServiceUsageSummary,
@@ -18,6 +18,7 @@ interface Props {
   onBack: () => void
   onNext: (step: CreateSteps.Manual | CreateSteps.Automatic) => void
   onLimitExceeded: () => void
+  usageType: UsageLimitTypes
   languageCode: LanguageCode | null
   setLanguageCode: (languageCode: LanguageCode | null) => void
   hiddenLanguages?: LanguageCode[]
@@ -32,6 +33,7 @@ export default function StepSelectLanguage({
   onBack,
   onNext,
   onLimitExceeded,
+  usageType,
   languageCode,
   setLanguageCode,
   hiddenLanguages = [],
@@ -44,7 +46,7 @@ export default function StepSelectLanguage({
   const usageLimitBlock = useMemo(
     () =>
       serviceUsageData?.status === 200 &&
-      serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) &&
+      serviceUsageData?.data.limitExceedList.includes(usageType) &&
       envStore.data.usage_limit_enforcement,
     [
       (serviceUsageData?.data as OrganizationsServiceUsageSummary)?.limitExceedList,

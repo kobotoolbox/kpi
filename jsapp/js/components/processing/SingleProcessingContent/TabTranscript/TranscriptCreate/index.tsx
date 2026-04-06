@@ -61,6 +61,7 @@ export default function TranscriptCreate({
           onBack={() => setStep(CreateSteps.Begin)}
           onNext={(selectedStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(selectedStep)}
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
+          usageType={UsageLimitTypes.TRANSCRIPTION}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}

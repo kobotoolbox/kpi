@@ -80,6 +80,7 @@ export default function TranslationAdd({
           onBack={goBackFromLanguageStep}
           onNext={(step: CreateSteps.Manual | CreateSteps.Automatic) => setStep(step)}
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
+          usageType={UsageLimitTypes.TRANSLATION}
           hiddenLanguages={languagesExisting}
           suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
           languageCode={languageCode}
