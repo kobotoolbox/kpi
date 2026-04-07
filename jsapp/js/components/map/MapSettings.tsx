@@ -42,7 +42,7 @@ interface MapSettingsTabDefinition {
 }
 
 const QUERY_LIMIT_MINIMUM = 1000
-const QUERY_LIMIT_MAXIMUM = 30000
+
 const TABS = new Map<MapSettingsTabNames, MapSettingsTabDefinition>([
   [MapSettingsTabNames.colors, { id: MapSettingsTabNames.colors, label: t('Marker Colors') }],
   [MapSettingsTabNames.querylimit, { id: MapSettingsTabNames.querylimit, label: t('Query Limit') }],
