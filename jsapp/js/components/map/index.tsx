@@ -508,7 +508,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (nextViewBy) {
       fq.push(this.nameOfFieldInGroup(nextViewBy))
     }
-    //const sort = [{ id: '_id', desc: true }]
     this.props.setPageCount(pageLimit)
     this.props.setFields(JSON.stringify(fq))
   }

@@ -17,16 +17,18 @@ const SUBMISSIONS_PER_PAGE = 1000
 export default function FormMapWrapper(props: FormMapProps) {
   const [pageCount, setPageCount] = useState(DEFAULT_PAGE_SIZE)
   const [fields, setFields] = useState<string | undefined>(undefined)
+  const sort = JSON.stringify({'id': -1 })
 
   const queryOptions =
       Array.from({ length: pageCount }).map((_, index) => {
         return {
-          queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'pageCount', pageCount, 'page', index],
+          queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'pageCount', pageCount, 'page', index, sort],
           queryFn: () =>
             assetsDataList(props.asset.uid, {
               fields: fields || undefined,
               start: index * SUBMISSIONS_PER_PAGE,
               limit: SUBMISSIONS_PER_PAGE,
+              sort: sort,
             }),
           enabled: fields !== undefined,
         }
