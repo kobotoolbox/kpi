@@ -46,7 +46,7 @@ import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { fetchGetUrl } from '../../../js/api'
 
-const MAX_SUBMISSIONS = 30000 // Old maximum, dont' want more than 30 parallel queries
+const MAX_SUBMISSIONS = 30000 // Old maximum, don't want more than 30 parallel queries
 const SUBMISSIONS_PER_PAGE = 1000
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
