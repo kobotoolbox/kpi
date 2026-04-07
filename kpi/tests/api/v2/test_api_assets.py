@@ -813,6 +813,64 @@ class AssetListCountsApiTests(BaseAssetTestCase):
         assert counts['draft_count'] == 0
         assert counts['archived_count'] == 0
 
+    @data(True, False)
+    def test_asset_minimal_list_endpoint(self, as_owner):
+        draft, deployed, archived = self._create_one_asset_per_status(owner=self.user)
+
+        # should not appear when another_user is viewing (not shared)
+        Asset.objects.create(
+            owner=self.user,
+            name='unshared',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        if not as_owner:
+            draft.assign_perm(self.another_user, PERM_VIEW_ASSET)
+            deployed.assign_perm(self.another_user, PERM_VIEW_ASSET)
+            archived.assign_perm(self.another_user, PERM_VIEW_ASSET)
+        user_to_login = self.user if as_owner else self.another_user
+        self.client.force_login(user_to_login)
+        url = reverse(self._get_endpoint('asset-minimal-list'))
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert 'count' not in response.data
+        assert 'next' in response.data
+        assert 'previous' in response.data
+        results = response.data['results']
+        expected_count = 4 if as_owner else 3
+        assert len(results) == expected_count
+        for result in results:
+            assert set(result.keys()) == {'uid', 'name', 'deployment_status'}
+        statuses = {r['deployment_status'] for r in results}
+        assert 'draft' in statuses
+        assert 'deployed' in statuses
+        assert 'archived' in statuses
+
+    def test_asset_minimal_list_returns_all_types_without_filter(self):
+        self._create_one_asset_per_status(owner=self.user)
+        Asset.objects.create(
+            owner=self.user,
+            name='template',
+            asset_type='template',
+        )
+        self.client.force_login(self.user)
+        url = reverse(self._get_endpoint('asset-minimal-list'))
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        # template should also appear — filtering by asset_type is done via ?q=
+        assert len(response.data['results']) == 4
+
+    def test_asset_minimal_list_returns_empty_for_anonymous_user(self):
+        self.client.logout()
+        for asset in self._create_one_asset_per_status(self.user):
+            asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
+        url = reverse(self._get_endpoint('asset-minimal-list'))
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'] == []
+
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
@@ -933,6 +991,25 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         region_for_view = set(get_region_for_view(results[1]['uid']))
         assert asset_countries & region_for_view
+
+    def test_asset_minimal_list_for_project_view(self):
+        # Use the ZAF project view created in setUp (pk=2, countries include ZAF)
+        # which already has someuser as a member and the ZAF asset visible
+        project_view = ProjectView.objects.get(pk=2)
+        url = reverse(
+            self._get_endpoint('projectview-asset-minimal-list'),
+            kwargs={'uid_project_view': project_view.uid},
+        )
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert 'count' not in response.data
+        assert 'next' in response.data
+        assert 'previous' in response.data
+        # pk=2 covers ZAF only, setUp has 1 ZAF asset
+        assert len(response.data['results']) == 1
+        for result in response.data['results']:
+            assert set(result.keys()) == {'uid', 'name', 'deployment_status'}
 
     def test_project_views_anotheruser_submission_count(self):
         self.client.force_login(self.anotheruser)

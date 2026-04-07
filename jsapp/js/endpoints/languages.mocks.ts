@@ -6,11 +6,11 @@ import type { ListLanguage } from '../components/languages/languagesStore'
 /**
  * Mock API for languages list. Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
-const languagesMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, PaginatedResponse<ListLanguage>>(
+const languagesMock = http.get<PathParams<'limit' | 'start' | 'q'>, never, PaginatedResponse<ListLanguage>>(
   endpoints.LANGUAGES_LIST_URL,
   (info) => {
     const searchParams = new URL(info.request.url).searchParams
-    if (searchParams.get('limit') === '100' && searchParams.get('offset') === '100') {
+    if (searchParams.get('limit') === '100' && searchParams.get('start') === '100') {
       return HttpResponse.json(languagesResponsePage2)
     } else if (searchParams.get('q') === 'swed') {
       return HttpResponse.json(languagesResponseQuerySwed)
@@ -57,7 +57,7 @@ const languagesResponseQuerySwed: PaginatedResponse<ListLanguage> = {
 
 const languagesResponsePage1: PaginatedResponse<ListLanguage> = {
   count: 150,
-  next: '/api/v2/languages/?limit=100&offset=100',
+  next: '/api/v2/languages/?limit=100&start=100',
   previous: null,
   results: [
     {
