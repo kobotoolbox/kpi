@@ -905,10 +905,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
-    if (mapStyles.querylimit) {
-      this.props.setPageCount(Number.parseInt(mapStyles.querylimit) / 1000)
-    }
-
     this.setState(
       {
         filteredByMarker: undefined,
