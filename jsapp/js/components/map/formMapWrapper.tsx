@@ -51,7 +51,7 @@ export default function FormMapWrapper(props: FormMapProps) {
   return (
     <FormMap
       asset={props.asset}
-      viewby={props.viewby}
+      viewby={props.viewby ?? ''}
       allData={allData}
       isLoading={isLoading}
       isError={isError}
