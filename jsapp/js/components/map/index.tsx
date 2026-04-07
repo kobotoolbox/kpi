@@ -437,8 +437,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
-
-
   createDataQuery(nextViewBy = '') {
     // Map cannot actually show more than one question at a time, so we must always have a question specified.
     // The list below describes the priority to find the question:
@@ -841,7 +839,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   componentDidUpdate(prevProps: FormMapProps) {
     const totalCountPopulated = prevProps.totalCount === undefined && this.props.totalCount !== undefined
-    const dataChanged = (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0
+    const dataChanged =
+      (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) &&
+      this.props.allData.length > 0
     const viewbyChanged = prevProps.viewby !== this.props.viewby
 
     if (totalCountPopulated) {
@@ -907,7 +907,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
     if (mapStyles.querylimit) {
-      this.props.setPageCount((Number.parseInt(mapStyles.querylimit) / 1000))
+      this.props.setPageCount(Number.parseInt(mapStyles.querylimit) / 1000)
     }
 
     this.setState(
@@ -1131,9 +1131,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         {this.props.isLoading && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
-              <p className='map-no-geopoint'>
-                {t('Fetching points...')}
-              </p>
+              <p className='map-no-geopoint'>{t('Fetching points...')}</p>
             </div>
           </div>
         )}

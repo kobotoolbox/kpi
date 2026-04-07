@@ -17,22 +17,21 @@ const SUBMISSIONS_PER_PAGE = 1000
 export default function FormMapWrapper(props: FormMapProps) {
   const [pageCount, setPageCount] = useState(DEFAULT_PAGE_SIZE)
   const [fields, setFields] = useState<string | undefined>(undefined)
-  const sort = JSON.stringify({'id': -1 })
+  const sort = JSON.stringify({ '_id': -1 })
 
-  const queryOptions =
-      Array.from({ length: pageCount }).map((_, index) => {
-        return {
-          queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'pageCount', pageCount, 'page', index, sort],
-          queryFn: () =>
-            assetsDataList(props.asset.uid, {
-              fields: fields || undefined,
-              start: index * SUBMISSIONS_PER_PAGE,
-              limit: SUBMISSIONS_PER_PAGE,
-              sort: sort,
-            }),
-          enabled: fields !== undefined,
-        }
-      })
+  const queryOptions = Array.from({ length: pageCount }).map((_, index) => {
+    return {
+      queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'pageCount', pageCount, 'page', index, sort],
+      queryFn: () =>
+        assetsDataList(props.asset.uid, {
+          fields: fields || undefined,
+          start: index * SUBMISSIONS_PER_PAGE,
+          limit: SUBMISSIONS_PER_PAGE,
+          sort: sort,
+        }),
+      enabled: fields !== undefined,
+    }
+  })
 
   const results = useQueries({ queries: queryOptions })
   const allData = results
@@ -46,9 +45,7 @@ export default function FormMapWrapper(props: FormMapProps) {
   const isLoading = results.some((result) => result.isLoading)
   const isError = results.some((result) => result.isError)
   // Get total count from first query (only if not currently refetching to avoid stale data)
-  const totalCount = results[0].data?.status === 200 && !results[0].isFetching
-    ? results[0].data.data.count
-    : undefined
+  const totalCount = results[0].data?.status === 200 && !results[0].isFetching ? results[0].data.data.count : undefined
 
   return (
     <FormMap
