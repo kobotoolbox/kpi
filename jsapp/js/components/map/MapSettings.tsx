@@ -55,6 +55,7 @@ interface MapSettingsProps {
   toggleMapSettings: () => void
   overrideStyles: (mapStyles: AssetMapStyles) => void
   overridenStyles?: AssetMapStyles
+  queryLimit: number
 }
 
 interface MapSettingsState {
@@ -143,7 +144,6 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
   }
 
   saveMapSettings(newSettings: AssetMapStyles) {
-      console.log('new map settings', newSettings)
     const assetUid = this.props.asset.uid
     if (userCan('change_asset', this.props.asset)) {
       actions.map.setMapStyles(assetUid, newSettings)
@@ -368,7 +368,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                       type='range'
                       step={QUERY_LIMIT_MINIMUM}
                       min={QUERY_LIMIT_MINIMUM}
-                      max={QUERY_LIMIT_MAXIMUM}
+                      max={this.props.queryLimit}
                       value={queryLimit}
                       onChange={this.onQueryLimitChange.bind(this)}
                     />

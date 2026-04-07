@@ -1,5 +1,5 @@
 import { useQueries } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { assetsDataList, getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import type { WithRouterProps } from '#/router/legacy'
@@ -11,37 +11,28 @@ interface FormMapProps extends WithRouterProps {
   viewby?: string
 }
 
-export default function FormMapWrapper(props: FormMapProps) {
-  const [pageCount, setPageCount] = useState(5)
-  const [fields, setFields] = useState<string | undefined>(undefined)
-  const [foundSelectedQuestion, setFoundSelectedQuestion] = useState<string | null>(null)
-  console.log('current fields', fields)
-  console.log('current selected', foundSelectedQuestion)
+const DEFAULT_PAGE_SIZE = 1
+const SUBMISSIONS_PER_PAGE = 1000
 
-  const queryOptions = useMemo(
-    () =>
+export default function FormMapWrapper(props: FormMapProps) {
+  const [pageCount, setPageCount] = useState(DEFAULT_PAGE_SIZE)
+  const [fields, setFields] = useState<string | undefined>(undefined)
+
+  const queryOptions =
       Array.from({ length: pageCount }).map((_, index) => {
-        if (fields) {
-          console.log('queryOptions current pageCount', pageCount)
-        }
         return {
           queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'pageCount', pageCount, 'page', index],
           queryFn: () =>
             assetsDataList(props.asset.uid, {
               fields: fields || undefined,
-              start: index * 1000,
-              limit: 1000,
+              start: index * SUBMISSIONS_PER_PAGE,
+              limit: SUBMISSIONS_PER_PAGE,
             }),
           enabled: fields !== undefined,
         }
-      }),
-    [pageCount, fields],
-  )
+      })
 
   const results = useQueries({ queries: queryOptions })
-  const isLoading = results.some((result) => result.isLoading)
-  const isError = results.some((result) => result.isError)
-
   const allData = results
     .filter((result) => result.isSuccess)
     .flatMap((result) => {
@@ -50,21 +41,24 @@ export default function FormMapWrapper(props: FormMapProps) {
       }
       return []
     })
-
-  console.log('allData length:', allData.length, 'pageCount:', pageCount, 'results:', results.length)
+  const isLoading = results.some((result) => result.isLoading)
+  const isError = results.some((result) => result.isError)
+  // Get total count from first query (only if not currently refetching to avoid stale data)
+  const totalCount = results[0].data?.status === 200 && !results[0].isFetching
+    ? results[0].data.data.count
+    : undefined
 
   return (
     <FormMap
       asset={props.asset}
-      pageCount={pageCount}
-      setPageCount={setPageCount}
+      viewby={props.viewby}
+      allData={allData}
       isLoading={isLoading}
       isError={isError}
-      allData={allData}
+      totalCount={totalCount}
+      pageCount={pageCount}
+      setPageCount={setPageCount}
       setFields={setFields}
-      foundSelectedQuestion={foundSelectedQuestion}
-      setFoundSelectedQuestion={setFoundSelectedQuestion}
-      viewby={props.viewby}
     />
   )
 }

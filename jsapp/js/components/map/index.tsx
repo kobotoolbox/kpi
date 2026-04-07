@@ -46,6 +46,9 @@ import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { fetchGetUrl } from '../../../js/api'
 
+const MAX_SUBMISSIONS = 30000 // Old maximum, dont' want more than 30 parallel queries
+const SUBMISSIONS_PER_PAGE = 1000
+
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   subdomains: ['a', 'b', 'c'],
@@ -132,8 +135,7 @@ interface FormMapProps extends WithRouterProps {
   isError: boolean
   allData: DataResponse[]
   setFields: Function
-  foundSelectedQuestion: string | null
-  setFoundSelectedQuestion: Function
+  totalCount: number
 }
 
 interface FormMapState {
@@ -165,6 +167,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
 
   private unlisteners: Function[] = []
+  // Needs to persist through re-renders of the map
 
   constructor(props: FormMapProps) {
     super(props)
@@ -272,6 +275,15 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
       }
     })
+  }
+
+  getQueryLimit() {
+    // If the user has more than 30,000 submissions, display 30,000 as the max anyways
+    if (this.props.totalCount > MAX_SUBMISSIONS) {
+      return MAX_SUBMISSIONS
+    } else {
+      return Math.ceil(this.props.totalCount / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
+    }
   }
 
   /**
@@ -424,6 +436,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
+
+
   createDataQuery(nextViewBy = '') {
     // Map cannot actually show more than one question at a time, so we must always have a question specified.
     // The list below describes the priority to find the question:
@@ -453,14 +467,20 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       selectedQuestion = null
     }
 
+    // We set the selected question in this state as well for the display in the MapSettings modal
     this.setState({ foundSelectedQuestion: selectedQuestion })
-    this.props.setFoundSelectedQuestion(selectedQuestion)
 
     let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
       queryLimit = Number.parseInt(this.state.overridenStyles.querylimit)
     } else if (this.props.asset.map_styles.querylimit) {
       queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
+    }
+
+    // If the user has an overriden limit greater than the actual submission count, lower the limit
+    const maxSubmissions = this.getQueryLimit()
+    if (queryLimit > maxSubmissions) {
+      queryLimit = maxSubmissions
     }
 
     const pageLimit = queryLimit / 1000
@@ -563,7 +583,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     submissions.forEach((item) => {
       let markerProps = {}
 
-      const parsedCoordinates: number[] = parseLatLng(item, this.props.foundSelectedQuestion)
+      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
 
       if (!!parsedCoordinates.length) {
         if (viewby && mM) {
@@ -716,7 +736,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const heatmapPoints: Array<[number, number, number]> = []
     const submissions: SubmissionResponse[] = this.props.allData as SubmissionResponse[]
     submissions.forEach((item) => {
-      const parsedCoordinates: number[] = parseLatLng(item, this.props.foundSelectedQuestion)
+      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
       if (!!parsedCoordinates.length) {
         heatmapPoints.push([parsedCoordinates[0], parsedCoordinates[1], 1])
       }
@@ -805,16 +825,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
-    console.log('componentDidUpdate:', {
-      allDataChanged: prevProps.allData !== this.props.allData,
-      pageCountChanged: prevProps.pageCount !== this.props.pageCount,
-      prevDataLength: prevProps.allData.length,
-      currentDataLength: this.props.allData.length,
-      prevPageCount: prevProps.pageCount,
-      currentPageCount: this.props.pageCount
-    })
     if ((prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0) {
-      console.log('i am supposed to be here every time')
+      if (!this.state.foundSelectedQuestion) {
+        this.createDataQuery()
+      }
       this.setState({ submissions: this.props.allData as SubmissionResponse[] }, () => {
         const newMap = this.removeOldMapLayers()
         if (newMap) {
@@ -1168,6 +1182,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               toggleMapSettings={this.toggleMapSettings.bind(this)}
               overrideStyles={this.overrideStyles.bind(this)}
               overridenStyles={this.state.overridenStyles}
+              queryLimit={this.getQueryLimit()}
             />
           </Modal>
         )}
