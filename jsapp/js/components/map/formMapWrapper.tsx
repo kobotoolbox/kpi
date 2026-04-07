@@ -17,6 +17,7 @@ const SUBMISSIONS_PER_PAGE = 1000
 export default function FormMapWrapper(props: FormMapProps) {
   const [pageCount, setPageCount] = useState(DEFAULT_PAGE_SIZE)
   const [fields, setFields] = useState<string | undefined>(undefined)
+  // Hard coded the sorting produced by `getSubmssions`
   const sort = JSON.stringify({ '_id': -1 })
 
   const queryOptions = Array.from({ length: pageCount }).map((_, index) => {
