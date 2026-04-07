@@ -22,7 +22,7 @@ export default function FormMapWrapper(props: FormMapProps) {
 
   const queryOptions = Array.from({ length: pageCount }).map((_, index) => {
     return {
-      queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'pageCount', pageCount, 'page', index, sort],
+      queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'page', index, sort],
       queryFn: () =>
         assetsDataList(props.asset.uid, {
           fields: fields || undefined,
