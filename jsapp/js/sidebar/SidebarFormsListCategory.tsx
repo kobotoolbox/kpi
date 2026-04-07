@@ -109,7 +109,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
 
   const isLoading = isProjectsListVisible && query.isLoading
 
-  const categoryLable =
+  const categoryLabel =
     props.deploymentStatus === 'deployed'
       ? t('Deployed')
       : props.deploymentStatus === 'draft'
@@ -125,7 +125,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
         className={styles.categoryButton}
       >
         <Group gap='xs'>
-          <Box flex={1}>{categoryLable}</Box>
+          <Box flex={1}>{categoryLabel}</Box>
           <Badge label={props.totalCount} color='light-storm' size='xs' />
         </Group>
       </UnstyledButton>
