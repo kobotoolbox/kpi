@@ -496,7 +496,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       queryLimit = maxSubmissions
     }
 
-    const pageLimit = queryLimit / 1000
+    const pageLimit = queryLimit / SUBMISSIONS_PER_PAGE
 
     const fq = ['_id']
     if (selectedQuestion) {
