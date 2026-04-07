@@ -65,7 +65,9 @@ jobs:
         git add -f locale/en/LC_MESSAGES/
         rm -f 'locale/en/LC_MESSAGES/django.po'
         rm -f 'locale/en/LC_MESSAGES/djangojs.po'
+        git stash
         git checkout -
+        git stash pop
 
     - name: Extract translatable strings from Python code.
       run: python manage.py makemessages --locale en

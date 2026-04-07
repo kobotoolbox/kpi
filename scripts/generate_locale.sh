@@ -23,4 +23,5 @@ echo 'Extracting translatable strings from Django code.'
 echo 'Extracting translatable strings from client code.'
 (cd ${KOBOFORM_SRC_DIR} && python manage.py makemessages --locale en --domain djangojs)
 
+echo 'Done.'
 echo 'Do NOT commit translatable strings. CI will rebuild it from source on-demand when required.'
