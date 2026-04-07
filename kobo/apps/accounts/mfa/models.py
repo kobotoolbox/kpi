@@ -2,7 +2,7 @@
 from allauth.mfa.models import Authenticator
 from django.conf import settings
 from django.contrib import admin
-from django.db import models
+from django.db import models, transaction
 from django.utils.timezone import now
 from trench.admin import MFAMethod as TrenchMFAMethod
 from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
@@ -99,10 +99,23 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
 
     def delete(self, using=None, keep_parents=False):
         user_id = self.user_id
-        super().delete(using, keep_parents)
+        totp_id = self.totp_id
+        recovery_codes_id = self.recovery_codes_id
 
-        # Sync MFA status with UserProfile
-        UserProfile.set_mfa_status(user_id=user_id, is_active=False)
+        with transaction.atomic():
+            super().delete(using, keep_parents)
+
+            # Sync MFA status with UserProfile
+            UserProfile.set_mfa_status(user_id=user_id, is_active=False)
+
+            if totp_id:
+                Authenticator.objects.filter(id=totp_id).delete()
+            if recovery_codes_id:
+                Authenticator.objects.filter(id=recovery_codes_id).delete()
+
+            # ToDo: Remove this Trench cleanup once the long-running MFA migration
+            #  is complete and Trench is fully removed from the codebase
+            MfaMethod.objects.filter(user_id=user_id).delete()
 
 
 class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
