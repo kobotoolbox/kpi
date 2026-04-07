@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 from django.test import TestCase
 from freezegun import freeze_time
 
+from django_celery_beat.schedulers import DatabaseScheduler
+
 from kobo.apps.beat.schedulers import ThrottledDatabaseScheduler
 
 UTC = ZoneInfo('UTC')
@@ -178,7 +180,7 @@ class ThrottledDatabaseSchedulerTestCase(TestCase):
     def _patch_super_changed(self, return_value):
 
         return patch.object(
-            ThrottledDatabaseScheduler.__bases__[0],
+            DatabaseScheduler,
             'schedule_changed',
             return_value=return_value,
         )

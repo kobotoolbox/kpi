@@ -17,10 +17,16 @@ class ThrottledDatabaseScheduler(DatabaseScheduler):
     its time reloading rather than dispatching tasks.
 
     This subclass always calls `super().schedule_changed()` to keep its
-    internal `_last_timestamp` in sync with the DB (so no change is ever
-    permanently missed). It then gates the actual reload behind a minimum time
-    interval: if a reload already happened within RELOAD_INTERVAL, subsequent
-    `schedule_changed()` calls return False until the window expires.
+    internal `_last_timestamp` in sync with the DB. It then gates the actual
+    reload behind a minimum time interval: if a reload already happened within
+    RELOAD_INTERVAL, subsequent `schedule_changed()` calls return False until
+    the window expires.
+
+    Note: a change detected during the throttle window is suppressed — Beat
+    will not reload for it. The next change detected after the window expires
+    will trigger a reload. This is an accepted trade-off: trash-bin tasks are
+    scheduled days in the future, so a delay of up to RELOAD_INTERVAL before
+    Beat picks them up is negligible.
 
     The only practical trade-off is that a newly created PeriodicTask may take
     up to RELOAD_INTERVAL seconds to be picked up by Beat. For trash bin tasks
