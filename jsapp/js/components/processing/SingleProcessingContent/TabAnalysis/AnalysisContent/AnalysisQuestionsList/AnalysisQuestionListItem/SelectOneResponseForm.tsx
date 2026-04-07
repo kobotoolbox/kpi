@@ -23,6 +23,7 @@ export default function SelectOneResponseForm({ qaQuestion, onSave, disabled, va
     .map((choice) => ({
       uuid: choice.uuid,
       label: choice.labels._default,
+      hint: (choice.hint?.labels as { [key: string]: string | undefined })?._default,
     }))
 
   return (

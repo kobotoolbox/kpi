@@ -11,15 +11,12 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 /**
- * * `archived` - archived
- * `deployed` - deployed
- * `draft` - draft
+ * Serializes SCIM 2.0 Error responses matching RFC7644
  */
-export type DeploymentStatusEnum = (typeof DeploymentStatusEnum)[keyof typeof DeploymentStatusEnum]
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DeploymentStatusEnum = {
-  archived: 'archived',
-  deployed: 'deployed',
-  draft: 'draft',
-} as const
+export interface ScimError {
+  schemas?: string[]
+  /** A detailed, human-readable message. */
+  detail: string
+  /** The HTTP status code. */
+  status: string
+}

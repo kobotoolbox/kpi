@@ -2104,7 +2104,7 @@ paths:
     get:
       operationId: api_v2_assets_counts_list
       description: |
-        ## Count the daily amount of submission
+        ## Count the daily amount of submissions
 
         Returns up to the last 31 days of daily counts and total counts of submissions to a survey.
 
@@ -7357,6 +7357,23 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/assets/counts/:
+    get:
+      operationId: api_v2_assets_counts_retrieve
+      description: |
+        ## Return counts of deployed, archived, and draft assets
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetListCount'
+          description: null
   /api/v2/assets/hash/:
     get:
       operationId: api_v2_assets_hash_retrieve
@@ -7403,6 +7420,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetMetadataResponse'
+          description: null
+  /api/v2/assets/minimal-list/:
+    get:
+      operationId: api_v2_assets_minimal_list_retrieve
+      description: |
+        ## Return a minimal listing of assets with their deployment status
+
+        Returns a paginated list of assets visible to the current user, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+        Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+        Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of results to return per page.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: The initial index from which to return the results.
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetMinimalListList'
           description: null
   /api/v2/audit-logs/:
     get:
@@ -8005,6 +8061,97 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetList'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/organizations/{uid_organization}/assets/counts/:
+    get:
+      operationId: api_v2_organizations_assets_counts_retrieve
+      description: |
+        ## Return counts of deployed, archived, and draft assets owned by the organization
+      parameters:
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: A unique value identifying this organization.
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetListCount'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/organizations/{uid_organization}/assets/minimal-list/:
+    get:
+      operationId: api_v2_organizations_assets_minimal_list_retrieve
+      description: |
+        ## Return a minimal listing of assets in an organization
+
+        Returns a paginated list of assets owned by the organization, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+        Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+        Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of results to return per page.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: The initial index from which to return the results.
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: A unique value identifying this organization.
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetMinimalListList'
           description: null
         '404':
           content:
@@ -9614,6 +9761,95 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+  /api/v2/project-views/{uid_project_view}/assets/counts/:
+    get:
+      operationId: api_v2_project_views_assets_counts_retrieve
+      description: |
+        ## Return counts of deployed, archived, and draft assets in the project view
+      parameters:
+      - in: path
+        name: uid_project_view
+        schema:
+          type: string
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetListCount'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/project-views/{uid_project_view}/assets/minimal-list/:
+    get:
+      operationId: api_v2_project_views_assets_minimal_list_retrieve
+      description: |
+        ## Return a minimal listing of assets in a project view
+
+        Returns a paginated list of assets visible within the project view, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+        Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+        Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Number of results to return per page.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: The initial index from which to return the results.
+      - in: path
+        name: uid_project_view
+        schema:
+          type: string
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetMinimalListList'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
   /api/v2/project-views/{uid_project_view}/users/:
     get:
       operationId: api_v2_project_views_users_retrieve
@@ -9700,7 +9936,27 @@ paths:
           type: integer
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9730,7 +9986,27 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimGroup'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '201':
           content:
             application/scim+json:
@@ -9758,7 +10034,27 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9794,7 +10090,27 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimGroup'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9830,7 +10146,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedScimGroup'
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9857,9 +10193,97 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '204':
           description: No response body
+  /api/v2/scim/v2/{idp_slug}/ResourceTypes:
+    get:
+      operationId: api_v2_scim_v2_ResourceTypes_retrieve
+      description: Returns the SCIM supported ResourceTypes.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Schemas:
+    get:
+      operationId: api_v2_scim_v2_Schemas_retrieve
+      description: Returns the SCIM supported Schemas.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v2/scim/v2/{idp_slug}/ServiceProviderConfig:
     get:
       operationId: api_v2_scim_v2_ServiceProviderConfig_retrieve
@@ -9872,7 +10296,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9911,7 +10349,21 @@ paths:
           type: integer
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9938,7 +10390,21 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimUser'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '201':
           content:
             application/scim+json:
@@ -9977,7 +10443,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -10014,7 +10494,21 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimUser'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -10054,7 +10548,21 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedScimUser'
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -10078,7 +10586,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '204':
           description: No response body
   /api/v2/service_usage/:
@@ -11750,7 +12272,8 @@ components:
           type: string
           readOnly: true
         deployment_status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/AssetDeploymentStatusEnum'
           readOnly: true
         report_styles:
           type: object
@@ -12044,6 +12567,18 @@ components:
         - asset_type
         - name
         - settings
+    AssetDeploymentStatusEnum:
+      enum:
+      - archived
+      - deployed
+      - draft
+      - '-'
+      type: string
+      description: |-
+        * `archived` - Archived
+        * `deployed` - Deployed
+        * `draft` - Draft
+        * `-` - -
     AssetExportSettings:
       type: object
       properties:
@@ -12076,6 +12611,22 @@ components:
       - name
       - uid
       - url
+    AssetListCount:
+      type: object
+      properties:
+        deployed_count:
+          type: integer
+          readOnly: true
+        archived_count:
+          type: integer
+          readOnly: true
+        draft_count:
+          type: integer
+          readOnly: true
+      required:
+      - archived_count
+      - deployed_count
+      - draft_count
     AssetMetadataResponse:
       type: object
       properties:
@@ -12104,6 +12655,26 @@ components:
       - languages
       - organizations
       - sectors
+    AssetMinimalList:
+      type: object
+      description: |-
+        Lightweight serializer returning only uid, name and deployment_status.
+        Used by the /api/v2/assets/minimal-list/ endpoint and its org/project-view variants.
+      properties:
+        uid:
+          type: string
+          maxLength: 22
+        name:
+          type: string
+          readOnly: true
+        deployment_status:
+          allOf:
+          - $ref: '#/components/schemas/AssetDeploymentStatusEnum'
+          readOnly: true
+      required:
+      - deployment_status
+      - name
+      - uid
     AssetSnapshotCreateRequest:
       oneOf:
       - type: object
@@ -12899,7 +13470,7 @@ components:
           readOnly: true
         deployment_status:
           allOf:
-          - $ref: '#/components/schemas/DeploymentStatusEnum'
+          - $ref: '#/components/schemas/CustomAssetUsageDeploymentStatusEnum'
           readOnly: true
       required:
       - asset
@@ -12910,6 +13481,16 @@ components:
       - storage_bytes
       - submission_count_all_time
       - submission_count_current_period
+    CustomAssetUsageDeploymentStatusEnum:
+      enum:
+      - archived
+      - deployed
+      - draft
+      type: string
+      description: |-
+        * `archived` - archived
+        * `deployed` - deployed
+        * `draft` - draft
     CustomerPortal:
       type: object
       properties:
@@ -13434,16 +14015,6 @@ components:
       - asset
       - backend
       - version_id
-    DeploymentStatusEnum:
-      enum:
-      - archived
-      - deployed
-      - draft
-      type: string
-      description: |-
-        * `archived` - archived
-        * `deployed` - deployed
-        * `draft` - draft
     EmailAddress:
       type: object
       properties:
@@ -15040,6 +15611,29 @@ components:
               type: string
             example:
             - Kobotoolbox
+    PaginatedAssetMinimalListList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
+        previous:
+          type:
+          - string
+          - 'null'
+          nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetMinimalList'
     PaginatedAssetSnapshotResponseList:
       type: object
       required:
@@ -16616,6 +17210,10 @@ components:
           type: string
         members:
           readOnly: true
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
     PatchedScimUser:
       type: object
       description: Serializes a Django User to match the SCIM 2.0 User schema.
@@ -16635,6 +17233,10 @@ components:
           readOnly: true
         active:
           type: boolean
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
     PermissionAssignmentBulkRequest:
       type: object
       properties:
@@ -17744,6 +18346,25 @@ components:
       - uuid
       - type
       - labels
+    ScimError:
+      type: object
+      description: Serializes SCIM 2.0 Error responses matching RFC7644
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          default:
+          - urn:ietf:params:scim:api:messages:2.0:Error
+        detail:
+          type: string
+          description: A detailed, human-readable message.
+        status:
+          type: string
+          description: The HTTP status code.
+      required:
+      - detail
+      - status
     ScimGroup:
       type: object
       description: Serializes a Django ScimGroup to match the SCIM 2.0 Group schema.
@@ -17759,10 +18380,15 @@ components:
           type: string
         members:
           readOnly: true
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
       - displayName
       - id
       - members
+      - meta
       - schemas
     ScimUser:
       type: object
@@ -17783,10 +18409,15 @@ components:
           readOnly: true
         active:
           type: boolean
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
       - active
       - emails
       - id
+      - meta
       - name
       - schemas
       - userName
@@ -19295,6 +19926,9 @@ components:
           type: integer
         active_project_count:
           type: integer
+        last_updated:
+          type: string
+          format: date-time
       required:
       - accepted_tos
       - account_restricted
@@ -19309,6 +19943,7 @@ components:
       - is_superuser
       - last_login
       - last_name
+      - last_updated
       - mfa_is_active
       - organizations
       - service_usage
@@ -19362,14 +19997,10 @@ components:
         current_period_end:
           type: string
           format: date-time
-        last_updated:
-          type: string
-          format: date-time
       required:
       - balances
       - current_period_end
       - current_period_start
-      - last_updated
       - total_nlp_usage
       - total_storage_bytes
       - total_submission_count
@@ -19505,6 +20136,11 @@ components:
     BasicAuth:
       type: http
       scheme: basic
+    ScimAuth:
+      type: http
+      scheme: bearer
+      description: Authentication via SCIM API Key provided in the Authorization header
+        as a Bearer token.
     TokenAuth:
       type: apiKey
       in: header

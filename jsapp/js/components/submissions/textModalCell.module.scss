@@ -2,6 +2,7 @@
 
 .cell {
   @include mixins.centerRowFlex;
+  height: 100%;
 }
 
 .textContent {

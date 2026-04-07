@@ -2,6 +2,7 @@ import { createTheme, rem } from '@mantine/core'
 import { ActionIconThemeKobo } from './ActionIcon'
 import { AlertThemeKobo } from './Alert'
 import { ButtonThemeKobo } from './Button'
+import { CheckboxThemeKobo } from './Checkbox'
 import { DividerThemeKobo } from './Divider'
 import { InputBaseThemeKobo } from './InputBase'
 import { LoaderThemeKobo } from './Loader'
@@ -130,6 +131,7 @@ export const themeKobo = createTheme({
     NumberInput: NumberInputThemeKobo,
     Paper: PaperThemeKobo,
     Pill: PillThemeKobo,
+    Checkbox: CheckboxThemeKobo,
     Radio: RadioThemeKobo,
   },
 })

@@ -1,9 +1,8 @@
 import './table.scss'
-
-import React from 'react'
-
+import { Group } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
+import React from 'react'
 import { DebounceInput } from 'react-debounce-input'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
@@ -89,7 +88,6 @@ import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { stores } from '#/stores'
 import { formatTimeDateShort, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
@@ -104,7 +102,6 @@ interface DataTableProps {
 }
 
 interface DataTableState {
-  isInitialized: boolean
   loading: boolean
   submissions: SubmissionResponse[]
   columns: any[]
@@ -154,7 +151,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   constructor(props: DataTableProps) {
     super(props)
     this.state = {
-      isInitialized: false, // for having asset with content
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
@@ -199,9 +195,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted.bind(this)),
       actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted.bind(this)),
     )
-
-    // TODO: why this line is needed? Why not use `assetStore`?
-    stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded.bind(this))
   }
 
   componentWillUnmount() {
@@ -210,20 +203,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     })
   }
 
-  /**
-   * This triggers only when asset with `content` was loaded.
-   */
-  whenLoaded() {
-    this.setState({ isInitialized: true })
-  }
-
   componentDidUpdate(prevProps: DataTableProps) {
-    let prevSettings = prevProps.asset.settings[DATA_TABLE_SETTING]
+    let prevSettings = prevProps.asset?.settings?.[DATA_TABLE_SETTING]
     if (!prevSettings) {
       prevSettings = {}
     }
 
-    let newSettings = this.props.asset.settings[DATA_TABLE_SETTING]
+    let newSettings = this.props.asset.settings?.[DATA_TABLE_SETTING]
     if (!newSettings) {
       newSettings = {}
     }
@@ -957,9 +943,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           // This identifies supplemental details column
           if (row.value === undefined && q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+            const supplementalValue = getSupplementalDetailsContent(row.original, key) || ''
+            if (key.endsWith('verified')) {
+              return <Group h='100%'>{supplementalValue}</Group>
+            }
             return (
               <TextModalCell
-                text={getSupplementalDetailsContent(row.original, key) || ''}
+                text={supplementalValue}
                 columnName={columnName}
                 submissionIndex={row.index + 1}
                 submissionTotal={this.state.submissions.length}
@@ -1387,10 +1377,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <CenteredMessage message={this.state.error} />
         </bem.FormView>
       )
-    }
-
-    if (!this.state.isInitialized) {
-      return <LoadingSpinner />
     }
 
     const pages = Math.floor((this.state.resultsTotal - 1) / this.state.pageSize + 1)

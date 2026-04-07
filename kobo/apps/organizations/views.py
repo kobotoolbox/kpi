@@ -17,6 +17,7 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.paginators import NoCountPagination
 from kpi.schema_extensions.v2.invites.schema import (
     INVITE_ROLE_SCHEMA,
     INVITE_STATUS_SCHEMA,
@@ -35,7 +36,11 @@ from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
-from kpi.serializers.v2.asset import AssetSerializer
+from kpi.serializers.v2.asset import (
+    AssetListCountSerializer,
+    AssetMinimalListSerializer,
+    AssetSerializer,
+)
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -119,12 +124,7 @@ class OrganizationAssetViewSet(AssetViewSet):
         )
 
         queryset = super().get_queryset(*args, **kwargs)
-        if self.action == 'list':
-            return queryset.filter(
-                owner=organization.owner_user_object
-            )
-        else:
-            raise NotImplementedError
+        return queryset.filter(owner=organization.owner_user_object)
 
 
 @extend_schema(tags=['User / team / organization / usage'])
@@ -207,6 +207,47 @@ class OrganizationAssetViewSet(AssetViewSet):
             validate_payload=False,
         ),
     ),
+    asset_counts=extend_schema(
+        description=read_md('kpi', 'organizations/org_asset_counts.md'),
+        responses=open_api_200_ok_response(
+            AssetListCountSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    asset_minimal_list=extend_schema(
+        description=read_md('kpi', 'organizations/org_asset_minimal_list.md'),
+        responses=open_api_200_ok_response(
+            AssetMinimalListSerializer(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Number of results to return per page.',
+            ),
+            OpenApiParameter(
+                name='start',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='The initial index from which to return the results.',
+            ),
+        ],
+    ),
 )
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
@@ -225,6 +266,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     - partial_update    → PATCH     /api/v2/organizations/{uid_organization}/
     - asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/
     - assets            → GET       /api/v2/organizations/{uid_organization}/assets/
+    - asset-counts      → GET       /api/v2/organizations/{uid_organization}/assets/counts/  # noqa
     - service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/
 
     Documentation:
@@ -232,6 +274,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     - docs/api/v2/organizations/org_retrieve.md
     - docs/api/v2/organizations/org_update.md
     - docs/api/v2/organizations/org_asset_usage.md
+    - docs/api/v2/organizations/org_asset_counts.md
+    - docs/api/v2/organizations/org_asset_minimal_list.md
     - docs/api/v2/organizations/org_assets.md
     - docs/api/v2/organizations/org_service_usage.md
     """
@@ -251,8 +295,39 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         # `get_object()` checks permissions
         organization = self.get_object()
 
-        # Permissions check is done by `OrganizationAssetViewSet` permission classes
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
+        django_http_request = request._request
+        # OrganizationAssetViewSet relies on permissions_checked rather than its own
+        # permission classes, so set that here
+        django_http_request.permissions_checked = True
+        django_http_request.organization = organization
+        return asset_view(request=django_http_request)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        permission_classes=[IsOrgAdminPermission],
+        url_path='assets/counts',
+    )
+    def asset_counts(self, request: Request, *args, **kwargs):
+        organization = self.get_object()
+        asset_view = OrganizationAssetViewSet.as_view({'get': 'counts'})
+        django_http_request = request._request
+        django_http_request.permissions_checked = True
+        django_http_request.organization = organization
+        return asset_view(request=django_http_request)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        permission_classes=[IsOrgAdminPermission],
+        url_path='assets/minimal-list',
+    )
+    def asset_minimal_list(self, request: Request, *args, **kwargs):
+        organization = self.get_object()
+        asset_view = OrganizationAssetViewSet.as_view(
+            {'get': 'minimal_list'}, pagination_class=NoCountPagination
+        )
         django_http_request = request._request
         django_http_request.permissions_checked = True
         django_http_request.organization = organization

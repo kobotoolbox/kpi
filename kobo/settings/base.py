@@ -1040,6 +1040,7 @@ SPECTACULAR_SETTINGS = {
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
+        'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
@@ -1051,6 +1052,7 @@ SPECTACULAR_SETTINGS = {
         'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
         'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
         'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
+        'AssetDeploymentStatusEnum': 'kpi.serializers.v2.asset.DEPLOYMENT_STATUS_ENUM',
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -1691,6 +1693,8 @@ if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
     AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
+    AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
+    AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
     AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
     AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
@@ -1987,6 +1991,9 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 300  # seconds
+# Lock TTL for the async regeneration task; covers the worst-case generation
+# time and ensures the lock expires even if a K8s pod is killed mid-task.
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 600  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
@@ -2206,3 +2213,20 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Configure the Referrer-Policy response header so OpenStreetMap tile servers
+# receive an acceptable referrer. See:
+# https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
+# Can be overridden per environment via the SECURE_REFERRER_POLICY environment variable.
+SECURE_REFERRER_POLICY = env(
+    'SECURE_REFERRER_POLICY',
+    default='strict-origin-when-cross-origin',
+)
+
+AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
+    'AUTOQA_CLAUDESONNET_MODEL_AIP_ARN',
+    default='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+)
+AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
+    'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
+)
