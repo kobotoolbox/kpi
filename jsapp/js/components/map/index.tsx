@@ -146,7 +146,6 @@ interface FormMapState {
   markerMap?: MarkerMap
   fields: SurveyRow[]
   hasGeoPoint: boolean
-  submissions: SubmissionResponse[]
   error: string | undefined
   isFullscreen: boolean
   showExpandedLegend: boolean
@@ -183,7 +182,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       markerMap: undefined,
       fields: [],
       hasGeoPoint: hasGeoPoint,
-      submissions: [],
       error: undefined,
       isFullscreen: false,
       showExpandedLegend: true,
@@ -250,7 +248,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     )
 
     actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
-    this.setState({ submissions: this.props.allData as SubmissionResponse[] })
   }
 
   loadOverlayLayers() {
@@ -844,27 +841,31 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
-    if (prevProps.totalCount === undefined && this.props.totalCount !== undefined) {
+    const totalCountPopulated = prevProps.totalCount === undefined && this.props.totalCount !== undefined
+    const dataChanged = (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0
+    const viewbyChanged = prevProps.viewby !== this.props.viewby
+
+    if (totalCountPopulated) {
       this.createDataQuery(this.props.viewby)
     }
 
-    if ((prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0) {
+    if (dataChanged && !viewbyChanged) {
       if (!this.state.foundSelectedQuestion) {
         this.createDataQuery()
       }
-      this.setState({ submissions: this.props.allData as SubmissionResponse[] }, () => {
-        const newMap = this.removeOldMapLayers()
-        if (newMap) {
-          this.rebuildMapLayers(newMap)
-        }
-      })
+      this.refreshMapLayers()
     }
-    if (prevProps.viewby !== this.props.viewby) {
+
+    if (viewbyChanged) {
       this.createDataQuery(this.props.viewby)
-      const newMap = this.removeOldMapLayers()
-      if (newMap) {
-        this.rebuildMapLayers(newMap)
-      }
+      this.refreshMapLayers()
+    }
+  }
+
+  refreshMapLayers() {
+    const map = this.removeOldMapLayers()
+    if (map) {
+      this.rebuildMapLayers(map)
     }
   }
 
@@ -906,7 +907,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
-    // React query will use its cache to display the results for queries of different page sizes
     if (mapStyles.querylimit) {
       this.props.setPageCount((Number.parseInt(mapStyles.querylimit) / 1000))
     }
@@ -918,12 +918,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         overridenStyles: mapStyles,
       },
       () => {
-        const newMap = this.removeOldMapLayers()
-
-        if (newMap) {
-          this.createDataQuery(this.props.viewby)
-          this.rebuildMapLayers(newMap)
-        }
+        this.createDataQuery(this.props.viewby)
+        this.refreshMapLayers()
       },
     )
   }
