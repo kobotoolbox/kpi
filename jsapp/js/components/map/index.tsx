@@ -135,7 +135,7 @@ interface FormMapProps extends WithRouterProps {
   isError: boolean
   allData: DataResponse[]
   setFields: Function
-  totalCount: number
+  totalCount: number | undefined
 }
 
 interface FormMapState {
@@ -278,6 +278,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   getQueryLimit() {
+    // If totalCount hasn't populated yet, return 0
+    if (this.props.totalCount === undefined) {
+      return 0
+    }
     // If the user has more than 30,000 submissions, display 30,000 as the max anyways
     if (this.props.totalCount > MAX_SUBMISSIONS) {
       return MAX_SUBMISSIONS
@@ -469,6 +473,21 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     // We set the selected question in this state as well for the display in the MapSettings modal
     this.setState({ foundSelectedQuestion: selectedQuestion })
+
+    // If totalCount hasn't populated yet, set pageLimit to 1
+    if (this.props.totalCount === undefined) {
+      const pageLimit = 1
+      const fq = ['_id']
+      if (selectedQuestion) {
+        fq.push(selectedQuestion)
+      }
+      if (nextViewBy) {
+        fq.push(this.nameOfFieldInGroup(nextViewBy))
+      }
+      this.props.setPageCount(pageLimit)
+      this.props.setFields(JSON.stringify(fq))
+      return
+    }
 
     let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
@@ -825,6 +844,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
+    if (prevProps.totalCount === undefined && this.props.totalCount !== undefined) {
+      this.createDataQuery(this.props.viewby)
+    }
+
     if ((prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0) {
       if (!this.state.foundSelectedQuestion) {
         this.createDataQuery()
