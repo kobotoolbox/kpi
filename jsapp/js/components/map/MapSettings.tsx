@@ -251,7 +251,12 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
   }
 
   render() {
-    const queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT
+    let queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT
+
+    // This case can only happen if somehow the queryLimit in map_styles is using the old slider values
+    if (Number(queryLimit) > this.props.queryLimit) {
+      queryLimit = this.props.queryLimit.toString()
+    }
 
     const tabsToDisplay = [MapSettingsTabNames.colors]
     if (userCan('change_asset', this.props.asset)) {
