@@ -20,6 +20,7 @@ jobs:
       openapi:  ${{ steps.filter.outputs.openapi  }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
+      locale:   ${{ steps.filter.outputs.locale   }}
 
   darker:
     needs: changes
@@ -45,3 +46,10 @@ jobs:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
+
+  locale:
+    needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
+    uses: './.github/workflows/locale.yml'
+    with:
+      base: ${{ github.event.pull_request.base.sha }}
