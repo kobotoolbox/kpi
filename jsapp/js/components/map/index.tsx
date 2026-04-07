@@ -166,7 +166,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
 
   private unlisteners: Function[] = []
-  // Needs to persist through re-renders of the map
 
   constructor(props: FormMapProps) {
     super(props)
@@ -513,7 +512,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   rebuildMapLayers(map: L.Map) {
     this.buildMarkers(map)
     // TODO: when heat map is selected and the user refteches data (changes question or selects a disaggregation) the
-    // map will rebuild and display both markers and heat map
+    // map will rebuild and display both markers and heat map. See DEV-1960
     this.buildHeatMap(map)
   }
 
