@@ -35,7 +35,6 @@ import type {
   AssetMapStyles,
   AssetResponse,
   PaginatedResponse,
-  SubmissionResponse,
   SurveyChoice,
   SurveyRow,
 } from '../../../js/dataInterface'
@@ -276,7 +275,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   getQueryLimit() {
     // If totalCount hasn't populated yet, return 0
     if (this.props.totalCount === undefined) {
-      return 0
+      return QUERY_LIMIT_DEFAULT
     }
     // If the user has more than 30,000 submissions, display 30,000 as the max anyways
     if (this.props.totalCount > MAX_SUBMISSIONS) {
@@ -542,7 +541,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     let currentQuestionChoices: SurveyChoice[] = []
     let mapMarkers: MapValueCounts = {}
     let mM: MarkerMap = []
-    const submissions: SubmissionResponse[] = this.props.allData as SubmissionResponse[]
+    const submissions: DataResponse[] = this.props.allData
 
     if (viewby) {
       mapMarkers = this.prepFilteredMarkers(submissions, this.props.viewby)
@@ -725,7 +724,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
-  prepFilteredMarkers(data: SubmissionResponse[], viewby: string): MapValueCounts {
+  prepFilteredMarkers(data: DataResponse[], viewby: string): MapValueCounts {
     const markerMap: MapValueCounts = {}
     const currentViewBy = this.nameOfFieldInGroup(viewby)
     let idCounter = 1
@@ -746,7 +745,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   buildHeatMap(map: L.Map) {
     const heatmapPoints: Array<[number, number, number]> = []
-    const submissions: SubmissionResponse[] = this.props.allData as SubmissionResponse[]
+    const submissions: DataResponse[] = this.props.allData
     submissions.forEach((item) => {
       const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
       if (!!parsedCoordinates.length) {
@@ -883,7 +882,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   launchSubmissionModal(evt: L.LeafletMouseEvent) {
-    const td = this.props.allData as SubmissionResponse[]
+    const td = this.props.allData
     const ids: number[] = []
     td.forEach((r) => {
       ids.push(r._id)
