@@ -161,14 +161,15 @@ def get_example_format(question_type: str, num_choices: int) -> str:
     :param num_choices: int Number of available choices
     :return: str formatted example response for the LLM to use as guidance
     """
-    # Example: select_one → "FALSE,TRUE,FALSE"; select_multiple → "TRUE,FALSE,TRUE,FALSE"
+    # Example: select_one → "FALSE,TRUE,FALSE";
+    # select_multiple → "TRUE,TRUE,FALSE,FALSE"
     response_array = ['FALSE'] * num_choices
     if question_type == QUESTION_TYPE_SELECT_ONE:
         response_array[min(1, num_choices - 1)] = 'TRUE'
     else:
         response_array[0] = 'TRUE'
-        if num_choices > 2:
-            response_array[2] = 'TRUE'
+        if num_choices > 1:
+            response_array[1] = 'TRUE'
     return ','.join(response_array)
 
 
