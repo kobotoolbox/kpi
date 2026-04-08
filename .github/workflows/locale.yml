@@ -1,0 +1,89 @@
+name: Check Translation Strings
+
+# See docs at `./locale/README.md`.
+
+on:
+  workflow_call:
+    inputs:
+      base:
+        required: false
+        type: string
+      push:
+        default: false
+        type: boolean
+
+
+jobs:
+  locale:
+    runs-on: ubuntu-24.04
+    steps:
+
+    ## Setup
+
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.10"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with: { cache-suffix: 'dev_requirements' }
+
+    - name: Update Debian package lists
+      run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+
+    - name: Install Debian dependencies
+      run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y install gdal-bin gettext libproj-dev postgresql-client ffmpeg gcc libc-dev build-essential
+
+    - name: Install Python dependencies
+      run: uv pip sync --system dependencies/pip/dev_requirements.txt
+
+    ## Testing: see if source file builds and log the diff.
+
+    # Build & diff previous version
+    - name: checkout base commit
+      if: ${{ !!inputs.base }}
+      env:
+        BASE: ${{ inputs.base }}
+      run: git checkout "$BASE"
+
+    - name: Extract translatable strings from Python code.
+      if: ${{ !!inputs.base }}
+      run: python manage.py makemessages --locale en
+
+    - name: Extract translatable strings from Javascript/Typescript code.
+      if: ${{ !!inputs.base }}
+      run: python manage.py makemessages --locale en --domain djangojs
+
+    - name: stage previous translatable strings for diffing and checkout current commit
+      if: ${{ !!inputs.base }}
+      run: |
+        git add -f locale/en/LC_MESSAGES/
+        rm -f 'locale/en/LC_MESSAGES/django.po'
+        rm -f 'locale/en/LC_MESSAGES/djangojs.po'
+        git stash
+        git checkout -
+        git stash pop
+
+    - name: Extract translatable strings from Python code.
+      run: python manage.py makemessages --locale en
+
+    - name: Extract translatable strings from Javascript/Typescript code.
+      run: python manage.py makemessages --locale en --domain djangojs
+
+    - name: Log translatable strings diff for information purposes only.
+      if: ${{ !!inputs.base }}
+      run: |
+        git diff --stat
+        git diff
+
+    - name: Push to Transifex
+      if: ${{ inputs.push == true }}
+      uses: transifex/cli-action@v2
+      with:
+        token: ${{ secrets.TRANSIFEX_API }}
+        args: 'push -s'
