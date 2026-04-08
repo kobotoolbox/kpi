@@ -38,13 +38,17 @@ class ThrottledDatabaseScheduler(DatabaseScheduler):
 
     def __init__(self, *args, **kwargs):
         self._last_reload = None
+        self._reload_pending = False
         super().__init__(*args, **kwargs)
 
     def schedule_changed(self):
         # Always call super() to keep _last_timestamp current. Without this,
         # we would accumulate a stale timestamp and trigger a spurious reload
         # the moment the throttle window expires, even if nothing changed.
-        if not super().schedule_changed():
+        if super().schedule_changed():
+            self._reload_pending = True
+
+        if not self._reload_pending:
             return False
 
         now = timezone.now()
@@ -54,5 +58,6 @@ class ThrottledDatabaseScheduler(DatabaseScheduler):
         ):
             return False
 
+        self._reload_pending = False
         self._last_reload = now
         return True
