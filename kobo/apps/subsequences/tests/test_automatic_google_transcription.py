@@ -432,10 +432,6 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
         action = AutomaticGoogleTranscriptionAction(xpath, params)
         with patch(
             'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
-            return_value=MagicMock(),
-        ) as patched_calculator:
-        with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
         ) as patched_calculator:
             patched_calculator.return_value.get_usage_balances.return_value = {
                 UsageType.ASR_SECONDS: {'exceeded': True}
