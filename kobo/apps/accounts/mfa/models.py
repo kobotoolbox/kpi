@@ -8,6 +8,7 @@ from trench.admin import MFAMethod as TrenchMFAMethod
 from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
 
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
@@ -102,7 +103,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         totp_id = self.totp_id
         recovery_codes_id = self.recovery_codes_id
 
-        with transaction.atomic():
+        with kc_transaction_atomic(), transaction.atomic():
             super().delete(using, keep_parents)
 
             # Sync MFA status with UserProfile

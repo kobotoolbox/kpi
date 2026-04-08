@@ -13,6 +13,7 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
     autocomplete_fields = ['user']
     list_display = ('user', 'name', 'is_active')
+    exclude = ('secret', 'totp', 'recovery_codes')
 
     def has_add_permission(self, request, obj=None):
         return False
