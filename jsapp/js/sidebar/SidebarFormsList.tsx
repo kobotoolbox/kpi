@@ -1,18 +1,20 @@
 import { Stack, Text } from '@mantine/core'
-import type { QueryKey } from '@tanstack/react-query'
 import { useQuery } from '@tanstack/react-query'
 import React, { useEffect } from 'react'
 import { actions } from '#/actions'
 import { queryClient } from '#/api/queryClient'
 import {
   assetsCountsRetrieve,
+  type assetsCountsRetrieveResponse,
   getAssetsCountsRetrieveQueryKey,
 } from '#/api/react-query/manage-projects-and-library-content'
 import {
   getOrganizationsAssetsCountsRetrieveQueryKey,
   getProjectViewsAssetsCountsRetrieveQueryKey,
   organizationsAssetsCountsRetrieve,
+  type organizationsAssetsCountsRetrieveResponse,
   projectViewsAssetsCountsRetrieve,
+  type projectViewsAssetsCountsRetrieveResponse,
 } from '#/api/react-query/user-team-organization-usage'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
@@ -47,20 +49,32 @@ export function resolveCustomViewUid(currentContext: SidebarContext): string | u
   return undefined
 }
 
-export function invalidateSidebarQueries() {
-  // Invalidate all sidebar counts queries (any query key ending with 'counts')
+export function invalidateSidebarQueries(orgUid?: string, customViewUid?: string) {
+  // Always invalidate all 3 counts queries
+  queryClient.invalidateQueries({
+    queryKey: getAssetsCountsRetrieveQueryKey(),
+  })
+  queryClient.invalidateQueries({
+    queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
+  })
+  queryClient.invalidateQueries({
+    queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(customViewUid ?? ''),
+  })
+
+  // Invalidate all sidebar infinite list queries by predicate
+  // When orgUid or customViewUid are undefined, we invalidate all related queries
   queryClient.invalidateQueries({
     predicate: (query) => {
       const key = query.queryKey
-      return key[key.length - 1] === 'counts'
-    },
-  })
+      if (key[0] !== 'sidebarAssetsMinimalList') return false
 
-  // Refetch all active sidebar infinite queries (starting with 'sidebarAssetsMinimalList'). For some reason
-  // `invalidateQueries` wasn't working for me here.
-  queryClient.refetchQueries({
-    queryKey: ['sidebarAssetsMinimalList'],
-    type: 'active',
+      const context = key[1]
+      if (context === 'my-projects') return true
+      if (context === 'my-org-projects') return !orgUid || key[3] === orgUid
+      if (context === 'custom-view-projects') return !customViewUid || key[4] === customViewUid
+
+      return false
+    },
   })
 }
 
@@ -74,58 +88,45 @@ export default function SidebarFormsList() {
   const resolvedContext = resolveSidebarContext()
   const resolvedCustomViewUid = resolveCustomViewUid(resolvedContext)
 
-  const countsQueryKey: QueryKey = (() => {
-    switch (resolvedContext) {
-      case 'my-org-projects':
-        return getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? '')
-      case 'custom-view-projects':
-        return getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? '')
-      case 'my-projects':
-      default:
-        return getAssetsCountsRetrieveQueryKey()
-    }
-  })()
-
-  // Single query hook with conditional function switching to make sure we avoid "more/fewer hooks than during previous
-  // render" error
-  const countsQuery = useQuery({
-    queryKey: [resolvedContext, ...countsQueryKey],
-    queryFn: () => {
-      switch (resolvedContext) {
-        case 'my-org-projects':
-          if (!orgUid) {
-            throw new Error('Organization uid is required for org projects counts')
-          }
-          return organizationsAssetsCountsRetrieve(orgUid)
-        case 'custom-view-projects':
-          if (!resolvedCustomViewUid) {
-            throw new Error('View uid is required for custom project view counts')
-          }
-          return projectViewsAssetsCountsRetrieve(resolvedCustomViewUid)
-        case 'my-projects':
-        default:
-          return assetsCountsRetrieve()
-      }
-    },
-    enabled:
-      resolvedContext === 'my-projects' ||
-      (resolvedContext === 'my-org-projects' && !!orgUid) ||
-      (resolvedContext === 'custom-view-projects' && !!resolvedCustomViewUid),
+  // Always call all 3 hooks to avoid "more/fewer hooks than during previous render" errors
+  const countsQueryMyProjects = useQuery<assetsCountsRetrieveResponse>({
+    queryKey: getAssetsCountsRetrieveQueryKey(),
+    queryFn: () => assetsCountsRetrieve(),
+    enabled: resolvedContext === 'my-projects',
+  })
+  const countsQueryOrgProjects = useQuery<organizationsAssetsCountsRetrieveResponse>({
+    queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
+    queryFn: () => organizationsAssetsCountsRetrieve(orgUid ?? ''),
+    enabled: resolvedContext === 'my-org-projects' && !!orgUid,
+  })
+  const countsQueryCustomView = useQuery<projectViewsAssetsCountsRetrieveResponse>({
+    queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? ''),
+    queryFn: () => projectViewsAssetsCountsRetrieve(resolvedCustomViewUid ?? ''),
+    enabled: resolvedContext === 'custom-view-projects' && !!resolvedCustomViewUid,
   })
 
+  // Pick the active hook based on context
+  const countsQuery =
+    resolvedContext === 'my-projects'
+      ? countsQueryMyProjects
+      : resolvedContext === 'my-org-projects'
+        ? countsQueryOrgProjects
+        : countsQueryCustomView
+
   useEffect(() => {
+    const invalidateSidebar = () => invalidateSidebarQueries(orgUid, resolvedCustomViewUid)
     const unlisteners = [
-      actions.resources.deleteAsset.completed.listen(invalidateSidebarQueries),
-      actions.resources.cloneAsset.completed.listen(invalidateSidebarQueries),
-      actions.resources.deployAsset.completed.listen(invalidateSidebarQueries),
-      actions.resources.setDeploymentActive.completed.listen(invalidateSidebarQueries),
-      actions.resources.updateAsset.completed.listen(invalidateSidebarQueries),
-      actions.permissions.removeAssetPermission.completed.listen(invalidateSidebarQueries),
+      actions.resources.deleteAsset.completed.listen(invalidateSidebar),
+      actions.resources.cloneAsset.completed.listen(invalidateSidebar),
+      actions.resources.deployAsset.completed.listen(invalidateSidebar),
+      actions.resources.setDeploymentActive.completed.listen(invalidateSidebar),
+      actions.resources.updateAsset.completed.listen(invalidateSidebar),
+      actions.permissions.removeAssetPermission.completed.listen(invalidateSidebar),
     ]
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [])
+  }, [orgUid, resolvedCustomViewUid])
 
   if (countsQuery.isLoading) {
     return <LoadingSpinner />
