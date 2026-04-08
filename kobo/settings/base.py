@@ -1366,6 +1366,12 @@ CSP_REPORT_ONLY = env.bool('CSP_REPORT_ONLY', False)
 
 CELERY_TIMEZONE = 'UTC'
 
+# Use a throttled scheduler to prevent Beat from reloading its entire schedule
+# on every PeriodicTask change signal. On high-volume servers, one_off task
+# completions trigger hundreds of reload signals per minute, starving dispatch.
+# See kobo/apps/beat/schedulers.py for details.
+CELERY_BEAT_SCHEDULER = 'kobo.apps.beat.schedulers.ThrottledDatabaseScheduler'
+
 # helpful for certain debugging
 CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', False)
 
@@ -1601,6 +1607,8 @@ CELERY_LONG_RUNNING_TASK_TIME_LIMIT = int(
 CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
     os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
 )
+
+CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # seconds
 
 """ Django allauth configuration """
 # User.email should continue to be used instead of the EmailAddress model
