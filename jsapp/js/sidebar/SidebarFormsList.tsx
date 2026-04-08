@@ -115,6 +115,8 @@ export default function SidebarFormsList() {
 
   useEffect(() => {
     const invalidateSidebar = () => invalidateSidebarQueries(orgUid, resolvedCustomViewUid)
+    // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
+    // `jsapp/js/api/mutation-defaults`
     const unlisteners = [
       actions.resources.deleteAsset.completed.listen(invalidateSidebar),
       actions.resources.cloneAsset.completed.listen(invalidateSidebar),
