@@ -80,7 +80,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     raise InvalidAction from e
 
                 action = feature.to_action()
-                action.check_limits(asset.owner)
+                action.check_limits(asset.owner, action_data)
 
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
