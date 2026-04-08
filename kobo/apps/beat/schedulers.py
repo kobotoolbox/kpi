@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.utils import timezone
 from django_celery_beat.schedulers import DatabaseScheduler
 
@@ -33,7 +34,7 @@ class ThrottledDatabaseScheduler(DatabaseScheduler):
     scheduled days in the future, this is negligible.
     """
 
-    RELOAD_INTERVAL = datetime.timedelta(seconds=15)
+    RELOAD_INTERVAL = datetime.timedelta(seconds=settings.CELERY_BEAT_RELOAD_INTERVAL)
 
     def __init__(self, *args, **kwargs):
         self._last_reload = None
