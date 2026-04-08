@@ -5,7 +5,8 @@ import dateutil
 import jsonschema
 import pytest
 from constance.test import override_config
-from ddt import data, ddt, unpack
+from ddt import data as ddt_data
+from ddt import ddt, unpack
 from django.conf import settings
 from django.test import TestCase
 
@@ -506,7 +507,7 @@ class AutomaticGoogleTranslationLimitTestCase(TestCase):
 
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
-    @data(
+    @ddt_data(
         ({'language': 'en', 'accepted': True}, False),
         ({'language': 'en', 'accepted': False}, False),
         ({'language': 'en'}, True),
