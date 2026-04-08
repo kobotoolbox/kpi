@@ -28,11 +28,16 @@ class IsMfaEnabled(BasePermission):
 
 
 class EnforceSuperuserMFA(BasePermission):
-    message = 'Superusers cannot deactivate MFA while SUPERUSER_AUTH_ENFORCEMENT is active.'
+    message = (
+        'Superusers cannot deactivate MFA while '
+        'SUPERUSER_AUTH_ENFORCEMENT is active.'
+    )
 
     def has_permission(self, request, view):
-        if getattr(request.user, 'is_superuser', False) and getattr(
-            config, 'SUPERUSER_AUTH_ENFORCEMENT', False
+        if (
+            getattr(request.user, 'is_superuser', False)
+            and getattr(config, 'SUPERUSER_AUTH_ENFORCEMENT', False)
+            and request.user.has_usable_password()
         ):
             return False
         return True
