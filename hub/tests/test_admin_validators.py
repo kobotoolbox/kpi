@@ -24,3 +24,26 @@ class ValidateSuperuserMfaTest(TestCase):
     def test_superuser_with_mfa_enabled(self):
         MfaMethodsWrapper.objects.create(user=self.superuser, is_active=True)
         self.assertTrue(validate_superuser_auth(self.superuser))
+
+    def test_regular_user_without_mfa(self):
+        """
+        Regular users should never be blocked by this setting
+        """
+        regular_user = User.objects.create_user(username='regular', password='password')
+        self.assertTrue(validate_superuser_auth(regular_user))
+
+    def test_superuser_with_inactive_mfa(self):
+        """
+        If the MFA record exists but is_active is False,
+        it should still be considered invalid for a superuser.
+        """
+        MfaMethodsWrapper.objects.create(user=self.superuser, is_active=False)
+        self.assertFalse(validate_superuser_auth(self.superuser))
+
+    @override_config(SUPERUSER_AUTH_ENFORCEMENT=False)
+    def test_superuser_with_enforcement_disabled(self):
+        """
+        If enforcement is OFF, the validator should return True even if
+        the superuser has no MFA.
+        """
+        self.assertTrue(validate_superuser_auth(self.superuser))

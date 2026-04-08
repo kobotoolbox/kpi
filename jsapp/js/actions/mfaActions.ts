@@ -109,7 +109,12 @@ mfaActions.deactivate.listen((mfaCode: string) => {
     .done(mfaActions.deactivate.completed)
     .fail((response: MfaErrorResponse) => {
       let errorText = t('Incorrect token or something went wrong')
-      if (response.non_field_errors) {
+
+      const responseData = response.responseJSON
+
+      if (responseData && responseData.detail) {
+        errorText = responseData.detail
+      } else if (response.non_field_errors) {
         errorText = response.non_field_errors
       }
       notify(errorText, 'error')
