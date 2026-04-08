@@ -12,6 +12,10 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { AssetsDataListFormat } from './assetsDataListFormat'
 
 export type AssetsDataListParams = {
+  /**
+   * Include only given list of fields in results
+   */
+  fields?: string
   format?: AssetsDataListFormat
   /**
    * Number of results to return per page. Use with `start`.
@@ -26,10 +30,11 @@ export type AssetsDataListParams = {
    */
   query?: string
   /**
+   * Sort the results by a field, e.g. {"_id":-1}
+   */
+  sort?: string
+  /**
    * The initial index from which to return the results. Use with `limit`.
    */
   start?: number
-  // TODO: OpenAPI should be updated, see DEV-1959
-  sort?: any
-  fields?: string
 }
