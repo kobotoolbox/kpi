@@ -726,6 +726,8 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         accepted = action_data.get('accepted', None)
         if accepted is not None:
             return
+        if 'value' in action_data and action_data['value'] is None:
+            return
         super().check_limits(user, action_data)
 
     @property
