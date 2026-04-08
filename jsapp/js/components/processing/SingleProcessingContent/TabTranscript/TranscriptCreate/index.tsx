@@ -87,7 +87,6 @@ export default function TranscriptCreate({
       {step === CreateSteps.Automatic && !!languageCode && (
         <StepCreateAutomated
           onBack={goBackToLanguageStep}
-          onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
