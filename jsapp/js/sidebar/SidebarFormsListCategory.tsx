@@ -133,12 +133,16 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
       {isProjectsListVisible && (
         <Stack className={styles.categoryList} gap='0'>
           {isLoading && (
-            <Center p='xl'>
+            <Center p='sm'>
               <Loader />
             </Center>
           )}
 
-          {!isLoading && !query.isError && rows.length === 0 && <Text p='sm'>{t('No projects found')}</Text>}
+          {!isLoading && !query.isError && rows.length === 0 && (
+            <Text fz='12' p='3 6'>
+              {t('No projects found')}
+            </Text>
+          )}
 
           {!isLoading &&
             rows.map((asset) => {
