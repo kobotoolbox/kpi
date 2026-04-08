@@ -139,6 +139,7 @@ export default function SidebarFormsList() {
   }
 
   return (
+    // minHeight needed for flex to work properly with scrollable containers
     <Stack style={{ minHeight: 0 }}>
       <SidebarFormsListCategory
         context={resolvedContext}
