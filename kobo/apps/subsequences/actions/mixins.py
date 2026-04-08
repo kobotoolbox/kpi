@@ -1,10 +1,14 @@
+import copy
 from copy import deepcopy
 
 from dateutil import parser
+from django.utils import timezone
 
+from kpi.utils.log import logging
 from ..constants import SORT_BY_DATE_FIELD
 from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
+from ..utils.time import utc_datetime_to_js_str
 
 
 class RequiresTranscriptionMixin:
@@ -38,7 +42,7 @@ class RequiresTranscriptionMixin:
         Raises:
           - TranscriptionNotFound: if no accepted transcript is available.
         """
-        latest_version = latest_accepted_dt = latest_version_action_id = None
+        latest_version = latest_date = latest_version_action_id = None
         latest_deletion_dt = None
 
         if 'value' in action_data and action_data['value'] is None:
@@ -70,19 +74,26 @@ class RequiresTranscriptionMixin:
                     if latest_deletion_dt is None or created_dt > latest_deletion_dt:
                         latest_deletion_dt = created_dt
                 else:
-                    # Skip versions that are not accepted
-                    accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
-                    if not accepted_raw:
+                    # prefer acceptance date
+                    comparison_date_raw = version.get(self.DATE_ACCEPTED_FIELD)
+                    if not self.auto_accept_transcriptions and not comparison_date_raw:
+                        # Skip versions that are not accepted if we're not going
+                        # to auto-accept
                         continue
 
-                    accepted_dt = parser.parse(accepted_raw)
-                    if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
-                        latest_accepted_dt = accepted_dt
+                    if comparison_date_raw is None:
+                        comparison_date_raw = version.get(self.DATE_CREATED_FIELD)
+
+                    comparison_date = comparison_date_raw and parser.parse(
+                        comparison_date_raw
+                    )
+                    if latest_date is None or comparison_date > latest_date:
+                        latest_date = comparison_date
                         latest_version = version
                         latest_version_action_id = action_id
 
         if latest_version is None or (
-            latest_deletion_dt and latest_deletion_dt > latest_accepted_dt
+            latest_deletion_dt and latest_deletion_dt > latest_date
         ):
             raise TranscriptionNotFound
 
@@ -101,7 +112,40 @@ class RequiresTranscriptionMixin:
             self.ACTION_ID_FIELD: latest_version_action_id,
         }
 
+        # save which transcription we used for later
+        self._action_data = copy.deepcopy(action_data)
+
         return action_data
+
+    def reconcile_actions(self, full_question_supplement_dict):
+        if not self.auto_accept_transcriptions:
+            return full_question_supplement_dict
+        if not getattr(self, '_action_data'):
+            return full_question_supplement_dict
+        transcription = self._action_data[self.DEPENDENCY_FIELD]
+        transcription_uuid = transcription[self.UUID_FIELD]
+        transcription_action = transcription[self.ACTION_ID_FIELD]
+        transcription_action_data = full_question_supplement_dict.get(
+            transcription_action
+        )
+        versions = transcription_action_data.get('_versions', [])
+        used_version = [
+            version
+            for version in versions
+            if version[self.UUID_FIELD] == transcription_uuid
+        ]
+        if len(used_version) == 0:
+            logging.warning('Unable to find transcript version used')
+            return full_question_supplement_dict
+        used_version = used_version[0]
+        if not used_version.get(self.DATE_ACCEPTED_FIELD):
+            used_version[self.DATE_ACCEPTED_FIELD] = utc_datetime_to_js_str(
+                timezone.now()
+            )
+            transcription_action_data[self.DATE_MODIFIED_FIELD] = (
+                utc_datetime_to_js_str(timezone.now())
+            )
+        return full_question_supplement_dict
 
 
 class TranscriptionActionMixin:
@@ -197,6 +241,8 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
     This mixin centralizes them so that both manual and automatic translation classes
     can reuse the same structure consistently.
     """
+
+    auto_accept_transcriptions = False
 
     @property
     def col_type(self):
