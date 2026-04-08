@@ -422,6 +422,7 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
     @ddt_data(
         ({'language': 'en', 'accepted': True}, False),
         ({'language': 'en', 'accepted': False}, False),
+        ({'language': 'en', 'value': None}, False),
         ({'language': 'en'}, True),
     )
     @unpack
