@@ -175,6 +175,7 @@ class ThrottledDatabaseSchedulerTestCase(TestCase):
 
         scheduler = ThrottledDatabaseScheduler.__new__(ThrottledDatabaseScheduler)
         scheduler._last_reload = None
+        scheduler._reload_pending = False
         return scheduler
 
     def _patch_super_changed(self, return_value):

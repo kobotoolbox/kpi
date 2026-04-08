@@ -23,15 +23,11 @@ class ThrottledDatabaseScheduler(DatabaseScheduler):
     RELOAD_INTERVAL, subsequent `schedule_changed()` calls return False until
     the window expires.
 
-    Note: a change detected during the throttle window is suppressed — Beat
-    will not reload for it. The next change detected after the window expires
-    will trigger a reload. This is an accepted trade-off: trash-bin tasks are
-    scheduled days in the future, so a delay of up to RELOAD_INTERVAL before
-    Beat picks them up is negligible.
-
-    The only practical trade-off is that a newly created PeriodicTask may take
-    up to RELOAD_INTERVAL seconds to be picked up by Beat. For trash bin tasks
-    scheduled days in the future, this is negligible.
+    Note: Changes detected during the throttle window are retained and reloaded on
+    the first schedule check after RELOAD_INTERVAL expires. The practical
+    trade-off is that a newly created PeriodicTask may take up to
+    RELOAD_INTERVAL seconds to be picked up by Beat, which is acceptable for
+    trash-bin tasks scheduled days in the future.
     """
 
     RELOAD_INTERVAL = datetime.timedelta(seconds=settings.CELERY_BEAT_RELOAD_INTERVAL)
