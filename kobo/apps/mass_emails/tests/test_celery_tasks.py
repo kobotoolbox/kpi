@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 import pytz
+from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core import mail
@@ -67,7 +68,13 @@ class BaseMassEmailsTestCase(BaseTestCase):
         cache.delete(self.cache_key)
 
     def _create_email_config(
-        self, name, template=None, frequency=-1, date_created=None
+        self,
+        name,
+        template=None,
+        frequency=-1,
+        date_created=None,
+        query='users_inactive_for_365_days',
+        live=True,
     ):
         """
         Helper function to create a MassEmailConfig
@@ -77,8 +84,8 @@ class BaseMassEmailsTestCase(BaseTestCase):
             name=name,
             subject='Test Subject',
             template=template if template else 'Test Template',
-            live=True,
-            query='users_inactive_for_365_days',
+            live=live,
+            query=query,
             frequency=frequency,
             date_created=date_created,
         )
@@ -334,6 +341,41 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         assert sender.limits.get(recurring_config_1.id, 0) == expected_limit_1
         assert sender.limits.get(recurring_config_2.id, 0) == expected_limit_2
 
+    @override_config(MASS_EMAIL_TEST_EMAILS='test@example.com')
+    def test_one_time_emails_only_turned_off_after_sent(self):
+        User.objects.create_user(username='test', email='test@example.com')
+        config_1 = self._create_email_config(
+            name='test', frequency=-1, query='test_users'
+        )
+        generate_mass_email_user_lists()
+        # config 2 is created after the daily list is generated
+        config_2 = self._create_email_config(
+            name='second test', frequency=-1, query='test_users'
+        )
+
+        # we will only have generated records for config_1, nothing should change
+        config_1.refresh_from_db()
+        assert config_1.live
+        assert config_2.live
+
+        send_emails()
+        # we have now sent emails for config_1, so it should no longer be live
+        # config_2 should still be live
+        config_1.refresh_from_db()
+        config_2.refresh_from_db()
+        assert config_2.live
+        assert not config_1.live
+
+        # next day, new email lists generated
+        with freeze_time(timezone.now() + timedelta(days=1)):
+            generate_mass_email_user_lists()
+            send_emails()
+        config_2.refresh_from_db()
+        config_1.refresh_from_db()
+        # both emails were sent, both are no longer live
+        assert not config_1.live
+        assert not config_2.live
+
 
 @ddt
 class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
@@ -456,3 +498,12 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
             email_job__email_config=email_config
         )
         self.assertFalse(record.exists())
+
+    @override_config(MASS_EMAIL_TEST_EMAILS='')
+    def test_one_off_emails_turned_off_if_no_recipients(self):
+        email_config = self._create_email_config('Test')
+        email_config.query = 'test_users'
+        email_config.save()
+        generate_mass_email_user_lists()
+        email_config.refresh_from_db()
+        assert not email_config.live

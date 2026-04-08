@@ -12,7 +12,6 @@ import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachme
 import TranslationSettings from '#/components/modalForms/TranslationSettings'
 import { AssetTagsForm } from '#/components/modalForms/assetTagsForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
-import EncryptForm from '#/components/modalForms/encryptForm'
 import { LibraryAssetForm } from '#/components/modalForms/libraryAssetForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
 import LibraryUploadForm from '#/components/modalForms/libraryUploadForm'
@@ -122,13 +121,10 @@ class BigModal extends React.Component {
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
-        const uid = this.props.params.assetid || this.props.params.uid
-        stores.allAssets.whenLoaded(uid, (asset) => {
-          actions.resources.createSnapshot({
-            asset: asset.url,
-          })
-        })
         this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
+        actions.resources.createSnapshot({
+          asset: this.props.params.assetUrl,
+        })
 
         this.setState({
           title: t('Form Preview'),
@@ -169,10 +165,6 @@ class BigModal extends React.Component {
           title: t('Translations Table'),
           modalClass: 'modal--large',
         })
-        break
-
-      case MODAL_TYPES.ENCRYPT_FORM:
-        this.setModalTitle(t('Manage Form Encryption'))
         break
 
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
@@ -372,9 +364,6 @@ class BigModal extends React.Component {
               langString={this.props.params.langString}
               langIndex={this.props.params.langIndex}
             />
-          )}
-          {this.props.params.type === MODAL_TYPES.ENCRYPT_FORM && (
-            <EncryptForm asset={this.props.params.asset} assetUid={this.props.params.assetUid} />
           )}
           {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
             <BulkEditSubmissionsForm

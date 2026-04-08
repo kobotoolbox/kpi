@@ -90,7 +90,7 @@ class FormSummary extends React.Component {
           </Link>
         )}
 
-        <button onClick={this.enketoPreviewModal}>
+        <button onClick={this.enketoPreviewModal} disabled={!this.state.url}>
           <i className='k-icon k-icon-view' />
           {t('Preview form')}
           <Icon name='angle-right' size='s' />
@@ -140,7 +140,7 @@ class FormSummary extends React.Component {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetid: this.state.uid,
+      assetUrl: this.state.url,
     })
   }
 
