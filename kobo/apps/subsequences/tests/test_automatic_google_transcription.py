@@ -434,9 +434,12 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
             'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
             return_value=MagicMock(),
         ) as patched_calculator:
-            patched_calculator.get_usage_balances = MagicMock(
-                return_value={UsageType.ASR_SECONDS: {'exceeded': True}}
-            )
+        with patch(
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+        ) as patched_calculator:
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.ASR_SECONDS: {'exceeded': True}
+            }
             if should_raise:
                 with pytest.raises(UsageLimitExceededException):
                     action.check_limits(u, action_data)
@@ -444,4 +447,4 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
                 action.check_limits(u, action_data)
 
         if not should_raise:
-            patched_calculator.get_usage_balances.assert_not_called()
+            patched_calculator.return_value.get_usage_balances.assert_not_called()
