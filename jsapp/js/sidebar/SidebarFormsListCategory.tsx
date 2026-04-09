@@ -25,7 +25,7 @@ import { getRouteAssetUid } from '#/router/routerUtils'
 import AssetName from '../components/common/assetName'
 import Badge from '../components/common/badge'
 import styles from './SidebarFormsList.module.scss'
-import type { SidebarContext } from './sidebar.types'
+import type { SidebarContext } from './common'
 
 const ITEMS_PER_PAGE = 20
 

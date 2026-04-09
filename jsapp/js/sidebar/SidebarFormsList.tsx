@@ -20,7 +20,7 @@ import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
-import type { SidebarContext } from './sidebar.types'
+import type { SidebarContext } from './common'
 
 function resolveSidebarContext(currentPath: string): SidebarContext | undefined {
   if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
