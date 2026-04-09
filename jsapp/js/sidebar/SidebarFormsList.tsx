@@ -5,11 +5,14 @@ import { actions } from '#/actions'
 import { queryClient } from '#/api/queryClient'
 import {
   getAssetsCountsRetrieveQueryKey,
+  getAssetsMinimalListRetrieveQueryKey,
   useAssetsCountsRetrieve,
 } from '#/api/react-query/manage-projects-and-library-content'
 import {
   getOrganizationsAssetsCountsRetrieveQueryKey,
+  getOrganizationsAssetsMinimalListRetrieveQueryKey,
   getProjectViewsAssetsCountsRetrieveQueryKey,
+  getProjectViewsAssetsMinimalListRetrieveQueryKey,
   useOrganizationsAssetsCountsRetrieve,
   useProjectViewsAssetsCountsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
@@ -44,36 +47,36 @@ function resolveCustomViewUid(currentPath: string): string | undefined {
 }
 
 export function invalidateSidebarQueries(orgUid?: string, customViewUid?: string) {
-  // Always invalidate all 3 counts queries
+  // Invalidate my-projects related queries
   queryClient.invalidateQueries({
     queryKey: getAssetsCountsRetrieveQueryKey(),
   })
+  queryClient.invalidateQueries({
+    queryKey: getAssetsMinimalListRetrieveQueryKey(),
+    exact: false,
+  })
+
+  // Invalidate my-org-projects related queries
   if (orgUid) {
     queryClient.invalidateQueries({
       queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid),
     })
+    queryClient.invalidateQueries({
+      queryKey: getOrganizationsAssetsMinimalListRetrieveQueryKey(orgUid),
+      exact: false,
+    })
   }
+
+  // Invalidate custom-view-projects related queries
   if (customViewUid) {
     queryClient.invalidateQueries({
       queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(customViewUid),
     })
+    queryClient.invalidateQueries({
+      queryKey: getProjectViewsAssetsMinimalListRetrieveQueryKey(customViewUid),
+      exact: false,
+    })
   }
-
-  // Invalidate all sidebar infinite list queries by predicate
-  // When orgUid or customViewUid are undefined, we invalidate all related queries
-  queryClient.invalidateQueries({
-    predicate: (query) => {
-      const key = query.queryKey
-      if (key[0] !== 'sidebarAssetsMinimalList') return false
-
-      const context = key[1]
-      if (context === 'my-projects') return true
-      if (context === 'my-org-projects') return !orgUid || key[3] === orgUid
-      if (context === 'custom-view-projects') return !customViewUid || key[4] === customViewUid
-
-      return false
-    },
-  })
 }
 
 /**

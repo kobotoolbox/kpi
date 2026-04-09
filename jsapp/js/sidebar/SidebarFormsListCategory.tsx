@@ -9,8 +9,11 @@ import type { AssetsMinimalListRetrieveParams } from '#/api/models/assetsMinimal
 import {
   assetsMinimalListRetrieve,
   type assetsMinimalListRetrieveResponse,
+  getAssetsMinimalListRetrieveQueryKey,
 } from '#/api/react-query/manage-projects-and-library-content'
 import {
+  getOrganizationsAssetsMinimalListRetrieveQueryKey,
+  getProjectViewsAssetsMinimalListRetrieveQueryKey,
   organizationsAssetsMinimalListRetrieve,
   type organizationsAssetsMinimalListRetrieveResponse,
   projectViewsAssetsMinimalListRetrieve,
@@ -54,14 +57,18 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
     readonly unknown[],
     number
   >({
-    queryKey: [
-      'sidebarAssetsMinimalList',
-      props.context,
-      props.deploymentStatus,
-      props.organizationId,
-      props.projectViewUid,
-      queryFilter,
-    ],
+    queryKey:
+      props.context === 'my-projects'
+        ? getAssetsMinimalListRetrieveQueryKey({ q: queryFilter, limit: ITEMS_PER_PAGE })
+        : props.context === 'my-org-projects'
+          ? getOrganizationsAssetsMinimalListRetrieveQueryKey(props.organizationId ?? '', {
+              q: queryFilter,
+              limit: ITEMS_PER_PAGE,
+            })
+          : getProjectViewsAssetsMinimalListRetrieveQueryKey(props.projectViewUid ?? '', {
+              q: queryFilter,
+              limit: ITEMS_PER_PAGE,
+            }),
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }: { pageParam: number }) => {
       const params: AssetsMinimalListRetrieveParams = {
