@@ -19,7 +19,7 @@ import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
 import type { SidebarContext } from './sidebar.types'
 
-export function resolveSidebarContext(): SidebarContext {
+function resolveSidebarContext(): SidebarContext {
   const currentPath = getCurrentPath()
   if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
     return 'my-org-projects'
@@ -32,7 +32,7 @@ export function resolveSidebarContext(): SidebarContext {
   return 'my-projects'
 }
 
-export function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
+function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
   if (currentContext !== 'custom-view-projects') return undefined
   if (!isCustomProjectsViewRoute()) return undefined
 
