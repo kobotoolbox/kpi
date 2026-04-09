@@ -94,9 +94,14 @@ export default function SidebarFormsList() {
   const location = useLocation()
   const currentPath = location.pathname
 
-  // Preserve sidebar context across navigation
-  const [sidebarContext, setSidebarContext] = useState<SidebarContext>('my-projects')
-  const [preservedCustomViewUid, setPreservedCustomViewUid] = useState<string | undefined>()
+  // Preserve sidebar context and customViewUid across navigation so that sidebar displays list of projects from same
+  // context while navigating around different projects.
+  const [sidebarContext, setSidebarContext] = useState<SidebarContext>(
+    resolveSidebarContext(currentPath) ?? 'my-projects',
+  )
+  const [preservedCustomViewUid, setPreservedCustomViewUid] = useState<string | undefined>(
+    resolveCustomViewUid(currentPath),
+  )
 
   // Update context and custom view UID only when on project-listing routes
   const resolvedContextFromPath = resolveSidebarContext(currentPath)
