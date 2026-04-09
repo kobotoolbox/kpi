@@ -215,7 +215,7 @@ export default function Usage() {
             oneTimeAddOns={filterAddOns(USAGE_TYPE.LLM)}
             period={billingPeriod}
             type={USAGE_TYPE.LLM}
-            title={t('LLM requests')}
+            title={t('Automatic analysis requests')}
             dateRange={dateRange}
           />
         )}
