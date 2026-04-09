@@ -116,7 +116,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
 
             # ToDo: Remove this Trench cleanup once the long-running MFA migration
             #  is complete and Trench is fully removed from the codebase
-            MfaMethod.objects.filter(user_id=user_id).delete()
+            MfaMethod.objects.filter(user_id=user_id, name=self.name).delete()
 
 
 class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):

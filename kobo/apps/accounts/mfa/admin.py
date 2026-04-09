@@ -11,7 +11,7 @@ from .models import (
 
 class MfaMethodsWrapperAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
-    autocomplete_fields = ['user']
+    autocomplete_fields = ('user',)
     list_display = ('user', 'name', 'is_active')
     exclude = ('secret', 'totp', 'recovery_codes')
 
