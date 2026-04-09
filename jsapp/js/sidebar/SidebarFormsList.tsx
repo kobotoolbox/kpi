@@ -34,13 +34,14 @@ export function resolveSidebarContext(): SidebarContext {
 }
 
 export function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
-  if (currentContext === 'custom-view-projects' && isCustomProjectsViewRoute()) {
-    const currentPath = getCurrentPath()
-    const pathSegments = currentPath.split('/')
-    // expecting `/projects/<viewUid>`
-    if (pathSegments.length >= 3) {
-      return pathSegments[2]
-    }
+  if (currentContext !== 'custom-view-projects') return undefined
+  if (!isCustomProjectsViewRoute()) return undefined
+
+  const currentPath = getCurrentPath()
+  const pathSegments = currentPath.split('/')
+  // expecting `/projects/<viewUid>`
+  if (pathSegments.length >= 3) {
+    return pathSegments[2]
   }
   return undefined
 }
