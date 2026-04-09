@@ -91,6 +91,7 @@ export default function SidebarFormsList() {
   // Always call all 3 hooks to avoid "more/fewer hooks than during previous render" errors
   const countsQueryMyProjects = useAssetsCountsRetrieve({
     query: {
+      // TODO: this prop shouldn't be required, see https://github.com/orval-labs/orval/issues/2396
       queryKey: getAssetsCountsRetrieveQueryKey(),
       enabled: resolvedContext === 'my-projects',
     },
