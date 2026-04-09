@@ -50,6 +50,19 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
 
   const queryFilter = `asset_type:survey AND _deployment_status:${props.deploymentStatus}`
 
+  const queryKey =
+    props.context === 'my-projects'
+      ? getAssetsMinimalListRetrieveQueryKey({ q: queryFilter, limit: ITEMS_PER_PAGE })
+      : props.context === 'my-org-projects'
+        ? getOrganizationsAssetsMinimalListRetrieveQueryKey(props.organizationId ?? '', {
+            q: queryFilter,
+            limit: ITEMS_PER_PAGE,
+          })
+        : getProjectViewsAssetsMinimalListRetrieveQueryKey(props.projectViewUid ?? '', {
+            q: queryFilter,
+            limit: ITEMS_PER_PAGE,
+          })
+
   const query = useInfiniteQuery<
     SidebarFormsListCategoryResponse,
     Error,
@@ -57,18 +70,8 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
     readonly unknown[],
     number
   >({
-    queryKey:
-      props.context === 'my-projects'
-        ? getAssetsMinimalListRetrieveQueryKey({ q: queryFilter, limit: ITEMS_PER_PAGE })
-        : props.context === 'my-org-projects'
-          ? getOrganizationsAssetsMinimalListRetrieveQueryKey(props.organizationId ?? '', {
-              q: queryFilter,
-              limit: ITEMS_PER_PAGE,
-            })
-          : getProjectViewsAssetsMinimalListRetrieveQueryKey(props.projectViewUid ?? '', {
-              q: queryFilter,
-              limit: ITEMS_PER_PAGE,
-            }),
+    // eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryFilter and props.context are embedded in queryKey via Orval helper params and branching
+    queryKey,
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }: { pageParam: number }) => {
       const params: AssetsMinimalListRetrieveParams = {
