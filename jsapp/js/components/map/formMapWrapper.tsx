@@ -44,7 +44,6 @@ export default function FormMapWrapper(props: FormMapProps) {
       return []
     })
   const isLoading = results.some((result) => result.isLoading)
-  const isError = results.some((result) => result.isError)
   // Get total count from first query (only if not currently refetching to avoid stale data)
   const totalCount =
     results[0]?.data?.status === 200 && !results[0]?.isFetching ? results[0].data.data.count : undefined
@@ -55,7 +54,6 @@ export default function FormMapWrapper(props: FormMapProps) {
       viewby={props.viewby ?? ''}
       allData={allData}
       isLoading={isLoading}
-      isError={isError}
       totalCount={totalCount}
       pageCount={pageCount}
       setPageCount={setPageCount}

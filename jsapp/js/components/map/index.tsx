@@ -131,7 +131,6 @@ interface FormMapProps extends WithRouterProps {
   pageCount: number
   setPageCount: Function
   isLoading: boolean
-  isError: boolean
   allData: DataResponse[]
   setFields: Function
   totalCount: number | undefined
