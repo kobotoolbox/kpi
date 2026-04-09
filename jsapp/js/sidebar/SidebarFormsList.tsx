@@ -1,20 +1,16 @@
 import { Stack, Text } from '@mantine/core'
-import { useQuery } from '@tanstack/react-query'
 import React, { useEffect } from 'react'
 import { actions } from '#/actions'
 import { queryClient } from '#/api/queryClient'
 import {
-  assetsCountsRetrieve,
-  type assetsCountsRetrieveResponse,
   getAssetsCountsRetrieveQueryKey,
+  useAssetsCountsRetrieve,
 } from '#/api/react-query/manage-projects-and-library-content'
 import {
   getOrganizationsAssetsCountsRetrieveQueryKey,
   getProjectViewsAssetsCountsRetrieveQueryKey,
-  organizationsAssetsCountsRetrieve,
-  type organizationsAssetsCountsRetrieveResponse,
-  projectViewsAssetsCountsRetrieve,
-  type projectViewsAssetsCountsRetrieveResponse,
+  useOrganizationsAssetsCountsRetrieve,
+  useProjectViewsAssetsCountsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { getCurrentPath, isCustomProjectsViewRoute } from '#/router/routerUtils'
@@ -93,20 +89,25 @@ export default function SidebarFormsList() {
   const resolvedCustomViewUid = resolveCustomViewUid(resolvedContext)
 
   // Always call all 3 hooks to avoid "more/fewer hooks than during previous render" errors
-  const countsQueryMyProjects = useQuery<assetsCountsRetrieveResponse>({
-    queryKey: getAssetsCountsRetrieveQueryKey(),
-    queryFn: () => assetsCountsRetrieve(),
-    enabled: resolvedContext === 'my-projects',
+  const countsQueryMyProjects = useAssetsCountsRetrieve({
+    query: {
+      queryKey: getAssetsCountsRetrieveQueryKey(),
+      enabled: resolvedContext === 'my-projects',
+    },
   })
-  const countsQueryOrgProjects = useQuery<organizationsAssetsCountsRetrieveResponse>({
-    queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
-    queryFn: () => organizationsAssetsCountsRetrieve(orgUid ?? ''),
-    enabled: resolvedContext === 'my-org-projects' && !!orgUid,
+
+  const countsQueryOrgProjects = useOrganizationsAssetsCountsRetrieve(orgUid ?? '', {
+    query: {
+      queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
+      enabled: resolvedContext === 'my-org-projects' && !!orgUid,
+    },
   })
-  const countsQueryCustomView = useQuery<projectViewsAssetsCountsRetrieveResponse>({
-    queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? ''),
-    queryFn: () => projectViewsAssetsCountsRetrieve(resolvedCustomViewUid ?? ''),
-    enabled: resolvedContext === 'custom-view-projects' && !!resolvedCustomViewUid,
+
+  const countsQueryCustomView = useProjectViewsAssetsCountsRetrieve(resolvedCustomViewUid ?? '', {
+    query: {
+      queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? ''),
+      enabled: resolvedContext === 'custom-view-projects' && !!resolvedCustomViewUid,
+    },
   })
 
   // Pick the active hook based on context
