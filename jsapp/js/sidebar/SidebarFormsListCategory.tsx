@@ -80,18 +80,25 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
         start: pageParam,
       }
 
+      function ensureOk(response: SidebarFormsListCategoryResponse) {
+        if (response.status !== 200) {
+          throw new Error('Could not load projects')
+        }
+        return response
+      }
+
       if (props.context === 'my-projects') {
-        return assetsMinimalListRetrieve(params)
+        return ensureOk(await assetsMinimalListRetrieve(params))
       } else if (props.context === 'my-org-projects') {
         if (!props.organizationId) {
           throw new Error('organizationId is required for org-projects context')
         }
-        return organizationsAssetsMinimalListRetrieve(props.organizationId, params)
+        return ensureOk(await organizationsAssetsMinimalListRetrieve(props.organizationId, params))
       } else if (props.context === 'custom-view-projects') {
         if (!props.projectViewUid) {
           throw new Error('projectViewUid is required for custom-view-projects context')
         }
-        return projectViewsAssetsMinimalListRetrieve(props.projectViewUid, params)
+        return ensureOk(await projectViewsAssetsMinimalListRetrieve(props.projectViewUid, params))
       }
 
       throw new Error('Unsupported context')
