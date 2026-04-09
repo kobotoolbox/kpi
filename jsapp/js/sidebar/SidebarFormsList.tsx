@@ -76,6 +76,12 @@ export function invalidateSidebarQueries(orgUid?: string, customViewUid?: string
       queryKey: getProjectViewsAssetsMinimalListRetrieveQueryKey(customViewUid),
       exact: false,
     })
+  } else {
+    // When no specific view UID is known, invalidate all project-view queries by prefix
+    queryClient.invalidateQueries({
+      queryKey: ['api', 'v2', 'project-views'],
+      exact: false,
+    })
   }
 }
 
