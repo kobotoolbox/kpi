@@ -41,16 +41,14 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
       .then((response) => {
         props.onRequestClose()
         customViewStore.handleAssetsDeleted(props.assetUids)
-
-        // Temporarily we do this hacky thing to update the sidebar list of
-        // projects. After the Bookmarked Projects feature is done (see the
-        // https://github.com/kobotoolbox/kpi/issues/4220 for history of
-        // discussion and more details) we would remove this code.
-        invalidateSidebarQueries(orgUid)
-
         notify(response.detail)
       })
       .catch(handleApiFail)
+      .finally(() => {
+        // Ensure sidebar will refresh after bulk deletion is done.
+        // In future we will use react-query for bulk deletion and then this invalidation will be done elsewhere.
+        invalidateSidebarQueries(orgUid)
+      })
   }
 
   return (
