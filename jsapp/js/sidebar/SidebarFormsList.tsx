@@ -1,5 +1,5 @@
 import { Stack, Text } from '@mantine/core'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { actions } from '#/actions'
 import { queryClient } from '#/api/queryClient'
@@ -22,7 +22,7 @@ import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
 import type { SidebarContext } from './sidebar.types'
 
-function resolveSidebarContext(currentPath: string): SidebarContext {
+function resolveSidebarContext(currentPath: string): SidebarContext | undefined {
   if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
     return 'my-org-projects'
   } else if (currentPath === PROJECTS_ROUTES.MY_PROJECTS) {
@@ -30,8 +30,8 @@ function resolveSidebarContext(currentPath: string): SidebarContext {
   } else if (currentPath.startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))) {
     return 'custom-view-projects'
   }
-  // Fallback
-  return 'my-projects'
+  // Return undefined for other routes (like individual project pages)
+  return undefined
 }
 
 function resolveCustomViewUid(currentPath: string): string | undefined {
@@ -88,42 +88,55 @@ export default function SidebarFormsList() {
   const location = useLocation()
   const currentPath = location.pathname
 
-  const resolvedContext = resolveSidebarContext(currentPath)
+  // Preserve sidebar context across navigation
+  const [sidebarContext, setSidebarContext] = useState<SidebarContext>('my-projects')
+  const [preservedCustomViewUid, setPreservedCustomViewUid] = useState<string | undefined>()
+
+  // Update context and custom view UID only when on project-listing routes
+  const resolvedContextFromPath = resolveSidebarContext(currentPath)
   const resolvedCustomViewUid = resolveCustomViewUid(currentPath)
+  useEffect(() => {
+    if (resolvedContextFromPath !== undefined) {
+      setSidebarContext(resolvedContextFromPath)
+    }
+    if (resolvedCustomViewUid !== undefined) {
+      setPreservedCustomViewUid(resolvedCustomViewUid)
+    }
+  }, [resolvedContextFromPath, resolvedCustomViewUid])
 
   // Always call all 3 hooks to avoid "more/fewer hooks than during previous render" errors
   const countsQueryMyProjects = useAssetsCountsRetrieve({
     query: {
       // TODO: this prop shouldn't be required, see https://github.com/orval-labs/orval/issues/2396
       queryKey: getAssetsCountsRetrieveQueryKey(),
-      enabled: resolvedContext === 'my-projects',
+      enabled: sidebarContext === 'my-projects',
     },
   })
 
   const countsQueryOrgProjects = useOrganizationsAssetsCountsRetrieve(orgUid ?? '', {
     query: {
       queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
-      enabled: resolvedContext === 'my-org-projects' && !!orgUid,
+      enabled: sidebarContext === 'my-org-projects' && !!orgUid,
     },
   })
 
-  const countsQueryCustomView = useProjectViewsAssetsCountsRetrieve(resolvedCustomViewUid ?? '', {
+  const countsQueryCustomView = useProjectViewsAssetsCountsRetrieve(preservedCustomViewUid ?? '', {
     query: {
-      queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(resolvedCustomViewUid ?? ''),
-      enabled: resolvedContext === 'custom-view-projects' && !!resolvedCustomViewUid,
+      queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(preservedCustomViewUid ?? ''),
+      enabled: sidebarContext === 'custom-view-projects' && !!preservedCustomViewUid,
     },
   })
 
   // Pick the active hook based on context
   const countsQuery =
-    resolvedContext === 'my-projects'
+    sidebarContext === 'my-projects'
       ? countsQueryMyProjects
-      : resolvedContext === 'my-org-projects'
+      : sidebarContext === 'my-org-projects'
         ? countsQueryOrgProjects
         : countsQueryCustomView
 
   useEffect(() => {
-    const invalidateSidebar = () => invalidateSidebarQueries(orgUid, resolvedCustomViewUid)
+    const invalidateSidebar = () => invalidateSidebarQueries(orgUid, preservedCustomViewUid)
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
     // `jsapp/js/api/mutation-defaults`
     const unlisteners = [
@@ -137,9 +150,9 @@ export default function SidebarFormsList() {
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [orgUid, resolvedCustomViewUid])
+  }, [orgUid, preservedCustomViewUid])
 
-  if (countsQuery.isLoading) {
+  if (countsQuery.isLoading || countsQuery.isPending) {
     return <LoadingSpinner />
   }
 
@@ -151,27 +164,27 @@ export default function SidebarFormsList() {
     // minHeight needed for flex to work properly with scrollable containers
     <Stack style={{ minHeight: 0 }}>
       <SidebarFormsListCategory
-        context={resolvedContext}
+        context={sidebarContext}
         deploymentStatus='deployed'
         totalCount={countsQuery.data.data?.deployed_count ?? 0}
-        organizationId={resolvedContext === 'my-org-projects' ? orgUid : undefined}
-        projectViewUid={resolvedContext === 'custom-view-projects' ? resolvedCustomViewUid : undefined}
+        organizationId={sidebarContext === 'my-org-projects' ? orgUid : undefined}
+        projectViewUid={sidebarContext === 'custom-view-projects' ? preservedCustomViewUid : undefined}
       />
 
       <SidebarFormsListCategory
-        context={resolvedContext}
+        context={sidebarContext}
         deploymentStatus='draft'
         totalCount={countsQuery.data.data?.draft_count ?? 0}
-        organizationId={resolvedContext === 'my-org-projects' ? orgUid : undefined}
-        projectViewUid={resolvedContext === 'custom-view-projects' ? resolvedCustomViewUid : undefined}
+        organizationId={sidebarContext === 'my-org-projects' ? orgUid : undefined}
+        projectViewUid={sidebarContext === 'custom-view-projects' ? preservedCustomViewUid : undefined}
       />
 
       <SidebarFormsListCategory
-        context={resolvedContext}
+        context={sidebarContext}
         deploymentStatus='archived'
         totalCount={countsQuery.data.data?.archived_count ?? 0}
-        organizationId={resolvedContext === 'my-org-projects' ? orgUid : undefined}
-        projectViewUid={resolvedContext === 'custom-view-projects' ? resolvedCustomViewUid : undefined}
+        organizationId={sidebarContext === 'my-org-projects' ? orgUid : undefined}
+        projectViewUid={sidebarContext === 'custom-view-projects' ? preservedCustomViewUid : undefined}
       />
     </Stack>
   )
