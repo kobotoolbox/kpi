@@ -82,7 +82,7 @@ class FormLanding extends React.Component {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetid: this.state.uid,
+      assetUrl: this.state.url,
     })
   }
   callUnarchiveAsset() {
@@ -439,6 +439,7 @@ class FormLanding extends React.Component {
           tooltip={t('Preview')}
           tooltipPosition='right'
           onClick={this.enketoPreviewModal.bind(this)}
+          isDisabled={!this.state.url}
         />
 
         {userCanEdit && (
