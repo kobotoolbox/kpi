@@ -51,6 +51,7 @@ export default function StepSelectLanguage({
     [
       (serviceUsageData?.data as OrganizationsServiceUsageSummary)?.limitExceedList,
       envStore.data.usage_limit_enforcement,
+      usageType,
     ],
   )
 
