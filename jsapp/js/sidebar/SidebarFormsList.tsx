@@ -17,8 +17,7 @@ import { getCurrentPath, isCustomProjectsViewRoute } from '#/router/routerUtils'
 import { useSession } from '#/stores/useSession'
 import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
-
-export type SidebarContext = 'my-projects' | 'my-org-projects' | 'custom-view-projects'
+import type { SidebarContext } from './sidebar.types'
 
 export function resolveSidebarContext(): SidebarContext {
   const currentPath = getCurrentPath()
