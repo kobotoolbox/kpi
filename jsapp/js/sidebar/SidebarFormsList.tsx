@@ -1,5 +1,6 @@
 import { Stack, Text } from '@mantine/core'
 import React, { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { actions } from '#/actions'
 import { queryClient } from '#/api/queryClient'
 import {
@@ -13,14 +14,12 @@ import {
   useProjectViewsAssetsCountsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
-import { getCurrentPath, isCustomProjectsViewRoute } from '#/router/routerUtils'
 import { useSession } from '#/stores/useSession'
 import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
 import type { SidebarContext } from './sidebar.types'
 
-function resolveSidebarContext(): SidebarContext {
-  const currentPath = getCurrentPath()
+function resolveSidebarContext(currentPath: string): SidebarContext {
   if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {
     return 'my-org-projects'
   } else if (currentPath === PROJECTS_ROUTES.MY_PROJECTS) {
@@ -32,11 +31,10 @@ function resolveSidebarContext(): SidebarContext {
   return 'my-projects'
 }
 
-function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
-  if (currentContext !== 'custom-view-projects') return undefined
-  if (!isCustomProjectsViewRoute()) return undefined
+function resolveCustomViewUid(currentPath: string): string | undefined {
+  const customViewPrefix = PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', '')
+  if (!currentPath.startsWith(customViewPrefix)) return undefined
 
-  const currentPath = getCurrentPath()
   const pathSegments = currentPath.split('/')
   // expecting `/projects/<viewUid>`
   if (pathSegments.length >= 3) {
@@ -55,10 +53,8 @@ export function invalidateSidebarQueries(orgUid?: string, customViewUid?: string
     // is my-org-projects.
     queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
   })
-  // If customViewUid is not provided, we try to get it ourselves
-  const saferCustomViewUid = customViewUid ? customViewUid : (resolveCustomViewUid('custom-view-projects') ?? '')
   queryClient.invalidateQueries({
-    queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(saferCustomViewUid),
+    queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(customViewUid ?? ''),
   })
 
   // Invalidate all sidebar infinite list queries by predicate
@@ -84,9 +80,11 @@ export function invalidateSidebarQueries(orgUid?: string, customViewUid?: string
 export default function SidebarFormsList() {
   const session = useSession()
   const orgUid = session.currentLoggedAccount?.organization?.uid
+  const location = useLocation()
+  const currentPath = location.pathname
 
-  const resolvedContext = resolveSidebarContext()
-  const resolvedCustomViewUid = resolveCustomViewUid(resolvedContext)
+  const resolvedContext = resolveSidebarContext(currentPath)
+  const resolvedCustomViewUid = resolveCustomViewUid(currentPath)
 
   // Always call all 3 hooks to avoid "more/fewer hooks than during previous render" errors
   const countsQueryMyProjects = useAssetsCountsRetrieve({
