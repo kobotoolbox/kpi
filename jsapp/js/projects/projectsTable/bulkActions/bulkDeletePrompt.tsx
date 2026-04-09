@@ -5,6 +5,7 @@ import Checkbox from '#/components/common/checkbox'
 import KoboPrompt from '#/components/modals/koboPrompt'
 import customViewStore from '#/projects/customViewStore'
 import { invalidateSidebarQueries } from '#/sidebar/SidebarFormsList'
+import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
 import styles from './bulkDeletePrompt.module.scss'
 
@@ -20,6 +21,9 @@ interface BulkDeletePromptProps {
 }
 
 export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
+  const session = useSession()
+  const orgUid = session.currentLoggedAccount?.organization?.uid
+
   const [isDataChecked, setIsDataChecked] = useState(false)
   const [isFormChecked, setIsFormChecked] = useState(false)
   const [isRecoverChecked, setIsRecoverChecked] = useState(false)
@@ -42,7 +46,7 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
         // projects. After the Bookmarked Projects feature is done (see the
         // https://github.com/kobotoolbox/kpi/issues/4220 for history of
         // discussion and more details) we would remove this code.
-        invalidateSidebarQueries()
+        invalidateSidebarQueries(orgUid)
 
         notify(response.detail)
       })

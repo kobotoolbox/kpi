@@ -55,10 +55,14 @@ export function invalidateSidebarQueries(orgUid?: string, customViewUid?: string
     queryKey: getAssetsCountsRetrieveQueryKey(),
   })
   queryClient.invalidateQueries({
+    // We fallback to empty string to satisfy TypeScript, but in reality `orgUid` will be always provided if the context
+    // is my-org-projects.
     queryKey: getOrganizationsAssetsCountsRetrieveQueryKey(orgUid ?? ''),
   })
+  // If customViewUid is not provided, we try to get it ourselves
+  const saferCustomViewUid = customViewUid ? customViewUid : (resolveCustomViewUid('custom-view-projects') ?? '')
   queryClient.invalidateQueries({
-    queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(customViewUid ?? ''),
+    queryKey: getProjectViewsAssetsCountsRetrieveQueryKey(saferCustomViewUid),
   })
 
   // Invalidate all sidebar infinite list queries by predicate
