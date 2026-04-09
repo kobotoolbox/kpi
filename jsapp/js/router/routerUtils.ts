@@ -99,11 +99,15 @@ export function isLibraryItemXformRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM_XFORM.replace(':uid', uid)
 }
 
+export function isCustomProjectsViewRoute() {
+  return getCurrentPath().startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
+}
+
 export function isAnyProjectsViewRoute() {
   return (
     getCurrentPath() === PROJECTS_ROUTES.MY_PROJECTS ||
     getCurrentPath() === PROJECTS_ROUTES.MY_ORG_PROJECTS ||
-    getCurrentPath().startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
+    isCustomProjectsViewRoute()
   )
 }
 

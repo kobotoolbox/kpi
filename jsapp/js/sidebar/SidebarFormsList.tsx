@@ -17,7 +17,7 @@ import {
   type projectViewsAssetsCountsRetrieveResponse,
 } from '#/api/react-query/user-team-organization-usage'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
-import { getCurrentPath } from '#/router/routerUtils'
+import { getCurrentPath, isCustomProjectsViewRoute } from '#/router/routerUtils'
 import { useSession } from '#/stores/useSession'
 import LoadingSpinner from '../components/common/loadingSpinner'
 import SidebarFormsListCategory from './SidebarFormsListCategory'
@@ -38,7 +38,7 @@ export function resolveSidebarContext(): SidebarContext {
 }
 
 export function resolveCustomViewUid(currentContext: SidebarContext): string | undefined {
-  if (currentContext === 'custom-view-projects') {
+  if (currentContext === 'custom-view-projects' && isCustomProjectsViewRoute()) {
     const currentPath = getCurrentPath()
     const pathSegments = currentPath.split('/')
     // expecting `/projects/<viewUid>`
