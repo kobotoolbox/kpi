@@ -201,7 +201,7 @@ class BaseAction:
     def attach_action_dependency(self, action_data: dict):
         pass
 
-    def check_limits(self, user: User):
+    def check_limits(self, user: User, action_data: dict):
 
         if (
             not settings.STRIPE_ENABLED
@@ -721,6 +721,14 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
     validation rules for parameters, while automatic actions introduce
     their own structure with additional system-generated fields.
     """
+
+    def check_limits(self, user: User, action_data: dict):
+        accepted = action_data.get('accepted', None)
+        if accepted is not None:
+            return
+        if 'value' in action_data and action_data['value'] is None:
+            return
+        super().check_limits(user, action_data)
 
     @property
     def external_data_schema(self) -> dict:

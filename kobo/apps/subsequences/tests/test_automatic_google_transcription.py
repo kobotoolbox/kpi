@@ -3,7 +3,15 @@ from unittest.mock import MagicMock, patch
 import dateutil
 import jsonschema
 import pytest
+from constance.test import override_config
+from ddt import data as ddt_data
+from ddt import ddt, unpack
+from django.conf import settings
+from django.test import TestCase
 
+from kpi.exceptions import UsageLimitExceededException
+from ...kobo_auth.shortcuts import User
+from ...organizations.constants import UsageType
 from ..actions.automatic_google_transcription import AutomaticGoogleTranscriptionAction
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT
 
@@ -404,3 +412,36 @@ def test_transform_data_for_output_with_delete():
             '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
         },
     }
+
+
+@ddt
+class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
+
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @ddt_data(
+        ({'language': 'en', 'accepted': True}, False),
+        ({'language': 'en', 'accepted': False}, False),
+        ({'language': 'en', 'value': None}, False),
+        ({'language': 'en'}, True),
+    )
+    @unpack
+    def test_check_limit(self, action_data, should_raise):
+        u = User.objects.create(username='dummy')
+        xpath = 'group_name/question_name'  # irrelevant for this test
+        params = [{'language': 'fr'}, {'language': 'en'}]
+        action = AutomaticGoogleTranscriptionAction(xpath, params)
+        with patch(
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+        ) as patched_calculator:
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.ASR_SECONDS: {'exceeded': True}
+            }
+            if should_raise:
+                with pytest.raises(UsageLimitExceededException):
+                    action.check_limits(u, action_data)
+            else:
+                action.check_limits(u, action_data)
+
+        if not should_raise:
+            patched_calculator.return_value.get_usage_balances.assert_not_called()
