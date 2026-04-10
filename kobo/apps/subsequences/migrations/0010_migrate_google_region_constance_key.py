@@ -9,14 +9,13 @@ def _migrate_constance_key(apps, from_key, to_key):
 
     try:
         source_config = Constance.objects.get(key=from_key)
-        
+
         _, _ = Constance.objects.get_or_create(
-            key=to_key,
-            defaults={'value': source_config.value}
+            key=to_key, defaults={'value': source_config.value}
         )
-        
+
         source_config.delete()
-        
+
     except Constance.DoesNotExist:
         pass
 
@@ -25,7 +24,7 @@ def migrate_google_region(apps, schema_editor):
     _migrate_constance_key(
         apps,
         from_key='ASR_MT_GOOGLE_TRANSLATION_LOCATION',
-        to_key='ASR_MT_GOOGLE_REGION'
+        to_key='ASR_MT_GOOGLE_REGION',
     )
 
 
@@ -33,7 +32,7 @@ def reverse_migrate_google_region(apps, schema_editor):
     _migrate_constance_key(
         apps,
         from_key='ASR_MT_GOOGLE_REGION',
-        to_key='ASR_MT_GOOGLE_TRANSLATION_LOCATION'
+        to_key='ASR_MT_GOOGLE_TRANSLATION_LOCATION',
     )
 
 
@@ -46,7 +45,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            migrate_google_region,
-            reverse_code=reverse_migrate_google_region
+            migrate_google_region, reverse_code=reverse_migrate_google_region
         ),
     ]
