@@ -26,35 +26,31 @@ class TestGoogleTranscribe(TestCase):
         }
 
         with patch(
-            'kobo.apps.subsequences.integrations.google.google_transcribe.google_credentials_from_constance_config',
+            'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa E501
             return_value={},
         ):
             with patch(
-                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',
-                return_value={},
+                'kobo.apps.subsequences.integrations.google.base.storage.Client'
             ):
                 with patch(
-                    'kobo.apps.subsequences.integrations.google.base.storage.Client'
-                ):
+                    'kobo.apps.subsequences.integrations.google.google_transcribe.speech.SpeechClient'  # noqa E501
+                ) as mock_speech_client:
                     with patch(
-                        'kobo.apps.subsequences.integrations.google.google_transcribe.speech.SpeechClient'
-                    ) as mock_speech_client:
-                        with patch(
-                            'kobo.apps.subsequences.integrations.google.google_transcribe.speech.RecognitionAudio'
-                        ):
-                            service = GoogleTranscriptionService(submission, asset)
-                            content = (b'audio', timedelta(seconds=10))
-                            service.begin_google_operation(
-                                'mock_xpath', 'en-US', 'fr-FR', content
-                            )
+                        'kobo.apps.subsequences.integrations.google.google_transcribe.speech.RecognitionAudio'  # noqa E501
+                    ):
+                        service = GoogleTranscriptionService(submission, asset)
+                        content = (b'audio', timedelta(seconds=10))
+                        service.begin_google_operation(
+                            'mock_xpath', 'en-US', 'fr-FR', content
+                        )
 
-                            assert mock_speech_client.called
-                            kwargs = mock_speech_client.call_args[1]
-                            assert kwargs.get('client_options') is not None
-                            assert (
-                                kwargs['client_options'].api_endpoint
-                                == 'eu-speech.googleapis.com'
-                            )
+                        assert mock_speech_client.called
+                        kwargs = mock_speech_client.call_args[1]
+                        assert kwargs.get('client_options') is not None
+                        assert (
+                            kwargs['client_options'].api_endpoint
+                            == 'eu-speech.googleapis.com'
+                        )
 
     @override_config(ASR_MT_GOOGLE_REGION='global')
     def test_transcription_service_uses_global_endpoint(self):
@@ -69,28 +65,24 @@ class TestGoogleTranscribe(TestCase):
         }
 
         with patch(
-            'kobo.apps.subsequences.integrations.google.google_transcribe.google_credentials_from_constance_config',
+            'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa E501
             return_value={},
         ):
             with patch(
-                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',
-                return_value={},
+                'kobo.apps.subsequences.integrations.google.base.storage.Client'
             ):
                 with patch(
-                    'kobo.apps.subsequences.integrations.google.base.storage.Client'
-                ):
+                    'kobo.apps.subsequences.integrations.google.google_transcribe.speech.SpeechClient'  # noqa E501
+                ) as mock_speech_client:
                     with patch(
-                        'kobo.apps.subsequences.integrations.google.google_transcribe.speech.SpeechClient'
-                    ) as mock_speech_client:
-                        with patch(
-                            'kobo.apps.subsequences.integrations.google.google_transcribe.speech.RecognitionAudio'
-                        ):
-                            service = GoogleTranscriptionService(submission, asset)
-                            content = (b'audio', timedelta(seconds=10))
-                            service.begin_google_operation(
-                                'mock_xpath', 'en-US', 'fr-FR', content
-                            )
+                        'kobo.apps.subsequences.integrations.google.google_transcribe.speech.RecognitionAudio'  # noqa E501
+                    ):
+                        service = GoogleTranscriptionService(submission, asset)
+                        content = (b'audio', timedelta(seconds=10))
+                        service.begin_google_operation(
+                            'mock_xpath', 'en-US', 'fr-FR', content
+                        )
 
-                            assert mock_speech_client.called
-                            kwargs = mock_speech_client.call_args[1]
-                            assert kwargs.get('client_options') is None
+                        assert mock_speech_client.called
+                        kwargs = mock_speech_client.call_args[1]
+                        assert kwargs.get('client_options') is None

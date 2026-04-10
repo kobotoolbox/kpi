@@ -79,7 +79,7 @@ class TestGoogleTranslate(TestCase):
     @override_config(ASR_MT_GOOGLE_REGION='eu')
     def test_translation_service_uses_regional_parent(self):
         asset = Asset.objects.get(pk=2)
-        submission = {'_id': 1}
+        submission = {'_id': 1, 'meta/rootUuid': 'uuid:123'}
         with patch(
             'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',
             return_value={},
@@ -105,7 +105,7 @@ class TestGoogleTranslate(TestCase):
     @override_config(ASR_MT_GOOGLE_REGION='global')
     def test_translation_service_uses_global_parent_for_sync(self):
         asset = Asset.objects.get(pk=2)
-        submission = {'_id': 1}
+        submission = {'_id': 1, 'meta/rootUuid': 'uuid:123'}
         with patch(
             'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',
             return_value={},
