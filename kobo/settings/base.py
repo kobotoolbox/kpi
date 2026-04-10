@@ -348,6 +348,10 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
+    # We are adopting the `CONSTANCE_` prefix as the new standard for all env
+    # variables that override Constance defaults. Legacy variables (e.g., KOBO_*)
+    # will be deprecated and migrated to this new pattern after the upcoming
+    # migration to Constance 4.x
     'ASR_MT_GOOGLE_PROJECT_ID': (
         env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
