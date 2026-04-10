@@ -81,18 +81,21 @@ class TestGoogleTranslate(TestCase):
         asset = Asset.objects.get(pk=2)
         submission = {'_id': 1, 'meta/rootUuid': 'uuid:123'}
         with patch(
-            'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',
+            'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',  # noqa E501
+                    ):
             return_value={},
         ):
             with patch(
-                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',
+                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa E501
+                    ):
                 return_value={},
             ):
                 with patch(
                     'kobo.apps.subsequences.integrations.google.base.storage.Client'
                 ):
                     with patch(
-                        'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'
+                        'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa E501
+                    ):
                     ):
                         service = GoogleTranslationService(submission, asset)
                         assert service.translate_parent == 'projects/xyz/locations/eu'
@@ -107,18 +110,21 @@ class TestGoogleTranslate(TestCase):
         asset = Asset.objects.get(pk=2)
         submission = {'_id': 1, 'meta/rootUuid': 'uuid:123'}
         with patch(
-            'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',
+            'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',  # noqa E501
+                    ):
             return_value={},
         ):
             with patch(
-                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',
+                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa E501
+                    ):
                 return_value={},
             ):
                 with patch(
                     'kobo.apps.subsequences.integrations.google.base.storage.Client'
                 ):
                     with patch(
-                        'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'
+                        'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa E501
+                    ):
                     ):
                         service = GoogleTranslationService(submission, asset)
                         assert service.translate_parent == 'projects/xyz'
