@@ -79,11 +79,23 @@ export default function AnalysisQuestionsList({
       // Override default error handler to show a user-friendly message
       // instead of the raw server response (which may contain HTML).
       onError: (err) => {
-        if (err instanceof ServerError && err.response.status === 402) {
-          setIsLimitBlockModalOpen(true)
-        } else {
-          notify.error(t('Failed to generate AI response. Please try again later.'))
+        const genericError = t('Failed to generate AI response. Please try again later.')
+        if (!(err instanceof ServerError)) {
+          notify.error(genericError)
+          return
         }
+        if (err.response.status === 402) {
+          setIsLimitBlockModalOpen(true)
+          return
+        }
+        // TODO: This is a brittle solution for isolating this particular err.
+        // We may be able to remove it if we make it impossible for users to request
+        // AI responses on unsaved errors
+        if (err.detail === 'No transcription found') {
+          notify.error(t('No transcription found. If there is an existing transcription it may need to be saved.'))
+          return
+        }
+        notify.error(genericError)
       },
     },
   })
