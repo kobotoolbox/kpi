@@ -42,8 +42,8 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
     """
 
     class Meta:
-        verbose_name = 'MFA Method'
-        verbose_name_plural = 'MFA Methods'
+        verbose_name = 'MFA Registration'
+        verbose_name_plural = 'MFA Registrations'
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'name'),
@@ -65,7 +65,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         Authenticator, null=True, on_delete=models.SET_NULL, related_name='+'
     )
     is_active = models.BooleanField(default=False)
-    date_disabled = models.DateTimeField(null=True)
+    date_disabled = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.user.username}: {self.name=} {self.is_active=}'
@@ -110,9 +110,11 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
             UserProfile.set_mfa_status(user_id=user_id, is_active=False)
 
             if totp_id:
-                Authenticator.objects.filter(id=totp_id).delete()
+                Authenticator.objects.filter(id=totp_id, user_id=user_id).delete()
             if recovery_codes_id:
-                Authenticator.objects.filter(id=recovery_codes_id).delete()
+                Authenticator.objects.filter(
+                    id=recovery_codes_id, user_id=user_id
+                ).delete()
 
             # ToDo: Remove this Trench cleanup once the long-running MFA migration
             #  is complete and Trench is fully removed from the codebase
