@@ -2,12 +2,13 @@
 from allauth.mfa.models import Authenticator
 from django.conf import settings
 from django.contrib import admin
-from django.db import models
+from django.db import models, transaction
 from django.utils.timezone import now
 from trench.admin import MFAMethod as TrenchMFAMethod
 from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
 
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
@@ -41,8 +42,8 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
     """
 
     class Meta:
-        verbose_name = 'MFA Method'
-        verbose_name_plural = 'MFA Methods'
+        verbose_name = 'MFA Registration'
+        verbose_name_plural = 'MFA Registrations'
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'name'),
@@ -64,7 +65,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         Authenticator, null=True, on_delete=models.SET_NULL, related_name='+'
     )
     is_active = models.BooleanField(default=False)
-    date_disabled = models.DateTimeField(null=True)
+    date_disabled = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.user.username}: {self.name=} {self.is_active=}'
@@ -99,10 +100,25 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
 
     def delete(self, using=None, keep_parents=False):
         user_id = self.user_id
-        super().delete(using, keep_parents)
+        totp_id = self.totp_id
+        recovery_codes_id = self.recovery_codes_id
 
-        # Sync MFA status with UserProfile
-        UserProfile.set_mfa_status(user_id=user_id, is_active=False)
+        with kc_transaction_atomic(), transaction.atomic():
+            super().delete(using, keep_parents)
+
+            # Sync MFA status with UserProfile
+            UserProfile.set_mfa_status(user_id=user_id, is_active=False)
+
+            if totp_id:
+                Authenticator.objects.filter(id=totp_id, user_id=user_id).delete()
+            if recovery_codes_id:
+                Authenticator.objects.filter(
+                    id=recovery_codes_id, user_id=user_id
+                ).delete()
+
+            # ToDo: Remove this Trench cleanup once the long-running MFA migration
+            #  is complete and Trench is fully removed from the codebase
+            MfaMethod.objects.filter(user_id=user_id, name=self.name).delete()
 
 
 class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
