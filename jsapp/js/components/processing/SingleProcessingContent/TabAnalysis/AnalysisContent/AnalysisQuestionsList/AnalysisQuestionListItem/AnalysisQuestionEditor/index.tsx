@@ -8,7 +8,6 @@ import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { generateUuid } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getQuestionTypeDefinition } from '../../../../common/utils'
 import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
@@ -42,7 +41,6 @@ export default function AnalysisQuestionEditor({
   }
 
   const [newQaQuestion, setNewQaQuestion] = useState<ResponseManualQualActionParams>(() => clonedeep(qaQuestion))
-  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
   const [errorMessageLabel, setErrorMessageLabel] = useState<string | undefined>()
   const [errorMessageChoices, setErrorMessageChoices] = useState<string | undefined>()
 
@@ -162,19 +160,17 @@ export default function AnalysisQuestionEditor({
         </form>
       </header>
 
-      {autoQAEnabled && (
-        <Box pl='40px' mb='12px'>
-          <Input
-            value={hintValue}
-            onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-              handleChangeHint(evt.target.value)
-            }}
-            placeholder={t('Add a hint (optional)')}
-            variant='transparent'
-            size='s'
-          />
-        </Box>
-      )}
+      <Box pl='40px' mb='12px'>
+        <Input
+          value={hintValue}
+          onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+            handleChangeHint(evt.target.value)
+          }}
+          placeholder={t('Add a hint (optional)')}
+          variant='transparent'
+          size='s'
+        />
+      </Box>
 
       {newQaQuestion.type === 'qualAutoKeywordCount' && (
         <KeywordSearchFieldsEditor

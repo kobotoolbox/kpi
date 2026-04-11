@@ -1,6 +1,5 @@
 import { Radio, Stack, Text } from '@mantine/core'
 import React, { type ChangeEvent } from 'react'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { useShowHints } from '../../../common/utils'
 
 export interface RadioGroupOption {
@@ -18,7 +17,6 @@ interface RadioGroupProps {
 }
 
 export default function RadioGroup({ options, value, onChange, disabled }: RadioGroupProps) {
-  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
   const [showHints] = useShowHints()
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -34,12 +32,12 @@ export default function RadioGroup({ options, value, onChange, disabled }: Radio
               <Radio
                 value={option.uuid}
                 // When there's a hint displayed, the label needs to be more prominent
-                label={showHints && autoQAEnabled && option.hint ? <strong>{option.label}</strong> : option.label}
+                label={showHints && option.hint ? <strong>{option.label}</strong> : option.label}
                 onChange={handleChange}
                 checked={value === option.uuid}
                 disabled={disabled || option.disabled}
               />
-              {showHints && autoQAEnabled && option.hint && (
+              {showHints && option.hint && (
                 <Text pl='26px' fz='xs' m='0' ta='left' c='var(--mantine-color-gray-2)'>
                   {option.hint}
                 </Text>
