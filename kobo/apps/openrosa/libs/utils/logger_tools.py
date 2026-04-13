@@ -462,8 +462,8 @@ def http_open_rosa_error_handler(func, request):
     except InstanceEmptyError:
         result.error = t('Received empty submission. No instance was created')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
-    except InstanceIdMissingError:
-        result.error = t('Instance ID is required')
+    except InstanceIdMissingError as e:
+        result.error = str(e) if str(e) else t('Instance ID is required')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except FormInactiveError:
         result.error = t('Form is not active')
@@ -1015,6 +1015,8 @@ def _get_instance_from_deprecated_id(
 
     try:
         instance = Instance.objects.get(uuid=old_uuid, xform_id=xform.pk)
+    except Instance.DoesNotExist:
+        raise InstanceIdMissingError('Invalid submission - deprecatedID not found.')
     except MultipleObjectsReturned:
         root_uuid, use_fallback = get_root_uuid_from_xml(xml)
 

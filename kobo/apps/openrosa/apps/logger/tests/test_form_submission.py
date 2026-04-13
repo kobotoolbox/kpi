@@ -1,5 +1,7 @@
 import os
 import re
+import tempfile
+import uuid
 from unittest.mock import patch
 
 from django.http import Http404
@@ -908,3 +910,40 @@ class TestFormSubmission(TestBase):
         )
         self.assertEqual(history_obj.root_uuid, root_uuid)
         self.assertEqual(history_obj.uuid, initial_uuid)
+
+    def test_edit_submission_with_non_existent_deprecated_id_returns_400(self):
+        """
+        Ensure that an edit attempt with an invalid deprecatedID returns
+        a 400 OpenRosa XML response.
+        """
+        invalid_uuid = 'this-uuid-does-not-exist-in-db'
+
+        # Create the XML content
+        xml_content = f"""<?xml version='1.0' encoding='UTF-8' ?>
+        <{self.xform.id_string} id="{self.xform.id_string}">
+            <meta>
+                <instanceID>uuid:{uuid.uuid4()}</instanceID>
+                <deprecatedID>uuid:{invalid_uuid}</deprecatedID>
+            </meta>
+        </{self.xform.id_string}>
+        """
+
+        # Write content to a temporary file on disk
+        with tempfile.NamedTemporaryFile(suffix='.xml', delete=False) as tmp:
+            tmp.write(xml_content.strip().encode('utf-8'))
+            tmp_path = tmp.name
+
+        try:
+            self._make_submission(path=tmp_path, assert_success=False)
+
+            self.assertEqual(self.response.status_code, 400)
+
+            response_body = self.response.content.decode()
+            self.assertIn('<OpenRosaResponse', response_body)
+            self.assertIn(
+                'Invalid submission - deprecatedID not found.', response_body
+            )
+
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
