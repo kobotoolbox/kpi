@@ -52,13 +52,13 @@ export default function ConnectProjectsImports({
         <Button type='primary' size='m' onClick={onConfirmAttachment} label={t('Import')} />
       </div>
 
-      <ul className='connect-projects__import-list'>
-        <label>{t('Imported')}</label>
+      <h3 className='connect-projects__list-header'>{t('Imported')}</h3>
 
+      <ul className='connect-projects__import-list'>
         {(!isInitialised || isLoading) && (
-          <div className='connect-projects__import-list-item'>
+          <li className='connect-projects__import-list-item'>
             <LoadingSpinner message={t('Loading imported projects')} />
-          </div>
+          </li>
         )}
 
         {isInitialised && !isLoading && attachedSources.length === 0 && (
