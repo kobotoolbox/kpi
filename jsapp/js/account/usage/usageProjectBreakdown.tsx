@@ -15,7 +15,6 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
@@ -132,17 +131,12 @@ const ProjectBreakdown = () => {
       size: 100,
       cellFormatter: (data: CustomAssetUsage) => data.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString(),
     },
-    ...(useFeatureFlag(FeatureFlag.autoQAEnabled)
-      ? [
-          {
-            key: 'llm_requests',
-            label: t('Automatic analysis requests'),
-            size: 100,
-            cellFormatter: (data: CustomAssetUsage) =>
-              data.nlp_usage_current_period.total_nlp_llm_requests.toLocaleString(),
-          },
-        ]
-      : []),
+    {
+      key: 'llm_requests',
+      label: t('Automatic analysis requests'),
+      size: 100,
+      cellFormatter: (data: CustomAssetUsage) => data.nlp_usage_current_period.total_nlp_llm_requests.toLocaleString(),
+    },
     {
       key: 'staus',
       label: (
