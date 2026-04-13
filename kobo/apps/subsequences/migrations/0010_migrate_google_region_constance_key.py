@@ -10,7 +10,7 @@ def _migrate_constance_key(apps, from_key, to_key):
     try:
         source_config = Constance.objects.get(key=from_key)
 
-        _, _ = Constance.objects.get_or_create(
+        Constance.objects.update_or_create(
             key=to_key, defaults={'value': source_config.value}
         )
 

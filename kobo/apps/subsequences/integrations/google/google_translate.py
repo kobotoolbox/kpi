@@ -15,7 +15,6 @@ from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CODE
 from ...exceptions import SubsequenceTimeoutError, TranslationAsyncResultAvailable
-from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
 
 
@@ -37,7 +36,7 @@ class GoogleTranslationService(GoogleService):
         super().__init__(submission, asset, *args, **kwargs)
 
         self.translate_client = translate.TranslationServiceClient(
-            credentials=google_credentials_from_constance_config()
+            credentials=self.credentials
         )
         translation_location = constance.config.ASR_MT_GOOGLE_REGION
         project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
@@ -50,9 +49,14 @@ class GoogleTranslationService(GoogleService):
         # "The global location is not supported for batch translation." See:
         # https://googleapis.dev/python/translation/2.0.0/gapic/v3/api.html
         # https://www.googlecloudcommunity.com/gc/AI-ML/location-variable-setting-for-the-Google-Cloud-Translation-API/m-p/543622/highlight/true#M1652
+        async_location = translation_location
+        if not async_location or async_location.lower() == 'global':
+            # Batch translation requires a regional location, not global
+            async_location = 'us-central1'
         self.translate_async_parent = (
-            f'projects/{project_id}/locations/{translation_location}'
+            f'projects/{project_id}/locations/{async_location}'
         )
+
         self.bucket_prefix = (
             constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX
         )
