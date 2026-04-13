@@ -35,42 +35,34 @@ class TestGoogleTranslate(TestCase):
         }
 
         with patch(
-            'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',  # noqa
+            'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa: E501
             return_value={},
+        ), patch(
+            'kobo.apps.subsequences.integrations.google.base.storage.Client',
+            return_value=mock_storage_client,
+        ), patch(
+            'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient',  # noqa: E501
+            return_value=MagicMock(),
         ):
-            with patch(
-                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa
-                return_value={},
+            service = GoogleTranslationService(submission, asset)
+            with patch.object(
+                service,
+                'translate_content',
+                MagicMock(side_effect=SubsequenceTimeoutError()),
             ):
-                with patch(
-                    'kobo.apps.subsequences.integrations.google.base.storage.Client',
-                    return_value=mock_storage_client,
-                ):
-                    with patch(
-                        'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient',  # noqa
-                        return_value=MagicMock(),
-                    ):
-                        service = GoogleTranslationService(submission, asset)
-                        with patch.object(
-                            service,
-                            'translate_content',
-                            MagicMock(side_effect=SubsequenceTimeoutError()),
-                        ):
-                            text_to_translate = 'Hello'
-                            if force_async:
-                                text_to_translate = (
-                                    text_to_translate * service.MAX_SYNC_CHARS
-                                )
-                            res = service.process_data(
-                                'mock_xpath',
-                                {
-                                    'language': 'fr',
-                                    '_dependency': {
-                                        'language': 'en',
-                                        'value': text_to_translate,
-                                    },
-                                },
-                            )
+                text_to_translate = 'Hello'
+                if force_async:
+                    text_to_translate = text_to_translate * service.MAX_SYNC_CHARS
+                res = service.process_data(
+                    'mock_xpath',
+                    {
+                        'language': 'fr',
+                        '_dependency': {
+                            'language': 'en',
+                            'value': text_to_translate,
+                        },
+                    },
+                )
 
         assert res['status'] == 'failed'
         assert 'Timed out' in res['error']
@@ -81,28 +73,16 @@ class TestGoogleTranslate(TestCase):
         asset = Asset.objects.get(pk=2)
         submission = {'_id': 1, 'meta/rootUuid': 'uuid:123'}
         with patch(
-            'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',  # noqa E501
-                    ):
+            'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa: E501
             return_value={},
+        ), patch(
+            'kobo.apps.subsequences.integrations.google.base.storage.Client'
+        ), patch(
+            'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa: E501
         ):
-            with patch(
-                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa E501
-                    ):
-                return_value={},
-            ):
-                with patch(
-                    'kobo.apps.subsequences.integrations.google.base.storage.Client'
-                ):
-                    with patch(
-                        'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa E501
-                    ):
-                    ):
-                        service = GoogleTranslationService(submission, asset)
-                        assert service.translate_parent == 'projects/xyz/locations/eu'
-                        assert (
-                            service.translate_async_parent
-                            == 'projects/xyz/locations/eu'
-                        )
+            service = GoogleTranslationService(submission, asset)
+            assert service.translate_parent == 'projects/xyz/locations/eu'
+            assert service.translate_async_parent == 'projects/xyz/locations/eu'
 
     @override_config(ASR_MT_GOOGLE_PROJECT_ID='xyz')
     @override_config(ASR_MT_GOOGLE_REGION='global')
@@ -110,25 +90,15 @@ class TestGoogleTranslate(TestCase):
         asset = Asset.objects.get(pk=2)
         submission = {'_id': 1, 'meta/rootUuid': 'uuid:123'}
         with patch(
-            'kobo.apps.subsequences.integrations.google.google_translate.google_credentials_from_constance_config',  # noqa E501
-                    ):
+            'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa: E501
             return_value={},
+        ), patch(
+            'kobo.apps.subsequences.integrations.google.base.storage.Client'
+        ), patch(
+            'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa: E501
         ):
-            with patch(
-                'kobo.apps.subsequences.integrations.google.base.google_credentials_from_constance_config',  # noqa E501
-                    ):
-                return_value={},
-            ):
-                with patch(
-                    'kobo.apps.subsequences.integrations.google.base.storage.Client'
-                ):
-                    with patch(
-                        'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa E501
-                    ):
-                    ):
-                        service = GoogleTranslationService(submission, asset)
-                        assert service.translate_parent == 'projects/xyz'
-                        assert (
-                            service.translate_async_parent
-                            == 'projects/xyz/locations/global'
-                        )
+            service = GoogleTranslationService(submission, asset)
+            assert service.translate_parent == 'projects/xyz'
+            assert (
+                service.translate_async_parent == 'projects/xyz/locations/us-central1'
+            )
