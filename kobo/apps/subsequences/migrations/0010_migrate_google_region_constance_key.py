@@ -1,7 +1,7 @@
 from django.db import migrations
 
 
-def _migrate_constance_key(apps, from_key, to_key):
+def _migrate_constance_key(apps, from_key, to_key, default_value=None):
     try:
         Constance = apps.get_model('constance', 'Constance')
     except LookupError:
@@ -15,9 +15,22 @@ def _migrate_constance_key(apps, from_key, to_key):
         )
 
         source_config.delete()
-
+        return
     except Constance.DoesNotExist:
         pass
+
+    # If the key does not exist, set the default value
+    if default_value is not None:
+        try:
+            from constance import config
+        except ImportError:
+            return
+
+        try:
+            setattr(config, to_key, default_value)
+        except AttributeError:
+            # Bypass safely if the key does not exist
+            pass
 
 
 def migrate_google_region(apps, schema_editor):
@@ -25,6 +38,7 @@ def migrate_google_region(apps, schema_editor):
         apps,
         from_key='ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         to_key='ASR_MT_GOOGLE_REGION',
+        default_value='us-central1',
     )
 
 
@@ -33,6 +47,7 @@ def reverse_migrate_google_region(apps, schema_editor):
         apps,
         from_key='ASR_MT_GOOGLE_REGION',
         to_key='ASR_MT_GOOGLE_TRANSLATION_LOCATION',
+        default_value='global',
     )
 
 
