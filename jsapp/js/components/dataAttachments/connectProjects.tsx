@@ -295,7 +295,11 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
               'Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments',
             )}
             &nbsp;
-            <a href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL} target='_blank' rel='noopener noreferrer'>
+            <a
+              href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL}
+              target='_blank'
+              rel='noopener noreferrer'
+            >
               {t('here')}
             </a>
           </span>
