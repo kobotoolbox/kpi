@@ -61,7 +61,7 @@ export default function ConnectProjectsImports({
           </div>
         )}
 
-        {!isLoading && attachedSources.length === 0 && (
+        {isInitialised && !isLoading && attachedSources.length === 0 && (
           <li className='connect-projects__import-list-item--no-imports'>{t('No data imported')}</li>
         )}
 
@@ -82,6 +82,7 @@ export default function ConnectProjectsImports({
                   type='secondary'
                   size='m'
                   startIcon='settings'
+                  tooltip={t('Configure')}
                   onClick={() =>
                     showColumnFilterModal(
                       {
@@ -100,6 +101,7 @@ export default function ConnectProjectsImports({
                   type='secondary-danger'
                   size='m'
                   startIcon='trash'
+                  tooltip={t('Remove')}
                   onClick={() => onRemoveAttachment(item.attachmentUrl)}
                 />
               </div>
