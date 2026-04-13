@@ -61,7 +61,7 @@ export default function ConnectProjectsImports({
           </div>
         )}
 
-        {!isLoading && attachedSources.length === 0 && (
+        {isInitialised && !isLoading && attachedSources.length === 0 && (
           <li className='connect-projects__import-list-item--no-imports'>{t('No data imported')}</li>
         )}
 
