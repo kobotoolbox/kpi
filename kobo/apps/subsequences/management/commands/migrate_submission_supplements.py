@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.utils.versioning import migrate_submission_supplementals
+from kpi.models import Asset
 
 CHUNK_SIZE = 500
 
@@ -178,8 +179,6 @@ class Command(BaseCommand):
         for asset_id, xpath, action_id in missing:
             by_asset.setdefault(asset_id, []).append((xpath, action_id))
 
-        from kpi.models import Asset
-
         qaf_created = 0
         qaf_errors = 0
 
@@ -231,7 +230,7 @@ class Command(BaseCommand):
         if not dry_run:
             self.stdout.write(f'QAFs created: {qaf_created}, errors: {qaf_errors}')
 
-    def _build_params(self, asset: 'Asset', xpath: str, action_id: str) -> list | dict:
+    def _build_params(self, asset: Asset, xpath: str, action_id: str) -> list | dict:
         """
         Build params for a QuestionAdvancedFeature.
 
@@ -261,6 +260,11 @@ class Command(BaseCommand):
             ]
             params = []
             for q in questions:
+                for required in ('uuid', 'type', 'labels'):
+                    if required not in q:
+                        raise ValueError(
+                            f"qual_survey item missing required field '{required}'"
+                        )
                 entry = {
                     'uuid': q['uuid'],
                     'type': QUAL_TYPE_MAP.get(q['type'], q['type']),
