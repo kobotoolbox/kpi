@@ -1,5 +1,6 @@
 from allauth.account.models import EmailAddress
 from allauth.mfa.adapter import get_adapter
+from allauth.mfa.models import Authenticator
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.test import override_settings
@@ -12,6 +13,7 @@ from trench.command.replace_mfa_method_backup_codes import (
 from trench.utils import get_mfa_model
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.tests.kpi_test_case import BaseTestCase
 from ..models import MfaMethodsWrapper
 from .utils import get_mfa_code_for_user
@@ -108,3 +110,24 @@ class MfaMigrationTestCase(BaseTestCase):
             MfaMethodsWrapper.objects.filter(user=self.someuser, name='app').count(),
             1,
         )
+
+    def test_mfa_wrapper_deletion_cascades_to_all_records(self):
+        user = self.someuser
+
+        # Verify initial state
+        self.assertEqual(get_mfa_model().objects.filter(user=user).count(), 1)
+        self.assertEqual(MfaMethodsWrapper.objects.filter(user=user).count(), 1)
+        self.assertEqual(Authenticator.objects.filter(user=user).count(), 2)
+
+        # Delete the MFA wrapper
+        wrapper = MfaMethodsWrapper.objects.get(user=user)
+        wrapper.delete()
+
+        # Verify all related tables are scrubbed
+        self.assertEqual(get_mfa_model().objects.filter(user=user).count(), 0)
+        self.assertEqual(MfaMethodsWrapper.objects.filter(user=user).count(), 0)
+        self.assertEqual(Authenticator.objects.filter(user=user).count(), 0)
+
+        # Verify the KoBoCAT profile is updated
+        profile = UserProfile.objects.get(user=user)
+        self.assertFalse(profile.is_mfa_active)
