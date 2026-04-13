@@ -140,23 +140,17 @@ class Command(BaseCommand):
             migrated += 1
 
             if not dry_run and len(to_update) >= CHUNK_SIZE:
-                SubmissionSupplement.objects.bulk_update(
-                    to_update, fields=['content']
-                )
+                SubmissionSupplement.objects.bulk_update(to_update, fields=['content'])
                 self.stdout.write(f'  Saved {len(to_update)} records...')
                 to_update = []
 
         if not dry_run and to_update:
-            SubmissionSupplement.objects.bulk_update(
-                to_update, fields=['content']
-            )
+            SubmissionSupplement.objects.bulk_update(to_update, fields=['content'])
             self.stdout.write(f'  Saved {len(to_update)} records...')
 
         self._create_missing_qafs(missing_qaf_combos, dry_run)
 
-        summary = (
-            f'Done. Migrated: {migrated}, Skipped: {skipped}, Errors: {errors}'
-        )
+        summary = f'Done. Migrated: {migrated}, Skipped: {skipped}, Errors: {errors}'
         if dry_run:
             summary += ' (dry run — no changes saved)'
 
@@ -220,9 +214,7 @@ class Command(BaseCommand):
                         qaf_errors += 1
 
         if not dry_run:
-            self.stdout.write(
-                f'QAFs created: {qaf_created}, errors: {qaf_errors}'
-            )
+            self.stdout.write(f'QAFs created: {qaf_created}, errors: {qaf_errors}')
 
     def _build_params(self, asset: 'Asset', xpath: str, action_id: str) -> list | dict:
         """
@@ -246,9 +238,7 @@ class Command(BaseCommand):
             return [{'language': lang} for lang in languages]
 
         if action_id in ('manual_qual', 'automatic_bedrock_qual'):
-            qual_survey = (
-                advanced_features.get('qual', {}).get('qual_survey', [])
-            )
+            qual_survey = advanced_features.get('qual', {}).get('qual_survey', [])
             questions = [q for q in qual_survey if q.get('xpath') == xpath]
             params = []
             for q in questions:
@@ -259,7 +249,11 @@ class Command(BaseCommand):
                 }
                 if 'choices' in q:
                     entry['choices'] = [
-                        {k: v for k, v in c.items() if k in ('uuid', 'labels', 'options')}
+                        {
+                            k: v
+                            for k, v in c.items()
+                            if k in ('uuid', 'labels', 'options')
+                        }
                         for c in q['choices']
                     ]
                 if 'options' in q:
