@@ -220,13 +220,14 @@ class Command(BaseCommand):
                 )
                 if not dry_run:
                     try:
-                        QuestionAdvancedFeature.objects.create(
+                        _, created = QuestionAdvancedFeature.objects.get_or_create(
                             asset=asset,
                             question_xpath=xpath,
                             action=action_id,
-                            params=params,
+                            defaults={'params': params},
                         )
-                        qaf_created += 1
+                        if created:
+                            qaf_created += 1
                     except Exception as e:
                         self.stderr.write(f'    ERROR: {e}')
                         qaf_errors += 1
