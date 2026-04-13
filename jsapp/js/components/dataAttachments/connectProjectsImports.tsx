@@ -3,7 +3,7 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import type { AssetResponse } from '#/dataInterface'
-import type { AttachedSourceItem } from './connectProjects.types'
+import type { AttachedSourceItem } from './common'
 
 interface ConnectProjectsImportsProps {
   selectComponent: React.ReactNode

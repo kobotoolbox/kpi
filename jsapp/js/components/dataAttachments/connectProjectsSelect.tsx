@@ -1,19 +1,19 @@
 import Select from 'react-select'
 import bem from '#/bem'
-import type { AssetResponse, AssetsResponse } from '#/dataInterface'
+import type { ConnectableAsset } from './common'
 
 interface ConnectProjectsSelectProps {
-  sharingEnabledAssets: AssetsResponse | null
-  filteredAssets: AssetResponse[]
-  value: AssetResponse | null
+  sharingEnabledAssetsLoaded: boolean
+  filteredAssets: ConnectableAsset[]
+  value: ConnectableAsset | null
   isLoading: boolean
   isInitialised: boolean
   sourceError?: string
-  onSourceChange: (newVal: AssetResponse | null) => void
+  onSourceChange: (newVal: ConnectableAsset | null) => void
 }
 
 export default function ConnectProjectsSelect({
-  sharingEnabledAssets,
+  sharingEnabledAssetsLoaded,
   filteredAssets,
   value,
   isLoading,
@@ -21,7 +21,7 @@ export default function ConnectProjectsSelect({
   sourceError,
   onSourceChange,
 }: ConnectProjectsSelectProps) {
-  if (sharingEnabledAssets === null) {
+  if (!sharingEnabledAssetsLoaded) {
     return null
   }
 
@@ -31,7 +31,7 @@ export default function ConnectProjectsSelect({
         error: Boolean(sourceError),
       }}
     >
-      <Select<AssetResponse, false>
+      <Select<ConnectableAsset, false>
         placeholder={t('Select a different project to import data from')}
         options={filteredAssets}
         value={value}

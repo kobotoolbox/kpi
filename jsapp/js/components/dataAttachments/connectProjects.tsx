@@ -1,34 +1,33 @@
 import './connect-projects.scss'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type MouseEvent, useCallback, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
-import { actions } from '#/actions'
+import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
+import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
-import type { AssetResponse, AssetsResponse, FailResponse } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import { escapeHtml, generateAutoname, recordEntries } from '#/utils'
-import type { AttachedSourceItem } from './connectProjects.types'
+import { escapeHtml, generateAutoname, getAssetUIDFromUrl, truncateFile, truncateString } from '#/utils'
+import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
+const SHARING_ENABLED_PROJECTS_QUERY = 'data_sharing__enabled:true'
+
 function ConnectProjects({ asset }: { asset: AssetResponse }) {
-  const [isInitialised, setIsInitialised] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [isShared, setIsShared] = useState(asset.data_sharing?.enabled || false)
   const [isSharingAnyQuestions, setIsSharingAnyQuestions] = useState(
     Boolean(asset.data_sharing?.fields?.length) || false,
   )
-  const [attachedSources, setAttachedSources] = useState<AttachedSourceItem[]>([])
-  const [sharingEnabledAssets, setSharingEnabledAssets] = useState<AssetsResponse | null>(null)
-  const [newSource, setNewSource] = useState<AssetResponse | null>(null)
+  const [newSource, setNewSource] = useState<ConnectableAsset | null>(null)
   const [newFilename, setNewFilename] = useState('')
   const [columnsToDisplay, setColumnsToDisplay] = useState<ColumnFilter[]>(() => {
     if (asset.data_sharing?.enabled) {
@@ -38,116 +37,57 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   })
   const [fieldsErrors, setFieldsErrors] = useState<Record<string, string>>({})
 
-  const unlisteners = useRef<Function[]>([])
+  const {
+    data: attachedSourcesResponse,
+    isFetched: isInitialised,
+    isFetching: isFetchingAttachedSources,
+    refetch: refetchAttachedSources,
+  } = useAssetsPairedDataList(asset.uid)
+  const { mutate: detachSourceMutate, isPending: isDetachingSource } = useAssetsPairedDataDestroy()
+  const { data: sharingEnabledAssetsResponse } = useAssetsList({ q: SHARING_ENABLED_PROJECTS_QUERY })
+  const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate()
 
-  const markComponentAsLoading = useCallback(() => {
-    setIsLoading(true)
-  }, [])
+  const isLoading = isFetchingAttachedSources || isDetachingSource || isPatchingDataSharing
 
-  const stopLoading = useCallback(() => {
-    setIsLoading(false)
-  }, [])
+  const sharingEnabledAssetsLoaded = Boolean(sharingEnabledAssetsResponse?.data)
 
-  const onAttachToSourceFailed = useCallback((response: FailResponse) => {
-    const newFieldsErrors: Record<string, string> = {}
+  const sharingEnabledAssets = useMemo<ConnectableAsset[]>(() => {
+    return (
+      sharingEnabledAssetsResponse?.data.results.map((item) => ({
+        uid: item.uid,
+        url: item.url,
+        name: item.name || '',
+      })) || []
+    )
+  }, [sharingEnabledAssetsResponse])
 
-    if (!response?.responseJSON || Object.keys(response?.responseJSON).length === 0) {
-      newFieldsErrors.filename = t('Please check file name')
-    } else {
-      for (const [key, value] of recordEntries(response?.responseJSON)) {
-        if (typeof key === 'string' && value !== undefined) {
-          newFieldsErrors[key] = String(value)
-        }
-      }
-    }
+  const attachedSources = useMemo<AttachedSourceItem[]>(() => {
+    const payload = attachedSourcesResponse?.data
+    const sources = payload && 'results' in payload ? payload.results : []
 
-    setIsLoading(false)
-    setFieldsErrors(newFieldsErrors)
-  }, [])
-
-  const onGetAttachedSourcesCompleted = useCallback((response: AttachedSourceItem[]) => {
-    setIsInitialised(true)
-    setIsLoading(false)
-    setAttachedSources(response)
-  }, [])
-
-  const onGetSharingEnabledAssetsCompleted = useCallback((response: AssetsResponse) => {
-    setSharingEnabledAssets(response)
-  }, [])
-
-  const onToggleDataSharingCompleted = useCallback(
-    (response: AssetResponse) => {
-      setIsShared(response.data_sharing.enabled || false)
-      setIsSharingAnyQuestions(false)
-      setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters([], asset.content?.survey))
-    },
-    [asset.content?.survey],
-  )
-
-  const onUpdateColumnFiltersCompleted = useCallback(
-    (response: AssetResponse) => {
-      setIsLoading(false)
-      setColumnsToDisplay(
-        dataAttachmentsUtils.generateColumnFilters(response.data_sharing.fields || [], asset.content?.survey),
-      )
-    },
-    [asset.content?.survey],
-  )
-
-  const onPatchSourceCompleted = useCallback(() => {
-    actions.dataShare.getAttachedSources(asset.uid)
-  }, [asset.uid])
+    return sources.map((source) => ({
+      sourceName: truncateString(source.source__name, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
+      sourceUrl: source.source,
+      sourceUid: getAssetUIDFromUrl(source.source) || '',
+      linkedFields: source.fields,
+      filename: truncateFile(source.filename, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
+      attachmentUrl: source.url,
+    }))
+  }, [attachedSourcesResponse])
 
   const refreshAttachmentList = useCallback(() => {
     setNewSource(null)
     setNewFilename('')
     setFieldsErrors({})
-    actions.dataShare.getAttachedSources(asset.uid)
-  }, [asset.uid])
-
-  useEffect(() => {
-    unlisteners.current = [
-      actions.dataShare.attachToSource.started.listen(markComponentAsLoading),
-      actions.dataShare.attachToSource.completed.listen(refreshAttachmentList),
-      actions.dataShare.attachToSource.failed.listen(onAttachToSourceFailed),
-      actions.dataShare.detachSource.completed.listen(refreshAttachmentList),
-      actions.dataShare.patchSource.started.listen(markComponentAsLoading),
-      actions.dataShare.patchSource.completed.listen(onPatchSourceCompleted),
-      actions.dataShare.getSharingEnabledAssets.completed.listen(onGetSharingEnabledAssetsCompleted),
-      actions.dataShare.getAttachedSources.completed.listen(onGetAttachedSourcesCompleted),
-      actions.dataShare.toggleDataSharing.completed.listen(onToggleDataSharingCompleted),
-      actions.dataShare.updateColumnFilters.completed.listen(onUpdateColumnFiltersCompleted),
-      actions.dataShare.updateColumnFilters.failed.listen(stopLoading),
-      actions.dataShare.detachSource.failed.listen(stopLoading),
-      actions.dataShare.patchSource.completed.listen(stopLoading),
-      actions.dataShare.patchSource.failed.listen(stopLoading),
-    ]
-
-    refreshAttachmentList()
-    actions.dataShare.getSharingEnabledAssets()
-
-    return () => {
-      unlisteners.current.forEach((clb) => clb())
-      unlisteners.current = []
-    }
-  }, [
-    markComponentAsLoading,
-    refreshAttachmentList,
-    onAttachToSourceFailed,
-    onPatchSourceCompleted,
-    onGetSharingEnabledAssetsCompleted,
-    onGetAttachedSourcesCompleted,
-    onToggleDataSharingCompleted,
-    onUpdateColumnFiltersCompleted,
-    stopLoading,
-  ])
+    void refetchAttachedSources()
+  }, [refetchAttachedSources])
 
   const onFilenameChange = useCallback((newVal: string) => {
     setNewFilename(newVal)
     setFieldsErrors({})
   }, [])
 
-  const onSourceChange = useCallback((newVal: AssetResponse | null) => {
+  const onSourceChange = useCallback((newVal: ConnectableAsset | null) => {
     if (newVal) {
       setNewSource(newVal)
       setNewFilename(generateAutoname(newVal.name, 0, MAX_DISPLAYED_STRING_LENGTH.connect_projects))
@@ -171,13 +111,14 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
         filename,
         fields,
         attachmentUrl,
+        onAttachmentChanged: refreshAttachmentList,
       })
     },
-    [asset],
+    [asset, refreshAttachmentList],
   )
 
   const onConfirmAttachment = useCallback(
-    (evt: React.MouseEvent<HTMLButtonElement>) => {
+    (evt: MouseEvent<HTMLButtonElement>) => {
       evt.preventDefault()
 
       if (newFilename !== '' && newSource?.url) {
@@ -200,21 +141,53 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     [newFilename, newSource, showColumnFilterModal],
   )
 
-  const onRemoveAttachment = useCallback((attachmentUrl: string) => {
-    setIsLoading(true)
-    actions.dataShare.detachSource(attachmentUrl)
-  }, [])
+  const onRemoveAttachment = useCallback(
+    (attachmentUrl: string) => {
+      const attachmentUid = getAssetUIDFromUrl(attachmentUrl)
+      if (!attachmentUid) {
+        return
+      }
+
+      detachSourceMutate(
+        {
+          uidAsset: asset.uid,
+          uidPairedData: attachmentUid,
+        },
+        {
+          onSuccess: refreshAttachmentList,
+        },
+      )
+    },
+    [asset.uid, detachSourceMutate, refreshAttachmentList],
+  )
+
+  const patchDataSharing = useCallback(
+    (data: { enabled: boolean; fields: string[] }, onSuccess?: () => void) => {
+      patchDataSharingMutate(
+        {
+          uidAsset: asset.uid,
+          data,
+        },
+        {
+          onSuccess: () => onSuccess?.(),
+        },
+      )
+    },
+    [asset.uid, patchDataSharingMutate],
+  )
 
   const onToggleSharingData = useCallback(() => {
     const data = {
-      data_sharing: {
-        enabled: !isShared,
-        fields: [],
-      },
+      enabled: !isShared,
+      fields: [],
     }
 
     if (isShared) {
-      actions.dataShare.toggleDataSharing(asset.uid, data)
+      patchDataSharing(data, () => {
+        setIsShared(data.enabled)
+        setIsSharingAnyQuestions(false)
+        setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters([], asset.content?.survey))
+      })
       return
     }
 
@@ -226,18 +199,21 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       ).replaceAll('##ASSET_NAME##', escapeHtml(asset.name)),
       labels: { ok: t('Acknowledge and continue'), cancel: t('Cancel') },
       onok: () => {
-        actions.dataShare.toggleDataSharing(asset.uid, data)
+        patchDataSharing(data, () => {
+          setIsShared(data.enabled)
+          setIsSharingAnyQuestions(false)
+          setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters([], asset.content?.survey))
+        })
         dialog.destroy()
       },
       oncancel: dialog.destroy,
     }
 
     dialog.set(opts).show()
-  }, [asset.name, asset.uid, isShared])
+  }, [asset.content?.survey, asset.name, isShared, patchDataSharing])
 
   const onColumnSelected = useCallback(
     (columnList: MultiCheckboxItem[]) => {
-      setIsLoading(true)
       const fields: string[] = []
 
       columnList.forEach((item) => {
@@ -247,15 +223,15 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       })
 
       const data = {
-        data_sharing: {
-          enabled: isShared,
-          fields,
-        },
+        enabled: isShared,
+        fields,
       }
 
-      actions.dataShare.updateColumnFilters(asset.uid, data)
+      patchDataSharing(data, () => {
+        setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters(data.fields, asset.content?.survey))
+      })
     },
-    [asset.uid, isShared],
+    [asset.content?.survey, isShared, patchDataSharing],
   )
 
   const onSharingCheckboxChange = useCallback(
@@ -263,22 +239,21 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       if (!checked) {
         setColumnsToDisplay([])
         const data = {
-          data_sharing: {
-            enabled: isShared,
-            fields: [],
-          },
+          enabled: isShared,
+          fields: [],
         }
-        actions.dataShare.updateColumnFilters(asset.uid, data)
+
+        patchDataSharing(data)
       }
 
       setIsSharingAnyQuestions(checked)
     },
-    [asset.uid, isShared],
+    [asset.content?.survey, isShared, patchDataSharing],
   )
 
   const filteredAssets = useMemo(() => {
     const attachedSourceUids = attachedSources.map((item) => item.sourceUid)
-    return sharingEnabledAssets?.results.filter((item) => !attachedSourceUids.includes(item.uid)) || []
+    return sharingEnabledAssets.filter((item) => !attachedSourceUids.includes(item.uid))
   }, [attachedSources, sharingEnabledAssets])
 
   return (
@@ -331,7 +306,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
           <ConnectProjectsImports
             selectComponent={
               <ConnectProjectsSelect
-                sharingEnabledAssets={sharingEnabledAssets}
+                sharingEnabledAssetsLoaded={sharingEnabledAssetsLoaded}
                 filteredAssets={filteredAssets}
                 value={newSource}
                 isLoading={isLoading}

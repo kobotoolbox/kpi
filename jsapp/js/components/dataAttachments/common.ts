@@ -6,3 +6,9 @@ export interface AttachedSourceItem {
   filename: string
   attachmentUrl: string
 }
+
+export interface ConnectableAsset {
+  uid: string
+  url: string
+  name: string
+}
