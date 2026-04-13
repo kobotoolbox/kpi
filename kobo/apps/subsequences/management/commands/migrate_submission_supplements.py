@@ -21,13 +21,11 @@ class Command(BaseCommand):
     Migrate SubmissionSupplement records from the old format (pre-schema
     version '20250820') to the current format.
 
-    Performs three operations:
+    Performs two operations:
       1. Converts old action IDs (googlets, googletx, transcript, translation)
          to current ones (automatic_google_transcription, manual_transcription,
          etc.) via migrate_submission_supplementals.
-      2. Converts xpath separators from dashes to slashes in the supplement
-         content keys, to match the current QuestionAdvancedFeature format.
-      3. Creates any QuestionAdvancedFeature records that are referenced in
+      2. Creates any QuestionAdvancedFeature records that are referenced in
          supplement content but missing from the database.
 
     Usage:
@@ -121,12 +119,6 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
 
-            # Convert dash xpath separators to slashes to match current QAF format
-            migrated_content = {
-                (k.replace('-', '/') if k != '_version' else k): v
-                for k, v in migrated_content.items()
-            }
-
             # Collect (asset_id, xpath, action_id) combos that need a QAF
             for xpath, action_data in migrated_content.items():
                 if xpath == '_version' or not isinstance(action_data, dict):
@@ -191,11 +183,34 @@ class Command(BaseCommand):
         qaf_created = 0
         qaf_errors = 0
 
+        assets_by_id = {
+            a.pk: a
+            for a in Asset.objects.filter(
+                pk__in=by_asset.keys()
+            ).defer('content')
+        }
+
         for asset_id, combos_for_asset in by_asset.items():
-            asset = Asset.objects.get(pk=asset_id)
+            asset = assets_by_id.get(asset_id)
+            if asset is None:
+                self.stderr.write(
+                    f'  ERROR: Asset pk={asset_id} not found, skipping'
+                    f' {len(combos_for_asset)} combo(s)'
+                )
+                qaf_errors += len(combos_for_asset)
+                continue
 
             for xpath, action_id in combos_for_asset:
-                params = self._build_params(asset, xpath, action_id)
+                try:
+                    params = self._build_params(asset, xpath, action_id)
+                except Exception as e:
+                    self.stderr.write(
+                        f'  ERROR building params for asset={asset.uid}'
+                        f' xpath={xpath} action={action_id}: {e}'
+                    )
+                    qaf_errors += 1
+                    continue
+
                 self.stdout.write(
                     f'  {"[dry-run] " if dry_run else ""}'
                     f'Creating QAF asset={asset.uid} xpath={xpath} action={action_id}'
@@ -239,7 +254,11 @@ class Command(BaseCommand):
 
         if action_id in ('manual_qual', 'automatic_bedrock_qual'):
             qual_survey = advanced_features.get('qual', {}).get('qual_survey', [])
-            questions = [q for q in qual_survey if q.get('xpath') == xpath]
+            # qual_survey items may use 'xpath' (slash) or 'qpath' (dash) as the key
+            questions = [
+                q for q in qual_survey
+                if q.get('xpath') == xpath or q.get('qpath') == xpath
+            ]
             params = []
             for q in questions:
                 entry = {
