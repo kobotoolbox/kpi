@@ -62,7 +62,11 @@ class Command(BaseCommand):
 
         qs = SubmissionSupplement.objects.exclude(
             content__has_key='_version'
-        ).select_related('asset')
+        ).select_related('asset').only(
+            'submission_uuid',
+            'content',
+            'asset__uid',
+        )
 
         if asset_uid:
             qs = qs.filter(asset__uid=asset_uid)
