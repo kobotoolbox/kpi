@@ -9,6 +9,7 @@ import pytest
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from constance.test import override_config
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
@@ -17,6 +18,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions import ManualQualAction
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
     OSS120,
@@ -61,6 +63,7 @@ from kobo.apps.subsequences.tests.utils import MockLLMClient
 from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
+from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -887,3 +890,33 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
             self.supplement_details_url, data=self.qa_payload, format='json'
         )
         assert response.status_code == status.HTTP_200_OK
+
+
+@ddt
+class AutomaticBedrockQualLimitTestCase(BaseAutomaticBedrockQualTestCase):
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @data(
+        ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'verified': True}, False),
+        ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'verified': False}, False),
+        ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'value': None}, False),
+        ({'uuid': BEDROCK_QUAL_TEXT_UUID}, True),
+    )
+    @unpack
+    def test_check_limit(self, action_data, should_raise):
+        user = self.asset.owner
+
+        with patch(
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+        ) as patched_calculator:
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.LLM_REQUESTS: {'exceeded': True}
+            }
+            if should_raise:
+                with pytest.raises(UsageLimitExceededException):
+                    self.action.check_limits(user, action_data)
+            else:
+                self.action.check_limits(user, action_data)
+
+        if not should_raise:
+            patched_calculator.return_value.get_usage_balances.assert_not_called()
