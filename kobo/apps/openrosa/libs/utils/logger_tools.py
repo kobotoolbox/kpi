@@ -1016,7 +1016,7 @@ def _get_instance_from_deprecated_id(
     try:
         instance = Instance.objects.get(uuid=old_uuid, xform_id=xform.pk)
     except Instance.DoesNotExist:
-        raise InstanceIdMissingError('Invalid submission - deprecatedID not found.')
+        raise InstanceIdMissingError(t('Invalid submission - deprecatedID not found.'))
     except MultipleObjectsReturned:
         root_uuid, use_fallback = get_root_uuid_from_xml(xml)
 
