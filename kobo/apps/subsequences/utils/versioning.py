@@ -189,8 +189,8 @@ def migrate_qual_data(supplemental_data: dict) -> dict | None:
         new_version = {
             '_data': {'uuid': question_uuid, 'value': value},
             '_dateCreated': now,
-            '_dateAccepted': now,
             '_uuid': str(uuid.uuid4()),
+            'verified': False,
         }
 
         new_qual_dict[question_uuid] = {
