@@ -894,18 +894,22 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
 @ddt
 class AutomaticBedrockQualLimitTestCase(BaseAutomaticBedrockQualTestCase):
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
     @data(
         ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'verified': True}, False),
         ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'verified': False}, False),
-        ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'value': None}, False),
+
+        # Requesting a new generation SHOULD raise exception
         ({'uuid': BEDROCK_QUAL_TEXT_UUID}, True),
     )
     @unpack
     def test_check_limit(self, action_data, should_raise):
-        user = self.asset.owner
+        # Dynamically skip the enforcement assertion if Stripe is disabled,
+        # this ensures the bypass paths are always tested locally
+        if should_raise and not settings.STRIPE_ENABLED:
+            pytest.skip('Stripe is not enabled')
 
+        user = self.asset.owner
         with patch(
             'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
         ) as patched_calculator:
@@ -915,8 +919,8 @@ class AutomaticBedrockQualLimitTestCase(BaseAutomaticBedrockQualTestCase):
             if should_raise:
                 with pytest.raises(UsageLimitExceededException):
                     self.action.check_limits(user, action_data)
+                # Explicitly verify the exception originated from superclass enforcement
+                patched_calculator.return_value.get_usage_balances.assert_called_once()
             else:
                 self.action.check_limits(user, action_data)
-
-        if not should_raise:
-            patched_calculator.return_value.get_usage_balances.assert_not_called()
+                patched_calculator.return_value.get_usage_balances.assert_not_called()

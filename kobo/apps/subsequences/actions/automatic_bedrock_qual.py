@@ -135,9 +135,6 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         if verified is not None:
             return
 
-        if 'value' in action_data and action_data['value'] is None:
-            return
-
         super().check_limits(user, action_data)
 
     def create_bedrock_client(self):
