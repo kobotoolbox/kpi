@@ -6,9 +6,7 @@ from constance import config
 from django.conf import settings
 from django.db import transaction
 
-from ..utils import user_has_inactive_paid_subscription
 from .models import MfaMethod, MfaMethodsWrapper
-from .permissions import mfa_allowed_for_user
 
 
 class MfaAdapter(DefaultMFAAdapter):
@@ -23,9 +21,7 @@ class MfaAdapter(DefaultMFAAdapter):
             and MfaMethodsWrapper.objects.filter(user=user, is_active=True).first()
             is not None
         )
-        mfa_allowed = mfa_allowed_for_user(user)
-        inactive_subscription = user_has_inactive_paid_subscription(user.username)
-        return mfa_active and (mfa_allowed or inactive_subscription)
+        return mfa_active and config.MFA_ENABLED
 
     def get_totp_label(self, user) -> str:
         """Returns the label used for representing the given user in a TOTP QR
