@@ -434,7 +434,7 @@ class BaseQualAction(BaseAction):
                 'xpath': self.source_question_xpath,
                 'labels': qual_question.get('labels', {}),
                 SORT_BY_DATE_FIELD: selected_version[self.DATE_CREATED_FIELD],
-                'verified': selected_version['verified'],
+                'verified': selected_version.get('verified', False),
                 'source': self.source,
             }
         return results_dict
