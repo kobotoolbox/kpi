@@ -229,7 +229,7 @@ def create_instance(
     new_uuid = root_uuid if fallback_on_uuid else get_uuid_from_xml(xml)
 
     if not new_uuid:
-        raise InstanceIdMissingError
+        raise InstanceIdMissingError(t('Instance ID is required'))
 
     with get_instance_lock(root_uuid, xform.id) as lock_acquired:
         if not lock_acquired:
@@ -463,7 +463,7 @@ def http_open_rosa_error_handler(func, request):
         result.error = t('Received empty submission. No instance was created')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except InstanceIdMissingError as e:
-        result.error = str(e) if str(e) else t('Instance ID is required')
+        result.error = str(e)
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except FormInactiveError:
         result.error = t('Form is not active')
