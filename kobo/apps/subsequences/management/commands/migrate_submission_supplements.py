@@ -60,12 +60,14 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
         asset_uid = options['asset_uid']
 
-        qs = SubmissionSupplement.objects.exclude(
-            content__has_key='_version'
-        ).select_related('asset').only(
-            'submission_uuid',
-            'content',
-            'asset__uid',
+        qs = (
+            SubmissionSupplement.objects.exclude(content__has_key='_version')
+            .select_related('asset')
+            .only(
+                'submission_uuid',
+                'content',
+                'asset__uid',
+            )
         )
 
         if asset_uid:
@@ -188,9 +190,7 @@ class Command(BaseCommand):
 
         assets_by_id = {
             a.pk: a
-            for a in Asset.objects.filter(
-                pk__in=by_asset.keys()
-            ).defer('content')
+            for a in Asset.objects.filter(pk__in=by_asset.keys()).defer('content')
         }
 
         for asset_id, combos_for_asset in by_asset.items():
@@ -260,7 +260,8 @@ class Command(BaseCommand):
             qual_survey = advanced_features.get('qual', {}).get('qual_survey', [])
             # qual_survey items may use 'xpath' (slash) or 'qpath' (dash) as the key
             questions = [
-                q for q in qual_survey
+                q
+                for q in qual_survey
                 if q.get('xpath') == xpath or q.get('qpath') == xpath
             ]
             params = []
