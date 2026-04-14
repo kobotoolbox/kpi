@@ -62,13 +62,6 @@ def edit_submission_xml(
     element.text = value
 
 
-def minidom_parsestring(text: Union[str, bytes]) -> minidom.Document:
-    """
-    Thin wrapper so callers don't import minidom directly for parsing.
-    """
-    return minidom.parseString(text)
-
-
 def fromstring_preserve_root_xmlns(
     text: Union[str, bytes],
 ) -> ET.Element:
@@ -112,6 +105,13 @@ def get_or_create_element(
         parent_el = el
 
     return el
+
+
+def minidom_parsestring(text: Union[str, bytes]) -> minidom.Document:
+    """
+    Thin wrapper so callers don't import minidom directly for parsing.
+    """
+    return minidom.parseString(text)
 
 
 def strip_nodes(
