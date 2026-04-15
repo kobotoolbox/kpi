@@ -1,6 +1,6 @@
 import './connect-projects.scss'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
 import { actions } from '#/actions'
@@ -38,17 +38,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   })
   const [fieldsErrors, setFieldsErrors] = useState<Record<string, string>>({})
 
-  const unlisteners = useRef<Function[]>([])
-
-  const markComponentAsLoading = useCallback(() => {
-    setIsLoading(true)
-  }, [])
-
-  const stopLoading = useCallback(() => {
-    setIsLoading(false)
-  }, [])
-
-  const onAttachToSourceFailed = useCallback((response: FailResponse) => {
+  const onAttachToSourceFailed = (response: FailResponse) => {
     const newFieldsErrors: Record<string, string> = {}
 
     if (!response?.responseJSON || Object.keys(response?.responseJSON).length === 0) {
@@ -63,17 +53,17 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
     setIsLoading(false)
     setFieldsErrors(newFieldsErrors)
-  }, [])
+  }
 
-  const onGetAttachedSourcesCompleted = useCallback((response: AttachedSourceItem[]) => {
+  const onGetAttachedSourcesCompleted = (response: AttachedSourceItem[]) => {
     setIsInitialised(true)
     setIsLoading(false)
     setAttachedSources(response)
-  }, [])
+  }
 
-  const onGetSharingEnabledAssetsCompleted = useCallback((response: AssetsResponse) => {
+  const onGetSharingEnabledAssetsCompleted = (response: AssetsResponse) => {
     setSharingEnabledAssets(response)
-  }, [])
+  }
 
   const onToggleDataSharingCompleted = useCallback(
     (response: AssetResponse) => {
@@ -106,32 +96,30 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   }, [asset.uid])
 
   useEffect(() => {
-    unlisteners.current = [
-      actions.dataShare.attachToSource.started.listen(markComponentAsLoading),
+    const unlisteners = [
+      actions.dataShare.attachToSource.started.listen(() => setIsLoading(true)),
       actions.dataShare.attachToSource.completed.listen(refreshAttachmentList),
       actions.dataShare.attachToSource.failed.listen(onAttachToSourceFailed),
       actions.dataShare.detachSource.completed.listen(refreshAttachmentList),
-      actions.dataShare.patchSource.started.listen(markComponentAsLoading),
+      actions.dataShare.patchSource.started.listen(() => setIsLoading(true)),
       actions.dataShare.patchSource.completed.listen(onPatchSourceCompleted),
       actions.dataShare.getSharingEnabledAssets.completed.listen(onGetSharingEnabledAssetsCompleted),
       actions.dataShare.getAttachedSources.completed.listen(onGetAttachedSourcesCompleted),
       actions.dataShare.toggleDataSharing.completed.listen(onToggleDataSharingCompleted),
       actions.dataShare.updateColumnFilters.completed.listen(onUpdateColumnFiltersCompleted),
-      actions.dataShare.updateColumnFilters.failed.listen(stopLoading),
-      actions.dataShare.detachSource.failed.listen(stopLoading),
-      actions.dataShare.patchSource.completed.listen(stopLoading),
-      actions.dataShare.patchSource.failed.listen(stopLoading),
+      actions.dataShare.updateColumnFilters.failed.listen(() => setIsLoading(false)),
+      actions.dataShare.detachSource.failed.listen(() => setIsLoading(false)),
+      actions.dataShare.patchSource.completed.listen(() => setIsLoading(false)),
+      actions.dataShare.patchSource.failed.listen(() => setIsLoading(false)),
     ]
 
     refreshAttachmentList()
     actions.dataShare.getSharingEnabledAssets()
 
     return () => {
-      unlisteners.current.forEach((clb) => clb())
-      unlisteners.current = []
+      unlisteners.forEach((clb) => clb())
     }
   }, [
-    markComponentAsLoading,
     refreshAttachmentList,
     onAttachToSourceFailed,
     onPatchSourceCompleted,
@@ -139,15 +127,14 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     onGetAttachedSourcesCompleted,
     onToggleDataSharingCompleted,
     onUpdateColumnFiltersCompleted,
-    stopLoading,
   ])
 
-  const onFilenameChange = useCallback((newVal: string) => {
+  const onFilenameChange = (newVal: string) => {
     setNewFilename(newVal)
     setFieldsErrors({})
-  }, [])
+  }
 
-  const onSourceChange = useCallback((newVal: AssetResponse | null) => {
+  const onSourceChange = (newVal: AssetResponse | null) => {
     if (newVal) {
       setNewSource(newVal)
       setNewFilename(generateAutoname(newVal.name, 0, MAX_DISPLAYED_STRING_LENGTH.connect_projects))
@@ -155,7 +142,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     } else {
       setNewSource(null)
     }
-  }, [])
+  }
 
   const showColumnFilterModal = useCallback(
     (
@@ -200,10 +187,10 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     [newFilename, newSource, showColumnFilterModal],
   )
 
-  const onRemoveAttachment = useCallback((attachmentUrl: string) => {
+  const onRemoveAttachment = (attachmentUrl: string) => {
     setIsLoading(true)
     actions.dataShare.detachSource(attachmentUrl)
-  }, [])
+  }
 
   const onToggleSharingData = useCallback(() => {
     const data = {
