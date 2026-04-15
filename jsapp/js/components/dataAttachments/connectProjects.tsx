@@ -116,9 +116,6 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       actions.dataShare.patchSource.failed.listen(() => setIsLoading(false)),
     ]
 
-    refreshAttachmentList()
-    actions.dataShare.getSharingEnabledAssets()
-
     return () => {
       unlisteners.forEach((clb) => clb())
     }
@@ -131,6 +128,11 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     onToggleDataSharingCompleted,
     onUpdateColumnFiltersCompleted,
   ])
+
+  useEffect(() => {
+    refreshAttachmentList()
+    actions.dataShare.getSharingEnabledAssets()
+  }, [refreshAttachmentList])
 
   const onFilenameChange = (newVal: string) => {
     setNewFilename(newVal)
