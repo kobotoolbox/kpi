@@ -5,7 +5,7 @@ import type { AssetResponse } from '#/dataInterface'
 import type { WithRouterProps } from '#/router/legacy'
 import FormMap from '.'
 
-interface FormMapProps extends WithRouterProps {
+interface FormMapWrapperProps extends WithRouterProps {
   asset: AssetResponse
   /** A question/row name for map to focus on given question data */
   viewby?: string
@@ -14,12 +14,16 @@ interface FormMapProps extends WithRouterProps {
 const DEFAULT_PAGE_SIZE = 1
 const SUBMISSIONS_PER_PAGE = 1000
 
-export default function FormMapWrapper(props: FormMapProps) {
+/**
+ * Wrapper for the `FormMap` component so we can use hooks without doing a full refactor of `FormMap`
+ */
+export default function FormMapWrapper(props: FormMapWrapperProps) {
   const [pageCount, setPageCount] = useState(DEFAULT_PAGE_SIZE)
   const [fields, setFields] = useState<string | undefined>(undefined)
-  // Hard coded the sorting produced by `getSubmssions`
+  // Hard coded the sorting produced by `getSubmissions`
   const sort = JSON.stringify({ _id: -1 })
 
+  // We generate `pageCount` amount of queries because the data API is limited to 1000 results per page
   const queryOptions = Array.from({ length: pageCount }).map((_, index) => {
     return {
       queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'page', index, sort],

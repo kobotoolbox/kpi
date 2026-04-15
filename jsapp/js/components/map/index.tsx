@@ -45,8 +45,8 @@ import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { fetchGetUrl } from '../../../js/api'
 
-const MAX_SUBMISSIONS = 30000 // Old maximum, don't want more than 30 parallel queries
 const SUBMISSIONS_PER_PAGE = 1000
+const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -272,16 +272,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   getQueryLimit() {
-    // If totalCount hasn't populated yet, return 0
+    // If totalCount hasn't populated yet, return 1000 (one page of submissions)
     if (this.props.totalCount === undefined) {
       return QUERY_LIMIT_DEFAULT
     }
     // If the user has more than 30,000 submissions, display 30,000 as the max anyways
-    if (this.props.totalCount > MAX_SUBMISSIONS) {
-      return MAX_SUBMISSIONS
-    } else {
-      return Math.ceil(this.props.totalCount / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
-    }
+    const userMaxPages = Math.ceil(this.props.totalCount / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
+    const MaxPages = Math.ceil(MAX_SUBMISSIONS / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
+    return Math.min(userMaxPages, MaxPages)
   }
 
   /**
@@ -434,6 +432,26 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
+
+  updateWrapperQuery(selectedQuestion: string | null, nextViewBy: string, pageLimit: number) {
+    const fq = ['_id']
+    if (selectedQuestion) {
+      fq.push(selectedQuestion)
+    }
+    if (nextViewBy) {
+      fq.push(this.nameOfFieldInGroup(nextViewBy))
+    }
+    this.props.setPageCount(pageLimit)
+    this.props.setFields(JSON.stringify(fq))
+  }
+
+  /**
+   * Updates the wrapper with new query params in the following sequence:
+   * 1. Check if the selectedQuestion is updated
+   * 2. Compute the amount of pages to request
+   * 3. If there is a disaggregation, add the disaggregated question to the query
+   * 4. Send all the changes up to the wrapper
+   */
   createDataQuery(nextViewBy = '') {
     // Map cannot actually show more than one question at a time, so we must always have a question specified.
     // The list below describes the priority to find the question:
@@ -468,16 +486,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     // If totalCount hasn't populated yet, set pageLimit to 1
     if (this.props.totalCount === undefined) {
-      const pageLimit = 1
-      const fq = ['_id']
-      if (selectedQuestion) {
-        fq.push(selectedQuestion)
-      }
-      if (nextViewBy) {
-        fq.push(this.nameOfFieldInGroup(nextViewBy))
-      }
-      this.props.setPageCount(pageLimit)
-      this.props.setFields(JSON.stringify(fq))
+      this.updateWrapperQuery(selectedQuestion, nextViewBy, 1)
       return
     }
 
@@ -496,15 +505,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     const pageLimit = queryLimit / SUBMISSIONS_PER_PAGE
 
-    const fq = ['_id']
-    if (selectedQuestion) {
-      fq.push(selectedQuestion)
-    }
-    if (nextViewBy) {
-      fq.push(this.nameOfFieldInGroup(nextViewBy))
-    }
-    this.props.setPageCount(pageLimit)
-    this.props.setFields(JSON.stringify(fq))
+    this.updateWrapperQuery(selectedQuestion, nextViewBy, pageLimit)
   }
 
   rebuildMapLayers(map: L.Map) {
@@ -841,6 +842,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       this.props.allData.length > 0
     const viewbyChanged = prevProps.viewby !== this.props.viewby
 
+    // We get the first page of results in order to get the total count, then we call createDataQuery again to update
+    // the maximum queryLimit based on the amount of submissions the project has
     if (totalCountPopulated) {
       this.createDataQuery(this.props.viewby)
     }
@@ -850,9 +853,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         this.createDataQuery()
       }
       this.refreshMapLayers()
-    }
-
-    if (viewbyChanged) {
+    } else if (viewbyChanged) {
       this.createDataQuery(this.props.viewby)
       this.refreshMapLayers()
     }
@@ -1124,7 +1125,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         {this.props.isLoading && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
-              <p className='map-no-geopoint'>{t('Fetching points...')}</p>
+              <p className='map-no-geopoint'>{t('Fetching points…')}</p>
             </div>
           </div>
         )}
