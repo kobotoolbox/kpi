@@ -40,13 +40,14 @@ class GoogleTranslationService(GoogleService):
         project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
         
         client_opts = None
-        if translation_location and translation_location.lower() != 'global':
-            endpoint_prefix = translation_location.split('-')[0].lower()
-            if endpoint_prefix not in ('eu', 'us'):
-                endpoint_prefix = 'us'  # fallback to us for unrecognized inputs
+        # Explicit api_endpoints are ONLY required for multi-regional bounding ('eu' and 'us')  # noqa: E501
+        # Granular regions (like 'us-central1') natively resolve through the global default endpoint  # noqa: E501
+        if translation_location and translation_location.lower() in ('eu', 'us'):
             client_opts = client_options.ClientOptions(
-                api_endpoint=f'translate-{endpoint_prefix}.googleapis.com'
+                api_endpoint=f'translate-{translation_location.lower()}.googleapis.com'
             )
+
+        if translation_location and translation_location.lower() != 'global':
             self.translate_parent = (
                 f'projects/{project_id}/locations/{translation_location}'
             )
