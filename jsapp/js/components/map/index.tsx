@@ -432,7 +432,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
-
   updateWrapperQuery(selectedQuestion: string | null, nextViewBy: string, pageLimit: number) {
     const fq = ['_id']
     if (selectedQuestion) {
