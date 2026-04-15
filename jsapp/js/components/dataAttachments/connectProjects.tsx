@@ -38,6 +38,9 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   })
   const [fieldsErrors, setFieldsErrors] = useState<Record<string, string>>({})
 
+  // Note: we wrap most of the functions in `useCallback`, because they are being referenced in
+  // useEffect dependency array. Without it we end up in endless loop of calls
+
   const onAttachToSourceFailed = useCallback((response: FailResponse) => {
     const newFieldsErrors: Record<string, string> = {}
 
