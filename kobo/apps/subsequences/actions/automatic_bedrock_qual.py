@@ -130,6 +130,13 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             raise AnalysisQuestionIncorrectlyConfigured
         return choices
 
+    def check_limits(self, user, action_data: dict):
+        verified = action_data.get('verified', None)
+        if verified is not None:
+            return
+
+        super().check_limits(user, action_data)
+
     def create_bedrock_client(self):
         return boto3.client(
             service_name='bedrock-runtime',
