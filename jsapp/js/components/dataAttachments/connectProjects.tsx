@@ -38,7 +38,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   })
   const [fieldsErrors, setFieldsErrors] = useState<Record<string, string>>({})
 
-  const onAttachToSourceFailed = (response: FailResponse) => {
+  const onAttachToSourceFailed = useCallback((response: FailResponse) => {
     const newFieldsErrors: Record<string, string> = {}
 
     if (!response?.responseJSON || Object.keys(response?.responseJSON).length === 0) {
@@ -53,17 +53,17 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
     setIsLoading(false)
     setFieldsErrors(newFieldsErrors)
-  }
+  }, [])
 
-  const onGetAttachedSourcesCompleted = (response: AttachedSourceItem[]) => {
+  const onGetAttachedSourcesCompleted = useCallback((response: AttachedSourceItem[]) => {
     setIsInitialised(true)
     setIsLoading(false)
     setAttachedSources(response)
-  }
+  }, [])
 
-  const onGetSharingEnabledAssetsCompleted = (response: AssetsResponse) => {
+  const onGetSharingEnabledAssetsCompleted = useCallback((response: AssetsResponse) => {
     setSharingEnabledAssets(response)
-  }
+  }, [])
 
   const onToggleDataSharingCompleted = useCallback(
     (response: AssetResponse) => {
