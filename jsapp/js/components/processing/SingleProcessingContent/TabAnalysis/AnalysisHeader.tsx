@@ -14,7 +14,6 @@ import KoboDropdown from '#/components/common/koboDropdown'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
 import styles from './AnalysisHeader.module.scss'
 import { ANALYSIS_QUESTION_TYPES } from './common/constants'
@@ -38,7 +37,6 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
   const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
 
-  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
   const [showHints, setShowHints] = useShowHints()
 
   // Note: Technically correct would be to filter for the 3 specific mutations we are interested in,
@@ -96,7 +94,7 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
           isDisabled={!userCan('manage_asset', asset) || !!qaQuestion}
         />
 
-        {autoQAEnabled && <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={setShowHints} />}
+        <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={setShowHints} />
       </Group>
 
       <span>
