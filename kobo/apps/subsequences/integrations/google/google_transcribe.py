@@ -82,8 +82,11 @@ class GoogleTranscriptionService(GoogleService):
         client_opts = None
         speech_location = constance.config.ASR_MT_GOOGLE_REGION
         if speech_location and speech_location.lower() != 'global':
+            endpoint_prefix = speech_location.split('-')[0].lower()
+            if endpoint_prefix not in ('eu', 'us'):
+                endpoint_prefix = 'us'  # fallback to us for unrecognized inputs
             client_opts = client_options.ClientOptions(
-                api_endpoint=f'{speech_location}-speech.googleapis.com'
+                api_endpoint=f'{endpoint_prefix}-speech.googleapis.com'
             )
 
         speech_client = speech.SpeechClient(

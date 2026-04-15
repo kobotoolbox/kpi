@@ -79,10 +79,13 @@ class TestGoogleTranslate(TestCase):
             'kobo.apps.subsequences.integrations.google.base.storage.Client'
         ), patch(
             'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa: E501
-        ):
+        ) as mock_translate_client:
             service = GoogleTranslationService(submission, asset)
             assert service.translate_parent == 'projects/xyz/locations/eu'
             assert service.translate_async_parent == 'projects/xyz/locations/eu'
+            
+            kwargs = mock_translate_client.call_args[1]
+            assert kwargs['client_options'].api_endpoint == 'translate-eu.googleapis.com'
 
     @override_config(ASR_MT_GOOGLE_PROJECT_ID='xyz')
     @override_config(ASR_MT_GOOGLE_REGION='global')
@@ -96,9 +99,9 @@ class TestGoogleTranslate(TestCase):
             'kobo.apps.subsequences.integrations.google.base.storage.Client'
         ), patch(
             'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa: E501
-        ):
+        ) as mock_translate_client:
             service = GoogleTranslationService(submission, asset)
             assert service.translate_parent == 'projects/xyz'
-            assert (
-                service.translate_async_parent == 'projects/xyz/locations/us-central1'
-            )
+            assert service.translate_async_parent == 'projects/xyz/locations/us-central1'
+            kwargs = mock_translate_client.call_args[1]
+            assert kwargs.get('client_options') is None

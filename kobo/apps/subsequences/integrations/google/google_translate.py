@@ -7,6 +7,7 @@ from typing import Any, Union
 
 import constance
 from django.conf import settings
+from google.api_core import client_options
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import translate_v3 as translate
 
@@ -35,17 +36,27 @@ class GoogleTranslationService(GoogleService):
         """
         super().__init__(submission, asset, *args, **kwargs)
 
-        self.translate_client = translate.TranslationServiceClient(
-            credentials=self.credentials
-        )
         translation_location = constance.config.ASR_MT_GOOGLE_REGION
         project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
+        
+        client_opts = None
         if translation_location and translation_location.lower() != 'global':
+            endpoint_prefix = translation_location.split('-')[0].lower()
+            if endpoint_prefix not in ('eu', 'us'):
+                endpoint_prefix = 'us'  # fallback to us for unrecognized inputs
+            client_opts = client_options.ClientOptions(
+                api_endpoint=f'translate-{endpoint_prefix}.googleapis.com'
+            )
             self.translate_parent = (
                 f'projects/{project_id}/locations/{translation_location}'
             )
         else:
             self.translate_parent = f'projects/{project_id}'
+
+        self.translate_client = translate.TranslationServiceClient(
+            credentials=self.credentials,
+            client_options=client_opts,
+        )
         # "The global location is not supported for batch translation." See:
         # https://googleapis.dev/python/translation/2.0.0/gapic/v3/api.html
         # https://www.googlecloudcommunity.com/gc/AI-ML/location-variable-setting-for-the-Google-Cloud-Translation-API/m-p/543622/highlight/true#M1652
