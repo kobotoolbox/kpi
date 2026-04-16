@@ -11,18 +11,11 @@ import Icon from './icon'
 import type { IconColor } from './icon'
 
 const iconColors: Array<IconColor | undefined> = [undefined, 'mid-red', 'storm', 'teal', 'amber', 'blue']
-const iconSizes = ['xxs', 'xs', 's', 'sm', 'm', 'md', 'l', 'lg', 'xl', 'inherit'] satisfies Array<
-  Exclude<NonNullable<KoboIconProps['size']>, number>
->
+const iconSizes = ['xs', 'sm', 'md', 'lg', 'xl'] satisfies Array<Exclude<NonNullable<KoboIconProps['size']>, number>>
 const noneControlOption = '(none)'
 const iconColorTokens = iconColors.filter((item): item is IconColor => item !== undefined)
 
 const legacyIconsCatalog = getLegacyIconsCatalog()
-const legacyIconNameOptions = legacyIconsCatalog.map((item) => item.legacyName)
-const legacyIconNameMapping = {
-  [noneControlOption]: undefined,
-  ...Object.fromEntries(legacyIconNameOptions.map((legacyIconName) => [legacyIconName, legacyIconName])),
-}
 
 const tablerIconEntries = Object.entries(TablerIcons).filter(
   (entry): entry is [string, TablerIcon] =>
@@ -47,11 +40,6 @@ const meta: Meta<typeof KoboIcon> = {
       options: iconSizes,
       control: { type: 'inline-radio' },
     },
-    name: {
-      options: [noneControlOption, ...legacyIconNameOptions],
-      mapping: legacyIconNameMapping,
-      control: { type: 'select' },
-    },
     icon: {
       options: [noneControlOption, ...tablerIconOptions],
       mapping: tablerIconMapping,
@@ -62,7 +50,7 @@ const meta: Meta<typeof KoboIcon> = {
     docs: {
       description: {
         component:
-          'Kobo icon migration component. It renders SVG icons first and falls back to legacy icon font when a mapping is not available.',
+          'Kobo icon component for new UI. It renders only explicit SVG icon components. For legacy icon names, use `Icon` and refer to the legacy-to-tabler catalog below during migration.',
       },
     },
   },
@@ -74,9 +62,8 @@ type Story = StoryObj<typeof KoboIcon>
 
 export const Primary: Story = {
   args: {
-    name: 'search',
-    icon: undefined,
-    size: 'm',
+    icon: TablerIcons.IconSearch,
+    size: 'md',
   },
 }
 
@@ -119,7 +106,7 @@ export const LegacyCatalog: Story = {
           </div>
 
           <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }}>
-            {item.icon ? <KoboIcon icon={item.icon} size='m' /> : null}
+            {item.icon ? <KoboIcon icon={item.icon} size='md' /> : null}
           </div>
           <code style={{ color: item.tablerIconName ? 'inherit' : 'var(--mantine-color-red-6)' }}>
             {item.tablerIconName ?? 'undefined'}
@@ -139,7 +126,7 @@ export const MantineIntegrationExamples: Story = {
           <ActionIcon icon={TablerIcons.IconSearch} variant='light' size='lg' />
           <ActionIcon icon={TablerIcons.IconX} variant='transparent' size='lg' />
           <ThemeIcon variant='light' size='lg'>
-            <KoboIcon icon={TablerIcons.IconCalendar} size='m' />
+            <KoboIcon icon={TablerIcons.IconCalendar} size='md' />
           </ThemeIcon>
         </Group>
 

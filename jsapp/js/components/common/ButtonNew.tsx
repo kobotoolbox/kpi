@@ -1,10 +1,11 @@
 import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
+import type { MantineSize } from '@mantine/core'
 import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core/lib/components'
 import type { TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
 import KoboIcon from './KoboIcon'
-import type { IconSize } from './icon'
+import Icon, { type IconSize } from './icon'
 
 const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
   sm: 'xs',
@@ -12,16 +13,20 @@ const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize
   lg: 'm',
 }
 
-function renderButtonIcon(icon: IconName | TablerIcon | undefined, iconSize: IconSize | undefined) {
+function renderButtonIcon(
+  icon: IconName | TablerIcon | undefined,
+  legacyIconSize: IconSize | undefined,
+  koboIconSize: MantineSize,
+) {
   if (!icon) {
     return undefined
   }
 
   if (typeof icon === 'string') {
-    return <KoboIcon name={icon} size={iconSize} />
+    return <Icon name={icon} size={legacyIconSize} />
   }
 
-  return <KoboIcon icon={icon} size={iconSize} />
+  return <KoboIcon icon={icon} size={koboIconSize} />
 }
 
 // See boilerplate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
@@ -38,9 +43,10 @@ export interface ButtonProps extends ButtonPropsMantine {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ tooltip, tooltipProps, leftIcon, rightIcon, leftSection, rightSection, ...others }, ref) => {
-    const iconSize = ButtonToIconMap[others.size ?? 'sm']
-    const resolvedLeftSection = leftSection ?? renderButtonIcon(leftIcon, iconSize)
-    const resolvedRightSection = rightSection ?? renderButtonIcon(rightIcon, iconSize)
+    const buttonSize = (others.size ?? 'sm') as MantineSize
+    const legacyIconSize = ButtonToIconMap[others.size ?? 'sm']
+    const resolvedLeftSection = leftSection ?? renderButtonIcon(leftIcon, legacyIconSize, buttonSize)
+    const resolvedRightSection = rightSection ?? renderButtonIcon(rightIcon, legacyIconSize, buttonSize)
 
     if (!tooltip) {
       return (

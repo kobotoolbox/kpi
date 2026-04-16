@@ -5,7 +5,7 @@ import type { TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
 import KoboIcon from './KoboIcon'
-import type { IconSize } from './icon'
+import Icon, { type IconSize } from './icon'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   /** Text for tooltip */
@@ -20,10 +20,14 @@ export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
 }
 
 const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, icon, ...props }, ref) => {
-  // Currently, our icon sizes only use a single letter instead of
-  // Mantine's 'sm', 'md', etc. So here we grab the first letter.
-  const iconSize = props.size[0] as IconSize
-  const content = props.children ?? <KoboIcon icon={icon} name={iconName} size={iconSize} />
+  const legacyIconSize = props.size[0] as IconSize
+  const content =
+    props.children ??
+    (icon ? (
+      <KoboIcon icon={icon} size={props.size} />
+    ) : iconName ? (
+      <Icon name={iconName} size={legacyIconSize} />
+    ) : null)
 
   if (!props.tooltip) {
     return (
