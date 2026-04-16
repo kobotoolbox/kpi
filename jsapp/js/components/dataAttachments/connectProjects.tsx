@@ -248,7 +248,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
       setIsSharingAnyQuestions(checked)
     },
-    [asset.content?.survey, isShared, patchDataSharing],
+    [isShared, patchDataSharing],
   )
 
   const filteredAssets = useMemo(() => {
