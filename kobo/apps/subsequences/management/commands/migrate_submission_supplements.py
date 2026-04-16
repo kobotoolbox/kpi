@@ -69,11 +69,11 @@ class Command(BaseCommand):
             'asset__uid',
         )
 
-        unmigrated_supplements = qs.exclude(content__has_key='_version')
-
         if asset_uid:
             qs = qs.filter(asset__uid=asset_uid)
             self.stdout.write(f'Filtering to asset: {asset_uid}')
+
+        unmigrated_supplements = qs.exclude(content__has_key='_version')
 
         total_unmigrated = unmigrated_supplements.count()
 
