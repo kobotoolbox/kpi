@@ -366,7 +366,6 @@ CONSTANCE_CONFIG = {
         ),
     ),
     'ASR_MT_GOOGLE_REGION': (
-        'global',
         env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'global'),
         (
             'Google Cloud regional location for ASR/MT processing. If not `global`,'
