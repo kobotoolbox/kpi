@@ -81,7 +81,7 @@ class GoogleTranscriptionService(GoogleService):
         # Create the parameters required for the transcription
         client_opts = None
         speech_location = constance.config.ASR_MT_GOOGLE_REGION.lower()
-        # Similarly, specific regions beyond 'eu'/'us' must natively utilize 
+        # Similarly, specific regions beyond 'eu'/'us' must natively utilize
         # resolving globally
         if speech_location and speech_location in ('eu', 'us'):
             client_opts = client_options.ClientOptions(
