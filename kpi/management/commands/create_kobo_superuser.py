@@ -35,13 +35,18 @@ class Command(BaseCommand):
             )
             sys.exit(1)
 
-        # Fix any superuser missing a user profile or email address
+        # Validate superuser email address
         EmailAddress.objects.get_or_create(
-            user=user, email=user.email, verified=True, primary=True
+            user=user,
+            email=user.email,
+            defaults={'verified': True, 'primary': True},
         )
+
         if kobocat_database_ready:
+            # Create superuser's profile
             UserProfile.objects.get_or_create(
-                user_id=user.pk, validated_password=True
+                user_id=user.pk,
+                defaults={'validated_password': True},
             )
             self.stdout.write(
                 f'Superuser `{super_username}` successfully created.'
