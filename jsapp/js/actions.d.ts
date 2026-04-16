@@ -82,8 +82,8 @@ interface DeleteAssetCompletedDefinition extends Function {
 }
 
 export interface UpdateAssetDefinitionParams {
-  onComplete: (response: AssetResponse) => void
-  onFail: (response: FailResponse) => void
+  onComplete?: (response: AssetResponse) => void
+  onFailed?: (response: FailResponse) => void
 }
 
 interface UpdateAssetDefinition extends Function {
@@ -327,8 +327,9 @@ interface UnsubscribeFromCollectionCompletedDefinition extends Function {
   listen: (callback: (response: any) => void) => Function
 }
 
-// NOTE: as you use more actions in your ts files, please extend this namespace,
-// for now we are defining only the ones we need.
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 export declare const actions: {
   navigation: {
     routeUpdate: GenericCallbackDefinition
@@ -347,11 +348,11 @@ export declare const actions: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
     deployAsset: GenericDefinition
+    /** This is "archive" and "unarchive" of asset */
     setDeploymentActive: GenericDefinition
     createSnapshot: GenericDefinition
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
-    listTags: GenericDefinition
     createResource: CreateResourceDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition

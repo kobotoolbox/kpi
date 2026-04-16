@@ -87,8 +87,10 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     feature = asset.advanced_features_set.get(
         question_xpath=question_xpath, action=action_id
     )
-    action = feature.to_action()
-    action.get_action_dependencies(supplemental_data[question_xpath])
+    prefetched_dependencies = {
+        'question_supplemental_data': supplemental_data[question_xpath],
+    }
+    action = feature.to_action(prefetched_dependencies=prefetched_dependencies)
 
     # FIXME: raises KeyError if action results are further nested (eg translations)
     action_supplemental_data = supplemental_data[question_xpath][action_id]

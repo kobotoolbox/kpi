@@ -2079,11 +2079,12 @@ The supplementary data may include:
   * Manual translation
   * Automatic Google transcription
   * Automatic Google translation
-* Qualitative analysis
+* Qualitative analysis - manual or automatic with Bedrock
   * Text
   * Number
   * Single Choice
   * Multiple Choice
+* Qualitative analysis (manual only)
   * Tags
 
 ⚠️ The response examples in this documentation show each action in isolation for
@@ -2194,7 +2195,7 @@ This endpoint allows you to add, update, or delete supplementary data for a subm
 It supports the same action types as the GET endpoint:
 
 * NLP actions (manual and automatic transcription / translation)
-* Qualitative analysis
+* Qualitative analysis (manual and automatic)
 
 The PATCH payload follows the same per-question structure as the GET response.
 

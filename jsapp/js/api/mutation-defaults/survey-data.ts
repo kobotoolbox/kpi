@@ -10,20 +10,21 @@ import {
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
 } from '#/api/react-query/survey-data'
+import type { ManualQualValue } from '#/components/processing/common/types'
 import { TransxVersionSortFunction } from '#/components/processing/common/utils'
 import { recordEntries, recordKeys } from '#/utils'
 import { ActionEnum } from '../models/actionEnum'
-import type { DataSupplementResponseOneOfAutomaticGoogleTranscription } from '../models/dataSupplementResponseOneOfAutomaticGoogleTranscription'
-import type { DataSupplementResponseOneOfAutomaticGoogleTranslation } from '../models/dataSupplementResponseOneOfAutomaticGoogleTranslation'
-import type { DataSupplementResponseOneOfManualQual } from '../models/dataSupplementResponseOneOfManualQual'
-import type { DataSupplementResponseOneOfManualTranscription } from '../models/dataSupplementResponseOneOfManualTranscription'
-import type { DataSupplementResponseOneOfManualTranslation } from '../models/dataSupplementResponseOneOfManualTranslation'
 import type { PatchedDataSupplementPayloadOneOf } from '../models/patchedDataSupplementPayloadOneOf'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranscription'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranslation'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patchedDataSupplementPayloadOneOfManualQual'
 import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
 import type { PatchedDataSupplementPayloadOneOfManualTranslation } from '../models/patchedDataSupplementPayloadOneOfManualTranslation'
+import type { SupplementalDataAutomaticTranscription } from '../models/supplementalDataAutomaticTranscription'
+import type { SupplementalDataAutomaticTranslation } from '../models/supplementalDataAutomaticTranslation'
+import type { SupplementalDataManualQual } from '../models/supplementalDataManualQual'
+import type { SupplementalDataManualTranscription } from '../models/supplementalDataManualTranscription'
+import type { SupplementalDataManualTranslation } from '../models/supplementalDataManualTranslation'
 import { queryClient } from '../queryClient'
 import { invalidateItem, invalidatePaginatedList, optimisticallyUpdateItem } from './common'
 
@@ -97,7 +98,8 @@ queryClient.setMutationDefaults(
 
         switch (action) {
           case ActionEnum.manual_qual: {
-            const { uuid, value } = datum as PatchedDataSupplementPayloadOneOfManualQual
+            const { uuid } = datum as PatchedDataSupplementPayloadOneOfManualQual
+            const value: ManualQualValue | undefined = 'value' in datum! ? datum.value : undefined
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
               (response) =>
@@ -125,7 +127,7 @@ queryClient.setMutationDefaults(
                                   ...(response?.data?.[questionXpath]?.[action]?.[uuid]?._versions ?? []),
                                 ],
                               },
-                            } as DataSupplementResponseOneOfManualQual,
+                            } as SupplementalDataManualQual,
                           },
                         }
                       : {}),
@@ -160,7 +162,7 @@ queryClient.setMutationDefaults(
                           }, // Note: this is the actual optimistally added object.
                           ..._versions,
                         ],
-                      } as DataSupplementResponseOneOfManualTranscription,
+                      } as SupplementalDataManualTranscription,
                     },
                   },
                 } as assetsDataSupplementRetrieveResponse
@@ -198,7 +200,7 @@ queryClient.setMutationDefaults(
                             ..._versions,
                           ],
                         },
-                      } as DataSupplementResponseOneOfManualTranslation,
+                      } as SupplementalDataManualTranslation,
                     },
                   },
                 } as assetsDataSupplementRetrieveResponse
@@ -223,10 +225,15 @@ queryClient.setMutationDefaults(
                   _versions = []
                 } else if (datumTyped.accepted === true) {
                   // If accepting, update the latest version's status to accepted
-                  const latest = _versions.sort(TransxVersionSortFunction)[0]
-                  if (latest) {
-                    latest._dateAccepted = new Date().toISOString()
-                    latest._data.status = 'complete'
+                  const [versionLatest, ...versionsRest] = [..._versions].sort(TransxVersionSortFunction)
+                  if (versionLatest) {
+                    _versions = [
+                      {
+                        ...versionLatest,
+                        _dateAccepted: new Date().toISOString(),
+                      },
+                      ...versionsRest,
+                    ]
                   }
                 } else {
                   // Otherwise, add new version to the beginning
@@ -252,7 +259,7 @@ queryClient.setMutationDefaults(
                       [action]: {
                         ...response?.data?.[questionXpath]?.[action],
                         _versions,
-                      } as DataSupplementResponseOneOfAutomaticGoogleTranscription,
+                      } as SupplementalDataAutomaticTranscription,
                     },
                   },
                 } as assetsDataSupplementRetrieveResponse
@@ -278,10 +285,15 @@ queryClient.setMutationDefaults(
                   _versions = []
                 } else if (datumTyped.accepted === true) {
                   // If accepting, update the latest version's status to accepted
-                  const latest = _versions.sort(TransxVersionSortFunction)[0]
-                  if (latest) {
-                    latest._dateAccepted = new Date().toISOString()
-                    latest._data.status = 'complete'
+                  const [versionLatest, ...versionsRest] = [..._versions].sort(TransxVersionSortFunction)
+                  if (versionLatest) {
+                    _versions = [
+                      {
+                        ...versionLatest,
+                        _dateAccepted: new Date().toISOString(),
+                      },
+                      ...versionsRest,
+                    ]
                   }
                 } else {
                   // Otherwise, add new version to the beginning
@@ -311,7 +323,7 @@ queryClient.setMutationDefaults(
                           ...response?.data?.[questionXpath]?.[action]?.[language],
                           _versions,
                         },
-                      } as DataSupplementResponseOneOfAutomaticGoogleTranslation,
+                      } as SupplementalDataAutomaticTranslation,
                     },
                   },
                 } as assetsDataSupplementRetrieveResponse
@@ -320,6 +332,13 @@ queryClient.setMutationDefaults(
 
             return {
               snapshots: [itemSnapshot],
+            }
+          }
+          case ActionEnum.automatic_bedrock_qual: {
+            // No optimistic update for automatic_bedrock_qual since
+            // it only supports 'complete' or 'failed' status (no 'in_progress')
+            return {
+              snapshots: [],
             }
           }
           default:

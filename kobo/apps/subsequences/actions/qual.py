@@ -3,7 +3,12 @@ from copy import deepcopy
 from rest_framework.exceptions import ValidationError
 
 from kobo.apps.subsequences.actions.base import BaseAction
-from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
+from kobo.apps.subsequences.constants import (
+    QUESTION_TYPE_SOURCE,
+    QUESTION_TYPE_VERIFICATION,
+    SORT_BY_DATE_FIELD,
+)
+from kobo.apps.subsequences.exceptions import SubsequenceVerificationError
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -23,8 +28,12 @@ class BaseQualAction(BaseAction):
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 # `value` is further restricted by the schemas for each type
                 'value': {},
+                'verified': {'type': 'boolean'},
             },
-            'required': ['uuid', 'value'],
+            'oneOf': [
+                {'required': ['uuid', 'value'], 'not': {'required': ['verified']}},
+                {'required': ['uuid', 'verified'], 'not': {'required': ['value']}}
+            ],
         },
         'qualInteger': {
             'type': 'object',
@@ -73,8 +82,14 @@ class BaseQualAction(BaseAction):
                 'labels': {'$ref': '#/$defs/qualLabels'},
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 'options': {'type': 'object'},
+                'hint': {'$ref': '#/$defs/qualHint'},
             },
             'required': ['labels', 'uuid'],
+        },
+        'qualHint': {
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {'labels': {'$ref': '#/$defs/qualLabels'}},
         },
         'qualLabels': {
             'type': 'object',
@@ -88,6 +103,7 @@ class BaseQualAction(BaseAction):
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 'type': {'$ref': '#/$defs/qualQuestionType'},
                 'labels': {'$ref': '#/$defs/qualLabels'},
+                'hint': {'$ref': '#/$defs/qualHint'},
                 'choices': {
                     'type': 'array',
                     'items': {'$ref': '#/$defs/qualChoice'},
@@ -168,7 +184,7 @@ class BaseQualAction(BaseAction):
 
         # For now, allow answers to all questions that can receive responses,
         # even if they are hidden
-        for qual_item in self.params:
+        for qual_item in self.get_question_params():
             try:
                 data_schema_def = self.data_schema_definitions[qual_item['type']]
             except KeyError:
@@ -213,6 +229,9 @@ class BaseQualAction(BaseAction):
             schema['oneOf'].append(single_question_schema)
         return schema
 
+    def get_question_params(self):
+        return self.params
+
     @property
     def result_schema(self):
         data_schema = deepcopy(self.data_schema)
@@ -242,8 +261,9 @@ class BaseQualAction(BaseAction):
                                 'properties': {
                                     '_data': {'$ref': '#/$defs/dataSchema'},
                                     '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                    '_dateVerified': {'$ref': '#/$defs/dateTime'},
                                     '_uuid': {'$ref': '#/$defs/uuid'},
+                                    'verified': {'type': 'boolean'},
                                 },
                                 'required': ['_data', '_dateCreated', '_uuid'],
                             },
@@ -288,16 +308,42 @@ class BaseQualAction(BaseAction):
                     for choice in qual_item.get('choices', [])
                 ]
             output_fields.append(field)
+            uuid = qual_item['uuid']
+            output_fields.append(
+                {
+                    'label': 'source',
+                    'source': f'{self.source_question_xpath}/{uuid}',
+                    'type': QUESTION_TYPE_SOURCE,
+                    'name': f'{self.source_question_xpath}/{uuid}/source',
+                    'dtpath': f'{self.source_question_xpath}/{uuid}' '/source',
+                }
+            )
+            output_fields.append(
+                {
+                    'label': 'verified',
+                    'source': f'{self.source_question_xpath}/{uuid}',
+                    'type': QUESTION_TYPE_VERIFICATION,
+                    'name': f'{self.source_question_xpath}/{uuid}'
+                    '/verified',
+                    'dtpath': f'{self.source_question_xpath}/{uuid}'
+                    '/verified',
+                }
+            )
+
         return output_fields
+
+    @property
+    def source(self):
+        return NotImplementedError
 
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
-        qual_questions_by_uuid = {q['uuid']: q for q in self.params}
+        qual_questions_by_uuid = {q['uuid']: q for q in self.get_question_params()}
 
         # Choice lookup tables for select questions
         choices_by_uuid = {}
-        for qual_question in self.params:
+        for qual_question in self.get_question_params():
             if qual_question['type'] in ('qualSelectOne', 'qualSelectMultiple'):
                 choices_by_uuid[qual_question['uuid']] = {
                     choice['uuid']: choice
@@ -322,6 +368,9 @@ class BaseQualAction(BaseAction):
                 for v in versions
                 if v.get(self.VERSION_DATA_FIELD, {}).get('status') != 'failed'
             ]
+
+            if len(versions) == 0:
+                continue
 
             versions_sorted = sorted(
                 versions,
@@ -368,6 +417,8 @@ class BaseQualAction(BaseAction):
                 'xpath': self.source_question_xpath,
                 'labels': qual_question.get('labels', {}),
                 SORT_BY_DATE_FIELD: selected_version[self.DATE_CREATED_FIELD],
+                'verified': selected_version['verified'],
+                'source': self.source,
             }
         return results_dict
 
@@ -409,3 +460,7 @@ class BaseQualAction(BaseAction):
                     # the json schema but better safe than sorry
                     new_question.setdefault('choices', []).append(old_choice)
         self.params = incoming_params
+
+    def validate_action_for_empty_versions(self, action_data: dict):
+        if 'verified' in action_data:
+            raise SubsequenceVerificationError()

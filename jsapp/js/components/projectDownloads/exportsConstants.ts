@@ -85,7 +85,7 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   EXPORT_MULTIPLE: EXPORT_MULTIPLE_OPTIONS.both,
   // xls is the most popular choice and we respect that
   EXPORT_TYPE: EXPORT_TYPES.xls,
-  FLATTEN_GEO_JSON: false,
+  FLATTEN_GEO_JSON: true,
   XLS_TYPES_AS_TEXT: false,
   INCLUDE_MEDIA_URL: true,
   GROUP_SEPARATOR: '/',

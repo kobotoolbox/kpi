@@ -352,7 +352,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                 self.supplement_details_url, data=payload, format='json'
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert 'Invalid payload' in str(response.data)
+            assert 'No response to accept' in str(response.data)
 
     def test_retrieve_does_migrate_data(self):
         """
@@ -733,7 +733,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                 self.supplement_details_url, data=payload, format='json'
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert 'Invalid payload' in str(response.data)
+            assert 'No response to accept' in str(response.data)
 
     def test_cannot_request_translation_without_transcription(self):
         # Set up the asset to allow automatic google actions
@@ -771,7 +771,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                 self.supplement_details_url, data=payload, format='json'
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert 'Cannot translate without transcription' in str(response.data)
+            assert 'No transcription found' in str(response.data)
 
     def test_cannot_delete_non_existent_transcription(self):
         """
@@ -938,7 +938,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Cannot translate without transcription' in str(response.data)
+        assert 'No transcription found' in str(response.data)
 
     def test_cannot_translate_deleted_automatic_transcription(self):
         """
@@ -1007,7 +1007,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Cannot translate without transcription' in str(response.data)
+        assert 'No transcription found' in str(response.data)
 
     def test_translation_does_not_falls_back_to_automatic_when_manual_deleted(self):
         """
@@ -1097,7 +1097,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Cannot translate without transcription' in str(response.data)
+        assert 'No transcription found' in str(response.data)
 
     def test_translation_works_when_transcript_is_replaced_by_different_action(self):
         """
@@ -1139,7 +1139,9 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     '_versions': [
                         {
                             '_data': {
-                                'language': 'en', 'value': None, 'status': 'deleted'
+                                'language': 'en',
+                                'value': None,
+                                'status': 'deleted',
                             },
                             '_dateCreated': '2025-01-01T12:00:00Z',
                             '_uuid': 'deleted-auto-uuid',
@@ -1148,12 +1150,12 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             '_data': {
                                 'language': 'en',
                                 'value': 'Old Auto',
-                                'status': 'complete'
+                                'status': 'complete',
                             },
                             '_dateCreated': '2025-01-01T10:00:00Z',
                             '_dateAccepted': '2025-01-01T10:05:00Z',
                             '_uuid': auto_uuid,
-                        }
+                        },
                     ],
                 },
                 'manual_transcription': {
@@ -1165,19 +1167,19 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             '_uuid': manual_uuid,
                         }
                     ],
-                }
+                },
             },
             '_version': '20250820',
         }
         SubmissionSupplement.objects.update_or_create(
             asset=self.asset,
             submission_uuid=self.submission_uuid,
-            defaults={'content': supplement_content}
+            defaults={'content': supplement_content},
         )
 
         payload = {
             '_version': '20250820',
-            'q1': {'manual_translation': {'language': 'es', 'value': 'Spanish'}}
+            'q1': {'manual_translation': {'language': 'es', 'value': 'Spanish'}},
         }
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'

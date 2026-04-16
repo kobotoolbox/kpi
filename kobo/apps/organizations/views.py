@@ -166,11 +166,11 @@ class OrganizationAssetViewSet(AssetViewSet):
         ),
         parameters=[
             OpenApiParameter(
-                name='offset',
+                name='start',
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Paginate results with offset parameter',
+                description='Paginate results with start parameter',
             ),
             OpenApiParameter(
                 name='limit',

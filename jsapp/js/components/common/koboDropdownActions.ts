@@ -4,6 +4,9 @@
 
 import Reflux from 'reflux'
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const koboDropdownActions = Reflux.createActions({
   hideAnyDropdown: { children: ['requested'] },
   menuVisibilityChange: { children: ['done'] },

@@ -27,6 +27,10 @@ class DataSupplementPayloadField(serializers.JSONField):
     pass
 
 
+class DataSupplementalDetailsField(serializers.JSONField):
+    pass
+
+
 class DataValidationPayloadField(serializers.JSONField):
     pass
 

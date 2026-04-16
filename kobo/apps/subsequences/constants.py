@@ -24,6 +24,20 @@ SCHEMA_VERSIONS = [
     None,
 ]
 
+QUESTION_TYPE_NOTE = 'qualNote'
+QUESTION_TYPE_TEXT = 'qualText'
+QUESTION_TYPE_TAGS = 'qualTags'
+QUESTION_TYPE_SELECT_ONE = 'qualSelectOne'
+QUESTION_TYPE_SELECT_MULTIPLE = 'qualSelectMultiple'
+QUESTION_TYPE_INTEGER = 'qualInteger'
+QUESTION_TYPE_VERIFICATION = 'qualVerification'
+QUESTION_TYPE_SOURCE = 'qualSource'
+
+SOURCE_TYPE_MANUAL = 'manual'
+SOURCE_TYPE_AUTOMATIC = 'generated with AI'
+
+SELECT_QUESTIONS = [QUESTION_TYPE_SELECT_MULTIPLE, QUESTION_TYPE_SELECT_ONE]
+
 
 class Action(models.TextChoices):
     MANUAL_TRANSCRIPTION = 'manual_transcription'

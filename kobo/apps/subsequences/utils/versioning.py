@@ -6,16 +6,25 @@ from django.db import transaction
 from django.utils import timezone
 
 from kobo.apps.subsequences.actions import ManualQualAction
-from kobo.apps.subsequences.constants import SCHEMA_VERSIONS, Action
+from kobo.apps.subsequences.constants import (
+    QUESTION_TYPE_INTEGER,
+    QUESTION_TYPE_NOTE,
+    QUESTION_TYPE_SELECT_MULTIPLE,
+    QUESTION_TYPE_SELECT_ONE,
+    QUESTION_TYPE_TAGS,
+    QUESTION_TYPE_TEXT,
+    SCHEMA_VERSIONS,
+    Action,
+)
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 
 OLD_QUESTION_TYPE_TO_NEW = {
-    'qual_note': 'qualNote',
-    'qual_tags': 'qualTags',
-    'qual_select_multiple': 'qualSelectMultiple',
-    'qual_select_one': 'qualSelectOne',
-    'qual_text': 'qualText',
-    'qual_integer': 'qualInteger',
+    'qual_note': QUESTION_TYPE_NOTE,
+    'qual_tags': QUESTION_TYPE_TAGS,
+    'qual_select_multiple': QUESTION_TYPE_SELECT_MULTIPLE,
+    'qual_select_one': QUESTION_TYPE_SELECT_ONE,
+    'qual_text': QUESTION_TYPE_TEXT,
+    'qual_integer': QUESTION_TYPE_INTEGER,
 }
 
 

@@ -1,3 +1,11 @@
+class AnalysisQuestionNotFound(Exception):
+    """
+    Raised when the uuid for automatic qual analysis is not found in the manual params
+    """
+
+    pass
+
+
 class AudioTooLongError(Exception):
     """
     Audio file is too long for the specified speech service
@@ -47,7 +55,19 @@ class InvalidXPath(Exception):
     pass
 
 
+class ManualQualNotFound(DependencyNotFound):
+    pass
+
+
+class SubsequenceAcceptanceError(Exception):
+    pass
+
+
 class SubsequenceTimeoutError(Exception):
+    pass
+
+
+class SubsequenceVerificationError(Exception):
     pass
 
 
@@ -57,9 +77,6 @@ class SupplementMigrationInProgress(Exception):
     current schema version. The long-running migration is responsible for
     the migration. Retry the operation once the migration has completed.
     """
-
-    pass
-
 
 class TranscriptionNotFound(DependencyNotFound):
     pass

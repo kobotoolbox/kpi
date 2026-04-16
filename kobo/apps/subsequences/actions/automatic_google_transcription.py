@@ -1,7 +1,7 @@
 from kobo.apps.organizations.constants import UsageType
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
 from ..type_aliases import NLPExternalServiceClass
-from .base import ActionClassConfig, BaseAutomaticNLPAction
+from .base import ActionClassConfig, BaseAutomaticNLPAction, ReviewType
 from .mixins import TranscriptionActionMixin
 
 
@@ -11,7 +11,10 @@ class AutomaticGoogleTranscriptionAction(
 
     ID = 'automatic_google_transcription'
     action_class_config = ActionClassConfig(
-        allow_multiple=False, automatic=True, allow_async=True
+        allow_multiple=False,
+        automatic=True,
+        review_type=ReviewType.ACCEPTANCE,
+        allow_async=True
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:

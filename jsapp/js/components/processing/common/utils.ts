@@ -1,15 +1,17 @@
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { DataSupplementResponseOneOfManualTranslation } from '#/api/models/dataSupplementResponseOneOfManualTranslation'
+import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
+import type { SupplementalDataAutomaticTranslation } from '#/api/models/supplementalDataAutomaticTranslation'
+import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
+import type { SupplementalDataManualTranslation } from '#/api/models/supplementalDataManualTranslation'
+import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
+import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
+
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import type {
   DisplaysList,
-  OneOfTransx,
+  QualVersionItem,
   TranscriptVersionItem,
   TranslationVersionItem,
   TransxVersionItem,
@@ -22,11 +24,9 @@ import type {
  * @returns True if the supplement data has a value property
  */
 export function isSupplementVersionWithValue<
-  T extends
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem =
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem,
+  T extends SupplementalDataVersionItemAutomatic | SupplementalDataVersionItemManual =
+    | SupplementalDataVersionItemAutomatic
+    | SupplementalDataVersionItemManual,
 >(supplementData: T): supplementData is T & { _data: { value: string } } {
   return supplementData._data && 'value' in supplementData._data && typeof supplementData._data.value === 'string'
 }
@@ -38,12 +38,8 @@ export function isSupplementVersionWithValue<
  * @returns True if the supplement version is automatic
  */
 export const isSupplementVersionAutomatic = (
-  SupplementVersion:
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem,
-): SupplementVersion is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem => {
+  SupplementVersion: SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic,
+): SupplementVersion is SupplementalDataVersionItemAutomatic => {
   return 'status' in SupplementVersion._data
 }
 
@@ -138,7 +134,7 @@ export const isVersionItemTranslation = (
 export const getManualTranscriptsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
-): OneOfTransx | undefined => {
+): SupplementalDataManualTranscription | undefined => {
   return supplementData[xpath]?.[ActionEnum.manual_transcription]
 }
 
@@ -152,10 +148,10 @@ export const getManualTranscriptsFromSupplementData = (
 export const getAutomaticTranscriptsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
-): Array<[string, OneOfTransx]> => {
+): Array<[string, SupplementalDataAutomaticTranscription]> => {
   return Object.entries(supplementData[xpath] || {}).filter(([key, _value]) =>
     key.match(/^automatic_.+_transcription$/),
-  ) as Array<[string, OneOfTransx]>
+  ) as Array<[string, SupplementalDataAutomaticTranscription]>
 }
 
 /**
@@ -169,11 +165,11 @@ export const getAutomaticTranscriptsFromSupplementData = (
 export const getAllTranscriptsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
-): Array<OneOfTransx> => {
+): Array<SupplementalDataManualTranscription | SupplementalDataAutomaticTranscription> => {
   return [
     getManualTranscriptsFromSupplementData(supplementData, xpath),
-    ...getAutomaticTranscriptsFromSupplementData(supplementData, xpath).map(([, oneOfTransx]) => oneOfTransx),
-  ].filter((oneOfTransx): oneOfTransx is OneOfTransx => !!oneOfTransx)
+    ...getAutomaticTranscriptsFromSupplementData(supplementData, xpath).map(([, value]) => value),
+  ].filter((item): item is SupplementalDataManualTranscription | SupplementalDataAutomaticTranscription => !!item)
 }
 
 /**
@@ -188,8 +184,30 @@ export const getLatestTranscriptVersionItem = (
   xpath: string,
 ): TranscriptVersionItem | undefined => {
   return getAllTranscriptsFromSupplementData(supplementData, xpath)
-    .flatMap((transcript) => transcript._versions)
+    .flatMap<TranscriptVersionItem>((transcript) => transcript._versions)
     .sort(TransxVersionSortFunction)[0] as TranscriptVersionItem | undefined
+}
+
+// Qual
+
+/**
+ * Gets the most recent qual version item for a specific field and question UUID,
+ * combining both manual_qual and automatic_bedrock_qual versions.
+ *
+ * @param supplementData - The supplement data object
+ * @param xpath - The field xpath to retrieve qual for
+ * @param questionUuid - The UUID of the qual question
+ * @returns The most recent qual version item, or undefined if none exist
+ */
+export const getLatestQualVersionItem = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+  questionUuid: string,
+): QualVersionItem | undefined => {
+  const manualVersions = supplementData[xpath]?.[ActionEnum.manual_qual]?.[questionUuid]?._versions ?? []
+  const automaticVersions = supplementData[xpath]?.[ActionEnum.automatic_bedrock_qual]?.[questionUuid]?._versions ?? []
+  const allVersions = [...manualVersions, ...automaticVersions] as QualVersionItem[]
+  return allVersions.sort(TransxVersionSortFunction)[0]
 }
 
 // Translations
@@ -204,7 +222,7 @@ export const getLatestTranscriptVersionItem = (
 export const getManualTranslationsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
-): DataSupplementResponseOneOfManualTranslation | undefined => {
+): SupplementalDataManualTranslation | undefined => {
   return supplementData[xpath]?.[ActionEnum.manual_translation]
 }
 
@@ -218,10 +236,10 @@ export const getManualTranslationsFromSupplementData = (
 export const getAutomaticTranslationsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
-): Array<[string, OneOfTransx]> => {
+): Array<[string, SupplementalDataAutomaticTranslation]> => {
   return Object.entries(supplementData[xpath] || {}).filter(([key, _value]) =>
     key.match(/^automatic_.+_translation$/),
-  ) as Array<[string, OneOfTransx]>
+  ) as Array<[string, SupplementalDataAutomaticTranslation]>
 }
 
 /**

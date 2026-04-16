@@ -42,19 +42,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -180,19 +187,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Logging
       security:
@@ -282,13 +296,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -605,13 +626,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -741,13 +769,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -822,16 +857,18 @@ paths:
           type: boolean
         description: When `true`, only return the requesting user's own permission
           assignments. When `false` (default), return all visible assignments.
-      - in: query
-        name: limit
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-        description: Paginate results with limit parameter
-      - in: query
-        name: offset
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
         schema:
           type: integer
-        description: Paginate results with offset parameter
       - in: query
         name: ordering
         schema:
@@ -842,6 +879,13 @@ paths:
         schema:
           type: string
         description: Filter the results with search query
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Manage projects and library content
       security:
@@ -1150,7 +1194,7 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes:
+                ManualQualitativeAnalysis-SimpleTypes_:
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1160,10 +1204,15 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-                QualitativeAnalysis-SingleChoiceQuestion:
+                  summary: 'Manual Qualitative Analysis - Simple Types '
+                  description: |
+                    `<question_type>` may be any of:
+
+                    * `qualText`
+                    * `qualInteger`
+                    * `qualNote`
+                    * `qualTags`
+                ManualQualitativeAnalysis-SingleChoiceQuestion:
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1183,8 +1232,8 @@ paths:
                         labels:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
+                  summary: Manual Qualitative Analysis - Single Choice Question
+                ManualQualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1206,9 +1255,9 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
-                    choice)
-                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  summary: Manual Qualitative Analysis - Multiple Choice Question
+                    (with deleted choice)
+                ManualQualitativeAnalysis-DeletedQuestion:
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1220,9 +1269,42 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Deleted question
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Manual Qualitative Analysis - Deleted Question
+                ManualQualitativeAnalysis-QuestionWithHints:
+                  value:
+                  - action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectMultiple
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Tags
+                      hint:
+                        labels:
+                          _default: Select the most appropriate
+                      choices:
+                      - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Food
+                        hint:
+                          labels:
+                            _default: Include water
+                      - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medical
+                        hint:
+                          labels:
+                            _default: Include dental work
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Manual Qualitative Analysis - Question With Hints
+                AutomaticQualitativeAnalysis-AnyQuestion:
+                  value:
+                  - action: automatic_bedrock_qual
+                    question_xpath: q1
+                    params:
+                    - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Automatic Qualitative Analysis - Any question
           description: null
         '404':
           content:
@@ -1281,7 +1363,7 @@ paths:
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
-              QualitativeAnalysis-SimpleTypes:
+              ManualQualitativeAnalysis-SimpleTypes:
                 value:
                   action: manual_qual
                   question_xpath: q1
@@ -1290,10 +1372,15 @@ paths:
                     uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                     labels:
                       _default: Qualitative analysis result
-                summary: Qualitative Analysis - Simple Types
-                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-              QualitativeAnalysis-SingleChoiceQuestion:
+                summary: Manual Qualitative Analysis - Simple Types
+                description: |
+                  `<question_type>` may be any of:
+
+                  * `qualText`
+                  * `qualInteger`
+                  * `qualNote`
+                  * `qualTags`
+              ManualQualitativeAnalysis-SingleChoiceQuestion:
                 value:
                   action: manual_qual
                   question_xpath: q1
@@ -1312,8 +1399,8 @@ paths:
                     - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Low
-                summary: Qualitative Analysis - Single Choice Question
-              QualitativeAnalysis-MultipleChoiceQuestion:
+                summary: Manual Qualitative Analysis - Single Choice Question
+              ManualQualitativeAnalysis-MultipleChoiceQuestion:
                 value:
                   action: manual_qual
                   question_xpath: q1
@@ -1332,7 +1419,50 @@ paths:
                     - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Medical
-                summary: Qualitative Analysis - Multiple Choice Question
+                summary: Manual Qualitative Analysis - Multiple Choice Question
+              ManualQualitativeAnalysis-Hints:
+                value:
+                  action: manual_qual
+                  question_xpath: q1
+                  params:
+                  - type: qualSelectOne
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Favorite shade of blue?
+                    hint:
+                      labels:
+                        _default: Select closest shade
+                    choices:
+                    - uuid: qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Midnight
+                      hint:
+                        labels:
+                          _default: Darkest blue
+                    - uuid: hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Royal
+                      hint:
+                        labels:
+                          _default: True blue
+                    - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Cornflower
+                      hint:
+                        labels:
+                          _default: Lightest blue
+                summary: Manual Qualitative Analysis - Hints
+                description: Question hints are allowed for all types of questions.
+                  Choice hints are allowed for all questions with choices.
+              AutomaticQualitativeAnalysis-AnyQuestion:
+                value:
+                  action: automatic_bedrock_qual
+                  question_xpath: q1
+                  params:
+                  - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                summary: Automatic Qualitative Analysis - Any Question
+                description: '`uuid`s should match those present in the `manual_qual`
+                  action for the same survey question.'
         required: true
       security:
       - BasicAuth: []
@@ -1416,7 +1546,7 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes:
+                ManualQualitativeAnalysis-SimpleTypes_:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1426,10 +1556,15 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-                QualitativeAnalysis-SingleChoiceQuestion:
+                  summary: 'Manual Qualitative Analysis - Simple Types '
+                  description: |
+                    `<question_type>` may be any of:
+
+                    * `qualText`
+                    * `qualInteger`
+                    * `qualNote`
+                    * `qualTags`
+                ManualQualitativeAnalysis-SingleChoiceQuestion:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1449,8 +1584,8 @@ paths:
                         labels:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
+                  summary: Manual Qualitative Analysis - Single Choice Question
+                ManualQualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1472,9 +1607,9 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
-                    choice)
-                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  summary: Manual Qualitative Analysis - Multiple Choice Question
+                    (with deleted choice)
+                ManualQualitativeAnalysis-DeletedQuestion:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1486,9 +1621,42 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Deleted question
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Manual Qualitative Analysis - Deleted Question
+                ManualQualitativeAnalysis-QuestionWithHints:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectMultiple
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Tags
+                      hint:
+                        labels:
+                          _default: Select the most appropriate
+                      choices:
+                      - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Food
+                        hint:
+                          labels:
+                            _default: Include water
+                      - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medical
+                        hint:
+                          labels:
+                            _default: Include dental work
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Manual Qualitative Analysis - Question With Hints
+                AutomaticQualitativeAnalysis-AnyQuestion:
+                  value:
+                    action: automatic_bedrock_qual
+                    question_xpath: q1
+                    params:
+                    - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Automatic Qualitative Analysis - Any question
           description: null
         '404':
           content:
@@ -1547,23 +1715,28 @@ paths:
                   - language: fr
                 summary: NLP Advanced Features
                 description: |
-                  `<action_id>` can be any of:
+                  This may be used to update any of the NLP actions:
 
                   * `manual_transcription`
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
-              QualitativeAnalysis-SimpleTypes:
+              ManualQualitativeAnalysis-SimpleTypes:
                 value:
                   params:
                   - type: <question_type>
                     uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                     labels:
                       _default: Qualitative analysis result
-                summary: Qualitative Analysis - Simple Types
-                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-              QualitativeAnalysis-SingleChoiceQuestion:
+                summary: Manual Qualitative Analysis - Simple Types
+                description: |
+                  `<question_type>` may be any of:
+
+                  * `qualText`
+                  * `qualInteger`
+                  * `qualNote`
+                  * `qualTags`
+              ManualQualitativeAnalysis-SingleChoiceQuestion:
                 value:
                   params:
                   - type: qualSelectOne
@@ -1580,8 +1753,8 @@ paths:
                     - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Low
-                summary: Qualitative Analysis - Single Choice Question
-              QualitativeAnalysis-MultipleChoiceQuestion:
+                summary: Manual Qualitative Analysis - Single Choice Question
+              ManualQualitativeAnalysis-MultipleChoiceQuestion:
                 value:
                   params:
                   - type: qualSelectMultiple
@@ -1598,7 +1771,15 @@ paths:
                     - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Medical
-                summary: Qualitative Analysis - Multiple Choice Question
+                summary: Manual Qualitative Analysis - Multiple Choice Question
+              AutomaticQualitativeAnalysis-AllTypes:
+                value:
+                  params:
+                  - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                  - uuid: dddddddd-eeee-ffff-gggg-hhhhhhhhhhhhh
+                summary: Automatic Qualitative Analysis - All Types
+                description: '`uuid`s should match those present in the `manual_qual`
+                  action for the same survey question.'
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1625,7 +1806,7 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes:
+                ManualQualitativeAnalysis-SimpleTypes_:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1635,10 +1816,15 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-                QualitativeAnalysis-SingleChoiceQuestion:
+                  summary: 'Manual Qualitative Analysis - Simple Types '
+                  description: |
+                    `<question_type>` may be any of:
+
+                    * `qualText`
+                    * `qualInteger`
+                    * `qualNote`
+                    * `qualTags`
+                ManualQualitativeAnalysis-SingleChoiceQuestion:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1658,8 +1844,8 @@ paths:
                         labels:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
+                  summary: Manual Qualitative Analysis - Single Choice Question
+                ManualQualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1681,9 +1867,9 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
-                    choice)
-                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  summary: Manual Qualitative Analysis - Multiple Choice Question
+                    (with deleted choice)
+                ManualQualitativeAnalysis-DeletedQuestion:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1695,9 +1881,42 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Deleted question
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Manual Qualitative Analysis - Deleted Question
+                ManualQualitativeAnalysis-QuestionWithHints:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectMultiple
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Tags
+                      hint:
+                        labels:
+                          _default: Select the most appropriate
+                      choices:
+                      - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Food
+                        hint:
+                          labels:
+                            _default: Include water
+                      - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medical
+                        hint:
+                          labels:
+                            _default: Include dental work
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Manual Qualitative Analysis - Question With Hints
+                AutomaticQualitativeAnalysis-AnyQuestion:
+                  value:
+                    action: automatic_bedrock_qual
+                    question_xpath: q1
+                    params:
+                    - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Automatic Qualitative Analysis - Any question
           description: null
         '404':
           content:
@@ -1901,13 +2120,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -2027,7 +2253,13 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -2038,7 +2270,8 @@ paths:
       - name: start
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -2737,11 +2970,12 @@ paths:
           * Manual translation
           * Automatic Google transcription
           * Automatic Google translation
-        * Qualitative analysis
+        * Qualitative analysis - manual or automatic with Bedrock
           * Text
           * Number
           * Single Choice
           * Multiple Choice
+        * Qualitative analysis (manual only)
           * Tags
 
         ⚠️ The response examples in this documentation show each action in isolation for
@@ -2904,72 +3138,84 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                ManualQualitativeAnalysis–IntegerQuestion:
+                QualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
+                              status: complete
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Manual Qualitative Analysis – Integer Question
-                ManualQualitativeAnalysis–TextQuestion:
+                            verified: false
+                  summary: Qualitative Analysis – Integer Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
+                              status: complete
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Manual Qualitative Analysis – Text Question
-                ManualQualitativeAnalysis–SingleChoiceQuestion:
+                            verified: false
+                  summary: Qualitative Analysis – Text Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         77777777-7777-7777-7777-777777777777:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                              status: complete
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Manual Qualitative Analysis – Single Choice Question
-                ManualQualitativeAnalysis–MultipleChoiceQuestion:
+                            verified: false
+                  summary: Qualitative Analysis – Single Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         88888888-8888-8888-8888-888888888888:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 88888888-8888-8888-8888-888888888888
                               value:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                              status: complete
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                            verified: false
+                  summary: Qualitative Analysis – Multiple Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -2980,7 +3226,6 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
                               value:
@@ -2988,7 +3233,44 @@ paths:
                               - review
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
                   summary: Manual Qualitative Analysis – Tags Question
+                QualitativeAnalysis–VerifiedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      <action_id>:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateVerified: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: complete
+                              value: 5
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: true
+                  summary: Qualitative Analysis – Verified Response
+                  description: '`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. '
+                AutomaticQualitativeAnalysis–FailedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automatic_bedrock_qual:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: failed
+                              error: Cannot parse response from LLM
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
+                  summary: Automatic Qualitative Analysis – Failed response
           description: null
         '401':
           content:
@@ -3046,7 +3328,7 @@ paths:
         It supports the same action types as the GET endpoint:
 
         * NLP actions (manual and automatic transcription / translation)
-        * Qualitative analysis
+        * Qualitative analysis (manual and automatic)
 
         The PATCH payload follows the same per-question structure as the GET response.
 
@@ -3189,6 +3471,25 @@ paths:
                       - tag2
                 summary: Manual Qualitative Analysis – Tags Question
                 description: Set `value` an empty array `[]` to delete.
+              AutomaticBedrockQualitativeAnalysis–AnyQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    automatic_bedrock_qual:
+                      uuid: 44444444-4444-4444-4444-444444444444
+                summary: Automatic Bedrock Qualitative Analysis – Any Question
+              VerifyQualitativeAnalysisResponse–AnyQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    <action_id>:
+                      uuid: 44444444-4444-4444-4444-4444444444444
+                      verified: true
+                summary: Verify Qualitative Analysis Response – Any Question
+                description: |-
+                  `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
+
+                  Set `verified` to `False` to un-verify
         required: true
       security:
       - BasicAuth: []
@@ -3330,72 +3631,84 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                ManualQualitativeAnalysis–IntegerQuestion:
+                QualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
+                              status: complete
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Manual Qualitative Analysis – Integer Question
-                ManualQualitativeAnalysis–TextQuestion:
+                            verified: false
+                  summary: Qualitative Analysis – Integer Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
+                              status: complete
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Manual Qualitative Analysis – Text Question
-                ManualQualitativeAnalysis–SingleChoiceQuestion:
+                            verified: false
+                  summary: Qualitative Analysis – Text Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         77777777-7777-7777-7777-777777777777:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                              status: complete
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Manual Qualitative Analysis – Single Choice Question
-                ManualQualitativeAnalysis–MultipleChoiceQuestion:
+                            verified: false
+                  summary: Qualitative Analysis – Single Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         88888888-8888-8888-8888-888888888888:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 88888888-8888-8888-8888-888888888888
                               value:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                              status: complete
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                            verified: false
+                  summary: Qualitative Analysis – Multiple Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -3406,7 +3719,6 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
                               value:
@@ -3414,7 +3726,44 @@ paths:
                               - review
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
                   summary: Manual Qualitative Analysis – Tags Question
+                QualitativeAnalysis–VerifiedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      <action_id>:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateVerified: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: complete
+                              value: 5
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: true
+                  summary: Qualitative Analysis – Verified Response
+                  description: '`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. '
+                AutomaticQualitativeAnalysis–FailedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automatic_bedrock_qual:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: failed
+                              error: Cannot parse response from LLM
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
+                  summary: Automatic Qualitative Analysis – Failed response
           description: null
         '401':
           content:
@@ -4121,13 +4470,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -4479,13 +4835,13 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: ordering
@@ -4494,6 +4850,13 @@ paths:
         description: Which field to use when ordering the results.
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       - in: path
         name: uid_asset
         schema:
@@ -4742,13 +5105,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -5143,24 +5513,31 @@ paths:
           - metadata__settings__description__old
           - metadata__settings__description__new
 
-        This endpoint can be paginated with 'offset' and 'limit' parameters.
+        This endpoint can be paginated with 'start' and 'limit' parameters.
       parameters:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       - in: path
         name: uid_asset
         schema:
@@ -5306,13 +5683,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -5580,6 +5964,8 @@ paths:
       description: |
         ## List logs of an external services endpoints accessible to requesting user
 
+        ⚠️ The `page` query parameter is deprecated, use `start` and `limit` instead.
+
         Where:
         * `asset_uid` - is the unique identifier of a specific asset
         * `hook_uid` - is the unique identifier of a specific external service
@@ -5590,23 +5976,40 @@ paths:
         * `status=1`: hook is still pending
         * `status=2`: hook has succeeded
 
-        Use the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').
-        Note that `start` is inclusive, while `end` is exclusive.
-        Time zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).
+        Use the `start_date` and `end_date` query parameters to filter logs by date range,
+        providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04',
+        '2022-01-21T06:51:08.144004+02:00'). Time zone is assumed to be UTC. If provided, it
+        needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for
+        the '+' character (%2B).
+
+        Note that `start_date` is inclusive, while `end_date` is exclusive.
       parameters:
       - in: query
-        name: end
+        name: end_date
         schema:
           type: string
           format: date-time
-      - name: page
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: query
-        name: start
+        name: start_date
         schema:
           type: string
           format: date-time
@@ -5853,13 +6256,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -6696,13 +7106,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -7049,19 +7466,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -7105,13 +7529,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -7269,13 +7700,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -7357,13 +7795,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -7490,15 +7935,15 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
-        schema:
-          type: integer
-        description: Paginate results with offset parameter
-      - in: query
         name: ordering
         schema:
           type: string
         description: Which field to use when ordering the results.
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: Paginate results with start parameter
       - in: path
         name: uid_organization
         schema:
@@ -7581,13 +8026,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -7859,13 +8311,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -8123,13 +8582,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -8357,24 +8823,31 @@ paths:
 
             b. metadata__settings__description__new
 
-        This endpoint can be paginated with 'offset' and 'limit' parameters
+        This endpoint can be paginated with 'start' and 'limit' parameters
       parameters:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -8510,7 +8983,7 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - in: query
@@ -8520,7 +8993,14 @@ paths:
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -8828,13 +9308,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9071,10 +9558,10 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
+        name: start
         schema:
           type: integer
-        description: Paginate results with offset parameter
+        description: Paginate results with start parameter
       - in: path
         name: uid_project_view
         schema:
@@ -9139,10 +9626,10 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
+        name: start
         schema:
           type: integer
-        description: Paginate results with offset parameter
+        description: Paginate results with start parameter
       - in: path
         name: uid_project_view
         schema:
@@ -9182,6 +9669,704 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/scim/v2/{idp_slug}/Groups:
+    get:
+      operationId: api_v2_scim_v2_Groups_list
+      description: Returns a list of SCIM groups.
+      parameters:
+      - name: count
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: startIndex
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScimGroupList'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScimGroupList'
+          description: ''
+    post:
+      operationId: api_v2_scim_v2_Groups_create
+      description: Creates a new SCIM group.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+        required: true
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '201':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Groups/{id}:
+    get:
+      operationId: api_v2_scim_v2_Groups_retrieve
+      description: Returns a specific SCIM group.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+    put:
+      operationId: api_v2_scim_v2_Groups_update
+      description: Replaces a SCIM group entirely.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+        required: true
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+    patch:
+      operationId: api_v2_scim_v2_Groups_partial_update
+      description: Updates a SCIM group. Supports adding/removing members via patch
+        operations.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimGroup'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimGroup'
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+    delete:
+      operationId: api_v2_scim_v2_Groups_destroy
+      description: Deletes a SCIM group.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '204':
+          description: No response body
+  /api/v2/scim/v2/{idp_slug}/ResourceTypes:
+    get:
+      operationId: api_v2_scim_v2_ResourceTypes_retrieve
+      description: Returns the SCIM supported ResourceTypes.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Schemas:
+    get:
+      operationId: api_v2_scim_v2_Schemas_retrieve
+      description: Returns the SCIM supported Schemas.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/ServiceProviderConfig:
+    get:
+      operationId: api_v2_scim_v2_ServiceProviderConfig_retrieve
+      description: Returns the SCIM Service Provider Configuration.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Users:
+    get:
+      operationId: api_v2_scim_v2_Users_list
+      description: Returns a list of SCIM users matching the optional query
+      parameters:
+      - name: count
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: startIndex
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScimUserList'
+          description: ''
+    post:
+      operationId: api_v2_scim_v2_Users_create
+      description: Handle POST requests (user provisioning from IdP).
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+        required: true
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '201':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+        '409':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Users/{id}:
+    get:
+      operationId: api_v2_scim_v2_Users_retrieve
+      description: Returns a specific SCIM user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+    put:
+      operationId: api_v2_scim_v2_Users_update
+      description: |-
+        Handle PUT requests (user update from IdP).
+        Authentik can send a PUT request to update a user's details. If it tries to
+        update a user to have a username or email that already exists on another
+        account, we intercept the IntegrityError and return a SCIM 409 Conflict.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+        required: true
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+        '409':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    patch:
+      operationId: api_v2_scim_v2_Users_partial_update
+      description: Updates a SCIM user. Currently only supports deactivation via the
+        `active` attribute.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimUser'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimUser'
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+    delete:
+      operationId: api_v2_scim_v2_Users_destroy
+      description: Deactivates all Kobo accounts linked to the user's email address.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      security:
+      - ScimAuth: []
+      responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '204':
+          description: No response body
   /api/v2/service_usage/:
     get:
       operationId: api_v2_service_usage_list
@@ -9227,13 +10412,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9447,13 +10639,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9476,13 +10675,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9538,13 +10744,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9705,19 +10918,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Other
       security:
@@ -9802,19 +11022,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Other
       security:
@@ -10003,13 +11230,13 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: ordering
@@ -10018,6 +11245,13 @@ paths:
         description: Which field to use when ordering the results.
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -10076,13 +11310,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -10290,13 +11531,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -10380,13 +11628,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -10577,7 +11832,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/CreateResponseNLPActionParams'
-            - $ref: '#/components/schemas/CreateResponseQualActionParams'
+            - $ref: '#/components/schemas/CreateResponseManualQualActionParams'
+            - $ref: '#/components/schemas/CreateResponseAutomaticQualActionParams'
         uid:
           type: string
       required:
@@ -10597,7 +11853,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/RequestNLPActionParams'
-            - $ref: '#/components/schemas/RequestQualActionParams'
+            - $ref: '#/components/schemas/RequestManualQualActionParams'
+            - $ref: '#/components/schemas/RequestAutomaticQualActionParams'
       required:
       - action
       - params
@@ -10614,7 +11871,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/ResponseNLPActionParams'
-            - $ref: '#/components/schemas/ResponseQualActionParams'
+            - $ref: '#/components/schemas/ResponseManualQualActionParams'
+            - $ref: '#/components/schemas/ResponseAutomaticQualActionParams'
         uid:
           type: string
       required:
@@ -11771,6 +13029,19 @@ components:
         - file_type
         - metadata
         - user
+    CreateResponseAutomaticQualActionParams:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - uuid
+    CreateResponseManualQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/CreateResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/CreateResponseQualSelectQuestionParams'
     CreateResponseNLPActionParams:
       type: object
       additionalProperties: false
@@ -11779,10 +13050,6 @@ components:
           type: string
       required:
       - language
-    CreateResponseQualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/CreateResponseQualSimpleQuestionParams'
-      - $ref: '#/components/schemas/CreateResponseQualSelectQuestionParams'
     CreateResponseQualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -11819,9 +13086,35 @@ components:
               uuid:
                 type: string
                 format: uuid
+              hint:
+                type: object
+                additionalProperties: false
+                labels:
+                  type: object
+                  properties:
+                    _default:
+                      type: string
+                  additionalProperties:
+                    type: string
+                  required:
+                  - _default
+                required: labels
             required:
             - labels
             - uuid
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -11845,6 +13138,19 @@ components:
             type: string
           required:
           - _default
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -12046,8 +13352,17 @@ components:
           type: string
           title: ' submitted by'
         _supplementalDetails:
-          type: object
-          additionalProperties: {}
+          oneOf:
+          - $ref: '#/components/schemas/SupplementalDetailsManualTranscription'
+          - $ref: '#/components/schemas/SupplementalDetailsManualTranslation'
+          - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranscription'
+          - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranslation'
+          - $ref: '#/components/schemas/SupplementalDetailsManualQual'
+          - $ref: '#/components/schemas/SupplementalDetailsAutomaticQual'
+          nullable: true
+          description: Action-specific supplemental data attached to this submission.
+            Structure varies by action type (transcription, translation, qual). Top-level
+            keys are question XPaths, values are action objects.
           title: ' supplementaldetails'
       required:
       - __version__
@@ -12117,8 +13432,150 @@ components:
           type: string
       required:
       - detail
+    DataSupplementAutomaticQualDataIntegerResponse:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          value:
+            type: integer
+            nullable: true
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
+    DataSupplementAutomaticQualDataSelectMultipleResponse:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          value:
+            type: array
+            items:
+              type: string
+              format: uuid
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
+    DataSupplementAutomaticQualDataSelectOneResponse:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          value:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
+    DataSupplementAutomaticQualDataTextResponse:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          value:
+            type: string
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
     DataSupplementManualQualDataInteger:
       type: object
+      additionalProperties: false
       properties:
         value:
           type: integer
@@ -12129,9 +13586,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
     DataSupplementManualQualDataSelectMultiple:
       type: object
+      additionalProperties: false
       properties:
         value:
           type: array
@@ -12144,9 +13601,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
     DataSupplementManualQualDataSelectOne:
       type: object
+      additionalProperties: false
       properties:
         value:
           type: string
@@ -12157,9 +13614,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
     DataSupplementManualQualDataTags:
       type: object
+      additionalProperties: false
       properties:
         value:
           type: array
@@ -12171,9 +13628,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
     DataSupplementManualQualDataText:
       type: object
+      additionalProperties: false
       properties:
         value:
           type: string
@@ -12183,7 +13640,6 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
     DataSupplementResponse:
       type: object
       properties:
@@ -12191,434 +13647,12 @@ components:
           type: string
           example: '20250820'
       additionalProperties:
-        $ref: '#/components/schemas/DataSupplementResponseOneOf'
+        $ref: '#/components/schemas/SupplementalDataResponseAction'
       required:
       - _version
       patternProperties:
         ^(?!_version$).*:
-          $ref: '#/components/schemas/DataSupplementResponseOneOf'
-    DataSupplementResponseOneOf:
-      type: object
-      properties:
-        manual_transcription:
-          type: object
-          properties:
-            _dateCreated:
-              type: string
-              format: date-time
-            _dateModified:
-              type: string
-              format: date-time
-            _versions:
-              type: array
-              items:
-                type: object
-                properties:
-                  _dateCreated:
-                    type: string
-                    format: date-time
-                  _uuid:
-                    type: string
-                    format: uuid
-                  _dateAccepted:
-                    type: string
-                    format: date-time
-                  _data:
-                    type: object
-                    properties:
-                      language:
-                        type: string
-                      locale:
-                        type: string
-                      value:
-                        type: string
-                        nullable: true
-                    additionalProperties: false
-                    required:
-                    - language
-                    - value
-                additionalProperties: false
-                required:
-                - _data
-                - _dateAccepted
-                - _dateCreated
-                - _uuid
-              minLength: 1
-          additionalProperties: false
-          required:
-          - _dateCreated
-          - _dateModified
-          - _versions
-        manual_translation:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              _dateCreated:
-                type: string
-                format: date-time
-              _dateModified:
-                type: string
-                format: date-time
-              _versions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _dateCreated:
-                      type: string
-                      format: date-time
-                    _uuid:
-                      type: string
-                      format: uuid
-                    _dependency:
-                      type: object
-                      properties:
-                        _actionId:
-                          type: string
-                        _uuid:
-                          type: string
-                          format: uuid
-                      additionalProperties: false
-                      required:
-                      - _actionId
-                      - _uuid
-                    _dateAccepted:
-                      type: string
-                      format: date-time
-                    _data:
-                      type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        value:
-                          type: string
-                          nullable: true
-                      additionalProperties: false
-                      required:
-                      - language
-                      - value
-                  additionalProperties: false
-                  required:
-                  - _data
-                  - _dateAccepted
-                  - _dateCreated
-                  - _dependency
-                  - _uuid
-                minLength: 1
-            additionalProperties: false
-            required:
-            - _dateCreated
-            - _dateModified
-            - _versions
-        automatic_google_transcription:
-          type: object
-          properties:
-            _dateCreated:
-              type: string
-              format: date-time
-            _dateModified:
-              type: string
-              format: date-time
-            _versions:
-              type: array
-              items:
-                type: object
-                properties:
-                  _dateCreated:
-                    type: string
-                    format: date-time
-                  _uuid:
-                    type: string
-                    format: uuid
-                  _dateAccepted:
-                    type: string
-                    format: date-time
-                  _data:
-                    oneOf:
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: in_progress
-                      additionalProperties: false
-                      required:
-                      - language
-                      - status
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: failed
-                        error:
-                          type: string
-                      additionalProperties: false
-                      required:
-                      - error
-                      - language
-                      - status
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: complete
-                        value:
-                          type: string
-                      additionalProperties: false
-                      required:
-                      - language
-                      - status
-                      - value
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: deleted
-                        value:
-                          type: 'null'
-                      additionalProperties: false
-                      required:
-                      - language
-                      - status
-                      - value
-                additionalProperties: false
-                required:
-                - _data
-                - _dateCreated
-                - _uuid
-              minLength: 1
-          additionalProperties: false
-          required:
-          - _dateCreated
-          - _dateModified
-          - _versions
-        automatic_google_translation:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              _dateCreated:
-                type: string
-                format: date-time
-              _dateModified:
-                type: string
-                format: date-time
-              _versions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _dateCreated:
-                      type: string
-                      format: date-time
-                    _uuid:
-                      type: string
-                      format: uuid
-                    _dependency:
-                      type: object
-                      properties:
-                        _actionId:
-                          type: string
-                        _uuid:
-                          type: string
-                          format: uuid
-                      additionalProperties: false
-                      required:
-                      - _actionId
-                      - _uuid
-                    _dateAccepted:
-                      type: string
-                      format: date-time
-                    _data:
-                      oneOf:
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: in_progress
-                        additionalProperties: false
-                        required:
-                        - language
-                        - status
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: failed
-                          error:
-                            type: string
-                        additionalProperties: false
-                        required:
-                        - error
-                        - language
-                        - status
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: complete
-                          value:
-                            type: string
-                        additionalProperties: false
-                        required:
-                        - language
-                        - status
-                        - value
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: deleted
-                          value:
-                            type: 'null'
-                        additionalProperties: false
-                        required:
-                        - language
-                        - status
-                        - value
-                  additionalProperties: false
-                  required:
-                  - _data
-                  - _dateCreated
-                  - _dependency
-                  - _uuid
-                minLength: 1
-            additionalProperties: false
-            required:
-            - _dateCreated
-            - _dateModified
-            - _versions
-        manual_qual:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              _dateCreated:
-                type: string
-                format: date-time
-              _dateModified:
-                type: string
-                format: date-time
-              _versions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _data:
-                      oneOf:
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataText'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
-                    _dateAccepted:
-                      type: string
-                      format: date-time
-                    _dateCreated:
-                      type: string
-                      format: date-time
-                    _uuid:
-                      type: string
-                      format: uuid
-                  additionalProperties: false
-                  required:
-                  - _data
-                  - _dateCreated
-                  - _uuid
-                minLength: 1
-            additionalProperties: false
-            required:
-            - _dateCreated
-            - _dateModified
-            - _versions
-          patternProperties:
-            ^[0-9a-fA-F-]{36}$:
-              type: object
-              properties:
-                _dateCreated:
-                  type: string
-                  format: date-time
-                _dateModified:
-                  type: string
-                  format: date-time
-                _versions:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      _data:
-                        oneOf:
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataText'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
-                      _dateAccepted:
-                        type: string
-                        format: date-time
-                      _dateCreated:
-                        type: string
-                        format: date-time
-                      _uuid:
-                        type: string
-                        format: uuid
-                    additionalProperties: false
-                    required:
-                    - _data
-                    - _dateCreated
-                    - _uuid
-                  minLength: 1
-              additionalProperties: false
-              required:
-              - _dateCreated
-              - _dateModified
-              - _versions
-      additionalProperties: false
-      anyOf:
-      - required:
-        - manual_transcription
-      - required:
-        - manual_translation
-      - required:
-        - automatic_google_transcription
-      - required:
-        - automatic_google_translation
-      - required:
-        - manual_qual
+          $ref: '#/components/schemas/SupplementalDataResponseAction'
     DataValidationStatus:
       type: object
       properties:
@@ -14188,15 +15222,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14211,68 +15249,83 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/AssetCountResponse'
     PaginatedAssetList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
-        metadata:
-          type: object
-          properties:
-            languages:
-              type: array
-              items:
-                type: string
-              example:
-              - English (en)
-            countries:
-              type: array
-              items:
-                type: array
-                items:
-                  type: string
-              example:
-              - - FRA
-                - France
-            sectors:
-              type: array
-              items:
-                type: array
-                items:
-                  type: string
-              example:
-              - - Public Administration
-                - Public Administration
-            organizations:
-              type: array
-              items:
-                type: string
-              example:
-              - Kobotoolbox
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/Asset'
+      metadata:
+        type: object
+        properties:
+          languages:
+            type: array
+            items:
+              type: string
+            example:
+            - English (en)
+          countries:
+            type: array
+            items:
+              type: array
+              items:
+                type: string
+            example:
+            - - FRA
+              - France
+          sectors:
+            type: array
+            items:
+              type: array
+              items:
+                type: string
+            example:
+            - - Public Administration
+              - Public Administration
+          organizations:
+            type: array
+            items:
+              type: string
+            example:
+            - Kobotoolbox
     PaginatedAssetSnapshotResponseList:
       type: object
       required:
@@ -14283,15 +15336,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14306,15 +15363,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14329,15 +15390,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14348,15 +15413,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14371,15 +15440,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14394,15 +15467,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14417,15 +15494,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14440,15 +15521,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14463,15 +15548,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14486,15 +15575,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14509,15 +15602,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14532,15 +15629,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14555,15 +15656,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14578,15 +15683,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14601,15 +15710,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14624,15 +15737,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14647,15 +15764,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14670,15 +15791,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14693,15 +15818,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14716,15 +15845,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14739,15 +15872,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14762,15 +15899,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14785,15 +15926,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14804,15 +15949,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14827,15 +15976,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14850,15 +16003,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14873,15 +16030,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14896,19 +16057,79 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/ProjectViewUserResponse'
+    PaginatedScimGroupList:
+      type: object
+      required:
+      - schemas
+      - totalResults
+      - itemsPerPage
+      - startIndex
+      - Resources
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 100
+        itemsPerPage:
+          type: integer
+          example: 10
+        startIndex:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroup'
+    PaginatedScimUserList:
+      type: object
+      required:
+      - schemas
+      - totalResults
+      - itemsPerPage
+      - startIndex
+      - Resources
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 100
+        itemsPerPage:
+          type: integer
+          example: 10
+        startIndex:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimUser'
     PaginatedSocialAccountList:
       type: object
       required:
@@ -14919,15 +16140,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14942,15 +16167,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14961,15 +16190,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14984,15 +16217,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15007,15 +16244,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15030,15 +16271,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15053,15 +16298,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15072,15 +16321,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15095,15 +16348,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15165,7 +16422,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/RequestNLPActionParams'
-            - $ref: '#/components/schemas/RequestQualActionParams'
+            - $ref: '#/components/schemas/RequestManualQualActionParams'
+            - $ref: '#/components/schemas/RequestAutomaticQualActionParams'
     PatchedAssetPatchRequest:
       oneOf:
       - type: object
@@ -15391,6 +16649,11 @@ components:
           - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
           - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
           - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+          - $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfVerification'
+        automatic_bedrock_qual:
+          oneOf:
+          - $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfAutomaticQual'
+          - $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfVerification'
       additionalProperties: false
       anyOf:
       - required:
@@ -15403,6 +16666,29 @@ components:
         - automatic_google_translation
       - required:
         - manual_qual
+      - required:
+        - automatic_bedrock_qual
+    PatchedDataSupplementPayloadOneOfAutomaticQual:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+    PatchedDataSupplementPayloadOneOfVerification:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        verified:
+          type: boolean
+      required:
+      - uuid
+      - verified
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:
@@ -15601,6 +16887,48 @@ components:
       properties:
         clone_from:
           type: string
+    PatchedScimGroup:
+      type: object
+      description: Serializes a Django ScimGroup to match the SCIM 2.0 Group schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        displayName:
+          type: string
+        externalId:
+          type: string
+        members:
+          readOnly: true
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+    PatchedScimUser:
+      type: object
+      description: Serializes a Django User to match the SCIM 2.0 User schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        userName:
+          type: string
+        name:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        emails:
+          readOnly: true
+        active:
+          type: boolean
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
     PermissionAssignmentBulkRequest:
       type: object
       properties:
@@ -16443,6 +17771,19 @@ components:
       - count
       - list
       - url
+    RequestAutomaticQualActionParams:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - uuid
+    RequestManualQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/RequestQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/RequestQualSelectQuestionParams'
     RequestNLPActionParams:
       type: object
       additionalProperties: false
@@ -16451,10 +17792,6 @@ components:
           type: string
       required:
       - language
-    RequestQualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/RequestQualSimpleQuestionParams'
-      - $ref: '#/components/schemas/RequestQualSelectQuestionParams'
     RequestQualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -16491,9 +17828,35 @@ components:
               uuid:
                 type: string
                 format: uuid
+              hint:
+                type: object
+                additionalProperties: false
+                labels:
+                  type: object
+                  properties:
+                    _default:
+                      type: string
+                  additionalProperties:
+                    type: string
+                  required:
+                  - _default
+                required: labels
             required:
             - labels
             - uuid
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -16517,10 +17880,36 @@ components:
             type: string
           required:
           - _default
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
       - labels
+    ResponseAutomaticQualActionParams:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - uuid
+    ResponseManualQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/ResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/ResponseQualSelectQuestionParams'
     ResponseNLPActionParams:
       type: object
       additionalProperties: false
@@ -16529,10 +17918,6 @@ components:
           type: string
       required:
       - language
-    ResponseQualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/ResponseQualSimpleQuestionParams'
-      - $ref: '#/components/schemas/ResponseQualSelectQuestionParams'
     ResponseQualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -16574,6 +17959,19 @@ components:
                 properties:
                   deleted:
                     type: boolean
+              hint:
+                type: object
+                additionalProperties: false
+                labels:
+                  type: object
+                  properties:
+                    _default:
+                      type: string
+                  additionalProperties:
+                    type: string
+                  required:
+                  - _default
+                required: labels
             required:
             - labels
             - uuid
@@ -16582,6 +17980,19 @@ components:
           properties:
             deleted:
               type: boolean
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -16610,10 +18021,98 @@ components:
           properties:
             deleted:
               type: boolean
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
       - labels
+    ScimError:
+      type: object
+      description: Serializes SCIM 2.0 Error responses matching RFC7644
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          default:
+          - urn:ietf:params:scim:api:messages:2.0:Error
+        detail:
+          type: string
+          description: A detailed, human-readable message.
+        status:
+          type: string
+          description: The HTTP status code.
+      required:
+      - detail
+      - status
+    ScimGroup:
+      type: object
+      description: Serializes a Django ScimGroup to match the SCIM 2.0 Group schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        displayName:
+          type: string
+        externalId:
+          type: string
+        members:
+          readOnly: true
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+      required:
+      - displayName
+      - id
+      - members
+      - meta
+      - schemas
+    ScimUser:
+      type: object
+      description: Serializes a Django User to match the SCIM 2.0 User schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        userName:
+          type: string
+        name:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        emails:
+          readOnly: true
+        active:
+          type: boolean
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+      required:
+      - active
+      - emails
+      - id
+      - meta
+      - name
+      - schemas
+      - userName
     ServiceUsageBalanceData:
       type: object
       properties:
@@ -16792,6 +18291,7 @@ components:
           type: string
           format: date-time
           readOnly: true
+        stripe_data: {}
         id:
           type: string
           maxLength: 255
@@ -17124,6 +18624,479 @@ components:
       - user
       - user_uid
       - username
+    SupplementalDataAutomaticQual:
+      type: object
+      description: Map of automatic question UUIDs to their action objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataAutomaticQualItem'
+      patternProperties:
+        ^[0-9a-fA-F-]{36}$:
+          $ref: '#/components/schemas/SupplementalDataAutomaticQualItem'
+    SupplementalDataAutomaticQualItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemQualAutomatic'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataAutomaticTranscription:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemAutomatic'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataAutomaticTranslation:
+      type: object
+      description: Map of language codes to automatic translation objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataAutomaticTranslationItem'
+    SupplementalDataAutomaticTranslationItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemAutomaticWithDep'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataContentAutomatic:
+      oneOf:
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticInProgress'
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticFailed'
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticComplete'
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticDeleted'
+    SupplementalDataContentAutomaticComplete:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: complete
+        value:
+          type: string
+      additionalProperties: false
+      required:
+      - language
+      - status
+      - value
+    SupplementalDataContentAutomaticDeleted:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: deleted
+        value:
+          type: 'null'
+      additionalProperties: false
+      required:
+      - language
+      - status
+      - value
+    SupplementalDataContentAutomaticFailed:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: failed
+        error:
+          type: string
+      additionalProperties: false
+      required:
+      - error
+      - language
+      - status
+    SupplementalDataContentAutomaticInProgress:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: in_progress
+      additionalProperties: false
+      required:
+      - language
+      - status
+    SupplementalDataContentManual:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        value:
+          type: string
+          nullable: true
+      additionalProperties: false
+      required:
+      - language
+      - value
+    SupplementalDataDependency:
+      type: object
+      properties:
+        _actionId:
+          type: string
+        _uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - _actionId
+      - _uuid
+    SupplementalDataManualQual:
+      type: object
+      description: Map of manual qualitative question UUIDs to their action objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataManualQualItem'
+      patternProperties:
+        ^[0-9a-fA-F-]{36}$:
+          $ref: '#/components/schemas/SupplementalDataManualQualItem'
+    SupplementalDataManualQualItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemQual'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataManualTranscription:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemManual'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataManualTranslation:
+      type: object
+      description: Map of language codes to manual translation objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataManualTranslationItem'
+    SupplementalDataManualTranslationItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemManualWithDep'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataQualData:
+      oneOf:
+      - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+    SupplementalDataQualDataAutomatic:
+      oneOf:
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataIntegerResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataTextResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataSelectOneResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataSelectMultipleResponse'
+    SupplementalDataResponseAction:
+      type: object
+      properties:
+        manual_transcription:
+          $ref: '#/components/schemas/SupplementalDataManualTranscription'
+        manual_translation:
+          $ref: '#/components/schemas/SupplementalDataManualTranslation'
+        automatic_google_transcription:
+          $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
+        automatic_google_translation:
+          $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
+        manual_qual:
+          $ref: '#/components/schemas/SupplementalDataManualQual'
+        automatic_bedrock_qual:
+          $ref: '#/components/schemas/SupplementalDataAutomaticQual'
+      additionalProperties: false
+      anyOf:
+      - required:
+        - manual_transcription
+      - required:
+        - manual_translation
+      - required:
+        - automatic_google_transcription
+      - required:
+        - automatic_google_translation
+      - required:
+        - manual_qual
+      - required:
+        - automatic_bedrock_qual
+    SupplementalDataVersionItemAutomatic:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentAutomatic'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _uuid
+    SupplementalDataVersionItemAutomaticWithDep:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dependency:
+          $ref: '#/components/schemas/SupplementalDataDependency'
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentAutomatic'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _dependency
+      - _uuid
+    SupplementalDataVersionItemManual:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentManual'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateAccepted
+      - _dateCreated
+      - _uuid
+    SupplementalDataVersionItemManualWithDep:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dependency:
+          $ref: '#/components/schemas/SupplementalDataDependency'
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentManual'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateAccepted
+      - _dateCreated
+      - _dependency
+      - _uuid
+    SupplementalDataVersionItemQual:
+      type: object
+      properties:
+        _data:
+          $ref: '#/components/schemas/SupplementalDataQualData'
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateVerified:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        verified:
+          type: boolean
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _uuid
+    SupplementalDataVersionItemQualAutomatic:
+      type: object
+      properties:
+        _data:
+          $ref: '#/components/schemas/SupplementalDataQualDataAutomatic'
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateVerified:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dependency:
+          $ref: '#/components/schemas/SupplementalDataDependency'
+        verified:
+          type: boolean
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _uuid
+    SupplementalDetailsAutomaticQual:
+      type: object
+      description: Automatic qualitative supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          automatic_bedrock_qual:
+            $ref: '#/components/schemas/SupplementalDataAutomaticQual'
+        required:
+        - automatic_bedrock_qual
+    SupplementalDetailsAutomaticTranscription:
+      type: object
+      description: Automatic transcription supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          automatic_google_transcription:
+            $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
+        required:
+        - automatic_google_transcription
+    SupplementalDetailsAutomaticTranslation:
+      type: object
+      description: Automatic translation supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          automatic_google_translation:
+            $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
+        required:
+        - automatic_google_translation
+    SupplementalDetailsManualQual:
+      type: object
+      description: Manual qualitative supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          manual_qual:
+            $ref: '#/components/schemas/SupplementalDataManualQual'
+        required:
+        - manual_qual
+    SupplementalDetailsManualTranscription:
+      type: object
+      description: Manual transcription supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          manual_transcription:
+            $ref: '#/components/schemas/SupplementalDataManualTranscription'
+        required:
+        - manual_transcription
+    SupplementalDetailsManualTranslation:
+      type: object
+      description: Manual translation supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          manual_translation:
+            $ref: '#/components/schemas/SupplementalDataManualTranslation'
+        required:
+        - manual_translation
     TagListResponse:
       type: object
       properties:
@@ -17645,6 +19618,9 @@ components:
           type: integer
         active_project_count:
           type: integer
+        last_updated:
+          type: string
+          format: date-time
       required:
       - accepted_tos
       - account_restricted
@@ -17659,6 +19635,7 @@ components:
       - is_superuser
       - last_login
       - last_name
+      - last_updated
       - mfa_is_active
       - organizations
       - service_usage
@@ -17712,14 +19689,10 @@ components:
         current_period_end:
           type: string
           format: date-time
-        last_updated:
-          type: string
-          format: date-time
       required:
       - balances
       - current_period_end
       - current_period_start
-      - last_updated
       - total_nlp_usage
       - total_storage_bytes
       - total_submission_count
@@ -17855,6 +19828,11 @@ components:
     BasicAuth:
       type: http
       scheme: basic
+    ScimAuth:
+      type: http
+      scheme: bearer
+      description: Authentication via SCIM API Key provided in the Authorization header
+        as a Bearer token.
     TokenAuth:
       type: apiKey
       in: header

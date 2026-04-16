@@ -19,7 +19,7 @@ bem.FormBuilderMeta__column = makeBem(bem.FormBuilderMeta, 'column')
 bem.FormBuilderMeta__row = makeBem(bem.FormBuilderMeta, 'row')
 bem.FormBuilderMeta__labelLink = makeBem(bem.FormBuilderMeta, 'label-link', 'a')
 
-const AUDIT_SUPPORT_URL = 'audit_logging.html'
+const AUDIT_SUPPORT_URL = 'form_meta.html#audit-metadata-question'
 const RECORDING_SUPPORT_URL = 'recording-interviews.html'
 
 const AUDIO_QUALITY_OPTIONS = [

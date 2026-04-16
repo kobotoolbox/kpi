@@ -16,11 +16,11 @@ export type AssetsListParams = {
    */
   current_user_permissions_only?: boolean
   /**
-   * Paginate results with limit parameter
+   * Number of results to return per page. Use with `start`.
    */
   limit?: number
   /**
-   * Paginate results with offset parameter
+   * Deprecated alias of `start`.
    */
   offset?: number
   /**
@@ -31,4 +31,8 @@ export type AssetsListParams = {
    * Filter the results with search query
    */
   q?: string
+  /**
+   * The initial index from which to return the results. Use with `limit`.
+   */
+  start?: number
 }

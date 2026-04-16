@@ -10,10 +10,12 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { QualSimpleQuestionParamsTypeEnum } from './qualSimpleQuestionParamsTypeEnum'
+import type { RequestQualSimpleQuestionParamsHint } from './requestQualSimpleQuestionParamsHint'
 import type { RequestQualSimpleQuestionParamsLabels } from './requestQualSimpleQuestionParamsLabels'
 
 export interface RequestQualSimpleQuestionParams {
   uuid: string
   type: QualSimpleQuestionParamsTypeEnum
   labels: RequestQualSimpleQuestionParamsLabels
+  hint?: RequestQualSimpleQuestionParamsHint
 }

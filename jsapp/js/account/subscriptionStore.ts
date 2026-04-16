@@ -3,7 +3,6 @@ import { PlanNames, type Product, type SubscriptionInfo } from '#/account/stripe
 import { fetchGet, handleApiFail } from '#/api'
 import { ACTIVE_STRIPE_STATUSES, ROOT_URL } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
-import envStore from '#/envStore'
 
 const PRODUCTS_URL = '/api/v2/stripe/products/'
 
@@ -44,14 +43,13 @@ class SubscriptionStore {
   /*
    * The plan name displayed to the user. This will display, in order of precedence:
    * * The user's active plan subscription
-   * * The FREE_TIER_DISPLAY["name"] setting (if the user registered before FREE_TIER_CUTOFF_DATE
    * * The free plan
    */
   public get planName() {
     if (this.planResponse.length && this.planResponse[0].items.length) {
       return this.planResponse[0].items[0].price.product.name
     }
-    return envStore.data?.free_tier_display?.name || PlanNames.FREE
+    return PlanNames.FREE
   }
 
   private onFetchSubscriptionInfoDone(response: PaginatedResponse<SubscriptionInfo>) {
