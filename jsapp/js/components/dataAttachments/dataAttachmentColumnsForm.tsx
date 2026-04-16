@@ -71,7 +71,7 @@ function DataAttachmentColumnsForm({
     }
 
     // Empty `fields` implies all source questions are exposed.
-    setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters(fields, payload.content?.survey))
+    setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters(fields, payload.content?.survey ?? []))
   }, [fields, sourceAssetResponse])
 
   const onBulkSelect = useCallback((evt: MouseEvent<HTMLButtonElement>) => {
