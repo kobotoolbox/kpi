@@ -9,6 +9,7 @@ import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
 import { MultiSelectThemeKobo } from './MultiSelect'
+import { NotificationThemeKobo } from './Notification'
 import { NumberInputThemeKobo } from './NumberInput'
 import { PaperThemeKobo } from './Paper'
 import { PillThemeKobo } from './Pill'
@@ -18,7 +19,6 @@ import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
-import {NotificationThemeKobo} from './Notification'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
