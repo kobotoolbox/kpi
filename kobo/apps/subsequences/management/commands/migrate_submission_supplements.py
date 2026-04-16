@@ -29,7 +29,7 @@ class Command(BaseCommand):
          etc.) via migrate_submission_supplementals.
       2. Creates any QuestionAdvancedFeature records that are referenced in
          supplement content but missing from the database.
-      3. Updates any SubissionSupplement objects that had 'dateAccepted' in the QA
+      3. Updates any SubmissionSupplement objects that had 'dateAccepted' in the QA
          data
 
     Usage:
