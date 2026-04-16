@@ -15,7 +15,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { check } from '@placemarkio/check-geojson'
 
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
-import LoadingSpinner from '../../../js/components/common/loadingSpinner'
 import Modal from '../../../js/components/common/modal'
 // Partial components
 import PopoverMenu from '../../../js/popoverMenu'
@@ -35,9 +34,7 @@ import type {
   AssetFileResponse,
   AssetMapStyles,
   AssetResponse,
-  FailResponse,
   PaginatedResponse,
-  SubmissionResponse,
   SurveyChoice,
   SurveyRow,
 } from '../../../js/dataInterface'
@@ -45,7 +42,11 @@ import type {
 // Styles
 import './map.scss'
 import './map.marker-colors.scss'
+import type { DataResponse } from '#/api/models/dataResponse'
 import { fetchGetUrl } from '../../../js/api'
+
+const SUBMISSIONS_PER_PAGE = 1000
+const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -127,6 +128,12 @@ interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
   /** A question/row name for map to focus on given question data */
   viewby: string
+  pageCount: number
+  setPageCount: Function
+  isLoading: boolean
+  allData: DataResponse[]
+  setFields: Function
+  totalCount: number | undefined
 }
 
 interface FormMapState {
@@ -137,7 +144,6 @@ interface FormMapState {
   markerMap?: MarkerMap
   fields: SurveyRow[]
   hasGeoPoint: boolean
-  submissions: SubmissionResponse[]
   error: string | undefined
   isFullscreen: boolean
   showExpandedLegend: boolean
@@ -149,7 +155,7 @@ interface FormMapState {
   clearDisaggregatedPopover: boolean
   noData: boolean
   previousViewby?: string
-  // Note: In case 2 of requestData(), we have a situation where a selected question exists without updating
+  // Note: In case 2 of createDataQuery(), we have a situation where a selected question exists without updating
   // overridenStyles. It is much easier to pass the selected question like this than doing some hack with AssetMapStyles
   foundSelectedQuestion: string | null
 }
@@ -173,7 +179,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       markerMap: undefined,
       fields: [],
       hasGeoPoint: hasGeoPoint,
-      submissions: [],
       error: undefined,
       isFullscreen: false,
       showExpandedLegend: true,
@@ -231,7 +236,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       )
     }
 
-    this.requestData(map, this.props.viewby)
+    this.createDataQuery(this.props.viewby)
+    this.rebuildMapLayers(map)
     this.unlisteners.push(
       actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
       actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
@@ -263,6 +269,17 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
       }
     })
+  }
+
+  getQueryLimit() {
+    // If totalCount hasn't populated yet, return 1000 (one page of submissions)
+    if (this.props.totalCount === undefined) {
+      return QUERY_LIMIT_DEFAULT
+    }
+    // If the user has more than 30,000 submissions, display 30,000 as the max anyways
+    const userMaxPages = Math.ceil(this.props.totalCount / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
+    const MaxPages = Math.ceil(MAX_SUBMISSIONS / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
+    return Math.min(userMaxPages, MaxPages)
   }
 
   /**
@@ -415,10 +432,26 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
-  requestData(map: L.Map, nextViewBy = '') {
-    // TODO: support area / line geodata questions
-    // See: https://github.com/kobotoolbox/kpi/issues/3913
+  updateWrapperQuery(selectedQuestion: string | null, nextViewBy: string, pageLimit: number) {
+    const fq = ['_id']
+    if (selectedQuestion) {
+      fq.push(selectedQuestion)
+    }
+    if (nextViewBy) {
+      fq.push(this.nameOfFieldInGroup(nextViewBy))
+    }
+    this.props.setPageCount(pageLimit)
+    this.props.setFields(JSON.stringify(fq))
+  }
 
+  /**
+   * Updates the wrapper with new query params in the following sequence:
+   * 1. Check if the selectedQuestion is updated
+   * 2. Compute the amount of pages to request
+   * 3. If there is a disaggregation, add the disaggregated question to the query
+   * 4. Send all the changes up to the wrapper
+   */
+  createDataQuery(nextViewBy = '') {
     // Map cannot actually show more than one question at a time, so we must always have a question specified.
     // The list below describes the priority to find the question:
     let selectedQuestion: string | null = null
@@ -447,7 +480,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       selectedQuestion = null
     }
 
+    // We set the selected question in this state as well for the display in the MapSettings modal
     this.setState({ foundSelectedQuestion: selectedQuestion })
+
+    // If totalCount hasn't populated yet, set pageLimit to 1
+    if (this.props.totalCount === undefined) {
+      this.updateWrapperQuery(selectedQuestion, nextViewBy, 1)
+      return
+    }
 
     let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
@@ -456,34 +496,22 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
     }
 
-    const fq = ['_id']
-    if (selectedQuestion) {
-      fq.push(selectedQuestion)
+    // If the user has an overriden limit greater than the actual submission count, lower the limit
+    const maxSubmissions = this.getQueryLimit()
+    if (queryLimit > maxSubmissions) {
+      queryLimit = maxSubmissions
     }
-    if (nextViewBy) {
-      fq.push(this.nameOfFieldInGroup(nextViewBy))
-    }
-    const sort = [{ id: '_id', desc: true }]
-    dataInterface
-      .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
-      .done((data: PaginatedResponse<SubmissionResponse>) => {
-        const results = data.results
-        this.setState({ submissions: results }, () => {
-          this.buildMarkers(map)
-          this.buildHeatMap(map)
-        })
-      })
-      .fail((error: FailResponse) => {
-        if (error.responseText) {
-          this.setState({ error: error.responseText })
-        } else if (error.statusText) {
-          this.setState({ error: error.statusText })
-        } else {
-          this.setState({
-            error: t('Error: could not load data.'),
-          })
-        }
-      })
+
+    const pageLimit = queryLimit / SUBMISSIONS_PER_PAGE
+
+    this.updateWrapperQuery(selectedQuestion, nextViewBy, pageLimit)
+  }
+
+  rebuildMapLayers(map: L.Map) {
+    this.buildMarkers(map)
+    // TODO: when heat map is selected and the user refteches data (changes question or selects a disaggregation) the
+    // map will rebuild and display both markers and heat map. See DEV-1960
+    this.buildHeatMap(map)
   }
 
   calculateClusterRadius(zoom: number) {
@@ -512,9 +540,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     let currentQuestionChoices: SurveyChoice[] = []
     let mapMarkers: MapValueCounts = {}
     let mM: MarkerMap = []
+    const submissions: DataResponse[] = this.props.allData
 
     if (viewby) {
-      mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby)
+      mapMarkers = this.prepFilteredMarkers(submissions, this.props.viewby)
       const choices = this.props.asset.content?.choices || []
       const survey = this.props.asset.content?.survey || []
 
@@ -561,7 +590,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       this.setState({ markerMap: undefined })
     }
 
-    this.state.submissions.forEach((item) => {
+    submissions.forEach((item) => {
       let markerProps = {}
 
       const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
@@ -635,15 +664,18 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
 
-      if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
-        map.fitBounds(markers.getBounds())
-      }
-
       if (prepPoints.length === 0) {
         map.fitBounds([[42.373, -71.124]])
         this.setState({ noData: true })
       } else {
-        // If the user changed questions, we need to reset the overlay
+        // Note: this is a bit confusing. For some reason (possibly performance related), we didn't want the map to
+        // reset the zoom when switching between disaggregated questions. This is the reason for the first two guards.
+        // The last condition is only possible if we are coming from having no points to having points in the same page,
+        // i.e., we are done waiting for the `allData` prop to populate. We can then reset the zoom once.
+        const shouldFitBounds = !viewby || !this.state.componentRefreshed || this.state.noData
+        if (shouldFitBounds) {
+          map.fitBounds(markers.getBounds())
+        }
         this.setState({ noData: false })
       }
 
@@ -691,7 +723,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
-  prepFilteredMarkers(data: SubmissionResponse[], viewby: string): MapValueCounts {
+  prepFilteredMarkers(data: DataResponse[], viewby: string): MapValueCounts {
     const markerMap: MapValueCounts = {}
     const currentViewBy = this.nameOfFieldInGroup(viewby)
     let idCounter = 1
@@ -712,7 +744,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   buildHeatMap(map: L.Map) {
     const heatmapPoints: Array<[number, number, number]> = []
-    this.state.submissions.forEach((item) => {
+    const submissions: DataResponse[] = this.props.allData
+    submissions.forEach((item) => {
       const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
       if (!!parsedCoordinates.length) {
         heatmapPoints.push([parsedCoordinates[0], parsedCoordinates[1], 1])
@@ -802,15 +835,41 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
-    if (prevProps.viewby !== this.props.viewby) {
-      const map = this.refreshMap()
-      if (map) {
-        this.requestData(map, this.props.viewby)
+    const totalCountPopulated = prevProps.totalCount === undefined && this.props.totalCount !== undefined
+    const dataChanged =
+      (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) &&
+      this.props.allData.length > 0
+    const viewbyChanged = prevProps.viewby !== this.props.viewby
+
+    // We get the first page of results in order to get the total count, then we call createDataQuery again to update
+    // the maximum queryLimit based on the amount of submissions the project has
+    if (totalCountPopulated) {
+      this.createDataQuery(this.props.viewby)
+    }
+
+    if (dataChanged && !viewbyChanged) {
+      if (!this.state.foundSelectedQuestion) {
+        this.createDataQuery()
       }
+      this.refreshMapLayers()
+    } else if (viewbyChanged) {
+      this.createDataQuery(this.props.viewby)
+      this.refreshMapLayers()
     }
   }
 
-  refreshMap() {
+  refreshMapLayers() {
+    const map = this.removeOldMapLayers()
+    if (map) {
+      this.rebuildMapLayers(map)
+    }
+  }
+
+  /**
+   * If map needs to display a new set of markers, either from changing the question or selecting a disaggregation, we
+   * need to remove the old markers and return an empty map to be populated.
+   */
+  removeOldMapLayers() {
     const map = this.state.map
     if (map && this.state.markers) {
       map.removeLayer(this.state.markers)
@@ -822,7 +881,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   launchSubmissionModal(evt: L.LeafletMouseEvent) {
-    const td = this.state.submissions
+    const td = this.props.allData
     const ids: number[] = []
     td.forEach((r) => {
       ids.push(r._id)
@@ -851,11 +910,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         overridenStyles: mapStyles,
       },
       () => {
-        const map = this.refreshMap()
-
-        if (map) {
-          this.requestData(map, this.props.viewby)
-        }
+        this.createDataQuery(this.props.viewby)
+        this.refreshMapLayers()
       },
     )
   }
@@ -1046,7 +1102,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </PopoverMenu>
         )}
 
-        {this.state.noData && !this.state.hasGeoPoint && (
+        {this.state.noData && !this.state.hasGeoPoint && !this.props.isLoading && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>{t('This project does not include geographical data.')}</p>
@@ -1055,12 +1111,20 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </div>
         )}
 
-        {this.state.noData && this.state.hasGeoPoint && (
+        {this.state.noData && this.state.hasGeoPoint && !this.props.isLoading && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>
                 {t('No "geopoint" responses have been received for the selected question.')}
               </p>
+            </div>
+          </div>
+        )}
+
+        {this.props.isLoading && (
+          <div className='map-transparent-background'>
+            <div className='map-no-geopoint-wrapper'>
+              <p className='map-no-geopoint'>{t('Fetching points…')}</p>
             </div>
           </div>
         )}
@@ -1119,7 +1183,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
             </div>
           </bem.FormView__mapList>
         )}
-        {!this.state.markers && !this.state.heatmap && <LoadingSpinner message={false} />}
+
         {this.state.showMapSettings && (
           <Modal open onClose={this.toggleMapSettings.bind(this)} title={t('Map Settings')}>
             <MapSettings
@@ -1127,6 +1191,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               toggleMapSettings={this.toggleMapSettings.bind(this)}
               overrideStyles={this.overrideStyles.bind(this)}
               overridenStyles={this.state.overridenStyles}
+              queryLimit={this.getQueryLimit()}
             />
           </Modal>
         )}
