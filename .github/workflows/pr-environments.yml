@@ -51,7 +51,7 @@ jobs:
           COMMIT_HASH=$(git rev-parse HEAD)
           echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
           echo "Found commit hash: $COMMIT_HASH"
-          COMMIT_MESSAGE=$(git log -1 --pretty=%B | sed 's/"//g') # Remove double quotes to avoid issues
+          COMMIT_MESSAGE=$(git log -1 --format=%s | sed 's/"//g') # Remove double quotes to avoid issues
           echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry
