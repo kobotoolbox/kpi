@@ -78,6 +78,7 @@ class SupplementMigrationInProgress(Exception):
     the migration. Retry the operation once the migration has completed.
     """
 
+
 class TranscriptionNotFound(DependencyNotFound):
     pass
 
