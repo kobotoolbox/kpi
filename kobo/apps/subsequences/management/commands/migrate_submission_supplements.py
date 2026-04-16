@@ -138,26 +138,34 @@ class Command(BaseCommand):
                 migrated += 1
             else:
                 # check for mistakes in manual_qual versions from a previous migration
-                update_necessary = False
-                for question_xpath, action_results in content.items():
-                    if question_xpath == '_version':
-                        continue
-                    for action, action_responses in action_results.items():
-                        if action != 'manual_qual':
+                try:
+                    update_necessary = False
+                    for question_xpath, action_results in content.items():
+                        if question_xpath == '_version':
                             continue
-                        for question_uuid, versions_data in action_responses.items():
-                            versions = versions_data.get('_versions', [])
-                            for version in versions:
-                                if '_dateAccepted' in version:
-                                    update_necessary = True
-                                    del version['_dateAccepted']
-                                if 'verified' not in version:
-                                    update_necessary = True
-                                    version['verified'] = False
-                if update_necessary:
-                    ss.content = content
-                    to_update.append(ss)
-                    migrated += 1
+                        for action, action_responses in action_results.items():
+                            if action != 'manual_qual':
+                                continue
+                            for question_uuid, versions_data in action_responses.items():
+                                versions = versions_data.get('_versions', [])
+                                for version in versions:
+                                    if '_dateAccepted' in version:
+                                        update_necessary = True
+                                        del version['_dateAccepted']
+                                    if 'verified' not in version:
+                                        update_necessary = True
+                                        version['verified'] = False
+                    if update_necessary:
+                        ss.content = content
+                        to_update.append(ss)
+                        migrated += 1
+                except Exception as e:
+                    self.stderr.write(
+                        f'  ERROR supplement {ss.pk}'
+                        f' (asset={ss.asset.uid}, uuid={ss.submission_uuid}): {e}'
+                    )
+                    errors += 1
+                    continue
 
             if not dry_run and len(to_update) >= CHUNK_SIZE:
                 SubmissionSupplement.objects.bulk_update(to_update, fields=['content'])
