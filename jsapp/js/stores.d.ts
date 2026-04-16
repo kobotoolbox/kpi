@@ -38,7 +38,6 @@ export interface Stores {
   surveyState: SurveyStateStore
   translations: any
   snapshots: any
-  allAssets: any
 }
 
 export declare const stores: Stores
