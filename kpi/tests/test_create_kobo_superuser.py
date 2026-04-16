@@ -45,7 +45,8 @@ class CreateKoboSuperuserCommandTest(TestCase):
             user=user, email=self.EMAIL, verified=True, primary=True
         ).exists()
         mock_userprofile.objects.get_or_create.assert_called_once_with(
-            user_id=user.pk, validated_password=True
+            user_id=user.pk,
+            defaults={'validated_password': True},
         )
         assert f'Superuser `{self.USERNAME}` successfully created.' in out.getvalue()
 
@@ -75,7 +76,9 @@ class CreateKoboSuperuserCommandTest(TestCase):
 
         mock_user_cls.objects.get.assert_called_once_with(username=self.USERNAME)
         mock_email_cls.objects.get_or_create.assert_called_once_with(
-            user=mock_user, email=mock_user.email, verified=True, primary=True
+            user=mock_user,
+            email=mock_user.email,
+            defaults={'verified': True, 'primary': True},
         )
         mock_userprofile_cls.objects.get_or_create.assert_not_called()
         assert 'not synced to KC database' in out.getvalue()
