@@ -5,12 +5,15 @@ import type { TablerIcon } from '@tabler/icons-react'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import KoboIcon from './KoboIcon'
+import type { KoboIconProps } from './KoboIcon'
 import { getLegacyIconsCatalog } from './KoboIconMappings'
 import Icon from './icon'
-import type { IconColor, IconSize } from './icon'
+import type { IconColor } from './icon'
 
 const iconColors: Array<IconColor | undefined> = [undefined, 'mid-red', 'storm', 'teal', 'amber', 'blue']
-const iconSizes: IconSize[] = ['xxs', 'xs', 's', 'm', 'l', 'xl', 'inherit']
+const iconSizes = ['xxs', 'xs', 's', 'sm', 'm', 'md', 'l', 'lg', 'xl', 'inherit'] satisfies Array<
+  Exclude<NonNullable<KoboIconProps['size']>, number>
+>
 const noneControlOption = '(none)'
 const iconColorTokens = iconColors.filter((item): item is IconColor => item !== undefined)
 
