@@ -8,7 +8,6 @@ import Icon from '#/components/common/icon'
 
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { QualVersionItem } from '#/components/processing/common/types'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getQuestionTypeDefinition, hasEmptyValueAnswer, useShowHints } from '../../../common/utils'
 
 interface Props {
@@ -54,7 +53,6 @@ export default function ResponseForm({
   const [verificationStatus, setVerificationStatus] = useState<boolean | undefined>(undefined)
   const [isGenerating, setIsGenerating] = useState(false)
   const [showHints] = useShowHints()
-  const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
   useEffect(() => {
     setVerificationStatus(undefined)
@@ -199,7 +197,7 @@ export default function ResponseForm({
         )}
       </Group>
 
-      {showHints && ffAutoQAEnabled && hintValue && (
+      {showHints && hintValue && (
         <Text pl='40px' m='0' ta='left' c='var(--mantine-color-gray-2)' mt='calc(-1 * var(--stack-gap))'>
           {hintValue}
         </Text>
@@ -208,7 +206,7 @@ export default function ResponseForm({
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
       {children && <Box pl='40px'>{children}</Box>}
 
-      {shouldDisplayAnyButtonOrBadge && ffAutoQAEnabled && (
+      {shouldDisplayAnyButtonOrBadge && (
         <Group pl='40px' w='100%' align='center'>
           {shouldDisplayGenerateWithAIButton && (
             <ButtonNew

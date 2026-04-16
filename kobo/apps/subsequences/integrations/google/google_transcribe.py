@@ -80,11 +80,11 @@ class GoogleTranscriptionService(GoogleService):
 
         # Create the parameters required for the transcription
         client_opts = None
-        speech_location = constance.config.ASR_MT_GOOGLE_REGION
+        speech_location = constance.config.ASR_MT_GOOGLE_REGION.lower()
         # Similarly, specific regions beyond 'eu'/'us' must natively utilize resolving globally 
-        if speech_location and speech_location.lower() in ('eu', 'us'):
+        if speech_location and speech_location in ('eu', 'us'):
             client_opts = client_options.ClientOptions(
-                api_endpoint=f'{speech_location.lower()}-speech.googleapis.com'
+                api_endpoint=f'{speech_location}-speech.googleapis.com'
             )
 
         speech_client = speech.SpeechClient(
