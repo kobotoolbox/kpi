@@ -385,7 +385,6 @@ export class TranslationSettings extends React.Component<TranslationSettingsProp
                     disabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
                     icon={this.state.renameLanguageIndex === i ? IconX : IconPencilFilled}
                     tooltip={t('Edit language')}
-                    tooltipProps={{ position: 'right' }}
                   />
 
                   <ActionIcon
@@ -397,7 +396,6 @@ export class TranslationSettings extends React.Component<TranslationSettingsProp
                     disabled={this.state.isUpdatingAsset}
                     icon={IconWorldCog}
                     tooltip={t('Update translations')}
-                    tooltipProps={{ position: 'right' }}
                   />
 
                   {i !== 0 && (
@@ -410,7 +408,6 @@ export class TranslationSettings extends React.Component<TranslationSettingsProp
                       disabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
                       icon={IconTrashFilled}
                       tooltip={t('Delete language')}
-                      tooltipProps={{ position: 'right' }}
                     />
                   )}
                 </bem.FormView__cell>

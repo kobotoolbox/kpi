@@ -3,6 +3,8 @@ import { Tooltip } from '@mantine/core'
 export const TooltipThemeKobo = Tooltip.extend({
   defaultProps: {
     offset: { mainAxis: -4 },
+    // Make sure it appears above modals (e.g. BigModal) :)
+    zIndex: 3100,
     position: 'bottom',
     withArrow: true,
     arrowSize: 8,
