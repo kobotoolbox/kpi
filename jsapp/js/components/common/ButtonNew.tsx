@@ -4,29 +4,13 @@ import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/c
 import type { TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
-import KoboIcon from './KoboIcon'
-import Icon, { type IconSize } from './icon'
+import MixedIcon from './MixedIcon'
+import type { IconSize } from './icon'
 
 const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
   sm: 'xs',
   md: 's',
   lg: 'm',
-}
-
-function renderButtonIcon(
-  icon: IconName | TablerIcon | undefined,
-  legacyIconSize: IconSize | undefined,
-  koboIconSize: MantineSize,
-) {
-  if (!icon) {
-    return undefined
-  }
-
-  if (typeof icon === 'string') {
-    return <Icon name={icon} size={legacyIconSize} />
-  }
-
-  return <KoboIcon icon={icon} size={koboIconSize} />
 }
 
 // See boilerplate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
@@ -45,8 +29,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ tooltip, tooltipProps, leftIcon, rightIcon, leftSection, rightSection, ...others }, ref) => {
     const buttonSize = (others.size ?? 'sm') as MantineSize
     const legacyIconSize = ButtonToIconMap[others.size ?? 'sm']
-    const resolvedLeftSection = leftSection ?? renderButtonIcon(leftIcon, legacyIconSize, buttonSize)
-    const resolvedRightSection = rightSection ?? renderButtonIcon(rightIcon, legacyIconSize, buttonSize)
+    const resolvedLeftSection =
+      leftSection ?? (leftIcon && <MixedIcon icon={leftIcon} size={legacyIconSize ?? buttonSize} />)
+    const resolvedRightSection =
+      rightSection ?? (rightIcon && <MixedIcon icon={rightIcon} size={legacyIconSize ?? buttonSize} />)
 
     if (!tooltip) {
       return (

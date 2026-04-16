@@ -4,8 +4,7 @@ import type { TooltipProps } from '@mantine/core/lib/components'
 import type { TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
-import KoboIcon from './KoboIcon'
-import Icon, { type IconSize } from './icon'
+import MixedIcon from './MixedIcon'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   /** Text for tooltip */
@@ -20,14 +19,8 @@ export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
 }
 
 const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, icon, ...props }, ref) => {
-  const legacyIconSize = props.size[0] as IconSize
-  const content =
-    props.children ??
-    (icon ? (
-      <KoboIcon icon={icon} size={props.size} />
-    ) : iconName ? (
-      <Icon name={iconName} size={legacyIconSize} />
-    ) : null)
+  const mixedIcon = icon ?? iconName
+  const content = props.children ?? (mixedIcon && <MixedIcon icon={mixedIcon} size={props.size} />)
 
   if (!props.tooltip) {
     return (

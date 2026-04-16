@@ -29,10 +29,10 @@ interface IconProps {
 }
 
 /**
- * An icon component.
+ * An icon component that renders legacy font icons and is kept for backwards compatibility.
  *
- * @deprecated Please use `KoboIcon`. See `KoboIconMappings` for the old-to-new map.
- * This component renders legacy font icons and is kept for backwards compatibility.
+ * @deprecated Please use `KoboIcon`. See `KoboIconMappings` for the old-to-new map. If you need to support both `Icon`
+ * and `KoboIcon` in some universal component, please use `MixedIcon`.
  */
 export default function Icon(props: IconProps) {
   const classNames: string[] = []
