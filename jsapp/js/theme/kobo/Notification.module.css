@@ -1,0 +1,8 @@
+.root {
+  background-color: var(--mantine-color-gray-1);
+}
+
+.title {
+  font-size: small;
+  font-weight: 600;
+}

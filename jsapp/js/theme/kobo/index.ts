@@ -18,6 +18,7 @@ import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
+import {NotificationThemeKobo} from './Notification'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -133,5 +134,6 @@ export const themeKobo = createTheme({
     Pill: PillThemeKobo,
     Checkbox: CheckboxThemeKobo,
     Radio: RadioThemeKobo,
+    Notification: NotificationThemeKobo,
   },
 })
