@@ -5,7 +5,7 @@ import { recordKeys } from '#/utils'
 import Icon from './icon'
 
 const meta: Meta<typeof Notification> = {
-  title: 'Design system Notification',
+  title: 'Design system/Notification',
   component: Notification,
   argTypes: {
     title: {
