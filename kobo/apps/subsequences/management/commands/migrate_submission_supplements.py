@@ -146,7 +146,7 @@ class Command(BaseCommand):
                         for action, action_responses in action_results.items():
                             if action != 'manual_qual':
                                 continue
-                            for question_uuid, versions_data in action_responses.items():
+                            for _, versions_data in action_responses.items():
                                 versions = versions_data.get('_versions', [])
                                 for version in versions:
                                     if '_dateAccepted' in version:
