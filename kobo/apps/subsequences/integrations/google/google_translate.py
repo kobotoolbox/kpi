@@ -38,7 +38,6 @@ class GoogleTranslationService(GoogleService):
 
         translation_location = constance.config.ASR_MT_GOOGLE_REGION.lower()
         project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
-        
         client_opts = None
         # Explicit api_endpoints are ONLY required for multi-regional bounding ('eu' and 'us')  # noqa: E501
         # Granular regions (like 'us-central1') natively resolve through the global default endpoint  # noqa: E501
@@ -58,14 +57,6 @@ class GoogleTranslationService(GoogleService):
             credentials=self.credentials,
             client_options=client_opts,
         )
-        translation_location = constance.config.ASR_MT_GOOGLE_REGION
-        project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
-        if translation_location and translation_location != 'global':
-            self.translate_parent = (
-                f'projects/{project_id}/locations/{translation_location}'
-            )
-        else:
-            self.translate_parent = f'projects/{project_id}'
         # "The global location is not supported for batch translation." See:
         # https://googleapis.dev/python/translation/2.0.0/gapic/v3/api.html
         # https://www.googlecloudcommunity.com/gc/AI-ML/location-variable-setting-for-the-Google-Cloud-Translation-API/m-p/543622/highlight/true#M1652
