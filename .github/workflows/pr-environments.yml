@@ -74,26 +74,22 @@ jobs:
 
       - name: set variables
         id: set_variables
+        env:
+          INPUT_TYPE: ${{ github.event.inputs.input_type }}
+          INPUT_VALUE: ${{ github.event.inputs.input_value }}
+          PR_TITLE: ${{ steps.get_pr_info.outputs.title }}
         run: |
-          ZULIP_TOPIC="${{ github.event.inputs.input_type }} ${{ github.event.inputs.input_value }}${{ github.event.inputs.input_type == 'PR' && format(' - {0}', steps.get_pr_info.outputs.title) || '' }}"
-          echo "zulip_topic=$ZULIP_TOPIC" >> $GITHUB_OUTPUT
-
-          if [ "${{ github.event.inputs.input_type }}" = "PR" ]; then
-            echo "ENV_NAME=pr-${{ github.event.inputs.input_value }}" >> $GITHUB_OUTPUT
+          if [ "$INPUT_TYPE" = "PR" ]; then
+            ZULIP_TOPIC="$INPUT_TYPE $INPUT_VALUE - $PR_TITLE"
+            echo "ENV_NAME=pr-$INPUT_VALUE" >> $GITHUB_OUTPUT
           else
-            # Sanitize: Lowercase, replace non-alphanumeric with hyphens
-            CLEAN_NAME=$(echo "${{ github.event.inputs.input_value }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/^-//;s/-$//')
-
-            # Create a hash of the FULL branch name Using sha256 and taking 6 characters
-            HASH=$(echo -n "${{ github.event.inputs.input_value }}" | sha256sum | cut -c 1-6)
-
-            # Truncate name to 20 chars
+            ZULIP_TOPIC="$INPUT_TYPE $INPUT_VALUE"
+            CLEAN_NAME=$(echo "$INPUT_VALUE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/^-//;s/-$//')
+            HASH=$(echo -n "$INPUT_VALUE" | sha256sum | cut -c 1-6)
             TRUNC_NAME=$(echo "$CLEAN_NAME" | cut -c 1-20)
-
-            ENV_NAME="br-$TRUNC_NAME-$HASH"
-
-            echo "ENV_NAME=$ENV_NAME" >> $GITHUB_OUTPUT
+            echo "ENV_NAME=br-$TRUNC_NAME-$HASH" >> $GITHUB_OUTPUT
           fi
+          echo "zulip_topic=$ZULIP_TOPIC" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v7
@@ -137,4 +133,4 @@ jobs:
     with:
       stream: "PR Preview Environments"
       topic: "${{ needs.build.outputs.zulip_topic }}"
-      content: "❌ Failed to deploy ephemeral environment for ${{ github.event.inputs.input_type }} #${{ github.event.inputs.input_value }} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})"
+      content: "❌ Failed to deploy ephemeral environment for ${{ github.event.inputs.input_type }} ${{ github.event.inputs.input_value }} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})"
