@@ -1,6 +1,6 @@
 import './connect-projects.scss'
 
-import { type MouseEvent, useCallback, useMemo, useState } from 'react'
+import { type MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
 import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
@@ -36,6 +36,21 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     return []
   })
   const [fieldsErrors, setFieldsErrors] = useState<Record<string, string>>({})
+
+  // Make sure the local state is refreshed after asset is changed
+  useEffect(() => {
+    const nextIsShared = asset.data_sharing?.enabled || false
+    const nextSharedFields = asset.data_sharing?.fields || []
+
+    setIsShared(nextIsShared)
+    setIsSharingAnyQuestions(Boolean(nextSharedFields.length))
+    setColumnsToDisplay(
+      nextIsShared ? dataAttachmentsUtils.generateColumnFilters(nextSharedFields, asset.content?.survey || []) : [],
+    )
+    setNewSource(null)
+    setNewFilename('')
+    setFieldsErrors({})
+  }, [asset.uid, asset.data_sharing?.enabled, asset.data_sharing?.fields, asset.content?.survey])
 
   const {
     data: attachedSourcesResponse,
@@ -166,7 +181,13 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       patchDataSharingMutate(
         {
           uidAsset: asset.uid,
-          data,
+          data: {
+            data_sharing: {
+              enabled: data.enabled,
+              fields: data.fields,
+            },
+            // TODO: Backend stores shared questions under `data_sharing`, but Orval doesn't allow this
+          } as any,
         },
         {
           onSuccess: () => onSuccess?.(),
@@ -237,18 +258,15 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const onSharingCheckboxChange = useCallback(
     (checked: boolean) => {
       if (!checked) {
-        setColumnsToDisplay([])
-        const data = {
+        patchDataSharing({
           enabled: isShared,
           fields: [],
-        }
-
-        patchDataSharing(data)
+        })
       }
-
+      setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters([], asset.content?.survey || []))
       setIsSharingAnyQuestions(checked)
     },
-    [isShared, patchDataSharing],
+    [asset.content?.survey, isShared, patchDataSharing],
   )
 
   const filteredAssets = useMemo(() => {
