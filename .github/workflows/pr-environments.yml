@@ -80,7 +80,8 @@ jobs:
           PR_TITLE: ${{ steps.get_pr_info.outputs.title }}
         run: |
           if [ "$INPUT_TYPE" = "PR" ]; then
-            ZULIP_TOPIC="$INPUT_TYPE $INPUT_VALUE - $PR_TITLE"
+            CLEAN_TITLE=$(echo "$PR_TITLE" | tr -d '"')
+            ZULIP_TOPIC="$INPUT_TYPE $INPUT_VALUE - $CLEAN_TITLE"
             echo "ENV_NAME=pr-$INPUT_VALUE" >> $GITHUB_OUTPUT
           else
             ZULIP_TOPIC="$INPUT_TYPE $INPUT_VALUE"
