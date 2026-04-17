@@ -20,20 +20,23 @@ QUAL_TYPE_MAP = {
 class Command(BaseCommand):
     """
     Migrate SubmissionSupplement records from the old format (pre-schema
-    version '20250820') to the current format.
+    version '20250820') to the current format. Also fixes some SubmissionSupplement
+    records that were affected by a bug in the previous migration.
 
-    Performs two operations:
+    Performs several operations:
       1. Converts old action IDs (googlets, googletx, transcript, translation)
          to current ones (automatic_google_transcription, manual_transcription,
          etc.) via migrate_submission_supplementals.
       2. Creates any QuestionAdvancedFeature records that are referenced in
          supplement content but missing from the database.
+      3. Updates any SubmissionSupplement objects that had 'dateAccepted' in the QA
+         data
 
     Usage:
         # Preview what would be migrated (no changes saved)
         manage.py migrate_submission_supplements --dry-run
 
-        # Migrate all old supplements
+        # Migrate all old or incorrect supplements
         manage.py migrate_submission_supplements
 
         # Migrate only supplements for a specific asset
@@ -60,27 +63,22 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
         asset_uid = options['asset_uid']
 
-        qs = (
-            SubmissionSupplement.objects.exclude(content__has_key='_version')
-            .select_related('asset')
-            .only(
-                'submission_uuid',
-                'content',
-                'asset__uid',
-            )
+        qs = SubmissionSupplement.objects.select_related('asset').only(
+            'submission_uuid',
+            'content',
+            'asset__uid',
         )
 
         if asset_uid:
             qs = qs.filter(asset__uid=asset_uid)
             self.stdout.write(f'Filtering to asset: {asset_uid}')
 
-        total = qs.count()
-        if total == 0:
-            self.stdout.write(self.style.SUCCESS('Nothing to migrate.'))
-            return
+        unmigrated_supplements = qs.exclude(content__has_key='_version')
+
+        total_unmigrated = unmigrated_supplements.count()
 
         self.stdout.write(
-            f'Found {total} supplement(s) to migrate'
+            f'Found {total_unmigrated} older supplement(s) to migrate'
             + (' (dry run)' if dry_run else '')
         )
 
@@ -107,36 +105,67 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
 
-            try:
-                migrated_content = migrate_submission_supplementals(content)
-            except Exception as e:
-                self.stderr.write(
-                    f'  ERROR supplement {ss.pk}'
-                    f' (asset={ss.asset.uid}, uuid={ss.submission_uuid}): {e}'
-                )
-                errors += 1
-                continue
-
-            if migrated_content is None:
-                self.stderr.write(
-                    f'  SKIP supplement {ss.pk}'
-                    f' (asset={ss.asset.uid}, uuid={ss.submission_uuid}):'
-                    ' migrate_submission_supplementals returned None'
-                )
-                skipped += 1
-                continue
-
-            # Collect (asset_id, xpath, action_id) combos that need a QAF
-            for xpath, action_data in migrated_content.items():
-                if xpath == '_version' or not isinstance(action_data, dict):
+            elif content.get('_version') is None:
+                try:
+                    migrated_content = migrate_submission_supplementals(content)
+                except Exception as e:
+                    self.stderr.write(
+                        f'  ERROR supplement {ss.pk}'
+                        f' (asset={ss.asset.uid}, uuid={ss.submission_uuid}): {e}'
+                    )
+                    errors += 1
                     continue
-                for action_id in action_data:
-                    if action_id in ACTION_IDS_TO_CLASSES:
-                        missing_qaf_combos.add((ss.asset_id, xpath, action_id))
 
-            ss.content = migrated_content
-            to_update.append(ss)
-            migrated += 1
+                if migrated_content is None:
+                    self.stderr.write(
+                        f'  SKIP supplement {ss.pk}'
+                        f' (asset={ss.asset.uid}, uuid={ss.submission_uuid}):'
+                        ' migrate_submission_supplementals returned None'
+                    )
+                    skipped += 1
+                    continue
+
+                # Collect (asset_id, xpath, action_id) combos that need a QAF
+                for xpath, action_data in migrated_content.items():
+                    if xpath == '_version' or not isinstance(action_data, dict):
+                        continue
+                    for action_id in action_data:
+                        if action_id in ACTION_IDS_TO_CLASSES:
+                            missing_qaf_combos.add((ss.asset_id, xpath, action_id))
+
+                ss.content = migrated_content
+                to_update.append(ss)
+                migrated += 1
+            else:
+                # check for mistakes in manual_qual versions from a previous migration
+                try:
+                    update_necessary = False
+                    for question_xpath, action_results in content.items():
+                        if question_xpath == '_version':
+                            continue
+                        for action, action_responses in action_results.items():
+                            if action != 'manual_qual':
+                                continue
+                            for _, versions_data in action_responses.items():
+                                versions = versions_data.get('_versions', [])
+                                for version in versions:
+                                    if '_dateAccepted' in version:
+                                        update_necessary = True
+                                        del version['_dateAccepted']
+                                    if 'verified' not in version:
+                                        update_necessary = True
+                                        version['verified'] = False
+                    if update_necessary:
+                        ss.content = content
+                        to_update.append(ss)
+                        migrated += 1
+                except Exception as e:
+                    self.stderr.write(
+                        f'  ERROR supplement {ss.pk}'
+                        f' (asset={ss.asset.uid}, uuid={ss.submission_uuid}): {e}'
+                    )
+                    errors += 1
+                    continue
 
             if not dry_run and len(to_update) >= CHUNK_SIZE:
                 SubmissionSupplement.objects.bulk_update(to_update, fields=['content'])
