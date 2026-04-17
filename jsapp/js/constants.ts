@@ -494,7 +494,7 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name',
 }
 
-export const QUERY_LIMIT_DEFAULT = 5000
+export const QUERY_LIMIT_DEFAULT = 1000
 
 export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   form_media: 50,
