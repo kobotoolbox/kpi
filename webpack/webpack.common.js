@@ -83,7 +83,30 @@ const commonOptions = {
         },
       },
       {
-        test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)$/,
+        test: /\.svg$/,
+        oneOf: [
+          {
+            resourceQuery: /react/,
+            use: [
+              {
+                loader: '@svgr/webpack',
+                options: {
+                  icon: true,
+                  svgo: true,
+                },
+              },
+            ],
+          },
+          {
+            type: 'asset/resource',
+            generator: {
+              filename: '[name][ext]',
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(png|jpg|gif|ttf|eot|woff(2)?)$/,
         type: 'asset/resource',
         generator: {
           filename: '[name][ext]',

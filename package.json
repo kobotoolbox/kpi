@@ -96,6 +96,7 @@
     "@storybook/react-webpack5": "^9.0.18",
     "@storybook/test-runner": "^0.24.0-next.1",
     "@storybook/types": "^9.0.0-alpha.1",
+    "@svgr/webpack": "^8.1.0",
     "@swc/core": "^1.6.6",
     "@swc/jest": "^0.2.39",
     "@tanstack/eslint-plugin-query": "^5.62.16",

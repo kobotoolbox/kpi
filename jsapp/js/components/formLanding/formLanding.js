@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Group, Stack } from '@mantine/core'
+import { IconWorldFilled } from '@tabler/icons-react'
 import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
@@ -522,7 +523,12 @@ class FormLanding extends React.Component {
 
         {canEdit && (
           <bem.FormView__cell>
-            <ButtonNew variant='outline' size='md' rightIcon='language' onClick={this.showLanguagesModal.bind(this)}>
+            <ButtonNew
+              variant='outline'
+              size='md'
+              rightIcon={IconWorldFilled}
+              onClick={this.showLanguagesModal.bind(this)}
+            >
               {t('Manage')}
             </ButtonNew>
           </bem.FormView__cell>

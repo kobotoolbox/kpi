@@ -1,6 +1,8 @@
 import * as TablerIcons from '@tabler/icons-react'
-import type { TablerIcon } from '@tabler/icons-react'
+import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
+import type { ComponentType } from 'react'
 import type { IconName } from '#/k-icons'
+import { resolveLegacySvgIconByName } from './LegacySvgIconMappings'
 
 const tablerIconEntries = Object.entries(TablerIcons).filter(
   (entry): entry is [string, TablerIcon] =>
@@ -206,6 +208,15 @@ export const LegacyIconToTablerIconMap: Record<IconName, TablerIcon | undefined>
 
 export function resolveIconByLegacyName(legacyIconName: IconName): TablerIcon | undefined {
   return LegacyIconToTablerIconMap[legacyIconName]
+}
+
+export function resolveIconComponentByLegacyName(legacyIconName: IconName): ComponentType<SvgIconProps> {
+  const tablerIcon = resolveIconByLegacyName(legacyIconName)
+  if (tablerIcon) {
+    return tablerIcon
+  }
+
+  return resolveLegacySvgIconByName(legacyIconName)
 }
 
 export function getLegacyIconsCatalog() {

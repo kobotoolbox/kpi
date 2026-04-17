@@ -1,4 +1,4 @@
-import { Group, Stack, Text, ThemeIcon } from '@mantine/core'
+import { Group, Stack, Table, type TableData, Text } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import * as TablerIcons from '@tabler/icons-react'
 import type { TablerIcon } from '@tabler/icons-react'
@@ -7,6 +7,8 @@ import ButtonNew from '#/components/common/ButtonNew'
 import KoboIcon from './KoboIcon'
 import type { KoboIconProps } from './KoboIcon'
 import { getLegacyIconsCatalog } from './KoboIconMappings'
+import { resolveLegacySvgIconByName } from './LegacySvgIconMappings'
+import MixedIcon from './MixedIcon'
 import Icon from './icon'
 import type { IconColor } from './icon'
 
@@ -119,23 +121,57 @@ export const LegacyCatalog: Story = {
 
 export const MantineIntegrationExamples: Story = {
   render: () => {
+    const migrationExamplesTableData: TableData = {
+      head: ['What?', 'Rendered icon', 'Rendered code'],
+      body: [
+        ['Legacy component (font icon)', <Icon name='document' />, <code>{"<Icon name='document' />"}</code>],
+        [
+          'Transitional component with legacy name',
+          <MixedIcon icon='document' />,
+          <code>{"<MixedIcon icon='document' />"}</code>,
+        ],
+        [
+          'Transitional component with Tabler icon',
+          <MixedIcon icon={TablerIcons.IconFileDescriptionFilled} />,
+          <code>{'<MixedIcon icon={TablerIcons.IconFileDescriptionFilled} />'}</code>,
+        ],
+        [
+          'New component with legacy SVG icon',
+          <KoboIcon icon={resolveLegacySvgIconByName('document')} />,
+          <code>{"<KoboIcon icon={resolveLegacySvgIconByName('document')} />"}</code>,
+        ],
+        [
+          'New component with Tabler icon',
+          <KoboIcon icon={TablerIcons.IconFileDescriptionFilled} />,
+          <code>{'<KoboIcon icon={TablerIcons.IconFileDescriptionFilled} />'}</code>,
+        ],
+      ],
+    }
     return (
       <Stack gap='md'>
-        <Text size='sm'>ActionIcon examples</Text>
+        <Text size='lg'>Icon component migration examples</Text>
+        <Table data={migrationExamplesTableData} />
+
+        <Text size='lg'>
+          <code>&lt;ActionIcon&gt;</code> integration examples
+        </Text>
         <Group>
-          <ActionIcon icon={TablerIcons.IconSearch} variant='light' size='lg' />
-          <ActionIcon icon={TablerIcons.IconX} variant='transparent' size='lg' />
-          <ThemeIcon variant='light' size='lg'>
-            <KoboIcon icon={TablerIcons.IconCalendar} size='md' />
-          </ThemeIcon>
+          <ActionIcon iconName='document' variant='light' size='lg' />
+          <ActionIcon icon={TablerIcons.IconSearch} variant='danger-secondary' size='lg' />
+          <ActionIcon icon={TablerIcons.IconRocket} variant='blue' size='lg' />
         </Group>
 
-        <Text size='sm'>Button example</Text>
+        <Text size='lg'>
+          <code>&lt;ButtonNew&gt;</code> integration examples
+        </Text>
         <Group>
-          <ButtonNew leftIcon={TablerIcons.IconSearch}>Search</ButtonNew>
-          <ButtonNew rightIcon={TablerIcons.IconChevronDown} variant='light'>
-            More actions
+          <ButtonNew leftIcon='lock-alt' variant='light'>
+            legacy icon (as icon font)
           </ButtonNew>
+          <ButtonNew leftIcon={resolveLegacySvgIconByName('deploy')} variant='danger'>
+            legacy icon (as svg)
+          </ButtonNew>
+          <ButtonNew leftIcon={TablerIcons.IconArchiveFilled}>new tabler icon</ButtonNew>
         </Group>
       </Stack>
     )

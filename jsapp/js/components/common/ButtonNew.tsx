@@ -1,9 +1,11 @@
 import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
 import type { MantineSize } from '@mantine/core'
 import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core/lib/components'
-import type { TablerIcon } from '@tabler/icons-react'
+import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
+import type { ComponentType } from 'react'
 import type { IconName } from '#/k-icons'
+import KoboIcon from './KoboIcon'
 import MixedIcon from './MixedIcon'
 import type { IconSize } from './icon'
 
@@ -21,18 +23,32 @@ export interface ButtonProps extends ButtonPropsMantine {
 
   // Standard way of using icons with deterministic sizes.
   // Note: never use Button with just an icon and no text - if you need that, use `ActionIcon` instead.
-  leftIcon?: IconName | TablerIcon
-  rightIcon?: IconName | TablerIcon
+  // Accepts IconName (legacy), TablerIcon (component), or resolved SVG components from resolvers.
+  leftIcon?: IconName | TablerIcon | ComponentType<SvgIconProps>
+  rightIcon?: IconName | TablerIcon | ComponentType<SvgIconProps>
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ tooltip, tooltipProps, leftIcon, rightIcon, leftSection, rightSection, ...others }, ref) => {
     const buttonSize = (others.size ?? 'sm') as MantineSize
     const legacyIconSize = ButtonToIconMap[others.size ?? 'sm']
+
     const resolvedLeftSection =
-      leftSection ?? (leftIcon && <MixedIcon icon={leftIcon} size={legacyIconSize ?? buttonSize} />)
+      leftSection ??
+      (leftIcon &&
+        (typeof leftIcon === 'string' ? (
+          <MixedIcon icon={leftIcon} size={legacyIconSize ?? buttonSize} />
+        ) : (
+          <KoboIcon icon={leftIcon} size={buttonSize} />
+        )))
     const resolvedRightSection =
-      rightSection ?? (rightIcon && <MixedIcon icon={rightIcon} size={legacyIconSize ?? buttonSize} />)
+      rightSection ??
+      (rightIcon &&
+        (typeof rightIcon === 'string' ? (
+          <MixedIcon icon={rightIcon} size={legacyIconSize ?? buttonSize} />
+        ) : (
+          <KoboIcon icon={rightIcon} size={buttonSize} />
+        )))
 
     if (!tooltip) {
       return (

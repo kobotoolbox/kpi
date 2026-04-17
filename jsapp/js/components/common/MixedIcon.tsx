@@ -2,11 +2,34 @@ import type { MantineSize } from '@mantine/core'
 import type { TablerIcon } from '@tabler/icons-react'
 import type { IconName } from '#/k-icons'
 import KoboIcon from './KoboIcon'
-import Icon, { type IconSize } from './icon'
+import { resolveIconComponentByLegacyName } from './KoboIconMappings'
+import type { IconSize } from './icon'
 
 export interface MixedIconProps {
   icon: IconName | TablerIcon
   size?: MantineSize | IconSize
+}
+
+const IconSizeToPixelsMap: Record<Exclude<IconSize, 'inherit'>, number> = {
+  xxs: 10,
+  xs: 14,
+  s: 18,
+  m: 20,
+  l: 22,
+  xl: 28,
+}
+
+function resolveKoboIconSize(size: MixedIconProps['size']): MantineSize | number | undefined {
+  if (!size) {
+    return undefined
+  }
+  if (size === 'inherit') {
+    return 18
+  }
+  if (size in IconSizeToPixelsMap) {
+    return IconSizeToPixelsMap[size as Exclude<IconSize, 'inherit'>]
+  }
+  return size as MantineSize
 }
 
 /**
@@ -16,8 +39,9 @@ export interface MixedIconProps {
  */
 export default function MixedIcon({ icon, size }: MixedIconProps) {
   if (typeof icon === 'string') {
-    return <Icon name={icon} size={size as IconSize} />
+    const resolvedIcon = resolveIconComponentByLegacyName(icon)
+    return <KoboIcon icon={resolvedIcon} size={resolveKoboIconSize(size)} />
   }
 
-  return <KoboIcon icon={icon} size={size as MantineSize} />
+  return <KoboIcon icon={icon} size={resolveKoboIconSize(size)} />
 }
