@@ -68,7 +68,7 @@ class TestGoogleTranslate(TestCase):
         assert 'Timed out' in res['error']
 
     @override_config(ASR_MT_GOOGLE_PROJECT_ID='xyz')
-    @override_config(ASR_MT_GOOGLE_REGION='eu')
+    @override_config(ASR_MT_GOOGLE_REGION='europe-west1')
     def test_translation_service_uses_regional_parent(self):
         asset = Asset.objects.get(pk=2)
         submission = {'_id': 1, 'meta/rootUuid': 'uuid:123'}
@@ -81,8 +81,8 @@ class TestGoogleTranslate(TestCase):
             'kobo.apps.subsequences.integrations.google.google_translate.translate.TranslationServiceClient'  # noqa: E501
         ) as mock_translate_client:
             service = GoogleTranslationService(submission, asset)
-            assert service.translate_parent == 'projects/xyz/locations/eu'
-            assert service.translate_async_parent == 'projects/xyz/locations/eu'
+            assert service.translate_parent == 'projects/xyz/locations/europe-west1'
+            assert service.translate_async_parent == 'projects/xyz/locations/europe-west1'
             kwargs = mock_translate_client.call_args[1]
             assert kwargs['client_options'].api_endpoint == 'translate-eu.googleapis.com'  # noqa: E501
 
@@ -103,4 +103,4 @@ class TestGoogleTranslate(TestCase):
             assert service.translate_parent == 'projects/xyz'
             assert service.translate_async_parent == 'projects/xyz/locations/us-central1'  # noqa: E501
             kwargs = mock_translate_client.call_args[1]
-            assert kwargs.get('client_options') is None
+            assert kwargs['client_options'].api_endpoint == 'translate.googleapis.com'  # noqa: E501

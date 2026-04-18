@@ -41,10 +41,15 @@ class GoogleTranslationService(GoogleService):
         client_opts = None
         # Explicit api_endpoints are ONLY required for multi-regional bounding ('eu' and 'us')  # noqa: E501
         # Granular regions (like 'us-central1') natively resolve through the global default endpoint  # noqa: E501
-        if translation_location and translation_location in ('eu', 'us'):
-            client_opts = client_options.ClientOptions(
-                api_endpoint=f'translate-{translation_location}.googleapis.com'
-            )
+        short_region = ''
+        if translation_location.startswith('us-') or translation_location == 'us':
+            short_region = '-us'
+        elif translation_location.startswith('europe-'):
+            short_region = '-eu'
+
+        client_opts = client_options.ClientOptions(
+            api_endpoint=f'translate{short_region}.googleapis.com'
+        )
 
         if translation_location and translation_location != 'global':
             self.translate_parent = (
