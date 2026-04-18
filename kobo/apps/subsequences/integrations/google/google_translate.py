@@ -44,7 +44,7 @@ class GoogleTranslationService(GoogleService):
         short_region = ''
         if translation_location.startswith('us-') or translation_location == 'us':
             short_region = '-us'
-        elif translation_location.startswith('europe-') or  translation_location == 'eu':  # noqa: E501
+        elif translation_location.startswith('europe-') or translation_location == 'eu':  # noqa: E501
             short_region = '-eu'
 
         client_opts = client_options.ClientOptions(
