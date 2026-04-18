@@ -82,7 +82,7 @@ class TestGoogleTranslate(TestCase):
         ) as mock_translate_client:
             service = GoogleTranslationService(submission, asset)
             assert service.translate_parent == 'projects/xyz/locations/europe-west1'
-            assert service.translate_async_parent == 'projects/xyz/locations/europe-west1'
+            assert service.translate_async_parent == 'projects/xyz/locations/europe-west1'  # noqa: E501
             kwargs = mock_translate_client.call_args[1]
             assert kwargs['client_options'].api_endpoint == 'translate-eu.googleapis.com'  # noqa: E501
 
