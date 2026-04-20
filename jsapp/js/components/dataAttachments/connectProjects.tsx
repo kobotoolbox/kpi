@@ -190,17 +190,16 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
         {
           onSuccess: (response) => {
             // Derive state from the canonical server value rather than the optimistic `data` object
-            const serverSharing = response.status === 200
-              ? (response.data as any).data_sharing as { enabled?: boolean; fields?: string[] } | undefined
-              : undefined
+            const serverSharing =
+              response.status === 200
+                ? ((response.data as any).data_sharing as { enabled?: boolean; fields?: string[] } | undefined)
+                : undefined
             const nextEnabled = serverSharing?.enabled ?? data.enabled
             const nextFields = serverSharing?.fields ?? data.fields
             setIsShared(nextEnabled)
             setIsSharingAnyQuestions(Boolean(nextFields.length))
             setColumnsToDisplay(
-              nextEnabled
-                ? dataAttachmentsUtils.generateColumnFilters(nextFields, asset.content?.survey ?? [])
-                : [],
+              nextEnabled ? dataAttachmentsUtils.generateColumnFilters(nextFields, asset.content?.survey ?? []) : [],
             )
             onSuccess?.()
           },
