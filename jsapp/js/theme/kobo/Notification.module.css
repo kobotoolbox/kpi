@@ -3,6 +3,6 @@
 }
 
 .title {
-  font-size: small;
+  font-size: var(--mantine-font-size-sm);
   font-weight: 600;
 }
