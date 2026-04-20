@@ -184,20 +184,30 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       patchDataSharingMutate(
         {
           uidAsset: asset.uid,
-          data: {
-            data_sharing: {
-              enabled: data.enabled,
-              fields: data.fields,
-            },
-            // TODO: Backend stores shared questions under `data_sharing`, but Orval doesn't allow this
-          } as any,
+          // TODO: Backend stores shared questions under `data_sharing`, but Orval doesn't model this
+          data: { data_sharing: { enabled: data.enabled, fields: data.fields } } as any,
         },
         {
-          onSuccess: () => onSuccess?.(),
+          onSuccess: (response) => {
+            // Derive state from the canonical server value rather than the optimistic `data` object
+            const serverSharing = response.status === 200
+              ? (response.data as any).data_sharing as { enabled?: boolean; fields?: string[] } | undefined
+              : undefined
+            const nextEnabled = serverSharing?.enabled ?? data.enabled
+            const nextFields = serverSharing?.fields ?? data.fields
+            setIsShared(nextEnabled)
+            setIsSharingAnyQuestions(Boolean(nextFields.length))
+            setColumnsToDisplay(
+              nextEnabled
+                ? dataAttachmentsUtils.generateColumnFilters(nextFields, asset.content?.survey ?? [])
+                : [],
+            )
+            onSuccess?.()
+          },
         },
       )
     },
-    [asset.uid, patchDataSharingMutate],
+    [asset.uid, asset.content?.survey, patchDataSharingMutate],
   )
 
   const onToggleSharingData = useCallback(() => {
@@ -207,11 +217,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     }
 
     if (isShared) {
-      patchDataSharing(data, () => {
-        setIsShared(data.enabled)
-        setIsSharingAnyQuestions(false)
-        setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters([], asset.content?.survey))
-      })
+      patchDataSharing(data)
       return
     }
 
@@ -223,18 +229,14 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       ).replaceAll('##ASSET_NAME##', escapeHtml(asset.name)),
       labels: { ok: t('Acknowledge and continue'), cancel: t('Cancel') },
       onok: () => {
-        patchDataSharing(data, () => {
-          setIsShared(data.enabled)
-          setIsSharingAnyQuestions(false)
-          setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters([], asset.content?.survey))
-        })
+        patchDataSharing(data)
         dialog.destroy()
       },
       oncancel: dialog.destroy,
     }
 
     dialog.set(opts).show()
-  }, [asset.content?.survey, asset.name, isShared, patchDataSharing])
+  }, [asset.name, isShared, patchDataSharing])
 
   const onColumnSelected = useCallback(
     (columnList: MultiCheckboxItem[]) => {
@@ -251,11 +253,9 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
         fields,
       }
 
-      patchDataSharing(data, () => {
-        setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters(data.fields, asset.content?.survey))
-      })
+      patchDataSharing(data)
     },
-    [asset.content?.survey, isShared, patchDataSharing],
+    [isShared, patchDataSharing],
   )
 
   const onSharingCheckboxChange = useCallback(
