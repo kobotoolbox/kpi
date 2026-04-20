@@ -1,6 +1,7 @@
 import time
 
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.db.models import Exists, OuterRef
 
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
@@ -53,7 +54,10 @@ def run():
 
     for i, uid in enumerate(asset_uids, start=1):
         logging.info(f'[LRM 0023] - [{i}/{total}] Migrating asset {uid}')
-        call_command('migrate_submission_supplements', asset_uid=uid)
+        try:
+            call_command('migrate_submission_supplements', asset_uid=uid)
+        except CommandError as e:
+            logging.error(f'[LRM 0023] - ERROR asset {uid}: {e}')
         time.sleep(SLEEP_BETWEEN_ASSETS)
 
     logging.info('[LRM 0023] - Done')

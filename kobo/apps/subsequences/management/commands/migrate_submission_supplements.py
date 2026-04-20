@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 
@@ -324,4 +324,8 @@ class Command(BaseCommand):
                 qaf_created += asset_qaf_created
 
         if not dry_run:
-            self.stdout.write(f'QAFs created: {qaf_created}, errors: {qaf_errors}')
+            if qaf_errors:
+                raise CommandError(
+                    f'QAFs created: {qaf_created}, failed: {qaf_errors}'
+                )
+            self.stdout.write(f'QAFs created: {qaf_created}')
