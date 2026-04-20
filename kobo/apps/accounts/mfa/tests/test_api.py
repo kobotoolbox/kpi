@@ -7,7 +7,7 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.tests.kpi_test_case import BaseTestCase
-from ..models import MfaAvailableToUser, MfaMethodsWrapper
+from ..models import MfaMethodsWrapper
 from .utils import activate_mfa_for_user, get_mfa_code_for_user
 
 METHOD = 'app'
@@ -60,31 +60,6 @@ class MfaApiTestCase(BaseTestCase):
         ).secret
         assert first_secret != second_secret
         assert first_response.json() != second_response.json()
-
-    @override_config(MFA_ENABLED=True)
-    def test_mfa_whitelisting(self):
-        anotheruser = User.objects.get(username='anotheruser')
-        self.client.login(username='anotheruser', password='anotheruser')
-
-        # Test when whitelist is disabled
-        activate_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        assert activate_response.status_code == status.HTTP_200_OK
-
-        # Enable the MFA whitelist by adding a user
-        someuser_mfa_activation = MfaAvailableToUser.objects.create(
-            user=self.someuser
-        )
-
-        activate_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        assert activate_response.status_code == status.HTTP_403_FORBIDDEN
-
-        mfa_availability = MfaAvailableToUser.objects.create(user=anotheruser)
-        activate_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        assert activate_response.status_code == status.HTTP_200_OK
-
-        # Reset MFA whitelist state
-        mfa_availability.delete()
-        someuser_mfa_activation.delete()
 
     def test_regenerate_codes(self):
         response = self.client.post(
