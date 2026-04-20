@@ -12,7 +12,7 @@ import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import { escapeHtml, generateAutoname, getAssetUIDFromUrl, truncateFile, truncateString } from '#/utils'
+import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'
@@ -163,6 +163,8 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     (attachmentUrl: string) => {
       const attachmentUid = getAssetUIDFromUrl(attachmentUrl)
       if (!attachmentUid) {
+        console.error('Failed to parse attachment UID from URL:', attachmentUrl)
+        notify(t('Could not remove import. Please refresh and try again.'), 'error')
         return
       }
 

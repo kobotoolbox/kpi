@@ -1,5 +1,4 @@
 import { type MouseEvent, useCallback, useEffect, useState } from 'react'
-
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataCreate, useAssetsPairedDataPartialUpdate } from '#/api/react-query/survey-data'
 import bem from '#/bem'
@@ -8,7 +7,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 import type { AssetResponse } from '#/dataInterface'
-import { getAssetUIDFromUrl } from '#/utils'
+import { getAssetUIDFromUrl, notify } from '#/utils'
 
 interface DataAttachmentColumnsFormProps {
   onSetModalTitle: (newTitle: string) => void
@@ -97,6 +96,8 @@ function DataAttachmentColumnsForm({
       if (attachmentUrl) {
         const pairedDataUid = getAssetUIDFromUrl(attachmentUrl)
         if (!pairedDataUid) {
+          console.error('Failed to parse paired data UID from attachment URL:', attachmentUrl)
+          notify(t('Could not update import. Please refresh and try again.'), 'error')
           return
         }
 
