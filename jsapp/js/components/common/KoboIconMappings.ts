@@ -6,7 +6,8 @@ import { resolveLegacySvgIconByName } from './LegacySvgIconMappings'
 
 const tablerIconEntries = Object.entries(TablerIcons).filter(
   (entry): entry is [string, TablerIcon] =>
-    typeof entry[1] === 'function' || (typeof entry[1] === 'object' && entry[1] !== null),
+    entry[0].startsWith('Icon') &&
+    (typeof entry[1] === 'function' || (typeof entry[1] === 'object' && entry[1] !== null)),
 )
 
 const tablerIconToNameMap = new Map<TablerIcon, string>(
