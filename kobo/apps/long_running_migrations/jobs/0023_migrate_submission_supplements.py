@@ -1,8 +1,9 @@
 import time
 
 from django.core.management import call_command
+from django.db.models import Exists, OuterRef
 
-from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kpi.utils.log import logging
 
 SLEEP_BETWEEN_ASSETS = 0.5
@@ -20,14 +21,28 @@ def run():
     QuestionAdvancedFeature records.
 
     This job is resumable: if it is interrupted (e.g. SoftTimeLimitExceeded),
-    the next Beat cycle will pick up the remaining assets because
-    already-migrated supplements are excluded by the queryset filter.
+    the next Beat cycle will pick up the remaining assets. Two sets are
+    combined:
+      - Assets with supplements still in the old format (no '_version').
+      - Assets whose supplements are already migrated but have no
+        QuestionAdvancedFeature records (interrupted previous run).
     """
-    asset_uids = list(
+    old_uids = set(
         SubmissionSupplement.objects.exclude(content__has_key='_version')
         .values_list('asset__uid', flat=True)
         .distinct()
     )
+    stranded_uids = set(
+        SubmissionSupplement.objects.filter(content__has_key='_version')
+        .exclude(
+            Exists(
+                QuestionAdvancedFeature.objects.filter(asset_id=OuterRef('asset_id'))
+            )
+        )
+        .values_list('asset__uid', flat=True)
+        .distinct()
+    )
+    asset_uids = list(old_uids | stranded_uids)
 
     total = len(asset_uids)
     if total == 0:

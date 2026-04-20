@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.db.models import Exists, OuterRef
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
@@ -75,23 +77,20 @@ class Command(BaseCommand):
             self.stdout.write(f'Filtering to asset: {asset_uid}')
 
         total = qs.count()
-        if total == 0:
-            self.stdout.write(self.style.SUCCESS('Nothing to migrate.'))
-            return
-
-        self.stdout.write(
-            f'Found {total} supplement(s) to migrate'
-            + (' (dry run)' if dry_run else '')
-        )
-
         migrated = 0
         skipped = 0
         errors = 0
         to_update = []
 
-        # Collect missing (asset, xpath, action_id) combos across all supplements
-        # to create QAFs at the end in bulk
+        # Collect (asset_id, xpath, action_id) combos across all supplements
+        # that need a QAF created or recovered.
         missing_qaf_combos = set()
+
+        if total > 0:
+            self.stdout.write(
+                f'Found {total} supplement(s) to migrate'
+                + (' (dry run)' if dry_run else '')
+            )
 
         for ss in qs.iterator(chunk_size=CHUNK_SIZE):
             content = ss.content.copy()
@@ -147,16 +146,49 @@ class Command(BaseCommand):
             SubmissionSupplement.objects.bulk_update(to_update, fields=['content'])
             self.stdout.write(f'  Saved {len(to_update)} records...')
 
+        # Also collect QAF combos from supplements that were already migrated
+        # (_version present) but whose asset currently has no QAFs. This handles
+        # the case where a previous run was interrupted between the bulk_update
+        # and the QAF creation, making the command safely retryable.
+        stranded_qs = (
+            SubmissionSupplement.objects.filter(content__has_key='_version')
+            .exclude(
+                Exists(
+                    QuestionAdvancedFeature.objects.filter(
+                        asset_id=OuterRef('asset_id')
+                    )
+                )
+            )
+            .only('asset_id', 'content')
+        )
+        if asset_uid:
+            stranded_qs = stranded_qs.filter(asset__uid=asset_uid)
+
+        for ss in stranded_qs.iterator(chunk_size=CHUNK_SIZE):
+            for xpath, action_data in ss.content.items():
+                if xpath == '_version' or not isinstance(action_data, dict):
+                    continue
+                for action_id in action_data:
+                    if action_id in ACTION_IDS_TO_CLASSES:
+                        missing_qaf_combos.add((ss.asset_id, xpath, action_id))
+
+        if total == 0 and not missing_qaf_combos:
+            self.stdout.write(self.style.SUCCESS('Nothing to do.'))
+            return
+
         self._create_missing_qafs(missing_qaf_combos, dry_run)
 
-        summary = f'Done. Migrated: {migrated}, Skipped: {skipped}, Errors: {errors}'
-        if dry_run:
-            summary += ' (dry run — no changes saved)'
+        if total > 0:
+            summary = (
+                f'Done. Migrated: {migrated}, Skipped: {skipped}, Errors: {errors}'
+            )
+            if dry_run:
+                summary += ' (dry run — no changes saved)'
 
-        if errors == 0:
-            self.stdout.write(self.style.SUCCESS(summary))
-        else:
-            self.stdout.write(self.style.WARNING(summary))
+            if errors == 0:
+                self.stdout.write(self.style.SUCCESS(summary))
+            else:
+                self.stdout.write(self.style.WARNING(summary))
 
     def _create_missing_qafs(self, combos: set, dry_run: bool) -> None:
         """
@@ -203,34 +235,36 @@ class Command(BaseCommand):
                 qaf_errors += len(combos_for_asset)
                 continue
 
-            for xpath, action_id in combos_for_asset:
-                try:
-                    params = self._build_params(asset, xpath, action_id)
-                except Exception as e:
-                    self.stderr.write(
-                        f'  ERROR building params for asset={asset.uid}'
-                        f' xpath={xpath} action={action_id}: {e}'
-                    )
-                    qaf_errors += 1
-                    continue
-
-                self.stdout.write(
-                    f'  {"[dry-run] " if dry_run else ""}'
-                    f'Creating QAF asset={asset.uid} xpath={xpath} action={action_id}'
-                )
-                if not dry_run:
-                    try:
-                        _, created = QuestionAdvancedFeature.objects.get_or_create(
-                            asset=asset,
-                            question_xpath=xpath,
-                            action=action_id,
-                            defaults={'params': params},
+            # Wrap all QAFs for this asset in a single transaction so that a
+            # partial failure rolls back cleanly. The expanded queryset in
+            # handle() will then pick this asset up again on the next run
+            # (its supplements have _version but no QAFs).
+            asset_qaf_created = 0
+            try:
+                with transaction.atomic():
+                    for xpath, action_id in combos_for_asset:
+                        params = self._build_params(asset, xpath, action_id)
+                        self.stdout.write(
+                            f'  {"[dry-run] " if dry_run else ""}'
+                            f'Creating QAF asset={asset.uid}'
+                            f' xpath={xpath} action={action_id}'
                         )
-                        if created:
-                            qaf_created += 1
-                    except Exception as e:
-                        self.stderr.write(f'    ERROR: {e}')
-                        qaf_errors += 1
+                        if not dry_run:
+                            _, created = QuestionAdvancedFeature.objects.get_or_create(
+                                asset=asset,
+                                question_xpath=xpath,
+                                action=action_id,
+                                defaults={'params': params},
+                            )
+                            if created:
+                                asset_qaf_created += 1
+            except Exception as e:
+                self.stderr.write(
+                    f'  ERROR creating QAFs for asset={asset.uid}: {e}'
+                )
+                qaf_errors += len(combos_for_asset)
+            else:
+                qaf_created += asset_qaf_created
 
         if not dry_run:
             self.stdout.write(f'QAFs created: {qaf_created}, errors: {qaf_errors}')
