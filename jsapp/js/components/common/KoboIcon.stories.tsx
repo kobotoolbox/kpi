@@ -69,7 +69,7 @@ export const Primary: Story = {
   },
 }
 
-export const LegacyCatalog: Story = {
+export const LegacyMigrationCatalog: Story = {
   render: () => (
     <div style={{ display: 'grid', gap: '10px' }}>
       <div
@@ -168,10 +168,10 @@ export const MantineIntegrationExamples: Story = {
           <ButtonNew leftIcon='lock-alt' variant='light'>
             legacy icon (as icon font)
           </ButtonNew>
-          <ButtonNew leftIcon={resolveLegacySvgIconByName('deploy')} variant='danger'>
+          <ButtonNew leftIcon={resolveLegacySvgIconByName('lock-alt')} variant='danger'>
             legacy icon (as svg)
           </ButtonNew>
-          <ButtonNew leftIcon={TablerIcons.IconArchiveFilled}>new tabler icon</ButtonNew>
+          <ButtonNew leftIcon={TablerIcons.IconLockFilled}>new tabler icon</ButtonNew>
         </Group>
       </Stack>
     )
