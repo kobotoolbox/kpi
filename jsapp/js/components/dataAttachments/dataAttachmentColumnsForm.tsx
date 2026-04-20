@@ -147,7 +147,6 @@ function DataAttachmentColumnsForm({
       onModalClose,
       patchPairedDataMutate,
       source.url,
-      source.url,
     ],
   )
 
