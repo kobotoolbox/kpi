@@ -184,7 +184,8 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       patchDataSharingMutate(
         {
           uidAsset: asset.uid,
-          // TODO: Backend stores shared questions under `data_sharing`, but Orval doesn't model this
+          // TODO: Backend stores shared questions under `data_sharing`, but Orval doesn't model this, see:
+          // https://linear.app/kobotoolbox/issue/DEV-2003
           data: { data_sharing: { enabled: data.enabled, fields: data.fields } } as any,
         },
         {
