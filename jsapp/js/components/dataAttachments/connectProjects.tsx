@@ -90,6 +90,9 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     }))
   }, [attachedSourcesResponse])
 
+  // Note: we wrap most of the functions in `useCallback`, because they are being referenced in
+  // useEffect dependency array. Without it we end up in endless loop of calls
+
   const refreshAttachmentList = useCallback(() => {
     setNewSource(null)
     setNewFilename('')
