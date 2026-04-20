@@ -1036,6 +1036,10 @@ SPECTACULAR_SETTINGS = {
     ),
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'POSTPROCESSING_HOOKS': [
+        'drf_spectacular.hooks.postprocess_schema_enums',
+        'kpi.utils.spectacular_processing.merge_allauth_headless_schema',
+    ],
     'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
     'SWAGGER_UI_SETTINGS': {
         'filter': True,
@@ -1654,6 +1658,10 @@ WEBPACK_LOADER = {
 # This setting sets the prefix in the subject line of the account activation email
 # The default is the URL of the server. Set to blank to fit the email requirements
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+
+# Enable serving django-allauth Headless OpenAPI specs (we ingest these into DRF-Spectacular)
+HEADLESS_SERVE_SPECIFICATION = True
+
 
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND', 'django.core.mail.backends.filebased.EmailBackend'
