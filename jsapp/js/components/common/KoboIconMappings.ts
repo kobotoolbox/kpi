@@ -2,7 +2,7 @@ import * as TablerIcons from '@tabler/icons-react'
 import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
 import type { IconName } from '#/k-icons'
-import { resolveLegacySvgIconByName } from './LegacySvgIconMappings'
+import { resolveLegacySvgIconByName } from './IconLegacySvgMappings'
 
 const tablerIconEntries = Object.entries(TablerIcons).filter(
   (entry): entry is [string, TablerIcon] =>

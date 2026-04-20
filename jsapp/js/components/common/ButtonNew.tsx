@@ -5,8 +5,8 @@ import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
 import type { ComponentType } from 'react'
 import type { IconName } from '#/k-icons'
+import IconLegacySupport from './IconLegacySupport'
 import KoboIcon from './KoboIcon'
-import MixedIcon from './MixedIcon'
 import type { IconSize } from './icon'
 
 const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
@@ -37,7 +37,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       leftSection ??
       (leftIcon &&
         (typeof leftIcon === 'string' ? (
-          <MixedIcon icon={leftIcon} size={legacyIconSize ?? buttonSize} />
+          <IconLegacySupport icon={leftIcon} size={legacyIconSize ?? buttonSize} />
         ) : (
           <KoboIcon icon={leftIcon} size={buttonSize} />
         )))
@@ -45,7 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       rightSection ??
       (rightIcon &&
         (typeof rightIcon === 'string' ? (
-          <MixedIcon icon={rightIcon} size={legacyIconSize ?? buttonSize} />
+          <IconLegacySupport icon={rightIcon} size={legacyIconSize ?? buttonSize} />
         ) : (
           <KoboIcon icon={rightIcon} size={buttonSize} />
         )))

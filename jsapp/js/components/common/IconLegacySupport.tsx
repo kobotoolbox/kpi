@@ -5,7 +5,7 @@ import KoboIcon from './KoboIcon'
 import { resolveIconComponentByLegacyName } from './KoboIconMappings'
 import type { IconSize } from './icon'
 
-export interface MixedIconProps {
+export interface IconLegacySupportProps {
   icon: IconName | TablerIcon
   size?: MantineSize | IconSize
 }
@@ -19,7 +19,7 @@ const IconSizeToPixelsMap: Record<Exclude<IconSize, 'inherit'>, number> = {
   xl: 28,
 }
 
-function resolveKoboIconSize(size: MixedIconProps['size']): MantineSize | number | undefined {
+function resolveKoboIconSize(size: IconLegacySupportProps['size']): MantineSize | number | undefined {
   if (!size) {
     return undefined
   }
@@ -37,7 +37,7 @@ function resolveKoboIconSize(size: MixedIconProps['size']): MantineSize | number
  * KoboIcon (SVG/tabler based).
  * Prefer using `KoboIcon` directly for new code.
  */
-export default function MixedIcon({ icon, size }: MixedIconProps) {
+export default function IconLegacySupport({ icon, size }: IconLegacySupportProps) {
   if (typeof icon === 'string') {
     const resolvedIcon = resolveIconComponentByLegacyName(icon)
     return <KoboIcon icon={resolvedIcon} size={resolveKoboIconSize(size)} />

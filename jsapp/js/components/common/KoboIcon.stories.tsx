@@ -4,11 +4,11 @@ import * as TablerIcons from '@tabler/icons-react'
 import type { TablerIcon } from '@tabler/icons-react'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
+import IconLegacySupport from './IconLegacySupport'
+import { resolveLegacySvgIconByName } from './IconLegacySvgMappings'
 import KoboIcon from './KoboIcon'
 import type { KoboIconProps } from './KoboIcon'
 import { getLegacyIconsCatalog } from './KoboIconMappings'
-import { resolveLegacySvgIconByName } from './LegacySvgIconMappings'
-import MixedIcon from './MixedIcon'
 import Icon from './icon'
 import type { IconColor } from './icon'
 
@@ -128,13 +128,13 @@ export const MantineIntegrationExamples: Story = {
         ['Legacy component (font icon)', <Icon name='document' />, <code>{"<Icon name='document' />"}</code>],
         [
           'Transitional component with legacy name',
-          <MixedIcon icon='document' />,
-          <code>{"<MixedIcon icon='document' />"}</code>,
+          <IconLegacySupport icon='document' />,
+          <code>{"<IconLegacySupport icon='document' />"}</code>,
         ],
         [
           'Transitional component with Tabler icon',
-          <MixedIcon icon={TablerIcons.IconFileDescriptionFilled} />,
-          <code>{'<MixedIcon icon={TablerIcons.IconFileDescriptionFilled} />'}</code>,
+          <IconLegacySupport icon={TablerIcons.IconFileDescriptionFilled} />,
+          <code>{'<IconLegacySupport icon={TablerIcons.IconFileDescriptionFilled} />'}</code>,
         ],
         [
           'New component with legacy SVG icon',
