@@ -190,6 +190,63 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.WARNING(summary))
 
+    def _build_params(self, asset: Asset, xpath: str, action_id: str) -> list | dict:
+        """
+        Build params for a QuestionAdvancedFeature.
+
+        - manual_qual / automatic_bedrock_qual: extracts question definitions
+          from asset.advanced_features['qual']['qual_survey'].
+        - manual_transcription / automatic_google_transcription: language list
+          from asset.advanced_features['transcript']['languages'].
+        - manual_translation / automatic_google_translation: language list
+          from asset.advanced_features['translation']['languages'].
+        """
+        advanced_features = asset.advanced_features or {}
+
+        if action_id in ('manual_transcription', 'automatic_google_transcription'):
+            languages = advanced_features.get('transcript', {}).get('languages', [])
+            return [{'language': lang} for lang in languages]
+
+        if action_id in ('manual_translation', 'automatic_google_translation'):
+            languages = advanced_features.get('translation', {}).get('languages', [])
+            return [{'language': lang} for lang in languages]
+
+        if action_id in ('manual_qual', 'automatic_bedrock_qual'):
+            qual_survey = advanced_features.get('qual', {}).get('qual_survey', [])
+            # qual_survey items may use 'xpath' (slash) or 'qpath' (dash) as the key
+            questions = [
+                q
+                for q in qual_survey
+                if q.get('xpath') == xpath or q.get('qpath') == xpath
+            ]
+            params = []
+            for q in questions:
+                for required in ('uuid', 'type', 'labels'):
+                    if required not in q:
+                        raise ValueError(
+                            f"qual_survey item missing required field '{required}'"
+                        )
+                entry = {
+                    'uuid': q['uuid'],
+                    'type': QUAL_TYPE_MAP.get(q['type'], q['type']),
+                    'labels': q['labels'],
+                }
+                if 'choices' in q:
+                    entry['choices'] = [
+                        {
+                            k: v
+                            for k, v in c.items()
+                            if k in ('uuid', 'labels', 'options')
+                        }
+                        for c in q['choices']
+                    ]
+                if 'options' in q:
+                    entry['options'] = q['options']
+                params.append(entry)
+            return params
+
+        return {}
+
     def _create_missing_qafs(self, combos: set, dry_run: bool) -> None:
         """
         Create QuestionAdvancedFeature records for (asset_id, xpath, action_id)
@@ -268,60 +325,3 @@ class Command(BaseCommand):
 
         if not dry_run:
             self.stdout.write(f'QAFs created: {qaf_created}, errors: {qaf_errors}')
-
-    def _build_params(self, asset: Asset, xpath: str, action_id: str) -> list | dict:
-        """
-        Build params for a QuestionAdvancedFeature.
-
-        - manual_qual / automatic_bedrock_qual: extracts question definitions
-          from asset.advanced_features['qual']['qual_survey'].
-        - manual_transcription / automatic_google_transcription: language list
-          from asset.advanced_features['transcript']['languages'].
-        - manual_translation / automatic_google_translation: language list
-          from asset.advanced_features['translation']['languages'].
-        """
-        advanced_features = asset.advanced_features or {}
-
-        if action_id in ('manual_transcription', 'automatic_google_transcription'):
-            languages = advanced_features.get('transcript', {}).get('languages', [])
-            return [{'language': lang} for lang in languages]
-
-        if action_id in ('manual_translation', 'automatic_google_translation'):
-            languages = advanced_features.get('translation', {}).get('languages', [])
-            return [{'language': lang} for lang in languages]
-
-        if action_id in ('manual_qual', 'automatic_bedrock_qual'):
-            qual_survey = advanced_features.get('qual', {}).get('qual_survey', [])
-            # qual_survey items may use 'xpath' (slash) or 'qpath' (dash) as the key
-            questions = [
-                q
-                for q in qual_survey
-                if q.get('xpath') == xpath or q.get('qpath') == xpath
-            ]
-            params = []
-            for q in questions:
-                for required in ('uuid', 'type', 'labels'):
-                    if required not in q:
-                        raise ValueError(
-                            f"qual_survey item missing required field '{required}'"
-                        )
-                entry = {
-                    'uuid': q['uuid'],
-                    'type': QUAL_TYPE_MAP.get(q['type'], q['type']),
-                    'labels': q['labels'],
-                }
-                if 'choices' in q:
-                    entry['choices'] = [
-                        {
-                            k: v
-                            for k, v in c.items()
-                            if k in ('uuid', 'labels', 'options')
-                        }
-                        for c in q['choices']
-                    ]
-                if 'options' in q:
-                    entry['options'] = q['options']
-                params.append(entry)
-            return params
-
-        return {}
