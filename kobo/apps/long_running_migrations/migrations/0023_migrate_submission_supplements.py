@@ -8,8 +8,13 @@ def add_long_running_migration(apps, schema_editor):
     LongRunningMigration.objects.create(name='0023_migrate_submission_supplements')
 
 
-def noop(*args, **kwargs):
-    pass
+def delete_long_running_migration(apps, schema_editor):
+    LongRunningMigration = apps.get_model(
+        'long_running_migrations', 'LongRunningMigration'
+    )
+    LongRunningMigration.objects.filter(
+        name='0023_migrate_submission_supplements'
+    ).delete()
 
 
 class Migration(migrations.Migration):
@@ -19,5 +24,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(add_long_running_migration, noop),
+        migrations.RunPython(add_long_running_migration, delete_long_running_migration),
     ]

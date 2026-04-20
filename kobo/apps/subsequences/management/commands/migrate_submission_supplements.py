@@ -316,16 +316,12 @@ class Command(BaseCommand):
                             if created:
                                 asset_qaf_created += 1
             except Exception as e:
-                self.stderr.write(
-                    f'  ERROR creating QAFs for asset={asset.uid}: {e}'
-                )
+                self.stderr.write(f'  ERROR creating QAFs for asset={asset.uid}: {e}')
                 qaf_errors += len(combos_for_asset)
             else:
                 qaf_created += asset_qaf_created
 
         if not dry_run:
             if qaf_errors:
-                raise CommandError(
-                    f'QAFs created: {qaf_created}, failed: {qaf_errors}'
-                )
+                raise CommandError(f'QAFs created: {qaf_created}, failed: {qaf_errors}')
             self.stdout.write(f'QAFs created: {qaf_created}')
