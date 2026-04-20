@@ -9,10 +9,20 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { Email } from './email'
 
-export interface EmailAddress {
-  email: Email
-  primary: boolean
-  verified: boolean
-}
+/**
+ * The process to be executed when the user successfully
+authenticates. When set to `login`, the user will be logged into the
+account to which the provider account is connected, or if no such
+account exists, a signup will occur. If set to `connect`, the provider
+account will be connected to the list of provider accounts for the
+currently authenticated user.
+
+ */
+export type Process = (typeof Process)[keyof typeof Process]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const Process = {
+  login: 'login',
+  connect: 'connect',
+} as const

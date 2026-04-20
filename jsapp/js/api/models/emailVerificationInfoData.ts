@@ -10,9 +10,9 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { Email } from './email'
+import type { User } from './user'
 
-export interface EmailAddress {
+export type EmailVerificationInfoData = {
   email: Email
-  primary: boolean
-  verified: boolean
+  user: User
 }

@@ -9,10 +9,16 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { Email } from './email'
+import type { AccountConfigurationLoginMethodsItem } from './accountConfigurationLoginMethodsItem'
 
-export interface EmailAddress {
-  email: Email
-  primary: boolean
-  verified: boolean
+/**
+ * Configuration of the Django `allauth.account` app.
+
+ */
+export interface AccountConfiguration {
+  login_methods?: AccountConfigurationLoginMethodsItem[]
+  is_open_for_signup: boolean
+  email_verification_by_code_enabled: boolean
+  login_by_code_enabled: boolean
+  password_reset_by_code_enabled?: boolean
 }

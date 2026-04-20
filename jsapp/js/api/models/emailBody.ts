@@ -11,8 +11,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { Email } from './email'
 
-export interface EmailAddress {
+export type EmailBody = {
   email: Email
-  primary: boolean
-  verified: boolean
 }

@@ -9,10 +9,20 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { Email } from './email'
 
-export interface EmailAddress {
-  email: Email
-  primary: boolean
-  verified: boolean
-}
+export type FlowId = (typeof FlowId)[keyof typeof FlowId]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const FlowId = {
+  login: 'login',
+  login_by_code: 'login_by_code',
+  mfa_authenticate: 'mfa_authenticate',
+  mfa_reauthenticate: 'mfa_reauthenticate',
+  provider_redirect: 'provider_redirect',
+  provider_signup: 'provider_signup',
+  provider_token: 'provider_token',
+  reauthenticate: 'reauthenticate',
+  signup: 'signup',
+  verify_email: 'verify_email',
+  verify_phone: 'verify_phone',
+} as const
