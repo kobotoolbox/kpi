@@ -73,7 +73,6 @@ import KoboSvg from '../../../svg-icons/kobo.svg?react'
 import LanguageAltSvg from '../../../svg-icons/language-alt.svg?react'
 import LanguageDefaultSvg from '../../../svg-icons/language-default.svg?react'
 import LanguageSettingsSvg from '../../../svg-icons/language-settings.svg?react'
-import LanguageSvg from '../../../svg-icons/language.svg?react'
 import LayerSvg from '../../../svg-icons/layer.svg?react'
 import LibraryPublicSvg from '../../../svg-icons/library-public.svg?react'
 import LibrarySvg from '../../../svg-icons/library.svg?react'
@@ -282,7 +281,6 @@ export const LegacyIconToSvgComponentMap: Record<IconName, ComponentType<SvgIcon
   information: wrapLegacySvgIcon(InformationSvg),
   intercom: wrapLegacySvgIcon(IntercomSvg),
   kobo: wrapLegacySvgIcon(KoboSvg),
-  language: wrapLegacySvgIcon(LanguageSvg),
   'language-alt': wrapLegacySvgIcon(LanguageAltSvg),
   'language-default': wrapLegacySvgIcon(LanguageDefaultSvg),
   'language-settings': wrapLegacySvgIcon(LanguageSettingsSvg),

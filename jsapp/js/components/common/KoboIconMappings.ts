@@ -84,7 +84,6 @@ export const LegacyIconToTablerIconMap: Record<IconName, TablerIcon | undefined>
   information: TablerIcons.IconInfoCircleFilled,
   intercom: TablerIcons.IconBrandIntercom,
   kobo: undefined,
-  language: TablerIcons.IconWorldFilled,
   'language-alt': TablerIcons.IconLanguage,
   'language-default': TablerIcons.IconWorldStar,
   'language-settings': TablerIcons.IconWorldCog,
