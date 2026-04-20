@@ -15,13 +15,15 @@ class MfaAdapter(DefaultMFAAdapter):
         # NOTE: This is a temporary thing. We are migrating users to the allauth tables
         # When the migration is done it won't be necessary.
         self.migrate_user(user)
+
+        if not config.MFA_ENABLED:
+            return False
+
         mfa_active_super = super().is_mfa_enabled(user, types)
-        mfa_active = (
+        return (
             mfa_active_super
-            and MfaMethodsWrapper.objects.filter(user=user, is_active=True).first()
-            is not None
+            and MfaMethodsWrapper.objects.filter(user=user, is_active=True).exists()
         )
-        return mfa_active and config.MFA_ENABLED
 
     def get_totp_label(self, user) -> str:
         """Returns the label used for representing the given user in a TOTP QR
