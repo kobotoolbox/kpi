@@ -256,6 +256,9 @@ class LanguageAdmin(admin.ModelAdmin):
                 #  -------------|--------------|-------------|
                 mapping_codes = row[index].split(';')
                 for idx, region_code in enumerate(region_codes):
+                    if idx >= len(mapping_codes):
+                        continue
+
                     # if mapping_codes[idx] == 'null', service
                     # does not provide transcription for this region
                     if mapping_codes[idx] == 'null':

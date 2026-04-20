@@ -38,6 +38,10 @@ class TranscriptionServiceTestCase(BaseTestCase):
         self.assertEqual(config.location_code, 'me-west1')
         self.assertEqual(config.model_code, 'latest_long')
 
+    def test_get_configuration_not_supported_language(self):
+        with pytest.raises(LanguageNotSupported):
+            self.asr_service.get_configuration('af')
+
     def test_get_not_supported_language(self):
         with pytest.raises(LanguageNotSupported):
             self.assertNotEqual(self.asr_service.get_language_code('af'), 'af')
