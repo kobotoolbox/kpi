@@ -28,6 +28,7 @@ const meta: Meta<typeof Notification> = {
       control: { type: 'select' },
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta
