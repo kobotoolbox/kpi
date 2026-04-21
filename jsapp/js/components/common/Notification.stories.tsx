@@ -38,6 +38,6 @@ export const Default: Story = {
   args: {
     title: 'Your transcripts are on their way!',
     children: 'Click here to monitor your progress or to cancel this job',
-    icon: <Icon name='check' />,
+    icon: 'check',
   },
 }
