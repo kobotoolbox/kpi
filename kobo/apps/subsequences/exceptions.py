@@ -71,6 +71,14 @@ class SubsequenceVerificationError(Exception):
     pass
 
 
+class SupplementMigrationInProgress(Exception):
+    """
+    Raised when submission supplement data has not yet been migrated to the
+    current schema version. The long-running migration is responsible for
+    the migration. Retry the operation once the migration has completed.
+    """
+
+
 class TranscriptionNotFound(DependencyNotFound):
     pass
 

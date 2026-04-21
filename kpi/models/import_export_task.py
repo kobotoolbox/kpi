@@ -42,6 +42,8 @@ from formpack.utils.string import ellipsize
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
+from kobo.apps.subsequences.exceptions import SupplementMigrationInProgress
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.utils.supplement_data import (
     get_analysis_form_json,
     stream_with_supplements,
@@ -1065,6 +1067,17 @@ class SubmissionExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
+            # Use a cheap EXISTS query before the expensive full prefetch in
+            # stream_with_supplements. If old supplements are found we block
+            # the export with a clear message rather than crashing mid-stream.
+            if source.advanced_features_set.exists() and (
+                SubmissionSupplement.objects.filter(asset=source)
+                .exclude(content__has_key='_version')
+                .exists()
+            ):
+                raise SupplementMigrationInProgress(
+                    'Supplement data migration in progress, please retry later.'
+                )
             submission_stream = stream_with_supplements(
                 source, submission_stream, for_output=True
             )
