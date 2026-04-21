@@ -39,7 +39,7 @@ function resolveIconColor(color: KoboIconProps['color']): string | undefined {
   return IconColorToCssColorMap[color as IconColor] ?? color
 }
 
-export interface KoboIconProps extends Omit<SvgIconProps, 'size' | 'color' | 'stroke'> {
+export interface KoboIconProps extends Omit<SvgIconProps, 'size' | 'color'> {
   /** Icon component to render */
   icon?: ComponentType<SvgIconProps>
   /** Accepts legacy and Mantine size names */
