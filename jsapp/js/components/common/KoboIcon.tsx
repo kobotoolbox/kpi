@@ -39,7 +39,7 @@ function resolveIconColor(color: KoboIconProps['color']): string | undefined {
   return IconColorToCssColorMap[color as IconColor] ?? color
 }
 
-export interface KoboIconProps extends Omit<SvgIconProps, 'size' | 'color'> {
+export interface KoboIconProps extends Omit<SvgIconProps, 'size' | 'color' | 'stroke'> {
   /** Icon component to render */
   icon?: ComponentType<SvgIconProps>
   /** Accepts legacy and Mantine size names */
@@ -52,11 +52,12 @@ export interface KoboIconProps extends Omit<SvgIconProps, 'size' | 'color'> {
  * Preferred icon component for new UI.
  *
  * This component only renders explicit SVG icon components.
+ * Outline icons always use a 1.5 stroke width.
  */
 export default function KoboIcon({ icon, size, color, ...svgProps }: KoboIconProps) {
   if (!icon) {
     return null
   }
   const IconComponent = icon
-  return <IconComponent {...svgProps} color={resolveIconColor(color)} size={resolveIconSize(size)} />
+  return <IconComponent {...svgProps} color={resolveIconColor(color)} size={resolveIconSize(size)} stroke={1.5} />
 }
