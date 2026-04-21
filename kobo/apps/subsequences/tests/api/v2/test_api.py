@@ -587,8 +587,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                                     'value': 'Answer',
                                 },
                                 '_dateCreated': '2025-12-15T22:22:00+00:00',
-                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
                                 '_uuid': '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
+                                'verified': False,
                             }
                         ],
                     },
@@ -602,8 +602,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                                     'value': '83212060-fd18-445a-b121-ad82c2e5811d',
                                 },
                                 '_dateCreated': '2025-12-15T22:22:00+00:00',
-                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
                                 '_uuid': 'f2b4c6b1-3c6a-4a7f-9e55-1a8c2a0a7c91',
+                                'verified': False,
                             }
                         ],
                     },
@@ -620,8 +620,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                                     ],
                                 },
                                 '_dateCreated': '2025-12-15T22:22:00+00:00',
-                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
                                 '_uuid': '8c9a8e44-7a3d-4c58-b7bb-5f2a1c6e5c3a',
+                                'verified': False,
                             }
                         ],
                     },
