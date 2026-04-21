@@ -38,8 +38,17 @@ interface MultiCheckboxProps {
  */
 export default function MultiCheckbox(props: MultiCheckboxProps) {
   function onChange(itemIndex: number, isChecked: boolean) {
-    const updatedList = props.items
-    updatedList[itemIndex].checked = isChecked
+    const updatedList = props.items.map((item, currentItemIndex) => {
+      if (currentItemIndex !== itemIndex) {
+        return item
+      }
+
+      return {
+        ...item,
+        checked: isChecked,
+      }
+    })
+
     props.onChange(updatedList)
   }
 

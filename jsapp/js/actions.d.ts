@@ -354,7 +354,6 @@ export declare const actions: {
   survey: {
     addExternalItemAtPosition: SurveyAddExternalItemDefinition
   }
-  search: object
   resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
