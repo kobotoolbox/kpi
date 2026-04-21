@@ -229,7 +229,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
               return
             }
 
-            notify.error(errorPayload?.detail || errorPayload?.data_sharing?.fields || '400 Bad Request')
+            notify.error(errorPayload?.detail || errorPayload?.data_sharing?.fields || t('Failed to attach to source'))
           },
         },
       )
