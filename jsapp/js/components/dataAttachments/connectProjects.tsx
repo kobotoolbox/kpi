@@ -215,7 +215,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
           onError: (error) => {
             const errorPayload = error.payload as {
               detail?: string
-              data_sharing?: { fields?: string }
+              data_sharing?: { fields?: string[] }
             }
             const invalidFields = dataAttachmentsUtils.extractInvalidFieldsFromResponseMessage(
               data.fields,
