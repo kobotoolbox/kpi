@@ -37,7 +37,11 @@ type Story = StoryObj<typeof Notification>
 export const Default: Story = {
   args: {
     title: 'Your transcripts are on their way!',
-    children: 'Click here to monitor your progress or to cancel this job',
     icon: 'check',
   },
+  render: (args) => (
+    <Notification {...args}>
+      <a href='#'>Click here</a> to monitor your progress or to cancel this job
+    </Notification>
+  ),
 }
