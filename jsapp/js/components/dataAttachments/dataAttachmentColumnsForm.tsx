@@ -1,13 +1,7 @@
 import { type MouseEvent, useCallback, useEffect, useState } from 'react'
+import type { ServerError } from '#/api/ServerError'
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
-import {
-  type assetsPairedDataCreateResponse,
-  type assetsPairedDataPartialUpdateResponse,
-  getAssetsPairedDataCreateUrl,
-  getAssetsPairedDataPartialUpdateUrl,
-  useAssetsPairedDataCreate,
-  useAssetsPairedDataPartialUpdate,
-} from '#/api/react-query/survey-data'
+import { useAssetsPairedDataCreate, useAssetsPairedDataPartialUpdate } from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -15,7 +9,6 @@ import MultiCheckbox from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 import type { AssetResponse } from '#/dataInterface'
 import { getAssetUIDFromUrl, notify } from '#/utils'
-import { type PayloadResponseError, executeJsonRequest } from './requestUtils'
 
 interface DataAttachmentColumnsFormProps {
   onSetModalTitle: (newTitle: string) => void
@@ -58,33 +51,17 @@ function DataAttachmentColumnsForm({
     isFetching: isFetchingSourceAsset,
   } = useAssetsRetrieve(source.uid)
 
-  const { mutate: createPairedDataMutate, isPending: isCreatingAttachment } =
-    useAssetsPairedDataCreate<PayloadResponseError>({
-      mutation: {
-        // Hide default error to avoid duplicate toasts
-        onError: () => null,
-        mutationFn: ({ uidAsset, data }) => {
-          return executeJsonRequest<assetsPairedDataCreateResponse>(getAssetsPairedDataCreateUrl(uidAsset), {
-            method: 'POST',
-            body: JSON.stringify(data),
-          })
-        },
-      },
-    })
+  const { mutate: createPairedDataMutate, isPending: isCreatingAttachment } = useAssetsPairedDataCreate<ServerError>({
+    mutation: {
+      // Hide default error to avoid duplicate toasts
+      onError: () => null,
+    },
+  })
   const { mutate: patchPairedDataMutate, isPending: isPatchingAttachment } =
-    useAssetsPairedDataPartialUpdate<PayloadResponseError>({
+    useAssetsPairedDataPartialUpdate<ServerError>({
       mutation: {
         // Hide default error to avoid duplicate toasts
         onError: () => null,
-        mutationFn: ({ uidAsset, uidPairedData, data }) => {
-          return executeJsonRequest<assetsPairedDataPartialUpdateResponse>(
-            getAssetsPairedDataPartialUpdateUrl(uidAsset, uidPairedData),
-            {
-              method: 'PATCH',
-              body: JSON.stringify(data),
-            },
-          )
-        },
       },
     })
 
@@ -145,7 +122,7 @@ function DataAttachmentColumnsForm({
         onModalClose()
       }
 
-      const onFailure = (error: PayloadResponseError) => {
+      const onFailure = (error: ServerError) => {
         if (notifyInvalidFields(selectedFields, error.payload)) {
           return
         }
