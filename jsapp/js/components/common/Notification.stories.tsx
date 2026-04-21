@@ -18,7 +18,7 @@ const meta: Meta<typeof Notification> = {
       mapping: {
         ...recordKeys(IconNames).reduce(
           (componentList, iconName) => {
-            componentList[iconName] = <Icon name={iconName} size='m' />
+            componentList[iconName] = <Icon name={iconName} size='s' />
             return componentList
           },
           {} as Record<string, JSX.Element>,
