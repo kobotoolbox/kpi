@@ -3,7 +3,12 @@ import './connect-projects.scss'
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
-import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
+import {
+  type assetsPartialUpdateResponse,
+  getAssetsPartialUpdateUrl,
+  useAssetsList,
+  useAssetsPartialUpdate,
+} from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
@@ -17,6 +22,7 @@ import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
+import { type PayloadResponseError, executeJsonRequest } from './requestUtils'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
@@ -60,7 +66,19 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   } = useAssetsPairedDataList(asset.uid)
   const { mutate: detachSourceMutate, isPending: isDetachingSource } = useAssetsPairedDataDestroy()
   const { data: sharingEnabledAssetsResponse } = useAssetsList({ q: SHARING_ENABLED_PROJECTS_QUERY })
-  const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate()
+  const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } =
+    useAssetsPartialUpdate<PayloadResponseError>({
+      mutation: {
+        // Hide default error to avoid duplicate toasts
+        onError: () => null,
+        mutationFn: ({ uidAsset, data }) => {
+          return executeJsonRequest<assetsPartialUpdateResponse>(getAssetsPartialUpdateUrl(uidAsset), {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+          })
+        },
+      },
+    })
 
   const isLoading = isFetchingAttachedSources || isDetachingSource || isPatchingDataSharing
 
@@ -205,6 +223,25 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
               nextEnabled ? dataAttachmentsUtils.generateColumnFilters(nextFields, asset.content?.survey ?? []) : [],
             )
             onSuccess?.()
+          },
+          onError: (error) => {
+            const errorPayload = error.payload as {
+              detail?: string
+              data_sharing?: { fields?: string }
+            }
+            const invalidFields = dataAttachmentsUtils.extractInvalidFieldsFromResponseMessage(
+              data.fields,
+              errorPayload?.data_sharing,
+            )
+
+            if (invalidFields.length > 0) {
+              notify.error(
+                `${t('Failed to attach to source')}. ${t('Some fields are invalid:')}\n${invalidFields.join('\n')}`,
+              )
+              return
+            }
+
+            notify.error(errorPayload?.detail || errorPayload?.data_sharing?.fields || t('400 Bad Request'))
           },
         },
       )

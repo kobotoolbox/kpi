@@ -1,6 +1,13 @@
 import { type MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
-import { useAssetsPairedDataCreate, useAssetsPairedDataPartialUpdate } from '#/api/react-query/survey-data'
+import {
+  type assetsPairedDataCreateResponse,
+  type assetsPairedDataPartialUpdateResponse,
+  getAssetsPairedDataCreateUrl,
+  getAssetsPairedDataPartialUpdateUrl,
+  useAssetsPairedDataCreate,
+  useAssetsPairedDataPartialUpdate,
+} from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -8,6 +15,7 @@ import MultiCheckbox from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 import type { AssetResponse } from '#/dataInterface'
 import { getAssetUIDFromUrl, notify } from '#/utils'
+import { type PayloadResponseError, executeJsonRequest } from './requestUtils'
 
 interface DataAttachmentColumnsFormProps {
   onSetModalTitle: (newTitle: string) => void
@@ -49,8 +57,32 @@ function DataAttachmentColumnsForm({
     isFetched: isInitialised,
     isFetching: isFetchingSourceAsset,
   } = useAssetsRetrieve(source.uid)
-  const { mutate: createPairedDataMutate, isPending: isCreatingAttachment } = useAssetsPairedDataCreate()
-  const { mutate: patchPairedDataMutate, isPending: isPatchingAttachment } = useAssetsPairedDataPartialUpdate()
+
+  const { mutate: createPairedDataMutate, isPending: isCreatingAttachment } =
+    useAssetsPairedDataCreate<PayloadResponseError>({
+      mutation: {
+        mutationFn: ({ uidAsset, data }) => {
+          return executeJsonRequest<assetsPairedDataCreateResponse>(getAssetsPairedDataCreateUrl(uidAsset), {
+            method: 'POST',
+            body: JSON.stringify(data),
+          })
+        },
+      },
+    })
+  const { mutate: patchPairedDataMutate, isPending: isPatchingAttachment } =
+    useAssetsPairedDataPartialUpdate<PayloadResponseError>({
+      mutation: {
+        mutationFn: ({ uidAsset, uidPairedData, data }) => {
+          return executeJsonRequest<assetsPairedDataPartialUpdateResponse>(
+            getAssetsPairedDataPartialUpdateUrl(uidAsset, uidPairedData),
+            {
+              method: 'PATCH',
+              body: JSON.stringify(data),
+            },
+          )
+        },
+      },
+    })
 
   const isLoading = isCreatingAttachment || isPatchingAttachment
 
@@ -87,11 +119,46 @@ function DataAttachmentColumnsForm({
     setColumnsToDisplay(newList)
   }, [])
 
+  const notifyInvalidFields = useCallback((selectedFields: string[], errorPayload: unknown) => {
+    const invalidFields = dataAttachmentsUtils.extractInvalidFieldsFromResponseMessage(selectedFields, errorPayload)
+
+    if (invalidFields.length === 0) {
+      return false
+    }
+
+    notify.error(`${t('Failed to attach to source')}. ${t('Some fields are invalid:')}\n${invalidFields.join('\n')}`)
+    return true
+  }, [])
+
   const onSubmit = useCallback(
     (evt: MouseEvent<HTMLButtonElement>) => {
       evt.preventDefault()
 
       const selectedFields = columnsToDisplay.filter((item) => item.checked).map((item) => item.label)
+
+      const onSuccess = () => {
+        onAttachmentChanged?.()
+        onModalClose()
+      }
+
+      const onFailure = (error: PayloadResponseError) => {
+        if (notifyInvalidFields(selectedFields, error.payload)) {
+          return
+        }
+
+        const errorPayload = error.payload as {
+          detail?: string
+          data_sharing?: { fields?: string }
+          filename?: string[]
+        }
+
+        notify.error(
+          errorPayload?.detail ||
+            errorPayload?.data_sharing?.fields ||
+            errorPayload?.filename?.[0] ||
+            t('Failed to attach to source'),
+        )
+      }
 
       if (attachmentUrl) {
         const pairedDataUid = getAssetUIDFromUrl(attachmentUrl)
@@ -111,10 +178,8 @@ function DataAttachmentColumnsForm({
             },
           },
           {
-            onSuccess: () => {
-              onAttachmentChanged?.()
-              onModalClose()
-            },
+            onSuccess,
+            onError: onFailure,
           },
         )
         return
@@ -130,10 +195,8 @@ function DataAttachmentColumnsForm({
           },
         },
         {
-          onSuccess: () => {
-            onAttachmentChanged?.()
-            onModalClose()
-          },
+          onSuccess,
+          onError: onFailure,
         },
       )
     },
@@ -143,6 +206,7 @@ function DataAttachmentColumnsForm({
       columnsToDisplay,
       createPairedDataMutate,
       filename,
+      notifyInvalidFields,
       onAttachmentChanged,
       onModalClose,
       patchPairedDataMutate,
