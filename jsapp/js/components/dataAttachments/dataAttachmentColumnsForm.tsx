@@ -100,17 +100,6 @@ function DataAttachmentColumnsForm({
     setColumnsToDisplay(newList)
   }, [])
 
-  const notifyInvalidFields = useCallback((selectedFields: string[], errorPayload: unknown) => {
-    const invalidFields = dataAttachmentsUtils.extractInvalidFieldsFromResponseMessage(selectedFields, errorPayload)
-
-    if (invalidFields.length === 0) {
-      return false
-    }
-
-    notify.error(`${t('Failed to attach to source')}. ${t('Some fields are invalid:')}\n${invalidFields.join('\n')}`)
-    return true
-  }, [])
-
   const onSubmit = useCallback(
     (evt: MouseEvent<HTMLButtonElement>) => {
       evt.preventDefault()
@@ -123,7 +112,15 @@ function DataAttachmentColumnsForm({
       }
 
       const onFailure = (error: ServerError) => {
-        if (notifyInvalidFields(selectedFields, error.payload)) {
+        const invalidFields = dataAttachmentsUtils.extractInvalidFieldsFromResponseMessage(
+          selectedFields,
+          error.payload,
+        )
+
+        if (invalidFields.length > 0) {
+          notify.error(
+            `${t('Failed to attach to source')}. ${t('Some fields are invalid:')}\n${invalidFields.join('\n')}`,
+          )
           return
         }
 
@@ -187,7 +184,6 @@ function DataAttachmentColumnsForm({
       columnsToDisplay,
       createPairedDataMutate,
       filename,
-      notifyInvalidFields,
       onAttachmentChanged,
       onModalClose,
       patchPairedDataMutate,
