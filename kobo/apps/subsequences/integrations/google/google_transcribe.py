@@ -12,8 +12,9 @@ from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from google.api_core import client_options
-from google.api_core.exceptions import InvalidArgument
+from google.api_core.exceptions import GoogleAPIError, InvalidArgument
 from google.cloud import speech_v2 as speech
+from google.cloud.exceptions import GoogleCloudError
 from google.protobuf.json_format import MessageToDict
 
 from kobo.apps.languages.exceptions import LanguageNotSupported
@@ -27,7 +28,11 @@ from kpi.exceptions import (
 )
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
-from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
+from ...exceptions import (
+    AudioTooLongError,
+    SubsequenceTimeoutError,
+    TranscriptionResultNotFound
+)
 from .base import GoogleService
 
 # https://cloud.google.com/speech-to-text/docs/quotas
@@ -219,6 +224,16 @@ class GoogleTranscriptionService(GoogleService):
                     'status': 'failed',
                     'error': f'Transcription failed with error {str(err)}',
                 }
+            except (GoogleAPIError, GoogleCloudError, Exception) as err:
+                logging.error(
+                    f'Google infrastructure error while starting transcription '
+                    f'for {xpath=}: {err}'
+                )
+                return {
+                    'status': 'failed',
+                    'error': f'Transcription failed due to a Google infrastructure'
+                             f' error: {str(err)}',
+                }
 
             operation_name = operation.operation.name
             self.update_counters(amount)
@@ -241,14 +256,21 @@ class GoogleTranscriptionService(GoogleService):
                 }
             except TimeoutError:
                 return {'status': 'in_progress'}
-            except InvalidArgument as err:
-                logging.error(f'No transcriptions found for xpath={xpath}')
+            except TranscriptionResultNotFound as err:
+                logging.error(f'No transcriptions found for {xpath=}: {err}')
                 self._clear_operation_reference(
                     xpath, source_language, bulk_action_uid
                 )
                 return {
                     'status': 'failed',
-                    'error': f'Transcription failed with error {str(err)}',
+                    'error': f'Transcription failed with error: {str(err)}',
+                }
+            except (GoogleAPIError, GoogleCloudError, Exception) as err:
+                logging.error(f'Google operation failed for {xpath=}: {err}')
+                self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+                return {
+                    'status': 'failed',
+                    'error': f'Transcription failed with error: {str(err)}',
                 }
 
         try:
@@ -280,13 +302,22 @@ class GoogleTranscriptionService(GoogleService):
                 f'{xpath=}, {self.submission_root_uuid=}'
             )
             return {'status': 'in_progress'}
-        except InvalidArgument as err:
-            logging.error(f'No transcriptions found for xpath={xpath}')
+        except TranscriptionResultNotFound as err:
+            logging.error(f'No transcriptions found for {xpath=}: {err}')
             self._clear_operation_reference(xpath, source_language, bulk_action_uid)
             return {
                 'status': 'failed',
                 'error': f'Transcription failed with error {str(err)}',
             }
+        except (GoogleAPIError, GoogleCloudError, Exception) as err:
+            # Unable to reach Google to check the operation status.
+            # The transcription may still be running, so return "in_progress"
+            # to allow Celery to retry instead of marking the task as failed
+            logging.error(
+                f'Google infrastructure error while polling transcription '
+                f'for {xpath=}: {err}'
+            )
+            return {'status': 'in_progress'}
 
         self._clear_operation_reference(xpath, source_language, bulk_action_uid)
         return {
@@ -312,9 +343,14 @@ class GoogleTranscriptionService(GoogleService):
         """
         Resolve the speech configuration for the user request
         """
-        transcription_lang_service = TranscriptionService.objects.get(
-            code=GOOGLE_CODE
-        )
+        try:
+            transcription_lang_service = TranscriptionService.objects.get(
+                code=GOOGLE_CODE
+            )
+        except TranscriptionService.DoesNotExist:
+            raise LanguageNotSupported(
+                'Google transcription service is not configured.'
+            )
         return transcription_lang_service.get_configuration(requested_language)
 
     def _get_batch_paths(
@@ -334,7 +370,8 @@ class GoogleTranscriptionService(GoogleService):
                     xpath,
                     source_lang.lower(),
                 ]
-            ).encode()
+            ).encode(),
+            usedforsecurity=False,
         ).hexdigest()[:16]
 
         base_dir = posixpath.join(
@@ -417,9 +454,8 @@ class GoogleTranscriptionService(GoogleService):
                 transcript_parts.append(transcript)
 
         if not transcript_parts:
-            raise InvalidArgument(
-                'No transcription JSON result files were found in Google Cloud '
-                'Storage.'
+            raise TranscriptionResultNotFound(
+                'No transcription JSON result files were found in Google Cloud Storage.'
             )
 
         return ' '.join(transcript_parts).strip()
