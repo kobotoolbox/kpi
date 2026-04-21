@@ -86,6 +86,34 @@ def test_valid_automatic_transcription_data_passes_validation():
         action.validate_external_data(data)
 
 
+def test_plain_language_request_without_locale_can_complete():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'en'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+    mock_sup_det = EMPTY_SUPPLEMENT
+
+    mock_service = MagicMock()
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
+        return_value=mock_service,
+    ):
+        mock_service.process_data.return_value = {
+            'value': 'Hello world',
+            'status': 'complete',
+        }
+        mock_sup_det = action.revise_data(
+            EMPTY_SUBMISSION,
+            mock_sup_det,
+            {'language': 'en', 'locale': None},
+        )
+
+    latest_version = mock_sup_det['_versions'][0]['_data']
+    assert latest_version['language'] == 'en'
+    assert latest_version['locale'] is None
+    assert latest_version['status'] == 'complete'
+    assert latest_version['value'] == 'Hello world'
+
+
 def test_invalid_user_data_fails_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
