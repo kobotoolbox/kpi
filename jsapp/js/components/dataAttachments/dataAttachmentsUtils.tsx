@@ -92,7 +92,24 @@ export function extractInvalidFieldsFromResponseMessage(requestedFields: string[
   return []
 }
 
+/** Builds a user-facing invalid-fields error message from a backend validation response. */
+export function buildInvalidFieldsErrorMessage(
+  requestedFields: string[],
+  errorPayload: unknown,
+  prefix: string,
+  invalidFieldsLabel: string,
+): string | null {
+  const invalidFields = extractInvalidFieldsFromResponseMessage(requestedFields, errorPayload)
+
+  if (invalidFields.length === 0) {
+    return null
+  }
+
+  return `${prefix}. ${invalidFieldsLabel}\n${invalidFields.join('\n')}`
+}
+
 export default {
+  buildInvalidFieldsErrorMessage,
   extractInvalidFieldsFromResponseMessage,
   generateColumnFilters,
 }

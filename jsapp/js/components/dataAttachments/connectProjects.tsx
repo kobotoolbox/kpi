@@ -213,23 +213,27 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
             onSuccess?.()
           },
           onError: (error) => {
-            const errorPayload = error.payload as {
+            const errorResponse = error.parsedResponse as {
               detail?: string
               data_sharing?: { fields?: string[] }
             }
-            const invalidFields = dataAttachmentsUtils.extractInvalidFieldsFromResponseMessage(
+            const invalidFieldsErrorMessage = dataAttachmentsUtils.buildInvalidFieldsErrorMessage(
               data.fields,
-              errorPayload?.data_sharing,
+              errorResponse?.data_sharing,
+              t('Failed to attach to source'),
+              t('Some fields are invalid:'),
             )
 
-            if (invalidFields.length > 0) {
-              notify.error(
-                `${t('Failed to attach to source')}. ${t('Some fields are invalid:')}\n${invalidFields.join('\n')}`,
-              )
+            if (invalidFieldsErrorMessage) {
+              notify.error(invalidFieldsErrorMessage)
               return
             }
 
-            notify.error(errorPayload?.detail || errorPayload?.data_sharing?.fields || t('Failed to attach to source'))
+            notify.error(
+              errorResponse?.detail ||
+                errorResponse?.data_sharing?.fields?.join(', ') ||
+                t('Failed to attach to source'),
+            )
           },
         },
       )

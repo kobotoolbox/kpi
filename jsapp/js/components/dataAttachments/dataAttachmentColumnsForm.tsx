@@ -112,19 +112,19 @@ function DataAttachmentColumnsForm({
       }
 
       const onFailure = (error: ServerError) => {
-        const invalidFields = dataAttachmentsUtils.extractInvalidFieldsFromResponseMessage(
+        const invalidFieldsErrorMessage = dataAttachmentsUtils.buildInvalidFieldsErrorMessage(
           selectedFields,
-          error.payload,
+          error.parsedResponse,
+          t('Failed to attach to source'),
+          t('Some fields are invalid:'),
         )
 
-        if (invalidFields.length > 0) {
-          notify.error(
-            `${t('Failed to attach to source')}. ${t('Some fields are invalid:')}\n${invalidFields.join('\n')}`,
-          )
+        if (invalidFieldsErrorMessage) {
+          notify.error(invalidFieldsErrorMessage)
           return
         }
 
-        const errorPayload = error.payload as {
+        const errorResponse = error.parsedResponse as {
           detail?: string
           data_sharing?: { fields?: string }
           fields?: string[]
@@ -132,10 +132,10 @@ function DataAttachmentColumnsForm({
         }
 
         notify.error(
-          errorPayload?.detail ||
-            errorPayload?.data_sharing?.fields ||
-            errorPayload?.fields?.[0] ||
-            errorPayload?.filename?.[0] ||
+          errorResponse?.detail ||
+            errorResponse?.data_sharing?.fields ||
+            errorResponse?.fields?.[0] ||
+            errorResponse?.filename?.[0] ||
             t('Failed to attach to source'),
         )
       }
