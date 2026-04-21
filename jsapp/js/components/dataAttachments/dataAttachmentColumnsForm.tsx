@@ -127,12 +127,14 @@ function DataAttachmentColumnsForm({
         const errorPayload = error.payload as {
           detail?: string
           data_sharing?: { fields?: string }
+          fields?: string[]
           filename?: string[]
         }
 
         notify.error(
           errorPayload?.detail ||
             errorPayload?.data_sharing?.fields ||
+            errorPayload?.fields?.[0] ||
             errorPayload?.filename?.[0] ||
             t('Failed to attach to source'),
         )
