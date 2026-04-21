@@ -11,7 +11,7 @@ export class ServerError extends Error implements ErrorObject, ErrorDetail {
       // Preserve the full parsed response for callers that need endpoint-specific
       // validation payloads, while keeping `detail` backward-compatible for the
       // existing generic error handling and stringification behavior.
-      detail = typeof payload === 'object' && payload !== null && 'detail' in payload ? payload.detail : text
+      detail = typeof payload === 'object' && payload !== null && 'detail' in payload ? payload.detail : undefined
     } catch {
       payload = text
       detail = text
