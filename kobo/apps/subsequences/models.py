@@ -95,7 +95,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     'question_supplemental_data': question_supplemental_data,
                 }
                 action = feature.to_action(prefetched_dependencies)
-                action.check_limits(asset.owner)
+                action.check_limits(asset.owner, action_data)
 
                 if not (
                     action_supplemental_data := action.revise_data(
