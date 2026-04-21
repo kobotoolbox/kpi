@@ -61,6 +61,8 @@ function DataAttachmentColumnsForm({
   const { mutate: createPairedDataMutate, isPending: isCreatingAttachment } =
     useAssetsPairedDataCreate<PayloadResponseError>({
       mutation: {
+        // Hide default error to avoid duplicate toasts
+        onError: () => null,
         mutationFn: ({ uidAsset, data }) => {
           return executeJsonRequest<assetsPairedDataCreateResponse>(getAssetsPairedDataCreateUrl(uidAsset), {
             method: 'POST',
@@ -72,6 +74,8 @@ function DataAttachmentColumnsForm({
   const { mutate: patchPairedDataMutate, isPending: isPatchingAttachment } =
     useAssetsPairedDataPartialUpdate<PayloadResponseError>({
       mutation: {
+        // Hide default error to avoid duplicate toasts
+        onError: () => null,
         mutationFn: ({ uidAsset, uidPairedData, data }) => {
           return executeJsonRequest<assetsPairedDataPartialUpdateResponse>(
             getAssetsPairedDataPartialUpdateUrl(uidAsset, uidPairedData),
