@@ -79,10 +79,6 @@ export function extractInvalidFieldsFromResponseMessage(requestedFields: string[
   const candidateMessages = [...collectStringValues(payload.fields), ...collectStringValues(payload.detail)]
 
   for (const message of candidateMessages) {
-    if (!message.includes('Some fields are invalid')) {
-      continue
-    }
-
     const validFields = extractBacktickWrappedValues(message)
 
     if (validFields.length === 0) {
