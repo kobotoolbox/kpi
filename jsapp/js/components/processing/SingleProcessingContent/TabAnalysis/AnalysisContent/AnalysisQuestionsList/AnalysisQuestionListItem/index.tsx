@@ -134,7 +134,6 @@ export default function AnalysisQuestionListItem({
         },
       })
     }
-    console.log('adf')
     setQaQuestion(undefined)
   }
 
