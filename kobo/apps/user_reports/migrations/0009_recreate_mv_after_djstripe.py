@@ -48,13 +48,18 @@ def drop_mv(apps, schema_editor):
     schema_editor.execute(DROP_MV_SQL)
 
 
+base_dependencies = [
+    ('user_reports', '0008_drop_mv_before_djstripe'),
+]
+
+if 'djstripe' in settings.INSTALLED_APPS:
+    base_dependencies.append(('djstripe', '0014_2_9a'))
+
+
 class Migration(migrations.Migration):
     atomic = False
 
-    dependencies = [
-        ('user_reports', '0008_drop_mv_before_djstripe'),
-        ('djstripe', '0014_2_9a'),
-    ]
+    dependencies = base_dependencies
 
     operations = [
         migrations.RunPython(recreate_mv, reverse_code=drop_mv),
