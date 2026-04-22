@@ -256,12 +256,6 @@ export default function FormGallery(props: FormGalleryProps) {
           </Flex>
         </Modal>
       )}
-      <Autocomplete
-        label='Select a language'
-        placeholder='Type or select a language'
-        data={['English (en)', 'French (fr)', 'Afrikaans (af)', 'Amharic (am)', 'Arabic (ar)']}
-        withAsterisk
-      />
     </bem.Gallery>
   )
 }
