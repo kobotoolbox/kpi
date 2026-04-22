@@ -36,24 +36,22 @@ class GoogleTranslationService(GoogleService):
         """
         super().__init__(submission, asset, *args, **kwargs)
 
-        translation_location = constance.config.ASR_MT_GOOGLE_REGION.lower()
+        location = constance.config.ASR_MT_GOOGLE_REGION.lower()
         project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
-        client_opts = None
-        # Explicit api_endpoints are ONLY required for multi-regional bounding ('eu' and 'us')  # noqa: E501
-        # Granular regions (like 'us-central1') natively resolve through the global default endpoint  # noqa: E501
-        short_region = ''
-        if translation_location.startswith('us-') or translation_location == 'us':
-            short_region = '-us'
-        elif translation_location.startswith('europe-') or translation_location == 'eu':  # noqa: E501
-            short_region = '-eu'
 
+        location = constance.config.ASR_MT_GOOGLE_REGION.lower()
+        short_region = ''
+        if location.startswith('us-') or location == 'us':
+            short_region = '-us'
+        elif location.startswith('europe-') or location == 'eu':
+            short_region = '-eu'
         client_opts = client_options.ClientOptions(
             api_endpoint=f'translate{short_region}.googleapis.com'
         )
 
-        if translation_location and translation_location != 'global':
+        if location and location != 'global':
             self.translate_parent = (
-                f'projects/{project_id}/locations/{translation_location}'
+                f'projects/{project_id}/locations/{location}'
             )
         else:
             self.translate_parent = f'projects/{project_id}'
@@ -65,7 +63,7 @@ class GoogleTranslationService(GoogleService):
         # "The global location is not supported for batch translation." See:
         # https://googleapis.dev/python/translation/2.0.0/gapic/v3/api.html
         # https://www.googlecloudcommunity.com/gc/AI-ML/location-variable-setting-for-the-Google-Cloud-Translation-API/m-p/543622/highlight/true#M1652
-        async_location = translation_location
+        async_location = location
         if not async_location or async_location == 'global':
             # Batch translation requires a regional location, not global
             async_location = 'us-central1'

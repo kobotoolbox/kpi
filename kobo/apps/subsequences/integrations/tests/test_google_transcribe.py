@@ -72,4 +72,4 @@ class TestGoogleTranscribe(TestCase):
 
             assert mock_speech_client.called
             kwargs = mock_speech_client.call_args[1]
-            assert kwargs.get('client_options') is None
+            assert kwargs['client_options'].api_endpoint == 'speech.googleapis.com'  # noqa: E501

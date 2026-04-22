@@ -78,15 +78,15 @@ class GoogleTranscriptionService(GoogleService):
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
 
-        # Create the parameters required for the transcription
-        client_opts = None
-        speech_location = constance.config.ASR_MT_GOOGLE_REGION.lower()
-        # Similarly, specific regions beyond 'eu'/'us' must natively utilize
-        # resolving globally
-        if speech_location and speech_location in ('eu', 'us'):
-            client_opts = client_options.ClientOptions(
-                api_endpoint=f'{speech_location}-speech.googleapis.com'
-            )
+        location = constance.config.ASR_MT_GOOGLE_REGION.lower()
+        short_region = ''
+        if location.startswith('us-') or location == 'us':
+            short_region = 'us-'
+        elif location.startswith('europe-') or location == 'eu':
+            short_region = 'eu-'
+        client_opts = client_options.ClientOptions(
+            api_endpoint=f'{short_region}speech.googleapis.com'
+        )
 
         speech_client = speech.SpeechClient(
             credentials=self.credentials, client_options=client_opts
