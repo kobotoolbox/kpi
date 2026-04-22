@@ -35,10 +35,6 @@ const meta = {
       options: ['bottom-start', 'bottom-end', 'top-start', 'top-end', 'right-start', 'left-start'],
       description: 'Dropdown position relative to target',
     },
-    withArrow: {
-      control: 'boolean',
-      description: 'Display dropdown arrow',
-    },
     withinPortal: {
       control: 'boolean',
       description: 'Render dropdown in portal',
@@ -60,7 +56,6 @@ export const Default: Story = {
   args: {
     width: 220,
     position: 'bottom-end',
-    withArrow: true,
     withinPortal: false,
     closeOnItemClick: true,
   },
@@ -87,7 +82,6 @@ export const Default: Story = {
 export const TestDangerAction: Story = {
   args: {
     width: 220,
-    withArrow: true,
     withinPortal: false,
     closeOnItemClick: true,
     onDeleteClick: fn(),
