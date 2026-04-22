@@ -55,18 +55,20 @@ export default function AnalysisQuestionsList({
   }
 
   const qaQuestions = localParams
-    .filter((qaQuestion) => !qaQuestion.options?.deleted)
+    .filter((questionParam) => !questionParam.options?.deleted)
     // TODO: we temporarily hide Keyword Search from the UI until
     // https://github.com/kobotoolbox/kpi/issues/4594 is done
-    .filter((qaQuestion) => qaQuestion.type !== 'qualAutoKeywordCount')
+    .filter((questionParam) => questionParam.type !== 'qualAutoKeywordCount')
 
   const isAnyQuestionBeingEdited = !!qaQuestion
+  const submissionKey = submission['meta/rootUuid'] ?? submission._uuid
 
   return (
     <DndProvider backend={HTML5Backend}>
       <ul className={styles.root}>
         {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
           <AnalysisQuestionListItem
+            key={`${submissionKey}-${qaQuestion.uuid}`}
             asset={asset}
             advancedFeature={localAdvancedFeature}
             submission={submission}
@@ -79,23 +81,21 @@ export default function AnalysisQuestionsList({
             isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
           />
         )}
-        {qaQuestions.map((qaQuestionItem, index) => {
-          return (
-            <AnalysisQuestionListItem
-              key={qaQuestionItem.uuid}
-              asset={asset}
-              advancedFeature={localAdvancedFeature}
-              submission={submission}
-              qaQuestion={qaQuestionItem}
-              setQaQuestion={setQaQuestion}
-              questionXpath={questionXpath}
-              index={index}
-              moveRow={moveRow}
-              editMode={qaQuestion?.uuid === qaQuestionItem.uuid}
-              isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
-            />
-          )
-        })}
+        {qaQuestions.map((qaQuestionItem, index) => (
+          <AnalysisQuestionListItem
+            key={`${submissionKey}-${qaQuestionItem.uuid}`}
+            asset={asset}
+            advancedFeature={localAdvancedFeature}
+            submission={submission}
+            qaQuestion={qaQuestionItem}
+            setQaQuestion={setQaQuestion}
+            questionXpath={questionXpath}
+            index={index}
+            moveRow={moveRow}
+            editMode={qaQuestion?.uuid === qaQuestionItem.uuid}
+            isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
+          />
+        ))}
       </ul>
     </DndProvider>
   )

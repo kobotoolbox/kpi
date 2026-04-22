@@ -1,43 +1,38 @@
 import { Textarea } from '@mantine/core'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 
 interface Props {
   qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
-  submissionUid: string
   disabled: boolean
   onSave: (value: string) => Promise<unknown>
 }
 
-export default function TextResponseForm({ qaAnswer, submissionUid, onSave, disabled }: Props) {
+export default function TextResponseForm({ qaAnswer, onSave, disabled }: Props) {
   const [value, setValue] = useState<string>((qaAnswer?._data.value as string) ?? '')
-  const [isDirty, setIsDirty] = useState(false)
-  const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
+  const typingTimerRef = useRef<NodeJS.Timeout | undefined>()
 
-  // New submissions should always display their own saved value.
-  useEffect(() => {
-    clearTimeout(typingTimer)
-    setValue((qaAnswer?._data.value as string) ?? '')
-    setIsDirty(false)
-  }, [submissionUid])
+  const clearTypingTimer = () => {
+    if (!typingTimerRef.current) return
+    clearTimeout(typingTimerRef.current)
+    typingTimerRef.current = undefined
+  }
 
-  // Within a single submission, avoid clobbering local typing with server updates.
-  useEffect(() => {
-    if (isDirty) return
-    setValue((qaAnswer?._data.value as string) ?? '')
-  }, [qaAnswer?._uuid, isDirty])
+  useEffect(() => () => clearTypingTimer(), [])
 
-  const handleSave = async () => {
-    clearTimeout(typingTimer)
-    await onSave(value)
+  const handleSave = async (valueToSave: string) => {
+    clearTypingTimer()
+    await onSave(valueToSave)
   }
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setIsDirty(true)
-    setValue(event.currentTarget.value)
-    clearTimeout(typingTimer)
-    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
+    const nextValue = event.currentTarget.value
+    setValue(nextValue)
+    clearTypingTimer()
+    typingTimerRef.current = setTimeout(() => {
+      void handleSave(nextValue)
+    }, AUTO_SAVE_TYPING_DELAY) // After some seconds we auto save
   }
 
   return (
@@ -47,7 +42,9 @@ export default function TextResponseForm({ qaAnswer, submissionUid, onSave, disa
       value={value}
       onChange={handleChange}
       placeholder={t('Type your answer')}
-      onBlur={handleSave}
+      onBlur={() => {
+        void handleSave(value)
+      }}
       disabled={disabled}
     />
   )

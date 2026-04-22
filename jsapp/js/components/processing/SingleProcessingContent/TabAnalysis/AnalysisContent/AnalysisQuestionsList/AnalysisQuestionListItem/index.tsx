@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
@@ -93,11 +93,6 @@ export default function AnalysisQuestionListItem({
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
 
-  // Ensure select-one reflects the current submission after arrow navigation.
-  useEffect(() => {
-    setLocalRadioValue(undefined)
-  }, [rootUuid])
-
   const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
   const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
@@ -162,15 +157,14 @@ export default function AnalysisQuestionListItem({
     setQaQuestion(undefined)
   }
 
-  const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) => {
-    return mutationPatchQuestion.mutateAsync({
+  const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) =>
+    mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
       uidAdvancedFeature: advancedFeature.uid,
       data: {
         params: reorderedParams,
       },
     })
-  }
 
   const disabledAnswer =
     !userCan('change_submissions', asset) || mutationCreateQuestion.isPending || mutationPatchQuestion.isPending
@@ -367,12 +361,7 @@ export default function AnalysisQuestionListItem({
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
           >
-            <IntegerResponseForm
-              qaAnswer={queryAnswer.data}
-              submissionUid={rootUuid}
-              disabled={disabledAnswer}
-              onSave={handleSaveAnswer}
-            />
+            <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
         )
       }
@@ -384,12 +373,7 @@ export default function AnalysisQuestionListItem({
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
           >
-            <TextResponseForm
-              qaAnswer={queryAnswer.data}
-              submissionUid={rootUuid}
-              disabled={disabledAnswer}
-              onSave={handleSaveAnswer}
-            />
+            <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
         )
       }
