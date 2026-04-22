@@ -31,7 +31,7 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Prop
     setValue(nextValue)
     clearTypingTimer()
     typingTimerRef.current = setTimeout(() => {
-      void handleSave(nextValue)
+      handleSave(nextValue)
     }, AUTO_SAVE_TYPING_DELAY) // After some seconds we auto save
   }
 
@@ -41,7 +41,7 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Prop
       onChange={handleChange}
       placeholder={t('Type your answer')}
       onBlur={() => {
-        void handleSave(value)
+        handleSave(value)
       }}
       disabled={disabled}
     />
