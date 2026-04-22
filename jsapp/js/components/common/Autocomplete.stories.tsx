@@ -9,14 +9,14 @@ const meta: Meta<typeof Autocomplete> = {
       description: 'Displayed label',
       control: { type: 'text' },
     },
-		withAsterisk: {
-			description: 'A red asterisk after the label',
-			control: { type: 'boolean'}
-		},
+    withAsterisk: {
+      description: 'A red asterisk after the label',
+      control: { type: 'boolean' },
+    },
     data: {
       description: 'List of data to be displayed',
-      control: {type: 'object'}
-    }
+      control: { type: 'object' },
+    },
   },
   parameters: { a11y: { test: 'todo' } },
 }
@@ -31,5 +31,5 @@ export const Default: Story = {
     placeholder: 'Type or select a language',
     withAsterisk: true,
     data: ['English (en)', 'French (fr)', 'Afrikaans (af)', 'Amharic (am)', 'Arabic (ar)'],
-  }
+  },
 }

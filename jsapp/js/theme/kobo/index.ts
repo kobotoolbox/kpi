@@ -1,6 +1,7 @@
-import { Autocomplete, createTheme, rem } from '@mantine/core'
+import { createTheme, rem } from '@mantine/core'
 import { ActionIconThemeKobo } from './ActionIcon'
 import { AlertThemeKobo } from './Alert'
+import { AutocompleteThemeKobo } from './Autocomplete'
 import { ButtonThemeKobo } from './Button'
 import { CheckboxThemeKobo } from './Checkbox'
 import { DividerThemeKobo } from './Divider'
@@ -18,7 +19,6 @@ import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
-import {AutocompleteThemeKobo} from './Autocomplete'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',

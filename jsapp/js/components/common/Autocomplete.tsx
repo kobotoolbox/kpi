@@ -1,4 +1,4 @@
-import type { AutocompleteProps } from "@mantine/core";
+import type { AutocompleteProps } from '@mantine/core'
 import { Group, Autocomplete as MantineAutocomplete } from '@mantine/core'
 import { useState } from 'react'
 import Icon from './icon'

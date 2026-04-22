@@ -1,7 +1,6 @@
 import './formGallery.component.scss'
 
 import { Box, Center, Flex, Image, Modal } from '@mantine/core'
-import Autocomplete from '../common/Autocomplete'
 import React, { useEffect, useMemo, useReducer } from 'react'
 import ReactSelect from 'react-select'
 import { fetchGet, fetchGetUrl } from '#/api'
@@ -11,6 +10,7 @@ import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import Autocomplete from '../common/Autocomplete'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 
@@ -256,12 +256,12 @@ export default function FormGallery(props: FormGalleryProps) {
           </Flex>
         </Modal>
       )}
-       <Autocomplete
-         label="Select a language"
-         placeholder="Type or select a language"
-         data={['English (en)', 'French (fr)', 'Afrikaans (af)', 'Amharic (am)', 'Arabic (ar)']}
-         withAsterisk
-       />
+      <Autocomplete
+        label='Select a language'
+        placeholder='Type or select a language'
+        data={['English (en)', 'French (fr)', 'Afrikaans (af)', 'Amharic (am)', 'Arabic (ar)']}
+        withAsterisk
+      />
     </bem.Gallery>
   )
 }
