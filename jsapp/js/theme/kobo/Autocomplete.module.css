@@ -1,0 +1,34 @@
+.root {
+  margin: 100px;
+}
+.root:focus-within .section {
+  color: var(--mantine-color-gray-1);
+}
+
+.section {
+  color: var(--mantine-color-gray-3)
+}
+
+.input:focus-visible:not([data-error]) {
+  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
+}
+
+.input {
+  border-color: var(--mantine-color-gray-6);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-3);
+    opacity: 1;
+  }
+}
+
+.dropdown {
+  border-color: transparent;
+  box-shadow: 3px 3px 37px 0 var(--mantine-color-blue-8);
+}
+
+.option {
+  &:hover {
+    background-color: var(--mantine-color-gray-8);
+  }
+}
