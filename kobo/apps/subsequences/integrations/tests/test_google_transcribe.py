@@ -13,7 +13,7 @@ from kpi.models import Asset
 class TestGoogleTranscribe(TestCase):
     fixtures = ['test_data']
 
-    @override_config(ASR_MT_GOOGLE_REGION='eu')
+    @override_config(ASR_MT_GOOGLE_REGION='europe-west1')
     def test_transcription_service_uses_regional_endpoint(self):
         asset = Asset.objects.get(pk=2)
         submission = {
@@ -72,4 +72,6 @@ class TestGoogleTranscribe(TestCase):
 
             assert mock_speech_client.called
             kwargs = mock_speech_client.call_args[1]
-            assert kwargs['client_options'].api_endpoint == 'speech.googleapis.com'  # noqa: E501
+            assert (
+                kwargs['client_options'].api_endpoint == 'speech.googleapis.com'
+            )  # noqa: E501

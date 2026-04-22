@@ -50,9 +50,7 @@ class GoogleTranslationService(GoogleService):
         )
 
         if location and location != 'global':
-            self.translate_parent = (
-                f'projects/{project_id}/locations/{location}'
-            )
+            self.translate_parent = f'projects/{project_id}/locations/{location}'
         else:
             self.translate_parent = f'projects/{project_id}'
 

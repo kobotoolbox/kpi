@@ -82,9 +82,13 @@ class TestGoogleTranslate(TestCase):
         ) as mock_translate_client:
             service = GoogleTranslationService(submission, asset)
             assert service.translate_parent == 'projects/xyz/locations/europe-west1'
-            assert service.translate_async_parent == 'projects/xyz/locations/europe-west1'  # noqa: E501
+            assert (
+                service.translate_async_parent == 'projects/xyz/locations/europe-west1'
+            )  # noqa: E501
             kwargs = mock_translate_client.call_args[1]
-            assert kwargs['client_options'].api_endpoint == 'translate-eu.googleapis.com'  # noqa: E501
+            assert (
+                kwargs['client_options'].api_endpoint == 'translate-eu.googleapis.com'
+            )  # noqa: E501
 
     @override_config(ASR_MT_GOOGLE_PROJECT_ID='xyz')
     @override_config(ASR_MT_GOOGLE_REGION='global')
@@ -101,6 +105,10 @@ class TestGoogleTranslate(TestCase):
         ) as mock_translate_client:
             service = GoogleTranslationService(submission, asset)
             assert service.translate_parent == 'projects/xyz'
-            assert service.translate_async_parent == 'projects/xyz/locations/us-central1'  # noqa: E501
+            assert (
+                service.translate_async_parent == 'projects/xyz/locations/us-central1'
+            )  # noqa: E501
             kwargs = mock_translate_client.call_args[1]
-            assert kwargs['client_options'].api_endpoint == 'translate.googleapis.com'  # noqa: E501
+            assert (
+                kwargs['client_options'].api_endpoint == 'translate.googleapis.com'
+            )  # noqa: E501
