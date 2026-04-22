@@ -1,6 +1,3 @@
-.root {
-  margin: 100px;
-}
 .root:focus-within .section {
   color: var(--mantine-color-gray-1);
 }
