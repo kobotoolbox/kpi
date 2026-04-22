@@ -363,7 +363,12 @@ export default function AnalysisQuestionListItem({
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
           >
-            <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+            <IntegerResponseForm
+              qaAnswer={queryAnswer.data}
+              submissionUid={rootUuid}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+            />
           </ResponseForm>
         )
       }
@@ -375,7 +380,12 @@ export default function AnalysisQuestionListItem({
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
           >
-            <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+            <TextResponseForm
+              qaAnswer={queryAnswer.data}
+              submissionUid={rootUuid}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+            />
           </ResponseForm>
         )
       }
