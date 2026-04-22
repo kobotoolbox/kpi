@@ -1,7 +1,6 @@
 # coding: utf-8
 from allauth.mfa.models import Authenticator
 from django.conf import settings
-from django.contrib import admin
 from django.db import models, transaction
 from django.utils.timezone import now
 from trench.admin import MFAMethod as TrenchMFAMethod
@@ -10,29 +9,6 @@ from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.models.abstract_models import AbstractTimeStampedModel
-
-
-class MfaAvailableToUser(models.Model):
-
-    class Meta:
-        verbose_name = 'per-user availability'
-        verbose_name_plural = 'per-user availabilities'
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    def __str__(self):
-        # Used to display the user-friendly representation of MfaAvailableToUser
-        # objects, especially in Django Admin interface.
-        return f'MFA available to user {self.user.username}'
-
-
-class MfaAvailableToUserAdmin(admin.ModelAdmin):
-
-    search_fields = ('user__username',)
-    autocomplete_fields = ['user']
-    # To customize list columns, uncomment line below to use instead of string
-    # representation of `MfaAvailableToUser` objects
-    # list_display = ('user',)
 
 
 class MfaMethodsWrapper(AbstractTimeStampedModel):

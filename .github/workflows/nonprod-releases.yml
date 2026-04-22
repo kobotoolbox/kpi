@@ -67,13 +67,13 @@ jobs:
       - name: Deploy to beta
         if: github.ref_name == 'public-beta'
         run: |
-          helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+          helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
 
       - name: Deploy to feature branch
         if: startsWith(github.ref_name, 'feature/')
         run: |
           BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
-          helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+          helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
 
   trigger-main-deploy:
     needs: deploy

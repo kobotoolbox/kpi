@@ -42,31 +42,17 @@ class TestStripeMFALogin(KpiTestCase):
             organization=self.organization,
         )
 
-    def _create_subscription(self, unit_amount=0, billing_status='active'):
-        self.customer = baker.make(Customer, subscriber=self.organization)
-        self.price = baker.make(Price, stripe_data={'unit_amount': unit_amount})
-        self.subscription_item = baker.make(SubscriptionItem, price=self.price)
-        self.subscription = baker.make(
-            Subscription,
-            customer=self.customer,
-            stripe_data={'status': billing_status},
-        )
-        self.subscription_item.subscription = self.subscription
-        self.subscription_item.save()
-
-    def _reset_whitelist(self, whitelisted_users=[]):
-        MfaAvailableToUser.objects.all().delete()
-        for user in whitelisted_users:
-            MfaAvailableToUser.objects.create(user=user)
-
-    def _assert_mfa_login(self, response):
+    @override_config(MFA_ENABLED=True)
+    def test_mfa_login_works_for_everyone(self):
+        """
+        Test that MFA form is displayed after login unconditionally for any user
+        """
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(reverse('kobo_login'), data=data)
         self.assertRedirects(response, reverse('mfa_authenticate'))
-
-    def _assert_no_mfa_login(self, response):
-        self.assertEqual(len(response.redirect_chain), 1)
-        redirection, status_code = response.redirect_chain[0]
-        self.assertEqual(status_code, status.HTTP_302_FOUND)
-        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
     @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_without_subscription(self):
@@ -245,6 +231,21 @@ class TestStripeMFALogin(KpiTestCase):
         self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=False)
+    def test_mfa_globally_disabled(self):
+        """
+        Test that MFA form is bypassed if the feature is globally disabled
+        """
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
+        self.assertEqual(len(response.redirect_chain), 1)
+        redirection, status_code = response.redirect_chain[0]
+        self.assertEqual(status_code, status.HTTP_302_FOUND)
+        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
+
+    @override_config(MFA_ENABLED=False)
     def test_mfa_globally_disabled_as_user_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form isn't displayed after
@@ -262,3 +263,29 @@ class TestStripeMFALogin(KpiTestCase):
         redirection, status_code = response.redirect_chain[0]
         self.assertEqual(status_code, status.HTTP_302_FOUND)
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
+
+    def _assert_mfa_login(self, response):
+        self.assertRedirects(response, reverse('mfa_authenticate'))
+
+    def _assert_no_mfa_login(self, response):
+        self.assertEqual(len(response.redirect_chain), 1)
+        redirection, status_code = response.redirect_chain[0]
+        self.assertEqual(status_code, status.HTTP_302_FOUND)
+        self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
+
+    def _create_subscription(self, unit_amount=0, billing_status='active'):
+        self.customer = baker.make(Customer, subscriber=self.organization)
+        self.price = baker.make(Price, stripe_data={'unit_amount': unit_amount})
+        self.subscription_item = baker.make(SubscriptionItem, price=self.price)
+        self.subscription = baker.make(
+            Subscription,
+            customer=self.customer,
+            stripe_data={'status': billing_status},
+        )
+        self.subscription_item.subscription = self.subscription
+        self.subscription_item.save()
+
+    def _reset_whitelist(self, whitelisted_users=[]):
+        MfaAvailableToUser.objects.all().delete()
+        for user in whitelisted_users:
+            MfaAvailableToUser.objects.create(user=user)
