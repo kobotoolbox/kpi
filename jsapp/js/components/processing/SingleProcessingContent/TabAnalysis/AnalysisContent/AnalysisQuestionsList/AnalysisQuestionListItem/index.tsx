@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
@@ -92,6 +92,11 @@ export default function AnalysisQuestionListItem({
   // Local state for optimistic UI of SelectOne radio button value
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
+
+  // Ensure select-one reflects the current submission after arrow navigation.
+  useEffect(() => {
+    setLocalRadioValue(undefined)
+  }, [rootUuid])
 
   const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
