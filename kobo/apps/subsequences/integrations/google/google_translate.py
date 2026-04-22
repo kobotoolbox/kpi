@@ -45,7 +45,7 @@ class GoogleTranslationService(GoogleService):
             short_region = '-us'
         elif location.startswith('europe-') or location == 'eu':
             short_region = '-eu'
-        client_opts = client_options.ClientOptions(
+        self.client_opts = client_options.ClientOptions(
             api_endpoint=f'translate{short_region}.googleapis.com'
         )
 
@@ -56,8 +56,9 @@ class GoogleTranslationService(GoogleService):
 
         self.translate_client = translate.TranslationServiceClient(
             credentials=self.credentials,
-            client_options=client_opts,
+            client_options=self.client_opts,
         )
+
         # "The global location is not supported for batch translation." See:
         # https://googleapis.dev/python/translation/2.0.0/gapic/v3/api.html
         # https://www.googlecloudcommunity.com/gc/AI-ML/location-variable-setting-for-the-Google-Cloud-Translation-API/m-p/543622/highlight/true#M1652
@@ -73,6 +74,9 @@ class GoogleTranslationService(GoogleService):
             constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX
         )
         self.date_string = date.today().isoformat()
+
+    def get_client_options(self):
+        return self.client_opts
 
     def adapt_response(self, response: Union[dict, list]) -> str:
         """
