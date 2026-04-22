@@ -233,7 +233,7 @@ class PairedDataViewset(
                 # background so the manifest request is not blocked by fetching
                 # and parsing a potentially large number of submissions.
                 refresh_async = has_expired
-/c
+
         if not has_expired:
             return self._xml_response(
                 request,
