@@ -22,59 +22,6 @@
     z-index: 0;
     background: rgba(colors.$kobo-white, 0.8);
   }
-
-  .form-view__map-button {
-    position: absolute;
-    right: 12px;
-    top: 65px;
-    padding: 2px 4px 0;
-
-    @include mdl.box-shadow;
-
-    border-radius: 6px;
-    background: colors.$kobo-white;
-    z-index: z-indexes.$z-map-settings;
-    cursor: pointer;
-    color: colors.$kobo-gray-700;
-
-    &--heatmap {
-      top: 118px;
-    }
-
-    &--layers {
-      top: 12px;
-      right: 65px;
-    }
-
-    &--expand {
-      top: 12px;
-    }
-
-    &--map-settings {
-      top: 12px;
-      z-index: z-indexes.$z-map-settings;
-      right: 120px;
-    }
-
-    &.active,
-    &:hover {
-      color: colors.$kobo-gray-800;
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
-
-    i {
-      font-size: 36px;
-      line-height: 1em;
-    }
-  }
-
-  .form-view__map-button--disabled {
-    pointer-events: none;
-    z-index: z-indexes.$z-map-settings-disabled;
-  }
 }
 
 .leaflet-top.leaflet-right {
@@ -100,48 +47,6 @@
   }
 }
 
-.popover-menu.popover-menu--viewby-menu {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
-  z-index: z-indexes.$z-map-settings;
-  max-width: 90%;
-
-  .popover-menu__toggle {
-    min-width: 180px;
-    max-width: 90%;
-    background: colors.$kobo-white;
-    @include mixins.textEllipsis;
-    @include mdl.box-shadow;
-
-    border-radius: 6px;
-    padding: 12px;
-    color: colors.$kobo-gray-700;
-  }
-
-  .popover-menu__content {
-    right: auto;
-    left: 0;
-    min-width: 180px;
-    max-width: 240px;
-    overflow: auto;
-    max-height: 300px;
-    border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba(colors.$kobo-gray-800, 0.15);
-    bottom: calc(100% + 10px);
-
-    .popover-menu__link.see-all {
-      background: colors.$kobo-gray-200;
-      border-top: 1px solid colors.$kobo-gray-300;
-    }
-
-    .popover-menu__heading {
-      padding-left: 10px;
-      padding-right: 10px;
-    }
-  }
-}
-
 body .leaflet-control-layers,
 .leaflet-touch .leaflet-control-layers {
   border: none;
@@ -150,7 +55,8 @@ body .leaflet-control-layers,
   @include mdl.box-shadow;
 
   margin-right: 12px;
-  margin-top: 12px;
+  // Keep the layers panel below the top row of map action buttons.
+  margin-top: 56px;
 }
 
 .form-view__map-list {
@@ -471,10 +377,4 @@ body .leaflet-control-layers,
 
 .marker-cluster span {
   line-height: 20px;
-}
-
-@include breakpoints.breakpoint(mediumAndUp) {
-  .popover-menu--viewby-menu .popover-menu__toggle {
-    max-width: 340px;
-  }
 }

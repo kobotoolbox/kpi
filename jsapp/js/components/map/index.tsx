@@ -1,3 +1,4 @@
+import { Menu, type TooltipProps } from '@mantine/core'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
@@ -14,10 +15,11 @@ import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { check } from '@placemarkio/check-geojson'
 
+import ActionIcon from '../../../js/components/common/ActionIcon'
+import ButtonNew from '../../../js/components/common/ButtonNew'
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
 import Modal from '../../../js/components/common/modal'
 // Partial components
-import PopoverMenu from '../../../js/popoverMenu'
 import MapSettings from './MapSettings'
 
 import { actions } from '../../../js/actions'
@@ -152,7 +154,6 @@ interface FormMapState {
   componentRefreshed: boolean
   showMapSettings: boolean
   overridenStyles?: AssetMapStyles
-  clearDisaggregatedPopover: boolean
   noData: boolean
   previousViewby?: string
   // Note: In case 2 of createDataQuery(), we have a situation where a selected question exists without updating
@@ -187,7 +188,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       componentRefreshed: false,
       showMapSettings: false,
       overridenStyles: undefined,
-      clearDisaggregatedPopover: false,
       noData: false,
       foundSelectedQuestion: null,
     }
@@ -776,7 +776,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   showLayerControls() {
-    this.controls.expand()
+    const layersContainer = this.controls.getContainer()
+    const isExpanded = layersContainer?.classList.contains('leaflet-control-layers-expanded')
+
+    if (isExpanded) {
+      this.controls.collapse()
+    } else {
+      this.controls.expand()
+    }
   }
 
   showHeatmap() {
@@ -793,19 +800,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
-  filterMap(evt: React.TouchEvent<HTMLAnchorElement>) {
-    // roundabout solution for https://github.com/kobotoolbox/kpi/issues/1678
-    //
-    // when blurEventDisabled prop is set, no blur event takes place in PopoverMenu
-    // hence, dropdown stays visible when invoking other click events (like filterLanguage below)
-    // but when changing question, dropdown needs to be removed, clearDisaggregatedPopover does this via props
-    this.setState({ clearDisaggregatedPopover: true })
-    // reset clearDisaggregatedPopover in order to maintain same behaviour on subsequent clicks
-    window.setTimeout(() => {
-      this.setState({ clearDisaggregatedPopover: false })
-    }, 1000)
-
-    const name = evt.currentTarget.getAttribute('data-name') || undefined
+  filterMap(name?: string) {
     if (name !== undefined) {
       this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`)
     } else {
@@ -813,11 +808,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
   }
 
-  filterLanguage(evt: React.TouchEvent<HTMLAnchorElement>) {
-    const dataIndexAttr = evt.currentTarget.getAttribute('data-index')
-    if (dataIndexAttr !== null) {
-      this.setState({ langIndex: Number.parseInt(dataIndexAttr) })
-    }
+  filterLanguage(langIndex: number) {
+    this.setState({ langIndex: langIndex })
   }
 
   static getDerivedStateFromProps(props: FormMapProps, state: FormMapState) {
@@ -1009,97 +1001,201 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     // If there exists geopoint questions at all AND the currently selected geopoint question has data
     const hasGeopointAndData = this.state.hasGeoPoint && !this.state.noData
 
+    // Keep this value aligned with jsapp/scss/z-indexes.scss.
+    // We duplicate it here because TS cannot import SCSS variables.
+    const Z_MAP_SETTINGS = 700 // = $z-map-settings (default map buttons)
+    const Z_MAP_SETTINGS_DISABLED = 999 // = $z-map-settings-disabled (under overlay)
+    const Z_MAP_SETTINGS_OVERLAY = 1001 // = $z-map-settings-overlay (overlay layer)
+    const Z_TOOLTIP_PORTAL = 4000 // above app overlays/modals ($z-modal is 3000)
+
+    const mapSettingsAboveOverlay = this.state.noData && this.state.hasGeoPoint
+    const mapActionsStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: '12px',
+      right: '12px',
+      zIndex: hasGeopointAndData ? Z_MAP_SETTINGS : Z_MAP_SETTINGS_DISABLED,
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, auto)',
+      gridTemplateRows: 'repeat(3, auto)',
+      gap: '12px',
+      pointerEvents: 'none',
+    }
+
+    const mapActionItemStyle: React.CSSProperties = {
+      position: 'relative',
+      pointerEvents: 'auto',
+    }
+
+    const mapSettingsStyle: React.CSSProperties = {
+      ...mapActionItemStyle,
+      // Keep map-settings above overlay when geopoint question exists but has no responses.
+      zIndex: this.state.hasGeoPoint
+        ? mapSettingsAboveOverlay
+          ? Z_MAP_SETTINGS_OVERLAY + 1
+          : Z_MAP_SETTINGS
+        : Z_MAP_SETTINGS_DISABLED,
+    }
+
+    const mapTooltipProps: Partial<TooltipProps> = {
+      withinPortal: true,
+      // In portal + high z-index to stay above map controls and all UI overlays.
+      zIndex: Z_TOOLTIP_PORTAL,
+      position: 'left',
+      offset: 8,
+    }
+
+    const mapViewByMenuStyle: React.CSSProperties = {
+      position: 'absolute',
+      bottom: '15px',
+      left: '15px',
+      zIndex: Z_MAP_SETTINGS,
+      maxWidth: '90%',
+    }
+
     return (
-      <bem.FormView m={formViewModifiers} className='right-tooltip'>
-        <bem.FormView__mapButton
-          m={`expand ${hasGeopointAndData ? '' : 'disabled'}`}
-          onClick={this.toggleFullscreen.bind(this)}
-          data-tip={t('Toggle Fullscreen')}
-          className={this.state.isFullscreen ? 'active' : ''}
-        >
-          <i className='k-icon k-icon-expand' />
-        </bem.FormView__mapButton>
-        <bem.FormView__mapButton
-          m={`markers ${hasGeopointAndData ? '' : 'disabled'}`}
-          onClick={this.showMarkers.bind(this)}
-          data-tip={t('Show as points')}
-          className={this.state.markersVisible ? 'active' : ''}
-        >
-          <i className='k-icon k-icon-pins' />
-        </bem.FormView__mapButton>
-        <bem.FormView__mapButton
-          m={`layers ${hasGeopointAndData ? '' : 'disabled'}`}
-          onClick={this.showLayerControls.bind(this)}
-          data-tip={t('Toggle layers')}
-        >
-          <i className='k-icon k-icon-layer' />
-        </bem.FormView__mapButton>
-        <bem.FormView__mapButton
-          m={`map-settings ${this.state.hasGeoPoint ? '' : 'disabled'}`}
-          onClick={this.toggleMapSettings.bind(this)}
-          data-tip={t('Map display settings')}
-        >
-          <i className='k-icon k-icon-settings' />
-        </bem.FormView__mapButton>
-        {!viewby && (
-          <bem.FormView__mapButton
-            m={`heatmap ${hasGeopointAndData ? '' : 'disabled'}`}
-            onClick={this.showHeatmap.bind(this)}
-            data-tip={t('Show as heatmap')}
-            className={this.state.markersVisible ? '' : 'active'}
-          >
-            <i className='k-icon k-icon-heatmap' />
-          </bem.FormView__mapButton>
-        )}
+      <bem.FormView m={formViewModifiers}>
+        <div style={mapActionsStyle}>
+          <div style={{ ...mapActionItemStyle, gridColumn: 3, gridRow: 1 }}>
+            <ActionIcon
+              onClick={this.toggleFullscreen.bind(this)}
+              tooltip={t('Toggle Fullscreen')}
+              tooltipProps={mapTooltipProps}
+              iconName='expand'
+              size='lg'
+              variant='outline'
+              disabled={!hasGeopointAndData}
+              aria-label={t('Toggle Fullscreen')}
+            />
+          </div>
+          <div style={{ ...mapActionItemStyle, gridColumn: 3, gridRow: 2 }}>
+            <ActionIcon
+              onClick={this.showMarkers.bind(this)}
+              tooltip={t('Show as points')}
+              tooltipProps={mapTooltipProps}
+              iconName='pins'
+              size='lg'
+              variant='outline'
+              disabled={!hasGeopointAndData}
+              aria-label={t('Show as points')}
+            />
+          </div>
+          <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 1 }}>
+            <ActionIcon
+              onClick={this.showLayerControls.bind(this)}
+              tooltip={t('Toggle layers')}
+              tooltipProps={mapTooltipProps}
+              iconName='layer'
+              size='lg'
+              variant='outline'
+              disabled={!hasGeopointAndData}
+              aria-label={t('Toggle layers')}
+            />
+          </div>
+          <div style={{ ...mapSettingsStyle, gridColumn: 1, gridRow: 1 }}>
+            <ActionIcon
+              onClick={this.toggleMapSettings.bind(this)}
+              tooltip={t('Map display settings')}
+              tooltipProps={mapTooltipProps}
+              iconName='settings'
+              size='lg'
+              variant='outline'
+              disabled={!this.state.hasGeoPoint}
+              aria-label={t('Map display settings')}
+            />
+          </div>
+          {!viewby && (
+            <div style={{ ...mapActionItemStyle, gridColumn: 3, gridRow: 3 }}>
+              <ActionIcon
+                onClick={this.showHeatmap.bind(this)}
+                tooltip={t('Show as heatmap')}
+                tooltipProps={mapTooltipProps}
+                iconName='heatmap'
+                size='lg'
+                variant='outline'
+                disabled={!hasGeopointAndData}
+                aria-label={t('Show as heatmap')}
+              />
+            </div>
+          )}
+        </div>
 
         {hasGeopointAndData && (
-          <PopoverMenu
-            type='viewby-menu'
-            triggerLabel={label}
-            clearPopover={this.state.clearDisaggregatedPopover}
-            blurEventDisabled
-          >
-            {langs.length > 1 && <bem.PopoverMenu__heading>{t('Language')}</bem.PopoverMenu__heading>}
-            {langs.map((l, i) => (
-              <bem.PopoverMenu__link
-                data-index={i}
-                className={this.state.langIndex === i ? 'active' : ''}
-                key={`l-${i}`}
-                onClick={this.filterLanguage.bind(this)}
-              >
-                {l ? l : t('Default')}
-              </bem.PopoverMenu__link>
-            ))}
-            <bem.PopoverMenu__link
-              key={'all'}
-              onClick={this.filterMap.bind(this)}
-              className={viewby ? 'see-all' : 'active see-all'}
+          <div style={mapViewByMenuStyle}>
+            <Menu
+              closeOnClickOutside
+              closeOnItemClick
+              position='top-start'
+              offset={8}
+              width={240}
+              withinPortal
+              zIndex={Z_TOOLTIP_PORTAL}
             >
-              {t('-- See all data --')}
-            </bem.PopoverMenu__link>
-            {fields.map((f) => {
-              const name = f.name || f.$autoname
-              const fieldLabel = f.label ? (
-                f.label[langIndex] ? (
-                  f.label[langIndex]
-                ) : (
-                  <em>{t('untranslated: ') + name}</em>
-                )
-              ) : (
-                t('Question label not set')
-              )
-              return (
-                <bem.PopoverMenu__link
-                  data-name={name}
-                  key={`f-${name}`}
-                  onClick={this.filterMap.bind(this)}
-                  className={viewby === name ? 'active' : ''}
+              <Menu.Target>
+                <ButtonNew
+                  variant='outline'
+                  size='md'
+                  style={{
+                    minWidth: 180,
+                  }}
                 >
-                  {fieldLabel}
-                </bem.PopoverMenu__link>
-              )
-            })}
-          </PopoverMenu>
+                  <span
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {label}
+                  </span>
+                </ButtonNew>
+              </Menu.Target>
+
+              <Menu.Dropdown>
+                {langs.length > 1 && <Menu.Label>{t('Language')}</Menu.Label>}
+                {langs.map((l, i) => (
+                  <Menu.Item
+                    key={`l-${i}`}
+                    onClick={() => this.filterLanguage(i)}
+                    style={this.state.langIndex === i ? { fontWeight: 500 } : undefined}
+                  >
+                    {l ? l : t('Default')}
+                  </Menu.Item>
+                ))}
+                <Menu.Divider />
+                <Menu.Item
+                  key='all'
+                  onClick={() => this.filterMap()}
+                  style={{
+                    fontWeight: viewby ? undefined : 700,
+                  }}
+                >
+                  {t('-- See all data --')}
+                </Menu.Item>
+                {fields.map((f) => {
+                  const name = f.name || f.$autoname
+                  const fieldLabel = f.label ? (
+                    f.label[langIndex] ? (
+                      f.label[langIndex]
+                    ) : (
+                      <em>{t('untranslated: ') + name}</em>
+                    )
+                  ) : (
+                    t('Question label not set')
+                  )
+
+                  return (
+                    <Menu.Item
+                      key={`f-${name}`}
+                      onClick={() => this.filterMap(name)}
+                      style={viewby === name ? { fontWeight: 700 } : undefined}
+                    >
+                      {fieldLabel}
+                    </Menu.Item>
+                  )
+                })}
+              </Menu.Dropdown>
+            </Menu>
+          </div>
         )}
 
         {this.state.noData && !this.state.hasGeoPoint && !this.props.isLoading && (

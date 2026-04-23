@@ -9,6 +9,7 @@ import ActionIcon, { type ActionIconProps } from './ActionIcon'
 const actionIconVariants: Array<ActionIconProps['variant']> = [
   'filled',
   'light',
+  'outline',
 
   //// Custom:
   'danger',
