@@ -954,10 +954,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   toggleLegend() {
-    this.setState(
-      { showExpandedLegend: !this.state.showExpandedLegend },
-      () => this.syncLegendViewportListeners(),
-    )
+    this.setState({ showExpandedLegend: !this.state.showExpandedLegend }, () => this.syncLegendViewportListeners())
   }
 
   filterByMarker(markerId: number) {
