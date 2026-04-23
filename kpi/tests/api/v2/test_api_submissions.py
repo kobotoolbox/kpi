@@ -1901,7 +1901,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             self.asset.deployment.mock_submissions([submission], create_uuids=False)
 
         # Rejecting the submission because it does not have an instance ID
-        self.assertEqual(str(ex.exception), 'Instance ID is required')
+        self.assertEqual(str(ex.exception), 'Could not determine the instance ID')
 
         # Test the edit flow with a submission that has a UUID
         submission['meta/instanceID'] = 'uuid:9710c729-00a5-41f1-b740-8dd618bb4a49'
