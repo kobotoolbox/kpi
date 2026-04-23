@@ -19,7 +19,7 @@ const Autocomplete = (props: AutocompletePropsNarrow) => {
       }}
       onDropdownClose={() => {
         setIsOpened(false)
-        props.onDropdownOpen?.()
+        props.onDropdownClose?.()
       }}
       rightSection={
         <Group gap={1} mr='sm'>
