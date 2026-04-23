@@ -185,11 +185,11 @@ export const MantineIntegrationExamples: Story = {
           <ButtonNew leftIcon='lock-alt' variant='light'>
             legacy icon (as icon font)
           </ButtonNew>
-          <ButtonNew leftIcon={resolveLegacySvgIconByName('lock-alt')} variant='danger'>
+          <ButtonNew leftIcon={resolveLegacySvgIconByName('file-audio')} variant='danger'>
             legacy icon (as svg)
           </ButtonNew>
-          <ButtonNew leftIcon={TablerIcons.IconLockFilled} variant='outline'>
-            new tabler icon
+          <ButtonNew leftIcon={resolveLegacySvgIconByName('figma-public-collection')} variant='outline'>
+            svg custom icon (Figma exported)
           </ButtonNew>
           <ButtonNew leftIcon={TablerIcons.IconChevronLeftPipe}>new tabler icon</ButtonNew>
         </Group>
