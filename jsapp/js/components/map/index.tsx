@@ -166,6 +166,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   private readonly onViewportChange = () => {
     this.forceUpdate()
   }
+  private viewportListenersActive = false
   private mapContainerEl?: HTMLElement
   private readonly onMapPinchZoom = (evt: WheelEvent) => {
     // On macOS touchpads, pinch emits ctrl+wheel and may zoom browser tab by default.
@@ -180,6 +181,21 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   private unlisteners: Function[] = []
+
+  private syncLegendViewportListeners() {
+    const shouldListen = Boolean(this.state.markerMap) && this.state.markersVisible && this.state.showExpandedLegend
+    if (shouldListen === this.viewportListenersActive) {
+      return
+    }
+    this.viewportListenersActive = shouldListen
+    if (shouldListen) {
+      window.addEventListener('resize', this.onViewportChange)
+      window.addEventListener('scroll', this.onViewportChange, true)
+    } else {
+      window.removeEventListener('resize', this.onViewportChange)
+      window.removeEventListener('scroll', this.onViewportChange, true)
+    }
+  }
 
   constructor(props: FormMapProps) {
     super(props)
@@ -209,6 +225,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', this.onViewportChange)
+    window.removeEventListener('scroll', this.onViewportChange, true)
+    this.viewportListenersActive = false
     if (this.mapContainerEl) {
       this.mapContainerEl.removeEventListener('wheel', this.onMapPinchZoom)
     }
@@ -262,12 +281,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
       actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
       actions.resources.getAssetFiles.completed.listen(this.onGetAssetFiles.bind(this)),
-    )
-    window.addEventListener('resize', this.onViewportChange)
-    window.addEventListener('scroll', this.onViewportChange, true)
-    this.unlisteners.push(
-      () => window.removeEventListener('resize', this.onViewportChange),
-      () => window.removeEventListener('scroll', this.onViewportChange, true),
     )
 
     actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
@@ -941,9 +954,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   toggleLegend() {
-    this.setState({
-      showExpandedLegend: !this.state.showExpandedLegend,
-    })
+    this.setState(
+      { showExpandedLegend: !this.state.showExpandedLegend },
+      () => this.syncLegendViewportListeners(),
+    )
   }
 
   filterByMarker(markerId: number) {
@@ -1041,7 +1055,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       position: 'absolute',
       top: '12px',
       right: '12px',
-      zIndex: hasGeopointAndData ? Z_MAP_SETTINGS : Z_MAP_SETTINGS_DISABLED,
+      // When mapSettingsAboveOverlay is true the child mapSettingsStyle sets zIndex: 1002, but a child z-index only
+      // competes within its parent stacking context. The parent must be at least as high so the whole group
+      // paints above .map-transparent-background (z-index 1001).
+      zIndex: mapSettingsAboveOverlay
+        ? Z_MAP_SETTINGS_OVERLAY + 1
+        : hasGeopointAndData
+          ? Z_MAP_SETTINGS
+          : Z_MAP_SETTINGS_DISABLED,
       display: 'grid',
       gridTemplateColumns: 'repeat(3, auto)',
       gridTemplateRows: 'repeat(3, auto)',
