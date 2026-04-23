@@ -12,7 +12,7 @@ import { actions } from '../actions'
 import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
 import mixins from '../mixins'
 import RESTServices from './RESTServices'
-import FormMap from './map'
+import FormMapWrapper from './map/formMapWrapper'
 import FormMedia from './modalForms/formMedia'
 import ProjectSettings from './modalForms/projectSettings'
 import SharingForm from './permissions/sharingForm.component'
@@ -63,9 +63,9 @@ export class FormSubScreens extends React.Component {
             </Suspense>
           )
         case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
-          return <FormMap asset={this.state} />
+          return <FormMapWrapper asset={this.state} />
         case ROUTES.FORM_MAP_BY.replace(':uid', this.state.uid).replace(':viewby', this.props.params.viewby):
-          return <FormMap asset={this.state} viewby={this.props.params.viewby} />
+          return <FormMapWrapper asset={this.state} viewby={this.props.params.viewby} />
         case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
           return (
             <Suspense fallback={null}>

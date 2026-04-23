@@ -2,8 +2,6 @@
 from django.contrib import admin
 
 from .models import (
-    MfaAvailableToUser,
-    MfaAvailableToUserAdmin,
     MfaMethodsWrapper,
     TrenchMFAMethod,
 )
@@ -28,4 +26,3 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
 
 admin.site.unregister(TrenchMFAMethod)
 admin.site.register(MfaMethodsWrapper, MfaMethodsWrapperAdmin)
-admin.site.register(MfaAvailableToUser, MfaAvailableToUserAdmin)
