@@ -13,8 +13,14 @@ const Autocomplete = (props: AutocompletePropsNarrow) => {
   return (
     <MantineAutocomplete
       {...props}
-      onDropdownOpen={() => { setIsOpened(true); props.onDropdownOpen?.(); }}
-      onDropdownClose={() => { setIsOpened(false); props.onDropdownOpen?.(); }}
+      onDropdownOpen={() => {
+        setIsOpened(true)
+        props.onDropdownOpen?.()
+      }}
+      onDropdownClose={() => {
+        setIsOpened(false)
+        props.onDropdownOpen?.()
+      }}
       rightSection={
         <Group gap={1} mr='sm'>
           <Icon name={isOpened ? 'angle-up' : 'angle-down'} size={'m'} />
