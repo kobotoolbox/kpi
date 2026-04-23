@@ -3,7 +3,7 @@
 }
 
 .section {
-  color: var(--mantine-color-gray-3)
+  color: var(--mantine-color-gray-3);
 }
 
 .input:focus-visible:not([data-error]) {
