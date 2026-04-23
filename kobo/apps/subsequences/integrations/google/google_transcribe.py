@@ -8,6 +8,7 @@ from typing import Any, Union
 import constance
 from django.conf import settings
 from django.core.cache import cache
+from google.api_core import client_options
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech
 
@@ -41,6 +42,19 @@ class GoogleTranscriptionService(GoogleService):
         """
         super().__init__(submission=submission, asset=asset, *args, **kwargs)
         self.destination_path = None
+
+        location = constance.config.ASR_MT_GOOGLE_REGION.lower()
+        short_region = ''
+        if location.startswith('us-') or location == 'us':
+            short_region = 'us-'
+        elif location.startswith('europe-') or location == 'eu':
+            short_region = 'eu-'
+        self.client_opts = client_options.ClientOptions(
+            api_endpoint=f'{short_region}speech.googleapis.com'
+        )
+
+    def get_client_options(self):
+        return self.client_opts
 
     def adapt_response(self, response: Union[dict, list]) -> str:
         """
@@ -77,8 +91,9 @@ class GoogleTranscriptionService(GoogleService):
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
 
-        # Create the parameters required for the transcription
-        speech_client = speech.SpeechClient(credentials=self.credentials)
+        speech_client = speech.SpeechClient(
+            credentials=self.credentials, client_options=self.client_opts
+        )
         config = speech.RecognitionConfig(
             language_code=source_lang,
             enable_automatic_punctuation=True,

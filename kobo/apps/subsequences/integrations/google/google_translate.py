@@ -7,6 +7,7 @@ from typing import Any, Union
 
 import constance
 from django.conf import settings
+from google.api_core import client_options
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import translate_v3 as translate
 
@@ -15,7 +16,6 @@ from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CODE
 from ...exceptions import SubsequenceTimeoutError, TranslationAsyncResultAvailable
-from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
 
 
@@ -36,23 +36,47 @@ class GoogleTranslationService(GoogleService):
         """
         super().__init__(submission, asset, *args, **kwargs)
 
+        location = constance.config.ASR_MT_GOOGLE_REGION.lower()
+        project_id = constance.config.ASR_MT_GOOGLE_PROJECT_ID
+
+        location = constance.config.ASR_MT_GOOGLE_REGION.lower()
+        short_region = ''
+        if location.startswith('us-') or location == 'us':
+            short_region = '-us'
+        elif location.startswith('europe-') or location == 'eu':
+            short_region = '-eu'
+        self.client_opts = client_options.ClientOptions(
+            api_endpoint=f'translate{short_region}.googleapis.com'
+        )
+
+        if location and location != 'global':
+            self.translate_parent = f'projects/{project_id}/locations/{location}'
+        else:
+            self.translate_parent = f'projects/{project_id}'
+
         self.translate_client = translate.TranslationServiceClient(
-            credentials=google_credentials_from_constance_config()
+            credentials=self.credentials,
+            client_options=self.client_opts,
         )
-        self.translate_parent = (
-            f'projects/{constance.config.ASR_MT_GOOGLE_PROJECT_ID}'
-        )
+
         # "The global location is not supported for batch translation." See:
         # https://googleapis.dev/python/translation/2.0.0/gapic/v3/api.html
         # https://www.googlecloudcommunity.com/gc/AI-ML/location-variable-setting-for-the-Google-Cloud-Translation-API/m-p/543622/highlight/true#M1652
+        async_location = location
+        if not async_location or async_location == 'global':
+            # Batch translation requires a regional location, not global
+            async_location = 'us-central1'
         self.translate_async_parent = (
-            f'projects/{constance.config.ASR_MT_GOOGLE_PROJECT_ID}/'
-            f'locations/{constance.config.ASR_MT_GOOGLE_TRANSLATION_LOCATION}'
+            f'projects/{project_id}/locations/{async_location}'
         )
+
         self.bucket_prefix = (
             constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX
         )
         self.date_string = date.today().isoformat()
+
+    def get_client_options(self):
+        return self.client_opts
 
     def adapt_response(self, response: Union[dict, list]) -> str:
         """

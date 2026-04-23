@@ -8,6 +8,7 @@ import constance
 from django.conf import settings
 from django.core.cache import cache
 from google.api_core.operation import Operation
+from google.api_core import client_options
 from google.cloud import storage
 from googleapiclient import discovery
 
@@ -45,6 +46,9 @@ class GoogleService(ABC):
         self.storage_client = storage.Client(credentials=self.credentials)
         self._validate_settings()
 
+    def get_client_options(self) -> Any:
+        return None
+
     @abstractmethod
     def adapt_response(self, results: Any) -> str:
         pass
@@ -75,8 +79,15 @@ class GoogleService(ABC):
         # Fetch the latest update from Google API, but do not resend the same operation.
         cache_key = self._get_cache_key(xpath, source_lang, target_lang)
         if operation_name := cache.get(cache_key):
+            opts = self.get_client_options()
+            if opts and opts.api_endpoint and not opts.api_endpoint.startswith('http'):
+                opts = client_options.ClientOptions(api_endpoint=f'https://{opts.api_endpoint}')  # noqa: E501
+
             google_service = discovery.build(
-                self.API_NAME, self.API_VERSION, credentials=self.credentials
+                self.API_NAME,
+                self.API_VERSION,
+                credentials=self.credentials,
+                client_options=opts,
             )
             resource_path = self.API_RESOURCE.split('.')
             for subresource in resource_path:
