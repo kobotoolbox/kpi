@@ -3,6 +3,7 @@ import './connect-projects.scss'
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
+import type { ServerError } from '#/api/ServerError'
 import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react-query/survey-data'
 import bem from '#/bem'
@@ -60,7 +61,12 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   } = useAssetsPairedDataList(asset.uid)
   const { mutate: detachSourceMutate, isPending: isDetachingSource } = useAssetsPairedDataDestroy()
   const { data: sharingEnabledAssetsResponse } = useAssetsList({ q: SHARING_ENABLED_PROJECTS_QUERY })
-  const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate()
+  const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate<ServerError>({
+    mutation: {
+      // Hide default error to avoid duplicate toasts
+      onError: () => null,
+    },
+  })
 
   const isLoading = isFetchingAttachedSources || isDetachingSource || isPatchingDataSharing
 
@@ -205,6 +211,29 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
               nextEnabled ? dataAttachmentsUtils.generateColumnFilters(nextFields, asset.content?.survey ?? []) : [],
             )
             onSuccess?.()
+          },
+          onError: (error) => {
+            const errorResponse = error.parsedResponse as {
+              detail?: string
+              data_sharing?: { fields?: string[] }
+            }
+            const invalidFieldsErrorMessage = dataAttachmentsUtils.buildInvalidFieldsErrorMessage(
+              data.fields,
+              errorResponse?.data_sharing,
+              t('Failed to attach to source'),
+              t('Some fields are invalid:'),
+            )
+
+            if (invalidFieldsErrorMessage) {
+              notify.error(invalidFieldsErrorMessage)
+              return
+            }
+
+            notify.error(
+              errorResponse?.detail ||
+                errorResponse?.data_sharing?.fields?.join(', ') ||
+                t('Failed to attach to source'),
+            )
           },
         },
       )
