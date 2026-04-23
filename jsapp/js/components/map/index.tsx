@@ -1055,9 +1055,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       offset: 8,
     }
 
-    const MAP_CONTROL_GAP = 12
-    const MAP_MENU_OFFSET = 8
-    const MAP_BUTTON_HEIGHT_MD = 32
+    const MAP_CONTROL_GAP = 'var(--mantine-spacing-sm)'
+    const MAP_MENU_OFFSET = 'calc(var(--mantine-spacing-sm) - 4px)'
+    const MAP_BUTTON_HEIGHT_MD = '32px'
 
     const mapBottomControlsStyle: React.CSSProperties = {
       position: 'absolute',
@@ -1066,7 +1066,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       zIndex: Z_MAP_LIST,
       display: 'flex',
       flexDirection: 'column-reverse',
-      gap: `${MAP_CONTROL_GAP}px`,
+      gap: MAP_CONTROL_GAP,
       pointerEvents: 'none',
       alignItems: 'flex-start',
     }
@@ -1081,11 +1081,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const legendDialogPosition = legendControlRect
       ? {
           left: legendControlRect.left,
-          bottom: window.innerHeight - legendControlRect.top + MAP_MENU_OFFSET,
+          bottom: `calc(${window.innerHeight - legendControlRect.top}px + ${MAP_MENU_OFFSET})`,
         }
       : {
           left: 15,
-          bottom: 15 + MAP_BUTTON_HEIGHT_MD + MAP_CONTROL_GAP + MAP_BUTTON_HEIGHT_MD + MAP_MENU_OFFSET,
+          bottom: `calc(15px + ${MAP_BUTTON_HEIGHT_MD} + ${MAP_CONTROL_GAP} + ${MAP_BUTTON_HEIGHT_MD} + ${MAP_MENU_OFFSET})`,
         }
 
     return (
