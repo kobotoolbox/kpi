@@ -142,6 +142,11 @@ export const MantineIntegrationExamples: Story = {
           <code>{"<KoboIcon icon={resolveLegacySvgIconByName('document')} />"}</code>,
         ],
         [
+          'New component with Figma exported SVG icon',
+          <KoboIcon icon={resolveLegacySvgIconByName('figma-data-sync')} />,
+          <code>{"<KoboIcon icon={resolveLegacySvgIconByName('figma-data-sync')} />"}</code>,
+        ],
+        [
           'New component with Tabler icon',
           <KoboIcon icon={TablerIcons.IconFileDescriptionFilled} />,
           <code>{'<KoboIcon icon={TablerIcons.IconFileDescriptionFilled} />'}</code>,
@@ -157,9 +162,20 @@ export const MantineIntegrationExamples: Story = {
           <code>&lt;ActionIcon&gt;</code> integration examples
         </Text>
         <Group>
-          <ActionIcon iconName='document' variant='light' size='lg' />
-          <ActionIcon icon={TablerIcons.IconSearch} variant='danger-secondary' size='lg' />
-          <ActionIcon icon={TablerIcons.IconRocket} variant='blue' size='lg' />
+          <ActionIcon iconName='document' variant='light' size='lg' tooltip='legacy icon (as icon font)' />
+          <ActionIcon
+            icon={resolveLegacySvgIconByName('lock-alt')}
+            variant='outline'
+            size='lg'
+            tooltip='legacy icon (as svg)'
+          />
+          <ActionIcon
+            icon={resolveLegacySvgIconByName('figma-unsubscribe')}
+            variant='danger'
+            size='lg'
+            tooltip='svg custom icon (Figma exported)'
+          />
+          <ActionIcon icon={TablerIcons.IconSearch} variant='danger-secondary' size='lg' tooltip='new tabler icon' />
         </Group>
 
         <Text size='lg'>
@@ -172,7 +188,10 @@ export const MantineIntegrationExamples: Story = {
           <ButtonNew leftIcon={resolveLegacySvgIconByName('lock-alt')} variant='danger'>
             legacy icon (as svg)
           </ButtonNew>
-          <ButtonNew leftIcon={TablerIcons.IconLockFilled}>new tabler icon</ButtonNew>
+          <ButtonNew leftIcon={TablerIcons.IconLockFilled} variant='outline'>
+            new tabler icon
+          </ButtonNew>
+          <ButtonNew leftIcon={TablerIcons.IconChevronLeftPipe}>new tabler icon</ButtonNew>
         </Group>
       </Stack>
     )

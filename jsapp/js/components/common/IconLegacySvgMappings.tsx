@@ -40,6 +40,11 @@ import EmailSvg from '../../../svg-icons/email.svg?react'
 import ExpandArrowSvg from '../../../svg-icons/expand-arrow.svg?react'
 import ExpandListSvg from '../../../svg-icons/expand-list.svg?react'
 import ExpandSvg from '../../../svg-icons/expand.svg?react'
+import FigmaDataSync from '../../../svg-icons/figma-data-sync.svg?react'
+import FigmaEyeOff from '../../../svg-icons/figma-eye-off.svg?react'
+import FigmaMatrix from '../../../svg-icons/figma-matrix.svg?react'
+import FigmaPublicCollection from '../../../svg-icons/figma-public-collection.svg?react'
+import FigmaUnsubscribe from '../../../svg-icons/figma-unsubscribe.svg?react'
 import FileAudioSvg from '../../../svg-icons/file-audio.svg?react'
 import FileImageSvg from '../../../svg-icons/file-image.svg?react'
 import FileVideoSvg from '../../../svg-icons/file-video.svg?react'
@@ -204,7 +209,9 @@ function wrapLegacySvgIcon(SvgComponent: ComponentType<SVGProps<SVGSVGElement>>)
         style={{
           ...style,
           color,
-          fill: 'currentColor',
+          // This in theory is nice but we would need to set it to either fill:"currentColor" or stroke:"currentColor"
+          // depending on what kind of SVG we have. We can't just set it to all of them
+          // fill: 'currentColor',
         }}
       />
     )
@@ -251,6 +258,11 @@ export const LegacyIconToSvgComponentMap: Record<IconName, ComponentType<SvgIcon
   expand: wrapLegacySvgIcon(ExpandSvg),
   'expand-arrow': wrapLegacySvgIcon(ExpandArrowSvg),
   'expand-list': wrapLegacySvgIcon(ExpandListSvg),
+  'figma-unsubscribe': wrapLegacySvgIcon(FigmaUnsubscribe),
+  'figma-data-sync': wrapLegacySvgIcon(FigmaDataSync),
+  'figma-eye-off': wrapLegacySvgIcon(FigmaEyeOff),
+  'figma-matrix': wrapLegacySvgIcon(FigmaMatrix),
+  'figma-public-collection': wrapLegacySvgIcon(FigmaPublicCollection),
   file: wrapLegacySvgIcon(FileSvg),
   'file-audio': wrapLegacySvgIcon(FileAudioSvg),
   'file-image': wrapLegacySvgIcon(FileImageSvg),
