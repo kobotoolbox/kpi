@@ -1,9 +1,8 @@
-import { Menu, type TooltipProps } from '@mantine/core'
+import { Dialog, Menu, type TooltipProps } from '@mantine/core'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
 import omnivore, { type OmnivoreFunction } from '@mapbox/leaflet-omnivore'
-import cx from 'classnames'
 import JSZip from 'jszip'
 import L, { type LayerGroup } from 'leaflet'
 // Libraries
@@ -163,6 +162,10 @@ interface FormMapState {
 
 class FormMap extends React.Component<FormMapProps, FormMapState> {
   controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
+  private legendControlRef = React.createRef<HTMLDivElement>()
+  private readonly onViewportChange = () => {
+    this.forceUpdate()
+  }
 
   private unlisteners: Function[] = []
 
@@ -242,6 +245,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
       actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
       actions.resources.getAssetFiles.completed.listen(this.onGetAssetFiles.bind(this)),
+    )
+    window.addEventListener('resize', this.onViewportChange)
+    window.addEventListener('scroll', this.onViewportChange, true)
+    this.unlisteners.push(
+      () => window.removeEventListener('resize', this.onViewportChange),
+      () => window.removeEventListener('scroll', this.onViewportChange, true),
     )
 
     actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
@@ -1006,6 +1015,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const Z_MAP_SETTINGS = 700 // = $z-map-settings (default map buttons)
     const Z_MAP_SETTINGS_DISABLED = 999 // = $z-map-settings-disabled (under overlay)
     const Z_MAP_SETTINGS_OVERLAY = 1001 // = $z-map-settings-overlay (overlay layer)
+    const Z_MAP_LIST = 689 // = $z-map-list (legend)
+    const Z_LEGEND_DIALOG = 1000 // above map controls/layers, below legacy modal backdrop (1101)
     const Z_TOOLTIP_PORTAL = 4000 // above app overlays/modals ($z-modal is 3000)
 
     const mapSettingsAboveOverlay = this.state.noData && this.state.hasGeoPoint
@@ -1044,13 +1055,38 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       offset: 8,
     }
 
-    const mapViewByMenuStyle: React.CSSProperties = {
+    const MAP_CONTROL_GAP = 12
+    const MAP_MENU_OFFSET = 8
+    const MAP_BUTTON_HEIGHT_MD = 32
+
+    const mapBottomControlsStyle: React.CSSProperties = {
       position: 'absolute',
       bottom: '15px',
       left: '15px',
-      zIndex: Z_MAP_SETTINGS,
+      zIndex: Z_MAP_LIST,
+      display: 'flex',
+      flexDirection: 'column-reverse',
+      gap: `${MAP_CONTROL_GAP}px`,
+      pointerEvents: 'none',
+      alignItems: 'flex-start',
+    }
+
+    const mapBottomControlItemStyle: React.CSSProperties = {
+      position: 'relative',
+      pointerEvents: 'auto',
       maxWidth: '90%',
     }
+
+    const legendControlRect = this.legendControlRef.current?.getBoundingClientRect()
+    const legendDialogPosition = legendControlRect
+      ? {
+          left: legendControlRect.left,
+          bottom: window.innerHeight - legendControlRect.top + MAP_MENU_OFFSET,
+        }
+      : {
+          left: 15,
+          bottom: 15 + MAP_BUTTON_HEIGHT_MD + MAP_CONTROL_GAP + MAP_BUTTON_HEIGHT_MD + MAP_MENU_OFFSET,
+        }
 
     return (
       <bem.FormView m={formViewModifiers}>
@@ -1119,83 +1155,163 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           )}
         </div>
 
-        {hasGeopointAndData && (
-          <div style={mapViewByMenuStyle}>
-            <Menu
-              closeOnClickOutside
-              closeOnItemClick
-              position='top-start'
-              offset={8}
-              width={240}
-              withinPortal
-              zIndex={Z_TOOLTIP_PORTAL}
-            >
-              <Menu.Target>
+        {(hasGeopointAndData || (this.state.markerMap && this.state.markersVisible)) && (
+          <div style={mapBottomControlsStyle}>
+            {hasGeopointAndData && (
+              <div style={mapBottomControlItemStyle}>
+                <Menu
+                  closeOnClickOutside
+                  closeOnItemClick
+                  position='top-start'
+                  offset={8}
+                  width={240}
+                  withinPortal
+                  zIndex={Z_TOOLTIP_PORTAL}
+                >
+                  <Menu.Target>
+                    <ButtonNew
+                      variant='outline'
+                      size='md'
+                      style={{
+                        minWidth: 180,
+                      }}
+                    >
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          padding: '5px 0',
+                        }}
+                      >
+                        {label}
+                      </span>
+                    </ButtonNew>
+                  </Menu.Target>
+
+                  <Menu.Dropdown>
+                    {langs.length > 1 && <Menu.Label>{t('Language')}</Menu.Label>}
+                    {langs.map((l, i) => (
+                      <Menu.Item
+                        key={`l-${i}`}
+                        onClick={() => this.filterLanguage(i)}
+                        style={this.state.langIndex === i ? { fontWeight: 500 } : undefined}
+                      >
+                        {l ? l : t('Default')}
+                      </Menu.Item>
+                    ))}
+                    <Menu.Divider />
+                    <Menu.Item
+                      key='all'
+                      onClick={() => this.filterMap()}
+                      style={{
+                        fontWeight: viewby ? undefined : 700,
+                      }}
+                    >
+                      {t('-- See all data --')}
+                    </Menu.Item>
+                    {fields.map((f) => {
+                      const name = f.name || f.$autoname
+                      const fieldLabel = f.label ? (
+                        f.label[langIndex] ? (
+                          f.label[langIndex]
+                        ) : (
+                          <em>{t('untranslated: ') + name}</em>
+                        )
+                      ) : (
+                        t('Question label not set')
+                      )
+
+                      return (
+                        <Menu.Item
+                          key={`f-${name}`}
+                          onClick={() => this.filterMap(name)}
+                          style={viewby === name ? { fontWeight: 700 } : undefined}
+                        >
+                          {fieldLabel}
+                        </Menu.Item>
+                      )
+                    })}
+                  </Menu.Dropdown>
+                </Menu>
+              </div>
+            )}
+
+            {this.state.markerMap && this.state.markersVisible && (
+              <div style={mapBottomControlItemStyle} ref={this.legendControlRef}>
                 <ButtonNew
                   variant='outline'
                   size='md'
-                  style={{
-                    minWidth: 180,
-                  }}
+                  leftIcon={this.state.showExpandedLegend ? 'angle-down' : 'angle-up'}
+                  onClick={this.toggleLegend.bind(this)}
                 >
-                  <span
-                    style={{
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      padding: '5px 0',
-                    }}
-                  >
-                    {label}
-                  </span>
+                  {t('Legend')}
                 </ButtonNew>
-              </Menu.Target>
 
-              <Menu.Dropdown>
-                {langs.length > 1 && <Menu.Label>{t('Language')}</Menu.Label>}
-                {langs.map((l, i) => (
-                  <Menu.Item
-                    key={`l-${i}`}
-                    onClick={() => this.filterLanguage(i)}
-                    style={this.state.langIndex === i ? { fontWeight: 500 } : undefined}
-                  >
-                    {l ? l : t('Default')}
-                  </Menu.Item>
-                ))}
-                <Menu.Divider />
-                <Menu.Item
-                  key='all'
-                  onClick={() => this.filterMap()}
-                  style={{
-                    fontWeight: viewby ? undefined : 700,
-                  }}
+                <Dialog
+                  opened={this.state.showExpandedLegend}
+                  onClose={this.toggleLegend.bind(this)}
+                  position={legendDialogPosition}
+                  withCloseButton={false}
+                  withBorder={false}
+                  shadow='md'
+                  radius='md'
+                  p='xs'
+                  classNames={{ root: 'map-legend-dialog' }}
+                  withinPortal
+                  zIndex={Z_LEGEND_DIALOG}
                 >
-                  {t('-- See all data --')}
-                </Menu.Item>
-                {fields.map((f) => {
-                  const name = f.name || f.$autoname
-                  const fieldLabel = f.label ? (
-                    f.label[langIndex] ? (
-                      f.label[langIndex]
-                    ) : (
-                      <em>{t('untranslated: ') + name}</em>
-                    )
-                  ) : (
-                    t('Question label not set')
-                  )
+                  <div className='maplist-contents'>
+                    {this.state.filteredByMarker && (
+                      <div
+                        key='m-reset'
+                        className='map-marker-item map-marker-reset'
+                        onClick={this.resetFilterByMarker.bind(this)}
+                      >
+                        {t('Reset')}
+                      </div>
+                    )}
+                    {this.state.markerMap.map((m, i) => {
+                      let markerItemClass = 'map-marker-item '
+                      if (this.state.filteredByMarker) {
+                        markerItemClass += this.state.filteredByMarker.includes(m.id.toString())
+                          ? 'selected'
+                          : 'unselected'
+                      }
+                      let markerLabel = m.labels ? m.labels[langIndex] : m.value
+                      if (!markerLabel) {
+                        markerLabel = t('not set')
+                      }
+                      let index: number | IconNoValue = i
+                      if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
+                        index = this.calculateIconIndex(index, this.state.markerMap)
+                      }
 
-                  return (
-                    <Menu.Item
-                      key={`f-${name}`}
-                      onClick={() => this.filterMap(name)}
-                      style={viewby === name ? { fontWeight: 700 } : undefined}
-                    >
-                      {fieldLabel}
-                    </Menu.Item>
-                  )
-                })}
-              </Menu.Dropdown>
-            </Menu>
+                      let markerItemSpanClass = ''
+                      if (typeof index === 'number') {
+                        markerItemSpanClass = `map-marker-${colorSet}${index + 1}`
+                      }
+
+                      return (
+                        <div key={`m-${i}`} className={markerItemClass}>
+                          <span className={`map-marker ${markerItemSpanClass}`}>{m.count}</span>
+
+                          <span
+                            className={'map-marker-label'}
+                            onClick={() => {
+                              this.filterByMarker(m.id)
+                            }}
+                            title={markerLabel}
+                          >
+                            {markerLabel}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </Dialog>
+              </div>
+            )}
           </div>
         )}
 
@@ -1224,61 +1340,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               <p className='map-no-geopoint'>{t('Fetching points…')}</p>
             </div>
           </div>
-        )}
-
-        {this.state.markerMap && this.state.markersVisible && (
-          <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
-            <div className='maplist-contents'>
-              {this.state.filteredByMarker && (
-                <div
-                  key='m-reset'
-                  className='map-marker-item map-marker-reset'
-                  onClick={this.resetFilterByMarker.bind(this)}
-                >
-                  {t('Reset')}
-                </div>
-              )}
-              {this.state.markerMap.map((m, i) => {
-                let markerItemClass = 'map-marker-item '
-                if (this.state.filteredByMarker) {
-                  markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
-                }
-                let markerLabel = m.labels ? m.labels[langIndex] : m.value
-                if (!markerLabel) {
-                  markerLabel = t('not set')
-                }
-                let index: number | IconNoValue = i
-                if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
-                  index = this.calculateIconIndex(index, this.state.markerMap)
-                }
-
-                let markerItemSpanClass = ''
-                if (typeof index === 'number') {
-                  markerItemSpanClass = `map-marker-${colorSet}${index + 1}`
-                }
-
-                return (
-                  <div key={`m-${i}`} className={markerItemClass}>
-                    <span className={`map-marker ${markerItemSpanClass}`}>{m.count}</span>
-
-                    <span
-                      className={'map-marker-label'}
-                      onClick={() => {
-                        this.filterByMarker(m.id)
-                      }}
-                      title={markerLabel}
-                    >
-                      {markerLabel}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-            <div className='maplist-legend' onClick={this.toggleLegend.bind(this)}>
-              <i className={cx('k-icon', this.state.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up')} />{' '}
-              {t('Legend')}
-            </div>
-          </bem.FormView__mapList>
         )}
 
         {this.state.showMapSettings && (

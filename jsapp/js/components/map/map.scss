@@ -59,48 +59,20 @@ body .leaflet-control-layers,
   margin-top: 56px;
 }
 
-.form-view__map-list {
-  position: absolute;
-  bottom: 70px;
-  left: 15px;
-  z-index: z-indexes.$z-map-list;
+.map-legend-dialog {
   height: 250px;
+  max-height: 50vh;
   min-width: 180px;
   max-width: 300px;
   padding: 5px;
   background: colors.$kobo-white;
   overflow: none;
 
-  @include mdl.box-shadow;
-
-  border-radius: 6px;
-
-  .maplist-legend {
-    padding: 2px 8px;
-    cursor: pointer;
-
-    .k-icon {
-      font-size: 21px;
-      margin-right: 8px;
-      margin-left: 3px;
-      vertical-align: bottom;
-      color: colors.$kobo-blue;
-    }
-  }
-
   .maplist-contents {
     display: block;
     margin-bottom: 5px;
-    height: calc(100% - 30px);
+    height: 100%;
     overflow: auto;
-  }
-
-  &.collapsed {
-    height: auto;
-
-    .maplist-contents {
-      display: none;
-    }
   }
 
   .map-marker-item {
