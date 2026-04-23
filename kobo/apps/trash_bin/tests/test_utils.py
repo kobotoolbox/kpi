@@ -29,7 +29,13 @@ from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
-from ..tasks import empty_account, empty_attachment, empty_project, task_restarter
+from ..tasks import (
+    empty_account,
+    empty_attachment,
+    empty_project,
+    garbage_collector,
+    task_restarter,
+)
 from ..utils import move_to_trash, put_back, trash_bin_task_failure
 
 
@@ -82,6 +88,35 @@ class AccountTrashTestCase(TestCase):
         audit_log.refresh_from_db()
         assert audit_log.user is None
         assert audit_log.user_uid == someuser_uid
+
+    def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
+        """
+        After empty_account completes, the PeriodicTask is intentionally left
+        orphaned to avoid Celery Beat schedule reload storms.
+        Verify that garbage_collector cleans it up in batch.
+        """
+        someuser = get_user_model().objects.get(username='someuser')
+        admin = get_user_model().objects.get(username='adminuser')
+
+        move_to_trash(
+            request_author=admin,
+            objects_list=[{'pk': someuser.pk, 'username': someuser.username}],
+            grace_period=0,
+            trash_type='user',
+            retain_placeholder=False,
+        )
+        account_trash = AccountTrash.objects.get(user=someuser)
+        periodic_task_id = account_trash.periodic_task_id
+
+        empty_account.apply([account_trash.pk])
+
+        # PeriodicTask is intentionally left orphaned after task completion
+        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
+
+        garbage_collector()
+
+        # garbage_collector cleans it up in batch with signals suppressed
+        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
 
     def test_move_to_trash(self):
         someuser = get_user_model().objects.get(username='someuser')
@@ -443,6 +478,25 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             == 0
         )
 
+    def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
+        """
+        After empty_project completes, the PeriodicTask is intentionally left
+        orphaned to avoid Celery Beat schedule reload storms.
+        Verify that garbage_collector cleans it up in batch.
+        """
+        project_trash = self.test_move_to_trash()
+        periodic_task_id = project_trash.periodic_task_id
+
+        empty_project(project_trash.pk)
+
+        # PeriodicTask is intentionally left orphaned after task completion
+        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
+
+        garbage_collector()
+
+        # garbage_collector cleans it up in batch with signals suppressed
+        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
+
     @data(
         # Format: (task status, within grace period, is stuck, expected restart count)
         # Trivial case: Task is pending and still within the grace period
@@ -781,10 +835,12 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
                 assert patched_spawned_task.call_count == restart_count
 
-    def test_deleting_submission_deletes_attachment_trash_and_task(self):
+    def test_deleting_submission_deletes_attachment_trash_but_not_task(self):
         """
-        Test that if a submission is deleted, any attachment trash entry and its
-        associated periodic task are also deleted.
+        Test that if a submission is deleted, the attachment trash entry is
+        deleted but the associated periodic task is left orphaned for the
+        garbage_collector to clean up in batch — avoiding Celery Beat schedule
+        reload storms.
         """
         # Move the attachment to trash
         trash_obj = self._move_attachment_to_trash(
@@ -795,11 +851,37 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         # Delete the submission
         self.instance.delete()
 
-        # Verify that the attachment trash entry and periodic task are deleted
-        self.assertFalse(
-            AttachmentTrash.objects.filter(attachment_id=self.attachment.id).exists()
+        # Verify that the attachment trash entry is deleted
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
+        # The PeriodicTask is intentionally left orphaned
+        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
+
+        # garbage_collector cleans it up in batch with signals suppressed
+        garbage_collector()
+        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
+
+    def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
+        """
+        After empty_attachment completes, the PeriodicTask is intentionally
+        left orphaned to avoid Celery Beat schedule reload storms.
+        Verify that garbage_collector cleans it up in batch.
+        """
+        trash_obj = self._move_attachment_to_trash(
+            self.asset, self.attachment, self.user
         )
-        self.assertFalse(PeriodicTask.objects.filter(pk=periodic_task_id).exists())
+        periodic_task_id = trash_obj.periodic_task_id
+
+        empty_attachment(trash_obj.pk)
+
+        # PeriodicTask is intentionally left orphaned after task completion
+        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
+
+        garbage_collector()
+
+        # garbage_collector cleans it up in batch with signals suppressed
+        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
 
     def test_management_command_cleans_up_orphaned_attachment_trash(self):
         """

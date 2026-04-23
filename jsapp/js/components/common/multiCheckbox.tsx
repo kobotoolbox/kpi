@@ -5,7 +5,6 @@ import React from 'react'
 import { Stack, Text } from '@mantine/core'
 import bem, { makeBem } from '#/bem'
 import Checkbox from '#/components/common/checkbox'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 bem.MultiCheckbox = makeBem(null, 'multi-checkbox', 'ul')
 bem.MultiCheckbox__item = makeBem(bem.MultiCheckbox, 'item', 'li')
@@ -38,11 +37,18 @@ interface MultiCheckboxProps {
  * Use optional `bem.MultiCheckbox__wrapper` to display a frame around it.
  */
 export default function MultiCheckbox(props: MultiCheckboxProps) {
-  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
-
   function onChange(itemIndex: number, isChecked: boolean) {
-    const updatedList = props.items
-    updatedList[itemIndex].checked = isChecked
+    const updatedList = props.items.map((item, currentItemIndex) => {
+      if (currentItemIndex !== itemIndex) {
+        return item
+      }
+
+      return {
+        ...item,
+        checked: isChecked,
+      }
+    })
+
     props.onChange(updatedList)
   }
 
@@ -59,10 +65,10 @@ export default function MultiCheckbox(props: MultiCheckboxProps) {
                   onChange(itemIndex, isChecked)
                 }}
                 // When there's a hint displayed, the label needs to be more prominent
-                label={autoQAEnabled && item.hint ? <strong>{item.label}</strong> : item.label}
+                label={item.hint ? <strong>{item.label}</strong> : item.label}
               />
 
-              {autoQAEnabled && item.hint && (
+              {item.hint && (
                 <Text pl='26px' fz='xs' m='0' ta='left' c='var(--mantine-color-gray-2)'>
                   {item.hint}
                 </Text>
