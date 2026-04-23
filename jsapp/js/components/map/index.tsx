@@ -1143,6 +1143,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      padding: '5px 0',
                     }}
                   >
                     {label}
