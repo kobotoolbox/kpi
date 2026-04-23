@@ -1659,7 +1659,8 @@ WEBPACK_LOADER = {
 # The default is the URL of the server. Set to blank to fit the email requirements
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 
-# Enable serving django-allauth Headless OpenAPI specs (we ingest these into DRF-Spectacular)
+# Enable serving django-allauth Headless OpenAPI specs (we ingest these into
+# DRF-Spectacular)
 HEADLESS_SERVE_SPECIFICATION = True
 
 

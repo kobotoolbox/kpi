@@ -143,7 +143,8 @@ def merge_allauth_headless_schema(result, generator, request, public):
                         )
                         operation['operationId'] = f'{clean_path}_{method}'
                     else:
-                        # Append the client format to uniquely isolate browser vs app ID definitions
+                        # Append the client format to uniquely isolate browser vs app ID
+                        # definitions
                         if client and not operation['operationId'].endswith(
                             f'_{client}'
                         ):
@@ -151,7 +152,8 @@ def merge_allauth_headless_schema(result, generator, request, public):
                                 f"{operation['operationId']}_{client}"
                             )
 
-                        # Fix any references inside the operationId that literalize the '{client}' string
+                        # Fix any references inside the operationId that literalize the
+                        # '{client}' string
                         if 'client' in operation['operationId']:
                             operation['operationId'] = operation['operationId'].replace(
                                 'client', client or 'auth'
