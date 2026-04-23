@@ -18,8 +18,8 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Prop
     await onSave(value ?? null)
   }
 
-  const handleChange = (value: string | number) => {
-    setValue(value as number)
+  const handleChange = (inputValue: string | number) => {
+    setValue(inputValue as number)
     clearTimeout(typingTimer)
     setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
   }

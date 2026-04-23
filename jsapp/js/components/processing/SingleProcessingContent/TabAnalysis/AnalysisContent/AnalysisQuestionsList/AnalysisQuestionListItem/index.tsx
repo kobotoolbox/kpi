@@ -134,7 +134,6 @@ export default function AnalysisQuestionListItem({
         },
       })
     }
-    console.log('adf')
     setQaQuestion(undefined)
   }
 
@@ -158,15 +157,14 @@ export default function AnalysisQuestionListItem({
     setQaQuestion(undefined)
   }
 
-  const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) => {
-    return mutationPatchQuestion.mutateAsync({
+  const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) =>
+    mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
       uidAdvancedFeature: advancedFeature.uid,
       data: {
         params: reorderedParams,
       },
     })
-  }
 
   const disabledAnswer =
     !userCan('change_submissions', asset) || mutationCreateQuestion.isPending || mutationPatchQuestion.isPending
