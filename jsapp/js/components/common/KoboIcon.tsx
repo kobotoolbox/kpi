@@ -59,5 +59,15 @@ export default function KoboIcon({ icon, size, color, ...svgProps }: KoboIconPro
     return null
   }
   const IconComponent = icon
-  return <IconComponent {...svgProps} color={resolveIconColor(color)} size={resolveIconSize(size)} stroke-width={1.5} />
+  // Legacy SVG components wrapped by wrapLegacySvgIcon are named "LegacySvgIcon".
+  // Tabler icons use stroke width; legacy fill-based (or varied stroke width) SVGs should not have it applied.
+  const isLegacySvg = IconComponent.displayName === 'LegacySvgIcon' || IconComponent.name === 'LegacySvgIcon'
+  return (
+    <IconComponent
+      {...svgProps}
+      color={resolveIconColor(color)}
+      size={resolveIconSize(size)}
+      {...(!isLegacySvg && { stroke: 1.5 })}
+    />
+  )
 }
