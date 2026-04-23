@@ -166,6 +166,18 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   private readonly onViewportChange = () => {
     this.forceUpdate()
   }
+  private mapContainerEl?: HTMLElement
+  private readonly onMapPinchZoom = (evt: WheelEvent) => {
+    // On macOS touchpads, pinch emits ctrl+wheel and may zoom browser tab by default.
+    // Capture it over the map and apply zoom to Leaflet instead.
+    if (!evt.ctrlKey || !this.state.map) {
+      return
+    }
+
+    evt.preventDefault()
+    const nextZoom = this.state.map.getZoom() + (evt.deltaY < 0 ? 1 : -1)
+    this.state.map.setZoom(nextZoom)
+  }
 
   private unlisteners: Function[] = []
 
@@ -197,6 +209,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentWillUnmount() {
+    if (this.mapContainerEl) {
+      this.mapContainerEl.removeEventListener('wheel', this.onMapPinchZoom)
+    }
     if (this.state.map) {
       this.state.map.remove()
     }
@@ -222,6 +237,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       scrollWheelZoom: false,
       preferCanvas: true,
     })
+    this.mapContainerEl = map.getContainer()
+    this.mapContainerEl.addEventListener('wheel', this.onMapPinchZoom, { passive: false })
 
     STREETS_LAYER.addTo(map)
     this.controls.addTo(map)
