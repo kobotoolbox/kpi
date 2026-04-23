@@ -363,8 +363,8 @@ class TestVersioning(TestCase):
                                     'value': 'music123',
                                 },
                                 '_dateCreated': now.isoformat(),
-                                '_dateAccepted': now.isoformat(),
                                 '_uuid': 'uuid5',
+                                'verified': False,
                             }
                         ],
                     },
@@ -378,8 +378,8 @@ class TestVersioning(TestCase):
                                     'value': 2,
                                 },
                                 '_dateCreated': now.isoformat(),
-                                '_dateAccepted': now.isoformat(),
                                 '_uuid': 'uuid6',
+                                'verified': False,
                             }
                         ],
                     },

@@ -21,11 +21,10 @@ import type {
   PermissionBase,
   PermissionResponse,
 } from '#/dataInterface'
-import { stores } from '#/stores'
 import sessionStore from '#/stores/session'
 import { replaceBracketsWithLink } from '#/textUtils'
 import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
-import { recordKeys, recordValues } from '#/utils'
+import { recordValues } from '#/utils'
 import CopyTeamPermissions from './copyTeamPermissions.component'
 import { parseBackendData, parseUserWithPermsList } from './permParser'
 import type { UserWithPerms } from './permParser'
@@ -44,7 +43,6 @@ interface SharingFormProps {
 export type AssignablePermsMap = Map<string, string | AssignablePermissionPartialLabel>
 
 interface SharingFormState {
-  allAssetsCount: number
   isAddUserEditorVisible: boolean
   permissions: UserWithPerms[] | null
   nonOwnerPerms: PermissionBase[]
@@ -57,7 +55,6 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
   constructor(props: SharingFormProps) {
     super(props)
     this.state = {
-      allAssetsCount: 0,
       isAddUserEditorVisible: false,
       // `permissions`, `nonOwnerPerms` and `publicPerms` are all being built at
       // the same moment when API call finishes, so we can start with empty
@@ -76,25 +73,18 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
   componentDidMount() {
     this.unlisteners.push(
       assetStore.listen(this.onAssetChange, this),
-      stores.allAssets.listen(this.onAllAssetsChange, this),
       actions.permissions.bulkSetAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
       actions.permissions.getAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
     )
     if (this.props.assetUid) {
       actions.resources.loadAsset({ id: this.props.assetUid }, true)
     }
-
-    this.onAllAssetsChange()
   }
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {
       clb()
     })
-  }
-
-  onAllAssetsChange() {
-    this.setState({ allAssetsCount: recordKeys(stores.allAssets.byUid).length })
   }
 
   onAssetPermissionsUpdated(permissionAssignments: PermissionResponse[], owner: string | null = null) {
@@ -299,16 +289,10 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
         {/* copying permissions from other assets */}
         {isManagingPossible && (
           <>
-            {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount === 0 && (
+            {assetType !== ASSET_TYPES.collection.id && (
               <>
                 <bem.Modal__hr />
-                {t('Waiting for all projects to load…')}
-              </>
-            )}
-            {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 && (
-              <>
-                <bem.Modal__hr />
-                <CopyTeamPermissions assetUid={this.props.assetUid} />
+                <CopyTeamPermissions asset={this.state.asset} />
               </>
             )}
           </>

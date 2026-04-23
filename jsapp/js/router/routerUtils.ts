@@ -34,6 +34,9 @@ export function redirectToLogin() {
   window.location.replace(getLoginUrl())
 }
 
+/**
+ * @deprecated `location.hash` is wonky during re-renders, it's safer to use router hooks
+ */
 export function getCurrentPath(): string {
   const route = location.hash.split('#')
   return route.length > 1 ? route[1] : ''

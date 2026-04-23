@@ -202,6 +202,17 @@ interface SetAssetPublicFailedDefinition extends Function {
   listen: (callback: (assetUid: string) => void) => Function
 }
 
+interface CopyPermissionsFromCompletedDefinition extends Function {
+  (sourceUid: string, targetUid: string): void
+  listen: (callback: (sourceUid: string, targetUid: string) => void) => Function
+}
+
+interface CopyPermissionsFromDefinition extends Function {
+  (sourceUid: string, targetUid: string): void
+  completed: CopyPermissionsFromCompletedDefinition
+  failed: GenericFailedDefinition
+}
+
 interface RemoveAssetPermissionDefinition extends Function {
   (
     assetUid: string,
@@ -343,7 +354,6 @@ export declare const actions: {
   survey: {
     addExternalItemAtPosition: SurveyAddExternalItemDefinition
   }
-  search: object
   resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
@@ -386,7 +396,7 @@ export declare const actions: {
   }
   permissions: {
     getConfig: GenericDefinition
-    copyPermissionsFrom: GenericDefinition
+    copyPermissionsFrom: CopyPermissionsFromDefinition
     removeAssetPermission: RemoveAssetPermissionDefinition
     assignAssetPermission: GenericDefinition
     bulkSetAssetPermissions: GenericDefinition

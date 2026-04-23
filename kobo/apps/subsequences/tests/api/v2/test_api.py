@@ -500,12 +500,6 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         )
 
         result_mock_uuid_sequence = [
-            'a9a817c0-7208-4063-bab6-93c0a3a7615b',
-            '61d23cd7-ce2c-467b-ab26-0839226c714d',
-            '20dd5185-ee43-451f-8759-2f5185c3c912',
-            '409c690e-d148-4d80-8c73-51be941b33b0',
-            '49fbd509-e042-44ce-843c-db04485a0096',
-            '5799f662-76d7-49ab-9a1c-ae2c7d502a78',
             'c4fa8263-50c0-4252-9c9b-216ca338be13',
             '64e59cc1-adaf-47a3-a068-550854d8f98f',
             '909c62cf-d544-4926-8839-7f035c6c7483',
@@ -587,8 +581,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                                     'value': 'Answer',
                                 },
                                 '_dateCreated': '2025-12-15T22:22:00+00:00',
-                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
                                 '_uuid': '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
+                                'verified': False,
                             }
                         ],
                     },
@@ -602,8 +596,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                                     'value': '83212060-fd18-445a-b121-ad82c2e5811d',
                                 },
                                 '_dateCreated': '2025-12-15T22:22:00+00:00',
-                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
                                 '_uuid': 'f2b4c6b1-3c6a-4a7f-9e55-1a8c2a0a7c91',
+                                'verified': False,
                             }
                         ],
                     },
@@ -620,8 +614,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                                     ],
                                 },
                                 '_dateCreated': '2025-12-15T22:22:00+00:00',
-                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
                                 '_uuid': '8c9a8e44-7a3d-4c58-b7bb-5f2a1c6e5c3a',
+                                'verified': False,
                             }
                         ],
                     },

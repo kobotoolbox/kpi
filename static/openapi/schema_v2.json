@@ -3160,6 +3160,14 @@
                 "parameters": [
                     {
                         "in": "query",
+                        "name": "fields",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Include only given list of fields in results"
+                    },
+                    {
+                        "in": "query",
                         "name": "format",
                         "schema": {
                             "type": "string",
@@ -3204,6 +3212,14 @@
                             "type": "string"
                         },
                         "description": "Filter the results with search query"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sort",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Sort the results by a field, e.g. {\"_id\":-1}"
                     },
                     {
                         "name": "start",

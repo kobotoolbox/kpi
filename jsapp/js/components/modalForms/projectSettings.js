@@ -34,6 +34,49 @@ import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
 
+const ExtraMetadataFields = ({ fields, values, onChange, hasFieldError }) =>
+  envStore.data.extra_project_metadata_fields.map((field) => {
+    const label = envStore.data.getExtraFieldLabel(field)
+    const hasError = hasFieldError(field.name)
+
+    const options = (field.options ?? []).map((opt) => {
+      return {
+        value: opt.name,
+        label: opt.label,
+      }
+    })
+
+    if (field.type === 'single_select' || field.type === 'multi_select') {
+      return (
+        <div className={styles.input} key={field.name}>
+          <WrappedSelect
+            label={addRequiredToLabel(label, field.required)}
+            isMulti={field.type === 'multi_select'}
+            value={values[field.name]}
+            onChange={(val) => onChange(field.name, val)}
+            options={options}
+            isLimitedHeight
+            isClearable
+            menuPlacement='auto'
+            error={hasError ? t('Please select an option') : false}
+          />
+        </div>
+      )
+    }
+
+    return (
+      <div className={styles.input} key={field.name}>
+        <TextBox
+          value={values[field.name]}
+          onChange={(val) => onChange(field.name, val)}
+          label={addRequiredToLabel(label, field.required)}
+          placeholder={label}
+          errors={hasError ? t('This field is required') : false}
+        />
+      </div>
+    )
+  })
+
 /**
  * This is used for multiple different purposes:
  *
@@ -133,11 +176,13 @@ class ProjectSettings extends React.Component {
     fields.country = asset?.settings ? asset.settings.country : null
     fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null
+    fields.extra_metadata_fields = {}
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
       const value = asset?.settings?.[field.name]
-      const defaultValue = field.type === 'multi_select' ? [] : field.type === 'select' ? null : ''
-      fields[field.name] = value !== undefined ? value : defaultValue
+      const defaultValue = field.type === 'multi_select' ? [] : field.type === 'single_select' ? null : ''
+
+      fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
     })
 
     return fields
@@ -226,7 +271,11 @@ class ProjectSettings extends React.Component {
     const newStateObj = clonedeep(this.state)
 
     // Set Value
-    newStateObj.fields[fieldName] = newFieldValue
+    if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
+      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue
+    } else {
+      newStateObj.fields[fieldName] = newFieldValue
+    }
 
     // If given field has error and user starts to edit it, we can remove
     // the error and wait for `handleSubmit` to add new ones if necessary.
@@ -499,7 +548,7 @@ class ProjectSettings extends React.Component {
     }
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
-      settings[field.name] = this.state.fields[field.name]
+      settings[field.name] = this.state.fields.extra_metadata_fields[field.name]
     })
     return JSON.stringify(settings)
   }
@@ -698,12 +747,27 @@ class ProjectSettings extends React.Component {
     }
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
-      const val = this.state.fields[field.name]
-      if (field.required) {
-        const isSelectField = field.type === 'select'
-        const isEmpty =
-          field.type === 'multi_select' ? !Array.isArray(val) || val.length === 0 : isSelectField ? !val : !val?.trim()
-        if (isEmpty) fieldsWithErrors.push(field.name)
+      if (!field.required) return
+
+      const val = this.state.fields.extra_metadata_fields[field.name]
+
+      if (field.type === 'multi_select') {
+        if (!Array.isArray(val) || val.length === 0) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      if (field.type === 'single_select') {
+        if (!val) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      // Default to text fields
+      if (!val?.trim()) {
+        fieldsWithErrors.push(field.name)
       }
     })
 
@@ -997,44 +1061,11 @@ class ProjectSettings extends React.Component {
           )}
 
           {/* Extra Project Metadata */}
-          {envStore.data.extra_project_metadata_fields.map((field) => {
-            const label = envStore.data.getExtraFieldLabel(field)
-            const hasError = this.hasFieldError(field.name)
-            const options = (field.options ?? []).map((opt) => {
-              return { value: opt.name, label: opt.label }
-            })
-
-            if (field.type === 'select' || field.type === 'multi_select') {
-              return (
-                <div className={styles.input} key={field.name}>
-                  <WrappedSelect
-                    label={addRequiredToLabel(label, field.required)}
-                    isMulti={field.type === 'multi_select'}
-                    value={this.state.fields[field.name]}
-                    onChange={(val) => this.onAnyFieldChange(field.name, val)}
-                    options={options}
-                    isLimitedHeight
-                    isClearable
-                    menuPlacement='auto'
-                    error={hasError ? t('Please select an option') : false}
-                  />
-                </div>
-              )
-            }
-
-            // Default to Text
-            return (
-              <div className={styles.input} key={field.name}>
-                <TextBox
-                  value={this.state.fields[field.name]}
-                  onChange={(val) => this.onAnyFieldChange(field.name, val)}
-                  label={addRequiredToLabel(label, field.required)}
-                  placeholder={label}
-                  errors={hasError ? t('This field is required') : false}
-                />
-              </div>
-            )
-          })}
+          <ExtraMetadataFields
+            values={this.state.fields.extra_metadata_fields}
+            onChange={this.onAnyFieldChange}
+            hasFieldError={this.hasFieldError}
+          />
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||
             this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
