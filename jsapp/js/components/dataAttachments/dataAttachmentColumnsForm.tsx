@@ -1,4 +1,5 @@
 import { type MouseEvent, useCallback, useEffect, useState } from 'react'
+import type { ServerError } from '#/api/ServerError'
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataCreate, useAssetsPairedDataPartialUpdate } from '#/api/react-query/survey-data'
 import bem from '#/bem'
@@ -49,8 +50,20 @@ function DataAttachmentColumnsForm({
     isFetched: isInitialised,
     isFetching: isFetchingSourceAsset,
   } = useAssetsRetrieve(source.uid)
-  const { mutate: createPairedDataMutate, isPending: isCreatingAttachment } = useAssetsPairedDataCreate()
-  const { mutate: patchPairedDataMutate, isPending: isPatchingAttachment } = useAssetsPairedDataPartialUpdate()
+
+  const { mutate: createPairedDataMutate, isPending: isCreatingAttachment } = useAssetsPairedDataCreate<ServerError>({
+    mutation: {
+      // Hide default error to avoid duplicate toasts
+      onError: () => null,
+    },
+  })
+  const { mutate: patchPairedDataMutate, isPending: isPatchingAttachment } =
+    useAssetsPairedDataPartialUpdate<ServerError>({
+      mutation: {
+        // Hide default error to avoid duplicate toasts
+        onError: () => null,
+      },
+    })
 
   const isLoading = isCreatingAttachment || isPatchingAttachment
 
@@ -93,6 +106,40 @@ function DataAttachmentColumnsForm({
 
       const selectedFields = columnsToDisplay.filter((item) => item.checked).map((item) => item.label)
 
+      const onSuccess = () => {
+        onAttachmentChanged?.()
+        onModalClose()
+      }
+
+      const onFailure = (error: ServerError) => {
+        const invalidFieldsErrorMessage = dataAttachmentsUtils.buildInvalidFieldsErrorMessage(
+          selectedFields,
+          error.parsedResponse,
+          t('Failed to attach to source'),
+          t('Some fields are invalid:'),
+        )
+
+        if (invalidFieldsErrorMessage) {
+          notify.error(invalidFieldsErrorMessage)
+          return
+        }
+
+        const errorResponse = error.parsedResponse as {
+          detail?: string
+          data_sharing?: { fields?: string }
+          fields?: string[]
+          filename?: string[]
+        }
+
+        notify.error(
+          errorResponse?.detail ||
+            errorResponse?.data_sharing?.fields ||
+            errorResponse?.fields?.[0] ||
+            errorResponse?.filename?.[0] ||
+            t('Failed to attach to source'),
+        )
+      }
+
       if (attachmentUrl) {
         const pairedDataUid = getAssetUIDFromUrl(attachmentUrl)
         if (!pairedDataUid) {
@@ -111,10 +158,8 @@ function DataAttachmentColumnsForm({
             },
           },
           {
-            onSuccess: () => {
-              onAttachmentChanged?.()
-              onModalClose()
-            },
+            onSuccess,
+            onError: onFailure,
           },
         )
         return
@@ -130,10 +175,8 @@ function DataAttachmentColumnsForm({
           },
         },
         {
-          onSuccess: () => {
-            onAttachmentChanged?.()
-            onModalClose()
-          },
+          onSuccess,
+          onError: onFailure,
         },
       )
     },
