@@ -10,7 +10,6 @@ import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
-import Autocomplete from '../common/Autocomplete'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 
