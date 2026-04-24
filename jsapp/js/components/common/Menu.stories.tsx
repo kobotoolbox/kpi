@@ -5,6 +5,7 @@ import ActionIcon from './ActionIcon'
 import Menu from './Menu'
 import Icon from './icon'
 import '@mantine/core/styles.css'
+import ButtonNew from './ButtonNew'
 
 type StoryArgs = ComponentProps<typeof Menu> & {
   onDeleteClick?: () => void
@@ -92,14 +93,19 @@ export const TestDangerAction: Story = {
       <div style={storyAreaStyle}>
         <Menu {...args}>
           <Menu.Target>
-            <ActionIcon iconName='more' size='md' variant='transparent' aria-label='Open menu' />
+            <ButtonNew leftIcon='angle-down' size='md' variant='danger-secondary'>
+              Test me now
+            </ButtonNew>
           </Menu.Target>
 
           <Menu.Dropdown>
-            <Menu.Item leftSection={<Icon name='edit' size='s' />}>Edit</Menu.Item>
+            <Menu.Item leftSection={<Icon name='help' size='s' />}>Maybe delete</Menu.Item>
             <Menu.Divider />
+            <Menu.Item leftSection={<Icon name='close' size='s' />} variant='danger'>
+              Maybe possibly delete
+            </Menu.Item>
             <Menu.Item
-              leftSection={<Icon name='close' size='s' />}
+              leftSection={<Icon name='trash' size='s' />}
               onClick={onDeleteClick}
               data-testid={testId}
               variant='danger'
@@ -113,7 +119,7 @@ export const TestDangerAction: Story = {
   },
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByRole('button', { name: /open menu/i }))
+    await userEvent.click(canvas.getByRole('button', { name: /test me now/i }))
     await userEvent.click(canvas.getByTestId(args['data-testid']!))
     await expect(args.onDeleteClick).toHaveBeenCalledTimes(1)
   },
