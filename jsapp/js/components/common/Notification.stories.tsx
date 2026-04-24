@@ -1,10 +1,15 @@
-import { Notification } from '@mantine/core'
+import { Notification, type NotificationProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
 import { recordKeys } from '#/utils'
-import Icon from './icon'
+import Icon, { type IconSize } from './icon'
 
-const meta: Meta<typeof Notification> = {
+interface NotificationStory extends NotificationProps {
+  iconName: keyof typeof IconNames
+  iconSize: IconSize
+}
+
+const meta: Meta<NotificationStory> = {
   title: 'Design system/Notification',
   component: Notification,
   argTypes: {
@@ -12,19 +17,14 @@ const meta: Meta<typeof Notification> = {
       description: 'Text in the notification',
       control: { type: 'text' },
     },
-    icon: {
+    iconName: {
       description: 'Icon to display',
       options: [undefined, ...recordKeys(IconNames)],
-      mapping: {
-        ...recordKeys(IconNames).reduce(
-          (componentList, iconName) => {
-            componentList[iconName] = <Icon name={iconName} size='s' />
-            return componentList
-          },
-          {} as Record<string, JSX.Element>,
-        ),
-        undefined: undefined,
-      },
+      control: { type: 'select' },
+    },
+    iconSize: {
+      description: 'Icon size',
+      options: ['xxs', 'xs', 's', 'm', 'l', 'xl'],
       control: { type: 'select' },
     },
   },
@@ -33,15 +33,16 @@ const meta: Meta<typeof Notification> = {
 
 export default meta
 
-type Story = StoryObj<typeof Notification>
+type Story = StoryObj<NotificationStory>
 
 export const Default: Story = {
   args: {
     title: 'Your transcripts are on their way!',
-    icon: 'check',
+    iconName: 'check',
+    iconSize: 's',
   },
   render: (args) => (
-    <Notification {...args}>
+    <Notification {...args} icon={args.iconName ? <Icon name={args.iconName} size={args.iconSize} /> : undefined}>
       <a href='#'>Click here</a> to monitor your progress or to cancel this job
     </Notification>
   ),

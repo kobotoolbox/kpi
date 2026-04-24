@@ -12,3 +12,9 @@
   font-size: var(--mantine-font-size-sm);
   font-weight: 600;
 }
+
+/* Mantine sets the style prop for the blue circle around the Icon component "icon", it is not the actual icon itself */
+.icon {
+  height: 18px;
+  width: 18px;
+}
