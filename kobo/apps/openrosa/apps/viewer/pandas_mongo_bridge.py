@@ -327,7 +327,7 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
             # increment counter(s)
             start += batchsize
             time.sleep(0.1)
-        self.xls_writer.save()
+        self.xls_writer.close()
 
     def _format_for_dataframe(self, cursor):
         """
