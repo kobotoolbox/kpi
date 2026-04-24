@@ -5,13 +5,18 @@ from django.forms import ValidationError
 from django.forms.fields import CharField
 from django.utils.translation import gettext as t
 
-from kobo.apps.constance_backends.utils import to_python_object
+from kpi.utils.json import LazyJSONEncoder
 
 
 class JsonSchemaFormField(CharField):
     def __init__(self, *args, schema, **kwargs):
         self.schema = schema
         super().__init__(*args, **kwargs)
+
+    def prepare_value(self, value):
+        if isinstance(value, (dict, list)):
+            return json.dumps(value, indent=2, cls=LazyJSONEncoder)
+        return super().prepare_value(value)
 
     def clean(self, value):
         try:
@@ -103,7 +108,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
         if not self.REQUIRED_FIELDS:
             return value
 
-        instance = to_python_object(value)
+        instance = json.loads(value)
 
         if set(self.REQUIRED_FIELDS) - set(d['name'] for d in instance):
             raise ValidationError(

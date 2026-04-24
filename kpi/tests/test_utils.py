@@ -21,7 +21,7 @@ from kpi.utils.autoname import (
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.strings import split_lines_to_list
+from kpi.utils.strings import split_lines_to_list, strtobool
 from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -440,6 +440,30 @@ class UtilsTestCase(TestCase):
             surv['settings']['allow_choice_duplicates']
             == 'no'
         )
+
+    def test_strtobool_true_values(self):
+        for val in ('y', 'yes', 't', 'true', 'on', '1'):
+            assert strtobool(val) is True
+            assert strtobool(val.upper()) is True
+
+    def test_strtobool_false_values(self):
+        for val in ('n', 'no', 'f', 'false', 'off', '0'):
+            assert strtobool(val) is False
+            assert strtobool(val.upper()) is False
+
+    def test_strtobool_returns_bool(self):
+        assert isinstance(strtobool('true'), bool)
+        assert isinstance(strtobool('false'), bool)
+
+    def test_strtobool_accepts_non_string(self):
+        assert strtobool(True) is True
+        assert strtobool(False) is False
+        assert strtobool(1) is True
+        assert strtobool(0) is False
+
+    def test_strtobool_invalid_raises(self):
+        with pytest.raises(ValueError):
+            strtobool('maybe')
 
     def test_split_lines_to_list(self):
 
