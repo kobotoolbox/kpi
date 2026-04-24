@@ -30,10 +30,13 @@
   }
 }
 
-.itemSection {
+.itemSection[data-position='left'] {
   margin-inline-end: var(--mantine-spacing-sm);
 }
 
+.itemSection[data-position='right'] {
+  margin-inline-start: var(--mantine-spacing-sm);
+}
 .divider {
   border-color: var(--mantine-color-gray-6);
   margin: var(--mantine-spacing-xs);
