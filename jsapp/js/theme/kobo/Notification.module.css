@@ -2,6 +2,12 @@
   background-color: var(--mantine-color-gray-1);
 }
 
+/* Links are not requied in notifications, but if there is a link, it will have these styles */
+.root a {
+  color: var(--mantine-color-blue-7);
+  text-decoration: underline;
+}
+
 .title {
   font-size: var(--mantine-font-size-sm);
   font-weight: 600;
