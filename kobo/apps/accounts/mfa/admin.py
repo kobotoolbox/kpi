@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.contrib import admin, messages
+from django.contrib import admin
 
 from .models import (
     MfaMethodsWrapper,
@@ -28,6 +28,7 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
         changed_data = getattr(form, 'changed_data', [])
         if change and 'is_active' in changed_data and not obj.is_active:
             obj.deactivate()
+            return
         super().save_model(request, obj, form, change)
 
     def delete_queryset(self, request, queryset):

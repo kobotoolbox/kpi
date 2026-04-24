@@ -1,6 +1,5 @@
 from allauth.mfa.models import Authenticator
 from django.contrib.admin.sites import site
-from django.contrib.messages import get_messages
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test.client import RequestFactory
