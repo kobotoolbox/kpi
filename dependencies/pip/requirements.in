@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
-git+https://github.com/kobotoolbox/formpack.git@e43428525a77d2957141a54f8b1dd4675ec8a290#egg=formpack
+git+https://github.com/kobotoolbox/formpack.git@969788b42dc5dc3ec3ad36f63e1cf5e84dfd6fc0#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -25,23 +25,22 @@ billiard
 celery
 celery[redis]
 dict2xml
-defusedxml
 dj-static
-dj-stripe
+dj-stripe>=2.9,<2.10
+stripe
 django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces
 django-celery-beat
-django-constance>=4
+django-constance>=4,<5
 django-cors-headers
-django-csp<4  # temporary 20260226
-django-debug-toolbar<5  # temporary 20260226
+django-csp
 django-environ
-django-filter<25  # temporary 20260226
+django-filter
 django-import-export
 django-import-export-celery
-django-extensions<4  # temporary 20260226
-django-oauth-toolkit<3  # temporary 20260226
+django-extensions
+django-oauth-toolkit
 django-organizations
 django-redis
 django-storages[azure,boto3]
@@ -51,7 +50,7 @@ django-loginas
 django-markdownx
 django-prometheus
 
-django-taggit<6  # temporary 20260226
+django-taggit
 django-private-storage
 djangorestframework
 djangorestframework-xml
@@ -63,7 +62,7 @@ future
 geojson-rewind
 google-api-python-client
 google-cloud-speech
-google-cloud-storage<3  # temporary 20260226
+google-cloud-storage
 google-cloud-translate
 jsonfield
 jsonschema
@@ -73,8 +72,7 @@ more-itertools
 oauthlib
 objgraph
 openpyxl
-#py-gfm # Incompatible with markdown 3.x
-pillow-heif<1  # temporary 20260226
+pillow-heif
 psycopg
 pymongo<4.11.0  # for compatibility with unmaintained mongomock; see https://github.com/mongomock/mongomock/issues/912
 python-dateutil
@@ -87,7 +85,7 @@ shortuuid
 sqlparse
 static3
 tabulate
-ua-parser<1  # temporary 20260226
+ua-parser
 uWSGI
 Werkzeug
 xlrd
@@ -96,24 +94,21 @@ xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI
-pyopenssl<25  # temporary 20260226
+pyopenssl
 ndg-httpsclient
 pyasn1
-
-# This package is only needed for unit tests but MockBackend is loaded even on production environment
-deepmerge<2  # temporary 20260226
 
 # MFA
 django-trench
 
 # Sentry
-sentry-sdk<2  # temporary 20260226
+sentry-sdk
 
 # Kobocat
 modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
-pandas<3  # temporary 20260226
+pandas
 
 # Api Documentation
 drf-spectacular
