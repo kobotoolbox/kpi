@@ -1323,17 +1323,18 @@ _csp_default_src = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + [
 if env.str('FRONTEND_DEV_MODE', None) == 'host':
     _csp_default_src += _csp_local_unsafe_allows
 
-_csp_connect_src = list(_csp_default_src)
-_csp_script_src = list(_csp_default_src)
-_csp_style_src = list(_csp_default_src) + ["'unsafe-inline'"]
-_csp_img_src = list(_csp_default_src) + [
+_csp_connect_src = [*_csp_default_src]
+_csp_script_src = [*_csp_default_src]
+_csp_style_src = [*_csp_default_src, "'unsafe-inline'"]
+_csp_img_src = [
+    *_csp_default_src,
     'data:',
     'https://*.openstreetmap.org',
     'https://*.openstreetmap.fr',  # Humanitarian OpenStreetMap Team
     'https://*.opentopomap.org',
-    'https://*.arcgisonline.com'
+    'https://*.arcgisonline.com',
 ]
-_csp_frame_src = list(_csp_default_src)
+_csp_frame_src = [*_csp_default_src]
 
 if GOOGLE_ANALYTICS_TOKEN:
     # Taken from https://developers.google.com/tag-platform/tag-manager/csp#google_analytics_4_google_analytics
@@ -1349,8 +1350,10 @@ if GOOGLE_ANALYTICS_TOKEN:
         ['https://*.google-analytics.com', 'https://*.googletagmanager.com']
     )
 
-if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
-    _csp_sentry_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
+if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme and SENTRY_JS_DSN_URL.hostname:
+    _csp_sentry_url = f'{SENTRY_JS_DSN_URL.scheme}://{SENTRY_JS_DSN_URL.hostname}'
+    if SENTRY_JS_DSN_URL.port:
+        _csp_sentry_url += f':{SENTRY_JS_DSN_URL.port}'
     _csp_script_src.append(_csp_sentry_url)
     _csp_connect_src.append(_csp_sentry_url)
 
