@@ -291,6 +291,7 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
         # everything else on the default sheet
         self._generate_sections()
 
+    # TODO dead code, to be removed
     def export_to(self, file_path, batchsize=1000):
         self.xls_writer = ExcelWriter(file_path)
 
