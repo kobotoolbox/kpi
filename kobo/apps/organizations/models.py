@@ -90,7 +90,7 @@ class Organization(AbstractOrganization):
     organization_type = models.CharField(
         default=OrganizationType.NONE,
         max_length=20,
-        choices=OrganizationType.choices,
+        choices=OrganizationType,
     )
 
     def add_user(self, user, is_admin=False):
@@ -326,7 +326,7 @@ class OrganizationOwner(AbstractOrganizationOwner):
 class OrganizationInvitation(AbstractOrganizationInvitation):
     status = models.CharField(
         max_length=11,
-        choices=OrganizationInviteStatusChoices.choices,
+        choices=OrganizationInviteStatusChoices,
         default=OrganizationInviteStatusChoices.PENDING,
     )
     invitee_role = models.CharField(
