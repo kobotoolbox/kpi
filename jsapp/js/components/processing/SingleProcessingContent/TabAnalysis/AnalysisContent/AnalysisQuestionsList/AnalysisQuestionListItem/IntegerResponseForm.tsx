@@ -29,8 +29,7 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled, isAnsw
   const handleChange = (inputValue: string | number) => {
     setValue(inputValue as number)
     clearTimeout(typingTimer)
-    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
-  }
+    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto saveexit
 
   return (
     <NumberInput

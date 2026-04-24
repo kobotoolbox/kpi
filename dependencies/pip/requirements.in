@@ -33,7 +33,7 @@ django-braces
 django-celery-beat
 django-constance>=4,<5
 django-cors-headers
-django-csp<4
+django-csp
 django-environ
 django-filter
 django-import-export

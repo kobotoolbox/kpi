@@ -170,9 +170,9 @@ django-constance==4.3.5
     # via -r dependencies/pip/requirements.in
 django-cors-headers==4.9.0
     # via -r dependencies/pip/requirements.in
-django-csp==3.8
+django-csp==4.0
     # via -r dependencies/pip/requirements.in
-django-debug-toolbar==6.2.0
+django-debug-toolbar==6.3.0
     # via -r dependencies/pip/dev_requirements.in
 django-digest @ git+https://github.com/kobotoolbox/django-digest@a417e901c55d7c0aee89e2aab719975f45dbec4e#egg=django_digest
     # via -r dependencies/pip/requirements.in
@@ -516,6 +516,77 @@ pygments==2.20.0
     #   ipython
     #   ipython-pygments-lexers
     #   pytest
+    #   rich
+pyjwt==2.12.1
+    # via twilio
+pymongo==4.10.1
+    # via -r dependencies/pip/requirements.in
+pynacl==1.6.2
+    # via paramiko
+pyopenssl==26.0.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   ndg-httpsclient
+pyotp==2.9.0
+    # via django-trench
+pyparsing==3.3.2
+    # via httplib2
+pyquery==2.0.1
+    # via formpack
+pytest==9.0.3
+    # via
+    #   -r dependencies/pip/dev_requirements.in
+    #   pytest-cov
+    #   pytest-django
+    #   pytest-env
+    #   pytest-xdist
+pytest-cov==7.1.0
+    # via -r dependencies/pip/dev_requirements.in
+pytest-django==4.12.0
+    # via -r dependencies/pip/dev_requirements.in
+pytest-env==1.6.0
+    # via -r dependencies/pip/dev_requirements.in
+pytest-xdist==3.8.0
+    # via -r dependencies/pip/dev_requirements.in
+python-crontab==3.3.0
+    # via django-celery-beat
+python-dateutil==2.9.0.post0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   botocore
+    #   celery
+    #   freezegun
+    #   pandas
+python-digest @ git+https://github.com/dimagi/python-digest@9c77ff12e7d7fedf792b25fddd7f443e1d02206f#egg=python_digest
+    # via -r dependencies/pip/requirements.in
+python-dotenv==1.2.2
+    # via pytest-env
+pytokens==0.4.1
+    # via black
+pytz==2026.1.post1
+    # via
+    #   flower
+    #   mongomock
+pyxform==3.0.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   formpack
+pyyaml==6.0.3
+    # via
+    #   drf-spectacular
+    #   responses
+qrcode==8.2
+    # via django-allauth
+redis==6.4.0
+    # via
+    #   django-redis
+    #   django-redis-sessions
+    #   fakeredis
+    #   kombu
+referencing==0.37.0
+    # via
+    #   jsonschema
+    #   jsonschema-specifications
 regex==2026.4.4
     # via -r dependencies/pip/requirements.in
 requests==2.33.1
@@ -577,7 +648,7 @@ static3==0.7.0
     #   dj-static
 statistics==1.0.3.5
     # via formpack
-stripe==14.4.1
+stripe==15.1.0
     # via dj-stripe
 tablib==3.9.0
     # via django-import-export

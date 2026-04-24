@@ -134,7 +134,7 @@ django-constance==4.3.5
     # via -r dependencies/pip/requirements.in
 django-cors-headers==4.9.0
     # via -r dependencies/pip/requirements.in
-django-csp==3.8
+django-csp==4.0
     # via -r dependencies/pip/requirements.in
 django-digest @ git+https://github.com/kobotoolbox/django-digest@a417e901c55d7c0aee89e2aab719975f45dbec4e#egg=django_digest
     # via -r dependencies/pip/requirements.in
@@ -486,7 +486,7 @@ static3==0.7.0
     #   dj-static
 statistics==1.0.3.5
     # via formpack
-stripe==14.4.1
+stripe==15.1.0
     # via dj-stripe
 tablib==3.9.0
     # via django-import-export
