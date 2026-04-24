@@ -117,12 +117,13 @@ export default function AnalysisQuestionsList({
   }
 
   const qaQuestions = localParams
-    .filter((qaQuestion) => !qaQuestion.options?.deleted)
+    .filter((questionParam) => !questionParam.options?.deleted)
     // TODO: we temporarily hide Keyword Search from the UI until
     // https://github.com/kobotoolbox/kpi/issues/4594 is done
-    .filter((qaQuestion) => qaQuestion.type !== 'qualAutoKeywordCount')
+    .filter((questionParam) => questionParam.type !== 'qualAutoKeywordCount')
 
   const isAnyQuestionBeingEdited = !!qaQuestion
+  const submissionKey = submission['meta/rootUuid'] ?? submission._uuid
 
   const enableGenerateWithAIFeature = async () => {
     // Filter to get valid questions for AI generation (exclude tags and notes)
@@ -209,6 +210,7 @@ export default function AnalysisQuestionsList({
         <ul className={styles.root}>
           {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
             <AnalysisQuestionListItem
+              key={`${submissionKey}-${qaQuestion.uuid}`}
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}
@@ -225,7 +227,7 @@ export default function AnalysisQuestionsList({
           )}
           {qaQuestions.map((qaQuestionItem, index) => (
             <AnalysisQuestionListItem
-              key={qaQuestionItem.uuid}
+              key={`${submissionKey}-${qaQuestionItem.uuid}`}
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}
