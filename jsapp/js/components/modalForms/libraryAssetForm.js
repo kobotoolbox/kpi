@@ -265,8 +265,8 @@ export class LibraryAssetFormComponent extends React.Component {
           </bem.FormModal__item>
 
           {dynamicFields.map((field) => {
-            const label = envStore.data.getLocalizedLabel(field.label, currentLang)
-            const options = envStore.data.getOptionsForField(field.name)
+            const label = envStore.data.getExtraFieldLabel(field, currentLang)
+            const options = field.options || []
             const value = this.state.fields[field.name]
 
             return (
@@ -278,8 +278,8 @@ export class LibraryAssetFormComponent extends React.Component {
                     onChange={(newVal) => this.onAnyFieldChange(field.name, newVal)}
                     options={options.map((opt) => {
                       return {
-                        ...opt,
-                        label: envStore.data.getLocalizedLabel(opt.label, currentLang),
+                        value: opt.name,
+                        label: opt.label || opt.name,
                       }
                     })}
                     isMulti={field.type?.includes('multi')}
