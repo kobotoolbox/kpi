@@ -113,7 +113,7 @@ class ImportExportTask(models.Model):
     data = models.JSONField()
     messages = models.JSONField(default=dict)
     status = models.CharField(
-        choices=ImportExportStatusChoices.choices,
+        choices=ImportExportStatusChoices,
         max_length=32,
         default=ImportExportStatusChoices.CREATED,
     )

@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
@@ -7,7 +6,9 @@ from kpi.forms.extra_metadata_form import ExtraProjectMetadataFieldForm
 from kpi.models import ExtraProjectMetadataField
 from .models import Asset, AuthorizedApplication
 
-
+# We need to register Asset to use `autocomplete_fields` (with Asset) in
+# Django Admin.
+@admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
     search_fields = ['name', 'uid', 'owner__username']
 
@@ -27,14 +28,6 @@ class AssetAdmin(admin.ModelAdmin):
             queryset = queryset.filter(date_deployed__isnull=False)
 
         return super().get_search_results(request, queryset, search_term)
-
-
-# Register your models here.
-admin.site.register(AuthorizedApplication)
-
-# We need to register Asset to use `autocomplete_fields` (with Asset) in
-# Django Admin.
-admin.site.register(Asset, AssetAdmin)
 
 
 @admin.register(ExtraProjectMetadataField)
@@ -64,3 +57,6 @@ class ExtraProjectMetadataFieldAdmin(admin.ModelAdmin):
         return str(obj.label)
 
     label_display.short_description = _('Default Label')
+
+# Register your models here.
+admin.site.register(AuthorizedApplication)
