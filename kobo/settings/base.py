@@ -17,7 +17,6 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
-from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -96,7 +95,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_prometheus',
-    'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
@@ -152,6 +150,7 @@ INSTALLED_APPS = (
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
     'kobo.apps.user_reports.apps.UserReportsConfig',
     'drf_spectacular',
+    'csp',
 )
 
 MIDDLEWARE = [
@@ -297,7 +296,7 @@ CONSTANCE_CONFIG = {
         'Enable two-factor authentication'
     ),
     'MFA_LOCALIZED_HELP_TEXT': (
-        LazyJSONSerializable({
+        {
             'default': t(
                 'If you cannot access your authenticator app, please enter one '
                 'of your backup codes instead. If you cannot access those '
@@ -309,7 +308,7 @@ CONSTANCE_CONFIG = {
                 'a valid language code, but this entry is here to show you '
                 'an example of adding another message in a different language.'
             )
-        }),
+        },
         (
             'Guidance message presented when users click the '
             '"Problems with the token" link.\n\n'
@@ -383,7 +382,7 @@ CONSTANCE_CONFIG = {
         'Number of allowed automatic Qualitative Analysis requests per user per second.'
     ),
     'USER_METADATA_FIELDS': (
-        LazyJSONSerializable([
+        [
             {'name': 'name', 'required': True},
             {'name': 'organization', 'required': False},
             {'name': 'organization_type', 'required': False},
@@ -396,7 +395,7 @@ CONSTANCE_CONFIG = {
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
             {'name': 'newsletter_subscription', 'required': False},
-        ]),
+        ],
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
         "Possible fields are:\n"
@@ -410,11 +409,11 @@ CONSTANCE_CONFIG = {
         'long_metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
-        LazyJSONSerializable([
+        [
             {'name': 'sector', 'required': False},
             {'name': 'country', 'required': False},
             {'name': 'description', 'required': False},
-        ]),
+        ],
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects.\n'
         "Possible fields are:\n"
@@ -537,8 +536,8 @@ CONSTANCE_CONFIG = {
         (
             '[[:lower:]]\n'
             '[[:upper:]]\n'
-            '\d\n'
-            '[\W_]'
+            '\\d\n'
+            '[\\W_]'
         ),
         'List all custom character rules as regular expressions supported '
         'by `regex` python library.\n'
@@ -559,9 +558,8 @@ CONSTANCE_CONFIG = {
         'Enable custom password guidance text to help users create their passwords.',
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        LazyJSONSerializable(
-            {
-                'default': t(
+        {
+            'default': t(
                     'The password must be at least 10 characters long and'
                     ' contain 3 or more of the following: uppercase letters,'
                     ' lowercase letters, numbers, and special characters. It'
@@ -574,8 +572,7 @@ CONSTANCE_CONFIG = {
                     ' you an example of adding another message in a different'
                     ' language.'
                 ),
-            }
-        ),
+        },
         (
             'Guidance message presented when users create or modify a password. '
             'It should reflect the defined password rules.\n\n'
@@ -808,7 +805,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
 }
 
 # Tell django-constance to use a database model instead of Redis
-CONSTANCE_BACKEND = 'kobo.apps.constance_backends.database.DatabaseBackend'
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
 
 
@@ -1311,57 +1308,87 @@ ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 # however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
 if env.bool('ENABLE_CSP', False):
     MIDDLEWARE.append('csp.middleware.CSPMiddleware')
-local_unsafe_allows = [
+
+_csp_local_unsafe_allows = [
     "'unsafe-eval'",
     'http://localhost:3000',
     'http://kf.kobo.local:3000',
     'ws://kf.kobo.local:3000'
 ]
-CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + [
+_csp_default_src = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + [
     "'self'",
     KOBOCAT_URL,
     ENKETO_URL,
 ]
+
 if env.str('FRONTEND_DEV_MODE', None) == 'host':
-    CSP_DEFAULT_SRC += local_unsafe_allows
-CSP_CONNECT_SRC = CSP_DEFAULT_SRC
-CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
-CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
-CSP_IMG_SRC = CSP_DEFAULT_SRC + [
+    _csp_default_src += _csp_local_unsafe_allows
+
+_csp_connect_src = [*_csp_default_src]
+_csp_script_src = [*_csp_default_src]
+_csp_style_src = [*_csp_default_src, "'unsafe-inline'"]
+_csp_img_src = [
+    *_csp_default_src,
     'data:',
     'https://*.openstreetmap.org',
     'https://*.openstreetmap.fr',  # Humanitarian OpenStreetMap Team
     'https://*.opentopomap.org',
-    'https://*.arcgisonline.com'
+    'https://*.arcgisonline.com',
 ]
-CSP_FRAME_SRC = CSP_DEFAULT_SRC
+_csp_frame_src = [*_csp_default_src]
 
 if GOOGLE_ANALYTICS_TOKEN:
     # Taken from https://developers.google.com/tag-platform/tag-manager/csp#google_analytics_4_google_analytics
-    CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
-    CSP_CONNECT_SRC.extend(
+    _csp_script_src.append('https://*.googletagmanager.com')
+    _csp_connect_src.extend(
         [
             'https://*.google-analytics.com',
             'https://*.analytics.google.com',
             'https://*.googletagmanager.com',
         ]
     )
-    CSP_IMG_SRC.extend(
+    _csp_img_src.extend(
         ['https://*.google-analytics.com', 'https://*.googletagmanager.com']
     )
-if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
-    sentry_js_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
-    CSP_SCRIPT_SRC.append(sentry_js_url)
-    CSP_CONNECT_SRC.append(sentry_js_url)
+
+if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme and SENTRY_JS_DSN_URL.hostname:
+    _csp_sentry_url = f'{SENTRY_JS_DSN_URL.scheme}://{SENTRY_JS_DSN_URL.hostname}'
+    if SENTRY_JS_DSN_URL.port:
+        _csp_sentry_url += f':{SENTRY_JS_DSN_URL.port}'
+    _csp_script_src.append(_csp_sentry_url)
+    _csp_connect_src.append(_csp_sentry_url)
+
 if STRIPE_ENABLED:
     stripe_domain = 'https://js.stripe.com'
-    CSP_SCRIPT_SRC.append(stripe_domain)
-    CSP_FRAME_SRC.append(stripe_domain)
+    _csp_script_src.append(stripe_domain)
+    _csp_frame_src.append(stripe_domain)
 
-csp_report_uri = env.url('CSP_REPORT_URI', None)
-if csp_report_uri:  # Let environ validate uri, but set as string
-    CSP_REPORT_URI = csp_report_uri.geturl()
-CSP_REPORT_ONLY = env.bool('CSP_REPORT_ONLY', False)
+_csp_directives = {
+    'default-src': _csp_default_src,
+    'connect-src': _csp_connect_src,
+    'script-src': _csp_script_src,
+    'style-src': _csp_style_src,
+    'img-src': _csp_img_src,
+    'frame-src': _csp_frame_src,
+}
+_csp_report_uri = env.url('CSP_REPORT_URI', None)
+
+if _csp_report_uri:  # Let environ validate uri, but set as string
+    # _csp_directives is mutated in place here; the same dict is later
+    # assigned (by reference) to whichever setting branch is taken below,
+    # so report-uri ends up in the active policy regardless of REPORT_ONLY.
+    _csp_directives['report-uri'] = [_csp_report_uri.geturl()]
+
+# CONTENT_SECURITY_POLICY (or its REPORT_ONLY counterpart) is always
+# defined at module load time, even when ENABLE_CSP=False. django-csp 4.0
+# is inert without its middleware, so this is harmless in practice.
+# This mirrors the old behaviour (flat CSP_* settings were also always set).
+# Do not use the presence of these settings as a proxy for "CSP is enabled";
+# check ENABLE_CSP or the middleware list instead.
+if env.bool('CSP_REPORT_ONLY', False):
+    CONTENT_SECURITY_POLICY_REPORT_ONLY = {'DIRECTIVES': _csp_directives}
+else:
+    CONTENT_SECURITY_POLICY = {'DIRECTIVES': _csp_directives}
 
 """ Celery configuration """
 # Celery 4.0 New lowercase settings.

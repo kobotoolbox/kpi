@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path
 
 from kobo.apps.superuser_stats.views import (
     continued_usage_report,
@@ -19,18 +19,18 @@ urlpatterns = [
         continued_usage_report,
         name='continued_usage_report'
     ),
-    re_path(
-        r'^reports/continued-usage/(?P<base_filename>[^/]+)$',
+    path(
+        'reports/continued-usage/<str:base_filename>',
         retrieve_reports,
     ),
 
     # Countries
     path('reports/countries/', country_report, name='countries_report'),
-    re_path(r'^reports/countries/(?P<base_filename>[^/]+)$', retrieve_reports),
+    path('reports/countries/<str:base_filename>', retrieve_reports),
 
     # Domains
     path('reports/domains/', domain_report, name='domains_report'),
-    re_path(r'^reports/domains/(?P<base_filename>[^/]+)$', retrieve_reports),
+    path('reports/domains/<str:base_filename>', retrieve_reports),
 
     # Forms by submissions count
     path(
@@ -38,20 +38,13 @@ urlpatterns = [
         forms_count_by_submission_report,
         name='forms_by_submissions_count',
     ),
-    re_path(
-        r'^reports/forms-by-submissions-count/(?P<base_filename>[^/]+)$',
-        retrieve_reports
-    ),
-
+    path('reports/forms-by-submissions-count/<str:base_filename>', retrieve_reports),
     # Media storage
     path('reports/media-storage/', media_storage, name='media_storage_report'),
-    re_path(
-        r'^reports/media-storage/(?P<base_filename>[^/]+)$', retrieve_reports
-    ),
-
+    path('reports/media-storage/<str:base_filename>', retrieve_reports),
     # User report
     path('reports/users/', user_report, name='users_report'),
-    re_path(r'^reports/users/(?P<base_filename>[^/]+)$', retrieve_reports),
+    path('reports/users/<str:base_filename>', retrieve_reports),
 
     # Users statistics
     path(
@@ -59,15 +52,8 @@ urlpatterns = [
         user_statistics_report,
         name='user_statistics_report',
     ),
-    re_path(
-        r'^reports/user-statistics/(?P<base_filename>[^/]+)$', retrieve_reports
-    ),
-
+    path('reports/user-statistics/<str:base_filename>', retrieve_reports),
     # Users details
-    path(
-        'reports/user-details/', user_details_report, name='user_details_report'
-    ),
-    re_path(
-        r'^reports/user-details/(?P<base_filename>[^/]+)$', retrieve_reports
-    ),
+    path('reports/user-details/', user_details_report, name='user_details_report'),
+    path('reports/user-details/<str:base_filename>', retrieve_reports),
 ]

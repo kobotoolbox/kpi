@@ -253,7 +253,7 @@ class Asset(
     # set directly.
     _deployment_status = models.CharField(
         max_length=8,
-        choices=AssetDeploymentStatus.choices,
+        choices=AssetDeploymentStatus,
         null=True,
         blank=True,
         db_index=True

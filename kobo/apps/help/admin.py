@@ -2,10 +2,11 @@
 from django.contrib import admin
 
 from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
-from .models import InAppMessage
 from .forms import InAppMessageForm
+from .models import InAppMessage
 
 
+@admin.register(InAppMessage)
 class InAppMessageAdmin(MarkdownxModelAdminBase):
 
     form = InAppMessageForm
@@ -58,4 +59,3 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         super().save_model(request, obj, form, change)
 
 
-admin.site.register(InAppMessage, InAppMessageAdmin)

@@ -22,7 +22,7 @@ jobs:
       SKIP_TESTS_WITH_CONCURRENCY: 'True'
     strategy:
       matrix:
-        python-version: ['3.10']
+        python-version: ['3.12']
         test-path:
           - kpi/tests/api/v1/
           - kpi/tests/api/v2/

@@ -113,7 +113,7 @@ def export_def_from_filename(filename):
 
 
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.headers.get('x-forwarded-for')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
     else:
@@ -126,7 +126,7 @@ def get_human_readable_client_user_agent(request):
     Parse the user-agent into a human-readable <Browser> (<OS>) string.
     Handles ODK Collect user agents specifically.
     """
-    user_agent = request.META.get('HTTP_USER_AGENT', None)
+    user_agent = request.headers.get('user-agent', None)
 
     if not user_agent:
         return 'No information available'
