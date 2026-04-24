@@ -7,7 +7,7 @@ import re
 import unittest
 from xml.dom import Node
 
-from defusedxml import minidom
+from xml.dom import minidom
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.urls import reverse

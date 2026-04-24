@@ -10,7 +10,6 @@ from unittest import mock
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-import lxml
 import pytest
 import responses
 from constance.test import override_config
@@ -80,7 +79,7 @@ from kpi.utils.xml import (
 
 def dict2xform_with_namespace(submission: dict, xform_id_string: str) -> str:
     xml_string = dict2xform(submission, xform_id_string)
-    xml_root = lxml.etree.fromstring(xml_string.encode())
+    xml_root = fromstring_preserve_root_xmlns(xml_string)
     xml_root.set('xmlns', 'http://opendatakit.org/submissions')
     return xml_tostring(xml_root)
 

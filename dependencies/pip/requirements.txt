@@ -82,7 +82,6 @@ cssselect==1.4.0
     # via pyquery
 defusedxml==0.7.1
     # via
-    #   -r dependencies/pip/requirements.in
     #   djangorestframework-xml
     #   pyxform
 dict2xml==1.7.8
