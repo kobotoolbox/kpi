@@ -25,14 +25,13 @@ billiard
 celery
 celery[redis]
 dict2xml
-defusedxml
 dj-static
 dj-stripe>=2.10,<2.11
 django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces
 django-celery-beat
-django-constance>=4
+django-constance>=4,<5
 django-cors-headers
 django-csp<4
 django-environ
@@ -62,7 +61,7 @@ future
 geojson-rewind
 google-api-python-client
 google-cloud-speech
-google-cloud-storage<3  # temporary 20260226
+google-cloud-storage
 google-cloud-translate
 jsonfield
 jsonschema
@@ -72,7 +71,7 @@ more-itertools
 oauthlib
 objgraph
 openpyxl
-pillow-heif  # temporary 20260226
+pillow-heif
 psycopg
 pymongo<4.11.0  # for compatibility with unmaintained mongomock; see https://github.com/mongomock/mongomock/issues/912
 python-dateutil
@@ -94,7 +93,7 @@ xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI
-pyopenssl<25  # temporary 20260226
+pyopenssl
 ndg-httpsclient
 pyasn1
 
@@ -108,7 +107,7 @@ sentry-sdk
 modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
-pandas<3  # temporary 20260226
+pandas
 
 # Api Documentation
 drf-spectacular

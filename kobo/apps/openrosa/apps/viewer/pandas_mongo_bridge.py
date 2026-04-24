@@ -291,6 +291,7 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
         # everything else on the default sheet
         self._generate_sections()
 
+    # TODO dead code, to be removed
     def export_to(self, file_path, batchsize=1000):
         self.xls_writer = ExcelWriter(file_path)
 
@@ -327,7 +328,7 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
             # increment counter(s)
             start += batchsize
             time.sleep(0.1)
-        self.xls_writer.save()
+        self.xls_writer.close()
 
     def _format_for_dataframe(self, cursor):
         """
@@ -706,7 +707,7 @@ class XLSDataFrameWriter:
 
     def write_to_excel(self, excel_writer, sheet_name, header=False,
                        index=False):
-        self.dataframe.to_excel(excel_writer, sheet_name, header=header,
+        self.dataframe.to_excel(excel_writer, sheet_name=sheet_name, header=header,
                                 index=index)
 
 

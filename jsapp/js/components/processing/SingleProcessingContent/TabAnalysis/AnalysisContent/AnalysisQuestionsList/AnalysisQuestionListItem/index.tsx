@@ -177,15 +177,14 @@ export default function AnalysisQuestionListItem({
     setQaQuestion(undefined)
   }
 
-  const handleReorderQuestions = (reorderedParams: ResponseManualQualActionParams[]) => {
-    return mutationPatchQuestion.mutateAsync({
+  const handleReorderQuestions = (reorderedParams: ResponseManualQualActionParams[]) =>
+    mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
       uidAdvancedFeature: advancedFeatureManual.uid,
       data: {
         params: reorderedParams,
       },
     })
-  }
 
   const disabledAnswer =
     !userCan('change_submissions', asset) || mutationCreateQuestion.isPending || mutationPatchQuestion.isPending
