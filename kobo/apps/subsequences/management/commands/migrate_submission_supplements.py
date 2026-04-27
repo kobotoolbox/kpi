@@ -130,8 +130,11 @@ class Command(BaseCommand):
                 if xpath == '_version' or not isinstance(action_data, dict):
                     continue
                 for action_id in action_data:
-                    if action_id in ACTION_IDS_TO_CLASSES:
-                        missing_qaf_combos.add((ss.asset_id, xpath, action_id))
+                    if not QuestionAdvancedFeature.objects.filter(
+                        asset=ss.asset, question_xpath=xpath, action=action_id
+                    ).exists():
+                        if action_id in ACTION_IDS_TO_CLASSES:
+                            missing_qaf_combos.add((ss.asset_id, xpath, action_id))
 
             ss.content = migrated_content
             to_update.append(ss)
