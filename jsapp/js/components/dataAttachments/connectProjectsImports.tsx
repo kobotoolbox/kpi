@@ -3,6 +3,7 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import type { AssetResponse } from '#/dataInterface'
+import Icon from '../common/icon'
 import type { AttachedSourceItem } from './common'
 
 interface ConnectProjectsImportsProps {
@@ -69,7 +70,11 @@ export default function ConnectProjectsImports({
           attachedSources.length > 0 &&
           attachedSources.map((item) => (
             <li key={item.attachmentUrl} className='connect-projects__import-list-item'>
-              <i className='k-icon k-icon-check' />
+              <Icon
+                size='xl'
+                name={item.isSourceDeleted ? 'close' : 'check'}
+                color={item.isSourceDeleted ? 'mid-red' : 'blue'}
+              />
 
               <div className='connect-projects__import-labels'>
                 <span className='connect-projects__import-labels-filename'>{item.filename}</span>
