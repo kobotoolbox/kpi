@@ -30,13 +30,13 @@ import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import { currentLang, escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
 
 const ExtraMetadataFields = ({ fields, values, onChange, hasFieldError }) =>
   envStore.data.extra_project_metadata_fields.map((field) => {
-    const label = envStore.data.getExtraFieldLabel(field)
+    const label = envStore.data.getExtraFieldLabel(field, currentLang())
     const hasError = hasFieldError(field.name)
 
     const options = (field.options ?? []).map((opt) => {
