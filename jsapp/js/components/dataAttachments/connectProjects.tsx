@@ -70,6 +70,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   })
 
   const isLoadingAttachedSources = isPendingAttachedSources || isFetchingAttachedSources
+  const isImportsLoading = isLoadingAttachedSources || isDetachingSource
   const isLoading = isLoadingAttachedSources || isDetachingSource || isPatchingDataSharing
 
   const sharingEnabledAssetsLoaded = Boolean(sharingEnabledAssetsResponse?.data)
@@ -389,7 +390,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
                 sharingEnabledAssetsLoaded={sharingEnabledAssetsLoaded}
                 filteredAssets={filteredAssets}
                 value={newSource}
-                isLoading={isLoading}
+                isLoading={isImportsLoading}
                 isInitialised={isInitialised}
                 sourceError={fieldsErrors.source}
                 onSourceChange={onSourceChange}
@@ -400,7 +401,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
             onFilenameChange={onFilenameChange}
             onConfirmAttachment={onConfirmAttachment}
             isInitialised={isInitialised}
-            isLoading={isLoading}
+            isLoading={isImportsLoading}
             attachedSources={attachedSources}
             showColumnFilterModal={showColumnFilterModal}
             onRemoveAttachment={onRemoveAttachment}

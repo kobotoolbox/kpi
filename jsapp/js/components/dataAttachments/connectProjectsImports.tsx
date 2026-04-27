@@ -63,6 +63,7 @@ export default function ConnectProjectsImports({
   }
 
   const shouldShowInitialLoading = !isInitialised
+  const shouldShowLoadingWithEmptyRows = isInitialised && isLoading && attachedSources.length === 0
   const shouldShowEmptyState = isInitialised && !isLoading && attachedSources.length === 0
   const shouldShowAttachedSources = attachedSources.length > 0
 
@@ -101,7 +102,7 @@ export default function ConnectProjectsImports({
         <h3 className='connect-projects__list-header'>{t('Imported')}</h3>
 
         <ul className='connect-projects__import-list'>
-          {shouldShowInitialLoading && (
+          {(shouldShowInitialLoading || shouldShowLoadingWithEmptyRows) && (
             <li className='connect-projects__import-list-item'>
               <LoadingSpinner message={t('Loading imported projects')} />
             </li>
