@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.utils.versioning import migrate_submission_supplementals
 from kpi.models import Asset
@@ -130,11 +131,8 @@ class Command(BaseCommand):
                 if xpath == '_version' or not isinstance(action_data, dict):
                     continue
                 for action_id in action_data:
-                    if not QuestionAdvancedFeature.objects.filter(
-                        asset=ss.asset, question_xpath=xpath, action=action_id
-                    ).exists():
-                        if action_id in ACTION_IDS_TO_CLASSES:
-                            missing_qaf_combos.add((ss.asset_id, xpath, action_id))
+                    if action_id in ACTION_IDS_TO_CLASSES:
+                        missing_qaf_combos.add((ss.asset_id, xpath, action_id))
 
             ss.content = migrated_content
             to_update.append(ss)
@@ -318,6 +316,12 @@ class Command(BaseCommand):
                             )
                             if created:
                                 asset_qaf_created += 1
+                    asset.advanced_features['_version'] = SCHEMA_VERSIONS[0]
+                    asset.save(
+                        update_fields=['advanced_features'],
+                        create_version=False,
+                        adjust_content=False,
+                    )
             except Exception as e:
                 self.stderr.write(f'  ERROR creating QAFs for asset={asset.uid}: {e}')
                 qaf_errors += len(combos_for_asset)
