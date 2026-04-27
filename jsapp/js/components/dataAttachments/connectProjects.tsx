@@ -56,7 +56,8 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const {
     data: attachedSourcesResponse,
     isFetched: isInitialised,
-    isPending: isLoadingAttachedSources,
+    isPending: isPendingAttachedSources,
+    isFetching: isFetchingAttachedSources,
     refetch: refetchAttachedSources,
   } = useAssetsPairedDataList(asset.uid)
   const { mutate: detachSourceMutate, isPending: isDetachingSource } = useAssetsPairedDataDestroy()
@@ -68,6 +69,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     },
   })
 
+  const isLoadingAttachedSources = isPendingAttachedSources || isFetchingAttachedSources
   const isLoading = isLoadingAttachedSources || isDetachingSource || isPatchingDataSharing
 
   const sharingEnabledAssetsLoaded = Boolean(sharingEnabledAssetsResponse?.data)
