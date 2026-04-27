@@ -92,7 +92,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       const sourceUrl = typeof source.source === 'string' ? source.source : ''
       const sourceUid = sourceUrl ? (getAssetUIDFromUrl(sourceUrl) ?? '') : ''
       const sourceNameRaw = typeof source.source__name === 'string' ? source.source__name : ''
-      const isSourceDeleted = sourceNameRaw.trim().length === 0
+      const isSourceDeleted = source.source__name === null || sourceNameRaw.trim().length === 0
       const attachmentUrl = typeof source.url === 'string' ? source.url : ''
 
       // Skip malformed records that cannot be removed or displayed safely.
