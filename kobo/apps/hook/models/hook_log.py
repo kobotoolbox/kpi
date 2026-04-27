@@ -28,7 +28,7 @@ class HookLog(AbstractTimeStampedModel):
     )
     tries = models.PositiveSmallIntegerField(default=0)
     status = models.PositiveSmallIntegerField(
-        choices=HookLogStatus.choices,
+        choices=HookLogStatus,
         default=HookLogStatus.PENDING,
     )  # Could use status_code, but will speed-up queries
     status_code = models.IntegerField(
