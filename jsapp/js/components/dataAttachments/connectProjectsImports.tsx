@@ -62,6 +62,10 @@ export default function ConnectProjectsImports({
     closeRemovalConfirmation()
   }
 
+  const shouldShowInitialLoading = !isInitialised
+  const shouldShowEmptyState = isInitialised && !isLoading && attachedSources.length === 0
+  const shouldShowAttachedSources = attachedSources.length > 0
+
   return (
     <>
       <Modal opened={isRemovalModalOpened} onClose={closeRemovalConfirmation} title={t('Remove project?')}>
@@ -97,18 +101,17 @@ export default function ConnectProjectsImports({
         <h3 className='connect-projects__list-header'>{t('Imported')}</h3>
 
         <ul className='connect-projects__import-list'>
-          {(!isInitialised || isLoading) && (
+          {shouldShowInitialLoading && (
             <li className='connect-projects__import-list-item'>
               <LoadingSpinner message={t('Loading imported projects')} />
             </li>
           )}
 
-          {isInitialised && !isLoading && attachedSources.length === 0 && (
+          {shouldShowEmptyState && (
             <li className='connect-projects__import-list-item--no-imports'>{t('No data imported')}</li>
           )}
 
-          {!isLoading &&
-            attachedSources.length > 0 &&
+          {shouldShowAttachedSources &&
             attachedSources.map((item) => (
               <li key={item.attachmentUrl} className='connect-projects__import-list-item'>
                 <Icon
