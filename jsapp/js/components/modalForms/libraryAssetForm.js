@@ -37,16 +37,23 @@ export class LibraryAssetFormComponent extends React.Component {
   constructor(props) {
     super(props)
     this.unlisteners = []
+
+    const initialFields = {
+      name: '',
+      organization: '',
+      sector: null,
+      country: null,
+      tags: '',
+      description: '',
+    }
+
+    if (this.props.asset && this.props.asset.settings) {
+      Object.assign(initialFields, this.props.asset.settings)
+    }
+
     this.state = {
       isSessionLoaded: !!sessionStore.isLoggedIn,
-      fields: {
-        name: '',
-        organization: '',
-        country: null,
-        sector: null,
-        tags: '',
-        description: '',
-      },
+      fields: initialFields,
       isPending: false,
     }
     autoBind(this)
@@ -77,24 +84,21 @@ export class LibraryAssetFormComponent extends React.Component {
   }
 
   applyPropsData() {
-    if (this.props.asset.name) {
-      this.state.fields.name = this.props.asset.name
+    const { asset } = this.props
+    const newFields = clonedeep(this.state.fields)
+
+    if (asset.name) {
+      newFields.name = asset.name
     }
-    if (this.props.asset.settings.organization) {
-      this.state.fields.organization = this.props.asset.settings.organization
+    if (asset.tag_string) {
+      newFields.tags = asset.tag_string
     }
-    if (this.props.asset.settings.country) {
-      this.state.fields.country = this.props.asset.settings.country
+
+    if (asset.settings) {
+      Object.assign(newFields, asset.settings)
     }
-    if (this.props.asset.settings.sector) {
-      this.state.fields.sector = this.props.asset.settings.sector
-    }
-    if (this.props.asset.tag_string) {
-      this.state.fields.tags = this.props.asset.tag_string
-    }
-    if (this.props.asset.settings.description) {
-      this.state.fields.description = this.props.asset.settings.description
-    }
+
+    this.setState({ fields: newFields })
   }
 
   onCreateResourceCompleted(response) {
@@ -129,28 +133,20 @@ export class LibraryAssetFormComponent extends React.Component {
     evt.preventDefault()
     this.setState({ isPending: true })
 
+    const { name, tags, ...settings } = this.state.fields
+
+    const payload = {
+      name: name,
+      settings: JSON.stringify(settings),
+      tag_string: tags,
+    }
+
     if (this.props.asset) {
-      actions.resources.updateAsset(this.props.asset.uid, {
-        name: this.state.fields.name,
-        settings: JSON.stringify({
-          organization: this.state.fields.organization,
-          country: this.state.fields.country,
-          sector: this.state.fields.sector,
-          description: this.state.fields.description,
-        }),
-        tag_string: this.state.fields.tags,
-      })
+      actions.resources.updateAsset(this.props.asset.uid, payload)
     } else {
       const params = {
-        name: this.state.fields.name,
+        ...payload,
         asset_type: this.getFormAssetType(),
-        settings: JSON.stringify({
-          organization: this.state.fields.organization,
-          country: this.state.fields.country,
-          sector: this.state.fields.sector,
-          description: this.state.fields.description,
-        }),
-        tag_string: this.state.fields.tags,
       }
 
       if (this.isLibrarySingle() && params.asset_type !== ASSET_TYPES.collection.id) {
@@ -210,6 +206,8 @@ export class LibraryAssetFormComponent extends React.Component {
       return <LoadingSpinner />
     }
 
+    const currentLang = envStore.data.interface_language || 'en'
+    const dynamicFields = envStore.data.extra_project_metadata_fields || []
     const SECTORS = envStore.data.sector_choices
     const COUNTRIES = envStore.data.country_choices
 
@@ -265,6 +263,41 @@ export class LibraryAssetFormComponent extends React.Component {
               isClearable
             />
           </bem.FormModal__item>
+
+          {dynamicFields.map((field) => {
+            const label = envStore.data.getExtraFieldLabel(field, currentLang)
+            const options = field.options || []
+            const value = this.state.fields[field.name]
+
+            return (
+              <bem.FormModal__item key={field.name}>
+                {options.length > 0 || ['select', 'multiselect'].includes(field.type) ? (
+                  <WrappedSelect
+                    label={label}
+                    value={value}
+                    onChange={(newVal) => this.onAnyFieldChange(field.name, newVal)}
+                    options={options.map((opt) => {
+                      return {
+                        value: opt.name,
+                        label: opt.label || opt.name,
+                      }
+                    })}
+                    isMulti={field.type?.includes('multi')}
+                    isLimitedHeight
+                    isClearable
+                  />
+                ) : (
+                  <TextBox
+                    label={label}
+                    value={value || ''}
+                    onChange={(newVal) => this.onAnyFieldChange(field.name, newVal)}
+                    placeholder={label}
+                    type={field.type === 'text-multiline' ? 'text-multiline' : undefined}
+                  />
+                )}
+              </bem.FormModal__item>
+            )
+          })}
 
           <bem.FormModal__item>
             <KoboTagsInput
