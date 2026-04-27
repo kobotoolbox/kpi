@@ -46,27 +46,31 @@ class V1AccessLoggingMiddleware(MiddlewareMixin):
     """
     Middleware to log access to deprecated v1 endpoints by authenticated users
     """
-    def process_request(self, request):
+    legacy_patterns = [
+        '/api/v1/',
+        '/assets/',
+        '/asset_snapshots/',
+        '/asset_subscriptions/',
+        '/exports/',
+        '/imports/',
+        '/permissions/',
+        '/reports/',
+        '/tags/',
+        '/authorized_application/',
+        '/users/',
+    ]
+
+    def process_response(self, request, response):
+        # DRF token/basic/oauth authentication runs during view processing,
+        # not in Django's request middleware phase. Tracking on the response
+        # path lets us see both session-authenticated browser requests and
+        # header-authenticated API requests
         if not request.user.is_authenticated:
-            return None
+            return response
 
-        legacy_patterns = [
-            '/api/v1/',
-            '/assets/',
-            '/asset_snapshots/',
-            '/asset_subscriptions/',
-            '/exports/',
-            '/imports/',
-            '/permissions/',
-            '/reports/',
-            '/tags/',
-            '/authorized_application/',
-            '/users/',
-        ]
-
-        if any(request.path.startswith(pattern) for pattern in legacy_patterns):
+        if any(request.path.startswith(pattern) for pattern in self.legacy_patterns):
             V1UserTracker.objects.update_or_create(
                 user=request.user,
                 defaults={'last_accessed_path': request.path},
             )
-        return None
+        return response
