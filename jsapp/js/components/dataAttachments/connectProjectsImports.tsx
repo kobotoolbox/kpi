@@ -69,7 +69,7 @@ export default function ConnectProjectsImports({
   return (
     <>
       <Modal opened={isRemovalModalOpened} onClose={closeRemovalConfirmation} title={t('Remove project?')}>
-        <Text>{t('Are you sure you want to remove imported project?')}</Text>
+        <Text>{t('Are you sure you want to remove the imported project?')}</Text>
         <Group justify='flex-end' mt='md'>
           <ButtonNew size='md' onClick={closeRemovalConfirmation}>
             {t('Cancel')}
