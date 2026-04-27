@@ -82,7 +82,8 @@ export default function ConnectProjectsImports({
                   type='secondary'
                   size='m'
                   startIcon='settings'
-                  tooltip={t('Configure')}
+                  tooltip={item.isSourceDeleted ? t('Cannot configure deleted project') : t('Configure')}
+                  isDisabled={item.isSourceDeleted || !item.sourceUid || !item.sourceUrl}
                   onClick={() =>
                     showColumnFilterModal(
                       {
