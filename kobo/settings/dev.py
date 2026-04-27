@@ -7,8 +7,12 @@ LOGGING['handlers']['console'] = {
     'formatter': 'verbose'
 }
 
-INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+try:
+    import debug_toolbar  # noqa: F401
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+except ModuleNotFoundError:
+    pass
 
 
 def show_toolbar(request):
