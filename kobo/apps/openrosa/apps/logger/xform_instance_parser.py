@@ -5,10 +5,10 @@ import sys
 from datetime import datetime
 from typing import Optional, Union
 from xml.dom import Node
+from xml.dom.minidom import Document
 
 import dateutil.parser
 import six
-from defusedxml import minidom
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext as t
 from pyxform.survey_element import SurveyElement
@@ -16,6 +16,7 @@ from pyxform.survey_element import SurveyElement
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceEmptyError
 from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
 from kpi.utils.log import logging
+from kpi.utils.xml import minidom_parsestring
 
 
 def add_uuid_prefix(uuid_: str) -> str:
@@ -26,7 +27,7 @@ def add_uuid_prefix(uuid_: str) -> str:
 
 def get_meta_node_from_xml(
     xml_str: str, meta_name: str
-) -> Union[None, tuple[str, minidom.Document]]:
+) -> Union[None, tuple[Node, Document]]:
     xml = clean_and_parse_xml(xml_str)
     children = xml.childNodes
     # children ideally contain a single element
@@ -117,10 +118,10 @@ def get_deprecated_uuid_from_xml(xml):
     return None
 
 
-def clean_and_parse_xml(xml_string: str) -> minidom.Document:
+def clean_and_parse_xml(xml_string: str) -> Document:
     clean_xml_str = xml_string.strip()
     clean_xml_str = re.sub(r'>\s+<', '><', smart_str(clean_xml_str))
-    xml_obj = minidom.parseString(clean_xml_str)
+    xml_obj = minidom_parsestring(clean_xml_str)
     return xml_obj
 
 
