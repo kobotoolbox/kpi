@@ -9,8 +9,8 @@ LOGGING['handlers']['console'] = {
 
 try:
     import debug_toolbar  # noqa: F401
-    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)  # noqa: F405
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')  # noqa: F405
 except ModuleNotFoundError:
     pass
 
