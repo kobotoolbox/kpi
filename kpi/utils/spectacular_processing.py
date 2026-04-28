@@ -106,10 +106,14 @@ def merge_allauth_headless_schema(result, generator, request, public):
     import copy
 
     for path_key, path_spec in allauth_paths.items():
-        # The schema outputs paths with `{client}` (e.g. /_allauth/{client}/v1/config)
+        # The schema outputs paths with `{client}` (e.g. `/_allauth/{client}/v1/config`)
         # Since the frontend assumes specific `/browser/` and `/app/` endpoints,
         # we duplicate the generic path for each platform so Orval doesn't
         # complain about missing parameter definitions for `{client}`.
+        # E.g. it would convert `_allauth/{client}/v1/config` to these endpoints:
+        #   1. `/api/v2/allauth/app/v1/config`
+        #   2. `/api/v2/allauth/browser/v1/config`
+
         clients = ['browser', 'app'] if '{client}' in path_key else [None]
 
         for client in clients:
@@ -132,8 +136,8 @@ def merge_allauth_headless_schema(result, generator, request, public):
                 if isinstance(operation, dict):
                     operation['tags'] = ['Authentication (Allauth Headless)']
                     if 'operationId' not in operation:
-                        # e.g., turn '/api/v2/allauth/browser/v1/auth/login' + 'post'
-                        # into 'allauth_browser_v1_auth_login_post'
+                        # e.g., turn `/api/v2/allauth/browser/v1/auth/login` + `post`
+                        # into `allauth_browser_v1_auth_login_post`
                         clean_path = (
                             new_path.strip('/')
                             .replace('/', '_')
