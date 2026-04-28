@@ -181,6 +181,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   private unlisteners: Function[] = []
+  private lastRenderedBoundsSignature?: string
 
   private syncLegendViewportListeners() {
     const shouldListen = Boolean(this.state.markerMap) && this.state.markersVisible && this.state.showExpandedLegend
@@ -580,6 +581,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     let mapMarkers: MapValueCounts = {}
     let mM: MarkerMap = []
     const submissions: DataResponse[] = this.props.allData
+    let pointCount = 0
+    let minLat = Number.POSITIVE_INFINITY
+    let maxLat = Number.NEGATIVE_INFINITY
+    let minLng = Number.POSITIVE_INFINITY
+    let maxLng = Number.NEGATIVE_INFINITY
 
     if (viewby) {
       mapMarkers = this.prepFilteredMarkers(submissions, this.props.viewby)
@@ -635,6 +641,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
 
       if (!!parsedCoordinates.length) {
+        pointCount += 1
+        minLat = Math.min(minLat, parsedCoordinates[0])
+        maxLat = Math.max(maxLat, parsedCoordinates[0])
+        minLng = Math.min(minLng, parsedCoordinates[1])
+        maxLng = Math.max(maxLng, parsedCoordinates[1])
+
         if (viewby && mM) {
           const vb = this.nameOfFieldInGroup(viewby)
           const itemId = String(item[vb])
@@ -668,6 +680,13 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         prepPoints.push(L.marker([parsedCoordinates[0], parsedCoordinates[1]], markerProps))
       }
     })
+
+    const nextBoundsSignature =
+      pointCount === 0
+        ? 'empty'
+        : `${pointCount}:${minLat.toFixed(6)}:${maxLat.toFixed(6)}:${minLng.toFixed(6)}:${maxLng.toFixed(6)}`
+    const boundsChanged = this.lastRenderedBoundsSignature !== nextBoundsSignature
+    this.lastRenderedBoundsSignature = nextBoundsSignature
 
     if (prepPoints.length >= 0) {
       let markers
@@ -704,14 +723,19 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
 
       if (prepPoints.length === 0) {
-        map.fitBounds([[42.373, -71.124]])
+        if (boundsChanged) {
+          // Legacy fallback location used when there are no plotted points.
+          // Single-point bounds around Cambridge, MA.
+          map.fitBounds([[42.373, -71.124]])
+        }
         this.setState({ noData: true })
       } else {
         // Note: this is a bit confusing. For some reason (possibly performance related), we didn't want the map to
         // reset the zoom when switching between disaggregated questions. This is the reason for the first two guards.
         // The last condition is only possible if we are coming from having no points to having points in the same page,
         // i.e., we are done waiting for the `allData` prop to populate. We can then reset the zoom once.
-        const shouldFitBounds = !viewby || !this.state.componentRefreshed || this.state.noData
+        // Additionally, we now only auto-fit when plotted bounds actually changed between rebuilds.
+        const shouldFitBounds = boundsChanged && (!viewby || !this.state.componentRefreshed || this.state.noData)
         if (shouldFitBounds) {
           map.fitBounds(markers.getBounds())
         }
