@@ -9,6 +9,7 @@ export const ActionIconThemeKobo = ActionIcon.extend({
         '--ai-size-sm': rem(28),
         '--ai-size-md': rem(32),
         '--ai-size-lg': rem(38),
+        '--ai-size-xl': rem(44),
 
         ...(props.variant === 'filled' && {
           '--ai-hover': theme.colors.blue[5],

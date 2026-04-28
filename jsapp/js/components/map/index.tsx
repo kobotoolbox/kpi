@@ -1152,7 +1152,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               tooltip={t('Map display settings')}
               tooltipProps={mapTooltipProps}
               iconName='settings'
-              size='lg'
+              size='xl'
               variant='outline'
               disabled={!this.state.hasGeoPoint}
               aria-label={t('Map display settings')}
@@ -1166,7 +1166,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                 tooltip={t('Toggle layers')}
                 tooltipProps={mapTooltipProps}
                 iconName='layer'
-                size='lg'
+                size='xl'
                 variant='outline'
                 disabled={!hasGeopointAndData}
                 aria-label={t('Toggle layers')}
@@ -1178,7 +1178,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                 tooltip={t('Toggle Fullscreen')}
                 tooltipProps={mapTooltipProps}
                 iconName='expand'
-                size='lg'
+                size='xl'
                 variant='outline'
                 disabled={!hasGeopointAndData}
                 aria-label={t('Toggle Fullscreen')}
@@ -1190,7 +1190,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                 tooltip={t('Show as points')}
                 tooltipProps={mapTooltipProps}
                 iconName='pins'
-                size='lg'
+                size='xl'
                 variant='outline'
                 disabled={!hasGeopointAndData}
                 aria-label={t('Show as points')}
@@ -1203,7 +1203,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                   tooltip={t('Show as heatmap')}
                   tooltipProps={mapTooltipProps}
                   iconName='heatmap'
-                  size='lg'
+                  size='xl'
                   variant='outline'
                   disabled={!hasGeopointAndData}
                   aria-label={t('Show as heatmap')}
