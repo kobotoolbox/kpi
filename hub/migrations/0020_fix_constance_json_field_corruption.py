@@ -25,13 +25,13 @@ def fix_constance_json_field_corruption(apps, schema_editor):
     of a JSON object/array.
 
     Root cause: JsonSchemaFormField.clean() returned the raw input string
-    instead of the parsed Python object. Constance encoded that string as JSON,
-    so the DB ended up with e.g. '"{\\"default\\": ...}"' for a field that
-    should contain '{"default": ...}'.
+    instead of the parsed Python object.
 
-    After this migration, each affected key is stored as a proper JSON
-    object/array, and the constance cache is invalidated so the corrected
-    values are picked up immediately.
+    Constance 4 wraps every stored value in {"__type__": ..., "__value__": ...}.
+    The corruption manifests as __value__ being a JSON-encoded string instead of
+    the actual dict/list. The previous version of this migration incorrectly
+    assumed a plain double-encoded string at the root level (constance 3 format)
+    and skipped all records because it saw a dict (the envelope), not a string.
     """
     Constance = apps.get_model('constance', 'Constance')
 
@@ -51,31 +51,50 @@ def fix_constance_json_field_corruption(apps, schema_editor):
             )
             continue
 
-        if not isinstance(outer, str):
-            # Already a dict, list, or lazy_json_serializable envelope — no fix needed.
-            continue
+        # Constance 4 format: {"__type__": "...", "__value__": <actual value>}
+        if isinstance(outer, dict) and '__type__' in outer and '__value__' in outer:
+            inner_raw = outer['__value__']
+            if not isinstance(inner_raw, str):
+                # __value__ is already a dict/list — no fix needed.
+                continue
+            try:
+                inner = json.loads(inner_raw)
+            except json.JSONDecodeError:
+                logging.warning(
+                    'constance key %s: __value__ is not valid JSON, skipping', key
+                )
+                continue
+            if not isinstance(inner, (dict, list)):
+                logging.warning(
+                    'constance key %s: __value__ is not a dict/list (%s), skipping',
+                    key,
+                    type(inner).__name__,
+                )
+                continue
+            outer['__value__'] = inner
+            record.value = json.dumps(outer)
+            record.save(update_fields=['value'])
+            logging.info('constance key %s: repaired corrupted __value__ string', key)
 
-        # The outer value is a string: it was double-encoded. The real data is
-        # the result of parsing that string.
-        try:
-            inner = json.loads(outer)
-        except json.JSONDecodeError:
-            logging.warning(
-                'constance key %s: inner value is not valid JSON, skipping', key
-            )
-            continue
-
-        if not isinstance(inner, (dict, list)):
-            logging.warning(
-                'constance key %s: inner value is not a dict/list (%s), skipping',
-                key,
-                type(inner).__name__,
-            )
-            continue
-
-        record.value = json.dumps(inner)
-        record.save(update_fields=['value'])
-        logging.info('constance key %s: repaired corrupted string value', key)
+        elif isinstance(outer, str):
+            # Legacy constance 3 format: plain double-encoded string at root.
+            try:
+                inner = json.loads(outer)
+            except json.JSONDecodeError:
+                logging.warning(
+                    'constance key %s: inner value is not valid JSON, skipping', key
+                )
+                continue
+            if not isinstance(inner, (dict, list)):
+                logging.warning(
+                    'constance key %s: inner value is not a dict/list (%s), skipping',
+                    key,
+                    type(inner).__name__,
+                )
+                continue
+            record.value = json.dumps(inner)
+            record.save(update_fields=['value'])
+            logging.info('constance key %s: repaired corrupted string value', key)
 
     # Invalidate the constance cache so the corrected DB values are served
     # immediately without waiting for cache expiry.
