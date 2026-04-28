@@ -2,13 +2,13 @@ from django.db import migrations
 from django.db.models import F
 
 
-'''
+r"""
 `\d organizations_organization` says:
 
     TABLE "organizations_organizationinvitation" CONSTRAINT "…" FOREIGN KEY (organization_id) REFERENCES organizations_organization(id) DEFERRABLE INITIALLY DEFERRED
     TABLE "organizations_organizationowner" CONSTRAINT "…" FOREIGN KEY (organization_id) REFERENCES organizations_organization(id) DEFERRABLE INITIALLY DEFERRED
     TABLE "organizations_organizationuser" CONSTRAINT "…" FOREIGN KEY (organization_id) REFERENCES organizations_organization(id) DEFERRABLE INITIALLY DEFERRED
-'''
+"""
 
 def copy_uid_to_id(apps, schema_editor):
     Organization = apps.get_model("organizations", "Organization")

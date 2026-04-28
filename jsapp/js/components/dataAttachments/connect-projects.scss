@@ -80,15 +80,16 @@
   }
 }
 
+.connect-projects__list-header {
+  margin-top: 20px;
+  margin-bottom: 0;
+  font-size: variables.$base-font-size;
+  font-weight: bold;
+  color: colors.$kobo-gray-700;
+}
+
 .connect-projects__import-list {
   margin-top: 20px;
-
-  label {
-    margin-top: 20px;
-    font-size: variables.$base-font-size;
-    font-weight: bold;
-    color: colors.$kobo-gray-700;
-  }
 
   .connect-projects__import-list-item,
   .connect-projects__import-list-item--no-imports {

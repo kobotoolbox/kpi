@@ -4,6 +4,7 @@ from django.contrib import admin
 from kobo.apps.openrosa.apps.logger.models import XForm
 
 
+@admin.register(XForm)
 class FormAdmin(admin.ModelAdmin):
 
     exclude = ('user',)
@@ -17,4 +18,3 @@ class FormAdmin(admin.ModelAdmin):
         return qs.filter(user=request.user)
 
 
-admin.site.register(XForm, FormAdmin)
