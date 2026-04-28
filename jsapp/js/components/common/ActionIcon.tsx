@@ -17,7 +17,7 @@ export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   iconName?: IconName
   /** Tabler icon component or resolved SVG component (e.g. from `resolveLegacySvgIconByName`) */
   icon?: TablerIcon | ComponentType<SvgIconProps>
-  size: 'sm' | 'md' | 'lg'
+  size: 'sm' | 'md' | 'lg' | 'xl'
 }
 
 const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, icon, ...props }, ref) => {

@@ -10,6 +10,7 @@ import ActionIcon, { type ActionIconProps } from './ActionIcon'
 const actionIconVariants: Array<ActionIconProps['variant']> = [
   'filled',
   'light',
+  'outline',
 
   //// Custom:
   'danger',
@@ -17,7 +18,7 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
   'transparent',
 ]
 
-const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
+const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg', 'xl']
 
 const tablerIconOptions = {
   IconSearch,
