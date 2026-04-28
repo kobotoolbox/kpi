@@ -213,7 +213,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       hasGeoPoint: hasGeoPoint,
       error: undefined,
       isFullscreen: false,
-      showExpandedLegend: true,
+      showExpandedLegend: false,
       langIndex: 0,
       filteredByMarker: undefined,
       componentRefreshed: false,
@@ -865,7 +865,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return newState
   }
 
-  componentDidUpdate(prevProps: FormMapProps) {
+  componentDidUpdate(prevProps: FormMapProps, prevState: FormMapState) {
     const totalCountPopulated = prevProps.totalCount === undefined && this.props.totalCount !== undefined
     const dataChanged =
       (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) &&
@@ -886,6 +886,17 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     } else if (viewbyChanged) {
       this.createDataQuery(this.props.viewby)
       this.refreshMapLayers()
+    }
+
+    // Keep global resize/scroll listeners in sync with legend visibility. Calling only from toggleLegend() is
+    // insufficient: listeners must also be added when markerMap first populates (legend is open by default) and
+    // removed when markersVisible changes (e.g. switching to heatmap) while the legend is still open.
+    if (
+      prevState.markerMap !== this.state.markerMap ||
+      prevState.markersVisible !== this.state.markersVisible ||
+      prevState.showExpandedLegend !== this.state.showExpandedLegend
+    ) {
+      this.syncLegendViewportListeners()
     }
   }
 
@@ -1048,22 +1059,16 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const Z_TOOLTIP_PORTAL = 4000 // above app overlays/modals ($z-modal is 3000)
 
     const mapSettingsAboveOverlay = this.state.noData && this.state.hasGeoPoint
+    // Outer wrapper only positions the group; it has no z-index so it does not create a stacking context.
+    // This allows the settings button and the remaining buttons to compete against .map-transparent-background
+    // independently — the settings button can be raised above it while the others remain below.
     const mapActionsStyle: React.CSSProperties = {
       position: 'absolute',
       top: '12px',
       right: '12px',
-      // When mapSettingsAboveOverlay is true the child mapSettingsStyle sets zIndex: 1002, but a child z-index only
-      // competes within its parent stacking context. The parent must be at least as high so the whole group
-      // paints above .map-transparent-background (z-index 1001).
-      zIndex: mapSettingsAboveOverlay
-        ? Z_MAP_SETTINGS_OVERLAY + 1
-        : hasGeopointAndData
-          ? Z_MAP_SETTINGS
-          : Z_MAP_SETTINGS_DISABLED,
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, auto)',
-      gridTemplateRows: 'repeat(3, auto)',
+      display: 'flex',
       gap: '12px',
+      alignItems: 'flex-start',
       pointerEvents: 'none',
     }
 
@@ -1075,11 +1080,25 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const mapSettingsStyle: React.CSSProperties = {
       ...mapActionItemStyle,
       // Keep map-settings above overlay when geopoint question exists but has no responses.
+      // Because the outer wrapper has no z-index, this stacking context competes directly against
+      // .map-transparent-background — without pulling the other (disabled) buttons above it too.
       zIndex: this.state.hasGeoPoint
         ? mapSettingsAboveOverlay
           ? Z_MAP_SETTINGS_OVERLAY + 1
           : Z_MAP_SETTINGS
         : Z_MAP_SETTINGS_DISABLED,
+    }
+
+    // Sub-grid for all action buttons except map-settings. Kept in its own stacking context so it
+    // always remains at or below the overlay, regardless of what z-index the settings button needs.
+    const mapActionsGridStyle: React.CSSProperties = {
+      position: 'relative',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, auto)',
+      gridTemplateRows: 'repeat(3, auto)',
+      gap: '12px',
+      pointerEvents: 'none',
+      zIndex: hasGeopointAndData ? Z_MAP_SETTINGS : Z_MAP_SETTINGS_DISABLED,
     }
 
     const mapTooltipProps: Partial<TooltipProps> = {
@@ -1126,43 +1145,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return (
       <bem.FormView m={formViewModifiers}>
         <div style={mapActionsStyle}>
-          <div style={{ ...mapActionItemStyle, gridColumn: 3, gridRow: 1 }}>
-            <ActionIcon
-              onClick={this.toggleFullscreen.bind(this)}
-              tooltip={t('Toggle Fullscreen')}
-              tooltipProps={mapTooltipProps}
-              iconName='expand'
-              size='lg'
-              variant='outline'
-              disabled={!hasGeopointAndData}
-              aria-label={t('Toggle Fullscreen')}
-            />
-          </div>
-          <div style={{ ...mapActionItemStyle, gridColumn: 3, gridRow: 2 }}>
-            <ActionIcon
-              onClick={this.showMarkers.bind(this)}
-              tooltip={t('Show as points')}
-              tooltipProps={mapTooltipProps}
-              iconName='pins'
-              size='lg'
-              variant='outline'
-              disabled={!hasGeopointAndData}
-              aria-label={t('Show as points')}
-            />
-          </div>
-          <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 1 }}>
-            <ActionIcon
-              onClick={this.showLayerControls.bind(this)}
-              tooltip={t('Toggle layers')}
-              tooltipProps={mapTooltipProps}
-              iconName='layer'
-              size='lg'
-              variant='outline'
-              disabled={!hasGeopointAndData}
-              aria-label={t('Toggle layers')}
-            />
-          </div>
-          <div style={{ ...mapSettingsStyle, gridColumn: 1, gridRow: 1 }}>
+          {/* Settings button: its own stacking context, can be raised above the overlay independently */}
+          <div style={mapSettingsStyle}>
             <ActionIcon
               onClick={this.toggleMapSettings.bind(this)}
               tooltip={t('Map display settings')}
@@ -1174,20 +1158,59 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               aria-label={t('Map display settings')}
             />
           </div>
-          {!viewby && (
-            <div style={{ ...mapActionItemStyle, gridColumn: 3, gridRow: 3 }}>
+          {/* Remaining buttons: separate sub-grid stacking context, always at or below the overlay */}
+          <div style={mapActionsGridStyle}>
+            <div style={{ ...mapActionItemStyle, gridColumn: 1, gridRow: 1 }}>
               <ActionIcon
-                onClick={this.showHeatmap.bind(this)}
-                tooltip={t('Show as heatmap')}
+                onClick={this.showLayerControls.bind(this)}
+                tooltip={t('Toggle layers')}
                 tooltipProps={mapTooltipProps}
-                iconName='heatmap'
+                iconName='layer'
                 size='lg'
                 variant='outline'
                 disabled={!hasGeopointAndData}
-                aria-label={t('Show as heatmap')}
+                aria-label={t('Toggle layers')}
               />
             </div>
-          )}
+            <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 1 }}>
+              <ActionIcon
+                onClick={this.toggleFullscreen.bind(this)}
+                tooltip={t('Toggle Fullscreen')}
+                tooltipProps={mapTooltipProps}
+                iconName='expand'
+                size='lg'
+                variant='outline'
+                disabled={!hasGeopointAndData}
+                aria-label={t('Toggle Fullscreen')}
+              />
+            </div>
+            <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 2 }}>
+              <ActionIcon
+                onClick={this.showMarkers.bind(this)}
+                tooltip={t('Show as points')}
+                tooltipProps={mapTooltipProps}
+                iconName='pins'
+                size='lg'
+                variant='outline'
+                disabled={!hasGeopointAndData}
+                aria-label={t('Show as points')}
+              />
+            </div>
+            {!viewby && (
+              <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 3 }}>
+                <ActionIcon
+                  onClick={this.showHeatmap.bind(this)}
+                  tooltip={t('Show as heatmap')}
+                  tooltipProps={mapTooltipProps}
+                  iconName='heatmap'
+                  size='lg'
+                  variant='outline'
+                  disabled={!hasGeopointAndData}
+                  aria-label={t('Show as heatmap')}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {(hasGeopointAndData || (this.state.markerMap && this.state.markersVisible)) && (
