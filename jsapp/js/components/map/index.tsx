@@ -163,6 +163,7 @@ interface FormMapState {
 class FormMap extends React.Component<FormMapProps, FormMapState> {
   controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
   private legendControlRef = React.createRef<HTMLDivElement>()
+  private isTouchDevice = false
   private readonly onViewportChange = () => {
     this.forceUpdate()
   }
@@ -239,6 +240,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidMount() {
+    this.isTouchDevice =
+      window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || navigator.maxTouchPoints > 0
+
     const fields: SurveyRow[] = []
     const fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text']
     this.props.asset.content?.survey?.forEach((q) => {
@@ -254,11 +258,13 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     const map = L.map('data-map', {
       maxZoom: 17,
-      scrollWheelZoom: false,
+      scrollWheelZoom: !this.isTouchDevice,
       preferCanvas: true,
     })
     this.mapContainerEl = map.getContainer()
-    this.mapContainerEl.addEventListener('wheel', this.onMapPinchZoom, { passive: false })
+    if (!this.isTouchDevice) {
+      this.mapContainerEl.addEventListener('wheel', this.onMapPinchZoom, { passive: false })
+    }
 
     STREETS_LAYER.addTo(map)
     this.controls.addTo(map)
