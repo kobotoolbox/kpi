@@ -47,6 +47,10 @@
             Leave empty if service does not support the language at all
           </li>
           <li>
+            <code>asr_location_*</code> and <code>asr_model_*</code> should contain one value per language row.
+            These are copied to every supported ASR region for that service.
+          </li>
+          <li>
             <code>mt_*</code> columns should contain either the language code or, like <code>asr_*</code> columns, region codes.
             If the service supports some regions, add them separated by semi-colons.
             Use <code>null</code> for not supported regions. Leave empty if service does not support the language at all
@@ -73,6 +77,8 @@
             <th style="text-transform: lowercase">region_names</th>
             <th style="text-transform: lowercase">region_codes</th>
             <th style="text-transform: lowercase">asr_goog</th>
+            <th style="text-transform: lowercase">asr_location_goog</th>
+            <th style="text-transform: lowercase">asr_model_goog</th>
             <th style="text-transform: lowercase">mt_goog</th>
             <th style="text-transform: lowercase">asr_msft</th>
             <th style="text-transform: lowercase">mt_msft</th>
@@ -89,6 +95,8 @@
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
+            <td></td>
           </tr>
           <tr>
             <td>English</td>
@@ -97,6 +105,8 @@
             <td>Canada;British;US</td>
             <td>en-CA;en-GB;en-US</td>
             <td>en-CA;en-GB;en-US</td>
+            <td>us-central1</td>
+            <td>latest_long</td>
             <td>en</td>
             <td></td>
             <td></td>
@@ -108,6 +118,8 @@
             <td>Belgium;Canada;France</td>
             <td>fr-BE;fr-CA;fr-FR</td>
             <td>fr-BE;fr-CA;fr-FR</td>
+            <td>europe-west4</td>
+            <td>latest_long</td>
             <td>fr</td>
             <td></td>
             <td>fr;null;fr-CA;null</td>
@@ -119,6 +131,8 @@
             <td>Simplified, China;Traditional, Taiwan</td>
             <td>zh;zh-TW</td>
             <td>zh;zh-TW</td>
+            <td>asia-southeast1</td>
+            <td>chirp_3</td>
             <td>zh;zh-TW</td>
             <td></td>
             <td></td>
@@ -130,6 +144,8 @@
             <td>Israel</td>
             <td>he-IL</td>
             <td>iw-IL</td>
+            <td>me-west1</td>
+            <td>latest_long</td>
             <td>iw</td>
             <td></td>
             <td></td>
@@ -141,6 +157,8 @@
             <td>Serbia, Latin; Serbia, Cyrillic</td>
             <td>sr-RS; sr-CS</td>
             <td>sr-RS; null</td>
+            <td>europe-west4</td>
+            <td>latest_long</td>
             <td>sr</td>
             <td></td>
             <td>sr-Latn, sr-Cyrl</td>

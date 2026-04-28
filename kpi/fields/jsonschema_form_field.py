@@ -19,17 +19,26 @@ class JsonSchemaFormField(CharField):
         return super().prepare_value(value)
 
     def clean(self, value):
+        # Constance may pass an already-decoded Python object (dict/list) when
+        # the DB value was stored correctly (e.g. via the lazy_json_serializable
+        # codec). Accept it directly rather than round-tripping through JSON.
+        if isinstance(value, (dict, list)):
+            instance = value
+        else:
+            try:
+                instance = json.loads(value)
+            except json.JSONDecodeError as e:
+                raise ValidationError(t('Enter valid JSON.') + ' ' + str(e))
         try:
-            instance = json.loads(value)
             jsonschema.validate(instance, self.schema)
-        except json.JSONDecodeError as e:
-            # Message written to match `IntegerField`, which uses the
-            # imperative: "Enter a whole number."
-            raise ValidationError(t('Enter valid JSON.') + ' ' + str(e))
         except jsonschema.exceptions.ValidationError as e:
             # `str(e)` is too verbose (it includes the entire schema)
             raise ValidationError(t('Enter valid JSON.') + ' ' + e.message)
-        return value
+        # Must return the parsed object, not the raw string. Constance pickles
+        # (3.x) or JSON-encodes (4.x) the return value directly — returning a
+        # string here would store a string in the DB and cause TypeErrors when
+        # the setting is later accessed as a dict/list.
+        return instance
 
 
 class I18nTextJSONField(JsonSchemaFormField):
@@ -103,12 +112,14 @@ class MetadataFieldsListField(JsonSchemaFormField):
         super().__init__(*args, schema=schema, **kwargs)
 
     def clean(self, value):
+        # super().clean() returns a parsed list, never a raw string.
         value = super().clean(value)
 
         if not self.REQUIRED_FIELDS:
             return value
 
-        instance = json.loads(value)
+        # `value` is already a list here — do not call json.loads() on it.
+        instance = value
 
         if set(self.REQUIRED_FIELDS) - set(d['name'] for d in instance):
             raise ValidationError(
@@ -117,7 +128,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
                     '`, `'.join(self.REQUIRED_FIELDS)
                 )
             )
-        return value
+        return instance
 
 
 class UserMetadataFieldsListField(MetadataFieldsListField):
