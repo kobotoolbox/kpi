@@ -107,7 +107,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from kpi.utils.strings import to_bool
+from kpi.utils.strings import strtobool
 
 
 @extend_schema(
@@ -822,7 +822,7 @@ class AssetViewSet(
             # discover_asset/view_asset for anonymous (memory optimization).
             # Pass ?current_user_permissions_only=false to load all users'
             # permissions (needed when the client displays full permission lists).
-            current_user_permissions_only = to_bool(
+            current_user_permissions_only = strtobool(
                 self.request.query_params.get('current_user_permissions_only', False)
             )
             context_['object_permissions_per_asset'] = self.cache_all_assets_perms(

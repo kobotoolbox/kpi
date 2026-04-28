@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import pytest
 from allauth.socialaccount.models import SocialAccount
@@ -179,7 +180,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         DailyXFormSubmissionCounter.objects.create(
             user_id=self.someuser.id,
-            date=timezone.now().date() - timezone.timedelta(days=100),
+            date=timezone.now().date() - timedelta(days=100),
             counter=135,
         )
         NLPUsageCounter.objects.create(
@@ -187,7 +188,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         NLPUsageCounter.objects.create(
             user_id=self.someuser.id,
-            date=timezone.now().date() - timezone.timedelta(days=100),
+            date=timezone.now().date() - timedelta(days=100),
             total_asr_seconds=80,
         )
         UserProfile.objects.filter(user_id=self.someuser.id).update(
@@ -329,7 +330,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertTrue(results[0]['accepted_tos'])
 
     def test_ordering_by_date_joined(self):
-        base_date = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        base_date = datetime(2023, 1, 1, tzinfo=ZoneInfo('UTC'))
         adminuser = User.objects.get(username='adminuser')
         adminuser.date_joined = base_date
         adminuser.save()

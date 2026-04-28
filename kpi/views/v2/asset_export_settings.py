@@ -272,7 +272,7 @@ class AssetExportSettingsViewSet(
             )
 
         bad_user_agent = False
-        user_agent = request.META.get('HTTP_USER_AGENT')
+        user_agent = request.headers.get('user-agent')
         if user_agent:
             for ua_pattern in BAD_USER_AGENTS:
                 if re.match(ua_pattern, user_agent):
