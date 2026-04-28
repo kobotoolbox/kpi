@@ -1,9 +1,11 @@
 import './tableColumnSortDropdown.scss'
 
 import React from 'react'
+import { useState } from 'react'
 
 import classNames from 'classnames'
-import KoboDropdown from '#/components/common/koboDropdown'
+import Menu from '#/components/common/Menu'
+import Icon from '#/components/common/icon'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'
@@ -29,24 +31,26 @@ interface TableColumnSortDropdownProps {
 }
 
 /**
- * A wrapper around KoboDropdown to be used in table header to sort columns.
+ * A dropdown used in table header to sort and manage columns.
  */
 export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
   function renderTrigger() {
-    const sortIcon = ['k-icon']
+    let sortIconName: 'sort-ascending' | 'sort-descending' | null = null
     if (props.sortValue && props.sortValue === SortValues.ASCENDING) {
-      sortIcon.push('k-icon-sort-ascending')
+      sortIconName = 'sort-ascending'
     }
     if (props.sortValue && props.sortValue === SortValues.DESCENDING) {
-      sortIcon.push('k-icon-sort-descending')
+      sortIconName = 'sort-descending'
     }
 
     return (
       <div className='table-column-sort-dropdown-trigger' dir='auto'>
         {props.additionalTriggerContent}
-        {props.sortValue && <i className={sortIcon.join(' ')} />}
-        <i className='k-icon k-icon-caret-up' />
-        <i className='k-icon k-icon-caret-down' />
+        {sortIconName && <Icon name={sortIconName} size='inherit' />}
+        {isMenuOpen && <Icon name='caret-up' size='inherit' />}
+        {!isMenuOpen && <Icon name='caret-down' size='inherit' />}
       </div>
     )
   }
@@ -77,7 +81,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
 
   function renderSortButton(buttonSortValue: SortValues) {
     return (
-      <button
+      <Menu.Item
         className={classNames({
           'sort-dropdown-menu-button': true,
           'sort-dropdown-menu-button--active': props.sortValue === buttonSortValue,
@@ -85,58 +89,73 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
         onClick={(evt) => {
           changeSort(buttonSortValue, evt)
         }}
+        leftSection={
+          buttonSortValue === SortValues.ASCENDING ? (
+            <Icon name='sort-ascending' size='inherit' />
+          ) : (
+            <Icon name='sort-descending' size='inherit' />
+          )
+        }
+        rightSection={
+          props.sortValue === buttonSortValue ? (
+            <span onClick={clearSort}>
+              <Icon name='close' size='inherit' className={classNames(CLEAR_BUTTON_CLASS_NAME)} />
+            </span>
+          ) : null
+        }
       >
-        {buttonSortValue === SortValues.ASCENDING && [
-          <i key='0' className='k-icon k-icon-sort-ascending' />,
-          <span key='1'>{t('Sort A→Z')}</span>,
-        ]}
-        {buttonSortValue === SortValues.DESCENDING && [
-          <i key='0' className='k-icon k-icon-sort-descending' />,
-          <span key='1'>{t('Sort Z→A')}</span>,
-        ]}
-
-        {props.sortValue === buttonSortValue && (
-          <i onClick={clearSort} className={classNames('k-icon', 'k-icon-close', CLEAR_BUTTON_CLASS_NAME)} />
-        )}
-      </button>
+        {buttonSortValue === SortValues.ASCENDING && t('Sort A→Z')}
+        {buttonSortValue === SortValues.DESCENDING && t('Sort Z→A')}
+      </Menu.Item>
     )
   }
 
   return (
-    <KoboDropdown
-      hideOnMenuClick
-      name='table-column-sort'
-      triggerContent={renderTrigger()}
-      menuContent={
-        <React.Fragment>
+    <div className='table-column-sort-dropdown'>
+      <Menu
+        withArrow
+        closeOnItemClick
+        offset={0}
+        onOpen={() => setIsMenuOpen(true)}
+        onClose={() => setIsMenuOpen(false)}
+      >
+        <Menu.Target>
+          <button type='button' className='table-column-sort-dropdown-trigger-button'>
+            {renderTrigger()}
+          </button>
+        </Menu.Target>
+
+        <Menu.Dropdown>
           {renderSortButton(SortValues.ASCENDING)}
           {renderSortButton(SortValues.DESCENDING)}
 
+          <Menu.Divider m={0} />
+
           {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-            <button className='sort-dropdown-menu-button' onClick={hideField}>
-              <i className='k-icon k-icon-hide' />
-              <span>{t('Hide field')}</span>
-            </button>
+            <Menu.Item
+              className='sort-dropdown-menu-button'
+              onClick={hideField}
+              leftSection={<Icon name='hide' size='inherit' />}
+            >
+              {t('Hide field')}
+            </Menu.Item>
           )}
           {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-            <button
+            <Menu.Item
               className='sort-dropdown-menu-button'
               onClick={() => {
                 changeFieldFrozen(!props.isFieldFrozen)
               }}
+              leftSection={
+                props.isFieldFrozen ? <Icon name='unfreeze' size='inherit' /> : <Icon name='freeze' size='inherit' />
+              }
             >
-              {props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-unfreeze' />,
-                <span key='1'>{t('Unfreeze field')}</span>,
-              ]}
-              {!props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-freeze' />,
-                <span key='1'>{t('Freeze field')}</span>,
-              ]}
-            </button>
+              {props.isFieldFrozen && t('Unfreeze field')}
+              {!props.isFieldFrozen && t('Freeze field')}
+            </Menu.Item>
           )}
-        </React.Fragment>
-      }
-    />
+        </Menu.Dropdown>
+      </Menu>
+    </div>
   )
 }
