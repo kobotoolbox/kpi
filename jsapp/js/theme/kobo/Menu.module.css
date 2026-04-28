@@ -18,7 +18,7 @@
 
   &[data-hovered] {
     color: var(--mantine-color-gray-1);
-    background-color: var(--mantine-color-gray-7);
+    background-color: var(--mantine-color-gray-8);
   }
 
   &[data-variant='danger'] {
