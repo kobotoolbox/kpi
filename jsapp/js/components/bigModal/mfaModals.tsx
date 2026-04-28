@@ -124,12 +124,8 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
   }
 
   // Only used for failed tokens
-  onCallFailed(response?: JQuery.jqXHR) {
-    const backendError = response?.responseJSON?.detail
-
-    this.setState({
-      errorText: backendError ? backendError : t('Incorrect token'),
-    })
+  onCallFailed() {
+    this.setState({ errorText: t('Incorrect token') })
   }
 
   getSecretKey(): string {

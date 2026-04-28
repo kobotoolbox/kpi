@@ -89,6 +89,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 )
             ),
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
+            'superuser_auth_enforcement': config.SUPERUSER_AUTH_ENFORCEMENT,
             # stripe key added below if stripe is enabled
             'stripe_public_key': None,
             'social_apps': [],

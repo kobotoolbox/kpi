@@ -188,3 +188,23 @@ class MfaApiTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mfa_method = MfaMethodsWrapper.objects.get(user=superuser)
         self.assertFalse(mfa_method.is_active)
+
+    @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
+    def test_superuser_deactivation_blocked_when_enforced(self):
+        """
+        Verify that a superuser CANNOT deactivate MFA if the enforcement config is True
+        """
+        superuser = User.objects.create_superuser(
+            username='admin_user_enforced', password='adminpassword'
+        )
+        activate_mfa_for_user(self.client, superuser)
+        self.client.force_login(superuser)
+
+        code = get_mfa_code_for_user(superuser)
+        response = self.client.post(
+            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        mfa_method = MfaMethodsWrapper.objects.get(user=superuser)
+        self.assertTrue(mfa_method.is_active)

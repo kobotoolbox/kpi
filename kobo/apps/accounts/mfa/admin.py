@@ -1,5 +1,7 @@
 # coding: utf-8
-from django.contrib import admin
+from constance import config
+from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 
 from .models import (
     MfaMethodsWrapper,
@@ -31,10 +33,19 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
             return
         super().save_model(request, obj, form, change)
 
+    def has_delete_permission(self, request, obj=None):
+
+        if obj and obj.user.is_superuser and config.SUPERUSER_AUTH_ENFORCEMENT:
+            return False
+        return super().has_delete_permission(request, obj)
+
     def delete_queryset(self, request, queryset):
-        # Trigger custom delete logic during bulk deletion
-        for obj in queryset:
-            obj.delete()
+        try:
+            # Trigger custom delete logic during bulk deletion
+            for obj in queryset:
+                obj.delete()
+        except ValidationError as e:
+            self.message_user(request, e.message, level=messages.ERROR)
 
 
 admin.site.unregister(TrenchMFAMethod)

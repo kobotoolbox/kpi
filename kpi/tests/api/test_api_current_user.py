@@ -240,6 +240,8 @@ class CurrentUserTestCase(BaseTestCase):
             'first_name': self.user.first_name,
             'last_name': self.user.last_name,
             'email': self.user.email,
+            'is_staff': self.user.is_staff,
+            'is_superuser': self.user.is_superuser,
             'server_time': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
             'date_joined': self.user.date_joined.strftime('%Y-%m-%dT%H:%M:%SZ'),
             'projects_url': '/'.join((settings.KOBOCAT_URL, self.user.username)),

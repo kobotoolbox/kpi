@@ -8,9 +8,11 @@ import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import ToggleSwitch from '#/components/common/toggleSwitch'
+import Tooltip from '#/components/common/tooltip'
 import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
+import sessionStore from '#/stores/session'
 import { formatTime } from '#/utils'
 import styles from './mfaSection.module.scss'
 
@@ -124,6 +126,24 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   render() {
+    const isSuperuserMfaLocked =
+      envStore.data.superuser_auth_enforcement &&
+      'is_superuser' in sessionStore.currentAccount &&
+      sessionStore.currentAccount.is_superuser
+
+    const isDisabled = isSuperuserMfaLocked && this.state.isMfaActive
+
+    const toggle = (
+      <div className={styles.options}>
+        <ToggleSwitch
+          label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
+          checked={this.state.isMfaActive}
+          onChange={this.onToggleChange.bind(this)}
+          disabled={isDisabled}
+        />
+      </div>
+    )
+
     if (!envStore.isReady) {
       return <LoadingSpinner />
     }
@@ -181,13 +201,17 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
           </div>
         </div>
 
-        <div className={styles.options}>
-          <ToggleSwitch
-            label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
-            checked={this.state.isMfaActive}
-            onChange={this.onToggleChange.bind(this)}
-          />
-        </div>
+        {isDisabled ? (
+          <Tooltip
+            text={t('Superusers cannot deactivate their MFA.')}
+            ariaLabel={t('MFA restriction explanation')}
+            alignment='right'
+          >
+            {toggle}
+          </Tooltip>
+        ) : (
+          toggle
+        )}
       </section>
     )
   }
