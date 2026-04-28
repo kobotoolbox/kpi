@@ -12869,29 +12869,21 @@ components:
           maxLength: 5000
         description:
           type: string
-          nullable: true
-          description: A description of this object.
+          readOnly: true
         type:
-          allOf:
-          - $ref: '#/components/schemas/StripeProductType'
-          description: |-
-            The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans.
-
-            * `good` - Good
-            * `service` - Service
+          type: string
+          nullable: true
         metadata:
           type: object
           additionalProperties:
             type: string
           readOnly: true
       required:
+      - description
       - id
       - metadata
       - name
       - type
-    BlankEnum:
-      enum:
-      - ''
     ChangePlan:
       type: object
       properties:
@@ -12919,14 +12911,6 @@ components:
           default: 1
       required:
       - price_id
-    CollectionMethodEnum:
-      enum:
-      - charge_automatically
-      - send_invoice
-      type: string
-      description: |-
-        * `charge_automatically` - Charge automatically
-        * `send_invoice` - Send invoice
     ContentResponse:
       type: object
       properties:
@@ -17062,25 +17046,15 @@ components:
           description: Three-letter ISO currency code
           maxLength: 3
         type:
-          allOf:
-          - $ref: '#/components/schemas/StripePriceType'
-          description: |-
-            Whether the price is for a one-time purchase or a recurring (subscription) purchase.
-
-            * `one_time` - One-time
-            * `recurring` - Recurring
+          type: string
+          nullable: true
         recurring:
           allOf:
           - $ref: '#/components/schemas/Recurring'
           nullable: true
         unit_amount:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
           nullable: true
-          description: The unit amount in cents to be charged, represented as a whole
-            integer if possible. Null if a sub-cent precision is required.
         human_readable_price:
           type: string
           readOnly: true
@@ -17097,8 +17071,6 @@ components:
           description: The product this price is associated with.
         transform_quantity:
           nullable: true
-          description: Apply a transformation to the reported usage or set quantity
-            before computing the amount billed. Cannot be combined with `tiers`.
       required:
       - active
       - currency
@@ -17106,7 +17078,9 @@ components:
       - id
       - product
       - recurring
+      - transform_quantity
       - type
+      - unit_amount
     PriceWithProduct:
       type: object
       properties:
@@ -17122,25 +17096,15 @@ components:
           description: Three-letter ISO currency code
           maxLength: 3
         type:
-          allOf:
-          - $ref: '#/components/schemas/StripePriceType'
-          description: |-
-            Whether the price is for a one-time purchase or a recurring (subscription) purchase.
-
-            * `one_time` - One-time
-            * `recurring` - Recurring
+          type: string
+          nullable: true
         recurring:
           allOf:
           - $ref: '#/components/schemas/Recurring'
           nullable: true
         unit_amount:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
           nullable: true
-          description: The unit amount in cents to be charged, represented as a whole
-            integer if possible. Null if a sub-cent precision is required.
         human_readable_price:
           type: string
           readOnly: true
@@ -17156,8 +17120,6 @@ components:
           $ref: '#/components/schemas/BaseProduct'
         transform_quantity:
           nullable: true
-          description: Apply a transformation to the reported usage or set quantity
-            before computing the amount billed. Cannot be combined with `tiers`.
       required:
       - active
       - currency
@@ -17165,7 +17127,9 @@ components:
       - id
       - product
       - recurring
+      - transform_quantity
       - type
+      - unit_amount
     Product:
       type: object
       properties:
@@ -17179,16 +17143,10 @@ components:
           maxLength: 5000
         description:
           type: string
-          nullable: true
-          description: A description of this object.
+          readOnly: true
         type:
-          allOf:
-          - $ref: '#/components/schemas/StripeProductType'
-          description: |-
-            The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans.
-
-            * `good` - Good
-            * `service` - Service
+          type: string
+          nullable: true
         prices:
           type: array
           items:
@@ -17199,6 +17157,7 @@ components:
             type: string
           readOnly: true
       required:
+      - description
       - id
       - metadata
       - name
@@ -17692,16 +17651,6 @@ components:
       - last_login
       - metadata
       - username
-    ProrationBehaviorEnum:
-      enum:
-      - always_invoice
-      - create_prorations
-      - none
-      type: string
-      description: |-
-        * `always_invoice` - Always invoice
-        * `create_prorations` - Create prorations
-        * `none` - None
     QualSelectQuestionParamsTypeEnum:
       type: string
       enum:
@@ -18245,22 +18194,6 @@ components:
         * `week` - Week
         * `month` - Month
         * `year` - Year
-    StripePriceType:
-      enum:
-      - one_time
-      - recurring
-      type: string
-      description: |-
-        * `one_time` - One-time
-        * `recurring` - Recurring
-    StripeProductType:
-      enum:
-      - good
-      - service
-      type: string
-      description: |-
-        * `good` - Good
-        * `service` - Service
     StripeUsageType:
       enum:
       - metered
@@ -18311,155 +18244,6 @@ components:
           description: A set of key/value pairs that you can attach to an object.
             It can be useful for storing additional information about an object in
             a structured format.
-        description:
-          type: string
-          nullable: true
-          description: A description of this object.
-        billing_cycle_anchor:
-          type: string
-          format: date-time
-          nullable: true
-          description: Determines the date of the first full invoice, and, for plans
-            with `month` or `year` intervals, the day of the month for subsequent
-            invoices.
-        billing_thresholds:
-          nullable: true
-          description: Define thresholds at which an invoice will be sent, and the
-            subscription advanced to a new billing period.
-        cancel_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: A date in the future at which the subscription will automatically
-            get canceled.
-        cancel_at_period_end:
-          type: boolean
-          description: If the subscription has been canceled with the ``at_period_end``
-            flag set to true, ``cancel_at_period_end`` on the subscription will be
-            true. You can use this attribute to determine whether a subscription that
-            has a status of active is scheduled to be canceled at the end of the current
-            period.
-        canceled_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: If the subscription has been canceled, the date of that cancellation.
-            If the subscription was canceled with ``cancel_at_period_end``, canceled_at
-            will still reflect the date of the initial cancellation request, not the
-            end of the subscription period when the subscription is automatically
-            moved to a canceled state.
-        collection_method:
-          allOf:
-          - $ref: '#/components/schemas/CollectionMethodEnum'
-          description: |-
-            Either `charge_automatically`, or `send_invoice`. When charging automatically, Stripe will attempt to pay this subscription at the end of the cycle using the default source attached to the customer. When sending an invoice, Stripe will email your customer an invoice with payment instructions.
-
-            * `charge_automatically` - Charge automatically
-            * `send_invoice` - Send invoice
-        current_period_end:
-          type: string
-          format: date-time
-          description: End of the current period for which the subscription has been
-            invoiced. At the end of this period, a new invoice will be created.
-        current_period_start:
-          type: string
-          format: date-time
-          description: Start of the current period for which the subscription has
-            been invoiced.
-        days_until_due:
-          type: integer
-          maximum: 2147483647
-          minimum: -2147483648
-          nullable: true
-          description: Number of days a customer has to pay invoices generated by
-            this subscription. This value will be `null` for subscriptions where `billing=charge_automatically`.
-        discount:
-          nullable: true
-          description: Describes the current discount applied to this subscription,
-            if there is one. When billing, a discount applied to a subscription overrides
-            a discount applied on a customer-wide basis.
-        ended_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: If the subscription has ended (either because it was canceled
-            or because the customer was switched to a subscription to a new plan),
-            the date the subscription ended.
-        next_pending_invoice_item_invoice:
-          type: string
-          format: date-time
-          nullable: true
-          description: Specifies the approximate timestamp on which any pending invoice
-            items will be billed according to the schedule provided at pending_invoice_item_interval.
-        pause_collection:
-          nullable: true
-          description: If specified, payment collection for this subscription will
-            be paused.
-        pending_invoice_item_interval:
-          nullable: true
-          description: Specifies an interval for how often to bill for any pending
-            invoice items. It is analogous to calling Create an invoice for the given
-            subscription at the specified interval.
-        pending_update:
-          nullable: true
-          description: If specified, pending updates that will be applied to the subscription
-            once the latest_invoice has been paid.
-        proration_behavior:
-          description: |-
-            Determines how to handle prorations when the billing cycle changes (e.g., when switching plans, resetting billing_cycle_anchor=now, or starting a trial), or if an item’s quantity changes
-
-            * `always_invoice` - Always invoice
-            * `create_prorations` - Create prorations
-            * `none` - None
-          oneOf:
-          - $ref: '#/components/schemas/ProrationBehaviorEnum'
-          - $ref: '#/components/schemas/BlankEnum'
-        proration_date:
-          type: string
-          format: date-time
-          nullable: true
-          description: If set, the proration will be calculated as though the subscription
-            was updated at the given time. This can be used to apply exactly the same
-            proration that was previewed with upcoming invoice endpoint. It can also
-            be used to implement custom proration logic, such as prorating by day
-            instead of by second, by providing the time that you wish to use for proration
-            calculations
-        quantity:
-          type: integer
-          maximum: 2147483647
-          minimum: -2147483648
-          nullable: true
-          description: The quantity applied to this subscription. This value will
-            be `null` for multi-plan subscriptions
-        start_date:
-          type: string
-          format: date-time
-          nullable: true
-          description: Date when the subscription was first created. The date might
-            differ from the created date due to backdating.
-        status:
-          allOf:
-          - $ref: '#/components/schemas/SubscriptionStatusEnum'
-          description: |-
-            The status of this subscription.
-
-            * `active` - Active
-            * `canceled` - Canceled
-            * `incomplete` - Incomplete
-            * `incomplete_expired` - Incomplete Expired
-            * `past_due` - Past due
-            * `trialing` - Trialing
-            * `unpaid` - Unpaid
-        trial_end:
-          type: string
-          format: date-time
-          nullable: true
-          description: If the subscription has a trial, the end of that trial.
-        trial_start:
-          type: string
-          format: date-time
-          nullable: true
-          description: If the subscription has a trial, the beginning of that trial.
         djstripe_owner_account:
           type: string
           nullable: true
@@ -18467,54 +18251,14 @@ components:
         customer:
           type: string
           description: The customer associated with this subscription.
-        default_payment_method:
-          type: string
-          nullable: true
-          description: The default payment method for the subscription. It must belong
-            to the customer associated with the subscription. If not set, invoices
-            will use the default payment method in the customer's invoice settings.
-        default_source:
-          type: string
-          nullable: true
-          description: The default payment source for the subscription. It must belong
-            to the customer associated with the subscription and be in a chargeable
-            state. If not set, defaults to the customer's default source.
-        latest_invoice:
-          type: string
-          nullable: true
-          description: The most recent invoice this subscription has generated.
-        pending_setup_intent:
-          type: string
-          nullable: true
-          description: We can use this SetupIntent to collect user authentication
-            when creating a subscription without immediate payment or updating a subscription's
-            payment method, allowing you to optimize for off-session payments.
-        plan:
-          type: integer
-          title: ID
-          nullable: true
-          description: The plan associated with this subscription. This value will
-            be `null` for multi-plan subscriptions
-        default_tax_rates:
-          type: array
-          items:
-            type: integer
-            title: ID
-          description: The tax rates that will apply to any subscription item that
-            does not have tax_rates set. Invoices created will have their default_tax_rates
-            populated from the subscription.
       required:
       - application_fee_percent
-      - collection_method
-      - current_period_end
-      - current_period_start
       - customer
       - djstripe_created
       - djstripe_updated
       - id
       - items
       - schedule
-      - status
     SubscriptionItem:
       type: object
       properties:
@@ -18525,13 +18269,11 @@ components:
           $ref: '#/components/schemas/PriceWithProduct'
         quantity:
           type: integer
-          maximum: 2147483647
-          minimum: 0
           nullable: true
-          description: The quantity of the plan to which the customer should be subscribed.
       required:
       - id
       - price
+      - quantity
     SubscriptionSchedule:
       type: object
       properties:
@@ -18568,24 +18310,6 @@ components:
         * `completed` - Completed
         * `not_started` - Not started
         * `released` - Released
-    SubscriptionStatusEnum:
-      enum:
-      - active
-      - canceled
-      - incomplete
-      - incomplete_expired
-      - past_due
-      - trialing
-      - unpaid
-      type: string
-      description: |-
-        * `active` - Active
-        * `canceled` - Canceled
-        * `incomplete` - Incomplete
-        * `incomplete_expired` - Incomplete Expired
-        * `past_due` - Past due
-        * `trialing` - Trialing
-        * `unpaid` - Unpaid
     SuperUserAccessLogResponse:
       type: object
       properties:

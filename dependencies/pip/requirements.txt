@@ -90,7 +90,7 @@ diff-match-patch==20241021
     # via django-import-export
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
-dj-stripe==2.9.2
+dj-stripe==2.10.3
     # via -r dependencies/pip/requirements.in
 django==5.2.13
     # via
@@ -486,10 +486,8 @@ static3==0.7.0
     #   dj-static
 statistics==1.0.3.5
     # via formpack
-stripe==11.6.0
-    # via
-    #   -r dependencies/pip/requirements.in
-    #   dj-stripe
+stripe==15.1.0
+    # via dj-stripe
 tablib==3.9.0
     # via django-import-export
 tabulate==0.10.0

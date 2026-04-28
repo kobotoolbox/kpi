@@ -9,17 +9,17 @@ class ProductAPITestCase(BaseTestCase):
     def test_product_list(self):
         price = baker.make(
             'djstripe.Price',
-            billing_scheme=BillingScheme.per_unit,
             livemode=False,
             active=True,
+            stripe_data={'billing_scheme': BillingScheme.per_unit},
             product__active=True,
             product__livemode=False,
         )
         inactive_price = baker.make(
             'djstripe.Price',
-            billing_scheme=BillingScheme.per_unit,
             livemode=False,
             active=False,
+            stripe_data={'billing_scheme': BillingScheme.per_unit},
             product__active=False,
             product__livemode=False,
         )

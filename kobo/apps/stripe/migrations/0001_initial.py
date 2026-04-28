@@ -4,8 +4,8 @@ import django.core.validators
 import django.db.models.deletion
 from django.db import migrations, models
 
-from kobo.apps.stripe.utils.subscription_limits import get_default_add_on_limits
 import kpi.fields.kpi_uid
+from kobo.apps.stripe.utils.subscription_limits import get_default_add_on_limits
 
 
 class Migration(migrations.Migration):
@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('djstripe', '0011_2_7'),
+        ('djstripe', '0001_initial'),
         ('organizations', '0001_squashed_0004_remove_organization_uid'),
     ]
 

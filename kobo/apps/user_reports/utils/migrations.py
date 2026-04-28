@@ -2,7 +2,6 @@
 
 from django.conf import settings
 
-
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
@@ -318,32 +317,32 @@ STRIPE_SUBSCRIPTIONS = """
                                     'id', pr.id,
                                     'nickname', pr.nickname,
                                     'currency', pr.currency,
-                                    'type', pr.type,
-                                    'recurring', pr.recurring,
-                                    'unit_amount', pr.unit_amount,
+                                    'type', pr.stripe_data->>'type',
+                                    'recurring', pr.stripe_data->'recurring',
+                                    'unit_amount', pr.stripe_data->'unit_amount',
                                     'human_readable_price',
                                     CASE
-                                        WHEN pr.recurring IS NOT NULL THEN
+                                        WHEN pr.stripe_data->'recurring' IS NOT NULL THEN
                                             CONCAT(
-                                                TO_CHAR(pr.unit_amount::numeric / 100, 'FM$999,999.00'),
+                                                TO_CHAR((pr.stripe_data->>'unit_amount')::numeric / 100, 'FM$999,999.00'),
                                                 ' USD/',
-                                                pr.recurring->>'interval'
+                                                pr.stripe_data->'recurring'->>'interval'
                                             )
                                         ELSE
-                                            TO_CHAR(pr.unit_amount::numeric / 100, 'FM$999,999.00')
+                                            TO_CHAR((pr.stripe_data->>'unit_amount')::numeric / 100, 'FM$999,999.00')
                                     END,
                                     'metadata', pr.metadata,
                                     'active', pr.active,
                                     'product', jsonb_build_object(
                                         'id', prod.id,
                                         'name', prod.name,
-                                        'description', prod.description,
-                                        'type', prod.type,
+                                        'description', prod.stripe_data->>'description',
+                                        'type', prod.stripe_data->>'type',
                                         'metadata', prod.metadata
                                     ),
-                                    'transform_quantity', pr.transform_quantity
+                                    'transform_quantity', pr.stripe_data->'transform_quantity'
                                 ),
-                                'quantity', si.quantity
+                                'quantity', si.stripe_data->'quantity'
                             )
                         )
                         FROM djstripe_subscriptionitem si
@@ -351,72 +350,45 @@ STRIPE_SUBSCRIPTIONS = """
                         JOIN djstripe_product prod ON pr.product_id = prod.id
                         WHERE si.subscription_id = sub.id
                     ),
-                    'schedule', sub.schedule_id,
+                    'schedule', sub.stripe_data->>'schedule',
                     'djstripe_created', sub.djstripe_created,
                     'djstripe_updated', sub.djstripe_updated,
                     'id', sub.id,
                     'livemode', sub.livemode,
                     'created', sub.created,
                     'metadata', sub.metadata,
-                    'description', sub.description,
-                    'application_fee_percent', sub.application_fee_percent,
-                    'billing_cycle_anchor', sub.billing_cycle_anchor,
-                    'billing_thresholds', sub.billing_thresholds,
-                    'cancel_at', sub.cancel_at,
-                    'cancel_at_period_end', sub.cancel_at_period_end,
-                    'canceled_at', sub.canceled_at,
-                    'collection_method', sub.collection_method,
-                    'current_period_start', sub.current_period_start,
-                    'current_period_end', sub.current_period_end,
-                    'days_until_due', sub.days_until_due,
-                    'discount', sub.discount,
-                    'ended_at', sub.ended_at,
-                    'next_pending_invoice_item_invoice', sub.next_pending_invoice_item_invoice,
-                    'pause_collection', sub.pause_collection,
-                    'pending_invoice_item_interval', sub.pending_invoice_item_interval,
-                    'pending_update', sub.pending_update,
-                    'proration_behavior', sub.proration_behavior,
-                    'proration_date', sub.proration_date,
-                    'quantity', sub.quantity,
-                    'start_date', sub.start_date,
-                    'status', sub.status,
-                    'trial_end', sub.trial_end,
-                    'trial_start', sub.trial_start,
+                    'description', sub.stripe_data->>'description',
+                    'application_fee_percent', sub.stripe_data->'application_fee_percent',
+                    'billing_cycle_anchor', sub.stripe_data->'billing_cycle_anchor',
+                    'billing_thresholds', sub.stripe_data->'billing_thresholds',
+                    'cancel_at', sub.stripe_data->'cancel_at',
+                    'cancel_at_period_end', sub.stripe_data->'cancel_at_period_end',
+                    'canceled_at', sub.stripe_data->'canceled_at',
+                    'collection_method', sub.stripe_data->>'collection_method',
+                    'current_period_start', sub.stripe_data->'current_period_start',
+                    'current_period_end', sub.stripe_data->'current_period_end',
+                    'days_until_due', sub.stripe_data->'days_until_due',
+                    'discount', sub.stripe_data->'discount',
+                    'ended_at', sub.stripe_data->'ended_at',
+                    'next_pending_invoice_item_invoice', sub.stripe_data->'next_pending_invoice_item_invoice',
+                    'pause_collection', sub.stripe_data->'pause_collection',
+                    'pending_invoice_item_interval', sub.stripe_data->'pending_invoice_item_interval',
+                    'pending_update', sub.stripe_data->'pending_update',
+                    'proration_behavior', sub.stripe_data->>'proration_behavior',
+                    'proration_date', sub.stripe_data->'proration_date',
+                    'quantity', sub.stripe_data->'quantity',
+                    'start_date', sub.stripe_data->'start_date',
+                    'status', sub.stripe_data->>'status',
+                    'trial_end', sub.stripe_data->'trial_end',
+                    'trial_start', sub.stripe_data->'trial_start',
                     'djstripe_owner_account', sub.djstripe_owner_account_id,
                     'customer', cust.id,
-                    'default_payment_method', sub.default_payment_method_id,
-                    'default_source', sub.default_source_id,
-                    'latest_invoice', sub.latest_invoice_id,
-                    'pending_setup_intent', sub.pending_setup_intent_id,
-                    'plan', sub.plan_id,
-                    'default_tax_rates', (
-                        SELECT
-                            COALESCE(
-                                jsonb_agg(
-                                    jsonb_build_object(
-                                        'id', tax.id,
-                                        'djstripe_id', tax.djstripe_id,
-                                        'description', tax.description,
-                                        'display_name', tax.display_name,
-                                        'inclusive', tax.inclusive,
-                                        'jurisdiction', tax.jurisdiction,
-                                        'percentage', tax.percentage,
-                                        'tax_type', tax.tax_type,
-                                        'active', tax.active,
-                                        'country', tax.country,
-                                        'state', tax.state
-                                    )
-                                ) FILTER (WHERE tax.id IS NOT NULL),
-                                '[]'::jsonb
-                            )
-                        FROM
-                            djstripe_djstripesubscriptiondefaulttaxrate AS sub_tax_rate
-                        JOIN
-                            djstripe_taxrate AS tax
-                            ON sub_tax_rate.taxrate_id = tax.djstripe_id
-                        WHERE
-                            sub_tax_rate.subscription_id::text = sub.id::text
-                    )
+                    'default_payment_method', sub.stripe_data->>'default_payment_method',
+                    'default_source', sub.stripe_data->>'default_source',
+                    'latest_invoice', sub.stripe_data->>'latest_invoice',
+                    'pending_setup_intent', sub.stripe_data->>'pending_setup_intent',
+                    'plan', sub.stripe_data->>'plan',
+                    'default_tax_rates', COALESCE(sub.stripe_data->'default_tax_rates', '[]'::jsonb)
                 )
             ) FILTER (WHERE sub.id IS NOT NULL),
             '[]'::jsonb

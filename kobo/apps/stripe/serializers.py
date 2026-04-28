@@ -33,6 +33,7 @@ class OneTimeAddOnSerializer(serializers.ModelSerializer):
 
 class BaseProductSerializer(serializers.ModelSerializer):
     metadata = serializers.SerializerMethodField()
+    type = serializers.CharField(allow_null=True)
 
     class Meta:
         model = Product
@@ -52,6 +53,8 @@ class RecurringSerializer(serializers.Serializer):
 class BasePriceSerializer(serializers.ModelSerializer):
     human_readable_price = serializers.SerializerMethodField()
     recurring = RecurringSerializer(required=True, allow_null=True)
+    type = serializers.CharField(allow_null=True)
+    unit_amount = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = Price
@@ -89,7 +92,7 @@ class ChangePlanSerializer(PriceIdSerializer):
     subscription_id = serializers.SlugRelatedField(
         'id',
         queryset=Subscription.objects.filter(
-            status__in=['active'],
+            stripe_data__status__in=['active'],
         ),
         required=True,
         allow_empty=False,
@@ -127,6 +130,8 @@ class CheckoutLinkSerializer(PriceIdSerializer):
 
 
 class PriceSerializer(BasePriceSerializer):
+    transform_quantity = serializers.JSONField(allow_null=True)
+
     class Meta(BasePriceSerializer.Meta):
         fields = (
             'id',
@@ -156,6 +161,7 @@ class ProductSerializer(BaseProductSerializer):
 
 class SubscriptionItemSerializer(serializers.ModelSerializer):
     price = PriceWithProductSerializer()
+    quantity = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = SubscriptionItem

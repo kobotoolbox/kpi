@@ -46,7 +46,9 @@ class TrackersUtilitiesTestCase(BaseTestCase):
             active=True,
             metadata=product_metadata,
         )
-        price = baker.make(Price, active=True, product=product, type='one_time')
+        price = baker.make(
+            Price, active=True, product=product, stripe_data={'type': 'one_time'}
+        )
         product.save()
         return product, price
 
@@ -64,24 +66,28 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         payment_intent = baker.make(
             PaymentIntent,
             customer=customer,
-            status=payment_status,
-            payment_method_types=['card'],
             livemode=False,
-            amount=payment_total,
-            amount_capturable=payment_total,
-            amount_received=payment_total,
+            stripe_data={
+                'status': payment_status,
+                'payment_method_types': ['card'],
+                'amount': payment_total,
+                'amount_capturable': payment_total,
+                'amount_received': payment_total,
+            },
         )
         charge = baker.prepare(
             Charge,
             customer=customer,
-            refunded=False,
             created=timezone.now(),
             payment_intent=payment_intent,
-            paid=True,
             status=payment_status,
             livemode=False,
-            amount_refunded=0,
             amount=payment_total,
+            stripe_data={
+                'refunded': False,
+                'paid': True,
+                'amount_refunded': 0,
+            },
         )
         charge.metadata = {
             'price_id': price.id,
