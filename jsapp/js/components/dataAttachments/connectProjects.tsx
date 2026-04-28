@@ -93,6 +93,9 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
       const sourceUrl = typeof source.source === 'string' ? source.source : ''
       const sourceUid = sourceUrl ? (getAssetUIDFromUrl(sourceUrl) ?? '') : ''
       const sourceNameRaw = typeof source.source__name === 'string' ? source.source__name : ''
+      // `source__name` is `null` when the source asset no longer exists (it was deleted). The empty-string check is
+      // a defensive fallback: assets can technically have a blank name (e.g. legacy records or direct API writes)
+      // TODO: update this code after https://linear.app/kobotoolbox/issue/DEV-2034/ is done.
       const isSourceDeleted = source.source__name === null || sourceNameRaw.trim().length === 0
       const attachmentUrl = typeof source.url === 'string' ? source.url : ''
 
