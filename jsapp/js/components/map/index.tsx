@@ -1048,6 +1048,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     // If there exists geopoint questions at all AND the currently selected geopoint question has data
     const hasGeopointAndData = this.state.hasGeoPoint && !this.state.noData
+    const hasGeopointAndNoData = this.state.hasGeoPoint && this.state.noData
 
     // Keep this value aligned with jsapp/scss/z-indexes.scss.
     // We duplicate it here because TS cannot import SCSS variables.
@@ -1058,7 +1059,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     const Z_LEGEND_DIALOG = 1000 // above map controls/layers, below legacy modal backdrop (1101)
     const Z_TOOLTIP_PORTAL = 4000 // above app overlays/modals ($z-modal is 3000)
 
-    const mapSettingsAboveOverlay = this.state.noData && this.state.hasGeoPoint
     // Outer wrapper only positions the group; it has no z-index so it does not create a stacking context.
     // This allows the settings button and the remaining buttons to compete against .map-transparent-background
     // independently — the settings button can be raised above it while the others remain below.
@@ -1080,7 +1080,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       // Because the outer wrapper has no z-index, this stacking context competes directly against
       // .map-transparent-background — without pulling the other (disabled) buttons above it too.
       zIndex: this.state.hasGeoPoint
-        ? mapSettingsAboveOverlay
+        ? hasGeopointAndNoData
           ? Z_MAP_SETTINGS_OVERLAY + 1
           : Z_MAP_SETTINGS
         : Z_MAP_SETTINGS_DISABLED,
