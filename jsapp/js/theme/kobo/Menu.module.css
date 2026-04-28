@@ -28,3 +28,7 @@
   border-color: var(--mantine-color-gray-6);
   margin: 0;
 }
+
+.label {
+  color: var(--mantine-color-gray-2);
+}

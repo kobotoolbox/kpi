@@ -1,8 +1,8 @@
+import { Dialog, Group, Menu, Stack, type TooltipProps } from '@mantine/core'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
 import omnivore, { type OmnivoreFunction } from '@mapbox/leaflet-omnivore'
-import cx from 'classnames'
 import JSZip from 'jszip'
 import L, { type LayerGroup } from 'leaflet'
 // Libraries
@@ -14,10 +14,11 @@ import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { check } from '@placemarkio/check-geojson'
 
+import ActionIcon from '../../../js/components/common/ActionIcon'
+import ButtonNew from '../../../js/components/common/ButtonNew'
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
 import Modal from '../../../js/components/common/modal'
 // Partial components
-import PopoverMenu from '../../../js/popoverMenu'
 import MapSettings from './MapSettings'
 
 import { actions } from '../../../js/actions'
@@ -152,7 +153,6 @@ interface FormMapState {
   componentRefreshed: boolean
   showMapSettings: boolean
   overridenStyles?: AssetMapStyles
-  clearDisaggregatedPopover: boolean
   noData: boolean
   previousViewby?: string
   // Note: In case 2 of createDataQuery(), we have a situation where a selected question exists without updating
@@ -162,8 +162,42 @@ interface FormMapState {
 
 class FormMap extends React.Component<FormMapProps, FormMapState> {
   controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
+  private legendControlRef = React.createRef<HTMLDivElement>()
+  private isTouchDevice = false
+  private readonly onViewportChange = () => {
+    this.forceUpdate()
+  }
+  private viewportListenersActive = false
+  private mapContainerEl?: HTMLElement
+  private readonly onMapPinchZoom = (evt: WheelEvent) => {
+    // On macOS touchpads, pinch emits ctrl+wheel and may zoom browser tab by default.
+    // Capture it over the map and apply zoom to Leaflet instead.
+    if (!evt.ctrlKey || !this.state.map) {
+      return
+    }
+
+    evt.preventDefault()
+    const nextZoom = this.state.map.getZoom() + (evt.deltaY < 0 ? 1 : -1)
+    this.state.map.setZoom(nextZoom)
+  }
 
   private unlisteners: Function[] = []
+  private lastRenderedBoundsSignature?: string
+
+  private syncLegendViewportListeners() {
+    const shouldListen = Boolean(this.state.markerMap) && this.state.markersVisible && this.state.showExpandedLegend
+    if (shouldListen === this.viewportListenersActive) {
+      return
+    }
+    this.viewportListenersActive = shouldListen
+    if (shouldListen) {
+      window.addEventListener('resize', this.onViewportChange)
+      window.addEventListener('scroll', this.onViewportChange, true)
+    } else {
+      window.removeEventListener('resize', this.onViewportChange)
+      window.removeEventListener('scroll', this.onViewportChange, true)
+    }
+  }
 
   constructor(props: FormMapProps) {
     super(props)
@@ -181,19 +215,24 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       hasGeoPoint: hasGeoPoint,
       error: undefined,
       isFullscreen: false,
-      showExpandedLegend: true,
+      showExpandedLegend: false,
       langIndex: 0,
       filteredByMarker: undefined,
       componentRefreshed: false,
       showMapSettings: false,
       overridenStyles: undefined,
-      clearDisaggregatedPopover: false,
       noData: false,
       foundSelectedQuestion: null,
     }
   }
 
   componentWillUnmount() {
+    window.removeEventListener('resize', this.onViewportChange)
+    window.removeEventListener('scroll', this.onViewportChange, true)
+    this.viewportListenersActive = false
+    if (this.mapContainerEl) {
+      this.mapContainerEl.removeEventListener('wheel', this.onMapPinchZoom)
+    }
     if (this.state.map) {
       this.state.map.remove()
     }
@@ -201,6 +240,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidMount() {
+    this.isTouchDevice =
+      window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || navigator.maxTouchPoints > 0
+
     const fields: SurveyRow[] = []
     const fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text']
     this.props.asset.content?.survey?.forEach((q) => {
@@ -216,9 +258,13 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     const map = L.map('data-map', {
       maxZoom: 17,
-      scrollWheelZoom: false,
+      scrollWheelZoom: !this.isTouchDevice,
       preferCanvas: true,
     })
+    this.mapContainerEl = map.getContainer()
+    if (!this.isTouchDevice) {
+      this.mapContainerEl.addEventListener('wheel', this.onMapPinchZoom, { passive: false })
+    }
 
     STREETS_LAYER.addTo(map)
     this.controls.addTo(map)
@@ -541,6 +587,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     let mapMarkers: MapValueCounts = {}
     let mM: MarkerMap = []
     const submissions: DataResponse[] = this.props.allData
+    let pointCount = 0
+    let minLat = Number.POSITIVE_INFINITY
+    let maxLat = Number.NEGATIVE_INFINITY
+    let minLng = Number.POSITIVE_INFINITY
+    let maxLng = Number.NEGATIVE_INFINITY
 
     if (viewby) {
       mapMarkers = this.prepFilteredMarkers(submissions, this.props.viewby)
@@ -596,6 +647,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
 
       if (!!parsedCoordinates.length) {
+        pointCount += 1
+        minLat = Math.min(minLat, parsedCoordinates[0])
+        maxLat = Math.max(maxLat, parsedCoordinates[0])
+        minLng = Math.min(minLng, parsedCoordinates[1])
+        maxLng = Math.max(maxLng, parsedCoordinates[1])
+
         if (viewby && mM) {
           const vb = this.nameOfFieldInGroup(viewby)
           const itemId = String(item[vb])
@@ -629,6 +686,13 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         prepPoints.push(L.marker([parsedCoordinates[0], parsedCoordinates[1]], markerProps))
       }
     })
+
+    const nextBoundsSignature =
+      pointCount === 0
+        ? 'empty'
+        : `${pointCount}:${minLat.toFixed(6)}:${maxLat.toFixed(6)}:${minLng.toFixed(6)}:${maxLng.toFixed(6)}`
+    const boundsChanged = this.lastRenderedBoundsSignature !== nextBoundsSignature
+    this.lastRenderedBoundsSignature = nextBoundsSignature
 
     if (prepPoints.length >= 0) {
       let markers
@@ -665,14 +729,19 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
 
       if (prepPoints.length === 0) {
-        map.fitBounds([[42.373, -71.124]])
+        if (boundsChanged) {
+          // Legacy fallback location used when there are no plotted points.
+          // Single-point bounds around Cambridge, MA.
+          map.fitBounds([[42.373, -71.124]])
+        }
         this.setState({ noData: true })
       } else {
         // Note: this is a bit confusing. For some reason (possibly performance related), we didn't want the map to
         // reset the zoom when switching between disaggregated questions. This is the reason for the first two guards.
         // The last condition is only possible if we are coming from having no points to having points in the same page,
         // i.e., we are done waiting for the `allData` prop to populate. We can then reset the zoom once.
-        const shouldFitBounds = !viewby || !this.state.componentRefreshed || this.state.noData
+        // Additionally, we now only auto-fit when plotted bounds actually changed between rebuilds.
+        const shouldFitBounds = boundsChanged && (!viewby || !this.state.componentRefreshed || this.state.noData)
         if (shouldFitBounds) {
           map.fitBounds(markers.getBounds())
         }
@@ -776,7 +845,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   showLayerControls() {
-    this.controls.expand()
+    const layersContainer = this.controls.getContainer()
+    const isExpanded = layersContainer?.classList.contains('leaflet-control-layers-expanded')
+
+    if (isExpanded) {
+      this.controls.collapse()
+    } else {
+      this.controls.expand()
+    }
   }
 
   showHeatmap() {
@@ -793,19 +869,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
-  filterMap(evt: React.TouchEvent<HTMLAnchorElement>) {
-    // roundabout solution for https://github.com/kobotoolbox/kpi/issues/1678
-    //
-    // when blurEventDisabled prop is set, no blur event takes place in PopoverMenu
-    // hence, dropdown stays visible when invoking other click events (like filterLanguage below)
-    // but when changing question, dropdown needs to be removed, clearDisaggregatedPopover does this via props
-    this.setState({ clearDisaggregatedPopover: true })
-    // reset clearDisaggregatedPopover in order to maintain same behaviour on subsequent clicks
-    window.setTimeout(() => {
-      this.setState({ clearDisaggregatedPopover: false })
-    }, 1000)
-
-    const name = evt.currentTarget.getAttribute('data-name') || undefined
+  filterMap(name?: string) {
     if (name !== undefined) {
       this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`)
     } else {
@@ -813,11 +877,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
   }
 
-  filterLanguage(evt: React.TouchEvent<HTMLAnchorElement>) {
-    const dataIndexAttr = evt.currentTarget.getAttribute('data-index')
-    if (dataIndexAttr !== null) {
-      this.setState({ langIndex: Number.parseInt(dataIndexAttr) })
-    }
+  filterLanguage(langIndex: number) {
+    this.setState({ langIndex: langIndex })
   }
 
   static getDerivedStateFromProps(props: FormMapProps, state: FormMapState) {
@@ -834,7 +895,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return newState
   }
 
-  componentDidUpdate(prevProps: FormMapProps) {
+  componentDidUpdate(prevProps: FormMapProps, prevState: FormMapState) {
     const totalCountPopulated = prevProps.totalCount === undefined && this.props.totalCount !== undefined
     const dataChanged =
       (prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) &&
@@ -855,6 +916,17 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     } else if (viewbyChanged) {
       this.createDataQuery(this.props.viewby)
       this.refreshMapLayers()
+    }
+
+    // Keep global resize/scroll listeners in sync with legend visibility. Calling only from toggleLegend() is
+    // insufficient: listeners must also be added when markerMap first populates (legend is open by default) and
+    // removed when markersVisible changes (e.g. switching to heatmap) while the legend is still open.
+    if (
+      prevState.markerMap !== this.state.markerMap ||
+      prevState.markersVisible !== this.state.markersVisible ||
+      prevState.showExpandedLegend !== this.state.showExpandedLegend
+    ) {
+      this.syncLegendViewportListeners()
     }
   }
 
@@ -923,9 +995,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   toggleLegend() {
-    this.setState({
-      showExpandedLegend: !this.state.showExpandedLegend,
-    })
+    this.setState({ showExpandedLegend: !this.state.showExpandedLegend }, () => this.syncLegendViewportListeners())
   }
 
   filterByMarker(markerId: number) {
@@ -1008,98 +1078,323 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     // If there exists geopoint questions at all AND the currently selected geopoint question has data
     const hasGeopointAndData = this.state.hasGeoPoint && !this.state.noData
+    const hasGeopointAndNoData = this.state.hasGeoPoint && this.state.noData
+
+    // Keep this value aligned with jsapp/scss/z-indexes.scss.
+    // We duplicate it here because TS cannot import SCSS variables.
+    const Z_MAP_SETTINGS = 700 // = $z-map-settings (default map buttons)
+    const Z_MAP_SETTINGS_DISABLED = 999 // = $z-map-settings-disabled (under overlay)
+    const Z_MAP_SETTINGS_OVERLAY = 1001 // = $z-map-settings-overlay (overlay layer)
+    const Z_MAP_LIST = 689 // = $z-map-list (legend)
+    const Z_LEGEND_DIALOG = 1000 // above map controls/layers, below legacy modal backdrop (1101)
+    const Z_TOOLTIP_PORTAL = 4000 // above app overlays/modals ($z-modal is 3000)
+
+    // Outer wrapper only positions the group; it has no z-index so it does not create a stacking context.
+    // This allows the settings button and the remaining buttons to compete against .map-transparent-background
+    // independently — the settings button can be raised above it while the others remain below.
+    const mapActionsStyle: React.CSSProperties = {
+      position: 'absolute',
+      top: '12px',
+      right: '12px',
+      pointerEvents: 'none',
+    }
+
+    const mapActionItemStyle: React.CSSProperties = {
+      position: 'relative',
+      pointerEvents: 'auto',
+    }
+
+    const mapSettingsStyle: React.CSSProperties = {
+      ...mapActionItemStyle,
+      // Keep map-settings above overlay when geopoint question exists but has no responses.
+      // Because the outer wrapper has no z-index, this stacking context competes directly against
+      // .map-transparent-background — without pulling the other (disabled) buttons above it too.
+      zIndex: this.state.hasGeoPoint
+        ? hasGeopointAndNoData
+          ? Z_MAP_SETTINGS_OVERLAY + 1
+          : Z_MAP_SETTINGS
+        : Z_MAP_SETTINGS_DISABLED,
+    }
+
+    // Sub-grid for all action buttons except map-settings. Kept in its own stacking context so it
+    // always remains at or below the overlay, regardless of what z-index the settings button needs.
+    const mapActionsGridStyle: React.CSSProperties = {
+      position: 'relative',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, auto)',
+      gridTemplateRows: 'repeat(3, auto)',
+      gap: '12px',
+      pointerEvents: 'none',
+      zIndex: hasGeopointAndData ? Z_MAP_SETTINGS : Z_MAP_SETTINGS_DISABLED,
+    }
+
+    const mapTooltipProps: Partial<TooltipProps> = {
+      withinPortal: true,
+      // In portal + high z-index to stay above map controls and all UI overlays.
+      zIndex: Z_TOOLTIP_PORTAL,
+      position: 'left',
+      offset: 8,
+    }
+
+    const MAP_CONTROL_GAP = 'var(--mantine-spacing-sm)'
+    const MAP_MENU_OFFSET = 'calc(var(--mantine-spacing-sm) - 4px)'
+    const MAP_BUTTON_HEIGHT_MD = '32px'
+
+    const mapBottomControlsStyle: React.CSSProperties = {
+      position: 'absolute',
+      bottom: '15px',
+      left: '15px',
+      zIndex: Z_MAP_LIST,
+      flexDirection: 'column-reverse',
+      pointerEvents: 'none',
+    }
+
+    const mapBottomControlItemStyle: React.CSSProperties = {
+      position: 'relative',
+      pointerEvents: 'auto',
+      maxWidth: '90%',
+    }
+
+    const legendControlRect = this.legendControlRef.current?.getBoundingClientRect()
+    const legendDialogPosition = legendControlRect
+      ? {
+          left: legendControlRect.left,
+          bottom: `calc(${window.innerHeight - legendControlRect.top}px + ${MAP_MENU_OFFSET})`,
+        }
+      : {
+          left: 15,
+          bottom: `calc(15px + ${MAP_BUTTON_HEIGHT_MD} + ${MAP_CONTROL_GAP} + ${MAP_BUTTON_HEIGHT_MD} + ${MAP_MENU_OFFSET})`,
+        }
 
     return (
-      <bem.FormView m={formViewModifiers} className='right-tooltip'>
-        <bem.FormView__mapButton
-          m={`expand ${hasGeopointAndData ? '' : 'disabled'}`}
-          onClick={this.toggleFullscreen.bind(this)}
-          data-tip={t('Toggle Fullscreen')}
-          className={this.state.isFullscreen ? 'active' : ''}
-        >
-          <i className='k-icon k-icon-expand' />
-        </bem.FormView__mapButton>
-        <bem.FormView__mapButton
-          m={`markers ${hasGeopointAndData ? '' : 'disabled'}`}
-          onClick={this.showMarkers.bind(this)}
-          data-tip={t('Show as points')}
-          className={this.state.markersVisible ? 'active' : ''}
-        >
-          <i className='k-icon k-icon-pins' />
-        </bem.FormView__mapButton>
-        <bem.FormView__mapButton
-          m={`layers ${hasGeopointAndData ? '' : 'disabled'}`}
-          onClick={this.showLayerControls.bind(this)}
-          data-tip={t('Toggle layers')}
-        >
-          <i className='k-icon k-icon-layer' />
-        </bem.FormView__mapButton>
-        <bem.FormView__mapButton
-          m={`map-settings ${this.state.hasGeoPoint ? '' : 'disabled'}`}
-          onClick={this.toggleMapSettings.bind(this)}
-          data-tip={t('Map display settings')}
-        >
-          <i className='k-icon k-icon-settings' />
-        </bem.FormView__mapButton>
-        {!viewby && (
-          <bem.FormView__mapButton
-            m={`heatmap ${hasGeopointAndData ? '' : 'disabled'}`}
-            onClick={this.showHeatmap.bind(this)}
-            data-tip={t('Show as heatmap')}
-            className={this.state.markersVisible ? '' : 'active'}
-          >
-            <i className='k-icon k-icon-heatmap' />
-          </bem.FormView__mapButton>
-        )}
+      <bem.FormView m={formViewModifiers}>
+        <Group style={mapActionsStyle} gap={MAP_CONTROL_GAP} align='flex-start' wrap='nowrap'>
+          {/* Settings button: its own stacking context, can be raised above the overlay independently */}
+          <div style={mapSettingsStyle}>
+            <ActionIcon
+              onClick={this.toggleMapSettings.bind(this)}
+              tooltip={t('Map display settings')}
+              tooltipProps={mapTooltipProps}
+              iconName='settings'
+              size='xl'
+              variant='outline'
+              disabled={!this.state.hasGeoPoint}
+              aria-label={t('Map display settings')}
+            />
+          </div>
+          {/* Remaining buttons: separate sub-grid stacking context, always at or below the overlay */}
+          <div style={mapActionsGridStyle}>
+            <div style={{ ...mapActionItemStyle, gridColumn: 1, gridRow: 1 }}>
+              <ActionIcon
+                onClick={this.showLayerControls.bind(this)}
+                tooltip={t('Toggle layers')}
+                tooltipProps={mapTooltipProps}
+                iconName='layer'
+                size='xl'
+                variant='outline'
+                disabled={!hasGeopointAndData}
+                aria-label={t('Toggle layers')}
+              />
+            </div>
+            <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 1 }}>
+              <ActionIcon
+                onClick={this.toggleFullscreen.bind(this)}
+                tooltip={t('Toggle Fullscreen')}
+                tooltipProps={mapTooltipProps}
+                iconName='expand'
+                size='xl'
+                variant='outline'
+                disabled={!hasGeopointAndData}
+                aria-label={t('Toggle Fullscreen')}
+              />
+            </div>
+            <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 2 }}>
+              <ActionIcon
+                onClick={this.showMarkers.bind(this)}
+                tooltip={t('Show as points')}
+                tooltipProps={mapTooltipProps}
+                iconName='pins'
+                size='xl'
+                variant='outline'
+                disabled={!hasGeopointAndData}
+                aria-label={t('Show as points')}
+              />
+            </div>
+            {!viewby && (
+              <div style={{ ...mapActionItemStyle, gridColumn: 2, gridRow: 3 }}>
+                <ActionIcon
+                  onClick={this.showHeatmap.bind(this)}
+                  tooltip={t('Show as heatmap')}
+                  tooltipProps={mapTooltipProps}
+                  iconName='heatmap'
+                  size='xl'
+                  variant='outline'
+                  disabled={!hasGeopointAndData}
+                  aria-label={t('Show as heatmap')}
+                />
+              </div>
+            )}
+          </div>
+        </Group>
 
-        {hasGeopointAndData && (
-          <PopoverMenu
-            type='viewby-menu'
-            triggerLabel={label}
-            clearPopover={this.state.clearDisaggregatedPopover}
-            blurEventDisabled
-          >
-            {langs.length > 1 && <bem.PopoverMenu__heading>{t('Language')}</bem.PopoverMenu__heading>}
-            {langs.map((l, i) => (
-              <bem.PopoverMenu__link
-                data-index={i}
-                className={this.state.langIndex === i ? 'active' : ''}
-                key={`l-${i}`}
-                onClick={this.filterLanguage.bind(this)}
-              >
-                {l ? l : t('Default')}
-              </bem.PopoverMenu__link>
-            ))}
-            <bem.PopoverMenu__link
-              key={'all'}
-              onClick={this.filterMap.bind(this)}
-              className={viewby ? 'see-all' : 'active see-all'}
-            >
-              {t('-- See all data --')}
-            </bem.PopoverMenu__link>
-            {fields.map((f) => {
-              const name = f.name || f.$autoname
-              const fieldLabel = f.label ? (
-                f.label[langIndex] ? (
-                  f.label[langIndex]
-                ) : (
-                  <em>{t('untranslated: ') + name}</em>
-                )
-              ) : (
-                t('Question label not set')
-              )
-              return (
-                <bem.PopoverMenu__link
-                  data-name={name}
-                  key={`f-${name}`}
-                  onClick={this.filterMap.bind(this)}
-                  className={viewby === name ? 'active' : ''}
+        {(hasGeopointAndData || (this.state.markerMap && this.state.markersVisible)) && (
+          <Stack style={mapBottomControlsStyle} gap={MAP_CONTROL_GAP} align='flex-start'>
+            {hasGeopointAndData && (
+              <Group style={mapBottomControlItemStyle} gap={0}>
+                <Menu
+                  closeOnClickOutside
+                  closeOnItemClick
+                  position='top-start'
+                  offset={8}
+                  width={240}
+                  withinPortal
+                  zIndex={Z_TOOLTIP_PORTAL}
                 >
-                  {fieldLabel}
-                </bem.PopoverMenu__link>
-              )
-            })}
-          </PopoverMenu>
+                  <Menu.Target>
+                    <ButtonNew
+                      variant='outline'
+                      size='md'
+                      style={{
+                        minWidth: 180,
+                      }}
+                    >
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          padding: '5px 0',
+                        }}
+                      >
+                        {label}
+                      </span>
+                    </ButtonNew>
+                  </Menu.Target>
+
+                  <Menu.Dropdown>
+                    {langs.length > 1 && <Menu.Label>{t('Language')}</Menu.Label>}
+                    {langs.map((l, i) => (
+                      <Menu.Item
+                        key={`l-${i}`}
+                        onClick={() => this.filterLanguage(i)}
+                        style={this.state.langIndex === i ? { fontWeight: 500 } : undefined}
+                      >
+                        {l ? l : t('Default')}
+                      </Menu.Item>
+                    ))}
+                    <Menu.Divider />
+                    <Menu.Item
+                      key='all'
+                      onClick={() => this.filterMap()}
+                      style={{
+                        fontWeight: viewby ? undefined : 700,
+                      }}
+                    >
+                      {t('-- See all data --')}
+                    </Menu.Item>
+                    {fields.map((f) => {
+                      const name = f.name || f.$autoname
+                      const fieldLabel = f.label ? (
+                        f.label[langIndex] ? (
+                          f.label[langIndex]
+                        ) : (
+                          <em>{t('untranslated: ') + name}</em>
+                        )
+                      ) : (
+                        t('Question label not set')
+                      )
+
+                      return (
+                        <Menu.Item
+                          key={`f-${name}`}
+                          onClick={() => this.filterMap(name)}
+                          style={viewby === name ? { fontWeight: 700 } : undefined}
+                        >
+                          {fieldLabel}
+                        </Menu.Item>
+                      )
+                    })}
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
+            )}
+
+            {this.state.markerMap && this.state.markersVisible && (
+              <Stack style={mapBottomControlItemStyle} gap={0} ref={this.legendControlRef}>
+                <ButtonNew
+                  variant='outline'
+                  size='md'
+                  leftIcon={this.state.showExpandedLegend ? 'angle-down' : 'angle-up'}
+                  onClick={this.toggleLegend.bind(this)}
+                >
+                  {t('Legend')}
+                </ButtonNew>
+
+                <Dialog
+                  opened={this.state.showExpandedLegend}
+                  onClose={this.toggleLegend.bind(this)}
+                  position={legendDialogPosition}
+                  withCloseButton={false}
+                  withBorder={false}
+                  shadow='md'
+                  radius='md'
+                  p='xs'
+                  classNames={{ root: 'map-legend-dialog' }}
+                  withinPortal
+                  zIndex={Z_LEGEND_DIALOG}
+                >
+                  <div className='maplist-contents'>
+                    {this.state.filteredByMarker && (
+                      <div
+                        key='m-reset'
+                        className='map-marker-item map-marker-reset'
+                        onClick={this.resetFilterByMarker.bind(this)}
+                      >
+                        {t('Reset')}
+                      </div>
+                    )}
+                    {this.state.markerMap.map((m, i) => {
+                      let markerItemClass = 'map-marker-item '
+                      if (this.state.filteredByMarker) {
+                        markerItemClass += this.state.filteredByMarker.includes(m.id.toString())
+                          ? 'selected'
+                          : 'unselected'
+                      }
+                      let markerLabel = m.labels ? m.labels[langIndex] : m.value
+                      if (!markerLabel) {
+                        markerLabel = t('not set')
+                      }
+                      let index: number | IconNoValue = i
+                      if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
+                        index = this.calculateIconIndex(index, this.state.markerMap)
+                      }
+
+                      let markerItemSpanClass = ''
+                      if (typeof index === 'number') {
+                        markerItemSpanClass = `map-marker-${colorSet}${index + 1}`
+                      }
+
+                      return (
+                        <div key={`m-${i}`} className={markerItemClass}>
+                          <span className={`map-marker ${markerItemSpanClass}`}>{m.count}</span>
+
+                          <span
+                            className={'map-marker-label'}
+                            onClick={() => {
+                              this.filterByMarker(m.id)
+                            }}
+                            title={markerLabel}
+                          >
+                            {markerLabel}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </Dialog>
+              </Stack>
+            )}
+          </Stack>
         )}
 
         {this.state.noData && !this.state.hasGeoPoint && !this.props.isLoading && (
@@ -1127,61 +1422,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               <p className='map-no-geopoint'>{t('Fetching points…')}</p>
             </div>
           </div>
-        )}
-
-        {this.state.markerMap && this.state.markersVisible && (
-          <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
-            <div className='maplist-contents'>
-              {this.state.filteredByMarker && (
-                <div
-                  key='m-reset'
-                  className='map-marker-item map-marker-reset'
-                  onClick={this.resetFilterByMarker.bind(this)}
-                >
-                  {t('Reset')}
-                </div>
-              )}
-              {this.state.markerMap.map((m, i) => {
-                let markerItemClass = 'map-marker-item '
-                if (this.state.filteredByMarker) {
-                  markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
-                }
-                let markerLabel = m.labels ? m.labels[langIndex] : m.value
-                if (!markerLabel) {
-                  markerLabel = t('not set')
-                }
-                let index: number | IconNoValue = i
-                if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
-                  index = this.calculateIconIndex(index, this.state.markerMap)
-                }
-
-                let markerItemSpanClass = ''
-                if (typeof index === 'number') {
-                  markerItemSpanClass = `map-marker-${colorSet}${index + 1}`
-                }
-
-                return (
-                  <div key={`m-${i}`} className={markerItemClass}>
-                    <span className={`map-marker ${markerItemSpanClass}`}>{m.count}</span>
-
-                    <span
-                      className={'map-marker-label'}
-                      onClick={() => {
-                        this.filterByMarker(m.id)
-                      }}
-                      title={markerLabel}
-                    >
-                      {markerLabel}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-            <div className='maplist-legend' onClick={this.toggleLegend.bind(this)}>
-              <i className={cx('k-icon', this.state.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up')} />{' '}
-              {t('Legend')}
-            </div>
-          </bem.FormView__mapList>
         )}
 
         {this.state.showMapSettings && (
