@@ -51,6 +51,6 @@ export const Default: Story = {
   render: (args) => (
     <Notification {...args} icon={args.iconName ? <Icon name={args.iconName} size={args.iconSize} /> : undefined}>
       <span dangerouslySetInnerHTML={{ __html: args.message }} />
-    </Notification>
+      <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(args.message) }} />
   ),
 }
