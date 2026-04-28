@@ -29,6 +29,14 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         changed_data = getattr(form, 'changed_data', [])
         if change and 'is_active' in changed_data and not obj.is_active:
+            if obj.user.is_superuser and config.SUPERUSER_AUTH_ENFORCEMENT:
+                self.message_user(
+                    request,
+                    'Cannot deactivate MFA for a superuser while '
+                    'SUPERUSER_AUTH_ENFORCEMENT is active.',
+                    level=messages.ERROR,
+                )
+                return
             obj.deactivate()
             return
         super().save_model(request, obj, form, change)
