@@ -40,12 +40,19 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
     def delete_queryset(self, request, queryset):
-        try:
-            # Trigger custom delete logic during bulk deletion
-            for obj in queryset:
+        skipped = 0
+        for obj in queryset:
+            try:
                 obj.delete()
-        except ValidationError as e:
-            self.message_user(request, e.message, level=messages.ERROR)
+            except ValidationError as e:
+                skipped += 1
+                self.message_user(request, e.message, level=messages.ERROR)
+        if skipped:
+            self.message_user(
+                request,
+                f'{skipped} record(s) could not be deleted (see errors above).',
+                level=messages.WARNING,
+            )
 
 
 admin.site.unregister(TrenchMFAMethod)
