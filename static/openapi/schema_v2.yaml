@@ -16784,6 +16784,17 @@ components:
           format: email
           readOnly: true
           title: Email address
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_superuser:
+          type: boolean
+          readOnly: true
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
         server_time:
           type: string
           format: date-time
