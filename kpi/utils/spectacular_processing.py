@@ -89,7 +89,7 @@ def merge_allauth_headless_schema(result, generator, request, public):
     except ImportError:
         return result
 
-    # Assuming allauth headless serves endpoints assuming a `/_allauth/` base
+    # allauth headless serves endpoints assuming a `/_allauth/` base
     # (or similar) but we want to mount/document them under `/api/v2/allauth/`
     # in the Swagger UI.
     allauth_schema = get_schema()
