@@ -1,4 +1,4 @@
-import { Dialog, Menu, type TooltipProps } from '@mantine/core'
+import { Dialog, Group, Menu, Stack, type TooltipProps } from '@mantine/core'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
@@ -1066,9 +1066,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       position: 'absolute',
       top: '12px',
       right: '12px',
-      display: 'flex',
-      gap: '12px',
-      alignItems: 'flex-start',
       pointerEvents: 'none',
     }
 
@@ -1118,11 +1115,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       bottom: '15px',
       left: '15px',
       zIndex: Z_MAP_LIST,
-      display: 'flex',
       flexDirection: 'column-reverse',
-      gap: MAP_CONTROL_GAP,
       pointerEvents: 'none',
-      alignItems: 'flex-start',
     }
 
     const mapBottomControlItemStyle: React.CSSProperties = {
@@ -1144,7 +1138,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     return (
       <bem.FormView m={formViewModifiers}>
-        <div style={mapActionsStyle}>
+        <Group style={mapActionsStyle} gap={MAP_CONTROL_GAP} align='flex-start' wrap='nowrap'>
           {/* Settings button: its own stacking context, can be raised above the overlay independently */}
           <div style={mapSettingsStyle}>
             <ActionIcon
@@ -1211,12 +1205,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               </div>
             )}
           </div>
-        </div>
+        </Group>
 
         {(hasGeopointAndData || (this.state.markerMap && this.state.markersVisible)) && (
-          <div style={mapBottomControlsStyle}>
+          <Stack style={mapBottomControlsStyle} gap={MAP_CONTROL_GAP} align='flex-start'>
             {hasGeopointAndData && (
-              <div style={mapBottomControlItemStyle}>
+              <Group style={mapBottomControlItemStyle} gap={0}>
                 <Menu
                   closeOnClickOutside
                   closeOnItemClick
@@ -1292,11 +1286,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                     })}
                   </Menu.Dropdown>
                 </Menu>
-              </div>
+              </Group>
             )}
 
             {this.state.markerMap && this.state.markersVisible && (
-              <div style={mapBottomControlItemStyle} ref={this.legendControlRef}>
+              <Stack style={mapBottomControlItemStyle} gap={0} ref={this.legendControlRef}>
                 <ButtonNew
                   variant='outline'
                   size='md'
@@ -1368,9 +1362,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                     })}
                   </div>
                 </Dialog>
-              </div>
+              </Stack>
             )}
-          </div>
+          </Stack>
         )}
 
         {this.state.noData && !this.state.hasGeoPoint && !this.props.isLoading && (
