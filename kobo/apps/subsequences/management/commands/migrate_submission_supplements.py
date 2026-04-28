@@ -316,12 +316,13 @@ class Command(BaseCommand):
                             )
                             if created:
                                 asset_qaf_created += 1
-                    asset.advanced_features['_version'] = SCHEMA_VERSIONS[0]
-                    asset.save(
-                        update_fields=['advanced_features'],
-                        create_version=False,
-                        adjust_content=False,
-                    )
+                    if not dry_run:
+                        asset.advanced_features['_version'] = SCHEMA_VERSIONS[0]
+                        asset.save(
+                            update_fields=['advanced_features'],
+                            create_version=False,
+                            adjust_content=False,
+                        )
             except Exception as e:
                 self.stderr.write(f'  ERROR creating QAFs for asset={asset.uid}: {e}')
                 qaf_errors += len(combos_for_asset)
