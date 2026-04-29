@@ -1,6 +1,5 @@
 import { Notification, type NotificationProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import DOMPurify from 'dompurify'
 import { IconNames } from '#/k-icons'
 import { recordKeys } from '#/utils'
 import Icon, { type IconSize } from './icon'
@@ -17,11 +16,6 @@ const meta: Meta<NotificationStory> = {
   argTypes: {
     title: {
       description: 'Text in the notification',
-      control: { type: 'text' },
-    },
-    message: {
-      description:
-        'Child message — supports HTML, e.g. <code>&lt;a href="#"&gt;Click here&lt;/a&gt; to continue</code>',
       control: { type: 'text' },
     },
     iconName: {
@@ -45,13 +39,12 @@ type Story = StoryObj<NotificationStory>
 export const Default: Story = {
   args: {
     title: 'Your transcripts are on their way!',
-    message: '<a href="#">Click here</a> to monitor your progress or to cancel this job',
     iconName: 'check',
     iconSize: 's',
   },
   render: (args) => (
     <Notification {...args} icon={args.iconName ? <Icon name={args.iconName} size={args.iconSize} /> : undefined}>
-      <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(args.message) }} />
+      <a href='#'>Click here</a> to monitor your progress or to cancel this job
     </Notification>
   ),
 }
