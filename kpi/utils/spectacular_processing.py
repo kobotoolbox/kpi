@@ -1,3 +1,5 @@
+import copy
+
 from drf_spectacular.generators import EndpointEnumerator, SchemaGenerator
 
 OPEN_ROSA_ENDPOINTS = [
@@ -103,8 +105,6 @@ def merge_allauth_headless_schema(result, generator, request, public):
     # because the user requested /api/v2/allauth/browser/v1/*
     merged_paths = dict(result.get('paths', {}))
 
-    import copy
-
     for path_key, path_spec in allauth_paths.items():
         # The schema outputs paths with `{client}` (e.g. `/_allauth/{client}/v1/config`)
         # Since the frontend assumes specific `/browser/` and `/app/` endpoints,
@@ -113,6 +113,26 @@ def merge_allauth_headless_schema(result, generator, request, public):
         # E.g. it would convert `_allauth/{client}/v1/config` to these endpoints:
         #   1. `/api/v2/allauth/app/v1/config`
         #   2. `/api/v2/allauth/browser/v1/config`
+        #
+        # The `path_spec` dictionary specifies the HTTP methods and operation 
+        # definitions for a given `path_key`, for example, the config endpoint 
+        # contains this entry:
+        #
+        # ```
+        # {
+        #   'get': {
+        #       'summary': 'Get configuration',
+        #       'tags': ['Configuration'],
+        #       'description': 'There are many configuration options ...',
+        #       'parameters': [
+        #           {'$ref': '#/components/parameters/Client'}
+        #       ],
+        #       'responses': {
+        #           '200': {'$ref': '#/components/responses/Configuration'}
+        #       }
+        #    }
+        # }
+        # ```
 
         clients = ['browser', 'app'] if '{client}' in path_key else [None]
 
