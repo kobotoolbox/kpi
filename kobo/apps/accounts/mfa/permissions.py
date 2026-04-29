@@ -18,7 +18,6 @@ class EnforceSuperuserMFA(BasePermission):
         if (
             getattr(request.user, 'is_superuser', False)
             and getattr(config, 'SUPERUSER_AUTH_ENFORCEMENT', False)  # noqa: W503
-            and request.user.has_usable_password()  # noqa: W503
         ):
             return False
         return True

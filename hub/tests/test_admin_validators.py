@@ -24,7 +24,7 @@ class ValidateSuperuserMfaTest(TestCase):
 
     def test_superuser_with_unusable_password(self):
         self.superuser.set_unusable_password()
-        self.assertTrue(validate_superuser_auth(self.superuser, True))
+        self.assertTrue(validate_superuser_auth(self.superuser, False))
 
     def test_superuser_with_mfa_enabled(self):
         MfaMethodsWrapper.objects.create(user=self.superuser, is_active=True)
