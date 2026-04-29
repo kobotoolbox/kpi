@@ -44,10 +44,6 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
 
-  if (!props.asset.content) {
-    return null
-  }
-
   const isAudioQuestionColumn = props.questionType === QuestionTypeName.audio
   const isTranscriptColumn = getSupplementalPathParts(props.fieldId).type === 'transcript'
   const canTranscribeSelectedAudioFiles =
