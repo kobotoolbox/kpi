@@ -100,3 +100,10 @@ class TranscriptionResultNotFound(Exception):
     Raised when no transcription output files are found in GCS
     """
     pass
+
+
+class TranslationResultNotFound(Exception):
+    """
+    Raised when no translation output files are found in GCS
+    """
+    pass
