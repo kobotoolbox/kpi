@@ -1,7 +1,7 @@
 /** Don't use anything here for new components */
 import React, { type FC } from 'react'
 
-import type { Router } from '@remix-run/router'
+import type { DataRouter as Router } from 'react-router'
 import type { Location, NavigateFunction, Params } from 'react-router-dom'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { recordEntries, recordKeys } from '#/utils'

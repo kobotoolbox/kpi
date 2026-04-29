@@ -1,4 +1,4 @@
-import type { RouterState } from '@remix-run/router'
+import type { RouterState } from 'react-router'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
