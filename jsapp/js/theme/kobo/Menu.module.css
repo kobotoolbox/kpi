@@ -1,18 +1,24 @@
 .dropdown {
-  padding: 0;
-  box-shadow: 0 0 6px var(--mantine-color-gray-4);
+  padding: var(--mantine-spacing-xs);
+  background: var(--mantine-color-gray-9);
+  border-radius: var(--mantine-radius-md);
+  box-shadow:
+    0 12px 16px -4px color-mix(in srgb, var(--mantine-color-gray-0) 8%, transparent),
+    0 4px 6px -2px color-mix(in srgb, var(--mantine-color-gray-0) 3%, transparent);
   border: none;
 }
 
 .item {
-  padding: var(--mantine-spacing-sm);
-  color: var(--mantine-color-blue-4);
+  min-height: 38px;
+  padding: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-gray-1);
 
   font-size: var(--mantine-font-size-md);
 
   &[data-hovered] {
-    color: var(--mantine-color-blue-5);
-    background-color: transparent;
+    color: var(--mantine-color-gray-1);
+    background-color: var(--mantine-color-gray-8);
   }
 
   &[data-variant='danger'] {
@@ -24,7 +30,18 @@
   }
 }
 
+.itemSection[data-position='left'] {
+  margin-inline-end: var(--mantine-spacing-sm);
+}
+
+.itemSection[data-position='right'] {
+  margin-inline-start: var(--mantine-spacing-sm);
+}
 .divider {
   border-color: var(--mantine-color-gray-6);
-  margin: 0;
+  margin: var(--mantine-spacing-xs);
+}
+
+.label {
+  color: var(--mantine-color-gray-2);
 }

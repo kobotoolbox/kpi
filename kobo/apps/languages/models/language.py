@@ -1,15 +1,15 @@
-# coding: utf-8
 import codecs
 import csv
-from distutils import util
 from typing import Dict
 
 from django.contrib import admin
+from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models, transaction
 from django.template.response import TemplateResponse
 from django.urls import path
 
+from kpi.utils.strings import strtobool
 from ..forms import ImportForm
 from .transcription import (
     TranscriptionService,
@@ -128,6 +128,8 @@ class LanguageAdmin(admin.ModelAdmin):
 
         # Initialize lists and dictionaries for later bulk operations.
         extra_asr_columns = {}
+        extra_asr_location_columns = {}
+        extra_asr_model_columns = {}
         extra_mt_columns = {}
         new_languages = []
         new_regions = []
@@ -138,11 +140,23 @@ class LanguageAdmin(admin.ModelAdmin):
 
         # Create new services if any and memorize their position in rows to
         # create M2M relationships correctly in bulk operations.
-        for service in asr_mt_services:
-            service_type, service_code = service.split('_')
-            if service_type == 'asr':
+        for position, service in enumerate(asr_mt_services, start=5):
+            if service.startswith('asr_location_'):
+                extra_asr_location_columns[
+                    service.removeprefix('asr_location_')
+                ] = position
+                continue
+
+            if service.startswith('asr_model_'):
+                extra_asr_model_columns[service.removeprefix('asr_model_')] = (
+                    position
+                )
+                continue
+
+            if service.startswith('asr_'):
+                service_code = service.removeprefix('asr_')
                 extra_asr_columns[service_code] = (
-                    asr_mt_services.index(service) + 5
+                    position
                 )
                 if not TranscriptionService.objects.filter(code=service_code).exists():
                     new_transcription_services.append(
@@ -150,10 +164,12 @@ class LanguageAdmin(admin.ModelAdmin):
                             name=service_code.capitalize(), code=service_code
                         )
                     )
+                continue
 
-            if service_type == 'mt':
+            if service.startswith('mt_'):
+                service_code = service.removeprefix('mt_')
                 extra_mt_columns[service_code] = (
-                    asr_mt_services.index(service) + 5
+                    position
                 )
                 if not TranslationService.objects.filter(code=service_code).exists():
                     new_translation_services.append(
@@ -182,7 +198,7 @@ class LanguageAdmin(admin.ModelAdmin):
             name = row[0].strip()
             code = row[1].strip()
             try:
-                featured = util.strtobool(row[2])
+                featured = strtobool(row[2])
             except ValueError:
                 featured = False
             region_names = row[3].strip().split(';')
@@ -214,6 +230,17 @@ class LanguageAdmin(admin.ModelAdmin):
                 if not row[index]:
                     continue
 
+                location_code = None
+                model_code = None
+                if service in extra_asr_location_columns:
+                    location_code = (
+                        row[extra_asr_location_columns[service]].strip() or None
+                    )
+                if service in extra_asr_model_columns:
+                    model_code = (
+                        row[extra_asr_model_columns[service]].strip() or None
+                    )
+
                 # The `asr_*` columns should contain a semi-colon seperated
                 # string containing language regions. To help the mapping,
                 # the language regions should be in the exact same order as the
@@ -228,6 +255,9 @@ class LanguageAdmin(admin.ModelAdmin):
                 #  -------------|--------------|-------------|
                 mapping_codes = row[index].split(';')
                 for idx, region_code in enumerate(region_codes):
+                    if idx >= len(mapping_codes):
+                        continue
+
                     # if mapping_codes[idx] == 'null', service
                     # does not provide transcription for this region
                     if mapping_codes[idx] == 'null':
@@ -241,6 +271,8 @@ class LanguageAdmin(admin.ModelAdmin):
                         'region_code': region_code,
                         'service_id': transcription_services[service].pk,
                         'mapping_code': mapping_codes[idx],
+                        'location_code': location_code,
+                        'model_code': model_code,
                     })
 
             for service, index in extra_mt_columns.items():
@@ -349,6 +381,8 @@ class LanguageAdmin(admin.ModelAdmin):
                     service_id=through['service_id'],
                     region_id=regions[through['region_code']].pk,
                     mapping_code=mapping_code,
+                    location_code=through['location_code'],
+                    model_code=through['model_code'],
                 ))
             Language.transcription_services.through.objects.bulk_create(throughs)
 

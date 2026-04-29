@@ -111,12 +111,7 @@
 
   .connect-projects__import-list-item {
     padding-bottom: 10px;
-
-    i.k-icon-check {
-      font-size: 32px;
-      margin-right: 5px;
-      color: colors.$kobo-blue;
-    }
+    align-items: center;
 
     .connect-projects__import-labels {
       position: absolute;
