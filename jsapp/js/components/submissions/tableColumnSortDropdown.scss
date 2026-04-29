@@ -3,7 +3,6 @@
 @use 'scss/libs/_mdl';
 
 .table-column-sort-dropdown {
-  @include mixins.centerRowFlex;
   display: block;
   width: 100%;
 
