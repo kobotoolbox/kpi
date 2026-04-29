@@ -10,6 +10,7 @@ import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
 import { MultiSelectThemeKobo } from './MultiSelect'
+import { NotificationThemeKobo } from './Notification'
 import { NumberInputThemeKobo } from './NumberInput'
 import { PaperThemeKobo } from './Paper'
 import { PillThemeKobo } from './Pill'
@@ -134,6 +135,7 @@ export const themeKobo = createTheme({
     Pill: PillThemeKobo,
     Checkbox: CheckboxThemeKobo,
     Radio: RadioThemeKobo,
+    Notification: NotificationThemeKobo,
     Autocomplete: AutocompleteThemeKobo,
   },
 })
