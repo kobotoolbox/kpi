@@ -24,7 +24,7 @@ interface Props {
 export default function SelectQuestion({ asset, currentSubmissionUid, questionLabelLanguage, xpath }: Props) {
   const onQuestionSelectChange = (newXpath: string | null) => {
     if (newXpath !== null) {
-      goToProcessing(asset.uid, xpath, currentSubmissionUid, true)
+      goToProcessing(asset.uid, newXpath, currentSubmissionUid, true)
     }
   }
 
