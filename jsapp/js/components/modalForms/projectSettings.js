@@ -30,9 +30,52 @@ import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import { currentLang, escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
+
+const ExtraMetadataFields = ({ fields, values, onChange, hasFieldError }) =>
+  envStore.data.extra_project_metadata_fields.map((field) => {
+    const label = envStore.data.getExtraFieldLabel(field, currentLang())
+    const hasError = hasFieldError(field.name)
+
+    const options = (field.options ?? []).map((opt) => {
+      return {
+        value: opt.name,
+        label: opt.label,
+      }
+    })
+
+    if (field.type === 'single_select' || field.type === 'multi_select') {
+      return (
+        <div className={styles.input} key={field.name}>
+          <WrappedSelect
+            label={addRequiredToLabel(label, field.required)}
+            isMulti={field.type === 'multi_select'}
+            value={values[field.name]}
+            onChange={(val) => onChange(field.name, val)}
+            options={options}
+            isLimitedHeight
+            isClearable
+            menuPlacement='auto'
+            error={hasError ? t('Please select an option') : false}
+          />
+        </div>
+      )
+    }
+
+    return (
+      <div className={styles.input} key={field.name}>
+        <TextBox
+          value={values[field.name]}
+          onChange={(val) => onChange(field.name, val)}
+          label={addRequiredToLabel(label, field.required)}
+          placeholder={label}
+          errors={hasError ? t('This field is required') : false}
+        />
+      </div>
+    )
+  })
 
 /**
  * This is used for multiple different purposes:
@@ -133,6 +176,14 @@ class ProjectSettings extends React.Component {
     fields.country = asset?.settings ? asset.settings.country : null
     fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null
+    fields.extra_metadata_fields = {}
+
+    envStore.data.extra_project_metadata_fields.forEach((field) => {
+      const value = asset?.settings?.[field.name]
+      const defaultValue = field.type === 'multi_select' ? [] : field.type === 'single_select' ? null : ''
+
+      fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
+    })
 
     return fields
   }
@@ -220,7 +271,11 @@ class ProjectSettings extends React.Component {
     const newStateObj = clonedeep(this.state)
 
     // Set Value
-    newStateObj.fields[fieldName] = newFieldValue
+    if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
+      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue
+    } else {
+      newStateObj.fields[fieldName] = newFieldValue
+    }
 
     // If given field has error and user starts to edit it, we can remove
     // the error and wait for `handleSubmit` to add new ones if necessary.
@@ -484,13 +539,18 @@ class ProjectSettings extends React.Component {
   }
 
   getSettingsForEndpoint() {
-    return JSON.stringify({
+    const settings = {
       description: this.state.fields.description,
       sector: this.state.fields.sector,
       country: this.state.fields.country,
       operational_purpose: this.state.fields.operational_purpose,
       collects_pii: this.state.fields.collects_pii,
+    }
+
+    envStore.data.extra_project_metadata_fields.forEach((field) => {
+      settings[field.name] = this.state.fields.extra_metadata_fields[field.name]
     })
+    return JSON.stringify(settings)
   }
 
   createAssetAndOpenInBuilder() {
@@ -685,6 +745,31 @@ class ProjectSettings extends React.Component {
     if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.fields.collects_pii) {
       fieldsWithErrors.push('collects_pii')
     }
+
+    envStore.data.extra_project_metadata_fields.forEach((field) => {
+      if (!field.required) return
+
+      const val = this.state.fields.extra_metadata_fields[field.name]
+
+      if (field.type === 'multi_select') {
+        if (!Array.isArray(val) || val.length === 0) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      if (field.type === 'single_select') {
+        if (!val) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      // Default to text fields
+      if (!val?.trim()) {
+        fieldsWithErrors.push(field.name)
+      }
+    })
 
     // Will set either an empty array (no errors) or a list of fieldNames.
     this.setState({ fieldsWithErrors: fieldsWithErrors })
@@ -974,6 +1059,13 @@ class ProjectSettings extends React.Component {
               />
             </div>
           )}
+
+          {/* Extra Project Metadata */}
+          <ExtraMetadataFields
+            values={this.state.fields.extra_metadata_fields}
+            onChange={this.onAnyFieldChange}
+            hasFieldError={this.hasFieldError}
+          />
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||
             this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (

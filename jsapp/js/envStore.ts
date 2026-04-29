@@ -13,6 +13,7 @@ export interface EnvironmentResponse {
   community_url: string
   academy_url: string
   project_metadata_fields: EnvStoreFieldItem[]
+  extra_project_metadata_fields: ExtraProjectMetadataField[]
   user_metadata_fields: UserMetadataField[]
   sector_choices: string[][]
   operational_purpose_choices: string[][]
@@ -71,6 +72,22 @@ export interface SocialApp {
   client_id: string
 }
 
+export interface ExtraProjectMetadataOption {
+  name: string
+  label: string
+}
+
+export interface ExtraProjectMetadataField {
+  name: string
+  label: {
+    [key: string]: string
+    default: string
+  }
+  type: 'text' | 'single_select' | 'multi_select'
+  required: boolean
+  options: ExtraProjectMetadataOption[]
+}
+
 type ProjectMetadataFieldKey = 'description' | 'sector' | 'country' | 'operational_purpose' | 'collects_pii'
 
 export class EnvStoreData {
@@ -84,6 +101,7 @@ export class EnvStoreData {
   public min_retry_time = 4 // seconds
   public max_retry_time: number = 4 * 60 // seconds
   public project_metadata_fields: EnvStoreFieldItem[] = []
+  public extra_project_metadata_fields: ExtraProjectMetadataField[] = []
   public user_metadata_fields: UserMetadataField[] = []
   public sector_choices: LabelValuePair[] = []
   public operational_purpose_choices: LabelValuePair[] = []
@@ -114,6 +132,10 @@ export class EnvStoreData {
       }
     }
     return false
+  }
+
+  public getExtraFieldLabel(field: ExtraProjectMetadataField, lang = 'default'): string {
+    return field.label[lang] || field.label.default || field.name
   }
 
   public getProjectMetadataFieldsAsSimpleDict() {
@@ -183,6 +205,7 @@ class EnvStore {
     this.data.min_retry_time = response.frontend_min_retry_time
     this.data.max_retry_time = response.frontend_max_retry_time
     this.data.project_metadata_fields = response.project_metadata_fields
+    this.data.extra_project_metadata_fields = response.extra_project_metadata_fields || []
     this.data.user_metadata_fields = response.user_metadata_fields
     this.data.submission_placeholder = response.submission_placeholder
     this.data.use_team_label = response.use_team_label
