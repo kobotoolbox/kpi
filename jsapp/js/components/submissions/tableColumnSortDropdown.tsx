@@ -8,9 +8,7 @@ import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
-import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { SortValues } from '#/components/submissions/tableConstants'
-import { type AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
@@ -20,7 +18,8 @@ interface TableColumnSortDropdownProps {
   asset: AssetResponse
   /** one of table columns */
   fieldId: string
-  questionType?: AnyRowTypeName
+  isAudioQuestionColumn?: boolean
+  isTranscriptColumn?: boolean
   sortValue: SortValues | null
   onSortChange: (fieldId: string, sortValue: SortValues | null) => void
   onHide: (fieldId: string) => void
@@ -44,12 +43,10 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
 
-  const isAudioQuestionColumn = props.questionType === QuestionTypeName.audio
-  const isTranscriptColumn = getSupplementalPathParts(props.fieldId).type === 'transcript'
   const canTranscribeSelectedAudioFiles =
-    isBulkProcessingFeatureEnabled && isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
+    isBulkProcessingFeatureEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
   const canTranslateSelectedTranscriptions =
-    isBulkProcessingFeatureEnabled && isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
+    isBulkProcessingFeatureEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
   const shouldRenderBulkProcessingButtons = canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions
 
   function renderTrigger() {

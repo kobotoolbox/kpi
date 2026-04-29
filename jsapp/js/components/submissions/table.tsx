@@ -18,6 +18,7 @@ import Checkbox from '#/components/common/checkbox'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import { getMediaAttachment, getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type {
@@ -827,7 +828,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               <TableColumnSortDropdown
                 asset={this.props.asset}
                 fieldId={key}
-                questionType={q?.type}
+                isAudioQuestionColumn={q?.type === QUESTION_TYPES.audio.id}
+                isTranscriptColumn={getSupplementalPathParts(key).type === 'transcript'}
                 sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange.bind(this)}
                 onHide={this.onHideField.bind(this)}
