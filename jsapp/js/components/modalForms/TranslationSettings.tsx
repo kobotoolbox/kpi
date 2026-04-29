@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { IconPencilFilled, IconTrashFilled, IconWorldCog, IconWorldStar, IconX } from '@tabler/icons-react'
 import alertify from 'alertifyjs'
 import cloneDeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
@@ -16,6 +17,7 @@ import type { AssetContent, AssetResponse, SureveyRowOrChoiceTranslatableProp, S
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { type LangObject, escapeHtml, getLangString, notify } from '#/utils'
+import ActionIcon from '../common/ActionIcon'
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 
@@ -360,55 +362,52 @@ export class TranslationSettings extends React.Component<TranslationSettingsProp
                   {i === 0 && <bem.FormView__label m='default-language'>{t('default')}</bem.FormView__label>}
 
                   {i !== 0 && (
-                    <Button
-                      type='text'
-                      size='m'
+                    <ActionIcon
+                      variant='transparent'
+                      size='md'
                       onClick={() => {
                         this.changeDefaultLanguage(i)
                       }}
-                      isDisabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
+                      disabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
                       tooltip={t('Make default')}
-                      startIcon='language-default'
+                      icon={IconWorldStar}
                     />
                   )}
                 </bem.FormView__cell>
 
                 <bem.FormView__cell m='translation-actions'>
-                  <Button
-                    type='secondary'
-                    size='m'
+                  <ActionIcon
+                    variant='light'
+                    size='md'
                     onClick={() => {
                       this.toggleRenameLanguageForm(i)
                     }}
-                    isDisabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
-                    startIcon={this.state.renameLanguageIndex === i ? 'close' : 'edit'}
+                    disabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
+                    icon={this.state.renameLanguageIndex === i ? IconX : IconPencilFilled}
                     tooltip={t('Edit language')}
-                    tooltipPosition='right'
                   />
 
-                  <Button
-                    type='secondary'
-                    size='m'
+                  <ActionIcon
+                    variant='light'
+                    size='md'
                     onClick={() => {
                       this.launchTranslationTableModal(i)
                     }}
-                    isDisabled={this.state.isUpdatingAsset}
-                    startIcon='language-settings'
+                    disabled={this.state.isUpdatingAsset}
+                    icon={IconWorldCog}
                     tooltip={t('Update translations')}
-                    tooltipPosition='right'
                   />
 
                   {i !== 0 && (
-                    <Button
-                      type='secondary-danger'
-                      size='m'
+                    <ActionIcon
+                      variant='danger-secondary'
+                      size='md'
                       onClick={() => {
                         this.deleteLanguage(i)
                       }}
-                      isDisabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
-                      startIcon='trash'
+                      disabled={this.state.isUpdatingAsset || !this.canEditLanguages()}
+                      icon={IconTrashFilled}
                       tooltip={t('Delete language')}
-                      tooltipPosition='right'
                     />
                   )}
                 </bem.FormView__cell>

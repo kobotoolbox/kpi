@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { IconDots, IconSearch, IconX } from '@tabler/icons-react'
 import type { ForwardRefExoticComponent } from 'react'
 import { expect, fn, userEvent, within } from 'storybook/test'
 import { IconNames } from '#/k-icons'
@@ -19,6 +20,12 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
 
 const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg', 'xl']
 
+const tablerIconOptions = {
+  IconSearch,
+  IconX,
+  IconDots,
+} as const
+
 type StoryArgs = StoryArgsFromPolymorphic<'button', ActionIconProps & { 'data-testid'?: string }>
 type Story = StoryObj<ForwardRefExoticComponent<StoryArgs>>
 
@@ -37,15 +44,29 @@ const meta = {
       control: 'radio',
     },
     iconName: {
-      description: 'Icon',
+      description: 'Legacy icon id from #/k-icons',
       options: recordKeys(IconNames),
+      control: { type: 'select' },
+    },
+    icon: {
+      description: 'Tabler icon component',
+      options: Object.keys(tablerIconOptions),
+      mapping: tablerIconOptions,
       control: { type: 'select' },
     },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
     tooltip: { description: 'Tooltip text', control: 'text' },
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: {
+    a11y: { test: 'todo' },
+    docs: {
+      description: {
+        component:
+          'Icon precedence: `children` (if provided) overrides icon props. Otherwise ActionIcon resolves icon content from `icon` (Tabler), then `iconName` (legacy).',
+      },
+    },
+  },
 } satisfies Meta<StoryArgs>
 
 export default meta
@@ -53,6 +74,13 @@ export default meta
 export const Default: Story = {
   args: {
     iconName: 'document',
+    size: 'lg',
+  },
+}
+
+export const DefaultTablerIcon: Story = {
+  args: {
+    icon: IconSearch,
     size: 'lg',
   },
 }

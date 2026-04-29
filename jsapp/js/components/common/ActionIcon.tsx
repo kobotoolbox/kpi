@@ -1,34 +1,38 @@
 import { ActionIcon as ActionIconMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
 import type { ActionIconProps as ActionIconPropsMantine } from '@mantine/core/lib/components'
 import type { TooltipProps } from '@mantine/core/lib/components'
+import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
+import type { ComponentType } from 'react'
 import type { IconName } from '#/k-icons'
-import Icon, { type IconSize } from './icon'
+import IconLegacySupport from './IconLegacySupport'
+import KoboIcon from './KoboIcon'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   /** Text for tooltip */
   tooltip?: React.ReactNode
   /** Additional tooltip configuration */
   tooltipProps?: Partial<Omit<TooltipProps, 'label'>>
-
-  iconName: IconName
+  /** @deprecated Legacy icon name from `k-icons`, please use `icon` */
+  iconName?: IconName
+  /** Tabler icon component or resolved SVG component (e.g. from `resolveLegacySvgIconByName`) */
+  icon?: TablerIcon | ComponentType<SvgIconProps>
   size: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-const MANTINE_TO_ICON_SIZE_MAP: Record<ActionIconProps['size'], IconSize> = {
-  sm: 's',
-  md: 'm',
-  lg: 'l',
-  xl: 'xl',
-}
-
-const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, ...props }, ref) => {
-  const iconSize = MANTINE_TO_ICON_SIZE_MAP[props.size]
+const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, icon, ...props }, ref) => {
+  const content =
+    props.children ??
+    (icon ? (
+      <KoboIcon icon={icon} size={props.size} />
+    ) : iconName ? (
+      <IconLegacySupport icon={iconName} size={props.size} />
+    ) : undefined)
 
   if (!props.tooltip) {
     return (
       <ActionIconMantine {...props} ref={ref}>
-        <Icon name={iconName} size={iconSize} />
+        {content}
       </ActionIconMantine>
     )
   }
@@ -36,7 +40,7 @@ const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, .
   return (
     <Tooltip label={props.tooltip} {...props.tooltipProps}>
       <ActionIconMantine {...props} ref={ref}>
-        <Icon name={iconName} size={iconSize} />
+        {content}
       </ActionIconMantine>
     </Tooltip>
   )

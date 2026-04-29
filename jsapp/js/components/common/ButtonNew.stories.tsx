@@ -1,5 +1,6 @@
 import type { MantineSize, TooltipProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { IconChevronDown, IconSearch, IconX } from '@tabler/icons-react'
 import { expect, fn, userEvent, within } from 'storybook/test'
 import { type IconName, IconNames } from '#/k-icons'
 import Button, { type ButtonProps } from './ButtonNew'
@@ -46,6 +47,26 @@ const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = [
   'left-start',
 ] as const
 
+const tablerIconOptions = {
+  IconSearch,
+  IconX,
+  IconChevronDown,
+} as const
+
+const legacyIconOptions = recordValues(IconNames)
+const iconSelectOptions = [undefined, ...legacyIconOptions, ...Object.keys(tablerIconOptions)]
+const iconSelectMapping = iconSelectOptions
+  .filter((option) => option !== undefined)
+  .reduce<Record<string, ButtonProps['leftIcon']>>((acc, option) => {
+    if (option in tablerIconOptions) {
+      acc[option] = tablerIconOptions[option as keyof typeof tablerIconOptions]
+      return acc
+    }
+
+    acc[option] = option as IconName
+    return acc
+  }, {})
+
 type StoryArgs = StoryArgsFromPolymorphic<'button', ButtonProps & { 'data-testid'?: string }>
 type Story = StoryObj<ForwardRefExoticComponent<StoryArgs>>
 
@@ -84,15 +105,17 @@ const meta = {
       control: 'boolean',
     },
     leftIcon: {
-      description: 'id of an icon',
-      options: [undefined, ...recordValues(IconNames)],
+      description: 'Legacy icon id or Tabler icon component',
+      options: iconSelectOptions,
+      mapping: iconSelectMapping,
       control: {
         type: 'select', // Type 'select' is automatically inferred when 'options' is defined
       },
     },
     rightIcon: {
-      description: 'id of an icon',
-      options: [undefined, ...recordValues(IconNames)],
+      description: 'Legacy icon id or Tabler icon component',
+      options: iconSelectOptions,
+      mapping: iconSelectMapping,
       control: {
         type: 'select', // Type 'select' is automatically inferred when 'options' is defined
       },
@@ -108,7 +131,15 @@ const meta = {
       },
     },
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: {
+    a11y: { test: 'todo' },
+    docs: {
+      description: {
+        component:
+          'Section precedence: `leftSection` and `rightSection` override icon props when provided. Otherwise `leftIcon`/`rightIcon` are rendered via KoboIcon and can be either legacy icon names or Tabler icon components.',
+      },
+    },
+  },
 } satisfies Meta<StoryArgs>
 
 export default meta
@@ -121,14 +152,27 @@ export const Default: Story = {
   },
 }
 
-const demoButtons: Array<{ label?: string; leftIconName?: IconName }> = [
+export const DefaultWithTablerIcon: Story = {
+  args: {
+    variant: 'filled',
+    size: 'lg',
+    children: 'Click me',
+    leftIcon: IconSearch,
+  },
+}
+
+const demoButtons: Array<{ label?: string; leftIcon?: ButtonProps['leftIcon'] }> = [
   {
     label: 'Click me',
-    leftIconName: undefined,
+    leftIcon: undefined,
   },
   {
     label: 'Click me',
-    leftIconName: 'document',
+    leftIcon: 'document',
+  },
+  {
+    label: 'Click me',
+    leftIcon: IconSearch,
   },
   //// For button without text use ActionIcon instead!
   // {
@@ -157,12 +201,12 @@ export const Preview = () => (
   >
     {buttonVariants.map((variant) =>
       buttonSizes.map((size) =>
-        demoButtons.map(({ label, leftIconName }) => {
+        demoButtons.map(({ label, leftIcon }) => {
           const buttonProps = {
             variant,
             size: size,
-            leftIcon: leftIconName,
-            onClick: () => console.info('Clicked!', variant, size, label, leftIconName),
+            leftIcon,
+            onClick: () => console.info('Clicked!', variant, size, label, leftIcon),
             tooltip: label,
           } satisfies StoryArgs
           return (
