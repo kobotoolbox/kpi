@@ -114,8 +114,8 @@ def merge_allauth_headless_schema(result, generator, request, public):
         #   1. `/api/v2/allauth/app/v1/config`
         #   2. `/api/v2/allauth/browser/v1/config`
         #
-        # The `path_spec` dictionary specifies the HTTP methods and operation 
-        # definitions for a given `path_key`, for example, the config endpoint 
+        # The `path_spec` dictionary specifies the HTTP methods and operation
+        # definitions for a given `path_key`, for example, the config endpoint
         # contains this entry:
         #
         # ```
