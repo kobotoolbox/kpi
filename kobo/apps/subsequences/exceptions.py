@@ -93,3 +93,10 @@ class TranscriptionNotFound(DependencyNotFound):
 
 class TranslationAsyncResultAvailable(Exception):
     pass
+
+
+class TranscriptionResultNotFound(Exception):
+    """
+    Raised when no transcription output files are found in GCS
+    """
+    pass
