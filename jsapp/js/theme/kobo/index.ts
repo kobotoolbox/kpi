@@ -115,6 +115,10 @@ export const themeKobo = createTheme({
     xl: '14px',
   },
 
+  spacing: {
+    xxs: '8px',
+  },
+
   components: {
     ActionIcon: ActionIconThemeKobo,
     Alert: AlertThemeKobo,

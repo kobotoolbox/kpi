@@ -1,5 +1,5 @@
 .dropdown {
-  padding: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-xxs);
   background: var(--mantine-color-gray-9);
   border-radius: var(--mantine-radius-md);
   box-shadow:
@@ -10,7 +10,7 @@
 
 .item {
   min-height: 38px;
-  padding: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-xxs);
   border-radius: var(--mantine-radius-md);
   color: var(--mantine-color-gray-1);
 
@@ -37,11 +37,16 @@
 .itemSection[data-position='right'] {
   margin-inline-start: var(--mantine-spacing-sm);
 }
+
 .divider {
   border-color: var(--mantine-color-gray-6);
-  margin: var(--mantine-spacing-xs);
+  margin: var(--mantine-spacing-xxs) 0;
 }
 
 .label {
   color: var(--mantine-color-gray-2);
+}
+
+.arrow {
+  border-color: transparent;
 }
