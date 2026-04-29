@@ -9,12 +9,18 @@ from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.static_lists import COUNTRIES
 from kpi.models import ExtraProjectMetadataField
+from kpi.schema_extensions.v2.environment.serializers import (
+    EnvironmentResponseSerializer,
+)
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 def check_asr_mt_access_for_user(user):
@@ -32,6 +38,12 @@ def check_asr_mt_access_for_user(user):
 class EnvironmentView(APIView):
     """
     GET-only view for certain server-provided configuration data
+
+    Available actions:
+    - retrieve              → GET /environment/
+
+    Documentation:
+    - docs/api/v2/environment/retrieve.md
     """
 
     SIMPLE_CONFIGS = [
@@ -60,6 +72,16 @@ class EnvironmentView(APIView):
             for key in cls.SIMPLE_CONFIGS
         }
 
+    @extend_schema(
+        tags=['Configuration'],
+        description=read_md('kpi', 'environment/retrieve.md'),
+        responses=open_api_200_ok_response(
+            EnvironmentResponseSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    )
     def get(self, request, *args, **kwargs):
         data = {}
         data.update(self.process_simple_configs())
