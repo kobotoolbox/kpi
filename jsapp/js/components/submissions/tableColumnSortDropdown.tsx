@@ -26,6 +26,9 @@ interface TableColumnSortDropdownProps {
   onHide: (fieldId: string) => void
   isFieldFrozen: boolean
   onFrozenChange: (fieldId: string, isFrozen: boolean) => void
+  onTranscribeSelectedAudioFiles?: (fieldId: string) => void
+  onTranslateSelectedTranscriptions?: (fieldId: string) => void
+  isBulkProcessingDisabled?: boolean
   /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
@@ -47,6 +50,11 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
 
   const isAudioQuestionColumn = props.questionType === QuestionTypeName.audio
   const isTranscriptColumn = getSupplementalPathParts(props.fieldId).type === 'transcript'
+  const canTranscribeSelectedAudioFiles =
+    isBulkProcessingFeatureEnabled && isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
+  const canTranslateSelectedTranscriptions =
+    isBulkProcessingFeatureEnabled && isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
+  const shouldRenderBulkProcessingButtons = canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions
 
   function renderTrigger() {
     let sortIconName: 'sort-ascending' | 'sort-descending' | null = null
@@ -92,11 +100,11 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
   }
 
   function transcribeSelectedAudioFiles() {
-    console.log('transcribeSelectedAudioFiles clicked')
+    props.onTranscribeSelectedAudioFiles?.(props.fieldId)
   }
 
   function translateSelectedTranscriptions() {
-    console.log('translateSelectedTranscriptions clicked')
+    props.onTranslateSelectedTranscriptions?.(props.fieldId)
   }
 
   function renderSortButton(buttonSortValue: SortValues) {
@@ -143,13 +151,14 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
           {renderSortButton(SortValues.ASCENDING)}
           {renderSortButton(SortValues.DESCENDING)}
 
-          {isBulkProcessingFeatureEnabled && (isAudioQuestionColumn || isTranscriptColumn) && (
+          {shouldRenderBulkProcessingButtons && (
             <>
               <Menu.Divider />
 
-              {isAudioQuestionColumn && (
+              {canTranscribeSelectedAudioFiles && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
+                  disabled={props.isBulkProcessingDisabled}
                   onClick={transcribeSelectedAudioFiles}
                   leftSection={<Icon name='qt-audio' size='inherit' />}
                 >
@@ -157,9 +166,10 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
                 </Menu.Item>
               )}
 
-              {isTranscriptColumn && (
+              {canTranslateSelectedTranscriptions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
+                  disabled={props.isBulkProcessingDisabled}
                   onClick={translateSelectedTranscriptions}
                   leftSection={<Icon name='transcripts' size='inherit' />}
                 >

@@ -393,6 +393,28 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen)
   }
 
+  onTranscribeSelectedAudioFiles(fieldId: string) {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+
+    console.log('Bulk processing - Transcribe selected audio files', {
+      fieldId,
+      selectedSubmissionIds,
+      selectedRowsCount: selectedSubmissionIds.length,
+      selectedAllPages: this.state.selectAll,
+    })
+  }
+
+  onTranslateSelectedTranscriptions(fieldId: string) {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+
+    console.log('Bulk processing - Translate selected transcriptions', {
+      fieldId,
+      selectedSubmissionIds,
+      selectedRowsCount: selectedSubmissionIds.length,
+      selectedAllPages: this.state.selectAll,
+    })
+  }
+
   // We need to distinguish between repeated groups with nested values
   // and other question types that use a flat nested key (i.e. with '/').
   // If submission response contains the parent key, we should use that.
@@ -812,6 +834,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onHide={this.onHideField.bind(this)}
                 isFieldFrozen={tableStore.isFieldFrozen(key)}
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
+                onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
+                onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
+                isBulkProcessingDisabled={
+                  !(
+                    userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+                    userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
+                  ) ||
+                  (!this.state.selectAll && recordKeys(this.state.selectedRows).length === 0)
+                }
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
