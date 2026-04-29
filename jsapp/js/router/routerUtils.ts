@@ -44,11 +44,16 @@ export function getCurrentPath(): string {
 
 /**
  * Redirects to `getLoginUrl()` if a page that requires authentication
- * is navigated to
+ * is navigated to.
+ *
+ * NOTE: This was previously commented out because `redirectDocument` required
+ * react-router ≥ 6.19.1 and upgrading at that time caused build errors.
+ * We are now on react-router v7 where `redirectDocument` is available.
+ * The function body is kept commented because migrating auth to a route loader
+ * requires attaching a `loader` to every protected route — a larger refactor.
+ * When that migration is done, uncomment the imports at the top of this file
+ * (session, when, redirectDocument) and restore this function.
  */
-// This function uses `redirectDocument` which requires a react-router version
-// of 6.19.1 or greater but upgrading is causing a AwaitRenderStatus error when
-// we run `npm run build`
 // export const authLoader = async () => {
 //   await when(() => session.isAuthStateKnown);
 //   if (!session.isLoggedIn) {

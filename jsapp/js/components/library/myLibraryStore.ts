@@ -1,6 +1,6 @@
-import type { RouterState } from '@remix-run/router'
 import debounce from 'lodash.debounce'
 import { reaction } from 'mobx'
+import type { RouterState } from 'react-router'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'

@@ -4,11 +4,12 @@ import type { FileWithPreview } from 'react-dropzone'
 import type { CreateImportRequest, ImportResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import pageState from '#/pageState.store'
-import { router, routerIsActive } from '#/router/legacy'
+import { router } from '#/router/legacy'
 import { escapeHtml, getExponentialDelayTime, join, log, notify } from '#/utils'
 import { MODAL_TYPES } from './constants'
 import envStore from './envStore'
 import { ROUTES } from './router/routerConstants'
+import { isAnyLibraryRoute } from './router/routerUtils'
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed')
 
@@ -20,7 +21,7 @@ const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed')
  * "error"). It waits for the import finish using an exponential interval.
  */
 function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBuffer | null) {
-  const isLibrary = routerIsActive(ROUTES.LIBRARY)
+  const isLibrary = isAnyLibraryRoute()
 
   const importPromise = new Promise<ImportResponse>((resolve, reject) => {
     if (!base64Encoded) {
@@ -137,7 +138,7 @@ function onImportOneAmongMany(
   fileIndex: number,
   totalFilesInBatch: number,
 ) {
-  const isLibrary = routerIsActive(ROUTES.LIBRARY)
+  const isLibrary = isAnyLibraryRoute()
   const isLastFileInBatch = fileIndex + 1 === totalFilesInBatch
 
   // We open the modal that displays the message with total files count.
