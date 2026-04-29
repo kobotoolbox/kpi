@@ -1,5 +1,6 @@
 # coding: utf-8
 from constance import config
+from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 
@@ -9,7 +10,34 @@ from .models import (
 )
 
 
+class MfaMethodsWrapperAdminForm(forms.ModelForm):
+    class Meta:
+        model = MfaMethodsWrapper
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        is_active = cleaned_data.get('is_active')
+
+        if (
+            self.instance.pk
+            and 'is_active' in self.changed_data
+            and not is_active
+            and self.instance.user.is_superuser
+            and config.SUPERUSER_AUTH_ENFORCEMENT
+        ):
+            raise ValidationError(
+                'Cannot deactivate MFA for a superuser while '
+                'SUPERUSER_AUTH_ENFORCEMENT is active.'
+            )
+
+        return cleaned_data
+
+
 class MfaMethodsWrapperAdmin(admin.ModelAdmin):
+    form = MfaMethodsWrapperAdminForm
+
     search_fields = ('user__username',)
     autocomplete_fields = ('user',)
     list_display = ('user', 'is_active', 'date_modified', 'date_disabled')
@@ -22,21 +50,17 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = list(super().get_readonly_fields(request, obj))
-        if obj and not obj.is_active:
-            readonly_fields.append('is_active')
+
+        if obj and obj.pk:
+            persisted_obj = MfaMethodsWrapper.objects.get(pk=obj.pk)
+            if not persisted_obj.is_active:
+                readonly_fields.append('is_active')
+
         return readonly_fields
 
     def save_model(self, request, obj, form, change):
         changed_data = getattr(form, 'changed_data', [])
         if change and 'is_active' in changed_data and not obj.is_active:
-            if obj.user.is_superuser and config.SUPERUSER_AUTH_ENFORCEMENT:
-                self.message_user(
-                    request,
-                    'Cannot deactivate MFA for a superuser while '
-                    'SUPERUSER_AUTH_ENFORCEMENT is active.',
-                    level=messages.ERROR,
-                )
-                return
             obj.deactivate()
             return
         super().save_model(request, obj, form, change)

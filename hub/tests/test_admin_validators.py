@@ -26,7 +26,6 @@ class ValidateSuperuserMfaTest(TestCase):
         self.superuser.set_unusable_password()
         self.assertTrue(validate_superuser_auth(self.superuser, False))
         self.assertTrue(validate_superuser_auth(self.superuser, True))
-        self.assertTrue(validate_superuser_auth(self.superuser, True))
 
     def test_regular_user_without_mfa(self):
         """
