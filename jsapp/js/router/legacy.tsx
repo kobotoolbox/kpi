@@ -99,9 +99,9 @@ export function routerGetAssetId() {
  * For modern code, use router hooks instead of this.
  * https://github.com/remix-run/react-router/issues/9422#issuecomment-1314642344
  *
- * Note: using `router.subscribe` will cause memory leaks and could produce bugs
- * when using hot reload on development environment. This is because `subscribe`
- * method doesn't have a cancel function.
+ * Note: using `router.subscribe` in class components can cause memory leaks if
+ * the returned unsubscribe function is not called in `componentWillUnmount`.
+ * Prefer using router hooks (`useLocation`, `useNavigate`) in functional components.
  */
 export let router: Router | null = null
 export function injectRouter(newRouter: Router) {

@@ -41,7 +41,11 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    router.subscribe(this.onRouteChange.bind(this))
+    this.unsubscribeRouter = router.subscribe(this.onRouteChange.bind(this))
+  }
+
+  componentWillUnmount() {
+    this.unsubscribeRouter?.()
   }
 
   onRouteChange() {

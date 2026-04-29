@@ -1211,7 +1211,6 @@ export default function EditableForm(props: EditableFormProps) {
   return (
     <DocumentTitle title={`${docTitle} | KoboToolbox`}>
       <>
-
         <div className='form-builder-wrapper'>
           {renderAside()}
 
