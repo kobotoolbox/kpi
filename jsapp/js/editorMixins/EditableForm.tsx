@@ -8,7 +8,7 @@ import debounce from 'lodash.debounce'
 import last from 'lodash.last'
 import DocumentTitle from 'react-document-title'
 import Markdown from 'react-markdown'
-import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
+import { useBeforeUnload, useBlocker } from 'react-router-dom'
 import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
@@ -77,12 +77,6 @@ const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html'
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
-/** Use usePrompt directly instead for functional components */
-const Prompt = () => {
-  usePrompt({ when: true, message: UNSAVED_CHANGES_WARNING })
-  return <></>
-}
-
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 const LOCKING_SUPPORT_URL = 'library_locking.html'
 const RECORDING_SUPPORT_URL = 'recording-interviews.html'
@@ -258,6 +252,16 @@ export default function EditableForm(props: EditableFormProps) {
     ({ currentLocation, nextLocation }) =>
       state.preventNavigatingOut && currentLocation.pathname !== nextLocation.pathname,
   )
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      if (window.confirm(UNSAVED_CHANGES_WARNING)) {
+        blocker.proceed()
+      } else {
+        blocker.reset()
+      }
+    }
+  }, [blocker])
 
   function loadAsideSettings() {
     const asideSettings = sessionStorage.getItem(ASIDE_CACHE_NAME)
@@ -1207,13 +1211,7 @@ export default function EditableForm(props: EditableFormProps) {
   return (
     <DocumentTitle title={`${docTitle} | KoboToolbox`}>
       <>
-        {
-          /*
-            TODO: Try to fix quirks that arise from this <Prompt/> usage
-            Issue: https://github.com/kobotoolbox/kpi/issues/4154
-          */
-          state.preventNavigatingOut && <Prompt />
-        }
+
         <div className='form-builder-wrapper'>
           {renderAside()}
 
