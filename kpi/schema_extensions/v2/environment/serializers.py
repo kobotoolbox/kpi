@@ -57,7 +57,9 @@ class EnvironmentResponseSerializer(serializers.Serializer):
     )
 
     # MFA
-    mfa_localized_help_text = serializers.CharField(help_text='Markdown string for MFA help text')
+    mfa_localized_help_text = serializers.CharField(
+        help_text='Markdown string for MFA help text'
+    )
     mfa_enabled = serializers.BooleanField()
     mfa_code_length = serializers.IntegerField()
 
