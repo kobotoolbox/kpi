@@ -16215,6 +16215,54 @@
                 }
             }
         },
+        "/environment/": {
+            "get": {
+                "operationId": "environment_retrieve",
+                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
+                "tags": [
+                    "Configuration"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentResponse"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/me/": {
             "get": {
                 "operationId": "me_retrieve",
@@ -22913,6 +22961,204 @@
                     "version"
                 ]
             },
+            "EnvironmentResponse": {
+                "type": "object",
+                "properties": {
+                    "terms_of_service_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "privacy_policy_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "source_code_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "support_email": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "support_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "academy_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "community_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "frontend_min_retry_time": {
+                        "type": "integer"
+                    },
+                    "frontend_max_retry_time": {
+                        "type": "integer"
+                    },
+                    "use_team_label": {
+                        "type": "boolean"
+                    },
+                    "usage_limit_enforcement": {
+                        "type": "boolean"
+                    },
+                    "allow_self_account_deletion": {
+                        "type": "boolean"
+                    },
+                    "project_history_log_lifespan": {
+                        "type": "integer"
+                    },
+                    "sector_choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 2,
+                            "minItems": 2
+                        },
+                        "description": "A list of (value, label) tuples for sectors"
+                    },
+                    "operational_purpose_choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 2,
+                            "minItems": 2
+                        },
+                        "description": "A list of (value, label) tuples for operational purposes"
+                    },
+                    "country_choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 2,
+                            "minItems": 2
+                        },
+                        "description": "A list of (country_code, country_name) tuples"
+                    },
+                    "interface_languages": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 2,
+                            "minItems": 2
+                        },
+                        "description": "A list of (language_code, language_name) tuples"
+                    },
+                    "mfa_localized_help_text": {
+                        "type": "string",
+                        "description": "Markdown string for MFA help text"
+                    },
+                    "mfa_enabled": {
+                        "type": "boolean"
+                    },
+                    "mfa_code_length": {
+                        "type": "integer"
+                    },
+                    "enable_password_entropy_meter": {
+                        "type": "boolean"
+                    },
+                    "enable_custom_password_guidance_text": {
+                        "type": "boolean"
+                    },
+                    "custom_password_localized_help_text": {
+                        "type": "string",
+                        "description": "Markdown string for custom password help text"
+                    },
+                    "project_metadata_fields": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MetadataField"
+                        }
+                    },
+                    "extra_project_metadata_fields": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MetadataField"
+                        }
+                    },
+                    "user_metadata_fields": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MetadataField"
+                        }
+                    },
+                    "social_apps": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SocialApp"
+                        }
+                    },
+                    "asr_mt_features_enabled": {
+                        "type": "boolean",
+                        "description": "Whether ASR and MT features are enabled for the current user"
+                    },
+                    "submission_placeholder": {
+                        "type": "string",
+                        "description": "Placeholder text for submissions"
+                    },
+                    "stripe_public_key": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "terms_of_service__sitewidemessage__exists": {
+                        "type": "boolean",
+                        "description": "Indicates if a sitewide message for TOS exists"
+                    },
+                    "open_rosa_server": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "The OpenRosa server URL (KC)"
+                    }
+                },
+                "required": [
+                    "academy_url",
+                    "allow_self_account_deletion",
+                    "asr_mt_features_enabled",
+                    "community_url",
+                    "country_choices",
+                    "custom_password_localized_help_text",
+                    "enable_custom_password_guidance_text",
+                    "enable_password_entropy_meter",
+                    "extra_project_metadata_fields",
+                    "frontend_max_retry_time",
+                    "frontend_min_retry_time",
+                    "interface_languages",
+                    "mfa_code_length",
+                    "mfa_enabled",
+                    "mfa_localized_help_text",
+                    "open_rosa_server",
+                    "operational_purpose_choices",
+                    "privacy_policy_url",
+                    "project_history_log_lifespan",
+                    "project_metadata_fields",
+                    "sector_choices",
+                    "social_apps",
+                    "source_code_url",
+                    "stripe_public_key",
+                    "submission_placeholder",
+                    "support_email",
+                    "support_url",
+                    "terms_of_service__sitewidemessage__exists",
+                    "terms_of_service_url",
+                    "usage_limit_enforcement",
+                    "use_team_label",
+                    "user_metadata_fields"
+                ]
+            },
             "ErrorDetail": {
                 "type": "object",
                 "properties": {
@@ -24585,6 +24831,30 @@
                 ],
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
+            },
+            "MetadataField": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "required": {
+                        "type": "boolean"
+                    },
+                    "options": {
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "label",
+                    "name"
+                ]
             },
             "NlpUsage": {
                 "type": "object",
@@ -29217,6 +29487,30 @@
                     "provider",
                     "uid",
                     "username"
+                ]
+            },
+            "SocialApp": {
+                "type": "object",
+                "properties": {
+                    "provider": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "client_id": {
+                        "type": "string"
+                    },
+                    "provider_id": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "client_id",
+                    "name",
+                    "provider",
+                    "provider_id"
                 ]
             },
             "StripeIntervalEnum": {

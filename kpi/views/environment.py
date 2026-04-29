@@ -21,6 +21,7 @@ from kpi.schema_extensions.v2.environment.serializers import (
 )
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
+from kpi.versioning import APIV2Versioning
 
 
 def check_asr_mt_access_for_user(user):
@@ -64,6 +65,8 @@ class EnvironmentView(APIView):
     OTHER_CONFIGS = [
         'PROJECT_HISTORY_LOG_LIFESPAN',
     ]
+
+    versioning_class = APIV2Versioning
 
     @classmethod
     def process_simple_configs(cls):
