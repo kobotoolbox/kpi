@@ -60,6 +60,7 @@ urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
+    path('api/v2/allauth/', include('allauth.headless.urls')),
     re_path(
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),
