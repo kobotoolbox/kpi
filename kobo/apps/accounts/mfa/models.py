@@ -1,7 +1,9 @@
 # coding: utf-8
 from allauth.mfa.models import Authenticator
 from allauth.mfa.base.internal.flows import delete_and_cleanup
+from constance import config
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.http import HttpRequest
 from django.utils.timezone import now
@@ -77,6 +79,13 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
             UserProfile.set_mfa_status(user_id=self.user_id, is_active=self.is_active)
 
     def delete(self, using=None, keep_parents=False):
+        if config.SUPERUSER_AUTH_ENFORCEMENT and self.user.is_superuser:
+            raise ValidationError(
+                f'MFA deletion is disabled for superuser "{self.user.username}" '
+                f'while SUPERUSER_AUTH_ENFORCEMENT is active.'
+
+            )
+
         user_id = self.user_id
         totp_id = self.totp_id
         recovery_codes_id = self.recovery_codes_id

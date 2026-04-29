@@ -27,6 +27,7 @@ export interface EnvironmentResponse {
   mfa_localized_help_text: string
   mfa_enabled: boolean
   mfa_code_length: number
+  superuser_auth_enforcement: boolean
   stripe_public_key: string | null
   social_apps: SocialApp[]
   enable_custom_password_guidance_text: boolean
@@ -98,6 +99,7 @@ export class EnvStoreData {
   public mfa_localized_help_text = ''
   public mfa_enabled = false
   public mfa_code_length = 6
+  public superuser_auth_enforcement = false
   public stripe_public_key: string | null = null
   public social_apps: SocialApp[] = []
   public enable_custom_password_guidance_text = false
@@ -190,6 +192,7 @@ class EnvStore {
     this.data.mfa_localized_help_text = response.mfa_localized_help_text
     this.data.mfa_enabled = response.mfa_enabled
     this.data.mfa_code_length = response.mfa_code_length
+    this.data.superuser_auth_enforcement = response.superuser_auth_enforcement
     this.data.stripe_public_key = response.stripe_public_key
     this.data.social_apps = response.social_apps
     this.data.open_rosa_server = response.open_rosa_server

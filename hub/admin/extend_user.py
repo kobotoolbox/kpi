@@ -31,9 +31,9 @@ from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
 
-def validate_superuser_auth(obj) -> bool:
+def validate_superuser_auth(obj, is_superuser_requested: bool) -> bool:
     if (
-        obj.is_superuser
+        is_superuser_requested
         and config.SUPERUSER_AUTH_ENFORCEMENT
         and obj.has_usable_password()
         and not MfaMethodsWrapper.objects.filter(user=obj, is_active=True).exists()
@@ -54,6 +54,7 @@ class UserChangeForm(DjangoUserChangeForm):
     def clean(self):
         cleaned_data = super().clean()
         is_active = cleaned_data['is_active']
+        is_superuser = cleaned_data.get('is_superuser', False)
         if is_active and AccountTrash.objects.filter(user_id=self.instance.pk).exists():
             url = reverse('admin:trash_bin_accounttrash_changelist')
             raise ValidationError(
@@ -62,8 +63,8 @@ class UserChangeForm(DjangoUserChangeForm):
                     f' from here.'
                 )
             )
-        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(
-            self.instance
+        if is_superuser and not validate_superuser_auth(
+            self.instance, is_superuser_requested=is_superuser
         ):
             raise ValidationError('Superusers with a usable password must enable MFA.')
 
