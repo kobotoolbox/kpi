@@ -3,7 +3,7 @@ import './tableColumnSortDropdown.scss'
 import React from 'react'
 import { useState } from 'react'
 
-import classNames from 'classnames'
+import { Group } from '@mantine/core'
 import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
@@ -11,8 +11,6 @@ import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'
 import type { AssetResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-
-const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear'
 
 interface TableColumnSortDropdownProps {
   asset: AssetResponse
@@ -68,22 +66,6 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     )
   }
 
-  function clearSort() {
-    props.onSortChange(props.fieldId, null)
-  }
-
-  function changeSort(sortValue: SortValues, evt: React.MouseEvent<HTMLButtonElement>) {
-    const eventTarget = evt.target as HTMLButtonElement
-
-    // When clicking on clear icon button, we need to avoid triggering also the
-    // change sort button. We can't use `stopPropagation` on `clearSort` as it
-    // breaks `onMenuClick` functionality.
-    if (eventTarget?.classList?.contains(CLEAR_BUTTON_CLASS_NAME)) {
-      return
-    }
-    props.onSortChange(props.fieldId, sortValue)
-  }
-
   function hideField() {
     props.onHide(props.fieldId)
   }
@@ -102,32 +84,38 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
 
   function renderSortButton(buttonSortValue: SortValues) {
     return (
-      <Menu.Item
-        className={classNames({
-          'sort-dropdown-menu-button': true,
-          'sort-dropdown-menu-button--active': props.sortValue === buttonSortValue,
-        })}
-        onClick={(evt) => {
-          changeSort(buttonSortValue, evt)
-        }}
-        leftSection={
-          buttonSortValue === SortValues.ASCENDING ? (
-            <Icon name='sort-ascending' size='inherit' />
-          ) : (
-            <Icon name='sort-descending' size='inherit' />
-          )
-        }
-        rightSection={
-          props.sortValue === buttonSortValue ? (
-            <span onClick={clearSort}>
-              <Icon name='close' size='inherit' className={classNames(CLEAR_BUTTON_CLASS_NAME)} />
-            </span>
-          ) : null
-        }
-      >
-        {buttonSortValue === SortValues.ASCENDING && t('Sort A→Z')}
-        {buttonSortValue === SortValues.DESCENDING && t('Sort Z→A')}
-      </Menu.Item>
+      <Group gap='xxs'>
+        <Menu.Item
+          flex={1}
+          fw={props.sortValue === buttonSortValue ? '800' : undefined}
+          onClick={() => {
+            props.onSortChange(props.fieldId, buttonSortValue)
+          }}
+          leftSection={
+            buttonSortValue === SortValues.ASCENDING ? (
+              <Icon name='sort-ascending' size='inherit' />
+            ) : (
+              <Icon name='sort-descending' size='inherit' />
+            )
+          }
+        >
+          {buttonSortValue === SortValues.ASCENDING && t('Sort A→Z')}
+          {buttonSortValue === SortValues.DESCENDING && t('Sort Z→A')}
+        </Menu.Item>
+
+        {props.sortValue === buttonSortValue && (
+          <Menu.Item
+            w='auto'
+            onClick={() => {
+              props.onSortChange(props.fieldId, null)
+            }}
+            aria-label={t('Clear sort')}
+          >
+            {/* make it block to not misalign in the layout */}
+            <Icon name='close' style={{ display: 'block' }} />
+          </Menu.Item>
+        )}
+      </Group>
     )
   }
 

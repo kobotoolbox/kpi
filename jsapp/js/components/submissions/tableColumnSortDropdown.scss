@@ -37,19 +37,4 @@
       color: colors.$kobo-teal;
     }
   }
-
-  .sort-dropdown-menu-button {
-    .table-column-sort-dropdown-clear {
-      color: colors.$kobo-white !important;
-
-      &.k-icon {
-        font-size: 18px;
-      }
-    }
-
-    &.sort-dropdown-menu-button--active {
-      color: colors.$kobo-teal;
-      background-color: colors.$kobo-gray-800; // Assuming we are using `dark` option
-    }
-  }
 }

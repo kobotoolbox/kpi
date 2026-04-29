@@ -16,7 +16,7 @@ export type IconColor = 'mid-red' | 'storm' | 'teal' | 'amber' | 'blue'
 
 const DefaultSize = 's'
 
-interface IconProps {
+interface IconProps extends Omit<React.ComponentPropsWithoutRef<'i'>, 'color' | 'size'> {
   name: IconName
   size?: IconSize
   /** Additional class names. */
@@ -32,20 +32,22 @@ interface IconProps {
  * An icon component.
  */
 export default function Icon(props: IconProps) {
+  const { name, size, className, color, ...restIconProps } = props
+
   const classNames: string[] = []
-  if (props.className) {
-    classNames.push(props.className)
+  if (className) {
+    classNames.push(className)
   }
 
-  const size = props.size || DefaultSize
-  classNames.push(`k-icon--size-${size}`)
+  const iconSize = size || DefaultSize
+  classNames.push(`k-icon--size-${iconSize}`)
 
-  if (props.color) {
-    classNames.push(`k-icon--color-${props.color}`)
+  if (color) {
+    classNames.push(`k-icon--color-${color}`)
   }
 
   classNames.push('k-icon')
-  classNames.push(`k-icon-${props.name}`)
+  classNames.push(`k-icon-${name}`)
 
-  return <i className={classNames.join(' ')} />
+  return <i {...restIconProps} className={classNames.join(' ')} />
 }
