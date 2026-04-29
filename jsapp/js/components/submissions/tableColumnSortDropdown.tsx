@@ -20,7 +20,7 @@ interface TableColumnSortDropdownProps {
   asset: AssetResponse
   /** one of table columns */
   fieldId: string
-  questionType: AnyRowTypeName | undefined
+  questionType?: AnyRowTypeName
   sortValue: SortValues | null
   onSortChange: (fieldId: string, sortValue: SortValues | null) => void
   onHide: (fieldId: string) => void

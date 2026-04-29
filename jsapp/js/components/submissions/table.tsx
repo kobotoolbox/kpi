@@ -583,7 +583,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <TableColumnSortDropdown
             asset={this.props.asset}
             fieldId={VALIDATION_STATUS_ID_PROP}
-            questionType={undefined}
             sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange.bind(this)}
             onHide={this.onHideField.bind(this)}
