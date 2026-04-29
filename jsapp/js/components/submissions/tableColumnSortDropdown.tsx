@@ -8,11 +8,11 @@ import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { SortValues } from '#/components/submissions/tableConstants'
 import { type AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import { getSupplementalPathParts } from '../processing/processingUtils'
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear'
 
