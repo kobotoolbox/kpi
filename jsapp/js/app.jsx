@@ -23,9 +23,13 @@ import pageState from '#/pageState.store'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
 import { RootContextProvider } from '#/rootContextProvider.component'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
-import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
+import {
+  getRouteAssetUid,
+  isInvalidatedPasswordRouteBlockerActive,
+  isTOSAgreementRouteBlockerActive,
+} from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
-import { router, routerGetAssetId, withRouter } from './router/legacy'
+import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { themeKobo } from './theme'
 import ToasterConfig from './toasterConfig'
@@ -79,7 +83,7 @@ class App extends React.Component {
       return <TOSAgreement />
     }
 
-    const assetid = routerGetAssetId()
+    const assetid = getRouteAssetUid()
 
     const pageWrapperContentModifiers = []
     if (this.isFormSingle()) {

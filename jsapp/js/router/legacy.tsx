@@ -61,38 +61,6 @@ export function withRouter(Component: FC | typeof React.Component) {
 }
 
 /**
- * @deprecated Use some of the functions from `routerUtils.ts`.
- */
-function getCurrentRoute() {
-  return router!.state.location.pathname
-}
-
-/**
- * Reimplementation of router v3 isActive
- *
- * @deprecated Use some of the functions from `routerUtils.ts`.
- */
-export function routerIsActive(route: string) {
-  return getCurrentRoute().startsWith(route)
-}
-
-/**
- * @deprecated Use `getRouteAssetUid` from `routerUtils.ts`.
- */
-export function routerGetAssetId() {
-  const current = getCurrentRoute()
-  if (current) {
-    const routeParts = current.split('/')
-    if (routeParts[1] === 'forms') {
-      return routeParts[2]
-    } else if (routeParts[1] === 'library') {
-      return routeParts[3]
-    }
-  }
-  return null
-}
-
-/**
  * Necessary to avoid circular dependency
  * Because router may be null, non-component uses may need to check
  * null status or use setTimeout to ensure it's run after the first react render cycle

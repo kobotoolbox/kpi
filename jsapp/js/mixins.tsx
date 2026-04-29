@@ -8,9 +8,17 @@ import type { AssetStoreData } from '#/assetStore'
 import { dataInterface } from '#/dataInterface'
 import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import pageState from '#/pageState.store'
-import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
+import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import { getRouteAssetUid } from '#/router/routerUtils'
+import {
+  getCurrentPath,
+  getRouteAssetUid,
+  isAnyFormsRoute,
+  isAnyLibraryRoute,
+  isMyLibraryRoute,
+  isNewLibraryItemRoute,
+  isPublicCollectionsRoute,
+} from '#/router/routerUtils'
 import { escapeHtml, join, log, notify, recordKeys } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from './constants'
@@ -302,7 +310,7 @@ const mixins: MixinsObject = {
     _forEachDroppedFile(params: CreateImportRequest = {}) {
       const totalFiles = params.totalFiles || 1
 
-      const isLibrary = routerIsActive(ROUTES.LIBRARY)
+      const isLibrary = isAnyLibraryRoute()
       const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false
       params = Object.assign({ library: isLibrary }, params)
 
@@ -341,7 +349,7 @@ const mixins: MixinsObject = {
                     this.searchDefault()
                     // No message shown for multiple files when successful, to avoid overloading screen
                   } else if (assetUid) {
-                    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && routerIsActive(ROUTES.FORMS)) {
+                    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && isAnyFormsRoute()) {
                       actions.resources.loadAsset({ id: assetUid })
                     } else if (!isLibrary) {
                       router!.navigate(ROUTES.FORM.replace(':uid', assetUid))
@@ -431,42 +439,42 @@ const mixins: MixinsObject = {
    */
   contextRouter: {
     isFormList() {
-      return routerIsActive(ROUTES.FORMS) && this.currentAssetID() === undefined
+      return isAnyFormsRoute() && this.currentAssetID() === undefined
     },
     isLibrary() {
-      return routerIsActive(ROUTES.LIBRARY)
+      return isAnyLibraryRoute()
     },
     isMyLibrary() {
-      return routerIsActive(ROUTES.MY_LIBRARY)
+      return isMyLibraryRoute()
     },
     isPublicCollections() {
-      return routerIsActive(ROUTES.PUBLIC_COLLECTIONS)
+      return isPublicCollectionsRoute()
     },
     isLibrarySingle() {
-      return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined
+      return isAnyLibraryRoute() && this.currentAssetID() !== undefined
     },
     isFormSingle() {
-      return routerIsActive(ROUTES.FORMS) && this.currentAssetID() !== undefined
+      return isAnyFormsRoute() && this.currentAssetID() !== undefined
     },
     currentAssetID() {
-      return routerGetAssetId()
+      return getRouteAssetUid()
     },
     currentAsset() {
       return assetStore.data[this.currentAssetID()]
     },
     isActiveRoute(path: string) {
-      return routerIsActive(path)
+      return getCurrentPath().startsWith(path)
     },
     isFormBuilder() {
-      if (routerIsActive(ROUTES.NEW_LIBRARY_ITEM)) {
+      if (isNewLibraryItemRoute()) {
         return true
       }
 
       const uid = this.currentAssetID()
       return (
-        (uid !== undefined && routerIsActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid))) ||
-        routerIsActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
-        routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
+        (uid !== undefined && getCurrentPath().startsWith(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid))) ||
+        getCurrentPath().startsWith(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+        getCurrentPath().startsWith(ROUTES.FORM_EDIT.replace(':uid', uid))
       )
     },
   },
