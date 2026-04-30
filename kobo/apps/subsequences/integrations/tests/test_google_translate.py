@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from constance.test import override_config
 from django.core.cache import cache
 from django.test import TestCase
+from google.api_core.exceptions import InvalidArgument
 
 from kobo.apps.subsequences.integrations.google.google_translate import (
     GoogleTranslationService,
@@ -52,6 +53,36 @@ class TestGoogleTranslate(TestCase):
                             self.submission,
                             self.asset,
                         )
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+    )
+    def test_sync_translation_returns_failed_for_invalid_argument(self):
+        """
+        Return a structured failure when Google rejects a synchronous
+        translate_text request instead of letting the exception escape
+        """
+        service = self._build_service()
+        service.translate_client.translate_text.side_effect = InvalidArgument(
+            'Invalid language code'
+        )
+
+        with patch.object(service, '_get_source_language_code', return_value='en-US'):
+            with patch.object(service, '_get_target_language_code', return_value='fr'):
+                response = service.process_data(
+                    'mock_xpath',
+                    {
+                        'language': 'fr',
+                        '_dependency': {
+                            'language': 'en',
+                            'value': 'Hello',
+                        },
+                    },
+                )
+
+        assert response['status'] == 'failed'
+        assert 'Translation failed with error' in response['error']
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',

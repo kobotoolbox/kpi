@@ -195,16 +195,34 @@ class GoogleTranslationService(GoogleService):
             f'{self.submission_root_uuid=}, {source_language_code=}, '
             f'{target_language_code=}'
         )
-        response = self.translate_client.translate_text(
-            request={
-                'contents': [content],
-                'source_language_code': source_language_code,
-                'target_language_code': target_language_code,
-                'parent': self.translate_parent,
-                'mime_type': 'text/plain',
-                'labels': {'username': self.asset.owner.username},
+        try:
+            response = self.translate_client.translate_text(
+                request={
+                    'contents': [content],
+                    'source_language_code': source_language_code,
+                    'target_language_code': target_language_code,
+                    'parent': self.translate_parent,
+                    'mime_type': 'text/plain',
+                    'labels': {'username': self.asset.owner.username},
+                }
+            )
+        except InvalidArgument as err:
+            logging.exception('Error when processing translation')
+            return {
+                'status': 'failed',
+                'error': f'Translation failed with error {str(err)}',
             }
-        )
+        except (GoogleAPIError, GoogleCloudError) as err:
+            logging.error(
+                'Google infrastructure error while translating for '
+                f'{self.submission_root_uuid=}: {err}'
+            )
+            return {
+                'status': 'failed',
+                'error': 'Translation failed due to a Google infrastructure '
+                         f'error: {str(err)}',
+            }
+
         self.update_counters(len(content))
         return {
             'status': 'complete',
