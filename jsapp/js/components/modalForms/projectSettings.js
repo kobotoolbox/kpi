@@ -42,7 +42,7 @@ const ExtraMetadataFields = ({ fields, values, onChange, hasFieldError }) =>
     const options = (field.options ?? []).map((opt) => {
       return {
         value: opt.name,
-        label: opt.label,
+        label: envStore.data.getExtraOptionLabel(opt, currentLang()),
       }
     })
 

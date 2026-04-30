@@ -7,12 +7,50 @@ import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Avatar from '#/components/common/avatar'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
-import envStore from '#/envStore'
+import envStore, { type ExtraProjectMetadataField } from '#/envStore'
 import sessionStore from '#/stores/session'
-import { formatTime } from '#/utils'
+import { currentLang, formatTime } from '#/utils'
 
 interface FormSummaryProjectInfoProps {
   asset: AssetResponse
+}
+
+/**
+ * Resolves a stored select option (string name or `{value, label}` object) to
+ * a display label in the current UI language, using the field's option
+ * definitions as the source of truth. Falls back to the stored label, then
+ * the raw option name.
+ */
+const resolveOptionLabel = (storedOpt: any, field: ExtraProjectMetadataField): string => {
+  const optName = storedOpt?.value ?? storedOpt
+  const fieldOption = field.options?.find((o) => o.name === optName)
+  if (fieldOption) {
+    return envStore.data.getExtraOptionLabel(fieldOption, currentLang())
+  }
+  if (storedOpt?.label) {
+    return typeof storedOpt.label === 'string'
+      ? storedOpt.label
+      : storedOpt.label[currentLang()] || storedOpt.label.default || String(optName)
+  }
+  return String(optName ?? '-')
+}
+
+const getExtraMetadataDisplayValue = (field: ExtraProjectMetadataField, asset: AssetResponse) => {
+  const valueEntry = (asset.settings as Record<string, any>)[field.name]
+
+  if (Array.isArray(valueEntry)) {
+    return valueEntry.length > 0 ? valueEntry.map((item) => resolveOptionLabel(item, field)).join(', ') : '-'
+  }
+
+  if (valueEntry && typeof valueEntry === 'object') {
+    return resolveOptionLabel(valueEntry, field)
+  }
+
+  if (valueEntry) {
+    return String(valueEntry)
+  }
+
+  return '-'
 }
 
 export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProps) {
@@ -41,6 +79,8 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
 
   // Support custom labels for project metadata, if defined
   const metadata = envStore.data.getProjectMetadataFieldsAsSimpleDict()
+
+  const extraFieldDefinitions = envStore.data.extra_project_metadata_fields
 
   return (
     <bem.FormView__row>
@@ -167,6 +207,18 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
                 {props.asset.settings.collects_pii?.label ?? '-'}
               </bem.FormView__cell>
             )}
+          </bem.FormView__group>
+        )}
+
+        {/* extra metadata */}
+        {extraFieldDefinitions.length > 0 && (
+          <bem.FormView__group m='items'>
+            {extraFieldDefinitions.map((field) => (
+              <bem.FormView__cell m='padding' key={field.name}>
+                <bem.FormView__label>{envStore.data.getExtraFieldLabel(field, currentLang())}</bem.FormView__label>
+                <div dir='auto'>{getExtraMetadataDisplayValue(field, props.asset)}</div>
+              </bem.FormView__cell>
+            ))}
           </bem.FormView__group>
         )}
       </bem.FormView__cell>
