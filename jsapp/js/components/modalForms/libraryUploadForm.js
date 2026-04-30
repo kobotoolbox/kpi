@@ -14,7 +14,7 @@ import mixins from '#/mixins'
 import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import { validFileTypes } from '#/utils'
-import { renderBackButton } from './modalHelpers'
+import ModalBackButton from './ModalBackButton'
 
 /**
  * @prop {function} onSetModalTitle
@@ -115,7 +115,7 @@ const LibraryUploadForm = observer(
           )}
 
           <bem.Modal__footer>
-            {renderBackButton(this.state.isPending)}
+            <ModalBackButton isDisabled={this.state.isPending} />
 
             <Button
               type='primary'
