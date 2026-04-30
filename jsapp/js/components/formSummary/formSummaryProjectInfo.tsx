@@ -15,29 +15,35 @@ interface FormSummaryProjectInfoProps {
   asset: AssetResponse
 }
 
-const getExtraMetadataDisplayValue = (field: ExtraProjectMetadataField, asset: AssetResponse) => {
-  const valueEntry = (asset.settings as Record<string, any>)?.[field.name]
-
-  const resolveOptionLabel = (storedOpt: any): string => {
-    const optName = storedOpt?.value ?? storedOpt
-    const fieldOption = field.options?.find((o) => o.name === optName)
-    if (fieldOption) {
-      return envStore.data.getExtraOptionLabel(fieldOption, currentLang())
-    }
-    if (storedOpt?.label) {
-      return typeof storedOpt.label === 'string'
-        ? storedOpt.label
-        : storedOpt.label[currentLang()] || storedOpt.label.default || String(optName)
-    }
-    return String(optName ?? '-')
+/**
+ * Resolves a stored select option (string name or `{value, label}` object) to
+ * a display label in the current UI language, using the field's option
+ * definitions as the source of truth. Falls back to the stored label, then
+ * the raw option name.
+ */
+const resolveOptionLabel = (storedOpt: any, field: ExtraProjectMetadataField): string => {
+  const optName = storedOpt?.value ?? storedOpt
+  const fieldOption = field.options?.find((o) => o.name === optName)
+  if (fieldOption) {
+    return envStore.data.getExtraOptionLabel(fieldOption, currentLang())
   }
+  if (storedOpt?.label) {
+    return typeof storedOpt.label === 'string'
+      ? storedOpt.label
+      : storedOpt.label[currentLang()] || storedOpt.label.default || String(optName)
+  }
+  return String(optName ?? '-')
+}
+
+const getExtraMetadataDisplayValue = (field: ExtraProjectMetadataField, asset: AssetResponse) => {
+  const valueEntry = (asset.settings as Record<string, any>)[field.name]
 
   if (Array.isArray(valueEntry)) {
-    return valueEntry.length > 0 ? valueEntry.map(resolveOptionLabel).join(', ') : '-'
+    return valueEntry.length > 0 ? valueEntry.map((item) => resolveOptionLabel(item, field)).join(', ') : '-'
   }
 
   if (valueEntry && typeof valueEntry === 'object') {
-    return resolveOptionLabel(valueEntry)
+    return resolveOptionLabel(valueEntry, field)
   }
 
   if (valueEntry) {
@@ -205,7 +211,7 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
         )}
 
         {/* extra metadata */}
-        {extraFieldDefinitions?.length > 0 && (
+        {extraFieldDefinitions.length > 0 && (
           <bem.FormView__group m='items'>
             {extraFieldDefinitions.map((field) => (
               <bem.FormView__cell m='padding' key={field.name}>
