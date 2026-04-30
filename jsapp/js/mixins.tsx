@@ -457,7 +457,7 @@ const mixins: MixinsObject = {
       return isAnyFormsRoute() && this.currentAssetID() !== undefined
     },
     currentAssetID() {
-      return getRouteAssetUid()
+      return getRouteAssetUid() ?? undefined
     },
     currentAsset() {
       return assetStore.data[this.currentAssetID()]
