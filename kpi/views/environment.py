@@ -82,6 +82,7 @@ class EnvironmentView(APIView):
             EnvironmentResponseSerializer,
             raise_not_found=False,
             raise_access_forbidden=False,
+            require_auth=False,
             validate_payload=False,
         ),
     )
