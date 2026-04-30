@@ -14,8 +14,6 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { EnvironmentResponse } from '../models/environmentResponse'
 
-import type { ErrorDetail } from '../models/errorDetail'
-
 import { fetchWithAuth } from '../orval.mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
@@ -37,12 +35,7 @@ export type environmentRetrieveResponse200 = {
   status: 200
 }
 
-export type environmentRetrieveResponse401 = {
-  data: ErrorDetail
-  status: 401
-}
-
-export type environmentRetrieveResponseComposite = environmentRetrieveResponse200 | environmentRetrieveResponse401
+export type environmentRetrieveResponseComposite = environmentRetrieveResponse200
 
 export type environmentRetrieveResponse = environmentRetrieveResponseComposite & {
   headers: Headers
@@ -65,7 +58,7 @@ export const getEnvironmentRetrieveQueryKey = () => {
 
 export const getEnvironmentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof environmentRetrieve>>,
-  TError = ErrorDetail,
+  TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>
   request?: SecondParameter<typeof fetchWithAuth>
@@ -85,11 +78,11 @@ export const getEnvironmentRetrieveQueryOptions = <
 }
 
 export type EnvironmentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof environmentRetrieve>>>
-export type EnvironmentRetrieveQueryError = ErrorDetail
+export type EnvironmentRetrieveQueryError = unknown
 
 export function useEnvironmentRetrieve<
   TData = Awaited<ReturnType<typeof environmentRetrieve>>,
-  TError = ErrorDetail,
+  TError = unknown,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>
   request?: SecondParameter<typeof fetchWithAuth>
