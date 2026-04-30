@@ -185,6 +185,7 @@ import TableSvg from '../../../svg-icons/table.svg?react'
 import TagSvg from '../../../svg-icons/tag.svg?react'
 import TemplateLockedSvg from '../../../svg-icons/template-locked.svg?react'
 import TemplateSvg from '../../../svg-icons/template.svg?react'
+import TranscriptsSvg from '../../../svg-icons/transcripts.svg?react'
 import TrashSvg from '../../../svg-icons/trash.svg?react'
 import UnfreezeSvg from '../../../svg-icons/unfreeze.svg?react'
 import UnsubscribeSvg from '../../../svg-icons/unsubscribe.svg?react'
@@ -403,6 +404,7 @@ export const LegacyIconToSvgComponentMap: Record<IconName, ComponentType<SvgIcon
   tag: wrapLegacySvgIcon(TagSvg),
   template: wrapLegacySvgIcon(TemplateSvg),
   'template-locked': wrapLegacySvgIcon(TemplateLockedSvg),
+  transcripts: wrapLegacySvgIcon(TranscriptsSvg),
   trash: wrapLegacySvgIcon(TrashSvg),
   unfreeze: wrapLegacySvgIcon(UnfreezeSvg),
   unsubscribe: wrapLegacySvgIcon(UnsubscribeSvg),
