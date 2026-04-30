@@ -441,6 +441,7 @@ class GoogleTranscriptionService(GoogleService):
         """
         _, output_prefix = self._get_batch_paths(xpath, source_lang)
         transcript_parts = []
+        found_json_result = False
         blobs = sorted(
             self.bucket.list_blobs(prefix=output_prefix),
             key=lambda blob: blob.name,
@@ -449,11 +450,12 @@ class GoogleTranscriptionService(GoogleService):
             if not blob.name.endswith('.json'):
                 continue
 
+            found_json_result = True
             transcript = self.adapt_response(json.loads(blob.download_as_text()))
             if transcript:
                 transcript_parts.append(transcript)
 
-        if not transcript_parts:
+        if not found_json_result:
             raise TranscriptionResultNotFound(
                 'No transcription JSON result files were found in Google Cloud Storage.'
             )
