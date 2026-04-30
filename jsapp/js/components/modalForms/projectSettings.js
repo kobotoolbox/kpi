@@ -34,48 +34,61 @@ import { currentLang, escapeHtml, isAValidUrl, join, notify, validFileTypes } fr
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
 
-const ExtraMetadataFields = ({ fields, values, onChange, hasFieldError }) =>
-  envStore.data.extra_project_metadata_fields.map((field) => {
-    const label = envStore.data.getExtraFieldLabel(field, currentLang())
-    const hasError = hasFieldError(field.name)
+/**
+ * Renders the appropriate input for a single extra metadata field based on its
+ * type. Supported types are `single_select`, `multi_select`, and the default
+ * plain-text input.
+ */
+const ExtraMetadataField = ({ field, value, onChange, hasError }) => {
+  const label = envStore.data.getExtraFieldLabel(field, currentLang())
 
-    const options = (field.options ?? []).map((opt) => {
-      return {
-        value: opt.name,
-        label: opt.label,
-      }
-    })
-
-    if (field.type === 'single_select' || field.type === 'multi_select') {
-      return (
-        <div className={styles.input} key={field.name}>
-          <WrappedSelect
-            label={addRequiredToLabel(label, field.required)}
-            isMulti={field.type === 'multi_select'}
-            value={values[field.name]}
-            onChange={(val) => onChange(field.name, val)}
-            options={options}
-            isLimitedHeight
-            isClearable
-            menuPlacement='auto'
-            error={hasError ? t('Please select an option') : false}
-          />
-        </div>
-      )
-    }
+  if (field.type === 'single_select' || field.type === 'multi_select') {
+    const options = (field.options ?? []).map((opt) => ({
+      value: opt.name,
+      label: opt.label,
+    }))
 
     return (
-      <div className={styles.input} key={field.name}>
-        <TextBox
-          value={values[field.name]}
-          onChange={(val) => onChange(field.name, val)}
+      <div className={styles.input}>
+        <WrappedSelect
           label={addRequiredToLabel(label, field.required)}
-          placeholder={label}
-          errors={hasError ? t('This field is required') : false}
+          isMulti={field.type === 'multi_select'}
+          value={value}
+          onChange={(val) => onChange(field.name, val)}
+          options={options}
+          isLimitedHeight
+          isClearable
+          menuPlacement='auto'
+          error={hasError ? t('Please select an option') : false}
         />
       </div>
     )
-  })
+  }
+
+  return (
+    <div className={styles.input}>
+      <TextBox
+        value={value}
+        onChange={(val) => onChange(field.name, val)}
+        label={addRequiredToLabel(label, field.required)}
+        placeholder={label}
+        errors={hasError ? t('This field is required') : false}
+      />
+    </div>
+  )
+}
+
+/** Renders all extra metadata fields configured in the environment store. */
+const ExtraMetadataFields = ({ values, onChange, hasFieldError }) =>
+  envStore.data.extra_project_metadata_fields.map((field) => (
+    <ExtraMetadataField
+      key={field.name}
+      field={field}
+      value={values[field.name]}
+      onChange={onChange}
+      hasError={hasFieldError(field.name)}
+    />
+  ))
 
 /**
  * This is used for multiple different purposes:
