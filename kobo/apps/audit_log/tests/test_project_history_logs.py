@@ -4,7 +4,6 @@ import io
 import json
 import uuid
 from unittest.mock import patch
-from xml.etree import ElementTree as ET
 
 import responses
 from ddt import data, ddt, unpack
@@ -1852,7 +1851,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'formhub': {'uuid': self.asset.deployment.xform.uuid},
             '_uuid': str(uuid_),
         }
-        xml = ET.fromstring(
+        xml = fromstring_preserve_root_xmlns(
             dict2xform(submission_data, self.asset.deployment.xform.id_string)
         )
         xml.tag = self.asset.uid
@@ -1873,7 +1872,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             endpoint,
             kwargs=kwargs,
         )
-        data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
+        data = {
+            'xml_submission_file': SimpleUploadedFile(
+                'name.txt', xml_tostring(xml).encode()
+            )
+        }
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
 

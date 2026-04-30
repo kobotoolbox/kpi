@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 from ddt import data, ddt, unpack
 from kobo.apps.kobo_auth.shortcuts import User
@@ -43,3 +44,16 @@ class V1TrackingTests(KpiTestCase):
 
         self.client.get(v1_url)
         self.assertEqual(V1UserTracker.objects.count(), 0)
+
+    def test_token_authenticated_v1_access_creates_tracker_entry(self):
+        self.client.logout()
+        token, _ = Token.objects.get_or_create(user=self.user)
+
+        response = self.client.get(
+            '/api/v1/user',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        tracker_entry = V1UserTracker.objects.get(user=self.user)
+        self.assertEqual(tracker_entry.last_accessed_path, '/api/v1/user')

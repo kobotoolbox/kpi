@@ -3,6 +3,7 @@ import './connect-projects.scss'
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
+import type { ServerError } from '#/api/ServerError'
 import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react-query/survey-data'
 import bem from '#/bem'
@@ -55,14 +56,22 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const {
     data: attachedSourcesResponse,
     isFetched: isInitialised,
+    isPending: isPendingAttachedSources,
     isFetching: isFetchingAttachedSources,
     refetch: refetchAttachedSources,
   } = useAssetsPairedDataList(asset.uid)
   const { mutate: detachSourceMutate, isPending: isDetachingSource } = useAssetsPairedDataDestroy()
   const { data: sharingEnabledAssetsResponse } = useAssetsList({ q: SHARING_ENABLED_PROJECTS_QUERY })
-  const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate()
+  const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate<ServerError>({
+    mutation: {
+      // Hide default error to avoid duplicate toasts
+      onError: () => null,
+    },
+  })
 
-  const isLoading = isFetchingAttachedSources || isDetachingSource || isPatchingDataSharing
+  const isLoadingAttachedSources = isPendingAttachedSources || isFetchingAttachedSources
+  const isImportsLoading = isLoadingAttachedSources || isDetachingSource
+  const isLoading = isLoadingAttachedSources || isDetachingSource || isPatchingDataSharing
 
   const sharingEnabledAssetsLoaded = Boolean(sharingEnabledAssetsResponse?.data)
 
@@ -78,16 +87,41 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
   const attachedSources = useMemo<AttachedSourceItem[]>(() => {
     const payload = attachedSourcesResponse?.data
-    const sources = payload && 'results' in payload ? payload.results : []
+    const sources = payload && 'results' in payload && Array.isArray(payload.results) ? payload.results : []
 
-    return sources.map((source) => ({
-      sourceName: truncateString(source.source__name, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
-      sourceUrl: source.source,
-      sourceUid: getAssetUIDFromUrl(source.source) || '',
-      linkedFields: source.fields,
-      filename: truncateFile(source.filename, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
-      attachmentUrl: source.url,
-    }))
+    return sources.flatMap((source) => {
+      const sourceUrl = typeof source.source === 'string' ? source.source : ''
+      const sourceUid = sourceUrl ? (getAssetUIDFromUrl(sourceUrl) ?? '') : ''
+      const sourceNameRaw = typeof source.source__name === 'string' ? source.source__name : ''
+      // `source__name` is `null` when the source asset no longer exists (it was deleted). The empty-string check is
+      // a defensive fallback: assets can technically have a blank name (e.g. legacy records or direct API writes)
+      // TODO: update this code after https://linear.app/kobotoolbox/issue/DEV-2034/ is done.
+      const isSourceDeleted = source.source__name === null || sourceNameRaw.trim().length === 0
+      const attachmentUrl = typeof source.url === 'string' ? source.url : ''
+
+      // Skip malformed records that cannot be removed or displayed safely.
+      if (attachmentUrl === '') {
+        return []
+      }
+
+      return [
+        {
+          sourceName: truncateString(
+            isSourceDeleted ? t('Deleted project') : sourceNameRaw,
+            MAX_DISPLAYED_STRING_LENGTH.connect_projects,
+          ),
+          sourceUrl,
+          sourceUid,
+          isSourceDeleted,
+          linkedFields: Array.isArray(source.fields) ? source.fields : [],
+          filename: truncateFile(
+            typeof source.filename === 'string' ? source.filename : '',
+            MAX_DISPLAYED_STRING_LENGTH.connect_projects,
+          ),
+          attachmentUrl,
+        },
+      ]
+    })
   }, [attachedSourcesResponse])
 
   // Note: we wrap most of the functions in `useCallback`, because they are being referenced in
@@ -205,6 +239,29 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
               nextEnabled ? dataAttachmentsUtils.generateColumnFilters(nextFields, asset.content?.survey ?? []) : [],
             )
             onSuccess?.()
+          },
+          onError: (error) => {
+            const errorResponse = error.parsedResponse as {
+              detail?: string
+              data_sharing?: { fields?: string[] }
+            }
+            const invalidFieldsErrorMessage = dataAttachmentsUtils.buildInvalidFieldsErrorMessage(
+              data.fields,
+              errorResponse?.data_sharing,
+              t('Failed to attach to source'),
+              t('Some fields are invalid:'),
+            )
+
+            if (invalidFieldsErrorMessage) {
+              notify.error(invalidFieldsErrorMessage)
+              return
+            }
+
+            notify.error(
+              errorResponse?.detail ||
+                errorResponse?.data_sharing?.fields?.join(', ') ||
+                t('Failed to attach to source'),
+            )
           },
         },
       )
@@ -336,7 +393,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
                 sharingEnabledAssetsLoaded={sharingEnabledAssetsLoaded}
                 filteredAssets={filteredAssets}
                 value={newSource}
-                isLoading={isLoading}
+                isLoading={isImportsLoading}
                 isInitialised={isInitialised}
                 sourceError={fieldsErrors.source}
                 onSourceChange={onSourceChange}
@@ -347,7 +404,7 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
             onFilenameChange={onFilenameChange}
             onConfirmAttachment={onConfirmAttachment}
             isInitialised={isInitialised}
-            isLoading={isLoading}
+            isLoading={isImportsLoading}
             attachedSources={attachedSources}
             showColumnFilterModal={showColumnFilterModal}
             onRemoveAttachment={onRemoveAttachment}

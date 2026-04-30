@@ -152,7 +152,9 @@ def migrate_advanced_features(
                 features_to_create.extend(convert_qual_params(asset, value))
 
         # DANGER: this does not go through validate_params
-        QuestionAdvancedFeature.objects.bulk_create(features_to_create)
+        QuestionAdvancedFeature.objects.bulk_create(
+            features_to_create, ignore_conflicts=True
+        )
 
         # restore the old dict, but mark that we've already migrated
         asset.advanced_features = copied

@@ -15,7 +15,6 @@ from rest_framework import status
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.models import SocialAppCustomData
-from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
@@ -56,7 +55,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             'frontend_max_retry_time': config.FRONTEND_MAX_RETRY_TIME,
             'project_metadata_fields': lambda x: self.assertEqual(
                 len(x),
-                len(to_python_object(config.PROJECT_METADATA_FIELDS)),
+                len(config.PROJECT_METADATA_FIELDS),
             )
             and self.assertIn({'name': 'organization', 'required': False}, x),
             'extra_project_metadata_fields': lambda x: self.assertEqual(len(x), 1)
@@ -64,7 +63,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             and self.assertEqual(x[0]['required'], True),
             'user_metadata_fields': lambda x: self.assertEqual(
                 len(x),
-                len(to_python_object(config.USER_METADATA_FIELDS)),
+                len(config.USER_METADATA_FIELDS),
             )
             and self.assertIn({'name': 'sector', 'required': False}, x),
             'sector_choices': lambda x: self.assertGreater(len(x), 10)

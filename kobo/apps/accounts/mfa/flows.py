@@ -1,6 +1,5 @@
 from allauth.headless.mfa.inputs import ActivateTOTPInput
 from allauth.mfa import signals
-from allauth.mfa.base.internal.flows import delete_and_cleanup
 from allauth.mfa.models import Authenticator
 from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
 from allauth.mfa.recovery_codes.internal.flows import auto_generate_recovery_codes
@@ -65,6 +64,4 @@ def deactivate_totp(request, name):
         )
     except MfaMethodsWrapper.DoesNotExist:
         raise NotFound
-    mfa.is_active = False
-    mfa.save()
-    delete_and_cleanup(request, mfa.totp)
+    mfa.deactivate(request=request)

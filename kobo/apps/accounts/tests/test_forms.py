@@ -12,7 +12,6 @@ from rest_framework import status
 
 from hub.models.sitewide_message import SitewideMessage
 from kobo.apps.accounts.forms import SignupForm, SocialSignupForm
-from kpi.utils.json import LazyJSONSerializable
 
 
 class AccountFormsTestCase(TestCase):
@@ -38,35 +37,29 @@ class AccountFormsTestCase(TestCase):
             sociallogin=self.sociallogin,
             data={'email': bad_email, 'name': 'name', 'username': 'uname'},
         )
-        self.assertEquals(form.errors['email'], ['Email must match SSO server email'])
+        self.assertEqual(form.errors['email'], ['Email must match SSO server email'])
 
     def test_only_configurable_fields_can_be_removed(self):
-        with override_config(USER_METADATA_FIELDS='{}'):
+        with override_config(USER_METADATA_FIELDS=[]):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'username' in form.fields
             assert 'email' in form.fields
 
     def test_field_without_custom_label_can_be_required(self):
-        with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [{'name': 'name', 'required': True}]
-            )
-        ):
+        with override_config(USER_METADATA_FIELDS=[{'name': 'name', 'required': True}]):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert form.fields['name'].required
             assert form.fields['name'].label == 'Full name'
 
     def test_field_with_only_default_custom_label(self):
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'name',
-                        'required': True,
-                        'label': {'default': 'Secret Agent ID'},
-                    }
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'name',
+                    'required': True,
+                    'label': {'default': 'Secret Agent ID'},
+                }
+            ]
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert form.fields['name'].required
@@ -74,18 +67,16 @@ class AccountFormsTestCase(TestCase):
 
     def test_field_with_specific_and_default_custom_labels(self):
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'name',
-                        'required': True,
-                        'label': {
-                            'default': 'Secret Agent ID',
-                            'es': 'ID de agente secreto',
-                        },
-                    }
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'name',
+                    'required': True,
+                    'label': {
+                        'default': 'Secret Agent ID',
+                        'es': 'ID de agente secreto',
+                    },
+                }
+            ]
         ):
             with translation.override('es'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
@@ -106,17 +97,15 @@ class AccountFormsTestCase(TestCase):
         should render labels properly even if the default is missing
         """
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'organization',
-                        'required': True,
-                        'label': {
-                            'fr': 'Organisation secrète',
-                        },
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'organization',
+                    'required': True,
+                    'label': {
+                        'fr': 'Organisation secrète',
                     },
-                ]
-            )
+                },
+            ]
         ):
             with translation.override('fr'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
@@ -125,33 +114,29 @@ class AccountFormsTestCase(TestCase):
 
     def test_field_without_custom_label_can_be_optional(self):
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'organization',
-                        'required': False,
-                    },
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'organization',
+                    'required': False,
+                },
+            ]
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert not form.fields['organization'].required
 
     def test_field_with_custom_label_can_be_optional(self):
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'organization',
-                        'required': False,
-                        'label': {
-                            'default': 'Organization',
-                            'fr': 'Organisation',
-                            'es': 'Organización',
-                        },
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'organization',
+                    'required': False,
+                    'label': {
+                        'default': 'Organization',
+                        'fr': 'Organisation',
+                        'es': 'Organización',
                     },
-                ]
-            )
+                },
+            ]
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert not form.fields['organization'].required
@@ -167,18 +152,16 @@ class AccountFormsTestCase(TestCase):
 
     def test_not_supported_translation(self):
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'organization',
-                        'required': False,
-                        'label': {
-                            'default': 'Organization',
-                            'fr': 'Organisation',
-                        },
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'organization',
+                    'required': False,
+                    'label': {
+                        'default': 'Organization',
+                        'fr': 'Organisation',
                     },
-                ]
-            )
+                },
+            ]
         ):
             with translation.override('es'):
                 form = SocialSignupForm(sociallogin=self.sociallogin)
@@ -191,28 +174,24 @@ class AccountFormsTestCase(TestCase):
 
     def test_organization_type_valid_field(self):
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'organization_type',
-                        'required': False,
-                    },
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'organization_type',
+                    'required': False,
+                },
+            ]
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'organization_type' in form.fields
 
     def test_newsletter_subscription_valid_field(self):
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {
-                        'name': 'newsletter_subscription',
-                        'required': False,
-                    },
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {
+                    'name': 'newsletter_subscription',
+                    'required': False,
+                },
+            ]
         ):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'newsletter_subscription' in form.fields
@@ -305,13 +284,11 @@ class AccountFormsTestCase(TestCase):
         }
 
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': False},
-                    {'name': 'organization', 'required': False},
-                    {'name': 'organization_website', 'required': False},
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {'name': 'organization_type', 'required': False},
+                {'name': 'organization', 'required': False},
+                {'name': 'organization_website', 'required': False},
+            ]
         ):
             form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
             assert form.is_valid()
@@ -324,13 +301,11 @@ class AccountFormsTestCase(TestCase):
             assert form.is_valid()
 
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': True},
-                    {'name': 'organization', 'required': False},
-                    {'name': 'organization_website', 'required': False},
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {'name': 'organization_type', 'required': True},
+                {'name': 'organization', 'required': False},
+                {'name': 'organization_website', 'required': False},
+            ]
         ):
             form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
             # Should fail now that `organization_type` is required
@@ -343,13 +318,11 @@ class AccountFormsTestCase(TestCase):
             assert form.is_valid()
 
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': True},
-                    {'name': 'organization', 'required': True},
-                    {'name': 'organization_website', 'required': True},
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {'name': 'organization_type', 'required': True},
+                {'name': 'organization', 'required': True},
+                {'name': 'organization_website', 'required': True},
+            ]
         ):
             form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
             assert not form.is_valid()
@@ -377,12 +350,10 @@ class AccountFormsTestCase(TestCase):
             assert form.is_valid()
 
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization', 'required': True},
-                    {'name': 'organization_website', 'required': True},
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {'name': 'organization', 'required': True},
+                {'name': 'organization_website', 'required': True},
+            ]
         ):
             # Support excluding 'organization_type' from metadata fields
             form = form_type(basic_data, **kwargs.get('form_kwargs', {}))
@@ -397,11 +368,9 @@ class AccountFormsTestCase(TestCase):
             assert form.is_valid()
 
         with override_config(
-            USER_METADATA_FIELDS=LazyJSONSerializable(
-                [
-                    {'name': 'organization_type', 'required': True},
-                ]
-            )
+            USER_METADATA_FIELDS=[
+                {'name': 'organization_type', 'required': True},
+            ]
         ):
             # Support 'organization_type' by itself
             form = form_type(basic_data, **kwargs.get('form_kwargs', {}))

@@ -4,8 +4,16 @@ name: Deploy PR preview environment
 on:
   workflow_dispatch:
     inputs:
-      pr_number:
-        description: 'The PR number from "kpi" to build'
+      input_type:
+        description: 'Deploy a PR or branch?'
+        required: true
+        type: choice
+        default: PR
+        options:
+          - PR
+          - Branch
+      input_value:
+        description: 'The PR number or branch name from "kpi" to deploy'
         required: true
         type: string
 
@@ -16,20 +24,22 @@ jobs:
       contents: read
       packages: write
     outputs:
-      title: ${{ steps.get_pr_info.outputs.title }}
+      zulip_topic: ${{ steps.set_variables.outputs.zulip_topic }}
 
     steps:
       - name: Get PR info
+        if: ${{ github.event.inputs.input_type == 'PR' }}
         id: get_pr_info
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_VALUE: ${{ github.event.inputs.input_value }}
         run: |
           # Use the GitHub CLI to find the branch name for the PR
-          BRANCH=$(gh pr view ${{ github.event.inputs.pr_number }} \
+          BRANCH=$(gh pr view "$INPUT_VALUE" \
             --repo kobotoolbox/kpi \
             --json headRefName --template '{{.headRefName}}')
 
-          TITLE=$(gh pr view ${{ github.event.inputs.pr_number }} \
+          TITLE=$(gh pr view "$INPUT_VALUE" \
             --repo kobotoolbox/kpi \
             --json title --template '{{.title}}')
 
@@ -37,11 +47,13 @@ jobs:
           echo "title=$TITLE" >> $GITHUB_OUTPUT
           echo "Found branch: $BRANCH"
 
+
       - name: Clone kpi repo at PR branch
         uses: actions/checkout@v6
         with:
           repository: kobotoolbox/kpi
-          ref: ${{ steps.get_pr_info.outputs.branch_name }}
+          #if the input type is PR, use the branch name from the previous step; otherwise, use the input value directly as the branch name
+          ref: ${{ github.event.inputs.input_type == 'PR' && steps.get_pr_info.outputs.branch_name || github.event.inputs.input_value }}
           path: kpi
 
       - name: Get commit info
@@ -51,7 +63,7 @@ jobs:
           COMMIT_HASH=$(git rev-parse HEAD)
           echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
           echo "Found commit hash: $COMMIT_HASH"
-          COMMIT_MESSAGE=$(git log -1 --pretty=%B | sed 's/"//g') # Remove double quotes to avoid issues
+          COMMIT_MESSAGE=$(git log -1 --format=%s | sed 's/"//g') # Remove double quotes to avoid issues
           echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry
@@ -61,35 +73,57 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: set variables
+        id: set_variables
+        env:
+          INPUT_TYPE: ${{ github.event.inputs.input_type }}
+          INPUT_VALUE: ${{ github.event.inputs.input_value }}
+          PR_TITLE: ${{ steps.get_pr_info.outputs.title }}
+        run: |
+          if [ "$INPUT_TYPE" = "PR" ]; then
+            CLEAN_TITLE=$(echo "$PR_TITLE" | tr -d '"')
+            ZULIP_TOPIC="$INPUT_TYPE $INPUT_VALUE - $CLEAN_TITLE"
+            echo "ENV_NAME=pr-$INPUT_VALUE" >> $GITHUB_OUTPUT
+          else
+            ZULIP_TOPIC="$INPUT_TYPE $INPUT_VALUE"
+            CLEAN_NAME=$(echo "$INPUT_VALUE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/^-//;s/-$//')
+            HASH=$(echo -n "$INPUT_VALUE" | sha256sum | cut -c 1-6)
+            TRUNC_NAME=$(echo "$CLEAN_NAME" | cut -c 1-20)
+            echo "ENV_NAME=br-$TRUNC_NAME-$HASH" >> $GITHUB_OUTPUT
+          fi
+          echo "zulip_topic=$ZULIP_TOPIC" >> $GITHUB_OUTPUT
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           context: ./kpi
           push: true
-          tags: ghcr.io/kobotoolbox/kpi:pr-${{ github.event.inputs.pr_number }}
+          tags: ghcr.io/kobotoolbox/kpi:${{ steps.set_variables.outputs.ENV_NAME }}
 
       - name: Generate GitHub App Token
-        id: app-token
+        id: app_token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+          client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
           private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
           owner: kobotoolbox
           repositories: "devops"
 
-      - name: Trigger pr deploy build
+      - name: Trigger deployment workflow
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: kpi_pr_deploy.yml
+          workflow: kpi_ephemeral_deploy.yml
           repo: kobotoolbox/devops
           ref: main
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.app_token.outputs.token }}
           inputs: |
             {
-              "pr_number": "${{ github.event.inputs.pr_number }}",
-              "title": "${{ steps.get_pr_info.outputs.title }}",
+              "input_type": "${{ github.event.inputs.input_type }}",
+              "input_value": "${{ github.event.inputs.input_value }}",
+              "env_name": "${{ steps.set_variables.outputs.ENV_NAME }}",
               "commit_hash": "${{ steps.get_commit_info.outputs.commit_hash }}",
-              "commit_message": "${{ steps.get_commit_info.outputs.commit_message }}"
+              "commit_message": "${{ steps.get_commit_info.outputs.commit_message }}",
+              "zulip_topic": "${{ steps.set_variables.outputs.zulip_topic }}"
             }
 
   notify-failure:
@@ -100,5 +134,5 @@ jobs:
     secrets: inherit
     with:
       stream: "PR Preview Environments"
-      topic: PR ${{ github.event.inputs.pr_number }} - ${{ needs.build.outputs.title }}
-      content: "❌ Failed to deploy ephemeral environment for PR #${{ github.event.inputs.pr_number }} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})"
+      topic: "${{ needs.build.outputs.zulip_topic }}"
+      content: "❌ Failed to deploy ephemeral environment for ${{ github.event.inputs.input_type }} ${{ github.event.inputs.input_value }} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})"

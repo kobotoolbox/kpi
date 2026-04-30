@@ -94,6 +94,7 @@ class OrgInline(admin.StackedInline):
     classes = ('no-upper',)
     raw_id_fields = ('user', 'organization')
 
+    @admin.display(description='Active Subscription')
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
             return (
@@ -111,7 +112,6 @@ class OrgInline(admin.StackedInline):
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
 
-    active_subscription_status.short_description = 'Active Subscription'
 
 
 class InactiveUsersAsOfFilter(SimpleListFilter):

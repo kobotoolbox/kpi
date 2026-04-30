@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.utils.versioning import migrate_submission_supplementals
 from kpi.models import Asset
@@ -315,6 +316,13 @@ class Command(BaseCommand):
                             )
                             if created:
                                 asset_qaf_created += 1
+                    if not dry_run:
+                        asset.advanced_features['_version'] = SCHEMA_VERSIONS[0]
+                        asset.save(
+                            update_fields=['advanced_features'],
+                            create_version=False,
+                            adjust_content=False,
+                        )
             except Exception as e:
                 self.stderr.write(f'  ERROR creating QAFs for asset={asset.uid}: {e}')
                 qaf_errors += len(combos_for_asset)

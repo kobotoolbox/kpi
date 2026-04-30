@@ -4,6 +4,7 @@ from django.contrib import admin
 from .models import SuperuserStatsModel
 
 
+@admin.register(SuperuserStatsModel)
 class SuperuserStatsAdmin(admin.ModelAdmin):
     actions = None
     change_list_template = 'superuser_stats_change_list.html'
@@ -18,4 +19,3 @@ class SuperuserStatsAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(SuperuserStatsModel, SuperuserStatsAdmin)

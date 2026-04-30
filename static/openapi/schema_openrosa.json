@@ -384,8 +384,7 @@
                         "in": "path",
                         "name": "token",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^[^/]+$"
+                            "type": "string"
                         },
                         "required": true
                     }
@@ -433,8 +432,7 @@
                         "in": "path",
                         "name": "token",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^[^/]+$"
+                            "type": "string"
                         },
                         "required": true
                     }

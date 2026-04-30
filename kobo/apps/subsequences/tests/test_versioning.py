@@ -2,6 +2,7 @@ import copy
 import itertools
 from datetime import datetime, timedelta
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from ddt import data, ddt, unpack
 from django.test import TestCase
@@ -158,8 +159,8 @@ class TestVersioning(TestCase):
     ):
         now = timezone.now()
         one_day_ago = now - timedelta(days=1)
-        jan_1_2024 = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        jan_2_2024 = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        jan_1_2024 = datetime(2024, 1, 1, tzinfo=ZoneInfo('UTC'))
+        jan_2_2024 = datetime(2024, 1, 2, tzinfo=ZoneInfo('UTC'))
         transcripts = [
             {
                 '_uuid': 'uuid1',

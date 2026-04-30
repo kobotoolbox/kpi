@@ -3,7 +3,7 @@ import os
 from xml.dom import Node
 
 import pytest
-from defusedxml import minidom
+from xml.dom import minidom
 from django.conf import settings
 from django.urls import reverse
 from pyxform.errors import PyXFormError

@@ -1,4 +1,5 @@
 from constance.test import override_config
+from allauth.mfa.models import Authenticator
 from django.test import override_settings
 from django.urls import reverse
 from freezegun import freeze_time
@@ -88,6 +89,9 @@ class MfaApiTestCase(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         mfamethods = MfaMethodsWrapper.objects.get(user=self.someuser)
         assert mfamethods.is_active is False
+        assert mfamethods.totp is None
+        assert mfamethods.recovery_codes is None
+        assert Authenticator.objects.filter(user=self.someuser).count() == 0
 
     def test_reactivate_generates_different_secret(self):
         """

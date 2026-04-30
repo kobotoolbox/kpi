@@ -55,7 +55,7 @@ urlpatterns = [
         name='swagger-ui-openrosa',
     ),
     # https://github.com/stochastic-technologies/django-loginas
-    re_path(r'^admin/', include('loginas.urls')),
+    path('admin/', include('loginas.urls')),
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
@@ -65,11 +65,11 @@ urlpatterns = [
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),
     ),
-    re_path(r'^', include('kpi.urls')),
-    re_path(r'^', include('kobo.apps.openrosa.apps.main.urls')),
-    re_path(r'^markdownx/', include('markdownx.urls')),
-    re_path(r'^markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
-    re_path(r'^help/', include('kobo.apps.help.urls')),
+    path('', include('kpi.urls')),
+    path('', include('kobo.apps.openrosa.apps.main.urls')),
+    path('markdownx/', include('markdownx.urls')),
+    path('markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
+    path('help/', include('kobo.apps.help.urls')),
 ]
 
 if settings.ENABLE_METRICS:

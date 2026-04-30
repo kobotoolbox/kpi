@@ -9,6 +9,7 @@ import ActionIcon, { type ActionIconProps } from './ActionIcon'
 const actionIconVariants: Array<ActionIconProps['variant']> = [
   'filled',
   'light',
+  'outline',
 
   //// Custom:
   'danger',
@@ -16,7 +17,7 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
   'transparent',
 ]
 
-const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
+const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg', 'xl']
 
 type StoryArgs = StoryArgsFromPolymorphic<'button', ActionIconProps & { 'data-testid'?: string }>
 type Story = StoryObj<ForwardRefExoticComponent<StoryArgs>>

@@ -12,13 +12,18 @@ export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   tooltipProps?: Partial<Omit<TooltipProps, 'label'>>
 
   iconName: IconName
-  size: 'sm' | 'md' | 'lg'
+  size: 'sm' | 'md' | 'lg' | 'xl'
+}
+
+const MANTINE_TO_ICON_SIZE_MAP: Record<ActionIconProps['size'], IconSize> = {
+  sm: 's',
+  md: 'm',
+  lg: 'l',
+  xl: 'xl',
 }
 
 const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, ...props }, ref) => {
-  // Currently, our icon sizes only use a single letter instead of
-  // Mantine's 'sm', 'md', etc. So here we grab the first letter.
-  const iconSize = props.size[0] as IconSize
+  const iconSize = MANTINE_TO_ICON_SIZE_MAP[props.size]
 
   if (!props.tooltip) {
     return (
