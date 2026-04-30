@@ -3,6 +3,7 @@
  */
 import '#/bemComponents' // importing it so it exists
 
+import { useDisclosure } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
 import { MantineProvider } from '@mantine/core'
@@ -37,9 +38,7 @@ import './api/mutation-defaults'
  */
 function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle, assetUid }) {
   const [modal, setModal] = useState(() => pageState.state.modal ?? false)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-
-  const toggleDrawer = () => setIsDrawerOpen((v) => !v)
+  const [isDrawerOpen, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false)
 
   // Subscribe to modal state changes.
   useEffect(() => {
@@ -49,9 +48,9 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
   // Close the drawer on every route change (better mobile experience).
   useEffect(() => {
     return router.subscribe(() => {
-      setIsDrawerOpen(false)
+      closeDrawer()
     })
-  }, [])
+  }, [closeDrawer])
 
   const pageWrapperContentModifiers = []
   if (isFormSingle) {
