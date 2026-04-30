@@ -74,14 +74,14 @@ export interface SocialApp {
 
 export interface ExtraProjectMetadataOption {
   name: string
-  label: string
+  label: string | { [key: string]: string | undefined; default?: string }
 }
 
 export interface ExtraProjectMetadataField {
   name: string
   label: {
-    [key: string]: string
-    default: string
+    [key: string]: string | undefined
+    default?: string
   }
   type: 'text' | 'single_select' | 'multi_select'
   required: boolean
@@ -136,6 +136,13 @@ export class EnvStoreData {
 
   public getExtraFieldLabel(field: ExtraProjectMetadataField, lang = 'default'): string {
     return field.label[lang] || field.label.default || field.name
+  }
+
+  public getExtraOptionLabel(option: ExtraProjectMetadataOption, lang = 'default'): string {
+    if (typeof option.label === 'string') {
+      return option.label
+    }
+    return option.label[lang] || option.label.default || option.name
   }
 
   public getProjectMetadataFieldsAsSimpleDict() {

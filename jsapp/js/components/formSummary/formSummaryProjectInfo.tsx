@@ -9,7 +9,7 @@ import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dat
 import { dataInterface } from '#/dataInterface'
 import envStore, { type ExtraProjectMetadataField } from '#/envStore'
 import sessionStore from '#/stores/session'
-import { formatTime } from '#/utils'
+import { currentLang, formatTime } from '#/utils'
 
 interface FormSummaryProjectInfoProps {
   asset: AssetResponse
@@ -18,12 +18,26 @@ interface FormSummaryProjectInfoProps {
 const getExtraMetadataDisplayValue = (field: ExtraProjectMetadataField, asset: AssetResponse) => {
   const valueEntry = (asset.settings as Record<string, any>)?.[field.name]
 
+  const resolveOptionLabel = (storedOpt: any): string => {
+    const optName = storedOpt?.value ?? storedOpt
+    const fieldOption = field.options?.find((o) => o.name === optName)
+    if (fieldOption) {
+      return envStore.data.getExtraOptionLabel(fieldOption, currentLang())
+    }
+    if (storedOpt?.label) {
+      return typeof storedOpt.label === 'string'
+        ? storedOpt.label
+        : storedOpt.label[currentLang()] || storedOpt.label.default || String(optName)
+    }
+    return String(optName ?? '-')
+  }
+
   if (Array.isArray(valueEntry)) {
-    return valueEntry.length > 0 ? valueEntry.map((item) => item.label || item).join(', ') : '-'
+    return valueEntry.length > 0 ? valueEntry.map(resolveOptionLabel).join(', ') : '-'
   }
 
   if (valueEntry && typeof valueEntry === 'object') {
-    return valueEntry.label || '-'
+    return resolveOptionLabel(valueEntry)
   }
 
   if (valueEntry) {
@@ -195,7 +209,7 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           <bem.FormView__group m='items'>
             {extraFieldDefinitions.map((field) => (
               <bem.FormView__cell m='padding' key={field.name}>
-                <bem.FormView__label>{envStore.data.getExtraFieldLabel(field)}</bem.FormView__label>
+                <bem.FormView__label>{envStore.data.getExtraFieldLabel(field, currentLang())}</bem.FormView__label>
                 <div dir='auto'>{getExtraMetadataDisplayValue(field, props.asset)}</div>
               </bem.FormView__cell>
             ))}
