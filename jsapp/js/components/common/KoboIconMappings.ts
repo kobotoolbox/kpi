@@ -199,6 +199,7 @@ export const LegacyIconToTablerIconMap: Record<IconName, TablerIcon | undefined>
   tag: TablerIcons.IconTagFilled,
   'template-locked': undefined,
   template: TablerIcons.IconTemplate,
+  transcripts: undefined,
   trash: TablerIcons.IconTrashFilled,
   unfreeze: TablerIcons.IconTableOff,
   unsubscribe: undefined,
