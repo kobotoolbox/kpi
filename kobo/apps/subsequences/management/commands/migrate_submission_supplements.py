@@ -102,7 +102,8 @@ class Command(BaseCommand):
                 # just stamp _version so the export guard stops blocking.
                 self.stdout.write(
                     self.style.WARNING(
-                        f'  Supplement {ss.pk}'
+                        f'  {"[dry-run] " if dry_run else ""}'
+                        f'Supplement {ss.pk}'
                         f' (asset={ss.asset.uid}, uuid={ss.submission_uuid})'
                         ' has empty content — stamping _version'
                     )
