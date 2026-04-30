@@ -480,6 +480,8 @@ class GoogleTranslationService(GoogleService):
         operation = self.translate_client.transport.operations_client.get_operation(
             operation_name
         )
+        if isinstance(operation, dict):
+            return operation
 
         return MessageToDict(
             operation._pb if hasattr(operation, '_pb') else operation,

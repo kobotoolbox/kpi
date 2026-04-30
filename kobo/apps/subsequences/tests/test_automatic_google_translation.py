@@ -397,7 +397,6 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
 
-@pytest.mark.skip(reason='Skip until asynchronous translation is supported')
 def test_action_is_updated_in_background_if_in_progress():
     action = _get_action()
     mock_service = MagicMock()
@@ -411,9 +410,15 @@ def test_action_is_updated_in_background_if_in_progress():
         with patch(
             'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
-            action.revise_data(submission, EMPTY_SUPPLEMENT, {'language': 'fr'})
+            result = action.revise_data(
+                submission,
+                EMPTY_SUPPLEMENT,
+                {'language': 'fr'},
+            )
 
         task_mock.apply_async.assert_called_once()
+        assert result['fr']['_versions'][0]['_data']['status'] == 'in_progress'
+        assert result['fr']['_versions'][0]['_data']['language'] == 'fr'
 
 
 def test_transform_data_for_output():

@@ -8,6 +8,32 @@ from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 
 
+def _get_latest_action_version(
+    asset,
+    supplement_data: dict,
+    question_xpath: str,
+    action_id: str,
+    action_data: dict,
+) -> dict:
+    """
+    Return the latest version for flat actions like transcription and localized
+    actions like translation.
+    """
+    feature = asset.advanced_features_set.get(
+        question_xpath=question_xpath,
+        action=action_id,
+    )
+    action = feature.to_action()
+    action_supplemental_data = supplement_data[question_xpath][action_id]
+    localized_action_supplemental_data, _ = (
+        action.get_localized_action_supplemental_data(
+            action_supplemental_data,
+            action_data,
+        )
+    )
+    return localized_action_supplemental_data['_versions'][0]
+
+
 # With retry_backoff=5 and retry_backoff_max=60, each retry waits:
 #   min(5 * 2^(n-1), 60) seconds.
 # We also add an initial 10s delay before the first attempt.
@@ -46,8 +72,13 @@ def poll_run_external_process(
     # FIXME: revise_data cannot handle action_data with dependencies already attached
     supplement_data = SubmissionSupplement.revise_data(asset, submission, incoming_data)
 
-    # FIXME: raises KeyError if action results are further nested (eg translations)
-    last_action_version = supplement_data[question_xpath][action_id]['_versions'][0]
+    last_action_version = _get_latest_action_version(
+        asset,
+        supplement_data,
+        question_xpath,
+        action_id,
+        action_data,
+    )
 
     if last_action_version[BaseAction.VERSION_DATA_FIELD]['status'] == 'in_progress':
         raise SubsequenceTimeoutError(
@@ -92,7 +123,6 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     }
     action = feature.to_action(prefetched_dependencies=prefetched_dependencies)
 
-    # FIXME: raises KeyError if action results are further nested (eg translations)
     action_supplemental_data = supplemental_data[question_xpath][action_id]
     action_data.update(
         {
@@ -100,11 +130,14 @@ def poll_run_external_process_failure(sender=None, **kwargs):
             'status': 'failed',
         }
     )
-    # FIXME We assume that the last action is the one in progress but it could
-    #   be another one.
-    dependency_supplemental_data = action_supplemental_data['_versions'][0].get(
-        action.DEPENDENCY_FIELD
+    last_action_version = _get_latest_action_version(
+        asset,
+        supplemental_data,
+        question_xpath,
+        action_id,
+        action_data,
     )
+    dependency_supplemental_data = last_action_version.get(action.DEPENDENCY_FIELD)
 
     new_action_supplemental_data = action.get_new_action_supplemental_data(
         action_supplemental_data, action_data, dependency_supplemental_data
