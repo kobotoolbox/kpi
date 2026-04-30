@@ -29,7 +29,17 @@ interface IconProps {
 }
 
 /**
- * An icon component.
+ * An icon component that renders legacy font icons and is kept for backwards compatibility.
+ *
+ * @deprecated Please use `KoboIcon`. See `KoboIconMappings` for the old-to-new map. If you need to support both `Icon`
+ * and `KoboIcon` in some universal component, please use `IconLegacySupport`.
+ *
+ * ## Migration notes
+ * When switching from old icons to new, when you migrate an icon, e.g. "language", let's migrate all places that use
+ * it, and then delete the old icon. Places to look at:
+ * - `jsapp/svg-icons` (delete icon SVG file, make sure to rerun `npm run generate-icons`)
+ * - `jsapp/js/components/common/KoboIconMappings.ts` (delete a line)
+ * - `jsapp/js/components/common/IconLegacySvgMappings.tsx` (delete two lines)
  */
 export default function Icon(props: IconProps) {
   const classNames: string[] = []
