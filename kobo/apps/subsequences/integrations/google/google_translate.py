@@ -28,7 +28,7 @@ class GoogleTranslationService(GoogleService):
     API_NAME = 'translate'
     API_VERSION = 'v3'
     API_RESOURCE = 'projects.locations.operations'
-    MAX_SYNC_CHARS = 3
+    MAX_SYNC_CHARS = 30720
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         """
@@ -287,17 +287,11 @@ class GoogleTranslationService(GoogleService):
                 'error': f'Translation failed with error {str(err)}',
             }
         except (GoogleAPIError, GoogleCloudError, Exception) as err:
-            logging.error(f'Google operation failed for {xpath=}: {err}')
-            self._clear_operation_reference(
-                xpath,
-                source_language_code,
-                target_language_code,
-                bulk_action_uid,
+            logging.error(
+                'Google infrastructure error while starting translation for '
+                f'{xpath=}: {err}'
             )
-            return {
-                'status': 'failed',
-                'error': f'Translation failed with error {str(err)}',
-            }
+            return {'status': 'in_progress'}
 
     def _poll_async_translation(
         self,
