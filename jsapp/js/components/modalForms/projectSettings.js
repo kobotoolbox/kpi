@@ -20,7 +20,7 @@ import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import styles from '#/components/modalForms/projectSettings.module.scss'
 import { userCan } from '#/components/permissions/utils'
 import TemplatesList from '#/components/templatesList'
-import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
@@ -42,7 +42,10 @@ const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-
 const ExtraMetadataField = ({ field, value, onChange, hasError }) => {
   const label = envStore.data.getExtraFieldLabel(field, currentLang())
 
-  if (field.type === 'single_select' || field.type === 'multi_select') {
+  if (
+    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT ||
+    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+  ) {
     const options = (field.options ?? []).map((opt) => ({
       value: opt.name,
       label: opt.label,
@@ -52,7 +55,7 @@ const ExtraMetadataField = ({ field, value, onChange, hasError }) => {
       <div className={styles.input}>
         <WrappedSelect
           label={addRequiredToLabel(label, field.required)}
-          isMulti={field.type === 'multi_select'}
+          isMulti={field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT}
           value={value}
           onChange={(val) => onChange(field.name, val)}
           options={options}
@@ -193,7 +196,12 @@ class ProjectSettings extends React.Component {
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
       const value = asset?.settings?.[field.name]
-      const defaultValue = field.type === 'multi_select' ? [] : field.type === 'single_select' ? null : ''
+      const defaultValue =
+        field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+          ? []
+          : field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT
+            ? null
+            : ''
 
       fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
     })
@@ -764,14 +772,14 @@ class ProjectSettings extends React.Component {
 
       const val = this.state.fields.extra_metadata_fields[field.name]
 
-      if (field.type === 'multi_select') {
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT) {
         if (!Array.isArray(val) || val.length === 0) {
           fieldsWithErrors.push(field.name)
         }
         return
       }
 
-      if (field.type === 'single_select') {
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT) {
         if (!val) {
           fieldsWithErrors.push(field.name)
         }

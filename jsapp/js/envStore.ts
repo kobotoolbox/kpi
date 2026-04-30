@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx'
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { ExtraProjectMetadataFieldType } from '#/constants'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import type { UserFieldName } from './account/account.constants'
 
@@ -83,7 +84,7 @@ export interface ExtraProjectMetadataField {
     [key: string]: string
     default: string
   }
-  type: 'text' | 'single_select' | 'multi_select'
+  type: ExtraProjectMetadataFieldType
   required: boolean
   options: ExtraProjectMetadataOption[]
 }
