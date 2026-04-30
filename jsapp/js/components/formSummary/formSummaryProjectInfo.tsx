@@ -7,12 +7,30 @@ import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Avatar from '#/components/common/avatar'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
-import envStore from '#/envStore'
+import envStore, { type ExtraProjectMetadataField } from '#/envStore'
 import sessionStore from '#/stores/session'
 import { formatTime } from '#/utils'
 
 interface FormSummaryProjectInfoProps {
   asset: AssetResponse
+}
+
+const getExtraMetadataDisplayValue = (field: ExtraProjectMetadataField, asset: AssetResponse) => {
+  const valueEntry = (asset.settings as Record<string, any>)?.[field.name]
+
+  if (Array.isArray(valueEntry)) {
+    return valueEntry.length > 0 ? valueEntry.map((item) => item.label || item).join(', ') : '-'
+  }
+
+  if (valueEntry && typeof valueEntry === 'object') {
+    return valueEntry.label || '-'
+  }
+
+  if (valueEntry) {
+    return String(valueEntry)
+  }
+
+  return '-'
 }
 
 export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProps) {
@@ -41,6 +59,8 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
 
   // Support custom labels for project metadata, if defined
   const metadata = envStore.data.getProjectMetadataFieldsAsSimpleDict()
+
+  const extraFieldDefinitions = envStore.data.extra_project_metadata_fields
 
   return (
     <bem.FormView__row>
@@ -167,6 +187,18 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
                 {props.asset.settings.collects_pii?.label ?? '-'}
               </bem.FormView__cell>
             )}
+          </bem.FormView__group>
+        )}
+
+        {/* extra metadata */}
+        {extraFieldDefinitions?.length > 0 && (
+          <bem.FormView__group m='items'>
+            {extraFieldDefinitions.map((field) => (
+              <bem.FormView__cell m='padding' key={field.name}>
+                <bem.FormView__label>{envStore.data.getExtraFieldLabel(field)}</bem.FormView__label>
+                <div dir='auto'>{getExtraMetadataDisplayValue(field, props.asset)}</div>
+              </bem.FormView__cell>
+            ))}
           </bem.FormView__group>
         )}
       </bem.FormView__cell>
