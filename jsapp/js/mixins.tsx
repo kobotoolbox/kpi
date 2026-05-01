@@ -471,8 +471,12 @@ const mixins: MixinsObject = {
       }
 
       const uid = this.currentAssetID()
+      if (uid == null) {
+        return false
+      }
+
       return (
-        (uid !== undefined && getCurrentPath().startsWith(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid))) ||
+        getCurrentPath().startsWith(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
         getCurrentPath().startsWith(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
         getCurrentPath().startsWith(ROUTES.FORM_EDIT.replace(':uid', uid))
       )
