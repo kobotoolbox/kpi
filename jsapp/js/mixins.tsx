@@ -471,7 +471,7 @@ const mixins: MixinsObject = {
       }
 
       const uid = this.currentAssetID()
-      if (uid == null) {
+      if (uid === undefined) {
         return false
       }
 
