@@ -70,15 +70,17 @@ dataShareActions.getAttachedSources.listen((assetUid) => {
       // backend response directly.
       // See: https://github.com/kobotoolbox/kpi/issues/3911
       response.results.forEach((source) => {
-        const sourceUrl = source.source || ''
-        const sourceUid = getAssetUIDFromUrl(sourceUrl) || ''
+        const sourceUrl = source.source || null
+        const sourceUid = sourceUrl ? getAssetUIDFromUrl(sourceUrl) || null : null
+        const isSourceDeleted = !sourceUrl || !sourceUid
         const sourceName = source.source__name || t('Deleted project')
         const filename = source.filename || t('Deleted project')
         allSources.push({
           sourceName: truncateString(sourceName, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
           // Source's asset url
           sourceUrl,
-          sourceUid: sourceUid,
+          sourceUid,
+          isSourceDeleted,
           // Fields that the connecting project has selected to import
           linkedFields: source.fields || [],
           filename: truncateFile(filename, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
