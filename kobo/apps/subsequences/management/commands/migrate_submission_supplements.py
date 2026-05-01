@@ -97,14 +97,20 @@ class Command(BaseCommand):
             content = ss.content.copy()
 
             if not content:
+                # Supplement was created by get_or_create but the process
+                # crashed before the final update(). No data to migrate;
+                # just stamp _version so the export guard stops blocking.
                 self.stdout.write(
                     self.style.WARNING(
-                        f'  Skipping supplement {ss.pk}'
-                        f' (asset={ss.asset.uid}, uuid={ss.submission_uuid}):'
-                        ' content is empty'
+                        f'  {"[dry-run] " if dry_run else ""}'
+                        f'Supplement {ss.pk}'
+                        f' (asset={ss.asset.uid}, uuid={ss.submission_uuid})'
+                        ' has empty content — stamping _version'
                     )
                 )
-                skipped += 1
+                ss.content = {'_version': SCHEMA_VERSIONS[0]}
+                to_update.append(ss)
+                migrated += 1
                 continue
 
             try:
