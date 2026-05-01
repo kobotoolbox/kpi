@@ -40,8 +40,9 @@ interface ConnectProjectsState {
 
 interface AttachedSourceItem {
   sourceName: string
-  sourceUrl: string
-  sourceUid: string
+  sourceUrl: string | null
+  sourceUid: string | null
+  isSourceDeleted: boolean
   linkedFields: string[]
   filename: string
   attachmentUrl: string
@@ -319,7 +320,9 @@ class ConnectProjects extends React.Component<ConnectProjectsProps, ConnectProje
   generateFilteredAssetList() {
     const attachedSourceUids: string[] = []
     this.state.attachedSources.forEach((item) => {
-      attachedSourceUids.push(item.sourceUid)
+      if (item.sourceUid) {
+        attachedSourceUids.push(item.sourceUid)
+      }
     })
 
     // Filter out attached projects from displayed asset list
@@ -483,7 +486,12 @@ class ConnectProjects extends React.Component<ConnectProjectsProps, ConnectProje
                     type='secondary'
                     size='m'
                     startIcon='settings'
-                    onClick={() =>
+                    isDisabled={item.isSourceDeleted}
+                    onClick={() => {
+                      if (item.isSourceDeleted || !item.sourceUid || !item.sourceUrl) {
+                        return
+                      }
+
                       this.showColumnFilterModal(
                         this.props.asset,
                         {
@@ -495,7 +503,7 @@ class ConnectProjects extends React.Component<ConnectProjectsProps, ConnectProje
                         item.linkedFields,
                         item.attachmentUrl,
                       )
-                    }
+                    }}
                   />
 
                   <Button
