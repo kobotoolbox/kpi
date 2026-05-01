@@ -265,7 +265,6 @@ class GoogleTranslationService(GoogleService):
             }
 
         operation_name = operation.operation.name
-        self.update_counters(amount)
         self._save_operation_reference(
             xpath,
             source_language_code,
@@ -273,6 +272,7 @@ class GoogleTranslationService(GoogleService):
             bulk_action_uid,
             operation_name,
         )
+        self.update_counters(amount)
 
         try:
             operation.result(
@@ -304,7 +304,7 @@ class GoogleTranslationService(GoogleService):
                 'status': 'failed',
                 'error': f'Translation failed with error {str(err)}',
             }
-        except (GoogleAPIError, GoogleCloudError, Exception) as err:
+        except (GoogleAPIError, GoogleCloudError) as err:
             logging.error(
                 'Google infrastructure error while starting translation for '
                 f'{xpath=}: {err}'
@@ -365,7 +365,7 @@ class GoogleTranslationService(GoogleService):
                 'status': 'failed',
                 'error': f'Translation failed with error {str(err)}',
             }
-        except (GoogleAPIError, GoogleCloudError, Exception) as err:
+        except (GoogleAPIError, GoogleCloudError) as err:
             # If polling itself fails, keep the operation reference so a later
             # retry can resume instead of recreating the Google job
             logging.error(
@@ -471,24 +471,26 @@ class GoogleTranslationService(GoogleService):
         """
         _, output_prefix = self._get_batch_paths(xpath, source_lang, target_lang)
         text_parts = []
+        blobs_to_delete = []
         blobs = sorted(
             self.bucket.list_blobs(prefix=output_prefix),
             key=lambda blob: blob.name,
         )
         for blob in blobs:
             if not blob.name.endswith('.txt'):
-                blob.delete()
+                blobs_to_delete.append(blob)
                 continue
             text = blob.download_as_text().strip()
             if text:
                 text_parts.append(text)
-            blob.delete()
-
+            blobs_to_delete.append(blob)
         if not text_parts:
             raise TranslationResultNotFound(
                 'No translation output files were found in Google Cloud Storage.'
             )
 
+        for blob in blobs_to_delete:
+            blob.delete()
         return '\n'.join(text_parts).strip()
 
     def _get_operation_payload(self, operation_name: str) -> dict:
