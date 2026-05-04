@@ -288,6 +288,7 @@ class CustomViewStore {
     // ordering puts newest rows at the top. If page 1 was fetched before that,
     // its stored `next` offset can overlap with rows we already have when
     // `fetchMoreAssets` runs, so dedupe by uid before appending.
+    // TODO: better fix https://linear.app/kobotoolbox/issue/DEV-2082/
     const seen = new Set(this.assets.map((asset) => asset.uid))
     const uniqueNewAssets = response.results.filter((asset) => {
       if (seen.has(asset.uid)) {
