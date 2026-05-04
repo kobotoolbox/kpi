@@ -362,7 +362,6 @@ const biomeConfig = {
     'no-redeclare': 'off', // noRedeclare
     'no-regex-spaces': 'off', // noMultipleSpacesInRegularExpressionLiterals
     'no-restricted-globals': 'off', // noRestrictedGlobals
-    'no-restricted-imports': 'off', // noRestrictedImports
     'no-self-assign': 'off', // noSelfAssign
     'no-self-compare': 'off', // noSelfCompare
     'no-sequences': 'off', // noCommaOperator
