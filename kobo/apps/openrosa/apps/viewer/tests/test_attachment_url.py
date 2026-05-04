@@ -2,8 +2,8 @@
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models import Attachment
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 
 

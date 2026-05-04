@@ -214,8 +214,10 @@ def briefcase_attachment_url(request, att_uid):
     helper_auth_helper(request)
 
     user = request.user
-    if not user.is_superuser and xform.user != user and not user.has_perm(
-        PERM_VIEW_SUBMISSIONS, xform.asset
+    if (
+        not user.is_superuser
+        and xform.user != user
+        and not user.has_perm(PERM_VIEW_SUBMISSIONS, xform.asset)
     ):
         if user.is_anonymous:
             if digest_response := digest_authentication(request):
