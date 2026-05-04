@@ -318,8 +318,8 @@ function onImportOneAmongMany(
  * This is a callback function for `Dropzone` component that handles uploading
  * multiple XLSForm files.
  *
- * Note: similar function is available in `mixins.droppable.dropFiles`, but it
- * relies heavily on deprecated technologies.
+ * Note: this implementation supports multi-file XLSForm uploads, but it is
+ * intended for advanced use and remains somewhat rough around the edges.
  */
 export function dropImportXLSForms(accepted: File[], rejected: FileRejection[]) {
   accepted.map((file, index) => {
