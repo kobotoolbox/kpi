@@ -138,6 +138,14 @@ export function applyFileToAsset(file: File, asset: AssetResponse): Promise<{ ui
         })
         .fail((err: unknown) => reject(err))
     }
+    reader.onerror = () => {
+      reject({
+        messages: {
+          error_type: 'file_read_error',
+          error: t('Failed to read file.'),
+        },
+      })
+    }
     reader.readAsDataURL(file)
   })
 }
