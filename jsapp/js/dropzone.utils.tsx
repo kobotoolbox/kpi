@@ -22,6 +22,12 @@ interface ApplyImportParams {
 
 const APPLY_IMPORT_CHECK_INTERVAL = 1000
 
+interface PollImportUntilDoneOptions {
+  getDelayMs?: (attempt: number) => number
+  onPoll?: (importData: ImportResponse, attempt: number) => void
+  waitBeforeFirstCheck?: boolean
+}
+
 /**
  * Polls import status until backend reports either `complete` or `error`.
  *
@@ -34,9 +40,18 @@ const APPLY_IMPORT_CHECK_INTERVAL = 1000
  * )
  * ```
  */
-export function pollImportUntilDone(uid: string): Promise<ImportResponse> {
+export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOptions = {}): Promise<ImportResponse> {
+  const { getDelayMs, onPoll, waitBeforeFirstCheck = false } = options
+
   return new Promise((resolve, reject) => {
     let timeoutId: number | undefined
+    let attempt = 0
+
+    const scheduleNextCheck = () => {
+      const nextAttempt = attempt + 1
+      const delayMs = typeof getDelayMs === 'function' ? getDelayMs(nextAttempt) : APPLY_IMPORT_CHECK_INTERVAL
+      timeoutId = window.setTimeout(runCheck, delayMs)
+    }
 
     const resolveAndCleanup = (importData: ImportResponse) => {
       if (typeof timeoutId === 'number') {
@@ -56,6 +71,11 @@ export function pollImportUntilDone(uid: string): Promise<ImportResponse> {
       dataInterface
         .getImportDetails({ uid })
         .done((importData: ImportResponse) => {
+          attempt += 1
+          if (typeof onPoll === 'function') {
+            onPoll(importData, attempt)
+          }
+
           switch (importData.status) {
             case 'complete':
               resolveAndCleanup(importData)
@@ -65,7 +85,7 @@ export function pollImportUntilDone(uid: string): Promise<ImportResponse> {
               break
             // 'processing' / 'created' - keep polling
             default:
-              timeoutId = window.setTimeout(runCheck, APPLY_IMPORT_CHECK_INTERVAL)
+              scheduleNextCheck()
               break
           }
         })
@@ -74,7 +94,11 @@ export function pollImportUntilDone(uid: string): Promise<ImportResponse> {
         })
     }
 
-    runCheck()
+    if (waitBeforeFirstCheck) {
+      scheduleNextCheck()
+    } else {
+      runCheck()
+    }
   })
 }
 
@@ -171,69 +195,42 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
         library: isLibrary,
       })
       .done((data: ImportResponse) => {
-        // After import was created successfully, we start a loop of checking
-        // the status of it (by calling API). The promise will resolve when it is
-        // complete.
+        // After import is created, we poll until complete/error using shared helper.
         notify(t('Your upload is being processed. This may take a few moments.'))
 
-        let callCount = 0
-        let timeoutId = -1
-
-        function makeIntervalStatusCheck() {
-          // Make the first call only after we've already waited once. This
-          // ensures we don't check for the import status immediately after it
-          // was created.
-          if (timeoutId > 0) {
-            dataInterface
-              .getImportDetails({ uid: data.uid })
-              .done((importData: ImportResponse) => {
-                if (importData.status === 'complete') {
-                  // Stop interval
-                  window.clearTimeout(timeoutId)
-
-                  resolve(importData)
-                } else if (importData.status === 'processing' && callCount === 5) {
-                  notify.warning(t('Your upload is taking longer than usual. Please get back in few minutes.'))
-                } else if (importData.status === 'error') {
-                  // Stop interval
-                  window.clearTimeout(timeoutId)
-
-                  // Gather all useful error information
-                  const errLines = []
-                  errLines.push(t('Import Failed!'))
-                  if (name) {
-                    errLines.push(<code>Name: {name}</code>)
-                  }
-                  if (importData.messages?.error) {
-                    errLines.push(
-                      <code>
-                        ${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}
-                      </code>,
-                    )
-                  }
-                  reject(<div>{join(errLines, <br />)}</div>)
-                }
-              })
-              .fail(() => {
-                // Stop interval
-                window.clearTimeout(timeoutId)
-
-                reject(IMPORT_FAILED_GENERIC_MESSAGE)
-              })
-          }
-
-          callCount += 1
-
-          // Keep the interval alive (can't use `setInterval` with randomized
-          // value, so we use `setTimout` instead).
-          timeoutId = window.setTimeout(
-            makeIntervalStatusCheck,
-            getExponentialDelayTime(callCount, envStore.data.min_retry_time, envStore.data.max_retry_time),
-          )
-        }
-
-        // start the interval check
-        makeIntervalStatusCheck()
+        pollImportUntilDone(data.uid, {
+          waitBeforeFirstCheck: true,
+          getDelayMs: (attempt) =>
+            getExponentialDelayTime(attempt, envStore.data.min_retry_time, envStore.data.max_retry_time),
+          onPoll: (importData, attempt) => {
+            if (importData.status === 'processing' && attempt === 5) {
+              notify.warning(t('Your upload is taking longer than usual. Please get back in few minutes.'))
+            }
+          },
+        }).then(
+          (importData) => {
+            resolve(importData)
+          },
+          (reason: ImportResponse) => {
+            if (reason?.status === 'error') {
+              const errLines = []
+              errLines.push(t('Import Failed!'))
+              if (name) {
+                errLines.push(<code>Name: {name}</code>)
+              }
+              if (reason.messages?.error) {
+                errLines.push(
+                  <code>
+                    ${reason.messages.error_type}: ${escapeHtml(reason.messages.error)}
+                  </code>,
+                )
+              }
+              reject(<div>{join(errLines, <br />)}</div>)
+            } else {
+              reject(IMPORT_FAILED_GENERIC_MESSAGE)
+            }
+          },
+        )
       })
       .fail(() => {
         reject(t('Failed to create import.'))
