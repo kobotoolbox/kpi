@@ -43,7 +43,7 @@ export default function FormActivity() {
 
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
-    offset: 0,
+    start: 0,
   })
   const queryResult = useQuery({
     queryKey: [QueryKeys.activityLogs, assetUid, selectedFilterOption?.value || '', pagination],
@@ -52,7 +52,7 @@ export default function FormActivity() {
         assetUid: assetUid,
         actionFilter: selectedFilterOption?.value || '',
         limit: pagination.limit,
-        offset: pagination.offset,
+        start: pagination.start,
       }),
     placeholderData: keepPreviousData,
   })

@@ -1,0 +1,20 @@
+.root {
+  background-color: var(--mantine-color-gray-1);
+}
+
+/* Links are not requied in notifications, but if there is a link, it will have these styles */
+.root a {
+  color: var(--mantine-color-blue-7);
+  text-decoration: underline;
+}
+
+.title {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+}
+
+/* Mantine sets the style prop for the blue circle around the Icon component "icon", it is not the actual icon itself */
+.icon {
+  height: 18px;
+  width: 18px;
+}

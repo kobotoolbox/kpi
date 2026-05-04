@@ -191,7 +191,7 @@ class AssetExportSettingsApiTest(BaseTestCase):
         assert self.asset_export_settings.count() == 1
 
         delete_response = self.client.delete(
-            export_settings_url, HTTP_ACCEPT='application/json'
+            export_settings_url, headers={'accept': 'application/json'}
         )
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
         assert self.asset_export_settings.count() == 0
@@ -261,13 +261,13 @@ class AssetExportSettingsApiTest(BaseTestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         delete_response = self.client.delete(
-            url, HTTP_ACCEPT='application/json'
+            url, headers={'accept': 'application/json'}
         )
         assert delete_response.status_code == status.HTTP_403_FORBIDDEN
 
         # assign `manage_asset` to anotheruser so that they can make changes
         self.asset.assign_perm(self.anotheruser, PERM_MANAGE_ASSET)
         delete_response = self.client.delete(
-            url, HTTP_ACCEPT='application/json'
+            url, headers={'accept': 'application/json'}
         )
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT

@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Group, Stack } from '@mantine/core'
+import { IconWorldFilled } from '@tabler/icons-react'
 import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
@@ -82,7 +83,7 @@ class FormLanding extends React.Component {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetid: this.state.uid,
+      assetUrl: this.state.url,
     })
   }
   callUnarchiveAsset() {
@@ -186,14 +187,6 @@ class FormLanding extends React.Component {
       asset: this.state,
     })
   }
-  showEncryptionModal(evt) {
-    evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.ENCRYPT_FORM,
-      asset: this.state,
-    })
-  }
-
   renderHistory() {
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
@@ -447,6 +440,7 @@ class FormLanding extends React.Component {
           tooltip={t('Preview')}
           tooltipPosition='right'
           onClick={this.enketoPreviewModal.bind(this)}
+          isDisabled={!this.state.url}
         />
 
         {userCanEdit && (
@@ -505,13 +499,6 @@ class FormLanding extends React.Component {
               {t('Create template')}
             </bem.PopoverMenu__link>
           )}
-
-          {/* temporarily disabled
-          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
-            <i className='k-icon k-icon-lock'/>
-            {t('Manage Encryption')}
-          </bem.PopoverMenu__link>
-          */}
         </PopoverMenu>
       </React.Fragment>
     )
@@ -536,7 +523,12 @@ class FormLanding extends React.Component {
 
         {canEdit && (
           <bem.FormView__cell>
-            <ButtonNew variant='outline' size='md' rightIcon='language' onClick={this.showLanguagesModal.bind(this)}>
+            <ButtonNew
+              variant='outline'
+              size='md'
+              rightIcon={IconWorldFilled}
+              onClick={this.showLanguagesModal.bind(this)}
+            >
               {t('Manage')}
             </ButtonNew>
           </bem.FormView__cell>

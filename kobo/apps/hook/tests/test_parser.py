@@ -1,11 +1,9 @@
 import json
 import re
 
-from lxml import etree
-
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.utils.strings import to_str
-from kpi.utils.xml import check_lxml_fromstring
+from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from .base import BaseHookTestCase
 
 
@@ -46,7 +44,7 @@ class ParserTestCase(BaseHookTestCase):
         submission_id = submissions[0]['_id']
         submission_uuid = submissions[0]['_uuid']
         service_definition = ServiceDefinition(hook, submission_id)
-        expected_etree = check_lxml_fromstring(
+        expected_elements = fromstring_preserve_root_xmlns(
             f'<{self.asset.uid} id="{self.asset.uid}">'
             f'   <group1>'
             f'      <q3>¿Cómo está en el grupo uno la segunda vez?</q3>'
@@ -64,17 +62,15 @@ class ParserTestCase(BaseHookTestCase):
             f'</{self.asset.uid}>'
         )
 
-        expected_xml = etree.tostring(
-            expected_etree,
-            pretty_print=True,
+        expected_xml = xml_tostring(
+            expected_elements,
             xml_declaration=True,
-            encoding='utf-8',
         )
 
         def remove_whitespace(str_):
-            return re.sub(r'>\s+<', '><', to_str(str_))
+            return re.sub(r'>\s+<', '><', to_str(str_)).strip()
 
         self.assertEqual(
             remove_whitespace(service_definition._get_data()),
-            remove_whitespace(expected_xml.decode()),
+            remove_whitespace(expected_xml),
         )

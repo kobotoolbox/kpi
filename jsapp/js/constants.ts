@@ -85,7 +85,6 @@ export const MODAL_TYPES = {
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table',
   ASSET_TAGS: 'asset-tags',
-  ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
@@ -495,7 +494,7 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name',
 }
 
-export const QUERY_LIMIT_DEFAULT = 5000
+export const QUERY_LIMIT_DEFAULT = 1000
 
 export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   form_media: 50,

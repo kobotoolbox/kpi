@@ -29,7 +29,7 @@ class LongRunningMigration(AbstractTimeStampedModel):
     name = models.CharField(max_length=255, unique=True)
     status = models.CharField(
         default=LongRunningMigrationStatus.CREATED,
-        choices=LongRunningMigrationStatus.choices,
+        choices=LongRunningMigrationStatus,
         max_length=20,
     )
     error = models.TextField(null=True)

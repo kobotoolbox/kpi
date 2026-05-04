@@ -1,10 +1,13 @@
+import clonedeep from 'lodash.clonedeep'
 import findIndex from 'lodash.findindex'
 import isEmpty from 'lodash.isempty'
 import map from 'lodash.map'
+import { assetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import { unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
 import { ASSET_TYPES, type AssetTypeDefinition, CHOICE_LISTS, QUESTION_TYPES } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
 import { notify } from '#/utils'
+import dkobo_xlform from '../../xlform/src/_xlform.init'
 import type { BaseRow, Row } from '../../xlform/src/model.row'
 import type { FlatChoice, FlatRow, FlatSurvey, Survey } from '../../xlform/src/model.survey'
 import type { Group } from '../../xlform/src/model.surveyFragment'
@@ -111,17 +114,34 @@ class SurveyScope {
       })
   }
 
-  handleItem(data: { position: number; itemUid: string; groupId?: string }) {
+  addExternalItemAtPosition(position: number, uid: string, groupId?: string): void {
+    assetsRetrieve(uid)
+      .then((response) => {
+        const data = response?.data
+
+        if (data && 'content' in data && data.content) {
+          // `loadDict()` mutates its first argument, so pass a copied object
+          const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
+          // TODO: Edge case warning - if the survey changes before the response arrives, `insertSurvey` can insert into
+          // the wrong place, because `newSurvey` is freshly fetched from API, and both position and groupId are carried
+          // over.
+          this.survey.insertSurvey(newSurvey, position, groupId)
+        } else {
+          throw new Error(`Asset ${uid} not found or response missing content`)
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to insert external item into survey:', error)
+        notify(t('Failed to insert item from library'), 'error')
+      })
+  }
+
+  handleItem(data: { position: number; itemUid: string; groupId?: string }): void {
     if (!data.itemUid) {
-      throw new Error('itemUid not provided!')
+      throw new Error('addExternalItemAtPosition: itemUid not provided!')
     }
 
-    actions.survey.addExternalItemAtPosition({
-      position: data.position,
-      uid: data.itemUid,
-      survey: this.survey,
-      groupId: data.groupId,
-    })
+    this.addExternalItemAtPosition(data.position, data.itemUid, data.groupId)
   }
 }
 

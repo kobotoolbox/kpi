@@ -27,6 +27,21 @@ class ConflictingSubmissionUUIDError(Exception):
         super().__init__(message)
 
 
+class DeprecatedIdGoneError(Exception):
+    def __init__(
+        self,
+        message=t(
+            'Invalid submission - deprecatedID refers to an old submission version'
+        ),
+    ):
+        super().__init__(message)
+
+
+class DeprecatedIdMissingError(Exception):
+    def __init__(self, message=t('Invalid submission - deprecatedID not found')):
+        super().__init__(message)
+
+
 class DuplicateInstanceError(Exception):
     def __init__(self, message=t('Duplicate Instance')):
         super().__init__(message)

@@ -1,4 +1,18 @@
 .root {
+  &[data-variant='outline'] {
+    &:active {
+      background-color: var(--mantine-color-gray-9);
+      border-color: var(--mantine-color-gray-5);
+    }
+
+    &[data-disabled] {
+      color: var(--mantine-color-gray-4);
+      border-color: var(--mantine-color-gray-6);
+      background: var(--mantine-color-gray-9);
+      opacity: 1;
+    }
+  }
+
   &[data-disabled] {
     color: var(--ai-color);
     background: var(--ai-bg);

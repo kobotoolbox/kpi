@@ -17,6 +17,31 @@ class TranscriptionServiceTestCase(BaseTestCase):
         # In some cases, the service uses a different region code
         self.assertEqual(self.asr_service.get_language_code('he-IL'), 'iw-IL')
 
+    def test_get_configuration_from_region_code(self):
+        config = self.asr_service.get_configuration('en-US')
+
+        self.assertEqual(config.language_code, 'en-US')
+        self.assertEqual(config.location_code, 'us-central1')
+        self.assertEqual(config.model_code, 'latest_long')
+
+    def test_get_configuration_from_language_code_uses_default_locale(self):
+        config = self.asr_service.get_configuration('en')
+
+        self.assertEqual(config.language_code, 'en-US')
+        self.assertEqual(config.location_code, 'us-central1')
+        self.assertEqual(config.model_code, 'latest_long')
+
+    def test_get_configuration_with_mapping_code(self):
+        config = self.asr_service.get_configuration('he-IL')
+
+        self.assertEqual(config.language_code, 'iw-IL')
+        self.assertEqual(config.location_code, 'me-west1')
+        self.assertEqual(config.model_code, 'latest_long')
+
+    def test_get_configuration_not_supported_language(self):
+        with pytest.raises(LanguageNotSupported):
+            self.asr_service.get_configuration('af')
+
     def test_get_not_supported_language(self):
         with pytest.raises(LanguageNotSupported):
             self.assertNotEqual(self.asr_service.get_language_code('af'), 'af')

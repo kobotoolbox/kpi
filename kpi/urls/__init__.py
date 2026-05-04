@@ -4,6 +4,7 @@ from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
+from kpi.utils.log import logging
 from kpi.views import home, modern_browsers
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.environment import EnvironmentView
@@ -26,17 +27,18 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy',
     }), name='currentuser-detail'),
-    re_path(r'^api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
+    path('api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
+    path('api/scim/v2/', include('kobo.apps.kobo_scim.urls')),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
-    re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path(
         'api/v2/authorized_application/authenticate_user/',
         AuthorizedApplicationUserViewSet.as_view({'post': 'authenticate_user'}),
         name='authorized-application-authenticate-user',
     ),
     path('modern_browsers/', modern_browsers),
-    re_path(r'^i18n/', include('django.conf.urls.i18n')),
+    path('i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     path('jsi18n/', JavaScriptCatalog.as_view(),
          name='javascript-catalog'),
@@ -44,10 +46,10 @@ urlpatterns = [
     path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.content_view, name='configurationfile'),
-    re_path(r'^private-media/', include(private_storage.urls)),
+    path('private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    re_path(
-        r'^superuser_stats/',
+    path(
+        'superuser_stats/',
         include(('kobo.apps.superuser_stats.urls', 'superuser_stats')),
     ),
     path('logout-all/', logout_from_all_devices, name='logout_all'),
@@ -56,13 +58,17 @@ urlpatterns = [
 
 if settings.STRIPE_ENABLED:
     urlpatterns = [
-        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls')),
-        re_path(r'^api/v2/stripe/', include('djstripe.urls', namespace='djstripe')),
+        path('api/v2/stripe/', include('kobo.apps.stripe.urls')),
+        path('api/v2/stripe/', include('djstripe.urls', namespace='djstripe')),
     ] + urlpatterns
 
 
 if settings.DEBUG and settings.ENV == 'dev':
-    import debug_toolbar
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+    try:
+        import debug_toolbar
+    except ModuleNotFoundError:
+        logging.warning('Module "django-debug-toolbar" not found, skipping')
+    else:
+        urlpatterns = [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ] + urlpatterns

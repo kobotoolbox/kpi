@@ -11,7 +11,6 @@ import UsageContainer from '#/account/usage/usageContainer'
 import { YourPlan } from '#/account/usage/yourPlan.component'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import envStore from '#/envStore'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { convertSecondsToMinutes, formatDate } from '#/utils'
 import { OneTimeAddOnsContext } from '../useOneTimeAddonList.hook'
@@ -207,18 +206,16 @@ export default function Usage() {
           title={t('Translation characters')}
           dateRange={dateRange}
         />
-        {useFeatureFlag(FeatureFlag.autoQAEnabled) && (
-          <UsageContainer
-            usage={usageQuery.data.data.llm_requests.llm_requests_current_period}
-            remainingLimit={limits.llmRequestsRemainingLimit}
-            recurringLimit={limits.llmRequestsRecurringLimit}
-            oneTimeAddOns={filterAddOns(USAGE_TYPE.LLM)}
-            period={billingPeriod}
-            type={USAGE_TYPE.LLM}
-            title={t('LLM requests')}
-            dateRange={dateRange}
-          />
-        )}
+        <UsageContainer
+          usage={usageQuery.data.data.llm_requests.llm_requests_current_period}
+          remainingLimit={limits.llmRequestsRemainingLimit}
+          recurringLimit={limits.llmRequestsRecurringLimit}
+          oneTimeAddOns={filterAddOns(USAGE_TYPE.LLM)}
+          period={billingPeriod}
+          type={USAGE_TYPE.LLM}
+          title={t('Automatic analysis requests')}
+          dateRange={dateRange}
+        />
       </Group>
     </div>
   )

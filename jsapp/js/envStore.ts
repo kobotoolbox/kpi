@@ -26,7 +26,6 @@ export interface EnvironmentResponse {
   asr_mt_features_enabled: boolean
   mfa_localized_help_text: string
   mfa_enabled: boolean
-  mfa_per_user_availability: boolean
   mfa_code_length: number
   stripe_public_key: string | null
   social_apps: SocialApp[]
@@ -98,7 +97,6 @@ export class EnvStoreData {
   public usage_limit_enforcement = false
   public mfa_localized_help_text = ''
   public mfa_enabled = false
-  public mfa_per_user_availability = false
   public mfa_code_length = 6
   public stripe_public_key: string | null = null
   public social_apps: SocialApp[] = []
@@ -191,7 +189,6 @@ class EnvStore {
     this.data.usage_limit_enforcement = response.usage_limit_enforcement
     this.data.mfa_localized_help_text = response.mfa_localized_help_text
     this.data.mfa_enabled = response.mfa_enabled
-    this.data.mfa_per_user_availability = response.mfa_per_user_availability
     this.data.mfa_code_length = response.mfa_code_length
     this.data.stripe_public_key = response.stripe_public_key
     this.data.social_apps = response.social_apps

@@ -7,6 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
+import { ServerError } from '#/api/ServerError'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -77,8 +78,24 @@ export default function AnalysisQuestionsList({
       scope: { id: 'qa-generate-ai' },
       // Override default error handler to show a user-friendly message
       // instead of the raw server response (which may contain HTML).
-      onError: () => {
-        notify.error(t('Failed to generate AI response. Please try again later.'))
+      onError: (err) => {
+        const genericError = t('Failed to generate AI response. Please try again later.')
+        if (!(err instanceof ServerError)) {
+          notify.error(genericError)
+          return
+        }
+        if (err.response.status === 402) {
+          setIsLimitBlockModalOpen(true)
+          return
+        }
+        // TODO: This is a brittle solution for isolating this particular err.
+        // We may be able to remove it if we make it impossible for users to request
+        // AI responses on unsaved errors
+        if (err.detail === 'No transcription found') {
+          notify.error(t('No transcription found. If there is an existing transcription it may need to be saved.'))
+          return
+        }
+        notify.error(genericError)
       },
     },
   })
@@ -117,12 +134,13 @@ export default function AnalysisQuestionsList({
   }
 
   const qaQuestions = localParams
-    .filter((qaQuestion) => !qaQuestion.options?.deleted)
+    .filter((questionParam) => !questionParam.options?.deleted)
     // TODO: we temporarily hide Keyword Search from the UI until
     // https://github.com/kobotoolbox/kpi/issues/4594 is done
-    .filter((qaQuestion) => qaQuestion.type !== 'qualAutoKeywordCount')
+    .filter((questionParam) => questionParam.type !== 'qualAutoKeywordCount')
 
   const isAnyQuestionBeingEdited = !!qaQuestion
+  const submissionKey = submission['meta/rootUuid'] ?? submission._uuid
 
   const enableGenerateWithAIFeature = async () => {
     // Filter to get valid questions for AI generation (exclude tags and notes)
@@ -183,18 +201,23 @@ export default function AnalysisQuestionsList({
     await enableGenerateWithAIFeature()
 
     // Now trigger the AI generation
-    await mutationGenerateWithAI.mutateAsync({
-      uidAsset: asset.uid,
-      rootUuid: rootUuid,
-      data: {
-        _version: SUBSEQUENCES_SCHEMA_VERSION,
-        [questionXpath]: {
-          [ActionEnum.automatic_bedrock_qual]: {
-            uuid: qaQuestionParam.uuid,
+    try {
+      await mutationGenerateWithAI.mutateAsync({
+        uidAsset: asset.uid,
+        rootUuid: rootUuid,
+        data: {
+          _version: SUBSEQUENCES_SCHEMA_VERSION,
+          [questionXpath]: {
+            [ActionEnum.automatic_bedrock_qual]: {
+              uuid: qaQuestionParam.uuid,
+            },
           },
         },
-      },
-    })
+      })
+    } catch {
+      // Error is handled by the onError callback above
+      return
+    }
 
     // Invalidate the supplement data query so all AnalysisQuestionListItem
     // components refetch and display the latest AI-generated result.
@@ -209,6 +232,7 @@ export default function AnalysisQuestionsList({
         <ul className={styles.root}>
           {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
             <AnalysisQuestionListItem
+              key={`${submissionKey}-${qaQuestion.uuid}`}
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}
@@ -225,7 +249,7 @@ export default function AnalysisQuestionsList({
           )}
           {qaQuestions.map((qaQuestionItem, index) => (
             <AnalysisQuestionListItem
-              key={qaQuestionItem.uuid}
+              key={`${submissionKey}-${qaQuestionItem.uuid}`}
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}

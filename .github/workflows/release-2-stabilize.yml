@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - id:   filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         name: Detect changed files
         with: { filters: .github/filters.yml }
     outputs:
@@ -51,6 +51,7 @@ jobs:
       openapi:  ${{ steps.filter.outputs.openapi  }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
+      locale:   ${{ steps.filter.outputs.locale   }}
 
 
   darker:
@@ -83,6 +84,14 @@ jobs:
     uses: ./.github/workflows/npm-test.yml
 
 
+  locale:
+    needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
+    uses: './.github/workflows/locale.yml'
+    with:
+      base: 'HEAD^'
+
+
   changelog:
     needs:
       - version
@@ -92,6 +101,7 @@ jobs:
       - openapi
       - pytest
       - npm-test
+      - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     env:
@@ -128,6 +138,7 @@ jobs:
       - openapi
       - pytest
       - npm-test
+      - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
@@ -143,6 +154,23 @@ jobs:
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
+  # Note: push only current release branch instead of all past or the next release branch.
+  push-to-transifex:
+    needs:
+      - version
+      - changes
+      - darker
+      - biome
+      - openapi
+      - pytest
+      - npm-test
+      - locale
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
+    uses: './.github/workflows/locale.yml'
+    secrets: inherit
+    with:
+      push: true
+
 
   merge-forward:
     name: Merge forward
@@ -154,6 +182,7 @@ jobs:
       - openapi
       - pytest
       - npm-test
+      - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
@@ -183,9 +212,11 @@ jobs:
       - openapi
       - pytest
       - npm-test
+      - locale
       - changelog
       - deploy-to-beta
       - merge-forward
+      - push-to-transifex
     if: ${{ !cancelled() && needs.version.result == 'success' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -227,6 +258,13 @@ jobs:
             || needs.deploy-to-beta.result == 'skipped'
               && ':skip_forward: deploy to beta skipped due failed automated tests or due not being the latest release.'
               || ':check: triggered a deploy to [beta](kf.beta.kbtdev.org), see #**Dev>deployments to public-beta** for deployment status'
+          }}
+        - ${{ (
+              needs.push-to-transifex.result == 'failure' || needs.push-to-transifex.result == 'timed_out' )
+            && format(':warning: failed to push translation strings to transifex: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || needs.push-to-transifex.result == 'skipped'
+              && ':skip_forward: push translation strings to transifex skipped due not being on current version branch.'
+              || ':check: pushed translation strings to transifex.'
           }}
 
 

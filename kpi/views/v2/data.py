@@ -176,6 +176,20 @@ from kpi.utils.xml import (
                 required=False,
                 description='Filter the results with search query',
             ),
+            OpenApiParameter(
+                name='sort',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Sort the results by a field, e.g. {"_id":-1}',
+            ),
+            OpenApiParameter(
+                name='fields',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Include only given list of fields in results',
+            ),
         ],
     ),
     retrieve=extend_schema(
