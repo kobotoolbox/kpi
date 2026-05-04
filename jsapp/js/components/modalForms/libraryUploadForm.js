@@ -11,6 +11,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import myLibraryStore from '#/components/library/myLibraryStore'
 import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
 import { dataInterface } from '#/dataInterface'
+import { pollImportUntilDone } from '#/dropzone.utils'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
@@ -25,29 +26,6 @@ const LIBRARY_UPLOAD_ACCEPT = {
   'application/octet-stream': ['.xls', '.xlsx'],
 }
 
-const IMPORT_STATUS_CHECK_INTERVAL = 1000
-
-function pollImportUntilDone(importUid) {
-  return new Promise((resolve, reject) => {
-    const checkStatus = () => {
-      dataInterface
-        .getImportDetails({ uid: importUid })
-        .done((importData) => {
-          if (importData.status === 'complete') {
-            resolve(importData)
-          } else if (importData.status === 'error') {
-            reject(importData)
-          } else {
-            window.setTimeout(checkStatus, IMPORT_STATUS_CHECK_INTERVAL)
-          }
-        })
-        .fail((error) => reject(error))
-    }
-
-    checkStatus()
-  })
-}
-
 /**
  * @prop {function} onSetModalTitle
  * @prop {file} [file] optional preloaded file
@@ -56,6 +34,7 @@ const LibraryUploadForm = observer(
   class LibraryUploadForm extends React.Component {
     constructor(props) {
       super(props)
+      this.isMountedForPolling = true
       this.state = {
         isPending: false,
         isUploadAsTemplateChecked: false,
@@ -63,6 +42,10 @@ const LibraryUploadForm = observer(
       }
 
       autoBind(this)
+    }
+
+    componentWillUnmount() {
+      this.isMountedForPolling = false
     }
 
     isSubmitEnabled() {
@@ -106,13 +89,16 @@ const LibraryUploadForm = observer(
               filename: file.name,
             })
 
-            pollImportUntilDone(data.uid).then(
+            pollImportUntilDone(data.uid, { shouldContinue: () => this.isMountedForPolling }).then(
               () => {
                 myLibraryStore.fetchData(true)
                 notify(t('XLS Import completed'))
                 pageState.hideModal()
               },
-              () => {
+              (error) => {
+                if (!this.isMountedForPolling || error === 'Polling cancelled') {
+                  return
+                }
                 notify.error(t('Import Failed!'))
                 pageState.hideModal()
               },
