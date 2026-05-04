@@ -11,7 +11,7 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404, render
-from django.urls import resolve, reverse
+from django.urls import reverse
 from django.utils.translation import gettext as t
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.http import require_POST
@@ -24,6 +24,7 @@ from kobo.apps.openrosa.libs.authentication import digest_authentication
 from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_and_name
 from kobo.apps.openrosa.libs.utils.user_auth import has_permission, helper_auth_helper
 from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
+from kpi.constants import PERM_VIEW_SUBMISSIONS
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -212,20 +213,19 @@ def briefcase_attachment_url(request, att_uid):
 
     helper_auth_helper(request)
 
-    if not request.user.is_superuser and not has_permission(xform, xform.user, request):
-        if request.user.is_anonymous:
+    user = request.user
+    if not user.is_superuser and xform.user != user and not user.has_perm(
+        PERM_VIEW_SUBMISSIONS, xform.asset
+    ):
+        if user.is_anonymous:
             if digest_response := digest_authentication(request):
                 return digest_response
         return HttpResponseForbidden(t('Not shared.'))
 
-    internal_url = reverse(
-        'api_v2:attachment-detail',
-        kwargs={
-            'uid_asset': xform.kpi_asset_uid,
-            'uid_data': str(attachment.instance.pk),
-            'pk': attachment.uid,
-        },
-    )
-    resolver_match = resolve(internal_url)
     view = AttachmentViewSet.as_view({'get': 'retrieve'})
-    return view(request=request, **resolver_match.kwargs)
+    return view(
+        request=request,
+        uid_asset=xform.kpi_asset_uid,
+        uid_data=str(attachment.instance.pk),
+        pk=attachment.uid,
+    )
