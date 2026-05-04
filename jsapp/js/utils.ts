@@ -11,6 +11,7 @@ import type * as Sentry from '@sentry/react'
 import random from 'lodash.random'
 import moment from 'moment'
 import { Cookies } from 'react-cookie'
+import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -304,18 +305,15 @@ export function findFirstGeopoint(survey: SurveyRow[]) {
 /**
  * Use this with the Dropzone `accept` prop in places that allow uploading XLSForms.
  */
-export function validFileTypes() {
-  const VALID_ASSET_UPLOAD_FILE_TYPES = [
-    '.xls',
-    '.xlsx',
-    'application/xls',
-    'application/vnd.ms-excel',
-    'application/octet-stream',
-    'application/vnd.openxmlformats',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    '', // Keep this to fix issue with IE Edge sending an empty MIME type
-  ]
-  return VALID_ASSET_UPLOAD_FILE_TYPES.join(',')
+export function validFileTypes(): Accept {
+  return {
+    'application/vnd.ms-excel': ['.xls'],
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+    'application/xls': ['.xls'],
+    // Keep this to maintain compatibility with environments that report generic MIME.
+    'application/octet-stream': ['.xls', '.xlsx'],
+    'application/vnd.openxmlformats': ['.xlsx'],
+  }
 }
 
 export function escapeHtml(str: string): string {

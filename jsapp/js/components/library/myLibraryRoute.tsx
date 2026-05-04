@@ -12,6 +12,7 @@ import { MODAL_TYPES } from '#/constants'
 import { dropImportXLSForms } from '#/dropzone.utils'
 import pageState from '#/pageState.store'
 import type { OrderDirection } from '#/projects/projectViews/constants'
+import { validFileTypes } from '#/utils'
 import myLibraryStore from './myLibraryStore'
 import type { MyLibraryStoreData } from './myLibraryStore'
 
@@ -97,7 +98,7 @@ export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreDa
 
     return (
       <DocumentTitle title={`${t('My Library')} | KoboToolbox`}>
-        <Dropzone onDrop={this.onFileDrop.bind(this)} noClick multiple>
+        <Dropzone onDrop={this.onFileDrop.bind(this)} noClick multiple accept={validFileTypes()}>
           {({ getRootProps, getInputProps, isDragActive }) => (
             <div
               {...getRootProps({

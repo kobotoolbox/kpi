@@ -15,7 +15,7 @@ import LimitNotifications from '#/components/usageLimits/limitNotifications.comp
 import { dropImportXLSForms } from '#/dropzone.utils'
 import ProjectsTable from '#/projects/projectsTable/projectsTable'
 import { useSession } from '#/stores/useSession'
-import { notify } from '#/utils'
+import { notify, validFileTypes } from '#/utils'
 import customViewStore from './customViewStore'
 import projectViewsStore from './projectViews/projectViewsStore'
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
@@ -102,7 +102,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
   }
 
   return (
-    <Dropzone onDrop={dropImportXLSForms} noClick multiple>
+    <Dropzone onDrop={dropImportXLSForms} noClick multiple accept={validFileTypes()}>
       {({ getRootProps, getInputProps, isDragActive }) => (
         <div
           {...getRootProps({
