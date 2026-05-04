@@ -173,7 +173,7 @@
     "patch-package": "^8.0.1",
     "path": "^0.12.7",
     "playwright": "^1.59.1",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.13",
     "postcss-loader": "^7.3.4",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
