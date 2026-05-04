@@ -386,7 +386,9 @@ queryClient.setMutationDefaults(
   getAssetsPairedDataDestroyMutationOptions({
     mutation: {
       onSettled: (_data, _error, { uidAsset }) => {
-        invalidatePaginatedList(getAssetsPairedDataListQueryKey(uidAsset))
+        const queryKey = getAssetsPairedDataListQueryKey(uidAsset)
+        invalidateItem(queryKey)
+        invalidatePaginatedList(queryKey)
       },
     },
   }),
