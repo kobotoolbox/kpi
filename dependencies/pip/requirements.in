@@ -2,12 +2,12 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
-git+https://github.com/kobotoolbox/formpack.git@e43428525a77d2957141a54f8b1dd4675ec8a290#egg=formpack
+git+https://github.com/kobotoolbox/formpack.git@969788b42dc5dc3ec3ad36f63e1cf5e84dfd6fc0#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
-git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
-git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
+git+https://github.com/dimagi/python-digest@9c77ff12e7d7fedf792b25fddd7f443e1d02206f#egg=python_digest
+git+https://github.com/kobotoolbox/django-digest@a417e901c55d7c0aee89e2aab719975f45dbec4e#egg=django_digest
 
 # ssrf protect
 git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
@@ -17,7 +17,7 @@ git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc
 git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
 
 # Regular PyPI packages
-Django>=4.2,<4.3
+Django>=5.2,<5.3
 Markdown
 Pygments
 amqp
@@ -25,25 +25,24 @@ billiard
 celery
 celery[redis]
 dict2xml
-defusedxml
 dj-static
-dj-stripe
+dj-stripe>=2.9,<2.10
+stripe
 django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces
 django-celery-beat
-django-constance<4  # temporary 20260226
+django-constance>=4,<5
 django-cors-headers
-django-csp<4  # temporary 20260226
-django-debug-toolbar<5  # temporary 20260226
+django-csp
 django-environ
-django-filter<25  # temporary 20260226
+django-filter
 django-import-export
 django-import-export-celery
-django-extensions<4  # temporary 20260226
-django-oauth-toolkit<3  # temporary 20260226
+django-extensions
+django-oauth-toolkit
 django-organizations
-django-redis<6  # temporary 20260226
+django-redis
 django-storages[azure,boto3]
 django-amazon-ses
 django-webpack-loader
@@ -51,8 +50,7 @@ django-loginas
 django-markdownx
 django-prometheus
 
-django-reversion<6  # temporary 20260226
-django-taggit<6  # temporary 20260226
+django-taggit
 django-private-storage
 djangorestframework
 djangorestframework-xml
@@ -64,7 +62,7 @@ future
 geojson-rewind
 google-api-python-client
 google-cloud-speech
-google-cloud-storage<3  # temporary 20260226
+google-cloud-storage
 google-cloud-translate
 jsonfield
 jsonschema
@@ -74,8 +72,7 @@ more-itertools
 oauthlib
 objgraph
 openpyxl
-#py-gfm # Incompatible with markdown 3.x
-pillow-heif<1  # temporary 20260226
+pillow-heif
 psycopg
 pymongo<4.11.0  # for compatibility with unmaintained mongomock; see https://github.com/mongomock/mongomock/issues/912
 python-dateutil
@@ -88,7 +85,7 @@ shortuuid
 sqlparse
 static3
 tabulate
-ua-parser<1  # temporary 20260226
+ua-parser
 uWSGI
 Werkzeug
 xlrd
@@ -97,25 +94,21 @@ xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI
-pyopenssl<25  # temporary 20260226
+pyopenssl
 ndg-httpsclient
 pyasn1
-
-# This package is only needed for unit tests but MockBackend is loaded even on production environment
-deepmerge<2  # temporary 20260226
 
 # MFA
 django-trench
 
 # Sentry
-sentry-sdk<2  # temporary 20260226
+sentry-sdk
 
 # Kobocat
-django-guardian<3  # temporary 20260226
 modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
-pandas<3  # temporary 20260226
+pandas
 
 # Api Documentation
 drf-spectacular

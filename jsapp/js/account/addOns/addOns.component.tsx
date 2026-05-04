@@ -10,7 +10,6 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import type { BadgeColor } from '#/components/common/badge'
 import Badge from '#/components/common/badge'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import useWhen from '#/hooks/useWhen.hook'
 import { formatDate } from '#/utils'
 import { ProductsContext } from '../useProducts.hook'
@@ -23,7 +22,6 @@ export default function addOns() {
   const [organization] = useOrganizationAssumed()
   const [products] = useContext(ProductsContext)
   const [isBusy, setIsBusy] = useState(true)
-  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
   const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns
 
@@ -179,7 +177,7 @@ export default function addOns() {
                   description={t('Increase your transcription minutes and translations characters.')}
                 />
               )}
-              {autoQAEnabled && !!llmProducts.length && (
+              {!!llmProducts.length && (
                 <AddOnProductRow
                   products={llmProducts}
                   isBusy={isBusy}

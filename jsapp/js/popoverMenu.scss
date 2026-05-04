@@ -81,7 +81,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 
-  > i:first-child {
+  > i:first-child,
+  .tabler-icon {
     margin-right: 5px;
     font-size: 28px;
     width: 28px;

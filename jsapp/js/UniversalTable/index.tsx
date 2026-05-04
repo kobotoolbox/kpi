@@ -10,7 +10,7 @@ export type { UniversalTableColumn } from './UniversalTableCore'
 
 export interface Pagination {
   limit: number
-  offset: number
+  start: number
 }
 
 export interface PaginatedListResponseData<Datum = never> {
@@ -80,7 +80,7 @@ export const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
  * const Example = () => {
  *   const [pagination, setPagination] = useState({
  *     limit: DEFAULT_PAGE_SIZE,
- *     offset: 0,
+ *     start: 0,
  *   })
  *   const queryResult = useQuery({
  *     ...
@@ -110,7 +110,7 @@ export default function UniversalTable<Datum, TError = Error>({
     [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>)?.count],
   )
 
-  const currentPageIndex = useMemo(() => Math.ceil(pagination.offset / pagination.limit), [pagination])
+  const currentPageIndex = useMemo(() => Math.ceil(pagination.start / pagination.limit), [pagination])
 
   if (queryResult.data?.status !== 200) return null
 
@@ -126,16 +126,16 @@ export default function UniversalTable<Datum, TError = Error>({
       pageSize={pagination.limit}
       pageSizeOptions={PAGE_SIZES}
       onRequestPaginationChange={(newPageInfo, oldPageInfo) => {
-        // Calculate new offset and limit from what we've got
-        let newOffset = newPageInfo.pageIndex * newPageInfo.pageSize
+        // Calculate new start and limit from what we've got
+        let newStart = newPageInfo.pageIndex * newPageInfo.pageSize
         const newLimit = newPageInfo.pageSize
 
         // If we change page size, we switch back to first page
         if (newPageInfo.pageSize !== oldPageInfo.pageSize) {
-          newOffset = 0
+          newStart = 0
         }
 
-        setPagination({ limit: newLimit, offset: newOffset })
+        setPagination({ limit: newLimit, start: newStart })
       }}
     />
   )

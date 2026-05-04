@@ -2,7 +2,6 @@ import alertify from 'alertifyjs'
 import Reflux from 'reflux'
 import { replaceSupportEmail } from '#/textUtils'
 import { notify } from '#/utils'
-import dataShareActions from './actions/dataShareActions'
 import exportsActions from './actions/exportsActions'
 import libraryActions from './actions/library'
 import formMediaActions from './actions/mediaActions'
@@ -20,7 +19,6 @@ export const actions = {
   submissions: submissionsActions,
   media: formMediaActions,
   exports: exportsActions,
-  dataShare: dataShareActions,
 }
 
 actions.navigation = Reflux.createActions(['transitionStart', 'transitionEnd', 'routeUpdate', 'documentTitleUpdate'])

@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -9,6 +11,7 @@ import { CreateSteps } from '#/components/processing/common/types'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
+import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
 import StepCreateManual from './StepCreateManual'
@@ -42,6 +45,8 @@ export default function TranslationAdd({
 }: Props) {
   const [step, setStep] = useState<CreateSteps>(initialStep ?? CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { billingPeriod } = useBillingPeriod()
 
   /**
    * This is for going back from manual/automated to language selector step
@@ -74,6 +79,8 @@ export default function TranslationAdd({
         <StepSelectLanguage
           onBack={goBackFromLanguageStep}
           onNext={(step: CreateSteps.Manual | CreateSteps.Automatic) => setStep(step)}
+          onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
+          usageType={UsageLimitTypes.TRANSLATION}
           hiddenLanguages={languagesExisting}
           suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
           languageCode={languageCode}
@@ -99,6 +106,7 @@ export default function TranslationAdd({
       {step === CreateSteps.Automatic && !!languageCode && (
         <StepCreateAutomated
           onBack={goBackFromCreateStep}
+          onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
@@ -107,6 +115,12 @@ export default function TranslationAdd({
           advancedFeatures={advancedFeatures}
         />
       )}
+      <NlpUsageLimitBlockModal
+        isModalOpen={isLimitBlockModalOpen}
+        usageType={UsageLimitTypes.TRANSLATION}
+        dismissed={() => setIsLimitBlockModalOpen(false)}
+        interval={billingPeriod}
+      />
     </>
   )
 }

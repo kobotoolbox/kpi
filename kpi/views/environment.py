@@ -12,11 +12,9 @@ from rest_framework.views import APIView
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
-from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.static_lists import COUNTRIES
 from kpi.models import ExtraProjectMetadataField
-from kpi.utils.object_permission import get_database_user
 
 
 def check_asr_mt_access_for_user(user):
@@ -125,10 +123,6 @@ class EnvironmentView(APIView):
             I18nUtils.get_mfa_help_text()
         )
         data['mfa_enabled'] = constance.config.MFA_ENABLED
-        data['mfa_per_user_availability'] = MfaAvailableToUser.objects.filter(
-            user=get_database_user(request.user)
-        ).exists()
-        data['mfa_has_availability_list'] = MfaAvailableToUser.objects.all().exists()
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
         return data
 

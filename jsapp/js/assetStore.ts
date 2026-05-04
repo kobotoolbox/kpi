@@ -54,10 +54,6 @@ class AssetStore extends Reflux.Store {
    *
    * Useful when your component needs asset data to work, and there is a high
    * probability that it was already fetched from backend.
-   *
-   * NOTE: this is a copy of functionality that already exists in
-   * `stores.allAssets.whenLoaded` (that one is a bit broken due to how
-   * `allAssets` was written; plus it's not typed).
    */
   whenLoaded(assetUid: string, callback: (foundAsset: AssetResponse) => void) {
     const foundAsset = this.getAsset(assetUid)

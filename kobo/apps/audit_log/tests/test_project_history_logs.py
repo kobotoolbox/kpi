@@ -4,7 +4,6 @@ import io
 import json
 import uuid
 from unittest.mock import patch
-from xml.etree import ElementTree as ET
 
 import responses
 from ddt import data, ddt, unpack
@@ -1782,7 +1781,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'formhub': {'uuid': self.asset.deployment.xform.uuid},
             '_uuid': str(uuid_),
         }
-        xml = ET.fromstring(
+        xml = fromstring_preserve_root_xmlns(
             dict2xform(submission_data, self.asset.deployment.xform.id_string)
         )
         xml.tag = self.asset.uid
@@ -1805,8 +1804,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             endpoint,
             kwargs=kwargs,
         )
-
-        data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
+        data = {
+            'xml_submission_file': SimpleUploadedFile(
+                'name.txt', xml_tostring(xml).encode()
+            )
+        }
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
 
@@ -2082,8 +2084,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
             llm_info = log_metadata['llm']
             self.assertEqual(llm_info['model'], OSS120.model_id)
-            self.assertEqual(llm_info['input_tokens'], 10)
-            self.assertEqual(llm_info['output_tokens'], 20)
+            self.assertEqual(llm_info['request_id'], '12345')
 
     def test_request_automatic_qa_data_bad_response(self):
         class MockErrorClient:
@@ -2142,17 +2143,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_request_automatic_qa_data_includes_backup_model_if_used(self):
         class MockErrorClient:
             def invoke_model(self, modelId, *args, **kwargs):
-                if modelId == OSS120.model_id:
+                if modelId == OSS120.model_arn:
                     return {'something': 'bad'}
                 else:
                     return {
+                        'ResponseMetadata': {'RequestId': '12345'},
                         'body': io.StringIO(
-                            json.dumps(
-                                get_mock_claude_response(
-                                    text='5', input_tokens=10, output_tokens=20
-                                )
-                            )
-                        )
+                            json.dumps(get_mock_claude_response(text='5'))
+                        ),
                     }
 
         instance, submission = self._add_submission('adminuser')
@@ -2201,8 +2199,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
             llm_info = log_metadata['llm']
             self.assertEqual(llm_info['model'], ClaudeSonnet.model_id)
-            self.assertEqual(llm_info['input_tokens'], 10)
-            self.assertEqual(llm_info['output_tokens'], 20)
+            self.assertEqual(llm_info['request_id'], '12345')
 
     @data(
         # verify? , automatic?, expected action

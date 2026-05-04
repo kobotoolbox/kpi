@@ -123,7 +123,7 @@ RUN --mount=from=npm-install,source=/srv/src/kpi/node_modules,target=/srv/src/kp
 # 🐍 Python 'pip-dependencies' #
 #                              #
 ################################
-FROM ghcr.io/astral-sh/uv:python3.10-bookworm AS pip-dependencies
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS pip-dependencies
 ENV TMP_DIR=/srv/tmp \
     VIRTUAL_ENV=/opt/venv
 RUN python -m venv "$VIRTUAL_ENV"
@@ -139,7 +139,7 @@ RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_f
 # 🧰 KPI production image 'kpi-app' #
 #                                   #
 #####################################
-FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim AS kpi-app
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS kpi-app
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
