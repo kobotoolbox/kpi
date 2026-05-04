@@ -23,9 +23,13 @@ import pageState from '#/pageState.store'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
 import { RootContextProvider } from '#/rootContextProvider.component'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
-import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
+import {
+  getRouteAssetUid,
+  isInvalidatedPasswordRouteBlockerActive,
+  isTOSAgreementRouteBlockerActive,
+} from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
-import { router, routerGetAssetId, withRouter } from './router/legacy'
+import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { themeKobo } from './theme'
 import ToasterConfig from './toasterConfig'
@@ -106,7 +110,11 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    router.subscribe(this.onRouteChange.bind(this))
+    this.unsubscribeRouter = router.subscribe(this.onRouteChange.bind(this))
+  }
+
+  componentWillUnmount() {
+    this.unsubscribeRouter?.()
   }
 
   onRouteChange() {
@@ -135,7 +143,7 @@ class App extends React.Component {
       return <TOSAgreement />
     }
 
-    const assetUid = routerGetAssetId()
+    const assetUid = getRouteAssetUid()
 
     // TODO: We have multiple routes that shouldn't display `MainHeader`,
     // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
