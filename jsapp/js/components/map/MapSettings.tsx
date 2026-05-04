@@ -47,7 +47,9 @@ const MAP_LAYER_DROPZONE_ACCEPT: Accept = {
   'application/vnd.google-earth.kml+xml': ['.kml'],
   'application/vnd.google-earth.kmz': ['.kmz'],
   'application/json': ['.geojson', '.json'],
+  'application/geo+json': ['.geojson'],
   'text/plain': ['.wkt'],
+  'application/wkt': ['.wkt'],
 }
 
 const TABS = new Map<MapSettingsTabNames, MapSettingsTabDefinition>([
