@@ -1,19 +1,17 @@
 import React from 'react'
 
-import type { DragEvent } from 'react'
-
+import cx from 'classnames'
 import DocumentTitle from 'react-document-title'
 import Dropzone from 'react-dropzone'
-import type { FileWithPreview } from 'react-dropzone'
+import type { FileRejection } from 'react-dropzone'
 import bem from '#/bem'
 import AssetsTable from '#/components/assetsTable/assetsTable'
 import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
 import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
 import { MODAL_TYPES } from '#/constants'
-import mixins from '#/mixins'
+import { dropImportXLSForms } from '#/dropzone.utils'
 import pageState from '#/pageState.store'
 import type { OrderDirection } from '#/projects/projectViews/constants'
-import { validFileTypes } from '#/utils'
 import myLibraryStore from './myLibraryStore'
 import type { MyLibraryStoreData } from './myLibraryStore'
 
@@ -68,15 +66,14 @@ export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreDa
    * If only one file was passed, then open a modal for selecting the type.
    * Otherwise just start uploading all files.
    */
-  onFileDrop(acceptedFiles: FileWithPreview[], rejectedFiles: FileWithPreview[], evt: DragEvent<HTMLDivElement>) {
+  onFileDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
     if (acceptedFiles.length === 1) {
       pageState.switchModal({
         type: MODAL_TYPES.LIBRARY_UPLOAD,
         file: acceptedFiles[0],
       })
     } else {
-      // TODO comes from mixin
-      mixins.droppable.dropFiles(acceptedFiles, rejectedFiles, evt)
+      dropImportXLSForms(acceptedFiles, rejectedFiles)
     }
   }
 
@@ -100,40 +97,43 @@ export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreDa
 
     return (
       <DocumentTitle title={`${t('My Library')} | KoboToolbox`}>
-        <Dropzone
-          onDrop={this.onFileDrop.bind(this)}
-          disableClick
-          multiple
-          className='dropzone'
-          activeClassName='dropzone--active'
-          accept={validFileTypes()}
-        >
-          <bem.Breadcrumbs m='gray-wrapper'>
-            <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.MY_LIBRARY.label}</bem.Breadcrumbs__crumb>
-          </bem.Breadcrumbs>
+        <Dropzone onDrop={this.onFileDrop.bind(this)} noClick multiple>
+          {({ getRootProps, getInputProps, isDragActive }) => (
+            <div
+              {...getRootProps({
+                className: cx('dropzone', { 'dropzone--active': isDragActive }),
+              })}
+            >
+              <input {...getInputProps()} />
 
-          <AssetsTable
-            context={AssetsTableContextName.MY_LIBRARY}
-            isLoading={this.state.isFetchingData}
-            assets={this.state.assets}
-            totalAssets={this.state.totalSearchAssets}
-            metadata={this.state.metadata}
-            orderColumnId={this.state.orderColumnId}
-            orderValue={this.state.orderValue || null}
-            onOrderChange={this.onAssetsTableOrderChange.bind(this)}
-            filterColumnId={this.state.filterColumnId}
-            filterValue={this.state.filterValue}
-            onFilterChange={this.onAssetsTableFilterChange.bind(this)}
-            currentPage={this.state.currentPage}
-            totalPages={typeof this.state.totalPages === 'number' ? this.state.totalPages : undefined}
-            onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
-            emptyMessage={contextualEmptyMessage}
-          />
+              <bem.Breadcrumbs m='gray-wrapper'>
+                <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.MY_LIBRARY.label}</bem.Breadcrumbs__crumb>
+              </bem.Breadcrumbs>
 
-          <div className='dropzone-active-overlay'>
-            <i className='k-icon k-icon-upload' />
-            {t('Drop files to upload')}
-          </div>
+              <AssetsTable
+                context={AssetsTableContextName.MY_LIBRARY}
+                isLoading={this.state.isFetchingData}
+                assets={this.state.assets}
+                totalAssets={this.state.totalSearchAssets}
+                metadata={this.state.metadata}
+                orderColumnId={this.state.orderColumnId}
+                orderValue={this.state.orderValue || null}
+                onOrderChange={this.onAssetsTableOrderChange.bind(this)}
+                filterColumnId={this.state.filterColumnId}
+                filterValue={this.state.filterValue}
+                onFilterChange={this.onAssetsTableFilterChange.bind(this)}
+                currentPage={this.state.currentPage}
+                totalPages={typeof this.state.totalPages === 'number' ? this.state.totalPages : undefined}
+                onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
+                emptyMessage={contextualEmptyMessage}
+              />
+
+              <div className='dropzone-active-overlay'>
+                <i className='k-icon k-icon-upload' />
+                {t('Drop files to upload')}
+              </div>
+            </div>
+          )}
         </Dropzone>
       </DocumentTitle>
     )

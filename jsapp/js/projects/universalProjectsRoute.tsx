@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
+import cx from 'classnames'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import Dropzone from 'react-dropzone'
@@ -14,7 +15,7 @@ import LimitNotifications from '#/components/usageLimits/limitNotifications.comp
 import { dropImportXLSForms } from '#/dropzone.utils'
 import ProjectsTable from '#/projects/projectsTable/projectsTable'
 import { useSession } from '#/stores/useSession'
-import { notify, validFileTypes } from '#/utils'
+import { notify } from '#/utils'
 import customViewStore from './customViewStore'
 import projectViewsStore from './projectViews/projectViewsStore'
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
@@ -101,92 +102,95 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
   }
 
   return (
-    <Dropzone
-      onDrop={dropImportXLSForms}
-      disableClick
-      multiple
-      className={styles.dropzone}
-      activeClassName={styles.dropzoneActive}
-      accept={validFileTypes()}
-    >
-      <div className={styles.dropzoneOverlay}>
-        <Icon name='upload' size='xl' />
-        <h1>{t('Drop files to upload')}</h1>
-      </div>
+    <Dropzone onDrop={dropImportXLSForms} noClick multiple>
+      {({ getRootProps, getInputProps, isDragActive }) => (
+        <div
+          {...getRootProps({
+            className: cx(styles.dropzone, { [styles.dropzoneActive]: isDragActive }),
+          })}
+        >
+          <input {...getInputProps()} />
 
-      <section className={styles.root}>
-        <ProjectOwnershipTransferModalWithBanner />
+          <div className={styles.dropzoneOverlay}>
+            <Icon name='upload' size='xl' />
+            <h1>{t('Drop files to upload')}</h1>
+          </div>
 
-        <OrgInviteModalWrapper />
+          <section className={styles.root}>
+            <ProjectOwnershipTransferModalWithBanner />
 
-        {session.currentLoggedAccount && (
-          <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} organization={organization} />
-        )}
+            <OrgInviteModalWrapper />
 
-        <LimitNotifications pageCanShowModal />
+            {session.currentLoggedAccount && (
+              <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} organization={organization} />
+            )}
 
-        <header className={styles.header}>
-          <ViewSwitcher selectedViewUid={props.viewUid} />
+            <LimitNotifications pageCanShowModal />
 
-          <ProjectsFilter
-            onFiltersChange={customView.setFilters.bind(customView)}
-            filters={toJS(customView.filters)}
-            excludedFields={props.defaultExcludedFields}
-          />
+            <header className={styles.header}>
+              <ViewSwitcher selectedViewUid={props.viewUid} />
 
-          <ProjectsFieldsSelector
-            onFieldsChange={customView.setFields.bind(customView)}
-            defaultVisibleFields={props.defaultVisibleFields}
-            selectedFields={toJS(customView.fields)}
-            excludedFields={props.defaultExcludedFields}
-          />
+              <ProjectsFilter
+                onFiltersChange={customView.setFilters.bind(customView)}
+                filters={toJS(customView.filters)}
+                excludedFields={props.defaultExcludedFields}
+              />
 
-          {props.isExportButtonVisible && (
-            <Button
-              type='secondary'
-              size='s'
-              startIcon='download'
-              label={t('Export all data')}
-              onClick={exportAllData}
+              <ProjectsFieldsSelector
+                onFieldsChange={customView.setFields.bind(customView)}
+                defaultVisibleFields={props.defaultVisibleFields}
+                selectedFields={toJS(customView.fields)}
+                excludedFields={props.defaultExcludedFields}
+              />
+
+              {props.isExportButtonVisible && (
+                <Button
+                  type='secondary'
+                  size='s'
+                  startIcon='download'
+                  label={t('Export all data')}
+                  onClick={exportAllData}
+                />
+              )}
+
+              {selectedAssets.length === 0 && (
+                <div className={styles.actions}>
+                  <ProjectQuickActionsEmpty />
+                </div>
+              )}
+
+              {selectedAssets.length === 1 && (
+                <div className={styles.actions}>
+                  <ProjectQuickActions asset={selectedAssets[0]} />
+                </div>
+              )}
+
+              {selectedAssets.length > 1 && (
+                <div className={styles.actions}>
+                  <ProjectBulkActions assets={selectedAssets} />
+                </div>
+              )}
+            </header>
+
+            <ProjectsTable
+              assets={customView.assets}
+              // refreshing session will result in refreshing table, so while that is pending
+              // we want to show a loading spinner
+              isLoading={!customView.isFirstLoadComplete || session.isPending}
+              highlightedFields={getFilteredFieldsNames()}
+              visibleFields={getTableVisibleFields()}
+              orderableFields={props.defaultOrderableFields}
+              order={customView.order}
+              onChangeOrderRequested={customView.setOrder.bind(customView)}
+              onHideFieldRequested={customView.hideField.bind(customView)}
+              onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
+              hasMorePages={customView.hasMoreAssets}
+              selectedRows={selectedRows}
+              onRowsSelected={setSelectedRows}
             />
-          )}
-
-          {selectedAssets.length === 0 && (
-            <div className={styles.actions}>
-              <ProjectQuickActionsEmpty />
-            </div>
-          )}
-
-          {selectedAssets.length === 1 && (
-            <div className={styles.actions}>
-              <ProjectQuickActions asset={selectedAssets[0]} />
-            </div>
-          )}
-
-          {selectedAssets.length > 1 && (
-            <div className={styles.actions}>
-              <ProjectBulkActions assets={selectedAssets} />
-            </div>
-          )}
-        </header>
-
-        <ProjectsTable
-          assets={customView.assets}
-          // refreshing session will result in refreshing table, so while that is pending
-          // we want to show a loading spinner
-          isLoading={!customView.isFirstLoadComplete || session.isPending}
-          highlightedFields={getFilteredFieldsNames()}
-          visibleFields={getTableVisibleFields()}
-          orderableFields={props.defaultOrderableFields}
-          order={customView.order}
-          onChangeOrderRequested={customView.setOrder.bind(customView)}
-          onHideFieldRequested={customView.hideField.bind(customView)}
-          onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
-          hasMorePages={customView.hasMoreAssets}
-          selectedRows={selectedRows}
-          onRowsSelected={setSelectedRows}
-        />
-      </section>
+          </section>
+        </div>
+      )}
     </Dropzone>
   )
 }

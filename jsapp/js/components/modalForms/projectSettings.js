@@ -22,17 +22,24 @@ import { userCan } from '#/components/permissions/utils'
 import TemplatesList from '#/components/templatesList'
 import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import { dataInterface } from '#/dataInterface'
+import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
-import { router } from '#/router/legacy'
-import { withRouter } from '#/router/legacy'
+import { router, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import { escapeHtml, isAValidUrl, join, notify } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
+
+const XLSFORM_DROPZONE_ACCEPT = {
+  'application/vnd.ms-excel': ['.xls'],
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+  'application/xls': ['.xls'],
+  'application/octet-stream': ['.xls', '.xlsx'],
+}
 
 /**
  * This is used for multiple different purposes:
@@ -551,7 +558,7 @@ class ProjectSettings extends React.Component {
           this.setState({ formAsset: asset })
           const importUrl = this.state.importUrl
 
-          this.applyUrlToAsset(importUrl, asset).then(
+          applyUrlToAsset(importUrl, asset).then(
             (data) => {
               dataInterface
                 .getAsset({ id: data.uid })
@@ -600,7 +607,7 @@ class ProjectSettings extends React.Component {
 
       this.getOrCreateFormAsset().then(
         (asset) => {
-          this.applyFileToAsset(files[0], asset).then(
+          applyFileToAsset(files[0], asset).then(
             (data) => {
               dataInterface
                 .getAsset({ id: data.uid })
@@ -791,16 +798,18 @@ class ProjectSettings extends React.Component {
         <div className={styles.modalSubheader}>{t('Import an XLSForm from your computer.')}</div>
 
         {!this.state.isUploadFilePending && (
-          <Dropzone
-            onDrop={this.onFileDrop.bind(this)}
-            multiple={false}
-            className='kobo-dropzone'
-            activeClassName='dropzone-active'
-            rejectClassName='dropzone-reject'
-            accept={validFileTypes()}
-          >
-            <i className='k-icon k-icon-file-xls' />
-            {t(' Drag and drop the XLSForm file here or click to browse')}
+          <Dropzone onDrop={this.onFileDrop.bind(this)} multiple={false} accept={XLSFORM_DROPZONE_ACCEPT}>
+            {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
+              <div
+                {...getRootProps({
+                  className: cx('kobo-dropzone', { 'dropzone-active': isDragActive, 'dropzone-reject': isDragReject }),
+                })}
+              >
+                <input {...getInputProps()} />
+                <i className='k-icon k-icon-file-xls' />
+                {t(' Drag and drop the XLSForm file here or click to browse')}
+              </div>
+            )}
           </Dropzone>
         )}
         {this.state.isUploadFilePending && (
@@ -1102,7 +1111,6 @@ class ProjectSettings extends React.Component {
 }
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin)
-reactMixin(ProjectSettings.prototype, mixins.droppable)
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix)
 

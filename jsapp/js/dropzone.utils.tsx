@@ -1,7 +1,7 @@
 import React from 'react'
 
-import type { FileWithPreview } from 'react-dropzone'
-import type { CreateImportRequest, ImportResponse } from '#/dataInterface'
+import type { FileRejection } from 'react-dropzone'
+import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import pageState from '#/pageState.store'
 import { router } from '#/router/legacy'
@@ -10,6 +10,115 @@ import { MODAL_TYPES } from './constants'
 import envStore from './envStore'
 import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
+
+interface ApplyImportParams {
+  destination?: string
+  assetUid: string
+  name: string
+  url?: string
+  base64Encoded?: ArrayBuffer | string | null
+  lastModified?: number
+}
+
+const APPLY_IMPORT_CHECK_INTERVAL = 1000
+
+function pollImportUntilDone(uid: string): Promise<ImportResponse> {
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(() => {
+      dataInterface
+        .getImportDetails({ uid })
+        .done((importData: ImportResponse) => {
+          switch (importData.status) {
+            case 'complete':
+              clearInterval(interval)
+              resolve(importData)
+              break
+            case 'error':
+              clearInterval(interval)
+              reject(importData)
+              break
+            // 'processing' / 'created' - keep polling
+          }
+        })
+        .fail((failData: ImportResponse) => {
+          clearInterval(interval)
+          reject(failData)
+        })
+    }, APPLY_IMPORT_CHECK_INTERVAL)
+  })
+}
+
+/**
+ * Reads a `File`, uploads it as an import targeting an existing asset (either
+ * replacing it or applying it as a destination), and resolves with the first
+ * created/updated asset entry once the import completes.
+ *
+ * Replaces `mixins.droppable.applyFileToAsset`.
+ */
+export function applyFileToAsset(file: File, asset: AssetResponse): Promise<{ uid: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const params: ApplyImportParams = {
+        destination: asset.url,
+        assetUid: asset.uid,
+        name: file.name,
+        base64Encoded: reader.result,
+        lastModified: file.lastModified,
+      }
+      dataInterface
+        .createImport(params)
+        .done((data: ImportResponse) => {
+          pollImportUntilDone(data.uid).then(
+            (importData) => {
+              const finalData = importData.messages?.updated || importData.messages?.created
+              if (finalData && finalData.length > 0 && finalData[0].uid) {
+                resolve(finalData[0])
+              } else {
+                reject(importData)
+              }
+            },
+            (err) => reject(err),
+          )
+        })
+        .fail((err: unknown) => reject(err))
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+/**
+ * Uploads a URL as an import targeting an existing asset, and resolves with
+ * the first created/updated asset entry once the import completes.
+ *
+ * Replaces `mixins.droppable.applyUrlToAsset`.
+ */
+export function applyUrlToAsset(url: string, asset: AssetResponse): Promise<{ uid: string }> {
+  return new Promise((resolve, reject) => {
+    const params: ApplyImportParams = {
+      destination: asset.url,
+      url,
+      name: asset.name,
+      assetUid: asset.uid,
+    }
+    dataInterface
+      .createImport(params)
+      .done((data: ImportResponse) => {
+        pollImportUntilDone(data.uid).then(
+          (importData) => {
+            const finalData = importData.messages?.updated || importData.messages?.created
+            if (finalData && finalData.length > 0 && finalData[0].uid) {
+              resolve(finalData[0])
+            } else {
+              reject(importData)
+            }
+          },
+          (err) => reject(err),
+        )
+      })
+      .fail((err: unknown) => reject(err))
+  })
+}
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed')
 
@@ -186,7 +295,7 @@ function onImportOneAmongMany(
  * Note: similar function is available in `mixins.droppable.dropFiles`, but it
  * relies heavily on deprecated technologies.
  */
-export function dropImportXLSForms(accepted: FileWithPreview[], rejected: FileWithPreview[]) {
+export function dropImportXLSForms(accepted: File[], rejected: FileRejection[]) {
   accepted.map((file, index) => {
     const reader = new FileReader()
     reader.onload = () => {
@@ -199,7 +308,8 @@ export function dropImportXLSForms(accepted: FileWithPreview[], rejected: FileWi
     reader.readAsDataURL(file)
   })
 
-  rejected.every((file) => {
+  rejected.every((rejectedFile) => {
+    const file = rejectedFile.file
     if (file.type && file.name) {
       let errMsg = t('Upload error: could not recognize Excel file.')
       errMsg += ` (${t('Uploaded file name: ')} ${file.name})`

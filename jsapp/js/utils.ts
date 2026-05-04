@@ -301,6 +301,9 @@ export function findFirstGeopoint(survey: SurveyRow[]) {
   return survey.find((question) => question.type && question.type === 'geopoint')
 }
 
+/**
+ * Use this with the Dropzone `accept` prop in places that allow uploading XLSForms.
+ */
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
     '.xls',
