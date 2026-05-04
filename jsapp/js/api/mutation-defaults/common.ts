@@ -22,8 +22,6 @@ const filterPaginatedListSnapshots = ([listSnapshotKey]: [readonly unknown[], un
  */
 export const invalidatePaginatedList = (queryKey: readonly unknown[]) => {
   const listSnapshots = queryClient.getQueriesData({ queryKey: queryKey }).filter(filterPaginatedListSnapshots)
-  console.log(queryClient.getQueriesData({ queryKey: queryKey }))
-  console.log(listSnapshots)
   for (const [snapshotKey] of listSnapshots) queryClient.invalidateQueries({ queryKey: snapshotKey })
 }
 
