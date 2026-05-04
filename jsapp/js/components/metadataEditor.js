@@ -20,7 +20,7 @@ bem.FormBuilderMeta__row = makeBem(bem.FormBuilderMeta, 'row')
 bem.FormBuilderMeta__labelLink = makeBem(bem.FormBuilderMeta, 'label-link', 'a')
 
 const AUDIT_SUPPORT_URL = 'form_meta.html#audit-metadata-question'
-const RECORDING_SUPPORT_URL = 'recording-interviews.html'
+const SUPPORT_ENABLE_BG_AUDIO_URL = 'form_meta.html#enabling-background-audio-recording'
 
 const AUDIO_QUALITY_OPTIONS = [
   { value: 'quality=low', label: 'Low' },
@@ -146,7 +146,10 @@ export default class MetadataEditor extends React.Component {
         {t('Background audio')}
 
         {envStore.isReady && envStore.data.support_url && (
-          <bem.FormBuilderMeta__labelLink href={envStore.data.support_url + RECORDING_SUPPORT_URL} target='_blank'>
+          <bem.FormBuilderMeta__labelLink
+            href={envStore.data.support_url + SUPPORT_ENABLE_BG_AUDIO_URL}
+            target='_blank'
+          >
             <Icon name='help' size='s' color='blue' />
           </bem.FormBuilderMeta__labelLink>
         )}

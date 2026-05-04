@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 
+import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import bem from '#/bem'
@@ -12,6 +13,7 @@ import PopoverMenu from '#/popoverMenu'
 import { isAnyRouteBlockerActive } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { currentLang } from '#/utils'
+import ButtonNew from '../common/ButtonNew'
 import OrganizationBadge from './organizationBadge.component'
 
 /**
@@ -118,19 +120,23 @@ export default function AccountMenu() {
           )}
 
           <bem.AccountBox__menuLI m={'lang'} key='3'>
-            <bem.AccountBox__menuLink onClick={toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
-              <i className='k-icon k-icon-language' />
+            <ButtonNew
+              leftIcon={IconWorldFilled}
+              variant='transparent'
+              onClick={toggleLanguageSelector}
+              tabIndex={0}
+              data-popover-menu-stop-blur
+            >
               {t('Language')}
-            </bem.AccountBox__menuLink>
+            </ButtonNew>
 
             {isLanguageSelectorVisible && <ul>{langs.map(renderLangItem)}</ul>}
           </bem.AccountBox__menuLI>
 
           <bem.AccountBox__menuLI m={'logout'} key='4'>
-            <bem.AccountBox__menuLink onClick={sessionStore.logOut}>
-              <i className='k-icon k-icon-logout' />
+            <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={sessionStore.logOut}>
               {t('Logout')}
-            </bem.AccountBox__menuLink>
+            </ButtonNew>
           </bem.AccountBox__menuLI>
         </bem.AccountBox__menu>
       </PopoverMenu>
