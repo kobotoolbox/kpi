@@ -78,6 +78,27 @@ export function pollImportUntilDone(uid: string): Promise<ImportResponse> {
   })
 }
 
+function createImportAndResolveFirstAsset(params: ApplyImportParams): Promise<{ uid: string }> {
+  return new Promise((resolve, reject) => {
+    dataInterface
+      .createImport(params)
+      .done((data: ImportResponse) => {
+        pollImportUntilDone(data.uid).then(
+          (importData) => {
+            const finalData = importData.messages?.updated || importData.messages?.created
+            if (finalData && finalData.length > 0 && finalData[0].uid) {
+              resolve(finalData[0])
+            } else {
+              reject(importData)
+            }
+          },
+          (err) => reject(err),
+        )
+      })
+      .fail((err: unknown) => reject(err))
+  })
+}
+
 /**
  * Reads a `File`, uploads it as an import targeting an existing asset (either replacing it or applying it as
  * a destination), and resolves with the first created/updated asset entry once the import completes.
@@ -95,22 +116,7 @@ export function applyFileToAsset(file: File, asset: AssetResponse): Promise<{ ui
         base64Encoded: reader.result,
         lastModified: file.lastModified,
       }
-      dataInterface
-        .createImport(params)
-        .done((data: ImportResponse) => {
-          pollImportUntilDone(data.uid).then(
-            (importData) => {
-              const finalData = importData.messages?.updated || importData.messages?.created
-              if (finalData && finalData.length > 0 && finalData[0].uid) {
-                resolve(finalData[0])
-              } else {
-                reject(importData)
-              }
-            },
-            (err) => reject(err),
-          )
-        })
-        .fail((err: unknown) => reject(err))
+      createImportAndResolveFirstAsset(params).then(resolve, reject)
     }
     reader.onerror = () => {
       reject({
@@ -131,30 +137,13 @@ export function applyFileToAsset(file: File, asset: AssetResponse): Promise<{ ui
  * Replaces `mixins.droppable.applyUrlToAsset`.
  */
 export function applyUrlToAsset(url: string, asset: AssetResponse): Promise<{ uid: string }> {
-  return new Promise((resolve, reject) => {
-    const params: ApplyImportParams = {
-      destination: asset.url,
-      url,
-      name: asset.name,
-      assetUid: asset.uid,
-    }
-    dataInterface
-      .createImport(params)
-      .done((data: ImportResponse) => {
-        pollImportUntilDone(data.uid).then(
-          (importData) => {
-            const finalData = importData.messages?.updated || importData.messages?.created
-            if (finalData && finalData.length > 0 && finalData[0].uid) {
-              resolve(finalData[0])
-            } else {
-              reject(importData)
-            }
-          },
-          (err) => reject(err),
-        )
-      })
-      .fail((err: unknown) => reject(err))
-  })
+  const params: ApplyImportParams = {
+    destination: asset.url,
+    url,
+    name: asset.name,
+    assetUid: asset.uid,
+  }
+  return createImportAndResolveFirstAsset(params)
 }
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed')

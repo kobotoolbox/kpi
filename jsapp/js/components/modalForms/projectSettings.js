@@ -572,24 +572,7 @@ class ProjectSettings extends React.Component {
             },
             (response) => {
               this.resetImportUrlButton()
-              const messages = response?.messages || response?.responseJSON?.messages
-              const errorType = messages?.error_type
-              const importError = messages?.error
-
-              if (importError) {
-                const errLines = [t('Import Failed!')]
-                if (importUrl) {
-                  errLines.push(<code>Name: {this.getFilenameFromURI(importUrl)}</code>)
-                }
-                errLines.push(
-                  <code>
-                    {errorType}: {escapeHtml(importError)}
-                  </code>,
-                )
-                notify.error(join(errLines, <br />))
-              } else {
-                handleApiFail(response, t('Import Failed!'))
-              }
+              this.notifyImportFailure(response, importUrl ? this.getFilenameFromURI(importUrl) : null)
             },
           )
         },
@@ -597,6 +580,27 @@ class ProjectSettings extends React.Component {
           notify.error(t('Could not initialize XLSForm import!'))
         },
       )
+    }
+  }
+
+  notifyImportFailure(response, sourceName) {
+    const messages = response?.messages || response?.responseJSON?.messages
+    const errorType = messages?.error_type
+    const importError = messages?.error
+
+    if (importError) {
+      const errLines = [t('Import Failed!')]
+      if (sourceName) {
+        errLines.push(<code>Name: {sourceName}</code>)
+      }
+      errLines.push(
+        <code>
+          {errorType}: {escapeHtml(importError)}
+        </code>,
+      )
+      notify.error(join(errLines, <br />))
+    } else {
+      handleApiFail(response, t('Import Failed!'))
     }
   }
 
@@ -634,24 +638,7 @@ class ProjectSettings extends React.Component {
             },
             (response) => {
               this.setState({ isUploadFilePending: false })
-              const messages = response?.messages || response?.responseJSON?.messages
-              const errorType = messages?.error_type
-              const importError = messages?.error
-
-              if (importError) {
-                const errLines = [t('Import Failed!')]
-                if (files[0].name) {
-                  errLines.push(<code>Name: {files[0].name}</code>)
-                }
-                errLines.push(
-                  <code>
-                    {errorType}: {escapeHtml(importError)}
-                  </code>,
-                )
-                notify.error(join(errLines, <br />))
-              } else {
-                handleApiFail(response, t('Import Failed!'))
-              }
+              this.notifyImportFailure(response, files[0]?.name)
             },
           )
         },
