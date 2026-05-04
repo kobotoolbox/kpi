@@ -147,3 +147,24 @@ def test_process_data_returns_failed_for_polling_auth_errors():
     service._clear_operation_reference.assert_called_once_with(
         'audio', 'en-US', None
     )
+
+
+def test_process_data_returns_failed_for_unexpected_polling_errors():
+    service = _get_service_for_process_data()
+    service._get_google_language_config = MagicMock(
+        return_value=MagicMock(language_code='en-US', location_code='global')
+    )
+    service._get_operation_reference = MagicMock(return_value='operations/123')
+    service._get_operation_payload = MagicMock(
+        side_effect=AttributeError('unexpected bug')
+    )
+
+    result = service.process_data('audio', {'language': 'en'})
+
+    assert result == {
+        'status': 'failed',
+        'error': 'Transcription failed with error unexpected bug',
+    }
+    service._clear_operation_reference.assert_called_once_with(
+        'audio', 'en-US', None
+    )
