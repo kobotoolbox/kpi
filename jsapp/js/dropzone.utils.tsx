@@ -22,33 +22,21 @@ interface ApplyImportParams {
 
 const APPLY_IMPORT_CHECK_INTERVAL = 1000
 
-interface PollImportUntilDoneOptions {
-  shouldContinue?: () => boolean
-  checkIntervalMs?: number
-}
-
 /**
  * Polls import status until backend reports either `complete` or `error`.
  *
  * Use it after `createImport` succeeds:
  *
  * ```ts
- * const isActive = true
- * pollImportUntilDone(importUid, { shouldContinue: () => isActive }).then(
+ * pollImportUntilDone(importUid).then(
  *   (importData) => { <handle success> },
- *   (reason) => { <handle failure or cancellation> },
+ *   (reason) => { <handle failure> },
  * )
  * ```
- *
- * Pass `shouldContinue` when caller might unmount; returning `false` stops
- * further polling and rejects with "Polling cancelled".
  */
-export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOptions = {}): Promise<ImportResponse> {
-  const { shouldContinue, checkIntervalMs = APPLY_IMPORT_CHECK_INTERVAL } = options
-
+export function pollImportUntilDone(uid: string): Promise<ImportResponse> {
   return new Promise((resolve, reject) => {
     let timeoutId: number | undefined
-    const isCancelled = () => typeof shouldContinue === 'function' && !shouldContinue()
 
     const resolveAndCleanup = (importData: ImportResponse) => {
       if (typeof timeoutId === 'number') {
@@ -57,7 +45,7 @@ export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOpt
       resolve(importData)
     }
 
-    const rejectAndCleanup = (reason: ImportResponse | string) => {
+    const rejectAndCleanup = (reason: ImportResponse) => {
       if (typeof timeoutId === 'number') {
         window.clearTimeout(timeoutId)
       }
@@ -65,11 +53,6 @@ export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOpt
     }
 
     const runCheck = () => {
-      if (isCancelled()) {
-        rejectAndCleanup('Polling cancelled')
-        return
-      }
-
       dataInterface
         .getImportDetails({ uid })
         .done((importData: ImportResponse) => {
@@ -82,11 +65,7 @@ export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOpt
               break
             // 'processing' / 'created' - keep polling
             default:
-              if (isCancelled()) {
-                rejectAndCleanup('Polling cancelled')
-                return
-              }
-              timeoutId = window.setTimeout(runCheck, checkIntervalMs)
+              timeoutId = window.setTimeout(runCheck, APPLY_IMPORT_CHECK_INTERVAL)
               break
           }
         })

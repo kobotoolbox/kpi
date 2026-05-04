@@ -16,15 +16,8 @@ import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
-import { notify } from '#/utils'
+import { escapeHtml, join, notify, validFileTypes } from '#/utils'
 import { renderBackButton } from './modalHelpers'
-
-const LIBRARY_UPLOAD_ACCEPT = {
-  'application/vnd.ms-excel': ['.xls'],
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-  'application/xls': ['.xls'],
-  'application/octet-stream': ['.xls', '.xlsx'],
-}
 
 /**
  * @prop {function} onSetModalTitle
@@ -34,7 +27,6 @@ const LibraryUploadForm = observer(
   class LibraryUploadForm extends React.Component {
     constructor(props) {
       super(props)
-      this.isMountedForPolling = true
       this.state = {
         isPending: false,
         isUploadAsTemplateChecked: false,
@@ -42,10 +34,6 @@ const LibraryUploadForm = observer(
       }
 
       autoBind(this)
-    }
-
-    componentWillUnmount() {
-      this.isMountedForPolling = false
     }
 
     isSubmitEnabled() {
@@ -89,17 +77,26 @@ const LibraryUploadForm = observer(
               filename: file.name,
             })
 
-            pollImportUntilDone(data.uid, { shouldContinue: () => this.isMountedForPolling }).then(
+            pollImportUntilDone(data.uid).then(
               () => {
                 myLibraryStore.fetchData(true)
                 notify(t('XLS Import completed'))
                 pageState.hideModal()
               },
-              (error) => {
-                if (!this.isMountedForPolling || error === 'Polling cancelled') {
-                  return
+              (response) => {
+                const errLines = []
+                errLines.push(t('Import Failed!'))
+                if (file.name) {
+                  errLines.push(<code>Name: {file.name}</code>)
                 }
-                notify.error(t('Import Failed!'))
+                if (response?.messages?.error) {
+                  errLines.push(
+                    <code>
+                      {response.messages.error_type}: {escapeHtml(response.messages.error)}
+                    </code>,
+                  )
+                }
+                notify.error(<div>{join(errLines, <br />)}</div>)
                 pageState.hideModal()
               },
             )
@@ -128,7 +125,7 @@ const LibraryUploadForm = observer(
           {!this.state.isPending && (
             <React.Fragment>
               <bem.FormModal__item>
-                <Dropzone onDrop={this.onFileDrop.bind(this)} multiple={false} accept={LIBRARY_UPLOAD_ACCEPT}>
+                <Dropzone onDrop={this.onFileDrop.bind(this)} multiple={false} accept={validFileTypes()}>
                   {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
                     <div
                       {...getRootProps({

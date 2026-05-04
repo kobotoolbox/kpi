@@ -8,6 +8,7 @@ import Dropzone from 'react-dropzone'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 import { archiveAsset, deleteAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import Button from '#/components/common/button'
@@ -30,16 +31,9 @@ import { router, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { escapeHtml, isAValidUrl, join, notify } from '#/utils'
+import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
-
-const XLSFORM_DROPZONE_ACCEPT = {
-  'application/vnd.ms-excel': ['.xls'],
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-  'application/xls': ['.xls'],
-  'application/octet-stream': ['.xls', '.xlsx'],
-}
 
 /**
  * This is used for multiple different purposes:
@@ -578,19 +572,24 @@ class ProjectSettings extends React.Component {
             },
             (response) => {
               this.resetImportUrlButton()
-              const errLines = []
-              errLines.push(t('Import Failed!'))
-              if (importUrl) {
-                errLines.push(<code>Name: {this.getFilenameFromURI(importUrl)}</code>)
-              }
-              if (response.messages.error) {
+              const messages = response?.messages || response?.responseJSON?.messages
+              const errorType = messages?.error_type
+              const importError = messages?.error
+
+              if (importError) {
+                const errLines = [t('Import Failed!')]
+                if (importUrl) {
+                  errLines.push(<code>Name: {this.getFilenameFromURI(importUrl)}</code>)
+                }
                 errLines.push(
                   <code>
-                    {response.messages.error_type}: {response.messages.error}
+                    {errorType}: {escapeHtml(importError)}
                   </code>,
                 )
+                notify.error(join(errLines, <br />))
+              } else {
+                handleApiFail(response, t('Import Failed!'))
               }
-              notify.error(join(errLines, <br />))
             },
           )
         },
@@ -635,19 +634,24 @@ class ProjectSettings extends React.Component {
             },
             (response) => {
               this.setState({ isUploadFilePending: false })
-              const errLines = []
-              errLines.push(t('Import Failed!'))
-              if (files[0].name) {
-                errLines.push(<code>Name: ${files[0].name}</code>)
-              }
-              if (response.messages.error) {
+              const messages = response?.messages || response?.responseJSON?.messages
+              const errorType = messages?.error_type
+              const importError = messages?.error
+
+              if (importError) {
+                const errLines = [t('Import Failed!')]
+                if (files[0].name) {
+                  errLines.push(<code>Name: {files[0].name}</code>)
+                }
                 errLines.push(
                   <code>
-                    {response.messages.error_type}: {escapeHtml(response.messages.error)}
+                    {errorType}: {escapeHtml(importError)}
                   </code>,
                 )
+                notify.error(join(errLines, <br />))
+              } else {
+                handleApiFail(response, t('Import Failed!'))
               }
-              notify.error(join(errLines, <br />))
             },
           )
         },
@@ -798,7 +802,7 @@ class ProjectSettings extends React.Component {
         <div className={styles.modalSubheader}>{t('Import an XLSForm from your computer.')}</div>
 
         {!this.state.isUploadFilePending && (
-          <Dropzone onDrop={this.onFileDrop.bind(this)} multiple={false} accept={XLSFORM_DROPZONE_ACCEPT}>
+          <Dropzone onDrop={this.onFileDrop.bind(this)} multiple={false} accept={validFileTypes()}>
             {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
               <div
                 {...getRootProps({
