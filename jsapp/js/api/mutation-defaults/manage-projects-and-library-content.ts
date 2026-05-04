@@ -11,7 +11,15 @@ queryClient.setMutationDefaults(
   getAssetsPartialUpdateMutationOptions({
     mutation: {
       onSettled: (_data, _error, { uidAsset }) => {
-        invalidatePaginatedList(getAssetsListQueryKey())
+        const assetsListQueryKey = getAssetsListQueryKey()
+
+        invalidatePaginatedList(assetsListQueryKey)
+        queryClient.invalidateQueries({
+          predicate: ({ queryKey }) =>
+            queryKey.length > assetsListQueryKey.length &&
+            assetsListQueryKey.every((keyPart, index) => queryKey[index] === keyPart) &&
+            queryKey[queryKey.length - 1] === 'infinite',
+        })
         invalidateItem(getAssetsRetrieveQueryKey(uidAsset))
       },
     },
