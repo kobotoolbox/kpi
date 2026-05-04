@@ -35,12 +35,8 @@ interface PollImportUntilDoneOptions {
  * ```ts
  * const isActive = true
  * pollImportUntilDone(importUid, { shouldContinue: () => isActive }).then(
- *   (importData) => {
- *     // handle success
- *   },
- *   (reason) => {
- *     // handle failure or cancellation
- *   },
+ *   (importData) => { <handle success> },
+ *   (reason) => { <handle failure or cancellation> },
  * )
  * ```
  *
@@ -104,9 +100,8 @@ export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOpt
 }
 
 /**
- * Reads a `File`, uploads it as an import targeting an existing asset (either
- * replacing it or applying it as a destination), and resolves with the first
- * created/updated asset entry once the import completes.
+ * Reads a `File`, uploads it as an import targeting an existing asset (either replacing it or applying it as
+ * a destination), and resolves with the first created/updated asset entry once the import completes.
  *
  * Replaces `mixins.droppable.applyFileToAsset`.
  */

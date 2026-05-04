@@ -74,16 +74,16 @@ const LibraryUploadForm = observer(
           base64Encoded: reader.result,
           library: true,
         }
-        // Only pass desired type if user wants to upload as template. Back-end code
-        // will create either a block, or a collection - based on the file content.
+        // Only pass desired type if user wants to upload as template. Back-end code will create either a block, or
+        // a collection - based on the file content.
         if (this.state.isUploadAsTemplateChecked) {
           params.desired_type = ASSET_TYPES.template.id
         }
         dataInterface
           .createImport(params)
           .done((data) => {
-            // Keep previous behavior: switch to a dedicated upload modal that
-            // stays visible until import processing finishes.
+            // Keep previous behavior: switch to a dedicated upload modal that stays visible until import processing
+            // finishes.
             pageState.switchModal({
               type: MODAL_TYPES.UPLOADING_XLS,
               filename: file.name,
