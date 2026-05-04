@@ -12,7 +12,12 @@ from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from google.api_core import client_options
-from google.api_core.exceptions import GoogleAPIError, InvalidArgument
+from google.api_core.exceptions import (
+    GoogleAPIError,
+    InvalidArgument,
+    PermissionDenied,
+    Unauthenticated,
+)
 from google.cloud import speech_v2 as speech
 from google.cloud.exceptions import GoogleCloudError
 from google.protobuf.json_format import MessageToDict
@@ -30,6 +35,7 @@ from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
 from ...exceptions import (
     AudioTooLongError,
+    GoogleTranscriptionServiceNotConfigured,
     SubsequenceTimeoutError,
     TranscriptionResultNotFound
 )
@@ -52,11 +58,15 @@ class GoogleTranscriptionService(GoogleService):
         class. It uses Google Cloud Speech-to-Text v2 batch API.
         """
         super().__init__(submission=submission, asset=asset, *args, **kwargs)
-        self.destination_path = None
 
     def adapt_response(self, response: Union[dict, list]) -> str:
         """
-        Extract transcript segments from a Google Speech-to-Text v2 JSON payload
+        Extract transcript segments from Google Speech-to-Text v2 JSON payloads
+
+        We currently read results from JSON files stored in GCS, but the nested
+        shape can vary slightly between inline responses and batch output files.
+        This walker looks for `alternatives[0].transcript` anywhere under the
+        common wrapper keys that Google uses for those payloads.
         """
         transcripts = []
 
@@ -174,6 +184,8 @@ class GoogleTranscriptionService(GoogleService):
         requested_language = params.get('locale') or params['language']
         try:
             language_config = self._get_google_language_config(requested_language)
+        except GoogleTranscriptionServiceNotConfigured as err:
+            return {'status': 'failed', 'error': str(err)}
         except LanguageNotSupported as err:
             message = str(err) or (
                 f'Transcription is not supported for language "{requested_language}"'
@@ -263,7 +275,10 @@ class GoogleTranscriptionService(GoogleService):
                 )
                 return {
                     'status': 'failed',
-                    'error': f'Transcription failed with error: {str(err)}',
+                    'error': (
+                        f'Transcription failed with error: {str(err)} '
+                        'It is possible Google was unable to transcribe the audio.'
+                    ),
                 }
             except (GoogleAPIError, GoogleCloudError, Exception) as err:
                 logging.error(f'Google operation failed for {xpath=}: {err}')
@@ -307,7 +322,23 @@ class GoogleTranscriptionService(GoogleService):
             self._clear_operation_reference(xpath, source_language, bulk_action_uid)
             return {
                 'status': 'failed',
-                'error': f'Transcription failed with error {str(err)}',
+                'error': (
+                    f'Transcription failed with error {str(err)}. '
+                    'It is possible Google was unable to transcribe the audio.'
+                ),
+            }
+        except (PermissionDenied, Unauthenticated) as err:
+            logging.error(
+                f'Google authentication or permission error while polling '
+                f'transcription for {xpath=}: {err}'
+            )
+            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            return {
+                'status': 'failed',
+                'error': (
+                    'Transcription failed because Google credentials or '
+                    f'permissions are invalid: {str(err)}'
+                ),
             }
         except (GoogleAPIError, GoogleCloudError, Exception) as err:
             # Unable to reach Google to check the operation status.
@@ -331,13 +362,12 @@ class GoogleTranscriptionService(GoogleService):
         Set Life cycle expiration to delete after 1 day
         https://cloud.google.com/storage/docs/lifecycle
         """
-        self.destination_path = destination_path
-        destination = self.bucket.blob(self.destination_path)
+        destination = self.bucket.blob(destination_path)
         destination.upload_from_string(
             content,
             content_type='audio/flac',
         )
-        return f'gs://{settings.GS_BUCKET_NAME}/{self.destination_path}'
+        return f'gs://{settings.GS_BUCKET_NAME}/{destination_path}'
 
     def _get_google_language_config(self, requested_language: str):
         """
@@ -348,7 +378,7 @@ class GoogleTranscriptionService(GoogleService):
                 code=GOOGLE_CODE
             )
         except TranscriptionService.DoesNotExist:
-            raise LanguageNotSupported(
+            raise GoogleTranscriptionServiceNotConfigured(
                 'Google transcription service is not configured.'
             )
         return transcription_lang_service.get_configuration(requested_language)
@@ -441,6 +471,7 @@ class GoogleTranscriptionService(GoogleService):
         """
         _, output_prefix = self._get_batch_paths(xpath, source_lang)
         transcript_parts = []
+        found_json_result = False
         blobs = sorted(
             self.bucket.list_blobs(prefix=output_prefix),
             key=lambda blob: blob.name,
@@ -449,11 +480,12 @@ class GoogleTranscriptionService(GoogleService):
             if not blob.name.endswith('.json'):
                 continue
 
+            found_json_result = True
             transcript = self.adapt_response(json.loads(blob.download_as_text()))
             if transcript:
                 transcript_parts.append(transcript)
 
-        if not transcript_parts:
+        if not found_json_result:
             raise TranscriptionResultNotFound(
                 'No transcription JSON result files were found in Google Cloud Storage.'
             )
