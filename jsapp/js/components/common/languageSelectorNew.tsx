@@ -1,40 +1,50 @@
+import { useDebouncedValue } from '@mantine/hooks'
 import { useMemo, useState } from 'react'
 import { useLanguagesList } from '#/api/react-query/other'
-import Autocomplete from './Autocomplete'
+import Select from './Select'
 
-const LanguageSelectorNew = () => {
-  const [value, setValue] = useState('')
-  const [recentSelections, setRecentSelections] = useState<string[]>([])
+interface LanguageSelectorNewProps {
+  // TODO: Fix the typing here, the new orval types are incompatible with old types being used in the single processing view
+  onLanguageChange: Function
+}
 
-  const { data, isLoading } = useLanguagesList()
-  const languageOptions = data?.status === 200 ? data.data.results.map((lang) => `${lang.name} (${lang.code})`) : []
+const MINIMUM_SEARCH_LENGTH = 2
+// Timeout chosen based on same debounce time in old languageSelector.tsx
+const SEARCH_DEBOUNCE_MS = 300
 
-  const groupedData = useMemo(() => {
-    const recent = recentSelections.filter((item) => languageOptions.includes(item))
-    const others = languageOptions.filter((item) => !recent.includes(item))
+const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
+  const [searchValue, setSearchValue] = useState('')
+  const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
+  const isSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
-    const groups = []
-    // TODO: remove the 'title' of the groups
-    if (recent.length > 0) {
-      groups.push({ group: 'Recent', items: recent })
-    }
-    groups.push({ group: 'Others', items: others })
+  const { data, isLoading } = useLanguagesList(
+    isSearching ? ({ q: debouncedSearch } as any) : undefined,
+  )
 
-    return groups
-  }, [recentSelections, languageOptions])
+  const languages = data?.status === 200 ? data.data.results : []
+  const languageOptions = useMemo(() => {
+    const languagesList = isSearching ? languages : languages.filter((lang) => lang.featured)
+    return languagesList.map((lang) => ({
+      value: lang.code,
+      label: `${lang.name} (${lang.code})`,
+    }))
+  }, [data, isSearching])
 
-  const handleChange = (newValue: string) => {
-    setValue(newValue)
-
-    if (newValue) {
-      setRecentSelections((prev) => {
-        const filtered = prev.filter((item) => item !== newValue)
-        return [newValue, ...filtered]
-      })
-    }
+  const onLanguageSelected = (selectedLanguage: string | null) => {
+    const selectedLanguageObject = languages.find((lang) => lang.code === selectedLanguage) || null
+    props.onLanguageChange(selectedLanguageObject)
   }
 
-  return <Autocomplete data={groupedData} value={value} onChange={handleChange} label='Select language' />
+  return (
+    <Select
+      onSearchChange={setSearchValue}
+      data={languageOptions}
+      onChange={onLanguageSelected}
+      label='Select language'
+      searchable
+      clearable
+    />
+  )
 }
 
 export default LanguageSelectorNew

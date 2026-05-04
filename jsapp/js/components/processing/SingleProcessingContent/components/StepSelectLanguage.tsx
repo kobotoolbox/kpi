@@ -13,6 +13,7 @@ import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import TransxAutomaticButton from './transxAutomaticButton'
+import LanguageSelectorNew from '#/components/common/languageSelectorNew'
 
 interface Props {
   onBack: () => void
@@ -85,6 +86,9 @@ export default function StepSelectLanguage({
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
+      <LanguageSelectorNew
+        onLanguageChange={handleChangeLanguage}
+      />
       <LanguageSelector
         titleOverride={titleOverride}
         onLanguageChange={handleChangeLanguage}
