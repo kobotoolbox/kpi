@@ -23,6 +23,5 @@ jobs:
           account: kobotoolbox
           token: ${{ steps.app-token.outputs.token }}
           image-names: kpi
-          image-tags: "!main !public-beta !feature-*"
           cut-off: 90d
           dry-run: false
