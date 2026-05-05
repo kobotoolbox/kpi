@@ -71,9 +71,9 @@ class ValidateSuperuserMfaTest(TestCase):
         Promoting a user to superuser should fail if they don't have MFA
         """
         self.assertFalse(self.user.is_superuser)
-        is_superuser_requested = True
+        can_save_as_superuser = True
 
-        result = validate_superuser_auth(self.user, is_superuser_requested)
+        result = validate_superuser_auth(self.user, can_save_as_superuser)
         self.assertFalse(
             result, 'Should block promotion to superuser if MFA is missing'
         )

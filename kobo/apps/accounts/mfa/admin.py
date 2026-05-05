@@ -52,8 +52,7 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
         readonly_fields = list(super().get_readonly_fields(request, obj))
 
         if obj and obj.pk:
-            persisted_obj = MfaMethodsWrapper.objects.get(pk=obj.pk)
-            if not persisted_obj.is_active:
+            if MfaMethodsWrapper.objects.filter(pk=obj.pk, is_active=True).exists():
                 readonly_fields.append('is_active')
 
         return readonly_fields

@@ -15,9 +15,6 @@ class EnforceSuperuserMFA(BasePermission):
     )
 
     def has_permission(self, request, view):
-        if (
-            getattr(request.user, 'is_superuser', False)
-            and getattr(config, 'SUPERUSER_AUTH_ENFORCEMENT', False)  # noqa: W503
-        ):
+        if request.user.is_superuser and config.SUPERUSER_AUTH_ENFORCEMENT:
             return False
         return True

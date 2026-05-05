@@ -203,7 +203,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
 
         {isDisabled ? (
           <Tooltip
-            text={t('Superusers cannot deactivate their MFA.')}
+            text={t('Superusers cannot deactivate their MFA')}
             ariaLabel={t('MFA restriction explanation')}
             alignment='right'
           >

@@ -60,7 +60,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
-            'is_staff',
             'is_superuser',
             'server_time',
             'date_joined',
@@ -80,7 +79,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'email',
             'accepted_tos',
-            'is_staff',
             'is_superuser',
         )
 
