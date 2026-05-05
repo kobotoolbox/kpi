@@ -1,10 +1,10 @@
 name: GHCR image cleanup
 
 on:
+  push:
+    branches: [ghcr-retention-policy]
   schedule:
-    - cron: '0 3 * * 0' # Weekly on Sunday at 03:00 UTC
-  workflow_dispatch:
-
+    - cron: '0 3 * * 0'
 jobs:
   cleanup-old-images:
     runs-on: ubuntu-latest
