@@ -1733,19 +1733,22 @@ if MASS_EMAILS_CONDENSE_SEND:
     }
 
 """ AWS configuration (email and storage) """
+# Only set explicit credentials if provided via environment variables.
+# boto3 will otherwise fall back to ~/.aws/credentials, instance profiles, etc.
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
-    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
-    AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
-    AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
-    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
-    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
-    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
-    # Only set the region if it is present in environment.
-    if region := env.str('AWS_S3_REGION_NAME', False):
-        AWS_S3_REGION_NAME = region
+AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
+AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
+AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
+AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
+
+AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+# Only set the region if it is present in the environment.
+if region := env.str('AWS_S3_REGION_NAME', False):
+    AWS_S3_REGION_NAME = region
 
 AWS_SES_CONFIGURATION_SET = env.str('AWS_SES_CONFIGURATION_SET', None)
 

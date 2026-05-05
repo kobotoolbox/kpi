@@ -1,8 +1,8 @@
 import os
 
-from pytest import fixture
 from django.conf import settings
 from django.db import connection
+from pytest import fixture
 
 from kobo.apps.user_reports.utils.migrations import (
     CREATE_INDEXES_SQL,
