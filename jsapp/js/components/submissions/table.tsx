@@ -3,7 +3,6 @@ import { Group } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
-import { DebounceInput } from 'react-debounce-input'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
@@ -15,6 +14,7 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
+import DebouncedTextInput from '#/components/common/debouncedTextInput'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
@@ -1037,12 +1037,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
         col.Filter = ({ filter, onChange }) => (
-          <DebounceInput
+          <DebouncedTextInput
             value={filter ? filter.value : undefined}
-            debounceTimeout={750}
-            onChange={(event) => onChange(event.target.value)}
-            className='table-filter-input'
+            onChange={onChange}
             placeholder={t('Search')}
+            size='xs'
           />
         )
       }
