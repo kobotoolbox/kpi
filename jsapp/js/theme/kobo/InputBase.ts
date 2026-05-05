@@ -4,10 +4,8 @@ import classes from './InputBase.module.css'
 export const InputBaseThemeKobo = InputBase.extend({
   defaultProps: {
     size: 'md',
-    wrapperProps: {
-      classNames: {
-        label: classes.label,
-      },
+    labelProps: {
+      className: classes.label,
     },
     classNames: {
       input: classes.input,

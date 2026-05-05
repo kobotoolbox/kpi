@@ -22,12 +22,13 @@ import myLibraryStore from './components/library/myLibraryStore'
 import { userCan } from './components/permissions/utils'
 import { ASSET_TYPES, MODAL_TYPES } from './constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from './dataInterface'
-import { router, routerIsActive } from './router/legacy'
+import { router } from './router/legacy'
 import { ROUTES } from './router/routerConstants'
+import { isAnyLibraryRoute } from './router/routerUtils'
 import { notify, renderCheckbox } from './utils'
 
 export function openInFormBuilder(uid: string) {
-  if (routerIsActive(ROUTES.LIBRARY)) {
+  if (isAnyLibraryRoute()) {
     router!.navigate(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid))
   } else {
     router!.navigate(ROUTES.FORM_EDIT.replace(':uid', uid))

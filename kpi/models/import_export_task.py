@@ -1073,6 +1073,7 @@ class SubmissionExportTaskBase(ImportExportTask):
             if source.advanced_features_set.exists() and (
                 SubmissionSupplement.objects.filter(asset=source)
                 .exclude(content__has_key='_version')
+                .exclude(content={})
                 .exists()
             ):
                 raise SupplementMigrationInProgress(

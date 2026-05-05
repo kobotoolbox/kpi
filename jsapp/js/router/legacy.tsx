@@ -1,7 +1,7 @@
 /** Don't use anything here for new components */
 import React, { type FC } from 'react'
 
-import type { Router } from '@remix-run/router'
+import type { DataRouter as Router } from 'react-router'
 import type { Location, NavigateFunction, Params } from 'react-router-dom'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { recordEntries, recordKeys } from '#/utils'
@@ -61,47 +61,15 @@ export function withRouter(Component: FC | typeof React.Component) {
 }
 
 /**
- * @deprecated Use some of the functions from `routerUtils.ts`.
- */
-function getCurrentRoute() {
-  return router!.state.location.pathname
-}
-
-/**
- * Reimplementation of router v3 isActive
- *
- * @deprecated Use some of the functions from `routerUtils.ts`.
- */
-export function routerIsActive(route: string) {
-  return getCurrentRoute().startsWith(route)
-}
-
-/**
- * @deprecated Use `getRouteAssetUid` from `routerUtils.ts`.
- */
-export function routerGetAssetId() {
-  const current = getCurrentRoute()
-  if (current) {
-    const routeParts = current.split('/')
-    if (routeParts[1] === 'forms') {
-      return routeParts[2]
-    } else if (routeParts[1] === 'library') {
-      return routeParts[3]
-    }
-  }
-  return null
-}
-
-/**
  * Necessary to avoid circular dependency
  * Because router may be null, non-component uses may need to check
  * null status or use setTimeout to ensure it's run after the first react render cycle
  * For modern code, use router hooks instead of this.
  * https://github.com/remix-run/react-router/issues/9422#issuecomment-1314642344
  *
- * Note: using `router.subscribe` will cause memory leaks and could produce bugs
- * when using hot reload on development environment. This is because `subscribe`
- * method doesn't have a cancel function.
+ * Note: using `router.subscribe` in class components can cause memory leaks if
+ * the returned unsubscribe function is not called in `componentWillUnmount`.
+ * Prefer using router hooks (`useLocation`, `useNavigate`) in functional components.
  */
 export let router: Router | null = null
 export function injectRouter(newRouter: Router) {

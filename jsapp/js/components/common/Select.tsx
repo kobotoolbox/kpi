@@ -5,11 +5,6 @@ import { useEffect, useState } from 'react'
 import type { IconSize } from './icon'
 import Icon from './icon'
 
-declare module '@mantine/core/lib/components/Select' {
-  /** @deprecated use Kobo implementation instead. (deprecating a new interface because can't augment variables) */
-  export interface Select {}
-}
-
 const iconSizeMap: Record<string, IconSize> = {
   xs: 'xxs',
   sm: 'xs',

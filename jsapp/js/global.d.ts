@@ -259,6 +259,13 @@ declare module 'react-autobind' {
   export default autoBind
 }
 
+declare module '*.svg?react' {
+  import type { FunctionComponent, SVGProps } from 'react'
+
+  const ReactComponent: FunctionComponent<SVGProps<SVGSVGElement>>
+  export default ReactComponent
+}
+
 declare module '*.scss'
 declare module '*.css'
 
