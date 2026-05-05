@@ -397,7 +397,11 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
 
-def test_action_is_updated_in_background_if_in_progress():
+def test_async_translation_timeout_is_saved_as_failed():
+    """
+    Persist a failed result when async translation is still running so the user
+    must retry manually instead of relying on background polling
+    """
     action = _get_action()
     mock_service = MagicMock()
     submission = {'meta/rootUuid': '123-abdc'}
@@ -406,7 +410,13 @@ def test_action_is_updated_in_background_if_in_progress():
         'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
-        mock_service.process_data.return_value = {'status': 'in_progress'}
+        mock_service.process_data.return_value = {
+            'status': 'failed',
+            'error': (
+                'Timed out waiting for translation results. Translation may still '
+                'be running. Try again in 5 minutes.'
+            ),
+        }
         with patch(
             'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
@@ -416,9 +426,11 @@ def test_action_is_updated_in_background_if_in_progress():
                 {'language': 'fr'},
             )
 
-        task_mock.apply_async.assert_called_once()
-        assert result['fr']['_versions'][0]['_data']['status'] == 'in_progress'
+        task_mock.apply_async.assert_not_called()
+        assert result['fr']['_versions'][0]['_data']['status'] == 'failed'
         assert result['fr']['_versions'][0]['_data']['language'] == 'fr'
+        error = result['fr']['_versions'][0]['_data']['error']
+        assert 'Try again in 5 minutes.' in error
 
 
 def test_transform_data_for_output():

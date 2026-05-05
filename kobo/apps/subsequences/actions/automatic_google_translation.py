@@ -13,7 +13,6 @@ class AutomaticGoogleTranslationAction(TranslationActionMixin, BaseAutomaticNLPA
         automatic=True,
         action_data_key='language',
         review_type=ReviewType.ACCEPTANCE,
-        allow_async=True,
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
