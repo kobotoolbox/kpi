@@ -28,22 +28,33 @@ def mock_s3_when_needed():
     import boto3
     from moto import mock_aws
 
-    os.environ['AWS_ACCESS_KEY_ID'] = 'testing'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'testing'
-    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+    dummy_env_vars = {
+        'AWS_ACCESS_KEY_ID': 'testing',
+        'AWS_SECRET_ACCESS_KEY': 'testing',
+        'AWS_DEFAULT_REGION': 'us-east-1',
+    }
+    originals = {k: os.environ.get(k) for k in dummy_env_vars}
+    os.environ.update(dummy_env_vars)
 
-    with mock_aws():
-        region = settings.AWS_S3_REGION_NAME
-        bucket = settings.AWS_STORAGE_BUCKET_NAME
-        s3 = boto3.client('s3', region_name=region)
-        if region == 'us-east-1':
-            s3.create_bucket(Bucket=bucket)
-        else:
-            s3.create_bucket(
-                Bucket=bucket,
-                CreateBucketConfiguration={'LocationConstraint': region},
-            )
-        yield
+    try:
+        with mock_aws():
+            region = settings.AWS_S3_REGION_NAME
+            bucket = settings.AWS_STORAGE_BUCKET_NAME
+            s3 = boto3.client('s3', region_name=region)
+            if region == 'us-east-1':
+                s3.create_bucket(Bucket=bucket)
+            else:
+                s3.create_bucket(
+                    Bucket=bucket,
+                    CreateBucketConfiguration={'LocationConstraint': region},
+                )
+            yield
+    finally:
+        for k, v in originals.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
 
 
 @fixture(scope='session', autouse=True)

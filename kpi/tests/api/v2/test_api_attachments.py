@@ -37,6 +37,14 @@ class AttachmentApiTests(BaseAssetTestCase):
         default_storage._backend = None
         super().setUpClass()
 
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        # Clear the cached backend so subsequent test classes reinitialise from
+        # the real settings rather than inheriting the FileSystemStorage backend
+        # cached during this class's run.
+        default_storage._backend = None
+
     def setUp(self) -> None:
         self.client.login(username='someuser', password='someuser')
         self.someuser = User.objects.get(username='someuser')
