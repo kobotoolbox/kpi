@@ -28,7 +28,7 @@ class GoogleTranslationService(GoogleService):
     API_NAME = 'translate'
     API_VERSION = 'v3'
     API_RESOURCE = 'projects.locations.operations'
-    MAX_SYNC_CHARS = 3  # Temporarily lowered from 30720 for testing purposes
+    MAX_SYNC_CHARS = 30720
     ASYNC_RETRY_LATER_ERROR = (
         'Timed out waiting for translation results. Translation may still be '
         'running. Try again in 5 minutes.'
