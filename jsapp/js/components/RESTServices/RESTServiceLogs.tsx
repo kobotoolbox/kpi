@@ -16,6 +16,7 @@ import type {
   RetryExternalServiceLogsResponse,
 } from '#/dataInterface'
 import pageState from '#/pageState.store'
+import { router } from '#/router/legacy'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { formatTime, notify } from '#/utils'
 
@@ -215,7 +216,7 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
           type='secondary'
           size='m'
           onClick={() => {
-            window.location.assign(`/#/forms/${this.state.assetUid}/settings/rest`)
+            router!.navigate(`/forms/${this.state.assetUid}/settings/rest`)
           }}
           startIcon='angle-left'
           label={t('Back to REST Services')}

@@ -1,5 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react'
 
+import { useNavigate } from 'react-router-dom'
+
 import BillingButton from '#/account/plans/billingButton.component'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { SubscriptionChangeType } from '#/account/stripe.types'
@@ -26,6 +28,7 @@ const BADGE_COLOR_KEYS: { [key in SubscriptionChangeType]: BadgeColor } = {
  * Show the user's current plan and any storage add-ons, with links to the Plans page
  */
 export const YourPlan = () => {
+  const navigate = useNavigate()
   const [subscriptions] = useState(() => subscriptionStore)
   const [env] = useState(() => envStore)
   const [session] = useState(() => sessionStore)
@@ -95,11 +98,7 @@ export const YourPlan = () => {
         </div>
         {showPlanUpdateLink && (
           <nav>
-            <BillingButton
-              label={'See plans'}
-              type='secondary'
-              onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
-            />
+            <BillingButton label={'See plans'} type='secondary' onClick={() => navigate(ACCOUNT_ROUTES.PLAN)} />
             {/* This is commented out until the add-ons tab on the Plans page is implemented
               <BillingButton
                 label={'get add-ons'}
