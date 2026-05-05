@@ -8,12 +8,17 @@ class SocialAppSerializer(serializers.Serializer):
     provider_id = serializers.CharField(allow_blank=True, allow_null=True)
 
 
+class MetadataFieldOptionSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    label = serializers.CharField()
+
+
 class MetadataFieldSerializer(serializers.Serializer):
     name = serializers.CharField()
     label = serializers.CharField()
     type = serializers.CharField(required=False, allow_blank=True)
     required = serializers.BooleanField(required=False)
-    options = serializers.JSONField(required=False, allow_null=True)
+    options = MetadataFieldOptionSerializer(many=True, required=False, allow_null=True)
 
 
 class EnvironmentResponseSerializer(serializers.Serializer):

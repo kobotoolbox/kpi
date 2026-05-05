@@ -24830,7 +24830,26 @@
                         "type": "boolean"
                     },
                     "options": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MetadataFieldOption"
+                        },
                         "nullable": true
+                    }
+                },
+                "required": [
+                    "label",
+                    "name"
+                ]
+            },
+            "MetadataFieldOption": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
                     }
                 },
                 "required": [
