@@ -81,6 +81,7 @@ class GoogleTranscriptionService(GoogleService):
         speech_client = speech.SpeechClient(credentials=self.credentials)
         config = speech.RecognitionConfig(
             language_code=source_lang,
+            model='latest_long',
             enable_automatic_punctuation=True,
         )
 
