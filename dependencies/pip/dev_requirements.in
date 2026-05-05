@@ -15,7 +15,7 @@ pytest-env
 pytest-xdist
 fakeredis
 freezegun
-moto[s3,server]
+moto[s3]
 django-debug-toolbar
 
 # KoboCAT
