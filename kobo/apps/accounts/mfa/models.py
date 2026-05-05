@@ -108,6 +108,12 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
             MfaMethod.objects.filter(user_id=user_id, name=self.name).delete()
 
     def deactivate(self, request: HttpRequest | None = None):
+        if config.SUPERUSER_AUTH_ENFORCEMENT and self.user.is_superuser:
+            raise ValidationError(
+                f'MFA deactivation is disabled for superuser "{self.user.username}" '
+                f'while SUPERUSER_AUTH_ENFORCEMENT is active.'
+
+            )
         totp = self.totp
         recovery_codes_id = self.recovery_codes_id
 

@@ -68,7 +68,10 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         changed_data = getattr(form, 'changed_data', [])
         if change and 'is_active' in changed_data and not obj.is_active:
-            obj.deactivate()
+            try:
+                obj.deactivate(request=request)
+            except ValidationError as e:
+                self.message_user(request, e.message, level=messages.ERROR)
             return
         super().save_model(request, obj, form, change)
 
