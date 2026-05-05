@@ -27,6 +27,14 @@ class GoogleCloudStorageBucketNotFound(Exception):
     pass
 
 
+class GoogleTranscriptionServiceNotConfigured(Exception):
+    """
+    Raised when the Google transcription service record is missing
+    """
+
+    pass
+
+
 class SubsequenceDeletionError(Exception):
     """Raised when attempting to delete a value that doesn't exist."""
 
@@ -92,4 +100,11 @@ class TranscriptionNotFound(DependencyNotFound):
 
 
 class TranslationAsyncResultAvailable(Exception):
+    pass
+
+
+class TranscriptionResultNotFound(Exception):
+    """
+    Raised when no transcription output files are found in GCS
+    """
     pass
