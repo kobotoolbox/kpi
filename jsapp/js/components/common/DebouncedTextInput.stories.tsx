@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import React from 'react'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
-import DebouncedTextInput from './debouncedTextInput'
+import DebouncedTextInput from './DebouncedTextInput'
 
 const meta: Meta<typeof DebouncedTextInput> = {
   title: 'Design system/DebouncedTextInput',
