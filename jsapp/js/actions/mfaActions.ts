@@ -3,7 +3,7 @@ import Reflux from 'reflux'
 import { ROOT_URL } from '#/constants'
 import { notify } from '#/utils'
 
-export type MfaErrorResponse = JQueryXHR & {
+export type MfaErrorResponse = JQuery.jqXHR & {
   non_field_errors?: string
 }
 
