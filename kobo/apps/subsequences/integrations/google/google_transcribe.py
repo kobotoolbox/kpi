@@ -44,7 +44,7 @@ from .base import GoogleService
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
 DEFAULT_SPEECH_LOCATION = 'global'
-DEFAULT_SPEECH_MODEL = 'latest_long'
+DEFAULT_SPEECH_MODEL = 'long'
 
 
 class GoogleTranscriptionService(GoogleService):
@@ -340,7 +340,7 @@ class GoogleTranscriptionService(GoogleService):
                     f'permissions are invalid: {str(err)}'
                 ),
             }
-        except (GoogleAPIError, GoogleCloudError, Exception) as err:
+        except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check the operation status.
             # The transcription may still be running, so return "in_progress"
             # to allow Celery to retry instead of marking the task as failed
@@ -349,6 +349,16 @@ class GoogleTranscriptionService(GoogleService):
                 f'for {xpath=}: {err}'
             )
             return {'status': 'in_progress'}
+        except Exception as err:
+            logging.exception(
+                'Unexpected error while polling transcription '
+                f'for {xpath=}: {err}'
+            )
+            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            return {
+                'status': 'failed',
+                'error': f'Transcription failed with error {str(err)}',
+            }
 
         self._clear_operation_reference(xpath, source_language, bulk_action_uid)
         return {
