@@ -2,6 +2,7 @@ import uuid
 from unittest.mock import patch
 
 from django.http import QueryDict
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -15,10 +16,26 @@ from kpi.tests.utils.mock import guess_type_mock
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
+@override_settings(
+    # Force FileSystemStorage for KoboCAT attachments so that test_convert_mp4_to_mp3
+    # works when S3 is configured in the environment. With S3, Attachment.absolute_path
+    # returns a presigned URL that ffmpeg (a subprocess) cannot follow — moto only
+    # intercepts in-process boto3 calls, not external HTTP. With FileSystemStorage,
+    # absolute_path returns a local file path that ffmpeg can read directly.
+    KOBOCAT_DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage'
+)
 class AttachmentApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    @classmethod
+    def setUpClass(cls):
+        # DefaultKobocatStorageProxy caches its backend instance. Reset it here
+        # so it reinitialises with the overridden FileSystemStorage setting
+        # rather than reusing a S3 backend cached by an earlier test class.
+        default_storage._backend = None
+        super().setUpClass()
 
     def setUp(self) -> None:
         self.client.login(username='someuser', password='someuser')
@@ -59,12 +76,12 @@ class AttachmentApiTests(BaseAssetTestCase):
             'meta/instanceID': f'uuid:{_uuid}',
             '_attachments': [
                 {
-                    'download_url': 'http://testserver/someuser/audio_conversion_test_clip.3gp',
+                    'download_url': 'http://testserver/someuser/audio_conversion_test_clip.3gp',  # noqa
                     'filename': 'someuser/audio_conversion_test_clip.3gp',
                     'mimetype': 'video/3gpp',
                 },
                 {
-                    'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
+                    'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',  # noqa
                     'filename': 'someuser/audio_conversion_test_image.jpg',
                     'mimetype': 'image/jpeg',
                 },

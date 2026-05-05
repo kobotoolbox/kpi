@@ -1,4 +1,7 @@
+import os
+
 from pytest import fixture
+from django.conf import settings
 from django.db import connection
 
 from kobo.apps.user_reports.utils.migrations import (
@@ -6,6 +9,41 @@ from kobo.apps.user_reports.utils.migrations import (
     CREATE_MV_SQL,
 )
 from kpi.utils.object_permission import get_anonymous_user
+
+
+@fixture(scope='session', autouse=True)
+def mock_s3_when_needed():
+    """
+    Activate moto's S3 mock for the entire test session when the default
+    storage backend is S3Boto3Storage. No-ops when InMemoryStorage is used.
+
+    This fixture lives at the project root so it applies to all test paths
+    (kobo/, kpi/, hub/). A conftest.py in a subdirectory only covers tests
+    within that subtree.
+    """
+    if not settings.STORAGES['default']['BACKEND'].endswith('S3Boto3Storage'):
+        yield
+        return
+
+    import boto3
+    from moto import mock_aws
+
+    os.environ['AWS_ACCESS_KEY_ID'] = 'testing'
+    os.environ['AWS_SECRET_ACCESS_KEY'] = 'testing'
+    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+
+    with mock_aws():
+        region = settings.AWS_S3_REGION_NAME
+        bucket = settings.AWS_STORAGE_BUCKET_NAME
+        s3 = boto3.client('s3', region_name=region)
+        if region == 'us-east-1':
+            s3.create_bucket(Bucket=bucket)
+        else:
+            s3.create_bucket(
+                Bucket=bucket,
+                CreateBucketConfiguration={'LocationConstraint': region},
+            )
+        yield
 
 
 @fixture(scope='session', autouse=True)

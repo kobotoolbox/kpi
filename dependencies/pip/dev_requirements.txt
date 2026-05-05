@@ -48,9 +48,11 @@ boto3==1.42.95
     # via
     #   django-amazon-ses
     #   django-storages
+    #   moto
 botocore==1.42.95
     # via
     #   boto3
+    #   moto
     #   s3transfer
 celery[redis]==5.6.3
     # via
@@ -96,6 +98,7 @@ cryptography==46.0.7
     #   fido2
     #   google-auth
     #   jwcrypto
+    #   moto
     #   paramiko
     #   pyopenssl
 cssselect==1.4.0
@@ -413,6 +416,8 @@ mongomock==4.3.0
     # via -r dependencies/pip/dev_requirements.in
 more-itertools==11.0.2
     # via -r dependencies/pip/requirements.in
+moto[s3]==5.2.0
+    # via -r dependencies/pip/dev_requirements.in
 multidict==6.7.1
     # via
     #   aiohttp
@@ -497,6 +502,8 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.3
     # via stack-data
+py-partiql-parser==0.6.3
+    # via moto
 pyasn1==0.6.3
     # via
     #   -r dependencies/pip/requirements.in
@@ -574,6 +581,7 @@ pyxform==3.0.0
 pyyaml==6.0.3
     # via
     #   drf-spectacular
+    #   moto
     #   responses
 qrcode==8.2
     # via django-allauth
@@ -598,13 +606,16 @@ requests==2.33.1
     #   google-api-core
     #   google-cloud-storage
     #   httmock
+    #   moto
     #   responses
     #   smsapi-client
     #   stripe
     #   twilio
     #   yubico-client
 responses==0.26.0
-    # via -r dependencies/pip/requirements.in
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   moto
 rich==15.0.0
     # via typer
 rpds-py==0.30.0
@@ -711,7 +722,9 @@ vine==5.1.0
 wcwidth==0.6.0
     # via prompt-toolkit
 werkzeug==3.1.8
-    # via -r dependencies/pip/requirements.in
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   moto
 wrapt==2.1.2
     # via deprecated
 xlrd==2.0.1
@@ -729,6 +742,8 @@ xlwt==1.3.0
     # via
     #   -r dependencies/pip/requirements.in
     #   xlutils
+xmltodict==1.0.4
+    # via moto
 yarl==1.23.0
     # via aiohttp
 yubico-client==1.13.0
