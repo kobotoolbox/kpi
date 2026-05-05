@@ -1,5 +1,6 @@
 .root {
   background-color: var(--mantine-color-gray-1);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
 }
 
 /* Links are not requied in notifications, but if there is a link, it will have these styles */
