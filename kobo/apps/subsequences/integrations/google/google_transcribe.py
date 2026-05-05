@@ -44,7 +44,7 @@ from .base import GoogleService
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
 DEFAULT_SPEECH_LOCATION = 'global'
-DEFAULT_SPEECH_MODEL = 'latest_long'
+DEFAULT_SPEECH_MODEL = 'long'
 
 
 class GoogleTranscriptionService(GoogleService):
