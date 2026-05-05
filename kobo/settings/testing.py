@@ -78,7 +78,7 @@ KOBOCAT_MEDIA_ROOT = os.environ.get('KOBOCAT_MEDIA_ROOT', '/tmp/kobocat_test_med
 # the moto fixture (conftest.py) can create them. Real bucket names must not
 # leak in or tests would require a real S3 connection.
 # When S3 is not configured, the default FileSystemStorage is kept as-is.
-if STORAGES['default']['BACKEND'].endswith('S3Boto3Storage'):
+if STORAGES['default']['BACKEND'].endswith('S3Boto3Storage'):  # noqa F405
     AWS_S3_REGION_NAME = 'us-east-1'
     AWS_STORAGE_BUCKET_NAME = 'test-bucket'
     AWS_PRIVATE_STORAGE_BUCKET_NAME = 'test-bucket'
