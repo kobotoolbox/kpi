@@ -22,6 +22,7 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import '../scss/main.scss'
 
+import $ from 'jquery'
 import React from 'react'
 
 import * as Sentry from '@sentry/react'
