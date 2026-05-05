@@ -52,7 +52,15 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
         readonly_fields = list(super().get_readonly_fields(request, obj))
 
         if obj and obj.pk:
-            if MfaMethodsWrapper.objects.filter(pk=obj.pk, is_active=True).exists():
+            # Always lock if already inactive (prevent reactivation)
+            if not obj.is_active:
+                readonly_fields.append('is_active')
+
+            # Lock active MFA for superusers under enforcement
+            elif (
+                obj.user.is_superuser
+                and config.SUPERUSER_AUTH_ENFORCEMENT
+            ):
                 readonly_fields.append('is_active')
 
         return readonly_fields
@@ -65,7 +73,6 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     def has_delete_permission(self, request, obj=None):
-
         if obj and obj.user.is_superuser and config.SUPERUSER_AUTH_ENFORCEMENT:
             return False
         return super().has_delete_permission(request, obj)
