@@ -1,8 +1,6 @@
 name: GHCR image cleanup
 
 on:
-  push:
-    branches: [ghcr-retention-policy]
   schedule:
     - cron: '0 0 * * 0' # Weekly on Sunday at 00:00 UTC
   workflow_dispatch:
@@ -27,4 +25,4 @@ jobs:
           image-names: kpi
           image-tags: "!main !public-beta !feature-*"
           cut-off: 90d
-          dry-run: true
+          dry-run: false
