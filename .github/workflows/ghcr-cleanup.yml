@@ -1,0 +1,21 @@
+name: GHCR image cleanup
+
+on:
+  schedule:
+    - cron: '0 3 * * 0' # Weekly on Sunday at 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup-old-images:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: kobotoolbox
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image-names: kpi
+          image-tags: "!main !public-beta !feature-*"
+          cut-off: 90d
+          dry-run: true
