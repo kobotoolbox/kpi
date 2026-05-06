@@ -84,7 +84,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         - /api/v2/assets/<uid>/hook-signal/
         - /api/v2/assets/<uid>/exports/
         - /me/
-        - /environment/
+        - /api/v2/environment/
         """
         status_code = (
             status.HTTP_200_OK if access_granted else status.HTTP_403_FORBIDDEN
@@ -182,6 +182,8 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         response = self.client.get(reverse('currentuser-detail'), **headers)
         assert response.status_code == status.HTTP_200_OK
 
-        # `/environment`
-        response = self.client.get(reverse('environment'), **headers)
+        # `/api/v2/environment/`
+        response = self.client.get(
+            reverse(self._get_endpoint('environment-list')), **headers
+        )
         assert response.status_code == status.HTTP_200_OK

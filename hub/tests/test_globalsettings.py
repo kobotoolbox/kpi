@@ -11,6 +11,9 @@ class GlobalSettingsTestCase(TestCase, RequiresStripeAPIKeyMixin):
 
     fixtures = ['test_data']
 
+    def setUp(self):
+        self.url = reverse('api_v2:environment-list')
+
     @classmethod
     def setUpTestData(cls):
         cls.create_stripe_api_key()
@@ -19,7 +22,7 @@ class GlobalSettingsTestCase(TestCase, RequiresStripeAPIKeyMixin):
     def test_mfa_enabled(self):
         self.client.login(username='someuser', password='someuser')
         self.assertTrue(constance.config.MFA_ENABLED)
-        response = self.client.get(reverse('environment'))
+        response = self.client.get(self.url)
         json_ = response.json()
         self.assertTrue(json_['mfa_enabled'])
 
@@ -27,6 +30,6 @@ class GlobalSettingsTestCase(TestCase, RequiresStripeAPIKeyMixin):
     def test_mfa_disabled(self):
         self.client.login(username='someuser', password='someuser')
         self.assertFalse(constance.config.MFA_ENABLED)
-        response = self.client.get(reverse('environment'))
+        response = self.client.get(self.url)
         json_ = response.json()
         self.assertFalse(json_['mfa_enabled'])

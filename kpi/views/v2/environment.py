@@ -8,7 +8,8 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import viewsets
+from drf_spectacular.utils import extend_schema
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
@@ -29,9 +30,15 @@ def check_asr_mt_access_for_user(user):
     )
 
 
-class EnvironmentView(APIView):
+class EnvironmentViewSet(viewsets.ViewSet):
     """
     GET-only view for certain server-provided configuration data
+
+    Available actions:
+    - list              → GET /api/v2/environment/
+
+    Documentation:
+    - docs/api/v2/environment/retrieve.md
     """
 
     SIMPLE_CONFIGS = [
@@ -60,7 +67,18 @@ class EnvironmentView(APIView):
             for key in cls.SIMPLE_CONFIGS
         }
 
-    def get(self, request, *args, **kwargs):
+    @extend_schema(
+        tags=['Configuration'],
+        description=read_md('kpi', 'environment/retrieve.md'),
+        responses=open_api_200_ok_response(
+            EnvironmentResponseSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    )
+    def list(self, request, *args, **kwargs):
         data = {}
         data.update(self.process_simple_configs())
         data.update(self.process_choice_configs())
@@ -160,7 +178,7 @@ class EnvironmentView(APIView):
         data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
 
-        for key in EnvironmentView.OTHER_CONFIGS:
+        for key in EnvironmentViewSet.OTHER_CONFIGS:
             data[key.lower()] = getattr(constance.config, key)
 
         if settings.STRIPE_ENABLED:
