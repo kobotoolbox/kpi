@@ -46,7 +46,12 @@ export function unnullifyTranslations(surveyDataJSON: string, assetContent: Asse
   // set default_language
   let defaultLang = assetContent.translations_0
   if (!defaultLang) {
-    defaultLang = null
+    // Fallback: after a background re-fetch, state.asset.content is replaced with a
+    // fresh API object that doesn't have translations_0 (a frontend-only mutation).
+    // launchAppForSurveyContent early-returns in that case (app already initialized),
+    // so the mutation never runs again. Derive the default language from
+    // settings.default_language to avoid sending plain `label` keys to the backend.
+    defaultLang = assetContent.settings?.default_language || null
   }
   if (!surveyData.settings[0].default_language && defaultLang !== null) {
     surveyData.settings[0].default_language = defaultLang

@@ -1472,12 +1472,18 @@ class Asset(
         if not content.get('translations') and existing_translations:
             content['translations'] = existing_translations
 
-        # Suffix plain hint strings to the default language
+        # Suffix plain hint and label strings to the default language
         default_lang = settings_data.get('default_language')
         if default_lang:
             for row in content.get('survey', []):
                 if 'hint' in row and isinstance(row['hint'], str):
                     row[f'hint::{default_lang}'] = row.pop('hint')
+            # Only suffix plain labels for multilingual forms. On single-language
+            # forms, plain `label` is the expected format for an unnamed translation.
+            if len(existing_translations) > 1:
+                for row in content.get('survey', []) + content.get('choices', []):
+                    if 'label' in row and isinstance(row['label'], str):
+                        row[f'label::{default_lang}'] = row.pop('label')
 
 
 class UserAssetSubscription(models.Model):
