@@ -427,11 +427,12 @@ export default function EditableForm(props: EditableFormProps) {
     }
 
     let surveyJSON = surveyToValidJson(app.survey)
+    const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
+    if (surveyJSONWithMatrix) {
+      surveyJSON = surveyJSONWithMatrix
+    }
     if (app.survey._initialParams?.translations_0) {
-      const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
-      if (surveyJSONWithMatrix) {
-        surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, app.survey._initialParams)
-      }
+      surveyJSON = unnullifyTranslations(surveyJSON, app.survey._initialParams)
     }
     // We normally have `content` as an actual object, not a stringified representation, but since
     // `actions.resources.updateAsset` already works with JSON string, let's extend the types
