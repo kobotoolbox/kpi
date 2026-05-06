@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import React from 'react'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import DebouncedTextInput from './DebouncedTextInput'
+import type { DebouncedTextInputProps } from './DebouncedTextInput'
 
 const meta: Meta<typeof DebouncedTextInput> = {
   title: 'Design system/DebouncedTextInput',
@@ -39,12 +40,30 @@ export default meta
 
 type Story = StoryObj<typeof DebouncedTextInput>
 
+/** Wraps a story to display the last value committed by the debounce. */
+function withCommittedValue(args: DebouncedTextInputProps) {
+  const [committed, setCommitted] = React.useState<string | undefined>(undefined)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <DebouncedTextInput
+        {...args}
+        onChange={(value) => {
+          setCommitted(value)
+          args.onChange(value)
+        }}
+      />
+      <small>Last committed value: &quot;{committed ?? '—'}&quot;</small>
+    </div>
+  )
+}
+
 export const Default: Story = {
   args: {
     label: 'Search',
     placeholder: 'Type to search…',
     debounceTimeout: 750,
   },
+  render: (args) => withCommittedValue(args),
 }
 
 export const CustomTimeout: Story = {
@@ -53,6 +72,7 @@ export const CustomTimeout: Story = {
     placeholder: 'Type to search…',
     debounceTimeout: 200,
   },
+  render: (args) => withCommittedValue(args),
 }
 
 export const NoImmediateFlush: Story = {
@@ -63,6 +83,7 @@ export const NoImmediateFlush: Story = {
     forceNotifyByEnter: false,
     forceNotifyOnBlur: false,
   },
+  render: (args) => withCommittedValue(args),
 }
 
 export const Disabled: Story = {
