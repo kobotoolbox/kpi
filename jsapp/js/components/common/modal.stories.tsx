@@ -26,7 +26,7 @@ const RenderModal = ({ ...args }: ModalProps) => {
  * Mantine [Modal](https://mantine.dev/core/modal/) component stories.
  */
 const meta: Meta<typeof Modal> = {
-  title: 'Design system old/Modal',
+  title: 'Design system/Modal',
   component: Modal,
   render: RenderModal,
   argTypes: {
