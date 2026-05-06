@@ -19,7 +19,7 @@ queryClient.setMutationDefaults(
           predicate: ({ queryKey }) =>
             queryKey.length > assetsListQueryKey.length &&
             assetsListQueryKey.every((keyPart, index) => queryKey[index] === keyPart) &&
-            queryKey[queryKey.length - 1] === 'infinite',
+            queryKey.at(-1) === 'infinite',
         })
         invalidateItem(getAssetsRetrieveQueryKey(uidAsset))
       },
