@@ -85,7 +85,7 @@
     "@biomejs/biome": "^1.9.4",
     "@eslint/compat": "^1.2.4",
     "@eslint/eslintrc": "^3.3.5",
-    "@eslint/js": "^9.17.0",
+    "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^9.9.0",
     "@jest/create-cache-key-function": "^30.3.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
