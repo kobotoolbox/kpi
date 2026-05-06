@@ -227,7 +227,13 @@ class GoogleTranslationService(GoogleService):
                          f'error: {str(err)}',
             }
 
-        self.update_counters(len(content))
+        try:
+            self.update_counters(len(content))
+        except Exception:
+            logging.exception(
+                'Failed to update translation usage counters for '
+                f'{self.submission_root_uuid=}'
+            )
         return {
             'status': 'complete',
             'value': self.adapt_response(response),
@@ -258,14 +264,10 @@ class GoogleTranslationService(GoogleService):
                 'error': f'Translation failed with error {str(err)}',
             }
         except (GoogleAPIError, GoogleCloudError, Exception) as err:
-            logging.error(
-                'Google infrastructure error while starting translation for '
-                f'{xpath=}: {err}'
-            )
             return {
                 'status': 'failed',
-                'error': 'Translation failed due to a Google infrastructure '
-                         f'error: {str(err)}',
+                'error': 'Translation failed due to an unexpected error while '
+                         f'starting the translation for {xpath=}: {err}',
             }
 
         operation_name = operation.operation.name

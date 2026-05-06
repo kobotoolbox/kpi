@@ -236,15 +236,19 @@ class GoogleTranscriptionService(GoogleService):
                     'status': 'failed',
                     'error': f'Transcription failed with error {str(err)}',
                 }
-            except (GoogleAPIError, GoogleCloudError, Exception) as err:
+            except (GoogleAPIError, GoogleCloudError) as err:
+                # Unable to reach Google to start the transcription job,
+                # return 'in_progress' to allow celery to retry
                 logging.error(
                     f'Google infrastructure error while starting transcription '
                     f'for {xpath=}: {err}'
                 )
+                return {'status': 'in_progress'}
+            except Exception as err:
+                self._clear_operation_reference(xpath, source_language, bulk_action_uid)
                 return {
                     'status': 'failed',
-                    'error': f'Transcription failed due to a Google infrastructure'
-                             f' error: {str(err)}',
+                    'error': f'Transcription failed with error {str(err)}',
                 }
 
             operation_name = operation.operation.name
@@ -280,12 +284,17 @@ class GoogleTranscriptionService(GoogleService):
                         'It is possible Google was unable to transcribe the audio.'
                     ),
                 }
-            except (GoogleAPIError, GoogleCloudError, Exception) as err:
+            except (GoogleAPIError, GoogleCloudError) as err:
+                # Unable to reach Google to check the operation status, but the
+                # job may have still succeeded. Return 'in_progress' to allow Celery
+                # to retry and check again later
                 logging.error(f'Google operation failed for {xpath=}: {err}')
+                return {'status': 'in_progress'}
+            except Exception as err:
                 self._clear_operation_reference(xpath, source_language, bulk_action_uid)
                 return {
                     'status': 'failed',
-                    'error': f'Transcription failed with error: {str(err)}',
+                    'error': f'Transcription failed with error {str(err)}',
                 }
 
         try:
@@ -342,7 +351,7 @@ class GoogleTranscriptionService(GoogleService):
             }
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check the operation status.
-            # The transcription may still be running, so return "in_progress"
+            # The transcription may still be running, so return 'in_progress'
             # to allow Celery to retry instead of marking the task as failed
             logging.error(
                 f'Google infrastructure error while polling transcription '
@@ -350,10 +359,6 @@ class GoogleTranscriptionService(GoogleService):
             )
             return {'status': 'in_progress'}
         except Exception as err:
-            logging.exception(
-                'Unexpected error while polling transcription '
-                f'for {xpath=}: {err}'
-            )
             self._clear_operation_reference(xpath, source_language, bulk_action_uid)
             return {
                 'status': 'failed',
