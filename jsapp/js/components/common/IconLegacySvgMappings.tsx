@@ -197,8 +197,17 @@ import ViewAllSvg from '../../../svg-icons/view-all.svg?react'
 import ViewSvg from '../../../svg-icons/view.svg?react'
 import WarningSvg from '../../../svg-icons/warning.svg?react'
 
-function wrapLegacySvgIcon(SvgComponent: ComponentType<SVGProps<SVGSVGElement>>): ComponentType<SvgIconProps> {
-  return function LegacySvgIcon({ size, color, style, ...svgProps }: SvgIconProps) {
+export type LegacySvgIconComponent = ComponentType<SvgIconProps> & {
+  isKoboLegacySvgIcon?: true
+}
+
+function wrapLegacySvgIcon(SvgComponent: ComponentType<SVGProps<SVGSVGElement>>): LegacySvgIconComponent {
+  const LegacySvgIcon: LegacySvgIconComponent = function LegacySvgIcon({
+    size,
+    color,
+    style,
+    ...svgProps
+  }: SvgIconProps) {
     const resolvedSize = typeof size === 'number' ? size : undefined
     const normalizedSvgProps = svgProps as unknown as SVGProps<SVGSVGElement>
 
@@ -217,6 +226,10 @@ function wrapLegacySvgIcon(SvgComponent: ComponentType<SVGProps<SVGSVGElement>>)
       />
     )
   }
+
+  LegacySvgIcon.isKoboLegacySvgIcon = true
+
+  return LegacySvgIcon
 }
 
 export const LegacyIconToSvgComponentMap: Record<IconName, ComponentType<SvgIconProps>> = {
