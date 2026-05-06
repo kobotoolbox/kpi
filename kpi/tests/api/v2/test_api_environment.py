@@ -1,4 +1,3 @@
-
 import pytest
 from constance import config
 from constance.test import override_config
@@ -168,10 +167,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         app = baker.make('socialaccount.SocialApp')
-        custom_data = SocialAppCustomData.objects.create(
-            social_app=app,
-            is_public=True
-        )
+        custom_data = SocialAppCustomData.objects.create(social_app=app, is_public=True)
         custom_data.save()
         with override_settings(SOCIALACCOUNT_PROVIDERS={'microsoft': {}}):
             with self.assertNumQueries(queries):

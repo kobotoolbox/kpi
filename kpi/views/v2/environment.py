@@ -6,10 +6,10 @@ from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
-from markdown import markdown
-from rest_framework.response import Response
-from rest_framework import viewsets
 from drf_spectacular.utils import extend_schema
+from markdown import markdown
+from rest_framework import viewsets
+from rest_framework.response import Response
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
@@ -24,9 +24,8 @@ def check_asr_mt_access_for_user(user):
     if user.is_anonymous:
         return False
     asr_mt_invitees = constance.config.ASR_MT_INVITEE_USERNAMES
-    return (
-        asr_mt_invitees.strip() == '*'
-        or user.username in asr_mt_invitees.split('\n')
+    return asr_mt_invitees.strip() == '*' or user.username in asr_mt_invitees.split(
+        '\n'
     )
 
 
@@ -63,8 +62,7 @@ class EnvironmentViewSet(viewsets.ViewSet):
     @classmethod
     def process_simple_configs(cls):
         return {
-            key.lower(): getattr(constance.config, key)
-            for key in cls.SIMPLE_CONFIGS
+            key.lower(): getattr(constance.config, key) for key in cls.SIMPLE_CONFIGS
         }
 
     @extend_schema(
@@ -102,9 +100,7 @@ class EnvironmentViewSet(viewsets.ViewSet):
             # Intentional t() call on dynamic string because the default
             # choices are translated; see static_lists.py
             (v, t(v))
-            for v in cls.split_with_newline_kludge(
-                constance.config.SECTOR_CHOICES
-            )
+            for v in cls.split_with_newline_kludge(constance.config.SECTOR_CHOICES)
         )
         data['operational_purpose_choices'] = tuple(
             (v, v)
@@ -137,9 +133,7 @@ class EnvironmentViewSet(viewsets.ViewSet):
     @staticmethod
     def process_mfa_configs(request):
         data = {}
-        data['mfa_localized_help_text'] = markdown(
-            I18nUtils.get_mfa_help_text()
-        )
+        data['mfa_localized_help_text'] = markdown(I18nUtils.get_mfa_help_text())
         data['mfa_enabled'] = constance.config.MFA_ENABLED
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
         return data
@@ -160,9 +154,7 @@ class EnvironmentViewSet(viewsets.ViewSet):
 
     @staticmethod
     def process_project_metadata_configs(request):
-        data = {
-            'project_metadata_fields': I18nUtils.get_metadata_fields('project')
-        }
+        data = {'project_metadata_fields': I18nUtils.get_metadata_fields('project')}
         return data
 
     @staticmethod
@@ -170,9 +162,11 @@ class EnvironmentViewSet(viewsets.ViewSet):
         data = {}
 
         data['social_apps'] = list(
-            (SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))).values(
-                'provider', 'name', 'client_id', 'provider_id'
-            )
+            (
+                SocialApp.objects.filter(
+                    Q(custom_data__is_public=True) | Q(custom_data__isnull=True)
+                )
+            ).values('provider', 'name', 'client_id', 'provider_id')
         )
 
         data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
@@ -201,17 +195,15 @@ class EnvironmentViewSet(viewsets.ViewSet):
         else:
             data['stripe_public_key'] = None
 
-        data[
-            'terms_of_service__sitewidemessage__exists'
-        ] = SitewideMessage.objects.filter(slug='terms_of_service').exists()
+        data['terms_of_service__sitewidemessage__exists'] = (
+            SitewideMessage.objects.filter(slug='terms_of_service').exists()
+        )
 
         return data
 
     @staticmethod
     def process_user_metadata_configs(request):
-        data = {
-            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
-        }
+        data = {'user_metadata_fields': I18nUtils.get_metadata_fields('user')}
         return data
 
     @staticmethod
