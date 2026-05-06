@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import TextInput from './textInput'
 import type { TextInputProps } from './textInput'
 
-interface DebouncedTextInputProps extends Omit<TextInputProps, 'value' | 'onChange'> {
+export interface DebouncedTextInputProps extends Omit<TextInputProps, 'value' | 'onChange'> {
   value?: string
   onChange: (value: string) => void
   debounceTimeout?: number
