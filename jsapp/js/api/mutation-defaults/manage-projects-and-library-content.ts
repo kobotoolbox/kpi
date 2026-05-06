@@ -14,7 +14,7 @@ queryClient.setMutationDefaults(
         const assetsListQueryKey = getAssetsListQueryKey()
 
         invalidatePaginatedList(assetsListQueryKey)
-        // Invaliate infinite queries
+        // Invalidate infinite queries
         queryClient.invalidateQueries({
           predicate: ({ queryKey }) =>
             queryKey.length > assetsListQueryKey.length &&
