@@ -47,7 +47,7 @@
     "lodash.throttle": "^4.1.1",
     "lodash.union": "^4.6.0",
     "lodash.zip": "^4.2.0",
-    "mobx": "^6.15.0",
+    "mobx": "^6.15.2",
     "mobx-react": "^7.6.0",
     "normalize.css": "^8.0.1",
     "pretty-bytes": "^7.1.0",
