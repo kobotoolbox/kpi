@@ -32,27 +32,19 @@ export function surveyToValidJson(survey: Survey) {
 /**
  * This function reverses what `nullifyTranslations` did to the form data.
  */
-export function unnullifyTranslations(surveyDataJSON: string, assetContent: AssetContent) {
+export function unnullifyTranslations(surveyDataJSON: string, surveyInitialParams: AssetContent) {
   // Here we assume that parsed JSON will be `FlatSurvey`. If we ever pass some other string in here, the code would
   // crash. If this ever happens, let's add some checks.
   const surveyData: FlatSurvey = JSON.parse(surveyDataJSON)
 
   let translatedProps: string[] = []
-  if (assetContent.translated) {
-    translatedProps = assetContent.translated
+  if (surveyInitialParams.translated) {
+    translatedProps = surveyInitialParams.translated
   }
 
   // TRANSLATIONS HACK (Part 2/2):
   // set default_language
-  let defaultLang = assetContent.translations_0
-  if (!defaultLang) {
-    // Fallback: after a background re-fetch, state.asset.content is replaced with a
-    // fresh API object that doesn't have translations_0 (a frontend-only mutation).
-    // launchAppForSurveyContent early-returns in that case (app already initialized),
-    // so the mutation never runs again. Derive the default language from
-    // settings.default_language to avoid sending plain `label` keys to the backend.
-    defaultLang = assetContent.settings?.default_language || null
-  }
+  const defaultLang = surveyInitialParams.translations_0 || null
   if (!surveyData.settings[0].default_language && defaultLang !== null) {
     surveyData.settings[0].default_language = defaultLang
   }
