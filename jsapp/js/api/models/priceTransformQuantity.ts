@@ -11,7 +11,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 /**
- * Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`.
  * @nullable
  */
 export type PriceTransformQuantity = unknown | null

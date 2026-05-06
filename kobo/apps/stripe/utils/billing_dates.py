@@ -4,7 +4,9 @@ from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import F, Max, Q, Window
+from django.db.models import BigIntegerField, F, Max, Q, Window
+from django.db.models.fields.json import KeyTextTransform
+from django.db.models.functions import Cast
 from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
@@ -112,17 +114,29 @@ def get_current_billing_period_dates_based_on_canceled_plans(
         all_orgs = all_orgs.filter(id__in=[org.id for org in orgs])
     all_cancellation_dates = (
         all_orgs.filter(
-            djstripe_customers__subscriptions__status='canceled',
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
+            djstripe_customers__subscriptions__stripe_data__status='canceled',
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa: E501
         )
         .values('id')
         .annotate(
-            anchor=Max(F('djstripe_customers__subscriptions__ended_at')),
+            anchor=Max(
+                Cast(
+                    KeyTextTransform(
+                        'ended_at',
+                        'djstripe_customers__subscriptions__stripe_data',
+                    ),
+                    output_field=BigIntegerField(),
+                )
+            ),
         )
     )
     result = {}
     for res in all_cancellation_dates:
-        start, end = get_billing_dates_after_canceled_subscription(res['anchor'])
+        anchor_ts = res['anchor']
+        if anchor_ts is None:
+            continue
+        anchor_dt = datetime.fromtimestamp(anchor_ts, tz=ZoneInfo('UTC'))
+        start, end = get_billing_dates_after_canceled_subscription(anchor_dt)
         result[res['id']] = {'start': start, 'end': end}
 
     return result
@@ -202,18 +216,28 @@ def get_current_billing_period_dates_for_active_plans(
 
     all_active_plans = (
         orgs.filter(
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
+            djstripe_customers__subscriptions__stripe_data__status__in=ACTIVE_STRIPE_STATUSES,  # noqa: E501
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa: E501
         )
         .values(
             org_id=F('id'),
-            anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
-            start=F('djstripe_customers__subscriptions__current_period_start'),
-            end=F('djstripe_customers__subscriptions__current_period_end'),
-            interval=F(
-                'djstripe_customers__subscriptions__items__price__recurring__interval'  # noqa: E501
+            anchor=F(
+                'djstripe_customers__subscriptions__stripe_data__billing_cycle_anchor'
             ),
-            start_date=F('djstripe_customers__subscriptions__start_date'),
+            start=F(
+                'djstripe_customers__subscriptions__stripe_data__current_period_start'
+            ),
+            end=F('djstripe_customers__subscriptions__stripe_data__current_period_end'),
+            interval=F(
+                'djstripe_customers__subscriptions__items__price__stripe_data__recurring__interval'  # noqa: E501
+            ),
+            start_date=Cast(
+                KeyTextTransform(
+                    'start_date',
+                    'djstripe_customers__subscriptions__stripe_data',
+                ),
+                output_field=BigIntegerField(),
+            ),
         )
         .annotate(
             # find the most recent one
@@ -235,7 +259,15 @@ def get_current_billing_period_dates_for_active_plans(
             dates['start'] = first_of_this_month
             dates['end'] = first_of_next_month
         else:
-            dates['start'] = res['start']
-            dates['end'] = res['end']
+            dates['start'] = (
+                datetime.fromtimestamp(res['start'], tz=ZoneInfo('UTC'))
+                if res['start'] is not None
+                else first_of_this_month
+            )
+            dates['end'] = (
+                datetime.fromtimestamp(res['end'], tz=ZoneInfo('UTC'))
+                if res['end'] is not None
+                else first_of_next_month
+            )
         results[res['org_id']] = dates
     return results

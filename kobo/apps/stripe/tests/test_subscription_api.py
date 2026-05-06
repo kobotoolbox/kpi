@@ -24,7 +24,7 @@ class SubscriptionAPITestCase(BaseTestCase):
             'djstripe.Subscription',
             customer=customer,
             items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
+            items__price__stripe_data={'billing_scheme': BillingScheme.per_unit},
             livemode=False,
         )
         self.url_detail = reverse(

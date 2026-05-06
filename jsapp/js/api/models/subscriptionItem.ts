@@ -15,11 +15,6 @@ export interface SubscriptionItem {
   /** @maxLength 255 */
   id: string
   price: PriceWithProduct
-  /**
-   * The quantity of the plan to which the customer should be subscribed.
-   * @minimum 0
-   * @maximum 2147483647
-   * @nullable
-   */
-  quantity?: number | null
+  /** @nullable */
+  quantity: number | null
 }

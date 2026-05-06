@@ -3,8 +3,9 @@ from typing import Optional
 
 from django.apps import apps
 from django.conf import settings
-from django.db.models import F, Max, Q, QuerySet, Window
-from django.db.models.functions import Coalesce
+from django.db.models import BigIntegerField, F, Max, Q, QuerySet, Window
+from django.db.models.fields.json import KeyTextTransform
+from django.db.models.functions import Cast, Coalesce
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization, OrganizationUser
@@ -247,7 +248,7 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
 
     active_subscriptions = Subscription.objects.filter(
         org_filter
-        & Q(status__in=ACTIVE_STRIPE_STATUSES)
+        & Q(stripe_data__status__in=ACTIVE_STRIPE_STATUSES)
         & Q(items__price__product__metadata__product_type__in=['plan', 'addon'])
     )
 
@@ -263,7 +264,10 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
                 F(price_characters_key), F(product_characters_key)
             ),
             llm_requests_limit=Coalesce(F(price_requests_key), F(product_requests_key)),
-            sub_start_date=F('start_date'),
+            sub_start_date=Cast(
+                KeyTextTransform('start_date', 'stripe_data'),
+                output_field=BigIntegerField(),
+            ),
             product_type=F('items__price__product__metadata__product_type'),
         )
         .annotate(
@@ -305,20 +309,22 @@ def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
     Subscription = kwargs['subscription_model']
     subscriptions = Subscription.objects.filter(
         customer__subscriber_id=org_user.organization.id,
-        status__in=ACTIVE_STRIPE_STATUSES,
+        stripe_data__status__in=ACTIVE_STRIPE_STATUSES,
     )
 
-    unique_plans = set()
+    unique_products = set()
     for subscription in subscriptions:
-        unique_plans.add(subscription.plan)
+        for item in subscription.items.select_related('price__product').all():
+            if item.price and item.price.product:
+                unique_products.add(item.price.product)
 
     # Make sure plans come before addons
-    plan_list = sorted(
-        unique_plans,
-        key=lambda plan: plan.product.metadata.get('product_type', '') == 'plan',
+    product_list = sorted(
+        unique_products,
+        key=lambda product: product.metadata.get('product_type', '') == 'plan',
         reverse=True,
     )
-    plan_name = ' and '.join([plan.product.name for plan in plan_list])
+    plan_name = ' and '.join([product.name for product in product_list])
     if plan_name is None or plan_name == '':
         plan_name = get_default_plan_name()
     return plan_name

@@ -27,7 +27,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         baker.make(
             Subscription,
             customer=self.customer,
-            status='active',
+            stripe_data={'status': 'active'},
         )
 
     def _create_product(self, metadata=None):
