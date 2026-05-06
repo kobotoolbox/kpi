@@ -9,6 +9,8 @@ import {
   getAssetsDataListQueryKey,
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
+  getAssetsPairedDataDestroyMutationOptions,
+  getAssetsPairedDataListQueryKey,
 } from '#/api/react-query/survey-data'
 import type { ManualQualValue } from '#/components/processing/common/types'
 import { TransxVersionSortFunction } from '#/components/processing/common/utils'
@@ -374,6 +376,18 @@ queryClient.setMutationDefaults(
         if (queryClient.isMutating({ mutationKey }) > 1) return
 
         queryClient.setQueryData(queryKey, response)
+      },
+    },
+  }),
+)
+
+queryClient.setMutationDefaults(
+  getAssetsPairedDataDestroyMutationOptions().mutationKey!,
+  getAssetsPairedDataDestroyMutationOptions({
+    mutation: {
+      onSettled: (_data, _error, { uidAsset }) => {
+        const queryKey = getAssetsPairedDataListQueryKey(uidAsset)
+        invalidateItem(queryKey)
       },
     },
   }),
