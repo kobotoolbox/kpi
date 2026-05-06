@@ -21,6 +21,10 @@ const SAVE_BUTTON_TEXT = {
   PENDING: t('Saving…'),
 }
 
+/**
+ * This is a component for modal in which user can change translations for given language.
+ * It is a companion (child) for TranslationSettings component.
+ */
 export class TranslationTable extends React.Component {
   constructor(props) {
     super(props)

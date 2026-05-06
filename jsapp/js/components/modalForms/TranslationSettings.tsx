@@ -33,6 +33,9 @@ interface TranslationSettingsState {
   renameLanguageIndex: number | -1
 }
 
+/**
+ * This is a component for modal in which user can CRUD languages of given form
+ */
 export class TranslationSettings extends React.Component<TranslationSettingsProps, TranslationSettingsState> {
   private unlisteners: Function[] = []
 
