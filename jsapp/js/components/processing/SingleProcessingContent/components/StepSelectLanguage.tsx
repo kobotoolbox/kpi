@@ -61,11 +61,10 @@ export default function StepSelectLanguage({
   }
 
   const handleClickBack = () => {
-    // When clicking "back" we either unselect the language (inner component "back" action) through a special component
-    // function , or if no language is selected, we let the parent know (the parent flow "back" action).
+    // When clicking "back" we either unselect the language (inner component "back" action) by clearing it,
+    // or if no language is selected, we let the parent know (the parent flow "back" action).
     if (languageCode !== null) {
-      resetAllLanguageSelectors()
-    } else {
+      setLanguageCode(null)
       onBack()
     }
   }
@@ -87,13 +86,11 @@ export default function StepSelectLanguage({
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <LanguageSelectorNew
-        onLanguageChange={handleChangeLanguage}
-      />
-      <LanguageSelector
         titleOverride={titleOverride}
         onLanguageChange={handleChangeLanguage}
         hiddenLanguages={hiddenLanguages}
         suggestedLanguages={suggestedLanguages}
+        value={languageCode}
       />
 
       <footer className={bodyStyles.footer}>

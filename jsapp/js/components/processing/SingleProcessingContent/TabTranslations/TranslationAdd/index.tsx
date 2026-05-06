@@ -72,6 +72,8 @@ export default function TranslationAdd({
     }
   }
 
+  console.log('0----------------- suggested', asset.advanced_features?.translation?.languages)
+
   return (
     <>
       {step === CreateSteps.Begin && <StepBegin asset={asset} onNext={() => setStep(CreateSteps.Language)} />}

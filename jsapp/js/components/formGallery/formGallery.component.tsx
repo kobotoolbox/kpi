@@ -258,7 +258,7 @@ export default function FormGallery(props: FormGalleryProps) {
         </Modal>
       )}
       <Stack pl={100} maw={300}>
-        <LanguageSelectorNew onLanguageChange={console.log} />
+        <LanguageSelectorNew onLanguageChange={console.log} hiddenLanguages={['cs', 'en']}/>
         <Stack pt={100} />
         <LanguageSelector onLanguageChange={console.log} />
       </Stack>
