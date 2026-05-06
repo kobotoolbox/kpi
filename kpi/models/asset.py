@@ -1238,18 +1238,6 @@ class Asset(
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
-    @staticmethod
-    def _get_core_settings_fields():
-        return {
-            'sector',
-            'country',
-            'description',
-            'collects_pii',
-            'organization',
-            'country_codes',
-            'operational_purpose',
-        }
-
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
