@@ -855,6 +855,8 @@ class Asset(
             self.settings = {}
             return
 
+        # Run unconditionally for all asset types to ensure a consistent
+        # 'extra_metadata' namespace across surveys, templates, and library items.
         if 'extra_metadata' not in self.settings:
             return
 
@@ -994,7 +996,8 @@ class Asset(
         if not update_fields or update_fields and 'advanced_features' in update_fields:
             migrate_advanced_features(self, save_asset=False)
 
-        self.validate_and_normalize_settings()
+        if not update_fields or 'settings' in update_fields:
+            self.validate_and_normalize_settings()
 
         # standardize settings (only when required)
         if (
