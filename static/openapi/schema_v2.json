@@ -24849,7 +24849,10 @@
                         "type": "string"
                     },
                     "label": {
-                        "type": "string"
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
                     }
                 },
                 "required": [

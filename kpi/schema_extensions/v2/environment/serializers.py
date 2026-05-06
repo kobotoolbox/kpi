@@ -10,7 +10,7 @@ class SocialAppSerializer(serializers.Serializer):
 
 class MetadataFieldOptionSerializer(serializers.Serializer):
     name = serializers.CharField()
-    label = serializers.CharField()
+    label = serializers.DictField(child=serializers.CharField())
 
 
 class MetadataFieldSerializer(serializers.Serializer):
