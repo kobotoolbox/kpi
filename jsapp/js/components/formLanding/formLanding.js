@@ -9,7 +9,6 @@ import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
-import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -17,15 +16,14 @@ import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import NewFeatureDialog from '#/components/newFeatureDialog.component'
-import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import PopoverMenu from '#/popoverMenu'
+import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -182,10 +180,7 @@ class FormLanding extends React.Component {
   }
   showLanguagesModal(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: this.state,
-    })
+    openFormLanguagesModal(this.state)
   }
   renderHistory() {
     return (

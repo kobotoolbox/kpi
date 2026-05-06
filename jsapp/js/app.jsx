@@ -6,6 +6,7 @@ import '#/bemComponents' // importing it so it exists
 import React from 'react'
 
 import { MantineProvider } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
@@ -111,34 +112,36 @@ class App extends React.Component {
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
           <MantineProvider theme={themeKobo}>
-            <RootContextProvider>
-              <Tracking />
-              <ToasterConfig />
+            <ModalsProvider>
+              <RootContextProvider>
+                <Tracking />
+                <ToasterConfig />
 
-              {this.shouldDisplayMainLayoutElements() && <div className='header-stretch-bg' />}
+                {this.shouldDisplayMainLayoutElements() && <div className='header-stretch-bg' />}
 
-              <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
-                {this.state.pageState.modal && <BigModal params={this.state.pageState.modal} />}
+                <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
+                  {this.state.pageState.modal && <BigModal params={this.state.pageState.modal} />}
 
-                {this.shouldDisplayMainLayoutElements() && (
-                  <>
-                    <MainHeader assetUid={assetid} />
-                    <Drawer />
-                  </>
-                )}
-
-                <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
                   {this.shouldDisplayMainLayoutElements() && (
                     <>
-                      {this.isFormSingle() && <ProjectTopTabs />}
-                      <FormViewSideTabs show={this.isFormSingle()} />
+                      <MainHeader assetUid={assetid} />
+                      <Drawer />
                     </>
                   )}
 
-                  <Outlet />
-                </bem.PageWrapper__content>
-              </bem.PageWrapper>
-            </RootContextProvider>
+                  <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
+                    {this.shouldDisplayMainLayoutElements() && (
+                      <>
+                        {this.isFormSingle() && <ProjectTopTabs />}
+                        <FormViewSideTabs show={this.isFormSingle()} />
+                      </>
+                    )}
+
+                    <Outlet />
+                  </bem.PageWrapper__content>
+                </bem.PageWrapper>
+              </RootContextProvider>
+            </ModalsProvider>
           </MantineProvider>
 
           {/* React Query Devtools - GUI for inspecting and modifying query status

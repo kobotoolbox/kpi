@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { MantineProvider } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import { queryClient } from '#/api/queryClient'
@@ -27,22 +28,24 @@ export default function BasicLayout(props: BasicLayoutProps) {
     <DocumentTitle title='KoboToolbox'>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={themeKobo}>
-          <Tracking />
-          <ToasterConfig />
-          <div className='header-stretch-bg' />
+          <ModalsProvider>
+            <Tracking />
+            <ToasterConfig />
+            <div className='header-stretch-bg' />
 
-          <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
-            <MainHeaderBase>
-              <MainHeaderLogo />
-              {sessionStore.isLoggedIn && (
-                <RequireOrg>
-                  <AccountMenu />
-                </RequireOrg>
-              )}
-            </MainHeaderBase>
+            <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
+              <MainHeaderBase>
+                <MainHeaderLogo />
+                {sessionStore.isLoggedIn && (
+                  <RequireOrg>
+                    <AccountMenu />
+                  </RequireOrg>
+                )}
+              </MainHeaderBase>
 
-            <bem.PageWrapper__content className='mdl-layout__content'>{props.children}</bem.PageWrapper__content>
-          </bem.PageWrapper>
+              <bem.PageWrapper__content className='mdl-layout__content'>{props.children}</bem.PageWrapper__content>
+            </bem.PageWrapper>
+          </ModalsProvider>
         </MantineProvider>
       </QueryClientProvider>
     </DocumentTitle>
