@@ -846,6 +846,25 @@ class Asset(
         except IndexError:
             return None
 
+    def validate_and_normalize_settings(self):
+        if not self.settings:
+            self.settings = {}
+            return
+
+        if not isinstance(self.settings, dict):
+            self.settings = {}
+            return
+
+        if 'extra_metadata' not in self.settings:
+            return
+
+        extra_metadata = self.settings.get('extra_metadata')
+
+        if extra_metadata is None:
+            self.settings['extra_metadata'] = {}
+        elif not isinstance(extra_metadata, dict):
+            self.settings['extra_metadata'] = {}
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """Used by serializers to improve performance when listing assets"""
@@ -974,6 +993,8 @@ class Asset(
 
         if not update_fields or update_fields and 'advanced_features' in update_fields:
             migrate_advanced_features(self, save_asset=False)
+
+        self.validate_and_normalize_settings()
 
         # standardize settings (only when required)
         if (
@@ -1216,6 +1237,18 @@ class Asset(
             count = count + 1
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
+
+    @staticmethod
+    def _get_core_settings_fields():
+        return {
+            'sector',
+            'country',
+            'description',
+            'collects_pii',
+            'organization',
+            'country_codes',
+            'operational_purpose',
+        }
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

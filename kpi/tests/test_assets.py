@@ -1196,3 +1196,133 @@ class TestAssetDataCollectors(TestCase):
         patched_set_links.assert_any_call(self.dc0.token)
         patched_set_links.assert_any_call(self.dc1.token)
         assert len(patched_set_links.call_args) == 2
+
+
+class TestExtraMetadataFields(TestCase):
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.user = User.objects.get(username='someuser')
+
+    def test_custom_fields_are_preserved_in_extra_metadata(self):
+        asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={
+                'country': [],
+                'description': 'Test description',
+                'extra_metadata': {
+                    'CustomField': 'custom_value',
+                },
+            },
+        )
+        asset.refresh_from_db()
+
+        self.assertEqual(asset.settings['description'], 'Test description')
+        self.assertEqual(asset.settings['country'], [])
+        self.assertIn('extra_metadata', asset.settings)
+        self.assertEqual(
+            asset.settings['extra_metadata']['CustomField'],
+            'custom_value',
+        )
+
+    def test_core_fields_are_preserved_in_settings(self):
+        core_fields = {
+            'country': [{'label': 'USA', 'value': 'us'}],
+            'sector': {},
+            'description': 'desc',
+            'collects_pii': True,
+            'organization': 'org',
+            'country_codes': ['us'],
+            'operational_purpose': 'purpose',
+        }
+
+        asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings=core_fields.copy(),
+        )
+        asset.refresh_from_db()
+
+        for field_name, expected_value in core_fields.items():
+            self.assertIn(field_name, asset.settings)
+            self.assertEqual(asset.settings[field_name], expected_value)
+
+    def test_mixed_core_and_extra_metadata_fields(self):
+        asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={
+                'country': [{'label': 'Canada', 'value': 'ca'}],
+                'description': 'Test form',
+                'collects_pii': False,
+                'extra_metadata': {
+                    'TestField': 'test_value',
+                    'Animal': {'label': 'Cat', 'value': 'cat'},
+                },
+            },
+        )
+        asset.refresh_from_db()
+
+        self.assertEqual(
+            asset.settings['country'],
+            [{'label': 'Canada', 'value': 'ca'}],
+        )
+        self.assertEqual(asset.settings['description'], 'Test form')
+        self.assertEqual(asset.settings['collects_pii'], False)
+        self.assertEqual(
+            asset.settings['extra_metadata']['TestField'],
+            'test_value',
+        )
+        self.assertEqual(
+            asset.settings['extra_metadata']['Animal'],
+            {'label': 'Cat', 'value': 'cat'},
+        )
+
+    def test_array_values_in_extra_metadata(self):
+        asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={
+                'extra_metadata': {
+                    'Test': [
+                        {'label': 'First question', 'value': 'q1'},
+                        {'label': 'Second question', 'value': 'q2'},
+                    ],
+                },
+            },
+        )
+        asset.refresh_from_db()
+
+        test_array = asset.settings['extra_metadata']['Test']
+        self.assertEqual(len(test_array), 2)
+        self.assertEqual(test_array[0]['label'], 'First question')
+        self.assertEqual(test_array[1]['value'], 'q2')
+
+    def test_collision_prevention_custom_vs_core(self):
+        asset = Asset.objects.create(
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={
+                'country': [{'label': 'Core', 'value': 'core'}],
+                'extra_metadata': {
+                    'country': 'Custom',
+                },
+            },
+        )
+        asset.refresh_from_db()
+
+        self.assertEqual(
+            asset.settings['country'],
+            [{'label': 'Core', 'value': 'core'}],
+        )
+        self.assertEqual(
+            asset.settings['extra_metadata']['country'],
+            'Custom',
+        )
