@@ -1,5 +1,5 @@
 import { useDebouncedCallback } from '@mantine/hooks'
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import TextInput from './textInput'
 import type { TextInputProps } from './textInput'
 
@@ -26,9 +26,9 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
     ...restProps
   } = props
 
-  const [inputValue, setInputValue] = React.useState(value ?? '')
+  const [inputValue, setInputValue] = useState(value ?? '')
 
-  React.useEffect(() => {
+  useEffect(() => {
     setInputValue(value ?? '')
   }, [value])
 
@@ -39,7 +39,7 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
     flushOnUnmount: true,
   })
 
-  const onInputChange = React.useCallback(
+  const onInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const nextValue = event.target.value
       setInputValue(nextValue)
@@ -48,13 +48,13 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
     [debouncedOnChange],
   )
 
-  const onInputBlur = React.useCallback(() => {
+  const onInputBlur = useCallback(() => {
     if (forceNotifyOnBlur) {
       debouncedOnChange.flush()
     }
   }, [forceNotifyOnBlur, debouncedOnChange])
 
-  const onInputKeyDown = React.useCallback(
+  const onInputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (forceNotifyByEnter && event.key === 'Enter') {
         debouncedOnChange.flush()
