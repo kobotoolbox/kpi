@@ -11,6 +11,7 @@
     "@mantine/core": "^8.3.18",
     "@mantine/form": "^8.3.18",
     "@mantine/hooks": "^8.3.18",
+    "@mantine/modals": "^8.3.18",
     "@mapbox/leaflet-omnivore": "^0.3.4",
     "@placemarkio/check-geojson": "^0.1.14",
     "@sentry/react": "^10.51.0",
