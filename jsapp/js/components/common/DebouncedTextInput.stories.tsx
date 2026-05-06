@@ -41,15 +41,15 @@ export default meta
 type Story = StoryObj<typeof DebouncedTextInput>
 
 /** Wraps a story to display the last value committed by the debounce. */
-function withCommittedValue(args: DebouncedTextInputProps) {
+function WithCommittedValue(props: DebouncedTextInputProps) {
   const [committed, setCommitted] = React.useState<string | undefined>(undefined)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <DebouncedTextInput
-        {...args}
+        {...props}
         onChange={(value) => {
           setCommitted(value)
-          args.onChange(value)
+          props.onChange(value)
         }}
       />
       <small>Last committed value: &quot;{committed ?? '—'}&quot;</small>
@@ -63,7 +63,7 @@ export const Default: Story = {
     placeholder: 'Type to search…',
     debounceTimeout: 750,
   },
-  render: (args) => withCommittedValue(args),
+  render: (args) => <WithCommittedValue {...args} />,
 }
 
 export const CustomTimeout: Story = {
@@ -72,7 +72,7 @@ export const CustomTimeout: Story = {
     placeholder: 'Type to search…',
     debounceTimeout: 200,
   },
-  render: (args) => withCommittedValue(args),
+  render: (args) => <WithCommittedValue {...args} />,
 }
 
 export const NoImmediateFlush: Story = {
@@ -83,7 +83,7 @@ export const NoImmediateFlush: Story = {
     forceNotifyByEnter: false,
     forceNotifyOnBlur: false,
   },
-  render: (args) => withCommittedValue(args),
+  render: (args) => <WithCommittedValue {...args} />,
 }
 
 export const Disabled: Story = {

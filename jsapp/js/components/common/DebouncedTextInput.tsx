@@ -20,6 +20,8 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
   const {
     value,
     onChange,
+    onBlur,
+    onKeyDown,
     debounceTimeout = DEFAULT_DEBOUNCE_TIMEOUT,
     forceNotifyByEnter = true,
     forceNotifyOnBlur = true,
@@ -48,28 +50,35 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
     [debouncedOnChange],
   )
 
-  const onInputBlur = useCallback(() => {
-    if (forceNotifyOnBlur) {
-      debouncedOnChange.flush()
-    }
-  }, [forceNotifyOnBlur, debouncedOnChange])
+  const onInputBlur = useCallback(
+    (event: React.FocusEvent<HTMLInputElement>) => {
+      if (forceNotifyOnBlur) {
+        debouncedOnChange.flush()
+      }
+
+      onBlur?.(event)
+    },
+    [forceNotifyOnBlur, debouncedOnChange, onBlur],
+  )
 
   const onInputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (forceNotifyByEnter && event.key === 'Enter') {
         debouncedOnChange.flush()
       }
+
+      onKeyDown?.(event)
     },
-    [forceNotifyByEnter, debouncedOnChange],
+    [forceNotifyByEnter, debouncedOnChange, onKeyDown],
   )
 
   return (
     <TextInput
+      {...restProps}
       value={inputValue}
       onChange={onInputChange}
       onBlur={onInputBlur}
       onKeyDown={onInputKeyDown}
-      {...restProps}
     />
   )
 }
