@@ -388,7 +388,6 @@ queryClient.setMutationDefaults(
       onSettled: (_data, _error, { uidAsset }) => {
         const queryKey = getAssetsPairedDataListQueryKey(uidAsset)
         invalidateItem(queryKey)
-        invalidatePaginatedList(queryKey)
       },
     },
   }),

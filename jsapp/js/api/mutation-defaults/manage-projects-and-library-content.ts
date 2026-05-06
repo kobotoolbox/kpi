@@ -4,7 +4,7 @@ import {
   getAssetsRetrieveQueryKey,
 } from '#/api/react-query/manage-projects-and-library-content'
 import { queryClient } from '../queryClient'
-import { invalidateItem, invalidatePaginatedList } from './common'
+import { invalidateInfiniteList, invalidateItem, invalidatePaginatedList } from './common'
 
 queryClient.setMutationDefaults(
   getAssetsPartialUpdateMutationOptions().mutationKey!,
@@ -14,13 +14,7 @@ queryClient.setMutationDefaults(
         const assetsListQueryKey = getAssetsListQueryKey()
 
         invalidatePaginatedList(assetsListQueryKey)
-        // Invalidate infinite queries
-        queryClient.invalidateQueries({
-          predicate: ({ queryKey }) =>
-            queryKey.length > assetsListQueryKey.length &&
-            assetsListQueryKey.every((keyPart, index) => queryKey[index] === keyPart) &&
-            queryKey.at(-1) === 'infinite',
-        })
+        invalidateInfiniteList(assetsListQueryKey)
         invalidateItem(getAssetsRetrieveQueryKey(uidAsset))
       },
     },
