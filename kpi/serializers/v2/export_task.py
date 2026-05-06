@@ -1,7 +1,10 @@
 # coding: utf-8
+import datetime
 from typing import Optional
 
+from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import gettext as t
 from formpack.constants import (
     EXPORT_SETTING_FIELDS,
@@ -30,6 +33,7 @@ from rest_framework.reverse import reverse
 
 from kpi.fields import ReadOnlyJSONField
 from kpi.models import Asset, SubmissionExportTask
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
 from kpi.utils.object_permission import get_database_user
@@ -60,8 +64,32 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data: dict) -> SubmissionExportTask:
-        # Create a new export task
         user = get_database_user(self._get_request.user)
+
+        # Check for an existing processing task with the exact same parameters
+        max_export_run_time = getattr(settings, 'CELERY_TASK_TIME_LIMIT', 2100)
+        max_allowed_export_age = datetime.timedelta(seconds=max_export_run_time * 4)
+        this_moment = timezone.now()
+        oldest_allowed_timestamp = this_moment - max_allowed_export_age
+
+        existing_tasks = (
+            SubmissionExportTask.objects.filter(
+                user=user,
+                data=validated_data,
+                date_created__gt=oldest_allowed_timestamp,
+            )
+            .exclude(
+                status__in=(
+                    ImportExportStatusChoices.COMPLETE,
+                    ImportExportStatusChoices.ERROR,
+                )
+            )
+            .order_by('-date_created')
+        )
+        if existing_tasks.exists():
+            return existing_tasks.first()
+
+        # Create a new export task
         export_task = SubmissionExportTask.objects.create(
             user=user, data=validated_data
         )

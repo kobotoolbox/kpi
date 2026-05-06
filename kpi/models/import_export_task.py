@@ -4,6 +4,7 @@ import os
 import posixpath
 import re
 import tempfile
+import time
 from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
@@ -1176,6 +1177,7 @@ class SubmissionExportTask(SubmissionExportTaskBase):
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
+        time.sleep(30)
 
         super()._run_task(messages)
 

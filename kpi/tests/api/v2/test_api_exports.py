@@ -316,6 +316,48 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.post(list_url, data=data)
         assert response.status_code == status.HTTP_201_CREATED
 
+    def test_create_export_task_already_running(self):
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'csv',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'false',
+            'fields_from_all_versions': 'false',
+            'multiple_select': 'both',
+        }
+        response = self.client.post(list_url, data=data)
+        assert response.status_code == status.HTTP_201_CREATED
+        first_uid = response.json()['uid']
+
+        # Update the task status to processing to simulate it being worked on
+        task = SubmissionExportTask.objects.get(uid=first_uid)
+        task.status = ImportExportStatusChoices.PROCESSING
+        task.save()
+
+        # Send an identical POST request
+        response2 = self.client.post(list_url, data=data)
+        assert response2.status_code == status.HTTP_201_CREATED
+        second_uid = response2.json()['uid']
+
+        # Should return the exact same task
+        assert first_uid == second_uid
+        assert SubmissionExportTask.objects.count() == 1
+
+        # Send a different POST request (different type)
+        data['type'] = 'xls'
+        response3 = self.client.post(list_url, data=data)
+        assert response3.status_code == status.HTTP_201_CREATED
+        third_uid = response3.json()['uid']
+
+        # Should create a new task
+        assert first_uid != third_uid
+        assert SubmissionExportTask.objects.count() == 2
+
     def test_create_export_task_extended(self):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
