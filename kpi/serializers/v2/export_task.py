@@ -67,24 +67,9 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         user = get_database_user(self._get_request.user)
 
         # Check for an existing processing task with the exact same parameters
-        max_export_run_time = getattr(settings, 'CELERY_TASK_TIME_LIMIT', 2100)
-        max_allowed_export_age = datetime.timedelta(seconds=max_export_run_time * 4)
-        this_moment = timezone.now()
-        oldest_allowed_timestamp = this_moment - max_allowed_export_age
-
-        existing_tasks = (
-            SubmissionExportTask.objects.filter(
-                user=user,
-                data=validated_data,
-                date_created__gt=oldest_allowed_timestamp,
-            )
-            .exclude(
-                status__in=(
-                    ImportExportStatusChoices.COMPLETE,
-                    ImportExportStatusChoices.ERROR,
-                )
-            )
-            .order_by('-date_created')
+        existing_tasks = SubmissionExportTask.get_active_exports(
+            user=user,
+            data=validated_data
         )
         if existing_tasks.exists():
             return existing_tasks.first()

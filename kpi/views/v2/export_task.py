@@ -154,26 +154,9 @@ class ExportTaskViewSet(
             'asset-detail', kwargs={'uid_asset': self.asset.uid}, request=request
         )
         SubmissionExportTask.log_and_mark_stuck_as_errored(user, source)
-        # to be super sure we don't get stuck on a hanging task, use the same logic as
-        # log_and_mark_stuck_as_errored to determine a cutoff date for the oldest
-        # running export
-        max_export_run_time = getattr(settings, 'CELERY_TASK_TIME_LIMIT', 2100)
-        max_allowed_export_age = datetime.timedelta(seconds=max_export_run_time * 4)
-        this_moment = timezone.now()
-        oldest_allowed_timestamp = this_moment - max_allowed_export_age
-        existing_tasks = (
-            SubmissionExportTask.objects.filter(
-                data__source=source,
-                user=user,
-                date_created__gt=oldest_allowed_timestamp
-            )
-            .exclude(
-                status__in=(
-                    ImportExportStatusChoices.COMPLETE,
-                    ImportExportStatusChoices.ERROR,
-                )
-            )
-            .order_by('-date_created')
+        existing_tasks = SubmissionExportTask.get_active_exports(
+            user=user,
+            data__source=source
         )
         if existing_tasks.exists():
             # take the most recent if there are multiples

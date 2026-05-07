@@ -1101,6 +1101,36 @@ class SubmissionExportTaskBase(ImportExportTask):
         return pack.export(**options), submission_stream
 
     @classmethod
+    def get_oldest_allowed_timestamp(cls):
+        """
+        Returns the oldest timestamp allowed for an export task to be considered
+        active (not stuck). Uses a generous grace period of 4x the celery time limit.
+        """
+        max_export_run_time = getattr(
+            settings, 'CELERY_TASK_TIME_LIMIT', 2100)
+        max_allowed_export_age = datetime.timedelta(
+            seconds=max_export_run_time * 4)
+        return datetime.datetime.now(tz=ZoneInfo('UTC')) - max_allowed_export_age
+
+    @classmethod
+    def get_active_exports(cls, user, **kwargs):
+        """
+        Returns a queryset of exports for the given user that are 
+        currently in a non-terminal (CREATED or PROCESSING) state 
+        and haven't exceeded the maximum allowed run time.
+        """
+        return cls.objects.filter(
+            user=user,
+            date_created__gt=cls.get_oldest_allowed_timestamp(),
+            **kwargs
+        ).exclude(
+            status__in=(
+                ImportExportStatusChoices.COMPLETE,
+                ImportExportStatusChoices.ERROR,
+            )
+        ).order_by('-date_created')
+
+    @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
         """
@@ -1109,15 +1139,8 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         `source` is the source URL as included in the `data` attribute.
         """
-        # How long can an export possibly run, not including time spent waiting
-        # in the Celery queue?
-        max_export_run_time = getattr(
-            settings, 'CELERY_TASK_TIME_LIMIT', 2100)
-        # Allow a generous grace period
-        max_allowed_export_age = datetime.timedelta(
-            seconds=max_export_run_time * 4)
         this_moment = datetime.datetime.now(tz=ZoneInfo('UTC'))
-        oldest_allowed_timestamp = this_moment - max_allowed_export_age
+        oldest_allowed_timestamp = cls.get_oldest_allowed_timestamp()
         stuck_exports = cls.objects.filter(
             user=user,
             date_created__lt=oldest_allowed_timestamp,
@@ -1177,7 +1200,6 @@ class SubmissionExportTask(SubmissionExportTaskBase):
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
-        time.sleep(30)
 
         super()._run_task(messages)
 
