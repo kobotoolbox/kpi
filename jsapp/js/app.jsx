@@ -32,7 +32,8 @@ import {
 import TOSAgreement from '#/router/tosAgreement.component'
 import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
-import { themeKobo } from './theme'
+import { cssVariablesResolverKobo, themeKobo } from './theme'
+import { KOBO_MODAL_SHARED_PROPS } from './theme/kobo/Modal'
 import ToasterConfig from './toasterConfig'
 
 import './api/mutation-defaults'
@@ -111,8 +112,8 @@ class App extends React.Component {
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
-          <MantineProvider theme={themeKobo}>
-            <ModalsProvider>
+          <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+            <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
               <RootContextProvider>
                 <Tracking />
                 <ToasterConfig />

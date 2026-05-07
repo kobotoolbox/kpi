@@ -1,11 +1,11 @@
 import React from 'react'
 
+import { Box, Group, Stack } from '@mantine/core'
 import type { UseQueryResult } from '@tanstack/react-query'
 import TextareaAutosize from 'react-textarea-autosize'
 import type { PaginatedListResponse, Pagination, UniversalTableColumn } from '#/UniversalTable'
 import UniversalTable from '#/UniversalTable'
-import bem from '#/bem'
-import Button from '#/components/common/button'
+import ButtonNew from '#/components/common/ButtonNew'
 import LanguageForm from '#/components/modalForms/languageForm'
 import type { LangObject } from '#/utils'
 import type { TranslationRowItem } from './types'
@@ -22,7 +22,6 @@ interface TranslationsEditorProps {
   pagination: Pagination
   setPagination: (pagination: Pagination) => void
   queryResult: UseQueryResult<PaginatedListResponse<TranslationRowItem>, Error>
-  onRequestClose: () => void
   onBack: () => void
   onSave: () => void | Promise<void>
   onToggleInlineLanguageForm: () => void
@@ -59,14 +58,15 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
   ]
 
   return (
-    <React.Fragment>
-      <bem.FormView__cell m='translation-actions'>
-        <Button type='secondary' size='m' onClick={props.onBack} label={t('Back')} />
-        <Button type='text' size='m' onClick={props.onRequestClose} label={t('Close')} />
-      </bem.FormView__cell>
+    <Stack gap='md'>
+      <Group>
+        <ButtonNew variant='light' size='md' onClick={props.onBack}>
+          {t('Back')}
+        </ButtonNew>
+      </Group>
 
       {props.showInlineLanguageForm && (
-        <bem.FormView__cell m='update-language-form'>
+        <Box>
           <LanguageForm
             isPending={props.isUpdatingAsset}
             langString={props.translations[props.selectedLangIndex] || null}
@@ -75,21 +75,22 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
             existingLanguages={props.translations}
             isDefault={props.selectedLangIndex === 0}
           />
-        </bem.FormView__cell>
+        </Box>
       )}
 
-      <bem.FormView__cell m='translation-actions'>
-        <Button
-          type='text'
-          size='m'
+      <Group>
+        <ButtonNew
+          variant='transparent'
+          size='md'
           onClick={props.onToggleInlineLanguageForm}
-          isDisabled={!props.canEditLanguages}
-          startIcon={props.showInlineLanguageForm ? 'close' : 'edit'}
-          label={t('Edit language')}
-        />
-      </bem.FormView__cell>
+          disabled={!props.canEditLanguages}
+          leftIcon={props.showInlineLanguageForm ? 'close' : 'edit'}
+        >
+          {t('Edit language')}
+        </ButtonNew>
+      </Group>
 
-      <div className='translation-table-container'>
+      <Box>
         <UniversalTable<TranslationRowItem>
           columns={tableColumns}
           queryResult={props.queryResult}
@@ -97,18 +98,16 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
           setPagination={props.setPagination}
           maxHeight='55vh'
         />
-      </div>
+      </Box>
 
-      <bem.Modal__footer>
-        <Button type='secondary' size='l' onClick={props.onBack} label={t('Back')} />
-        <Button
-          type='primary'
-          size='l'
-          onClick={props.onSave}
-          isDisabled={props.isSavingTable}
-          label={props.saveButtonText}
-        />
-      </bem.Modal__footer>
-    </React.Fragment>
+      <Group justify='flex-end'>
+        <ButtonNew variant='light' size='lg' onClick={props.onBack}>
+          {t('Back')}
+        </ButtonNew>
+        <ButtonNew variant='filled' size='lg' onClick={props.onSave} disabled={props.isSavingTable}>
+          {props.saveButtonText}
+        </ButtonNew>
+      </Group>
+    </Stack>
   )
 }

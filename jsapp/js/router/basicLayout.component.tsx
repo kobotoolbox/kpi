@@ -10,7 +10,8 @@ import AccountMenu from '#/components/header/accountMenu'
 import MainHeaderBase from '#/components/header/mainHeaderBase.component'
 import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
 import sessionStore from '#/stores/session'
-import { themeKobo } from '#/theme'
+import { cssVariablesResolverKobo, themeKobo } from '#/theme'
+import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import ToasterConfig from '../toasterConfig'
 import { RequireOrg } from './RequireOrg'
 import { Tracking } from './useTracking'
@@ -27,8 +28,8 @@ export default function BasicLayout(props: BasicLayoutProps) {
   return (
     <DocumentTitle title='KoboToolbox'>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={themeKobo}>
-          <ModalsProvider>
+        <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+          <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
             <Tracking />
             <ToasterConfig />
             <div className='header-stretch-bg' />

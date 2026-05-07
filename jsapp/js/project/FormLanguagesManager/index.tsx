@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 
+import { Box, CloseButton, Group, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useQuery } from '@tanstack/react-query'
 import alertify from 'alertifyjs'
 import cloneDeep from 'lodash.clonedeep'
 import type { PaginatedListResponse } from '#/UniversalTable'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
-import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
@@ -26,24 +26,41 @@ import {
 interface FormLanguagesManagerProps {
   asset: AssetResponse
   onRequestClose: () => void
+  registerOnRequestClose?: (closeHandler: () => void) => void
 }
 
 export function openFormLanguagesModal(asset: AssetResponse) {
+  let requestModalClose = () => {}
+
   const modalId = modals.open({
-    title: t('Manage Languages'),
+    title: (
+      <Group justify='space-between' wrap='nowrap'>
+        <Text fw={600}>{t('Manage Languages')}</Text>
+        <CloseButton aria-label={t('Close')} onClick={() => requestModalClose()} />
+      </Group>
+    ),
     size: '80%',
+    // Keep default close button disabled and render a controlled one in title,
+    // so close requests always go through FormLanguagesManager.requestClose.
     withCloseButton: false,
     closeOnEscape: false,
     closeOnClickOutside: false,
     children: (
       <FormLanguagesManager
         asset={asset}
+        registerOnRequestClose={(closeHandler) => {
+          requestModalClose = closeHandler
+        }}
         onRequestClose={() => {
           modals.close(modalId)
         }}
       />
     ),
   })
+
+  requestModalClose = () => {
+    modals.close(modalId)
+  }
 }
 
 export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
@@ -104,6 +121,8 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       })
 
       if (response.status === 200) {
+        // TODO: remove casting when parent component starts operating on
+        // `Asset` (orval) rather than `AssetResponse` (legacy)
         setAsset(response.data as unknown as AssetResponse)
         return true
       }
@@ -139,6 +158,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
     props.onRequestClose()
   }
+
+  useEffect(() => {
+    props.registerOnRequestClose?.(requestClose)
+  }, [props.registerOnRequestClose, requestClose])
 
   async function onLanguageChange(lang: LangObject, index: number) {
     let content = cloneDeep(asset.content)
@@ -303,49 +326,45 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   return (
-    <bem.FormModal m={activeView === 'translations' ? 'translation-table' : 'translation-settings'}>
-      <bem.FormModal__item>
-        {activeView === 'languages' ? (
-          <LanguagesEditor
-            asset={asset}
-            translations={translations}
-            isUpdatingAsset={isUpdatingAsset}
-            showAddLanguageForm={showAddLanguageForm}
-            renameLanguageIndex={renameLanguageIndex}
-            onRequestClose={requestClose}
-            onToggleAddLanguageForm={setShowAddLanguageForm}
-            onToggleRenameLanguage={(index) => {
-              setRenameLanguageIndex((prev) => (prev === index ? -1 : index))
-            }}
-            onChangeDefaultLanguage={changeDefaultLanguage}
-            onOpenTranslations={openTranslations}
-            onDeleteLanguage={deleteLanguage}
-            onLanguageChange={onLanguageChange}
-          />
-        ) : (
-          <TranslationsEditor
-            translations={translations}
-            selectedLangIndex={selectedLangIndex}
-            showInlineLanguageForm={showInlineLanguageForm}
-            isUpdatingAsset={isUpdatingAsset}
-            isSavingTable={isSavingTable}
-            saveButtonText={saveButtonText}
-            canEditLanguages={canEditLanguages}
-            tableRows={tableRows}
-            pagination={pagination}
-            setPagination={setPagination}
-            queryResult={tableQuery}
-            onRequestClose={requestClose}
-            onBack={onBackFromTranslations}
-            onSave={saveTableChanges}
-            onToggleInlineLanguageForm={() => {
-              setShowInlineLanguageForm((prev) => !prev)
-            }}
-            onLanguageChange={onLanguageChange}
-            onChangeCell={onChangeTranslationCell}
-          />
-        )}
-      </bem.FormModal__item>
-    </bem.FormModal>
+    <Box>
+      {activeView === 'languages' ? (
+        <LanguagesEditor
+          asset={asset}
+          translations={translations}
+          isUpdatingAsset={isUpdatingAsset}
+          showAddLanguageForm={showAddLanguageForm}
+          renameLanguageIndex={renameLanguageIndex}
+          onToggleAddLanguageForm={setShowAddLanguageForm}
+          onToggleRenameLanguage={(index) => {
+            setRenameLanguageIndex((prev) => (prev === index ? -1 : index))
+          }}
+          onChangeDefaultLanguage={changeDefaultLanguage}
+          onOpenTranslations={openTranslations}
+          onDeleteLanguage={deleteLanguage}
+          onLanguageChange={onLanguageChange}
+        />
+      ) : (
+        <TranslationsEditor
+          translations={translations}
+          selectedLangIndex={selectedLangIndex}
+          showInlineLanguageForm={showInlineLanguageForm}
+          isUpdatingAsset={isUpdatingAsset}
+          isSavingTable={isSavingTable}
+          saveButtonText={saveButtonText}
+          canEditLanguages={canEditLanguages}
+          tableRows={tableRows}
+          pagination={pagination}
+          setPagination={setPagination}
+          queryResult={tableQuery}
+          onBack={onBackFromTranslations}
+          onSave={saveTableChanges}
+          onToggleInlineLanguageForm={() => {
+            setShowInlineLanguageForm((prev) => !prev)
+          }}
+          onLanguageChange={onLanguageChange}
+          onChangeCell={onChangeTranslationCell}
+        />
+      )}
+    </Box>
   )
 }
