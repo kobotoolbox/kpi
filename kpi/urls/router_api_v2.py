@@ -14,7 +14,10 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
-from kobo.apps.subsequences.views import QuestionAdvancedFeatureViewSet
+from kobo.apps.subsequences.views import (
+    BulkActionViewSet,
+    QuestionAdvancedFeatureViewSet,
+)
 from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.constants import API_NAMESPACES
 from kpi.permissions import AdvancedSubmissionPermission
@@ -255,6 +258,25 @@ supplement_url_pattern = [
     ),
 ]
 
+bulk_action_url_patterns = [
+    path(
+        'assets/<uid_asset>/advanced-features/bulk-actions/',
+        BulkActionViewSet.as_view(
+            {'get': 'list', 'post': 'create'},
+            renderer_classes=[JSONRenderer],
+        ),
+        name='advanced-features-bulk-actions-list',
+    ),
+    path(
+        'assets/<uid_asset>/advanced-features/bulk-actions/<uid_bulk_action>/',
+        BulkActionViewSet.as_view(
+            {'get': 'retrieve', 'patch': 'partial_update'},
+            renderer_classes=[JSONRenderer],
+        ),
+        name='advanced-features-bulk-actions-detail',
+    ),
+]
+
 kobo_scim_pattern = [
     path(
         'scim/v2/',
@@ -263,5 +285,9 @@ kobo_scim_pattern = [
 ]
 
 urls_patterns = (
-    router_api_v2.urls + enketo_url_aliases + supplement_url_pattern + kobo_scim_pattern
+    bulk_action_url_patterns
+    + router_api_v2.urls
+    + enketo_url_aliases
+    + supplement_url_pattern
+    + kobo_scim_pattern
 )

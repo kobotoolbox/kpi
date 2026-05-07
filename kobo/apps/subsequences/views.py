@@ -1,5 +1,11 @@
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import mixins
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
+from rest_framework import mixins, status, viewsets
+from rest_framework.exceptions import APIException
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
@@ -13,6 +19,10 @@ from kobo.apps.subsequences.serializers import (
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.permissions import AssetAdvancedFeaturesPermission
 from kpi.schema_extensions.v2.subsequences.examples import (
+    get_bulk_action_list_response_examples,
+    get_bulk_action_patch_examples,
+    get_bulk_action_response_examples,
+    get_bulk_actions_create_examples,
     get_advanced_features_create_examples,
     get_advanced_features_list_examples,
     get_advanced_features_update_examples,
@@ -22,14 +32,25 @@ from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeaturePatchRequest,
     AdvancedFeaturePostRequest,
     AdvancedFeatureResponse,
+    BulkActionCreateRequest,
+    BulkActionListResponse,
+    BulkActionPatchRequest,
+    BulkActionResponse,
 )
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
+    ErrorDetailSerializer,
     open_api_200_ok_response,
     open_api_201_created_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.versioning import APIV2Versioning
+
+
+class PlaceholderNotImplementedApiException(APIException):
+    status_code = status.HTTP_501_NOT_IMPLEMENTED
+    default_detail = 'Bulk processing jobs API is not implemented yet.'
+    default_code = 'not_implemented'
 
 
 @extend_schema(
@@ -155,3 +176,127 @@ class QuestionAdvancedFeatureViewSet(
         ):
             migrate_advanced_features(self.asset)
         return super().list(request, *args, **kwargs)
+
+
+@extend_schema(
+    tags=['Survey data'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('subsequences', 'subsequences/bulk_actions_create.md'),
+        request={'application/json': BulkActionCreateRequest},
+        responses={
+            **open_api_201_created_response(
+                BulkActionResponse,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                description='Placeholder endpoint. Runtime behavior not implemented.',
+            ),
+        },
+        examples=get_bulk_actions_create_examples() + get_bulk_action_response_examples(),
+    ),
+    list=extend_schema(
+        description=read_md('subsequences', 'subsequences/bulk_actions_list.md'),
+        responses={
+            **open_api_200_ok_response(
+                BulkActionListResponse,
+                require_auth=False,
+                raise_access_forbidden=False,
+                validate_payload=False,
+            ),
+            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                description='Placeholder endpoint. Runtime behavior not implemented.',
+            ),
+        },
+        examples=get_bulk_action_list_response_examples(),
+    ),
+    partial_update=extend_schema(
+        description=read_md('subsequences', 'subsequences/bulk_actions_update.md'),
+        request={'application/json': BulkActionPatchRequest},
+        responses={
+            **open_api_200_ok_response(
+                BulkActionResponse,
+                require_auth=False,
+                raise_access_forbidden=False,
+                validate_payload=False,
+            ),
+            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                description='Placeholder endpoint. Runtime behavior not implemented.',
+            ),
+        },
+        parameters=[
+            OpenApiParameter(
+                name='uid_bulk_action',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the bulk action job',
+            ),
+        ],
+        examples=get_bulk_action_patch_examples(),
+    ),
+    retrieve=extend_schema(
+        description=read_md('subsequences', 'subsequences/bulk_actions_retrieve.md'),
+        responses={
+            **open_api_200_ok_response(
+                BulkActionResponse,
+                require_auth=False,
+                raise_access_forbidden=False,
+                validate_payload=False,
+            ),
+            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                description='Placeholder endpoint. Runtime behavior not implemented.',
+            ),
+        },
+        parameters=[
+            OpenApiParameter(
+                name='uid_bulk_action',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the bulk action job',
+            ),
+        ],
+        examples=get_bulk_action_response_examples(),
+    ),
+)
+class BulkActionViewSet(
+    AssetNestedObjectViewsetMixin,
+    viewsets.ViewSet,
+):
+    permission_classes = (AssetAdvancedFeaturesPermission,)
+    versioning_class = APIV2Versioning
+
+    def _not_implemented(self):
+        raise PlaceholderNotImplementedApiException()
+
+    def list(self, request, *args, **kwargs):
+        _ = self.asset
+        self._not_implemented()
+
+    def create(self, request, *args, **kwargs):
+        _ = self.asset
+        self._not_implemented()
+
+    def partial_update(self, request, *args, **kwargs):
+        _ = self.asset
+        self._not_implemented()
+
+    def retrieve(self, request, *args, **kwargs):
+        _ = self.asset
+        self._not_implemented()
