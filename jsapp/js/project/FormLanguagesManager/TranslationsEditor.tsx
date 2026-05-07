@@ -6,8 +6,8 @@ import TextareaAutosize from 'react-textarea-autosize'
 import type { PaginatedListResponse, Pagination, UniversalTableColumn } from '#/UniversalTable'
 import UniversalTable from '#/UniversalTable'
 import ButtonNew from '#/components/common/ButtonNew'
-import LanguageForm from '#/components/modalForms/languageForm'
 import type { LangObject } from '#/utils'
+import LanguageForm from './LanguageForm'
 import type { TranslationRowItem } from './types'
 
 interface TranslationsEditorProps {

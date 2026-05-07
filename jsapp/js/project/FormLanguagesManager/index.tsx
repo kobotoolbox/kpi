@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 
-import { Box, CloseButton, Group, Text } from '@mantine/core'
+import { Box, Group } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useQuery } from '@tanstack/react-query'
-import alertify from 'alertifyjs'
 import cloneDeep from 'lodash.clonedeep'
 import type { PaginatedListResponse } from '#/UniversalTable'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
+import CloseButton from '#/components/common/CloseButton'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
@@ -35,7 +35,7 @@ export function openFormLanguagesModal(asset: AssetResponse) {
   const modalId = modals.open({
     title: (
       <Group justify='space-between' wrap='nowrap'>
-        <Text fw={600}>{t('Manage Languages')}</Text>
+        <Box>{t('Manage Languages')}</Box>
         <CloseButton aria-label={t('Close')} onClick={() => requestModalClose()} />
       </Group>
     ),
@@ -43,8 +43,17 @@ export function openFormLanguagesModal(asset: AssetResponse) {
     // Keep default close button disabled and render a controlled one in title,
     // so close requests always go through FormLanguagesManager.requestClose.
     withCloseButton: false,
+    // closeOnEscape and closeOnClickOutside are kept disabled because the
+    // modals manager calls closeModal() directly, bypassing any guard logic.
+    // Instead we intercept both events manually and route them through
+    // FormLanguagesManager.requestClose (unsaved-changes confirmation):
+    //   - Escape key: handled via onKeyDown on the content root Box
+    //   - Overlay click: handled via overlayProps.onClick below
     closeOnEscape: false,
     closeOnClickOutside: false,
+    overlayProps: {
+      onClick: () => requestModalClose(),
+    },
     children: (
       <FormLanguagesManager
         asset={asset}
@@ -139,20 +148,15 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
   function requestClose() {
     if (activeView === 'translations' && stores.translations.state.isTranslationTableUnsaved) {
-      const dialog = alertify.dialog('confirm')
-      dialog
-        .set({
-          title: t('Close Translations Table?'),
-          message: t('You will lose all unsaved changes.'),
-          labels: { ok: t('Close'), cancel: t('Cancel') },
-          onok: () => {
-            stores.translations.setTranslationTableUnsaved(false)
-            props.onRequestClose()
-            dialog.destroy()
-          },
-          oncancel: dialog.destroy,
-        })
-        .show()
+      modals.openConfirmModal({
+        title: t('Close Translations Table?'),
+        children: t('You will lose all unsaved changes.'),
+        labels: { confirm: t('Close'), cancel: t('Cancel') },
+        onConfirm: () => {
+          stores.translations.setTranslationTableUnsaved(false)
+          props.onRequestClose()
+        },
+      })
       return
     }
 
@@ -197,20 +201,15 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
   function onBackFromTranslations() {
     if (stores.translations.state.isTranslationTableUnsaved) {
-      const dialog = alertify.dialog('confirm')
-      dialog
-        .set({
-          title: t('Go back?'),
-          message: t('You will lose all unsaved changes.'),
-          labels: { ok: t('Confirm'), cancel: t('Cancel') },
-          onok: () => {
-            stores.translations.setTranslationTableUnsaved(false)
-            setActiveView('languages')
-            dialog.destroy()
-          },
-          oncancel: dialog.destroy,
-        })
-        .show()
+      modals.openConfirmModal({
+        title: t('Go back?'),
+        children: t('You will lose all unsaved changes.'),
+        labels: { confirm: t('Confirm'), cancel: t('Cancel') },
+        onConfirm: () => {
+          stores.translations.setTranslationTableUnsaved(false)
+          setActiveView('languages')
+        },
+      })
       return
     }
 
@@ -272,43 +271,34 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
     content.translations?.splice(index, 1)
 
-    const dialog = alertify.dialog('confirm')
-    dialog
-      .set({
-        title: t('Delete language?'),
-        message: t('Are you sure you want to delete this language? This action is not reversible.'),
-        labels: { ok: t('Delete'), cancel: t('Cancel') },
-        onok: async () => {
-          await patchAsset(content)
-          dialog.destroy()
-        },
-        oncancel: dialog.destroy,
-      })
-      .show()
+    modals.openConfirmModal({
+      title: t('Delete language?'),
+      children: t('Are you sure you want to delete this language? This action is not reversible.'),
+      labels: { confirm: t('Delete'), cancel: t('Cancel') },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        await patchAsset(content)
+      },
+    })
   }
 
   async function changeDefaultLanguage(index: number) {
     const langString = translations[index]
-    const dialog = alertify.dialog('confirm')
-    dialog
-      .set({
-        title: t('Change default language?'),
-        message: t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
-          '##lang##',
-          escapeHtml(String(langString)),
-        ),
-        labels: { ok: t('Confirm'), cancel: t('Cancel') },
-        onok: async () => {
-          const content = cloneDeep(asset.content)
-          if (content?.settings) {
-            content.settings.default_language = langString
-            await patchAsset(content)
-          }
-          dialog.destroy()
-        },
-        oncancel: dialog.destroy,
-      })
-      .show()
+    modals.openConfirmModal({
+      title: t('Change default language?'),
+      children: t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
+        '##lang##',
+        escapeHtml(String(langString)),
+      ),
+      labels: { confirm: t('Confirm'), cancel: t('Cancel') },
+      onConfirm: async () => {
+        const content = cloneDeep(asset.content)
+        if (content?.settings) {
+          content.settings.default_language = langString
+          await patchAsset(content)
+        }
+      },
+    })
   }
 
   function onChangeTranslationCell(absoluteIndex: number, value: string) {
@@ -326,7 +316,14 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   return (
-    <Box>
+    <Box
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation()
+          requestClose()
+        }
+      }}
+    >
       {activeView === 'languages' ? (
         <LanguagesEditor
           asset={asset}

@@ -7,10 +7,10 @@ import ButtonNew from '#/components/common/ButtonNew'
 import InlineMessage from '#/components/common/inlineMessage'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
-import LanguageForm from '#/components/modalForms/languageForm'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import type { LangObject } from '#/utils'
+import LanguageForm from './LanguageForm'
 import { LANGUAGE_SUPPORT_URL } from './types'
 
 interface LanguagesEditorProps {

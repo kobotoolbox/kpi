@@ -5,6 +5,7 @@ import { AlertThemeKobo } from './Alert'
 import { AutocompleteThemeKobo } from './Autocomplete'
 import { ButtonThemeKobo } from './Button'
 import { CheckboxThemeKobo } from './Checkbox'
+import { CloseButtonThemeKobo } from './CloseButton'
 import { DividerThemeKobo } from './Divider'
 import { InputBaseThemeKobo } from './InputBase'
 import { LoaderThemeKobo } from './Loader'
@@ -143,6 +144,7 @@ export const themeKobo = createTheme({
     ActionIcon: ActionIconThemeKobo,
     Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
+    CloseButton: CloseButtonThemeKobo,
     InputBase: InputBaseThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
