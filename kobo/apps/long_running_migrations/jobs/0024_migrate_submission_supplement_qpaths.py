@@ -1,12 +1,11 @@
 import time
 from copy import deepcopy
 
-from django.core.management import call_command
-from django.core.management.base import CommandError
-from django.db.models import Exists, OuterRef
-
-from apps.long_running_migrations.models import LongRunningMigration, LongRunningMigrationStatus
-from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
+from kobo.apps.long_running_migrations.models import (
+    LongRunningMigration,
+    LongRunningMigrationStatus,
+)
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.models import Asset
 from kpi.utils.log import logging
 
@@ -30,7 +29,9 @@ def run():
 
     # make sure migration 0023 is done
     try:
-        previous_migration = LongRunningMigration.objects.get(name='0023_migrate_submission_supplements')
+        previous_migration = LongRunningMigration.objects.get(
+            name='0023_migrate_submission_supplements'
+        )
     except LongRunningMigration.DoesNotExist:
         logging.info('[LRM 0024] - previous migration not present.')
         return
@@ -43,7 +44,8 @@ def run():
         .values_list('asset__uid', flat=True)
         .distinct()
     )
-    migration_count = 0
+    migrated_supplements_with_qpaths = 0
+    migrated_supplements = 0
 
     total = len(old_uids)
     if total == 0:
@@ -59,11 +61,21 @@ def run():
             new_content = get_sanitized_dict_keys(supplement.content, asset)
             if new_content:
                 supplement.content = get_sanitized_dict_keys(supplement.content, asset)
-                supplement.save(update_fields=['content',])
-                migration_count+=1
+                supplement.save(
+                    update_fields=[
+                        'content',
+                    ]
+                )
+                migrated_supplements_with_qpaths += 1
+            supplement.content['_version'] = '20260506'
+            migrated_supplements += 1
         time.sleep(SLEEP_BETWEEN_ASSETS)
 
-    logging.info(f'[LRM 0024] - Done. Migrated {migration_count} submission supplements.')
+    logging.info(
+        f'[LRM 0024] - Done. Migrated {migrated_supplements} submission supplements.'
+        f' {migrated_supplements_with_qpaths} supplements with qpaths updated.'
+    )
+
 
 def get_sanitized_dict_keys(content_dict: dict, asset: 'Asset') -> dict | None:
     """
