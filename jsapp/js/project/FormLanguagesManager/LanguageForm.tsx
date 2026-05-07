@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { Box, Group, TextInput } from '@mantine/core'
+import { Group, TextInput } from '@mantine/core'
 import ButtonNew from '#/components/common/ButtonNew'
 import { toTitleCase } from '#/textUtils'
 import type { LangObject } from '#/utils'
@@ -77,34 +77,39 @@ export default function LanguageForm(props: LanguageFormProps) {
   const buttonLabel = props.langIndex !== undefined ? t('Update') : props.isDefault ? t('Set') : t('Add')
 
   return (
-    <Box component='form' onSubmit={onSubmit}>
-      <Group gap='sm'>
-        <TextInput
-          label={props.isDefault ? t('Default language name') : t('Language name')}
-          value={name}
-          onChange={(evt) => {
-            setName(toTitleCase(evt.currentTarget.value.trim().toLowerCase()))
-            setNameError(null)
-          }}
-          error={nameError}
-        />
+    <Group
+      component='form'
+      onSubmit={onSubmit}
+      p='md'
+      bg='var(--mantine-color-gray-7)'
+      gap='sm'
+      style={{ alignItems: 'flex-end' }}
+    >
+      <TextInput
+        flex={1}
+        label={props.isDefault ? t('Default language name') : t('Language name')}
+        value={name}
+        onChange={(evt) => {
+          setName(toTitleCase(evt.currentTarget.value.trim().toLowerCase()))
+          setNameError(null)
+        }}
+        error={nameError}
+      />
 
-        <TextInput
-          label={props.isDefault ? t('Default language code') : t('Language code')}
-          value={code}
-          onChange={(evt) => {
-            setCode(evt.currentTarget.value.trim().toLowerCase())
-            setCodeError(null)
-          }}
-          error={codeError}
-        />
+      <TextInput
+        flex={1}
+        label={props.isDefault ? t('Default language code') : t('Language code')}
+        value={code}
+        onChange={(evt) => {
+          setCode(evt.currentTarget.value.trim().toLowerCase())
+          setCodeError(null)
+        }}
+        error={codeError}
+      />
 
-        <Box>
-          <ButtonNew variant='filled' size='lg' type='submit' loading={props.isPending} disabled={!name || !code}>
-            {buttonLabel}
-          </ButtonNew>
-        </Box>
-      </Group>
-    </Box>
+      <ButtonNew variant='filled' size='lg' type='submit' loading={props.isPending} disabled={!name || !code}>
+        {buttonLabel}
+      </ButtonNew>
+    </Group>
   )
 }

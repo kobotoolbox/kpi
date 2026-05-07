@@ -1,5 +1,5 @@
 import { Modal } from '@mantine/core'
-import { IconCancel } from '@tabler/icons-react'
+import { IconX } from '@tabler/icons-react'
 import KoboIcon from '#/components/common/KoboIcon'
 import classes from './Modal.module.css'
 import { KOBO_Z_INDEX } from './zIndex'
@@ -12,7 +12,7 @@ export const KOBO_MODAL_SHARED_PROPS = {
     zIndex: KOBO_Z_INDEX.modalOverlay,
   },
   closeButtonProps: {
-    icon: <KoboIcon icon={IconCancel} />,
+    icon: <KoboIcon icon={IconX} />,
   },
   padding: 'lg',
 } as const

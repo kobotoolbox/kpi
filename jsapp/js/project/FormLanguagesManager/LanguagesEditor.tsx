@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Anchor, Badge, Box, Group, Paper, Stack, Text } from '@mantine/core'
+import { Anchor, Badge, Box, CloseButton, Group, Paper, Stack, Text } from '@mantine/core'
 import { IconPencilFilled, IconTrashFilled, IconWorldCog, IconWorldStar, IconX } from '@tabler/icons-react'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -182,16 +182,16 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
 
           {props.showAddLanguageForm && (
             <Stack gap='sm'>
-              <ButtonNew
-                variant='transparent'
-                size='md'
-                onClick={() => {
-                  props.onToggleAddLanguageForm(false)
-                }}
-                leftIcon='close'
-              />
+              <Group gap='sm' justify='space-between'>
+                <Text fw={600}>{t('Add a new language')}</Text>
 
-              <Text fw={600}>{t('Add a new language')}</Text>
+                <CloseButton
+                  size='md'
+                  onClick={() => {
+                    props.onToggleAddLanguageForm(false)
+                  }}
+                />
+              </Group>
 
               <LanguageForm
                 isPending={props.isUpdatingAsset}
