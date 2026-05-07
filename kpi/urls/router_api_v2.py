@@ -42,48 +42,11 @@ from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 
-class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
-    """
-    Historically, all of this application's endpoints have used trailing
-    slashes (the DRF default). Requests missing their trailing slashes have
-    been automatically redirected by Django's `APPEND_SLASH` setting, which
-    defaults to `True`.
-
-    That behavior is unacceptable for OpenRosa endpoints, which do *not* end
-    with slashes and cannot be redirected without losing their POST payloads.
-
-    This router explicitly adds URL patterns without trailing slashes for
-    OpenRosa endpoints so that their responses can be served directly, without
-    redirection.
-    """
-    def get_urls(self, *args, **kwargs):
-        urls = super().get_urls(*args, **kwargs)
-        names_to_alias_paths = {
-            'assetsnapshot-form-list': 'asset_snapshots/<uid_asset_snapshot>/formList',
-            'assetsnapshot-manifest': 'asset_snapshots/<uid_asset_snapshot>/manifest',
-            'assetsnapshot-submission': 'asset_snapshots/<uid_asset_snapshot>/submission',
-        }
-
-        # Remove the original urls matching the names
-        original_urls = [url for url in urls if url.name not in names_to_alias_paths]
-
-        # Add only alias versions
-        alias_urls = []
-        for url in urls:
-            if url.name in names_to_alias_paths:
-                alias_paths = names_to_alias_paths[url.name]
-                # only consider the first match
-                del names_to_alias_paths[url.name]
-                alias_urls.append(
-                    path(alias_paths, url.callback, name=f'{url.name}-openrosa')
-                )
-        original_urls.extend(alias_urls)
-        return original_urls
 
 
 URL_NAMESPACE = API_NAMESPACES['v2']
 
-router_api_v2 = OpenRosaCompatibleExtendedRouter()
+router_api_v2 = ExtendedDefaultRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
 asset_routes.register(
@@ -262,6 +225,30 @@ kobo_scim_pattern = [
     ),
 ]
 
+# OpenRosa endpoints that must not end with a slash to avoid losing POST
+# payloads during redirection.
+openrosa_url_patterns = [
+    path(
+        'asset_snapshots/<uid_asset_snapshot>/formList',
+        AssetSnapshotViewSet.as_view({'get': 'form_list', 'head': 'form_list'}),
+        name='assetsnapshot-form-list-openrosa',
+    ),
+    path(
+        'asset_snapshots/<uid_asset_snapshot>/manifest',
+        AssetSnapshotViewSet.as_view({'get': 'manifest', 'head': 'manifest'}),
+        name='assetsnapshot-manifest-openrosa',
+    ),
+    path(
+        'asset_snapshots/<uid_asset_snapshot>/submission',
+        AssetSnapshotViewSet.as_view({'post': 'submission', 'head': 'submission'}),
+        name='assetsnapshot-submission-openrosa',
+    ),
+]
+
 urls_patterns = (
-    router_api_v2.urls + enketo_url_aliases + supplement_url_pattern + kobo_scim_pattern
+    router_api_v2.urls
+    + openrosa_url_patterns
+    + enketo_url_aliases
+    + supplement_url_pattern
+    + kobo_scim_pattern
 )
