@@ -11,6 +11,7 @@ interface LanguageFormProps {
   langString?: string | null
   langIndex?: number
   onLanguageChange: (lang: LangObject, index: number) => void | Promise<void>
+  onCancel?: () => void
   /** Used for uniqueness validation */
   existingLanguages?: Array<string | null>
   isDefault?: boolean
@@ -110,6 +111,12 @@ export default function LanguageForm(props: LanguageFormProps) {
       <ButtonNew variant='filled' size='lg' type='submit' loading={props.isPending} disabled={!name || !code}>
         {buttonLabel}
       </ButtonNew>
+
+      {props.onCancel && (
+        <ButtonNew variant='light' size='lg' type='button' onClick={props.onCancel}>
+          {t('Cancel')}
+        </ButtonNew>
+      )}
     </Group>
   )
 }

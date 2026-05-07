@@ -39,7 +39,24 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
     },
     {
       key: 'value',
-      label: `${props.translations[props.selectedLangIndex] || ''} ${props.selectedLangIndex === 0 ? t('updated text') : t('translation')}`,
+      label: (
+        <Group gap='xs' wrap='nowrap'>
+          <span>
+            {`${props.translations[props.selectedLangIndex] || ''} ${
+              props.selectedLangIndex === 0 ? t('updated text') : t('translation')
+            }`}
+          </span>
+          <ButtonNew
+            variant='transparent'
+            size='sm'
+            onClick={props.onToggleInlineLanguageForm}
+            disabled={!props.canEditLanguages || props.showInlineLanguageForm}
+            leftIcon='edit'
+          >
+            {t('Edit language')}
+          </ButtonNew>
+        </Group>
+      ),
       size: 740,
       cellFormatter: (_row, rowIndex) => {
         const absoluteIndex = props.pagination.start + rowIndex
@@ -48,6 +65,7 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
             value={props.tableRows[absoluteIndex]?.value || ''}
             disabled={props.tableRows[absoluteIndex]?.isLabelLocked}
             dir='auto'
+            style={{ width: '100%' }}
             onChange={(evt) => {
               props.onChangeCell(absoluteIndex, evt.target.value)
             }}
@@ -59,12 +77,6 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
 
   return (
     <Stack gap='md'>
-      <Group>
-        <ButtonNew variant='light' size='md' onClick={props.onBack}>
-          {t('Back')}
-        </ButtonNew>
-      </Group>
-
       {props.showInlineLanguageForm && (
         <Box>
           <LanguageForm
@@ -74,21 +86,10 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
             onLanguageChange={props.onLanguageChange}
             existingLanguages={props.translations}
             isDefault={props.selectedLangIndex === 0}
+            onCancel={props.onToggleInlineLanguageForm}
           />
         </Box>
       )}
-
-      <Group>
-        <ButtonNew
-          variant='transparent'
-          size='md'
-          onClick={props.onToggleInlineLanguageForm}
-          disabled={!props.canEditLanguages}
-          leftIcon={props.showInlineLanguageForm ? 'close' : 'edit'}
-        >
-          {t('Edit language')}
-        </ButtonNew>
-      </Group>
 
       <Box>
         <UniversalTable<TranslationRowItem>

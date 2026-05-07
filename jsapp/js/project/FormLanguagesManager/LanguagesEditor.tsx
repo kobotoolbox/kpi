@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { Anchor, Badge, Box, CloseButton, Group, Paper, Stack, Text } from '@mantine/core'
-import { IconPencilFilled, IconTrashFilled, IconWorldCog, IconWorldStar, IconX } from '@tabler/icons-react'
+import { Anchor, Badge, Box, Group, Paper, Stack, Text } from '@mantine/core'
+import { IconPencilFilled, IconTrashFilled, IconWorldCog, IconWorldStar } from '@tabler/icons-react'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -119,8 +119,8 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
                       onClick={() => {
                         props.onToggleRenameLanguage(index)
                       }}
-                      disabled={props.isUpdatingAsset || !canEditLanguages}
-                      icon={props.renameLanguageIndex === index ? IconX : IconPencilFilled}
+                      disabled={props.isUpdatingAsset || !canEditLanguages || props.renameLanguageIndex === index}
+                      icon={IconPencilFilled}
                       tooltip={t('Edit language')}
                     />
 
@@ -159,6 +159,7 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
                     langIndex={index}
                     onLanguageChange={props.onLanguageChange}
                     existingLanguages={props.translations}
+                    onCancel={() => props.onToggleRenameLanguage(index)}
                   />
                 </Box>
               )}
@@ -182,21 +183,13 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
 
           {props.showAddLanguageForm && (
             <Stack gap='sm'>
-              <Group gap='sm' justify='space-between'>
-                <Text fw={600}>{t('Add a new language')}</Text>
-
-                <CloseButton
-                  size='md'
-                  onClick={() => {
-                    props.onToggleAddLanguageForm(false)
-                  }}
-                />
-              </Group>
+              <Text fw={600}>{t('Add a new language')}</Text>
 
               <LanguageForm
                 isPending={props.isUpdatingAsset}
                 onLanguageChange={props.onLanguageChange}
                 existingLanguages={props.translations}
+                onCancel={() => props.onToggleAddLanguageForm(false)}
               />
             </Stack>
           )}
