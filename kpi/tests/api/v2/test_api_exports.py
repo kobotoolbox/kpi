@@ -334,12 +334,19 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         first_uid = response.json()['uid']
 
+        # Send an identical POST request while the first task is still in CREATED state
+        response1b = self.client.post(list_url, data=data)
+        assert response1b.status_code == status.HTTP_200_OK
+        created_state_uid = response1b.json()['uid']
+        assert first_uid == created_state_uid
+        assert SubmissionExportTask.objects.count() == 1
+
         # Update the task status to processing to simulate it being worked on
         task = SubmissionExportTask.objects.get(uid=first_uid)
         task.status = ImportExportStatusChoices.PROCESSING
         task.save()
 
-        # Send an identical POST request
+        # Send an identical POST request while the task is in PROCESSING state
         response2 = self.client.post(list_url, data=data)
         assert response2.status_code == status.HTTP_200_OK
         second_uid = response2.json()['uid']
