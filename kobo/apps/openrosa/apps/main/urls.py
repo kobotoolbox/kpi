@@ -5,11 +5,6 @@ from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 from kobo.apps.openrosa import koboform
-from kobo.apps.openrosa.apps.api.urls import (
-    BriefcaseApi,
-    router,
-    router_with_patch_list,
-)
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.views import (
@@ -32,8 +27,6 @@ from kobo.apps.openrosa.apps.viewer.views import (
 urlpatterns = [
     # change Language
     path('i18n/', include('django.conf.urls.i18n')),
-    path('api/v1/', include(router.urls)),
-    path('api/v1/', include(router_with_patch_list.urls)),
     # main website views
     path('', RedirectView.as_view(url=koboform.redirect_url('/')), name='home'),
     # Bring back old url because it's still used by `kpi`
@@ -60,17 +53,6 @@ urlpatterns = [
         '<str:username>/',
         RedirectView.as_view(url=koboform.redirect_url('/')),
         name='user_profile',
-    ),
-    # briefcase api urls
-    path(
-        'view/submissionList',
-        BriefcaseApi.as_view({'get': 'list', 'head': 'list'}),
-        name='view-submission-list',
-    ),
-    path(
-        'view/downloadSubmission',
-        BriefcaseApi.as_view({'get': 'retrieve', 'head': 'retrieve'}),
-        name='view-download-submission',
     ),
     # exporting stuff
     re_path(
