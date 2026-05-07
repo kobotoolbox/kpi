@@ -19,7 +19,12 @@ from kpi.exceptions import (
     XPathNotFoundException,
 )
 from kpi.utils.log import logging
-from ...constants import SUBMISSION_UUID_FIELD
+from kobo.apps.languages.exceptions import LanguageNotSupported
+from kobo.apps.languages.models.transcription import (
+    TranscriptionService,
+    TranscriptionServiceLanguageM2M,
+)
+from ...constants import GOOGLE_CODE, SUBMISSION_UUID_FIELD
 from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
 from .base import GoogleService
 
@@ -127,7 +132,29 @@ class GoogleTranscriptionService(GoogleService):
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
     def process_data(self, xpath: str, params: dict) -> dict:
-        source_language = params.get('locale') or params['language']
+        requested_language = params.get('locale') or params['language']
+        try:
+            transcription_service = TranscriptionService.objects.get(code=GOOGLE_CODE)
+            source_language = transcription_service.get_language_code(requested_language)
+            # `get_language_code` may return a bare language code (e.g. 'en') which
+            # Google's 'latest_long' model doesn't accept. Look up the best region.
+            if '-' not in source_language:
+                m2m = TranscriptionServiceLanguageM2M.objects.filter(
+                    service__code=GOOGLE_CODE,
+                    language__code=source_language,
+                ).select_related('region').first()
+                if m2m:
+                    source_language = m2m.mapping_code or m2m.region.code
+        except TranscriptionService.DoesNotExist:
+            return {
+                'status': 'failed',
+                'error': 'Google transcription service is not configured.',
+            }
+        except LanguageNotSupported:
+            return {
+                'status': 'failed',
+                'error': f'Transcription is not supported for language "{requested_language}"',
+            }
         cache_key = self._get_cache_key(xpath, source_language, target_lang=None)
         if cache.get(cache_key):
             # Operation is still in progress, no need to process the audio file
