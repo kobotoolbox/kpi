@@ -147,23 +147,23 @@ class ExportTaskViewSet(
     def create(self, request, *args, **kwargs):
         user = get_database_user(request.user)
 
-        # We must serialize the request data to get the validated_data for 
+        # We must serialize the request data to get the validated_data for
         # the deduplication check
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-        
+
         with transaction.atomic():
-            # Lock the user row to prevent concurrent bypasses of the 
+            # Lock the user row to prevent concurrent bypasses of the
             # limit/deduplication checks
             user.__class__.objects.select_for_update().get(pk=user.pk)
-            
+
             if is_user_anonymous(user):
                 # only allow one anonymous export task to run at a time
                 source = reverse(
-                    'asset-detail', 
+                    'asset-detail',
                     kwargs={'uid_asset': self.asset.uid},
-                    request=request
+                    request=request,
                 )
                 SubmissionExportTask.log_and_mark_stuck_as_errored(user, source)
                 existing_tasks = SubmissionExportTask.get_active_exports(
@@ -172,8 +172,11 @@ class ExportTaskViewSet(
                 if existing_tasks.exists():
                     # take the most recent if there are multiples
                     existing_task = existing_tasks.first()
-                    expected_latest_finish = existing_task.date_created + datetime.timedelta(  # noqa E501
-                        seconds=settings.CELERY_TASK_TIME_LIMIT
+                    expected_latest_finish = (
+                        existing_task.date_created
+                        + datetime.timedelta(
+                            seconds=settings.CELERY_TASK_TIME_LIMIT
+                        )
                     )
 
                     retry_after = max(
@@ -186,7 +189,7 @@ class ExportTaskViewSet(
                             f' {retry_after} seconds'
                         },
                         status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                        headers={'Retry-After': retry_after}
+                        headers={'Retry-After': retry_after},
                     )
             else:
                 # Deduplicate identical processing exports for authenticated users
@@ -197,10 +200,10 @@ class ExportTaskViewSet(
                     existing_task = existing_tasks.first()
                     # Return 200 OK instead of 201 Created to signal reuse
                     return Response(
-                        self.get_serializer(existing_task).data, 
-                        status=status.HTTP_200_OK
+                        self.get_serializer(existing_task).data,
+                        status=status.HTTP_200_OK,
                     )
-            
+
             # If no existing task blocked or deduplicated this request, proceed with creation
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
