@@ -1,10 +1,7 @@
 # coding: utf-8
-import datetime
 from typing import Optional
 
-from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
 from django.utils.translation import gettext as t
 from formpack.constants import (
     EXPORT_SETTING_FIELDS,
@@ -33,7 +30,6 @@ from rest_framework.reverse import reverse
 
 from kpi.fields import ReadOnlyJSONField
 from kpi.models import Asset, SubmissionExportTask
-from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
 from kpi.utils.object_permission import get_database_user
@@ -68,8 +64,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
         # Check for an existing processing task with the exact same parameters
         existing_tasks = SubmissionExportTask.get_active_exports(
-            user=user,
-            data=validated_data
+            user=user, data=validated_data
         )
         if existing_tasks.exists():
             return existing_tasks.first()

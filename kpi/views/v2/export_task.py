@@ -13,7 +13,6 @@ from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.filters import SearchFilter
 from kpi.models import SubmissionExportTask
-from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.permissions import ExportTaskPermission
 from kpi.schema_extensions.v2.export_tasks.serializers import (
     ExportCreatePayload,
@@ -155,8 +154,7 @@ class ExportTaskViewSet(
         )
         SubmissionExportTask.log_and_mark_stuck_as_errored(user, source)
         existing_tasks = SubmissionExportTask.get_active_exports(
-            user=user,
-            data__source=source
+            user=user, data__source=source
         )
         if existing_tasks.exists():
             # take the most recent if there are multiples
