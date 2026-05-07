@@ -33,8 +33,6 @@ export default function AutomaticTranscriptionInProgress({ asset, questionXpath,
     queryClient.isMutating({ mutationKey: getAssetsPairedDataPartialUpdateMutationOptions().mutationKey! }) > 0 ||
     queryClient.isMutating({ mutationKey: getAssetsDataSupplementPartialUpdateMutationOptions().mutationKey! }) > 0
 
-  console.log('mutationPending', mutationPending)
-
   // Don't race mutations, mutation response will Directly Update this.
   const querySupplement = useAssetsDataSupplementRetrieve(
     asset.uid,
