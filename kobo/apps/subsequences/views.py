@@ -205,7 +205,10 @@ class QuestionAdvancedFeatureViewSet(
                 description='Placeholder endpoint. Runtime behavior not implemented.',
             ),
         },
-        examples=get_bulk_actions_create_examples() + get_bulk_action_response_examples(),
+        examples=(
+                get_bulk_actions_create_examples()
+                + get_bulk_action_response_examples(),
+        )
     ),
     list=extend_schema(
         description=read_md('subsequences', 'subsequences/bulk_actions_list.md'),

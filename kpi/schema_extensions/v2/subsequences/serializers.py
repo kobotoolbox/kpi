@@ -46,6 +46,7 @@ AdvancedFeaturePostRequest = inline_serializer_class(
     },
 )
 
+
 class BulkActionStatusField(serializers.ChoiceField):
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -74,6 +75,7 @@ class BulkActionActionIdField(serializers.ChoiceField):
             *args,
             **kwargs,
         )
+
 
 BulkActionUserResponse = inline_serializer_class(
     name='BulkActionUserResponse',
