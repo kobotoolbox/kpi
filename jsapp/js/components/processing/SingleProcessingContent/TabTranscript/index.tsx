@@ -34,7 +34,7 @@ export default function TranscriptTab({
 }: Props) {
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
 
-  // We need a key to force remounting the component when switching between submissions,
+  // We need a key to force remounting the component when switching between submissions.
   const submissionKey = submission._uuid
 
   if (
