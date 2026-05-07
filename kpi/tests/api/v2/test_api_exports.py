@@ -341,7 +341,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
         # Send an identical POST request
         response2 = self.client.post(list_url, data=data)
-        assert response2.status_code == status.HTTP_201_CREATED
+        assert response2.status_code == status.HTTP_200_OK
         second_uid = response2.json()['uid']
 
         # Should return the exact same task

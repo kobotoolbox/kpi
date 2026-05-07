@@ -62,13 +62,6 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict) -> SubmissionExportTask:
         user = get_database_user(self._get_request.user)
 
-        # Check for an existing processing task with the exact same parameters
-        existing_tasks = SubmissionExportTask.get_active_exports(
-            user=user, data=validated_data
-        )
-        if existing_tasks.exists():
-            return existing_tasks.first()
-
         # Create a new export task
         export_task = SubmissionExportTask.objects.create(
             user=user, data=validated_data
