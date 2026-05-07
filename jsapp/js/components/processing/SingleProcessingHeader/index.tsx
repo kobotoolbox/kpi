@@ -37,7 +37,7 @@ export default function SingleProcessingHeader({
         currentSubmissionUid={submission?.['meta/rootUuid']}
         questionLabelLanguage={questionLabelLanguage}
       />
-      <SelectSubmission assetUid={asset.uid} xpath={xpath} submission={submission} />
+      <SelectSubmission assetUid={asset.uid} xpath={xpath} submission={submission} hasUnsavedWork={hasUnsavedWork} />
       <ButtonReturn assetUid={asset.uid} hasUnsavedWork={hasUnsavedWork} />
     </header>
   )
