@@ -28,6 +28,7 @@ from kobo.apps.openrosa.apps.viewer.views import (
     export_list,
     export_progress,
 )
+from kpi.views.v1_api_gone import v1_api_gone_view
 
 urlpatterns = [
     # change Language
@@ -216,4 +217,7 @@ urlpatterns = [
         name='download_xform',
     ),
     re_path(r'^favicon\.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
+    # V1 API fall-through route. This ensures removed V1 routes return a 404
+    # instructing users to read the API migration guide.
+    re_path(r'^api/v1/.*', v1_api_gone_view, name='v1_api_gone'),
 ]
