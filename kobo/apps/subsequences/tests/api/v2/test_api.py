@@ -52,7 +52,10 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         )
 
         # Simulate a completed transcription, first.
-        mock_submission_supplement = {'_version': SCHEMA_VERSIONS[0], 'q1': QUESTION_SUPPLEMENT}
+        mock_submission_supplement = {
+            '_version': SCHEMA_VERSIONS[0],
+            'q1': QUESTION_SUPPLEMENT
+        }
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,
             content=mock_submission_supplement,
@@ -1124,7 +1127,10 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             params=[{'language': 'es'}],
         )
 
-        mock_submission_supplement = {'_version': SCHEMA_VERSIONS[0], 'q1': QUESTION_SUPPLEMENT}
+        mock_submission_supplement = {
+            '_version': SCHEMA_VERSIONS[0],
+            'q1': QUESTION_SUPPLEMENT
+        }
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,
             content=mock_submission_supplement,
