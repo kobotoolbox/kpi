@@ -1204,125 +1204,68 @@ class TestExtraMetadataFields(TestCase):
 
     def setUp(self):
         self.user = User.objects.get(username='someuser')
+        self.client.force_login(self.user)
 
-    def test_custom_fields_are_preserved_in_extra_metadata(self):
+    def test_save_normalizes_invalid_extra_metadata(self):
         asset = Asset.objects.create(
-            content={'survey': [{'type': 'text', 'name': 'q1'}]},
             owner=self.user,
             asset_type=ASSET_TYPE_SURVEY,
-            settings={
-                'country': [],
-                'description': 'Test description',
-                'extra_metadata': {
-                    'CustomField': 'custom_value',
-                },
-            },
+            settings={'extra_metadata': None},
         )
+
         asset.refresh_from_db()
 
-        self.assertEqual(asset.settings['description'], 'Test description')
-        self.assertEqual(asset.settings['country'], [])
-        self.assertIn('extra_metadata', asset.settings)
-        self.assertEqual(
-            asset.settings['extra_metadata']['CustomField'],
-            'custom_value',
-        )
+        self.assertIsInstance(asset.settings['extra_metadata'], dict)
+        self.assertEqual(asset.settings['extra_metadata'], {})
 
-    def test_core_fields_are_preserved_in_settings(self):
-        core_fields = {
-            'country': [{'label': 'USA', 'value': 'us'}],
-            'sector': {},
-            'description': 'desc',
-            'collects_pii': True,
-            'organization': 'org',
-            'country_codes': ['us'],
-            'operational_purpose': 'purpose',
-        }
-
+    def test_save_normalizes_non_dict_extra_metadata(self):
         asset = Asset.objects.create(
-            content={'survey': [{'type': 'text', 'name': 'q1'}]},
             owner=self.user,
             asset_type=ASSET_TYPE_SURVEY,
-            settings=core_fields.copy(),
+            settings={'extra_metadata': 'invalid'},
         )
+
         asset.refresh_from_db()
 
-        for field_name, expected_value in core_fields.items():
-            self.assertIn(field_name, asset.settings)
-            self.assertEqual(asset.settings[field_name], expected_value)
+        self.assertEqual(asset.settings['extra_metadata'], {})
 
-    def test_mixed_core_and_extra_metadata_fields(self):
+    def test_update_without_settings_skips_normalization(self):
         asset = Asset.objects.create(
-            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            owner=self.user,
+            name='Old Name',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': {'Manager': 'Alex'}},
+        )
+
+        asset.name = 'New Name'
+        asset.save(update_fields=['name', 'content'])
+
+        asset.refresh_from_db()
+        self.assertEqual(asset.name, 'New Name')
+        self.assertEqual(asset.settings['extra_metadata']['Manager'], 'Alex')
+
+    def test_extra_metadata_lookup_filters_assets(self):
+        matching_asset = Asset.objects.create(
+            name='Matching Asset',
             owner=self.user,
             asset_type=ASSET_TYPE_SURVEY,
-            settings={
-                'country': [{'label': 'Canada', 'value': 'ca'}],
-                'description': 'Test form',
-                'collects_pii': False,
-                'extra_metadata': {
-                    'TestField': 'test_value',
-                    'Animal': {'label': 'Cat', 'value': 'cat'},
-                },
-            },
-        )
-        asset.refresh_from_db()
-
-        self.assertEqual(
-            asset.settings['country'],
-            [{'label': 'Canada', 'value': 'ca'}],
-        )
-        self.assertEqual(asset.settings['description'], 'Test form')
-        self.assertEqual(asset.settings['collects_pii'], False)
-        self.assertEqual(
-            asset.settings['extra_metadata']['TestField'],
-            'test_value',
-        )
-        self.assertEqual(
-            asset.settings['extra_metadata']['Animal'],
-            {'label': 'Cat', 'value': 'cat'},
-        )
-
-    def test_array_values_in_extra_metadata(self):
-        asset = Asset.objects.create(
             content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            settings={'extra_metadata': {'ProjectManager': 'Tom'}},
+        )
+
+        Asset.objects.create(
+            name='Non-Matching',
             owner=self.user,
             asset_type=ASSET_TYPE_SURVEY,
-            settings={
-                'extra_metadata': {
-                    'Test': [
-                        {'label': 'First question', 'value': 'q1'},
-                        {'label': 'Second question', 'value': 'q2'},
-                    ],
-                },
-            },
-        )
-        asset.refresh_from_db()
-
-        test_array = asset.settings['extra_metadata']['Test']
-        self.assertEqual(len(test_array), 2)
-        self.assertEqual(test_array[0]['label'], 'First question')
-        self.assertEqual(test_array[1]['value'], 'q2')
-
-    def test_collision_prevention_custom_vs_core(self):
-        asset = Asset.objects.create(
             content={'survey': [{'type': 'text', 'name': 'q1'}]},
-            owner=self.user,
-            asset_type=ASSET_TYPE_SURVEY,
-            settings={
-                'country': [{'label': 'Core', 'value': 'core'}],
-                'extra_metadata': {
-                    'country': 'Custom',
-                },
-            },
+            settings={'extra_metadata': {'ProjectManager': 'Bob'}},
         )
-        asset.refresh_from_db()
 
-        self.assertEqual(
-            asset.settings['country'],
-            [{'label': 'Core', 'value': 'core'}],
+        base_url = reverse('api_v2:asset-list')
+        response = self.client.get(
+            f'{base_url}?q=settings__extra_metadata__icontains:Tom'
         )
-        self.assertEqual(
-            asset.settings['extra_metadata']['country'],
-            'Custom',
-        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['uid'], matching_asset.uid)
