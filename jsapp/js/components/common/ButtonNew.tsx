@@ -1,6 +1,6 @@
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
-import type { MantineSize } from '@mantine/core'
-import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core'
+import type { ButtonProps as ButtonPropsMantine, MantineSize, TooltipProps } from '@mantine/core'
 import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
 import type { ComponentType } from 'react'

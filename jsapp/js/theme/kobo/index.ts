@@ -20,6 +20,7 @@ import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
+import { TextareaThemeKobo } from './Textarea'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
 import { KOBO_Z_INDEX, KOBO_Z_INDEX_CSS_VARS } from './zIndex'
@@ -157,6 +158,7 @@ export const themeKobo = createTheme({
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
     NumberInput: NumberInputThemeKobo,
+    Textarea: TextareaThemeKobo,
     Paper: PaperThemeKobo,
     Pill: PillThemeKobo,
     Checkbox: CheckboxThemeKobo,

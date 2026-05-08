@@ -209,6 +209,11 @@ const tsConfig = {
           },
           {
             name: '@mantine/core',
+            importNames: ['CloseButton'],
+            message: "Use CloseButton from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
             importNames: ['Menu'],
             message: "Use Menu from 'jsapp/js/components/common' instead.",
           },
@@ -221,6 +226,11 @@ const tsConfig = {
             name: '@mantine/core',
             importNames: ['Select'],
             message: "Use Select from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Textarea'],
+            message: "Use Textarea from 'jsapp/js/components/common' instead.",
           },
         ],
       },

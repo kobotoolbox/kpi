@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { CloseButton as CloseButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
 import type { CloseButtonProps as CloseButtonPropsMantine, TooltipProps } from '@mantine/core'
 import { forwardRef } from 'react'

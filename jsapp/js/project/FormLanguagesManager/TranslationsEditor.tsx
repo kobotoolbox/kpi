@@ -2,10 +2,10 @@ import React from 'react'
 
 import { Box, Group, Stack } from '@mantine/core'
 import type { UseQueryResult } from '@tanstack/react-query'
-import TextareaAutosize from 'react-textarea-autosize'
 import type { PaginatedListResponse, Pagination, UniversalTableColumn } from '#/UniversalTable'
 import UniversalTable from '#/UniversalTable'
 import ButtonNew from '#/components/common/ButtonNew'
+import Textarea from '#/components/common/Textarea'
 import type { LangObject } from '#/utils'
 import LanguageForm from './LanguageForm'
 import type { TranslationRowItem } from './types'
@@ -61,11 +61,12 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
       cellFormatter: (_row, rowIndex) => {
         const absoluteIndex = props.pagination.start + rowIndex
         return (
-          <TextareaAutosize
+          <Textarea
+            autosize
             value={props.tableRows[absoluteIndex]?.value || ''}
             disabled={props.tableRows[absoluteIndex]?.isLabelLocked}
             dir='auto'
-            style={{ width: '100%' }}
+            styles={{ input: { width: '100%' } }}
             onChange={(evt) => {
               props.onChangeCell(absoluteIndex, evt.target.value)
             }}
