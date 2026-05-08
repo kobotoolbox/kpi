@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 
-import { Box, Group } from '@mantine/core'
+import { Box, Group, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useQuery } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
 import type { PaginatedListResponse } from '#/UniversalTable'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
+import ButtonNew from '#/components/common/ButtonNew'
 import CloseButton from '#/components/common/CloseButton'
+import ModalNew from '#/components/common/ModalNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
@@ -95,6 +97,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [isSavingTable, setIsSavingTable] = useState(false)
   const [saveButtonText, setSaveButtonText] = useState(t('Save Changes'))
   const [pagination, setPagination] = useState({ limit: 10, start: 0 })
+  const [pendingDeleteLanguageIndex, setPendingDeleteLanguageIndex] = useState<number | null>(null)
 
   const translations = asset.content?.translations || []
   const canAddLanguages = !(translations.length === 1 && translations[0] === null)
@@ -274,27 +277,27 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   async function deleteLanguage(index: number) {
-    if (!asset.content) {
+    setPendingDeleteLanguageIndex(index)
+  }
+
+  async function confirmDeleteLanguage() {
+    if (pendingDeleteLanguageIndex === null || !asset.content) {
       return
     }
 
-    const content = deleteTranslations(asset.content, index)
+    const content = deleteTranslations(asset.content, pendingDeleteLanguageIndex)
     if (!content) {
       notify(t('Translation index mismatch. Cannot delete language.'), 'error')
+      setPendingDeleteLanguageIndex(null)
       return
     }
 
-    content.translations?.splice(index, 1)
+    content.translations?.splice(pendingDeleteLanguageIndex, 1)
 
-    modals.openConfirmModal({
-      title: t('Delete language?'),
-      children: t('Are you sure you want to delete this language? This action is not reversible.'),
-      labels: { confirm: t('Delete'), cancel: t('Cancel') },
-      confirmProps: { color: 'red' },
-      onConfirm: async () => {
-        await patchAsset(content)
-      },
-    })
+    const ok = await patchAsset(content)
+    if (ok) {
+      setPendingDeleteLanguageIndex(null)
+    }
   }
 
   async function changeDefaultLanguage(index: number) {
@@ -335,10 +338,43 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       onKeyDown={(e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
           e.stopPropagation()
+          if (pendingDeleteLanguageIndex !== null) {
+            setPendingDeleteLanguageIndex(null)
+            return
+          }
           requestClose()
         }
       }}
     >
+      <ModalNew
+        opened={pendingDeleteLanguageIndex !== null}
+        onClose={() => {
+          setPendingDeleteLanguageIndex(null)
+        }}
+        title={t('Delete language?')}
+        size='sm'
+        centered
+        withOverlay={false}
+        closeOnEscape={false}
+      >
+        <Text>{t('Are you sure you want to delete this language? This action is not reversible.')}</Text>
+
+        <Group justify='flex-end' mt='md'>
+          <ButtonNew
+            variant='light'
+            onClick={() => {
+              setPendingDeleteLanguageIndex(null)
+            }}
+          >
+            {t('Cancel')}
+          </ButtonNew>
+
+          <ButtonNew variant='danger' loading={isUpdatingAsset} onClick={confirmDeleteLanguage}>
+            {t('Delete')}
+          </ButtonNew>
+        </Group>
+      </ModalNew>
+
       {activeView === 'languages' ? (
         <LanguagesEditor
           asset={asset}
