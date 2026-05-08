@@ -27,10 +27,15 @@ interface FormLanguagesManagerProps {
   asset: AssetResponse
   onRequestClose: () => void
   registerOnRequestClose?: (closeHandler: () => void) => void
+  onActiveViewChange?: (view: View) => void
 }
 
 export function openFormLanguagesModal(asset: AssetResponse) {
   let requestModalClose = () => {}
+  const modalSizeByView: Record<View, string> = {
+    languages: 'lg',
+    translations: '80%',
+  }
 
   const modalId = modals.open({
     title: (
@@ -39,7 +44,7 @@ export function openFormLanguagesModal(asset: AssetResponse) {
         <CloseButton aria-label={t('Close')} onClick={() => requestModalClose()} />
       </Group>
     ),
-    size: '80%',
+    size: modalSizeByView.languages,
     // Keep default close button disabled and render a controlled one in title,
     // so close requests always go through FormLanguagesManager.requestClose.
     withCloseButton: false,
@@ -59,6 +64,12 @@ export function openFormLanguagesModal(asset: AssetResponse) {
         asset={asset}
         registerOnRequestClose={(closeHandler) => {
           requestModalClose = closeHandler
+        }}
+        onActiveViewChange={(view) => {
+          modals.updateModal({
+            modalId,
+            size: modalSizeByView[view],
+          })
         }}
         onRequestClose={() => {
           modals.close(modalId)
@@ -100,6 +111,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       setPagination({ limit: 10, start: 0 })
     }
   }, [activeView, asset, selectedLangIndex])
+
+  useEffect(() => {
+    props.onActiveViewChange?.(activeView)
+  }, [activeView, props.onActiveViewChange])
 
   const tableQuery = useQuery<PaginatedListResponse<TranslationRowItem>>({
     queryKey: [
