@@ -319,6 +319,62 @@ class AssetContentTests(AssetsTestCase):
 
         self.assertIn('hint', asset.content['translated'])
 
+    def test_fix_unnamed_language_leak_on_label_save(self):
+        """
+        Verifies that saving a multilingual form with plain `label` keys (as sent
+        by the Formbuilder when translations_0 is missing from state.asset.content
+        after a background re-fetch) does not create an unnamed (None) language.
+        """
+        languages = ['English (en)', 'French (fr)']
+        initial_content = {
+            'schema': '1',
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': ['My question', 'Ma question'],
+                },
+            ],
+            'settings': {'default_language': 'English (en)'},
+            'translations': languages,
+            'translated': ['label'],
+        }
+
+        asset = Asset.objects.create(
+            owner=self.user, asset_type='survey', content=initial_content
+        )
+
+        # Simulate a Formbuilder save where translations_0 was missing from
+        # state.asset.content (background re-fetch scenario). The frontend sends
+        # plain `label` keys instead of `label::English (en)`.
+        flat_payload = {
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': 'Modified question',
+                    'label::French (fr)': 'Question modifiée',
+                },
+            ],
+            'choices': [],
+            'settings': [{'default_language': 'English (en)'}],
+        }
+
+        asset.content = flat_payload
+        asset.save()
+        asset.refresh_from_db()
+
+        assert asset.content['translations'] == ['English (en)', 'French (fr)']
+        assert None not in asset.content['translations']
+        q1 = next(
+            r for r in asset.content['survey'] if r.get('name') == 'q1'
+        )
+        assert q1['label'] == ['Modified question', 'Question modifiée']
+
     def test_flatten_empty_relevant(self):
         content = self._wrap_field('relevant', [])
         a1 = Asset.objects.create(content=content, asset_type='survey')

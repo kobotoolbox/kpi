@@ -30,7 +30,7 @@ module.exports = {
     reactDocgen: 'react-docgen-typescript-plugin',
   },
   webpackFinal: async (config, { configType }) => {
-    config.plugins.push(new webpack.ProvidePlugin({ $: 'jquery' }))
+    config.plugins.push(new webpack.ProvidePlugin({ $: ['jquery', 'default'] }))
 
     // Storybook has its own webpack config, so mirror app support for `*.svg?react` imports.
     // Without this, such imports resolve to URLs and React tries to render them as invalid tag names.

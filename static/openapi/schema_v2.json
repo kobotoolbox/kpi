@@ -26682,6 +26682,12 @@
                         "readOnly": true,
                         "title": "Email address"
                     },
+                    "is_superuser": {
+                        "type": "boolean",
+                        "readOnly": true,
+                        "title": "Superuser status",
+                        "description": "Designates that this user has all permissions without explicitly assigning them."
+                    },
                     "server_time": {
                         "type": "string",
                         "format": "date-time",
