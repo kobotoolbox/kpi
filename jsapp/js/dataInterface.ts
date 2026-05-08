@@ -5,6 +5,7 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
+import $ from 'jquery'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetLockingProfileDefinition } from '#/components/locking/lockingConstants'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
