@@ -273,7 +273,7 @@ class TestVersioning(TestCase):
                 migrated = migrate_submission_supplementals(old_version)
 
         new_version = {
-            '_version': '20250820',
+            '_version': '20250506',
             'Audio_question': {
                 'automatic_google_transcription': {
                     '_dateCreated': a_year_and_a_day_ago,
