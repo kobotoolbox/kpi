@@ -3,6 +3,7 @@ import { useDebouncedValue, useDisclosure } from '@mantine/hooks'
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query'
 import alertify from 'alertifyjs'
 import React, { useState, useMemo, useEffect } from 'react'
+import { INFINITE_QUERY_KEY_MARKER } from '#/api/mutation-defaults/common'
 import { assetsList, getAssetsListQueryKey } from '#/api/react-query/manage-projects-and-library-content'
 import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
 import { COMMON_QUERIES } from '#/constants'
@@ -72,7 +73,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
   }
 
   const assetsInfiniteQuery = useInfiniteQuery({
-    queryKey: [...getAssetsListQueryKey({ q: getAssetsListQuery() }), 'infinite'],
+    queryKey: [...getAssetsListQueryKey({ q: getAssetsListQuery() }), INFINITE_QUERY_KEY_MARKER],
     queryFn: ({ pageParam, signal }) =>
       assetsList({ limit: ITEMS_PER_PAGE, start: pageParam, q: getAssetsListQuery() }, { signal }),
     initialPageParam: 0,

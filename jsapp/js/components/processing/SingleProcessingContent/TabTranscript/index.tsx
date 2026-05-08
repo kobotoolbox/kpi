@@ -34,16 +34,20 @@ export default function TranscriptTab({
 }: Props) {
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
 
+  // We need a key to force remounting the component when switching between submissions.
+  const submissionKey = submission._uuid
+
   if (
     transcriptVersion &&
     isSupplementVersionAutomatic(transcriptVersion) &&
     (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
   ) {
-    return <TranscriptPoll asset={asset} questionXpath={questionXpath} submission={submission} />
+    return <TranscriptPoll key={submissionKey} asset={asset} questionXpath={questionXpath} submission={submission} />
   }
   if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
     return (
       <TranscriptEdit
+        key={submissionKey}
         asset={asset}
         questionXpath={questionXpath}
         submission={submission}
@@ -57,6 +61,7 @@ export default function TranscriptTab({
 
   return (
     <TranscriptCreate
+      key={submissionKey}
       asset={asset}
       questionXpath={questionXpath}
       submission={submission}

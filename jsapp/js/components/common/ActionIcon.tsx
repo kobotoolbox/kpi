@@ -1,6 +1,5 @@
 import { ActionIcon as ActionIconMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
-import type { ActionIconProps as ActionIconPropsMantine } from '@mantine/core/lib/components'
-import type { TooltipProps } from '@mantine/core/lib/components'
+import type { ActionIconProps as ActionIconPropsMantine, TooltipProps } from '@mantine/core'
 import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
 import type { ComponentType } from 'react'

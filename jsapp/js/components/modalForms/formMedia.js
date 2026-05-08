@@ -224,15 +224,20 @@ class FormMedia extends React.Component {
 
           <bem.FormMedia__upload>
             {!this.state.isUploadFilePending && (
-              <Dropzone onDrop={this.onFileDrop.bind(this)} className='kobo-dropzone kobo-dropzone--form-media'>
-                {this.state.fieldsErrors?.base64Encoded && (
-                  <InlineMessage type='error' icon='alert' message={this.state.fieldsErrors?.base64Encoded} />
+              <Dropzone onDrop={this.onFileDrop.bind(this)}>
+                {({ getRootProps, getInputProps }) => (
+                  <div {...getRootProps({ className: 'kobo-dropzone kobo-dropzone--form-media' })}>
+                    <input {...getInputProps()} />
+                    {this.state.fieldsErrors?.base64Encoded && (
+                      <InlineMessage type='error' icon='alert' message={this.state.fieldsErrors?.base64Encoded} />
+                    )}
+                    <i className='k-icon k-icon-upload' />
+                    {t('Drag and drop files here')}
+                    <div className='dropzone-description'>
+                      {t('or')} <a>{t('click here to browse')}</a>
+                    </div>
+                  </div>
                 )}
-                <i className='k-icon k-icon-upload' />
-                {t('Drag and drop files here')}
-                <div className='dropzone-description'>
-                  {t('or')} <a>{t('click here to browse')}</a>
-                </div>
               </Dropzone>
             )}
 
