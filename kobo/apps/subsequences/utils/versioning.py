@@ -205,7 +205,9 @@ def migrate_qual_data(supplemental_data: dict) -> dict | None:
 
 
 def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
-    if supplemental_data.get('_version') == SCHEMA_VERSIONS[0]:
+    if supplemental_data.get('_version') in SCHEMA_VERSIONS[0:2]:
+        # no real migration necessary between 20250820 and 20260506
+        supplemental_data['_version'] = SCHEMA_VERSIONS[0]
         return supplemental_data
     supplemental = {
         '_version': SCHEMA_VERSIONS[0],

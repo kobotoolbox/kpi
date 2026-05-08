@@ -20,6 +20,7 @@ GOOGLE_CACHE_TIMEOUT = 28800  # 8 hours
 GOOGLE_CODE = 'goog'
 
 SCHEMA_VERSIONS = [
+    '20260506',
     '20250820',
     None,
 ]

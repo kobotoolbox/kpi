@@ -61,13 +61,13 @@ def run():
             new_content = get_sanitized_dict_keys(supplement.content, asset)
             if new_content:
                 supplement.content = get_sanitized_dict_keys(supplement.content, asset)
-                supplement.save(
-                    update_fields=[
-                        'content',
-                    ]
-                )
                 migrated_supplements_with_qpaths += 1
             supplement.content['_version'] = '20260506'
+            supplement.save(
+                update_fields=[
+                    'content',
+                ]
+            )
             migrated_supplements += 1
         time.sleep(SLEEP_BETWEEN_ASSETS)
 

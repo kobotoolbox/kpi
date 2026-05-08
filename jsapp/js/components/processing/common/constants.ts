@@ -1,7 +1,7 @@
 /**
  * See also `SCHEMA_VERSIONS` at `kobo/apps/subsequences/constants.py`.
  */
-export const SUBSEQUENCES_SCHEMA_VERSION = '20250820'
+export const SUBSEQUENCES_SCHEMA_VERSION = '20260506'
 
 /**
  * For simplicity, when creating an object, let's use the server's interface for it to re-use hanndling. But:
