@@ -65,6 +65,7 @@ export default function StepSelectLanguage({
     // or if no language is selected, we let the parent know (the parent flow "back" action).
     if (languageCode !== null) {
       setLanguageCode(null)
+    } else {
       onBack()
     }
   }

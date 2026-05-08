@@ -1,6 +1,7 @@
 import { useDebouncedValue } from '@mantine/hooks'
+import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { useLanguagesList } from '#/api/react-query/other'
+import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
 import type { LanguageCode } from '../languages/languagesStore'
 import Select from './Select'
 
@@ -25,23 +26,39 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
   const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
   const isSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
+  // "Main" language list (either featured languages or result of searching), unlike the suggested language list which
+  // exists seperately from this
   const { data, isLoading } = useLanguagesList(isSearching ? ({ q: debouncedSearch } as any) : undefined)
-
   const languages = data?.status === 200 ? data.data.results : []
-  const languageOptions = useMemo(() => {
-    // When searching, show all results; otherwise show only featured
-    const languagesList = isSearching ? languages : languages.filter((lang) => lang.featured)
 
-    // Separate languages into suggested and other
-    const suggestedItems = languagesList
+  // Create a query for each suggested language
+  const suggestedLanguageQueries = useQueries({
+    queries: (props.suggestedLanguages || []).map((code) => getLanguagesRetrieveQueryOptions(code)),
+  })
+
+  const suggestedLanguages = suggestedLanguageQueries
+    .filter((result) => result.isSuccess)
+    .flatMap((result) => (result.data?.status === 200 ? [result.data.data] : []))
+
+  // We memoize here for a slight performance improvement, but mainly it makes the logic to group the suggested and 'main'
+  // languages easier to read
+  const languageOptions = useMemo(() => {
+    // Show all results of a search, if there is no search, show the featured languages again
+    const languagesList = isSearching ? languages : languages.filter((lang) => lang.featured)
+    const allLanguages = [
+      ...suggestedLanguages,
+      ...languagesList.filter((lang) => !suggestedLanguages.some((suggested) => suggested.code === lang.code)),
+    ]
+
+    // Create language groups
+    const suggestedItems = allLanguages
       .filter((lang) => props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
       .map((lang) => ({
         value: lang.code,
         label: `${lang.name} (${lang.code})`,
       }))
-
-    const otherItems = languagesList
+    const otherItems = allLanguages
       .filter((lang) => !props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
       .map((lang) => ({
@@ -51,25 +68,23 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
 
     // Build groups conditionally
     const groups = []
-
     if (suggestedItems.length > 0) {
       groups.push({
         group: t('Suggested'),
         items: suggestedItems,
       })
     }
-
     groups.push({
-      // TODO: Naming of these categories?
       group: isSearching ? t('Results') : t('Languages'),
       items: otherItems,
     })
-
     return groups
-  }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages])
+  }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages, suggestedLanguages])
 
   const onLanguageSelected = (selectedLanguage: string | null) => {
-    const selectedLanguageObject = languages.find((lang) => lang.code === selectedLanguage) || null
+    // Find in combined list (including fetched suggested languages)
+    const allLanguages = [...suggestedLanguages, ...languages]
+    const selectedLanguageObject = allLanguages.find((lang) => lang.code === selectedLanguage) || null
     props.onLanguageChange(selectedLanguageObject)
   }
 
@@ -83,6 +98,7 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
       searchable
       clearable
       disabled={props.isDisabled}
+      comboboxProps={{ resetSelectionOnOptionHover: true }}
     />
   )
 }
