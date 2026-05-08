@@ -12,13 +12,15 @@
   min-height: 38px;
   padding: var(--mantine-spacing-xxs);
   border-radius: var(--mantine-radius-md);
+  --menu-item-hover: var(--mantine-color-gray-8);
+  --menu-item-color: var(--mantine-color-gray-1);
   color: var(--mantine-color-gray-1);
 
   font-size: var(--mantine-font-size-md);
 
   &[data-hovered] {
-    color: var(--mantine-color-gray-1);
-    background-color: var(--mantine-color-gray-8);
+    background-color: var(--menu-item-hover);
+    color: var(--menu-item-color);
   }
 
   &[data-variant='danger'] {
@@ -45,6 +47,10 @@
 
 .label {
   color: var(--mantine-color-gray-2);
+}
+
+.item[data-hovered] .label {
+  color: var(--mantine-color-gray-1);
 }
 
 .arrow {
