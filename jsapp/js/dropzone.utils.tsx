@@ -204,7 +204,7 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
             getExponentialDelayTime(attempt, envStore.data.min_retry_time, envStore.data.max_retry_time),
           onPoll: (importData, attempt) => {
             if (importData.status === 'processing' && attempt === 5) {
-              notify.warning(t('Your upload is taking longer than usual. Please get back in few minutes.'))
+              notify.warning(t('Your upload is taking longer than usual. Please check back in a few minutes.'))
             }
           },
         }).then(
