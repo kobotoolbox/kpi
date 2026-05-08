@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kobo.apps.openrosa.apps.logger.exceptions import ConflictingSubmissionUUIDError
-from kobo.apps.subsequences.constants import SUPPLEMENT_KEY, Action
+from kobo.apps.subsequences.constants import SUPPLEMENT_KEY, Action, SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kpi.models import Asset
@@ -151,7 +151,7 @@ class TestSubmissionStream(TestCase):
             submission_uuid='1c05898e-b43c-491d-814c-79595eb84e81',
             asset=self.asset,
             content={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'Tell_me_a_story': {
                     Action.MANUAL_QUAL: qual_action_data,
                 },
@@ -161,7 +161,7 @@ class TestSubmissionStream(TestCase):
             submission_uuid='1c05898e-b43c-491d-814c-79595eb84e82',
             asset=self.asset,
             content={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'Tell_me_a_story': {
                     Action.MANUAL_QUAL: qual_action_data,
                 },

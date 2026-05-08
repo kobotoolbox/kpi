@@ -4,6 +4,7 @@ from django.test import Client
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.tests.constants import OLD_STYLE_ADVANCED_FEATURES
@@ -102,7 +103,7 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         self.client.get(self.list_actions_url)
         self.asset.refresh_from_db()
         # what's actually created is tested elsewhere, just check that we migrated
-        assert self.asset.advanced_features.get('_version') == '20250820'
+        assert self.asset.advanced_features.get('_version') == SCHEMA_VERSIONS[0]
 
     def test_create_advanced_features_fails_if_feature_exists_in_old_field(self):
         QuestionAdvancedFeature.objects.all().delete()
@@ -142,7 +143,7 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
             },
         )
         self.asset.refresh_from_db()
-        assert self.asset.advanced_features.get('_version') == '20250820'
+        assert self.asset.advanced_features.get('_version') == SCHEMA_VERSIONS[0]
         assert res.status_code == status.HTTP_201_CREATED
 
     def test_cannot_create_feature_with_invalid_params(self):

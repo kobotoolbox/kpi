@@ -45,7 +45,7 @@ from ..type_aliases import (
 idea of example content in asset.advanced_features (what kind of actions are activated
 per question)
 {
-    '_version': '20250820',
+    '_version': '20260506',
     '_schema': {
         'my_audio_question': {
             'manual_transcription': [
@@ -66,7 +66,7 @@ per question)
 
 idea of example data in SubmissionSupplement based on the above
 {
-    '_version': '20250820',
+    '_version': '20260506',
     'my_audio_question': {
         'manual_transcription': {
             # TODO: think about wrapping in language dictionary like translations

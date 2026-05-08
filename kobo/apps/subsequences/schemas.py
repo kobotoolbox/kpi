@@ -30,7 +30,7 @@ ACTION_PARAMS_SCHEMA = {
             },
             'type': 'object',
         },
-        '_version': {'const': '20250820'},
+        '_version': {'const': SCHEMA_VERSIONS[0]},
     },
     'type': 'object',
 }

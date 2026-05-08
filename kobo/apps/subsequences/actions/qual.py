@@ -156,7 +156,7 @@ class BaseQualAction(BaseAction):
         """
         POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental/"
         {
-            '_version': '20250820',
+            '_version': '20260506',
             'question_name_xpath': {
                 'manual_qual': {
                     'uuid': '24a68b0a-62fb-4122-8377-412810b2f45d',

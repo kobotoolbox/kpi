@@ -12,6 +12,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.organizations.constants import UsageType
@@ -51,7 +52,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         )
 
         # Simulate a completed transcription, first.
-        mock_submission_supplement = {'_version': '20250820', 'q1': QUESTION_SUPPLEMENT}
+        mock_submission_supplement = {'_version': SCHEMA_VERSIONS[0], 'q1': QUESTION_SUPPLEMENT}
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,
             content=mock_submission_supplement,
@@ -68,7 +69,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_patch_submission_with_nonexistent_instance_404s(self):
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'en',
@@ -123,7 +124,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_asset_post_submission_extra_with_transcript(self):
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'en',
@@ -151,7 +152,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                 )
         assert response.status_code == status.HTTP_200_OK
         expected_data = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     '_dateCreated': now_iso,
@@ -174,7 +175,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_valid_manual_transcription(self):
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'en',
@@ -206,7 +207,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         )
 
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_translation': {
                     'language': 'es',
@@ -230,7 +231,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         )
 
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'automatic_google_transcription': {
                     'language': 'en',
@@ -266,7 +267,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         )
 
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'automatic_google_translation': {
                     'language': 'es',
@@ -306,7 +307,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         ).values_list('action', flat=True)
         for automatic_action in automatic_actions:
             payload = {
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     automatic_action: {
                         'language': 'es',
@@ -331,7 +332,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
         # Try to set 'accepted' status when translation is not complete
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'automatic_google_translation': {
                     'language': 'fr',
@@ -621,7 +622,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                     },
                 },
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
         assert response.data == expected_response
 
@@ -630,7 +631,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
     def test_cannot_patch_if_question_does_not_have_action_configured(self):
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_translation': {
                     'language': 'es',
@@ -657,7 +658,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             params=[{'language': 'es'}],
         )
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'bananas': {
                     'language': 'es',
@@ -685,7 +686,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'languageCode': 'es',  # wrong attribute
@@ -712,7 +713,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Try to set 'accepted' status when translation is not complete
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'automatic_google_transcription': {
                     'language': 'es',
@@ -751,7 +752,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
         # Try to ask for translation
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'automatic_google_translation': {
                     'language': 'fr',
@@ -788,7 +789,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Attempt to "delete" a non-existent transcription
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'en',
@@ -851,7 +852,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     ],
                 }
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
 
         SubmissionSupplement.objects.create(
@@ -862,7 +863,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Attempt to "delete" a non-existent transcription
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'automatic_google_transcription': {
                     'language': 'en',
@@ -897,7 +898,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Add a valid transcript
         transcript_payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'en',
@@ -911,7 +912,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Delete the transcript
         delete_payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'en',
@@ -925,7 +926,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Attempt to translate
         translation_payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_translation': {
                     'language': 'es',
@@ -987,7 +988,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     ],
                 }
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
 
         SubmissionSupplement.objects.create(
@@ -998,7 +999,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Attempt to translate
         translation_payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {'automatic_google_translation': {'language': 'es'}},
         }
 
@@ -1072,7 +1073,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     ],
                 },
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
 
         SubmissionSupplement.objects.create(
@@ -1083,7 +1084,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         # Attempt to translate
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_translation': {
                     'language': 'es',
@@ -1123,7 +1124,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             params=[{'language': 'es'}],
         )
 
-        mock_submission_supplement = {'_version': '20250820', 'q1': QUESTION_SUPPLEMENT}
+        mock_submission_supplement = {'_version': SCHEMA_VERSIONS[0], 'q1': QUESTION_SUPPLEMENT}
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,
             content=mock_submission_supplement,
@@ -1169,7 +1170,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     ],
                 },
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
         SubmissionSupplement.objects.update_or_create(
             asset=self.asset,
@@ -1178,7 +1179,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {'manual_translation': {'language': 'es', 'value': 'Spanish'}},
         }
         response = self.client.patch(
@@ -1222,7 +1223,7 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
         self, usage_limit_enforcement, expected_result_code
     ):
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'automatic_google_transcription': {
                     'language': 'en',

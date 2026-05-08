@@ -8,6 +8,7 @@ from django.urls import reverse
 from freezegun import freeze_time
 from rest_framework import status
 
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
@@ -124,7 +125,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
     @unpack
     def test_can_write(self, username, shared, status_code):
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'es',
@@ -162,7 +163,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
 
         if status_code == status.HTTP_200_OK:
             expected = {
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     'manual_transcription': {
                         '_dateCreated': '2024-04-08T15:27:00Z',
@@ -201,7 +202,7 @@ class SubsequencePartialPermissionTestCase(SubsequenceBaseTestCase):
         )
         self.client.force_login(anotheruser)
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     'language': 'es',

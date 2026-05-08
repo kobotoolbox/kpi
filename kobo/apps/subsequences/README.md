@@ -83,7 +83,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "automatic_google_transcription": {
             "language": "es"
@@ -129,7 +129,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "automatic_google_transcription": {
             "language": "es"
@@ -158,7 +158,7 @@ How these selections are determined varies by feature.
             ]
           }
         },
-        "_version":"20250820"
+        "_version":"20260506"
       }
       ```
       </details>
@@ -191,7 +191,7 @@ How these selections are determined varies by feature.
                    "_dateCreated": "2026-01-28T15:21:06.416445Z"
                  }
                ],
-              "_version":"20250820"
+              "_version":"20260506"
             }
          }
       }
@@ -205,7 +205,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "automatic_google_transcription": {
             "language": "es",
@@ -242,7 +242,7 @@ How these selections are determined varies by feature.
                    "_dateCreated": "2026-01-28T15:21:06.416445Z"
                  }
                ],
-              "_version":"20250820"
+              "_version":"20260506"
             }
          }
       }
@@ -256,7 +256,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "automatic_google_transcription": {
             "language": "es",
@@ -302,7 +302,7 @@ How these selections are determined varies by feature.
                    "_dateCreated": "2026-01-28T15:21:06.416445Z"
                  }
                ],
-              "_version":"20250820"
+              "_version":"20260506"
             }
          }
       }
@@ -371,7 +371,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "manual_translation": {
             "language": "es",
@@ -393,7 +393,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "manual_transcription": {
             "language": "en",
@@ -425,7 +425,7 @@ How these selections are determined varies by feature.
              "_dateModified":"2026-01-28T16:08:16.297609Z"
           }
         },
-        "_version":"20250820"
+        "_version":"20260506"
       }
       ```
       </details>
@@ -437,7 +437,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "manual_translation": {
             "language": "es",
@@ -490,7 +490,7 @@ How these selections are determined varies by feature.
                }
             }
          },
-         "_version":"20250820"
+         "_version":"20260506"
       }
       ```
       </details>
@@ -590,7 +590,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "manual_qual": {
             "uuid": "7d51e4d4-5ff5-4db7-b70f-a1861a149593",
@@ -634,7 +634,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-        "_version": "20250820",
+        "_version": "20260506",
         "audio_question": {
           "manual_qual": {
             "uuid": "7d51e4d4-5ff5-4db7-b70f-a1861a149593",

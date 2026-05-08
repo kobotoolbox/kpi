@@ -14,7 +14,7 @@ from ..actions import (
     AutomaticGoogleTranscriptionAction,
     AutomaticGoogleTranslationAction,
 )
-from ..constants import SUBMISSION_UUID_FIELD
+from ..constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
 from ..exceptions import InvalidAction, InvalidXPath
 from ..models import QuestionAdvancedFeature, SubmissionSupplement
 from .constants import EMPTY_SUPPLEMENT
@@ -32,7 +32,7 @@ class MockNLPService:
 class SubmissionSupplementTestCase(TestCase):
 
     EXPECTED_SUBMISSION_SUPPLEMENT = {
-        '_version': '20250820',
+        '_version': SCHEMA_VERSIONS[0],
         'group_name/question_name': {
             'manual_transcription': {
                 '_dateCreated': '2024-04-08T15:27:00Z',
@@ -158,7 +158,7 @@ class SubmissionSupplementTestCase(TestCase):
             self.asset,
             self.submission,
             incoming_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 self.xpath: {
                     f'manual_{nlp_action}': {'language': language, 'value': value}
                 },
@@ -185,7 +185,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.asset,
                     self.submission,
                     incoming_data={
-                        '_version': '20250820',
+                        '_version': SCHEMA_VERSIONS[0],
                         self.xpath: {
                             f'automatic_google_{nlp_action}': {'language': language}
                         },
@@ -196,7 +196,7 @@ class SubmissionSupplementTestCase(TestCase):
                         self.asset,
                         self.submission,
                         incoming_data={
-                            '_version': '20250820',
+                            '_version': SCHEMA_VERSIONS[0],
                             self.xpath: {
                                 f'automatic_google_{nlp_action}': {
                                     'language': language,
@@ -396,7 +396,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.asset,
                     self.submission,
                     {
-                        '_version': '20250820',
+                        '_version': SCHEMA_VERSIONS[0],
                         self.xpath: {
                             'manual_transcription': {
                                 'language': 'ar',
@@ -424,7 +424,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.asset,
                     self.submission,
                     {
-                        '_version': '20250820',
+                        '_version': SCHEMA_VERSIONS[0],
                         self.xpath: {
                             'manual_translation': {
                                 'language': 'es',
@@ -450,7 +450,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.asset,
                     self.submission,
                     {
-                        '_version': '20250820',
+                        '_version': SCHEMA_VERSIONS[0],
                         self.xpath: {
                             'manual_transcription': {
                                 'language': 'ar',
@@ -469,7 +469,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.asset,
                     self.submission,
                     {
-                        '_version': '20250820',
+                        '_version': SCHEMA_VERSIONS[0],
                         self.xpath: {
                             'manual_translation': {
                                 'language': 'es',
@@ -488,7 +488,7 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset,
                 self.submission,
                 {
-                    '_version': '20250820',
+                    '_version': SCHEMA_VERSIONS[0],
                     self.xpath: {'my_other_action': {'param': 'foo'}},
                 },
             )
@@ -500,7 +500,7 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset,
                 self.submission,
                 {
-                    '_version': '20250820',
+                    '_version': SCHEMA_VERSIONS[0],
                     'group_name/other_question_name': {
                         'manual_translation': {
                             'language': 'en',

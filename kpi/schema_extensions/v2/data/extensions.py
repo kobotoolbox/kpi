@@ -10,6 +10,7 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kpi.schema_extensions.v2.data.mixins import (
     SupplementalDataComponentsRegistrationMixin,
 )
@@ -150,7 +151,7 @@ class DataSupplementPayloadExtension(
             properties={
                 '_version': {
                     'type': 'string',
-                    'example': '20250820',
+                    'example': SCHEMA_VERSIONS[0],
                 }
             },
             # Use a named schema component for `additionalProperties` because the
@@ -270,7 +271,7 @@ class DataSupplementResponseExtension(
             properties={
                 '_version': {
                     'type': 'string',
-                    'example': '20250820',
+                    'example': SCHEMA_VERSIONS[0],
                 }
             },
             # Use a named schema component for `additionalProperties` because the

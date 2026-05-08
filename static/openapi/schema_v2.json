@@ -4160,7 +4160,7 @@
                                 "examples": {
                                     "ManualTranscription": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_transcription": {
                                                     "_dateCreated": "2025-01-01T12:00:00Z",
@@ -4183,7 +4183,7 @@
                                     },
                                     "ManualTranscription(with\"locale\")": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_transcription": {
                                                     "_dateCreated": "2025-01-01T12:00:00Z",
@@ -4207,7 +4207,7 @@
                                     },
                                     "ManualTranslation": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_translation": {
                                                     "en": {
@@ -4255,7 +4255,7 @@
                                     },
                                     "AutomatedGoogleTranscription": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "automated_google_transcription": {
                                                     "_dateCreated": "2025-01-01T12:00:00Z",
@@ -4287,7 +4287,7 @@
                                     },
                                     "AutomatedGoogleTranslation": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "automated_google_translation": {
                                                     "fr": {
@@ -4355,7 +4355,7 @@
                                     },
                                     "QualitativeAnalysis–IntegerQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "66666666-6666-6666-6666-666666666666": {
@@ -4382,7 +4382,7 @@
                                     },
                                     "QualitativeAnalysis–TextQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
@@ -4409,7 +4409,7 @@
                                     },
                                     "QualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "77777777-7777-7777-7777-777777777777": {
@@ -4436,7 +4436,7 @@
                                     },
                                     "QualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "88888888-8888-8888-8888-888888888888": {
@@ -4466,7 +4466,7 @@
                                     },
                                     "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
@@ -4495,7 +4495,7 @@
                                     },
                                     "QualitativeAnalysis–VerifiedResponse": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
@@ -4523,7 +4523,7 @@
                                     },
                                     "AutomaticQualitativeAnalysis–FailedResponse": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "automatic_bedrock_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
@@ -4665,7 +4665,7 @@
                             "examples": {
                                 "ManualTranscription": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_transcription": {
                                                 "language": "fr",
@@ -4677,7 +4677,7 @@
                                 },
                                 "ManualTranscription(with\"locale\")": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_transcription": {
                                                 "language": "fr",
@@ -4691,7 +4691,7 @@
                                 },
                                 "ManualTranslation": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_translation": {
                                                 "language": "en",
@@ -4703,7 +4703,7 @@
                                 },
                                 "AutomicGoogleTranscription": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "automatic_google_transcription": {
                                                 "language": "fr"
@@ -4714,7 +4714,7 @@
                                 },
                                 "AutomicGoogleTranslation": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "automatic_google_translation": {
                                                 "language": "en"
@@ -4725,7 +4725,7 @@
                                 },
                                 "DeleteNLPAction": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "<action_id>": {
                                                 "language": "<language>",
@@ -4738,7 +4738,7 @@
                                 },
                                 "AcceptAutomaticNLPAction": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "<action_id>": {
                                                 "language": "<language>",
@@ -4751,7 +4751,7 @@
                                 },
                                 "ManualQualitativeAnalysis–IntegerQuestion": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_qual": {
                                                 "uuid": "11111111-1111-1111-1111-111111111111",
@@ -4764,7 +4764,7 @@
                                 },
                                 "ManualQualitativeAnalysis–TextQuestion": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_qual": {
                                                 "uuid": "22222222-2222-2222-2222-222222222222",
@@ -4776,7 +4776,7 @@
                                 },
                                 "ManualQualitativeAnalysis–SingleChoiceQuestion": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_qual": {
                                                 "uuid": "33333333-3333-3333-3333-333333333333",
@@ -4789,7 +4789,7 @@
                                 },
                                 "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_qual": {
                                                 "uuid": "44444444-4444-4444-4444-444444444444",
@@ -4805,7 +4805,7 @@
                                 },
                                 "ManualQualitativeAnalysis–TagsQuestion": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "manual_qual": {
                                                 "uuid": "44444444-4444-4444-4444-444444444444",
@@ -4821,7 +4821,7 @@
                                 },
                                 "AutomaticBedrockQualitativeAnalysis–AnyQuestion": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "automatic_bedrock_qual": {
                                                 "uuid": "44444444-4444-4444-4444-444444444444"
@@ -4832,7 +4832,7 @@
                                 },
                                 "VerifyQualitativeAnalysisResponse–AnyQuestion": {
                                     "value": {
-                                        "_version": "20250820",
+                                        "_version": "20260506",
                                         "question_name_xpath": {
                                             "<action_id>": {
                                                 "uuid": "44444444-4444-4444-4444-4444444444444",
@@ -4866,7 +4866,7 @@
                                 "examples": {
                                     "ManualTranscription": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_transcription": {
                                                     "_dateCreated": "2025-01-01T12:00:00Z",
@@ -4889,7 +4889,7 @@
                                     },
                                     "ManualTranscription(with\"locale\")": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_transcription": {
                                                     "_dateCreated": "2025-01-01T12:00:00Z",
@@ -4913,7 +4913,7 @@
                                     },
                                     "ManualTranslation": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_translation": {
                                                     "en": {
@@ -4961,7 +4961,7 @@
                                     },
                                     "AutomatedGoogleTranscription": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "automated_google_transcription": {
                                                     "_dateCreated": "2025-01-01T12:00:00Z",
@@ -4993,7 +4993,7 @@
                                     },
                                     "AutomatedGoogleTranslation": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "automated_google_translation": {
                                                     "fr": {
@@ -5061,7 +5061,7 @@
                                     },
                                     "QualitativeAnalysis–IntegerQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "66666666-6666-6666-6666-666666666666": {
@@ -5088,7 +5088,7 @@
                                     },
                                     "QualitativeAnalysis–TextQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
@@ -5115,7 +5115,7 @@
                                     },
                                     "QualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "77777777-7777-7777-7777-777777777777": {
@@ -5142,7 +5142,7 @@
                                     },
                                     "QualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "88888888-8888-8888-8888-888888888888": {
@@ -5172,7 +5172,7 @@
                                     },
                                     "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "manual_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
@@ -5201,7 +5201,7 @@
                                     },
                                     "QualitativeAnalysis–VerifiedResponse": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "<action_id>": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
@@ -5229,7 +5229,7 @@
                                     },
                                     "AutomaticQualitativeAnalysis–FailedResponse": {
                                         "value": {
-                                            "_version": "20250820",
+                                            "_version": "20260506",
                                             "question_name_xpath": {
                                                 "automatic_bedrock_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
@@ -19139,7 +19139,7 @@
                 "properties": {
                     "_version": {
                         "type": "string",
-                        "example": "20250820"
+                        "example": "20260506"
                     }
                 },
                 "additionalProperties": {
@@ -23223,7 +23223,7 @@
                 "properties": {
                     "_version": {
                         "type": "string",
-                        "example": "20250820"
+                        "example": "20260506"
                     }
                 },
                 "additionalProperties": {

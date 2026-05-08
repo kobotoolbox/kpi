@@ -4,7 +4,7 @@ from unittest.mock import patch
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
-from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.constants import Action, SCHEMA_VERSIONS
 from kobo.apps.subsequences.tasks import poll_run_external_process_failure
 
 
@@ -156,7 +156,7 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
 
         # Setup initial 'in_progress' state in the SubmissionSupplement
         incoming_data = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             self.question_xpath: {
                 self.action_id: {'language': 'en'}
             }

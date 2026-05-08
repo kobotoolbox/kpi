@@ -3010,7 +3010,7 @@ paths:
               examples:
                 ManualTranscription:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_transcription:
                         _dateCreated: '2025-01-01T12:00:00Z'
@@ -3025,7 +3025,7 @@ paths:
                   summary: Manual Transcription
                 ManualTranscription(with"locale"):
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_transcription:
                         _dateCreated: '2025-01-01T12:00:00Z'
@@ -3041,7 +3041,7 @@ paths:
                   summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_translation:
                         en:
@@ -3073,7 +3073,7 @@ paths:
                   summary: Manual Translation
                 AutomatedGoogleTranscription:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       automated_google_transcription:
                         _dateCreated: '2025-01-01T12:00:00Z'
@@ -3094,7 +3094,7 @@ paths:
                   summary: Automated Google Transcription
                 AutomatedGoogleTranslation:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       automated_google_translation:
                         fr:
@@ -3140,7 +3140,7 @@ paths:
                   summary: Automated Google Translation
                 QualitativeAnalysis–IntegerQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         66666666-6666-6666-6666-666666666666:
@@ -3159,7 +3159,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
@@ -3178,7 +3178,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         77777777-7777-7777-7777-777777777777:
@@ -3197,7 +3197,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         88888888-8888-8888-8888-888888888888:
@@ -3218,7 +3218,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_qual:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
@@ -3237,7 +3237,7 @@ paths:
                   summary: Manual Qualitative Analysis – Tags Question
                 QualitativeAnalysis–VerifiedResponse:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
@@ -3256,7 +3256,7 @@ paths:
                   description: '`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. '
                 AutomaticQualitativeAnalysis–FailedResponse:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       automatic_bedrock_qual:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
@@ -3362,7 +3362,7 @@ paths:
             examples:
               ManualTranscription:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_transcription:
                       language: fr
@@ -3370,7 +3370,7 @@ paths:
                 summary: Manual Transcription
               ManualTranscription(with"locale"):
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_transcription:
                       language: fr
@@ -3380,7 +3380,7 @@ paths:
                 description: The `locale` field is optional.
               ManualTranslation:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_translation:
                       language: en
@@ -3388,21 +3388,21 @@ paths:
                 summary: Manual Translation
               AutomicGoogleTranscription:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     automatic_google_transcription:
                       language: fr
                 summary: Automic Google Transcription
               AutomicGoogleTranslation:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     automatic_google_translation:
                       language: en
                 summary: Automic Google Translation
               DeleteNLPAction:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     <action_id>:
                       language: <language>
@@ -3414,7 +3414,7 @@ paths:
                   e.g. `en`.'
               AcceptAutomaticNLPAction:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     <action_id>:
                       language: <language>
@@ -3425,7 +3425,7 @@ paths:
                   code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`.'
               ManualQualitativeAnalysis–IntegerQuestion:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_qual:
                       uuid: 11111111-1111-1111-1111-111111111111
@@ -3434,7 +3434,7 @@ paths:
                 description: Set `value` to `null` to delete.
               ManualQualitativeAnalysis–TextQuestion:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_qual:
                       uuid: 22222222-2222-2222-2222-222222222222
@@ -3442,7 +3442,7 @@ paths:
                 summary: Manual Qualitative Analysis – Text Question
               ManualQualitativeAnalysis–SingleChoiceQuestion:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_qual:
                       uuid: 33333333-3333-3333-3333-333333333333
@@ -3451,7 +3451,7 @@ paths:
                 description: Set `value` to the empty string `""` to delete.
               ManualQualitativeAnalysis–MultipleChoiceQuestion:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_qual:
                       uuid: 44444444-4444-4444-4444-444444444444
@@ -3462,7 +3462,7 @@ paths:
                 description: Set `value` to the empty string `""` to delete.
               ManualQualitativeAnalysis–TagsQuestion:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     manual_qual:
                       uuid: 44444444-4444-4444-4444-444444444444
@@ -3473,14 +3473,14 @@ paths:
                 description: Set `value` an empty array `[]` to delete.
               AutomaticBedrockQualitativeAnalysis–AnyQuestion:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     automatic_bedrock_qual:
                       uuid: 44444444-4444-4444-4444-444444444444
                 summary: Automatic Bedrock Qualitative Analysis – Any Question
               VerifyQualitativeAnalysisResponse–AnyQuestion:
                 value:
-                  _version: '20250820'
+                  _version: '20260506'
                   question_name_xpath:
                     <action_id>:
                       uuid: 44444444-4444-4444-4444-4444444444444
@@ -3503,7 +3503,7 @@ paths:
               examples:
                 ManualTranscription:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_transcription:
                         _dateCreated: '2025-01-01T12:00:00Z'
@@ -3518,7 +3518,7 @@ paths:
                   summary: Manual Transcription
                 ManualTranscription(with"locale"):
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_transcription:
                         _dateCreated: '2025-01-01T12:00:00Z'
@@ -3534,7 +3534,7 @@ paths:
                   summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_translation:
                         en:
@@ -3566,7 +3566,7 @@ paths:
                   summary: Manual Translation
                 AutomatedGoogleTranscription:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       automated_google_transcription:
                         _dateCreated: '2025-01-01T12:00:00Z'
@@ -3587,7 +3587,7 @@ paths:
                   summary: Automated Google Transcription
                 AutomatedGoogleTranslation:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       automated_google_translation:
                         fr:
@@ -3633,7 +3633,7 @@ paths:
                   summary: Automated Google Translation
                 QualitativeAnalysis–IntegerQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         66666666-6666-6666-6666-666666666666:
@@ -3652,7 +3652,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
@@ -3671,7 +3671,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         77777777-7777-7777-7777-777777777777:
@@ -3690,7 +3690,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         88888888-8888-8888-8888-888888888888:
@@ -3711,7 +3711,7 @@ paths:
                     \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       manual_qual:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
@@ -3730,7 +3730,7 @@ paths:
                   summary: Manual Qualitative Analysis – Tags Question
                 QualitativeAnalysis–VerifiedResponse:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       <action_id>:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
@@ -3749,7 +3749,7 @@ paths:
                   description: '`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. '
                 AutomaticQualitativeAnalysis–FailedResponse:
                   value:
-                    _version: '20250820'
+                    _version: '20260506'
                     question_name_xpath:
                       automatic_bedrock_qual:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
@@ -13645,7 +13645,7 @@ components:
       properties:
         _version:
           type: string
-          example: '20250820'
+          example: '20260506'
       additionalProperties:
         $ref: '#/components/schemas/SupplementalDataResponseAction'
       required:
@@ -16579,7 +16579,7 @@ components:
       properties:
         _version:
           type: string
-          example: '20250820'
+          example: '20260506'
       additionalProperties:
         $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOf'
       required:

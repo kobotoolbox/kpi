@@ -31,7 +31,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120, ClaudeSonnet
-from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.constants import Action, SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.constants import (
     FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
@@ -592,7 +592,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_update_qa_creates_log(self):
         request_data = {
             'advanced_features': {
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 '_actionConfigs': {
                     'q1': {
                         'qual': [
@@ -2004,7 +2004,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     Action.MANUAL_QUAL: {
                         'uuid': question_uuid,
@@ -2052,7 +2052,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     Action.MANUAL_QUAL: {
                         'uuid': question_uuid,
@@ -2075,7 +2075,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 args=[self.asset.uid, submission['_uuid']],
             ),
             data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     Action.MANUAL_TRANSCRIPTION: {
                         'language': 'en',
@@ -2116,7 +2116,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.asset,
             submission,
             incoming_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     'manual_transcription': {'language': 'en', 'value': 'transcript'}
                 },
@@ -2134,7 +2134,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 ),
                 method=self.client.patch,
                 request_data={
-                    '_version': '20250820',
+                    '_version': SCHEMA_VERSIONS[0],
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
                             'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
@@ -2170,7 +2170,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.asset,
             submission,
             incoming_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     'manual_transcription': {'language': 'en', 'value': 'transcript'}
                 },
@@ -2188,7 +2188,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 ),
                 method=self.client.patch,
                 request_data={
-                    '_version': '20250820',
+                    '_version': SCHEMA_VERSIONS[0],
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
                             'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
@@ -2235,7 +2235,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.asset,
             submission,
             incoming_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     'manual_transcription': {'language': 'en', 'value': 'transcript'}
                 },
@@ -2253,7 +2253,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 ),
                 method=self.client.patch,
                 request_data={
-                    '_version': '20250820',
+                    '_version': SCHEMA_VERSIONS[0],
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
                             'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
@@ -2293,7 +2293,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.asset,
             submission,
             incoming_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     'manual_transcription': {'language': 'en', 'value': 'transcript'}
                 },
@@ -2318,7 +2318,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 self.asset,
                 submission,
                 incoming_data={
-                    '_version': '20250820',
+                    '_version': SCHEMA_VERSIONS[0],
                     'q1': {
                         action: action_data,
                     },
@@ -2332,7 +2332,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             ),
             method=self.client.patch,
             request_data={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'q1': {
                     action: {
                         'uuid': question_uuid,

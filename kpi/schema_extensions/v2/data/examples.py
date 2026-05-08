@@ -1,5 +1,7 @@
 from drf_spectacular.utils import OpenApiExample
 
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
+
 
 def get_data_supplement_examples() -> list[OpenApiExample]:
     """
@@ -35,7 +37,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Transcription',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_transcription': {'language': 'fr', 'value': 'Bonjour'}
                 },
@@ -46,7 +48,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             'Manual Transcription (with "locale")',
             description='The `locale` field is optional.',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_transcription': {
                         'language': 'fr',
@@ -60,7 +62,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Translation',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_translation': {'language': 'en', 'value': 'Hello'},
                 },
@@ -70,7 +72,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Automic Google Transcription',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'automatic_google_transcription': {'language': 'fr'}
                 },
@@ -80,7 +82,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Automic Google Translation',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'automatic_google_translation': {'language': 'en'},
                 },
@@ -100,7 +102,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 '`<language>` is the language code, e.g. `en`.'
             ),
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {'language': '<language>', 'value': None},
                 },
@@ -116,7 +118,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 '`accepted` is a boolean. It can `true` or `false`.'
             ),
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {'language': '<language>', 'accepted': True},
                 },
@@ -126,7 +128,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Qualitative Analysis – Integer Question',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_qual': {
                         'uuid': '11111111-1111-1111-1111-111111111111',
@@ -140,7 +142,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Qualitative Analysis – Text Question',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_qual': {
                         'uuid': '22222222-2222-2222-2222-222222222222',
@@ -153,7 +155,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Qualitative Analysis – Single Choice Question',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_qual': {
                         'uuid': '33333333-3333-3333-3333-333333333333',
@@ -167,7 +169,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Qualitative Analysis – Multiple Choice Question',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
@@ -184,7 +186,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Qualitative Analysis – Tags Question',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
@@ -198,7 +200,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Automatic Bedrock Qualitative Analysis – Any Question',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'automatic_bedrock_qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
@@ -210,7 +212,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Verify Qualitative Analysis Response – Any Question',
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {
                         'uuid': '44444444-4444-4444-4444-4444444444444',
@@ -237,7 +239,7 @@ def _get_data_supplement_response_examples():
             name='Manual Transcription',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_transcription': {
                         '_dateCreated': iso0,
@@ -261,7 +263,7 @@ def _get_data_supplement_response_examples():
             name='Manual Transcription (with "locale")',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_transcription': {
                         '_dateCreated': iso0,
@@ -286,7 +288,7 @@ def _get_data_supplement_response_examples():
             name='Manual Translation',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_translation': {
                         'en': {
@@ -335,7 +337,7 @@ def _get_data_supplement_response_examples():
             name='Automated Google Transcription',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'automated_google_transcription': {
                         '_dateCreated': iso0,
@@ -368,7 +370,7 @@ def _get_data_supplement_response_examples():
             name='Automated Google Translation',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'automated_google_translation': {
                         'fr': {
@@ -437,7 +439,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Integer Question',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {
                         '66666666-6666-6666-6666-666666666666': {
@@ -470,7 +472,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Text Question',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {
                         'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff': {
@@ -503,7 +505,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Single Choice Question',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {
                         '77777777-7777-7777-7777-777777777777': {
@@ -536,7 +538,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Multiple Choice Question',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {
                         '88888888-8888-8888-8888-888888888888': {
@@ -572,7 +574,7 @@ def _get_data_supplement_response_examples():
             name='Manual Qualitative Analysis – Tags Question',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'manual_qual': {
                         'bbbbbbbb-cccc-dddd-eeee-ffffffffffff': {
@@ -598,7 +600,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Verified Response',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     '<action_id>': {
                         'bbbbbbbb-cccc-dddd-eeee-ffffffffffff': {
@@ -630,7 +632,7 @@ def _get_data_supplement_response_examples():
             name='Automatic Qualitative Analysis – Failed response',
             response_only=True,
             value={
-                '_version': '20250820',
+                '_version': SCHEMA_VERSIONS[0],
                 'question_name_xpath': {
                     'automatic_bedrock_qual': {
                         'bbbbbbbb-cccc-dddd-eeee-ffffffffffff': {

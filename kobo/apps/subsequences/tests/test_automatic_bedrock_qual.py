@@ -30,6 +30,7 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_SELECT_ONE,
     QUESTION_TYPE_TEXT,
     Action,
+    SCHEMA_VERSIONS,
 )
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
@@ -109,7 +110,7 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
         )
 
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 Action.MANUAL_TRANSCRIPTION: {
                     'language': 'en',
@@ -257,7 +258,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         )
 
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 Action.AUTOMATIC_BEDROCK_QUAL: {
                     'uuid': BEDROCK_QUAL_TEXT_UUID,
@@ -644,7 +645,7 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
             args=[self.asset.uid, self.submission_uuid],
         )
         self.qa_payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 Action.AUTOMATIC_BEDROCK_QUAL: {
                     'uuid': BEDROCK_QUAL_TEXT_UUID
@@ -685,7 +686,7 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
         they are not throttled
         """
         payload = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 Action.MANUAL_QUAL: {
                     'uuid': 'a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0',

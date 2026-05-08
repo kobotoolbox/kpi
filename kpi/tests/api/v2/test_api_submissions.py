@@ -23,6 +23,7 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
@@ -1280,7 +1281,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                     ],
                 }
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
 
         SubmissionSupplement.objects.create(
@@ -1350,7 +1351,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                     ],
                 },
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
 
         SubmissionSupplement.objects.create(
@@ -1417,7 +1418,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                     ],
                 },
             },
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
         }
 
         SubmissionSupplement.objects.create(
@@ -2809,7 +2810,7 @@ class SubmissionDuplicateApiTests(
 
     def test_duplicate_submission_with_extras(self):
         dummy_extra = {
-            '_version': '20250820',
+            '_version': SCHEMA_VERSIONS[0],
             'q1': {
                 'manual_transcription': {
                     '_dateCreated': '2025-01-01T00:00:00Z',
