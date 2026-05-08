@@ -38,10 +38,6 @@
   color: var(--mantine-color-gray-2);
 }
 
-.item[data-hovered] .label {
-  color: var(--mantine-color-gray-1);
-}
-
 .arrow {
   border-color: transparent;
 }
