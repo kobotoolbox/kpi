@@ -3,7 +3,6 @@ import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
 import ButtonReturn from './ButtonReturn'
 import SelectQuestion from './SelectQuestion'
 import SelectSubmission from './SelectSubmission'
@@ -26,6 +25,7 @@ interface SingleProcessingHeaderProps {
 export default function SingleProcessingHeader({
   asset,
   submission,
+  currentSubmissionUid,
   questionLabelLanguage,
   xpath,
   hasUnsavedWork,
@@ -35,7 +35,7 @@ export default function SingleProcessingHeader({
       <SelectQuestion
         asset={asset}
         xpath={xpath}
-        currentSubmissionUid={removeDefaultUuidPrefix(submission['meta/rootUuid'])}
+        currentSubmissionUid={currentSubmissionUid}
         questionLabelLanguage={questionLabelLanguage}
         hasUnsavedWork={hasUnsavedWork}
       />
