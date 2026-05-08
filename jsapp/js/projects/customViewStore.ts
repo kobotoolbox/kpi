@@ -284,7 +284,19 @@ class CustomViewStore {
     // This differs from `onFetchAssetsDone`, because it adds the Assets
     // to existing ones.
     this.isLoading = false
-    this.assets = this.assets.concat(response.results)
+    // Root cause: imports create new projects on the server, and default list ordering puts newest rows at the top. If
+    // page 1 was fetched before that, its stored `next` offset can overlap with rows we already have when
+    // `fetchMoreAssets` runs, so dedupe by uid before appending.
+    // TODO: better fix https://linear.app/kobotoolbox/issue/DEV-2082/
+    const seen = new Set(this.assets.map((asset) => asset.uid))
+    const uniqueNewAssets = response.results.filter((asset) => {
+      if (seen.has(asset.uid)) {
+        return false
+      }
+      seen.add(asset.uid)
+      return true
+    })
+    this.assets = this.assets.concat(uniqueNewAssets)
     this.nextPageUrl = response.next
   }
 
