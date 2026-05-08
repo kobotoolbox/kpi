@@ -123,6 +123,8 @@ export interface CreateImportRequest {
   assetUid?: string
   /** Causes the imported XLSForm to be added as Library Item */
   library?: boolean
+  /** Desired asset type for the imported XLSForm (e.g. 'template') */
+  desired_type?: string
 }
 
 export interface ImportResponse {
