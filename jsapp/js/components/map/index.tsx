@@ -478,10 +478,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
-  updateWrapperQuery(selectedQuestion: string | null, nextViewBy: string, pageLimit: number) {
+  // `selectedQuestionPath` is normalized in `createDataQuery()` before calling this helper.
+  updateWrapperQuery(selectedQuestionPath: string | null, nextViewBy: string, pageLimit: number) {
     const fq = ['_id']
-    if (selectedQuestion) {
-      fq.push(this.nameOfFieldInGroup(selectedQuestion))
+    if (selectedQuestionPath) {
+      fq.push(selectedQuestionPath)
     }
     if (nextViewBy) {
       fq.push(this.nameOfFieldInGroup(nextViewBy))
