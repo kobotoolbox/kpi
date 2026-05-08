@@ -564,7 +564,7 @@ integration and OpenAPI generation. Runtime processing is not yet implemented.
 
  */
 export type assetsAdvancedFeaturesBulkActionsListResponse200 = {
-  data: BulkActionListResponse[]
+  data: BulkActionListResponse
   status: 200
 }
 

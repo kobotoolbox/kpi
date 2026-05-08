@@ -1970,13 +1970,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BulkActionListResponse'
+                $ref: '#/components/schemas/BulkActionListResponse'
               examples:
                 BulkActionListResponse:
                   value:
-                  - count: 1
+                    count: 1
                     next: null
                     previous: null
                     results:

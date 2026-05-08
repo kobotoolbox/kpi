@@ -206,15 +206,15 @@ class QuestionAdvancedFeatureViewSet(
             ),
         },
         examples=(
-                get_bulk_actions_create_examples()
-                + get_bulk_action_response_examples(),
-        )
+            get_bulk_actions_create_examples()
+            + get_bulk_action_response_examples()
+        ),
     ),
     list=extend_schema(
         description=read_md('subsequences', 'subsequences/bulk_actions_list.md'),
         responses={
             **open_api_200_ok_response(
-                BulkActionListResponse,
+                BulkActionListResponse(many=False),
                 require_auth=False,
                 raise_access_forbidden=False,
                 validate_payload=False,
@@ -284,6 +284,10 @@ class BulkActionViewSet(
 ):
     permission_classes = (AssetAdvancedFeaturesPermission,)
     versioning_class = APIV2Versioning
+
+    @property
+    def asset_uid(self):
+        return self.kwargs.get('uid_asset')
 
     def _not_implemented(self):
         raise PlaceholderNotImplementedApiException()

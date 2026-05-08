@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
@@ -142,12 +143,14 @@ BulkActionPatchRequest = inline_serializer_class(
     },
 )
 
-BulkActionListResponse = inline_serializer_class(
-    name='BulkActionListResponse',
-    fields={
-        'count': serializers.IntegerField(),
-        'next': serializers.CharField(required=False, allow_null=True),
-        'previous': serializers.CharField(required=False, allow_null=True),
-        'results': BulkActionResponse(many=True),
-    },
+BulkActionListResponse = extend_schema_serializer(many=False)(
+    inline_serializer_class(
+        name='BulkActionListResponse',
+        fields={
+            'count': serializers.IntegerField(),
+            'next': serializers.CharField(required=False, allow_null=True),
+            'previous': serializers.CharField(required=False, allow_null=True),
+            'results': BulkActionResponse(many=True),
+        },
+    )
 )
