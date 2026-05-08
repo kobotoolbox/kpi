@@ -32,13 +32,18 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
   const languages = data?.status === 200 ? data.data.results : []
 
   // Create a query for each suggested language
+  const hasSuggestedLanguages = props.suggestedLanguages && props.suggestedLanguages.length > 0
   const suggestedLanguageQueries = useQueries({
-    queries: (props.suggestedLanguages || []).map((code) => getLanguagesRetrieveQueryOptions(code)),
+    queries: hasSuggestedLanguages
+      ? props.suggestedLanguages!.map((code) => getLanguagesRetrieveQueryOptions(code))
+      : [],
   })
 
-  const suggestedLanguages = suggestedLanguageQueries
-    .filter((result) => result.isSuccess)
-    .flatMap((result) => (result.data?.status === 200 ? [result.data.data] : []))
+  const suggestedLanguages = hasSuggestedLanguages
+    ? suggestedLanguageQueries
+        .filter((result) => result.isSuccess)
+        .flatMap((result) => (result.data?.status === 200 ? [result.data.data] : []))
+    : []
 
   // We memoize here for a slight performance improvement, but mainly it makes the logic to group the suggested and 'main'
   // languages easier to read
