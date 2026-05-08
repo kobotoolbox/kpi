@@ -12,23 +12,12 @@
   min-height: 38px;
   padding: var(--mantine-spacing-xxs);
   border-radius: var(--mantine-radius-md);
-  --menu-item-hover: var(--mantine-color-gray-8);
-  --menu-item-color: var(--mantine-color-gray-1);
   color: var(--mantine-color-gray-1);
 
   font-size: var(--mantine-font-size-md);
 
-  &[data-hovered] {
-    background-color: var(--menu-item-hover);
-    color: var(--menu-item-color);
-  }
-
   &[data-variant='danger'] {
     color: var(--mantine-color-red-5);
-
-    &[data-hovered] {
-      color: var(--mantine-color-red-6);
-    }
   }
 }
 
