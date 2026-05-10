@@ -31,6 +31,7 @@ const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-l
 
 const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
   const [searchValue, setSearchValue] = useState('')
+  const [recentlySelected] = useState<LanguageCode[]>([])
   const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
   const isSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
@@ -63,9 +64,16 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
     ]
 
     // Create language groups
+    const recentlySelectedItems = allLanguages
+      .filter((lang) => recentlySelected.includes(lang.code))
+      .map((lang) => ({
+        value: lang.code,
+        label: `${lang.name} (${lang.code})`,
+      }))
     const suggestedItems = allLanguages
       .filter((lang) => props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
+      .filter((lang) => !recentlySelected?.includes(lang.code))
       .map((lang) => ({
         value: lang.code,
         label: `${lang.name} (${lang.code})`,
@@ -73,6 +81,7 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
     const otherItems = allLanguages
       .filter((lang) => !props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
+      .filter((lang) => !recentlySelected?.includes(lang.code))
       .map((lang) => ({
         value: lang.code,
         label: `${lang.name} (${lang.code})`,
@@ -80,6 +89,12 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
 
     // Build groups conditionally
     const groups = []
+    if (recentlySelectedItems.length > 0) {
+      groups.push({
+        group: t('Recently selected'),
+        items: recentlySelectedItems,
+      })
+    }
     if (suggestedItems.length > 0) {
       groups.push({
         group: t('Suggested'),
@@ -102,11 +117,14 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
       ],
     })
     return groups
-  }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages, suggestedLanguages])
+  }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages, suggestedLanguages, recentlySelected])
 
   const onLanguageSelected = (selectedLanguage: string | null) => {
     const allLanguages = [...suggestedLanguages, ...languages]
     const selectedLanguageObject = allLanguages.find((lang) => lang.code === selectedLanguage) || null
+    if (selectedLanguageObject) {
+      recentlySelected.push(selectedLanguageObject?.code)
+    }
     props.onLanguageChange(selectedLanguageObject)
   }
 
