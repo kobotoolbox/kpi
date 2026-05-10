@@ -5,9 +5,9 @@ import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
 import envStore from '#/envStore'
-import type { LanguageCode } from '../languages/languagesStore'
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
+import type { LanguageCode } from '../languages/languagesStore'
 import styles from './languageSelector.module.css'
 
 interface LanguageSelectorProps {

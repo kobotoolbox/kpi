@@ -1,6 +1,6 @@
 import './formGallery.component.scss'
 
-import { Box, Center, Flex, Image, Modal, Stack } from '@mantine/core'
+import { Box, Center, Flex, Image, Modal } from '@mantine/core'
 import React, { useEffect, useMemo, useReducer } from 'react'
 import ReactSelect from 'react-select'
 import { fetchGet, fetchGetUrl } from '#/api'
