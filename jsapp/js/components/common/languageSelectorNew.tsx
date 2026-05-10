@@ -1,12 +1,13 @@
 import { Group, Text } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
+import { IconInfoCircleFilled } from '@tabler/icons-react'
 import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
 import envStore from '#/envStore'
 import type { LanguageCode } from '../languages/languagesStore'
+import KoboIcon from './KoboIcon'
 import Select from './Select'
-import Icon from './icon'
 import styles from './languageSelectorNew.module.css'
 
 interface LanguageSelectorNewProps {
@@ -19,6 +20,7 @@ interface LanguageSelectorNewProps {
   /** The currently selected language code, used for the UX of single processing view */
   value?: LanguageCode | null
   isDisabled?: boolean
+  required?: boolean
 }
 
 const MINIMUM_SEARCH_LENGTH = 2
@@ -135,13 +137,21 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
       renderOption={(option) => {
         if (option.option.value === CANNOT_FIND_LANGUAGE) {
           return (
-            <Group onClick={openSupportPage} style={{ cursor: 'pointer' }} c='var(--mantine-color-blue-5)'>
-              <Icon name='information' /> <Text>{option.option.label}</Text>
+            <Group
+              onClick={openSupportPage}
+              gap={'xs'}
+              align='center'
+              style={{ cursor: 'pointer' }}
+              c='var(--mantine-color-blue-5)'
+            >
+              <KoboIcon icon={IconInfoCircleFilled} size='sm' />
+              <Text>{option.option.label}</Text>
             </Group>
           )
         }
         return <Text>{option.option.label}</Text>
       }}
+      required={props.required}
     />
   )
 }
