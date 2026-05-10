@@ -1,0 +1,5 @@
+.cannotFindLanguageOption[data-combobox-disabled="true"][value="CANNOT_FIND_LANGUAGE"] {
+  cursor: pointer;
+  opacity: 1;
+  pointer-events: auto;
+}

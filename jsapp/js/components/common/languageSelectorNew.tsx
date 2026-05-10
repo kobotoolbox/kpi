@@ -1,9 +1,13 @@
+import { Group, Text } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
+import envStore from '#/envStore'
 import type { LanguageCode } from '../languages/languagesStore'
 import Select from './Select'
+import Icon from './icon'
+import styles from './languageSelectorNew.module.css'
 
 interface LanguageSelectorNewProps {
   // TODO: Fix the typing here, the new orval types are incompatible with old types being used in the single processing view
@@ -20,14 +24,15 @@ interface LanguageSelectorNewProps {
 const MINIMUM_SEARCH_LENGTH = 2
 // Timeout chosen based on same debounce time in old languageSelector.tsx
 const SEARCH_DEBOUNCE_MS = 300
+const CANNOT_FIND_LANGUAGE = 'CANNOT_FIND_LANGUAGE'
+const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
   const isSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
-  // "Main" language list (either featured languages or result of searching), unlike the suggested language list which
-  // exists seperately from this
+  // "Main" language list (either featured languages or result of searching)
   const { data, isLoading } = useLanguagesList(isSearching ? ({ q: debouncedSearch } as any) : undefined)
   const languages = data?.status === 200 ? data.data.results : []
 
@@ -83,18 +88,38 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
       group: isSearching ? t('Results') : t('Languages'),
       items: otherItems,
     })
+    // Always show this option on the bottom
+    groups.push({
+      group: '',
+      items: [
+        {
+          value: CANNOT_FIND_LANGUAGE,
+          label: t('I cannot find my language'),
+          disabled: true,
+        },
+      ],
+    })
     return groups
   }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages, suggestedLanguages])
 
   const onLanguageSelected = (selectedLanguage: string | null) => {
-    // Find in combined list (including fetched suggested languages)
     const allLanguages = [...suggestedLanguages, ...languages]
     const selectedLanguageObject = allLanguages.find((lang) => lang.code === selectedLanguage) || null
     props.onLanguageChange(selectedLanguageObject)
   }
 
+  const openSupportPage = () => {
+    window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank')
+  }
+
   return (
     <Select
+      // Semi-hacky way to add custom styling. We need to overwrite the disabled styling for only the
+      // "CANNOT_FIND_LANGUAGE" value. We have to do a higher level change with a CSS module; the style props does not
+      // change the disable opacity and pointer
+      classNames={{
+        option: styles.cannotFindLanguageOption,
+      }}
       onSearchChange={setSearchValue}
       data={languageOptions}
       onChange={onLanguageSelected}
@@ -104,6 +129,19 @@ const LanguageSelectorNew = (props: LanguageSelectorNewProps) => {
       clearable
       disabled={props.isDisabled}
       comboboxProps={{ resetSelectionOnOptionHover: true }}
+      // Mantine Select has a built in filtering, but our search already filters based on the query. This is needed so
+      // that the "I cannot find my language" option doesn't get filtered out
+      filter={({ options }) => options}
+      renderOption={(option) => {
+        if (option.option.value === CANNOT_FIND_LANGUAGE) {
+          return (
+            <Group onClick={openSupportPage} style={{ cursor: 'pointer' }} c='var(--mantine-color-blue-5)'>
+              <Icon name='information' /> <Text>{option.option.label}</Text>
+            </Group>
+          )
+        }
+        return <Text>{option.option.label}</Text>
+      }}
     />
   )
 }
