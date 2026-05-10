@@ -7,13 +7,12 @@ import {
   useOrganizationsServiceUsageSummary,
 } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
-import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
+import LanguageSelector from '#/components/languages/languageSelector'
 import type { LanguageBase, LanguageCode } from '#/components/languages/languagesStore'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import TransxAutomaticButton from './transxAutomaticButton'
-import LanguageSelectorNew from '#/components/common/languageSelectorNew'
 
 interface Props {
   onBack: () => void
@@ -86,7 +85,7 @@ export default function StepSelectLanguage({
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-      <LanguageSelectorNew
+      <LanguageSelector
         titleOverride={titleOverride}
         onLanguageChange={handleChangeLanguage}
         hiddenLanguages={hiddenLanguages}

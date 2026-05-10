@@ -10,8 +10,6 @@ import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
-import LanguageSelectorNew from '../common/languageSelectorNew'
-import LanguageSelector from '../languages/languageSelector'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 
@@ -257,11 +255,6 @@ export default function FormGallery(props: FormGalleryProps) {
           </Flex>
         </Modal>
       )}
-      <Stack pl={100} maw={300}>
-        <LanguageSelectorNew onLanguageChange={console.log} hiddenLanguages={['cs', 'en']}/>
-        <Stack pt={100} />
-        <LanguageSelector onLanguageChange={console.log} />
-      </Stack>
     </bem.Gallery>
   )
 }

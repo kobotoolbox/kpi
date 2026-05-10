@@ -51,8 +51,6 @@ export default function TranscriptCreate({
     setStep(CreateSteps.Language)
   }
 
-  console.log('0----------------- suggested', asset.advanced_features?.translation?.languages)
-
   return (
     <>
       {step === CreateSteps.Begin && (
