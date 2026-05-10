@@ -5,14 +5,18 @@ import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
 import envStore from '#/envStore'
-import type { LanguageCode } from '../languages/languagesStore'
+import type { LanguageCode, ListLanguage } from '../languages/languagesStore'
 import KoboIcon from './KoboIcon'
 import Select from './Select'
 import styles from './languageSelectorNew.module.css'
 
 interface LanguageSelectorNewProps {
-  // TODO: Fix the typing here, the new orval types are incompatible with old types being used in the single processing view
-  onLanguageChange: Function
+  /**
+   * TODO: This should be typed as (language: ListLanguage | null) => void but there's a type incompatibility
+   * between what StepSelectLanguage expects and what the orval-generated API types are.
+   * Specifically, `transcription_services` and `translation_services` arrays are readonly in new types.
+   */
+  onLanguageChange: (language: ListLanguage | null) => void
   titleOverride?: string
   /** The following props are from the old languageSelector, and is useful to maintain it's UX*/
   hiddenLanguages?: LanguageCode[]
