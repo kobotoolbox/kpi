@@ -16,7 +16,7 @@ interface LanguageSelectorNewProps {
    * between what StepSelectLanguage expects and what the orval-generated API types are.
    * Specifically, `transcription_services` and `translation_services` arrays are readonly in new types.
    */
-  onLanguageChange: (language: ListLanguage | null) => void
+  onLanguageChange: (language: any) => void
   titleOverride?: string
   /** The following props are from the old languageSelector, and is useful to maintain it's UX*/
   hiddenLanguages?: LanguageCode[]
