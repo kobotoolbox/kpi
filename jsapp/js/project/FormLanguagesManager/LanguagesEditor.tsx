@@ -84,7 +84,7 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
               type='warning'
               icon='alert'
               message={t(
-                'You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.',
+                'You have named translations in your form but the default translation is unnamed. Please specify a default translation or make an existing one default.',
               )}
             />
           )}
