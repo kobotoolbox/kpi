@@ -36,7 +36,10 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   // TODO: if the recentlySelected language is not a featured language, it fails to show up on the group
   const [recentlySelected, setRecentlySelected] = useState<LanguageCode[]>([])
   const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
+  // Keep UI grouping in sync with what user is typing right now.
+  // This avoids a stale "Results" group after clearing the input.
   const isSearching = searchValue.length >= MINIMUM_SEARCH_LENGTH
+  // Keep API calls debounced to avoid network churn while typing.
   const isDebouncedSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
   // "Main" language list (either featured languages or result of searching)
@@ -142,6 +145,11 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       label={props.titleOverride}
       searchable
       clearable
+      clearButtonProps={{
+        // Mantine clear button is aria-hidden; give tests a stable selector.
+        className: 'language-selector-clear-button',
+        'aria-label': t('Clear selected language'),
+      }}
       disabled={props.isDisabled}
       comboboxProps={{ resetSelectionOnOptionHover: true }}
       nothingFoundMessage={
