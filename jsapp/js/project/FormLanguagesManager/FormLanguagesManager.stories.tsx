@@ -9,6 +9,7 @@ import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openFormLanguagesModal } from './index'
 
 const mockAssetUid = 'storyFormLanguagesManagerUid'
+let latestPatchedAsset: AssetResponse | null = null
 
 const storyAreaStyle = {
   minHeight: 720,
@@ -17,6 +18,16 @@ const storyAreaStyle = {
 }
 
 function buildInitialAsset(): AssetResponse {
+  const survey = Array.from({ length: 11 }, (_, idx) => {
+    const index = idx + 1
+    return {
+      type: 'text',
+      name: `question_${index}`,
+      $autoname: `question_${index}`,
+      label: [`Question ${index}`],
+    }
+  })
+
   return {
     uid: mockAssetUid,
     name: 'Storybook Form Languages',
@@ -24,14 +35,7 @@ function buildInitialAsset(): AssetResponse {
       schema: '1',
       translated: ['label'],
       translations: [null],
-      survey: [
-        {
-          type: 'text',
-          name: 'question_1',
-          $autoname: 'question_1',
-          label: ['Your name'],
-        },
-      ],
+      survey,
       choices: [],
       settings: {},
     },
@@ -55,6 +59,8 @@ function createAssetPatchHandler(initialAsset: AssetResponse) {
     if (payload.content) {
       currentAsset.content = JSON.parse(payload.content)
     }
+
+    latestPatchedAsset = JSON.parse(JSON.stringify(currentAsset)) as AssetResponse
 
     return HttpResponse.json(currentAsset)
   })
@@ -125,6 +131,8 @@ export const Default: Story = {}
 
 export const BasicFlow: Story = {
   play: async ({ canvasElement, step }) => {
+    latestPatchedAsset = null
+
     const canvas = within(canvasElement)
     const page = within(document.body)
 
@@ -179,48 +187,58 @@ export const BasicFlow: Story = {
       const updateTranslationsButton = frenchLanguageElement?.querySelector('button[tooltip="Update translations"]')
       await userEvent.click(updateTranslationsButton as HTMLButtonElement)
 
-      // Wait for the translation table to render
+      // Wait for the translation table/editor to render with row content.
       await waitFor(async () => {
-        const table = document.querySelector('.UniversalTableCore-module__table--gccaF')
-        const rows = table?.querySelectorAll('tbody tr')
-        await expect(rows && rows.length > 0).toBe(true)
+        await expect(page.getByText('Question 1')).toBeInTheDocument()
+      })
+    })
+
+    await step('Go to next translations page', async () => {
+      const nextPageButton = document.querySelector('.k-icon-angle-right')?.closest('button') as
+        | HTMLButtonElement
+        | undefined
+
+      await expect(nextPageButton).toBeDefined()
+      await userEvent.click(nextPageButton as HTMLButtonElement)
+
+      await waitFor(async () => {
+        await expect(page.getByText('Question 11')).toBeInTheDocument()
       })
     })
 
     await step('Edit a single translation', async () => {
       // Wait for the translation textarea to be visible
       await waitFor(async () => {
-        const textarea = document.querySelector('.mantine-Textarea-input') as HTMLTextAreaElement | null
-        await expect(textarea).not.toBeNull()
+        await expect(page.getByText('Question 11')).toBeInTheDocument()
       })
 
-      const textarea = document.querySelector('.mantine-Textarea-input') as HTMLTextAreaElement | null
+      const textarea = page.getByRole('textbox') as HTMLTextAreaElement
 
-      if (textarea) {
-        await userEvent.click(textarea)
-        // Use the native HTMLTextAreaElement setter so React's synthetic event system
-        // picks up the change and updates the controlled component's state.
-        const nativeSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set
-        nativeSetter?.call(textarea, 'Nom')
-        textarea.dispatchEvent(new Event('input', { bubbles: true }))
-      }
+      await userEvent.click(textarea)
+      // Use the native HTMLTextAreaElement setter so React's synthetic event system
+      // picks up the change and updates the controlled component's state.
+      const nativeSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set
+      nativeSetter?.call(textarea, 'Nom')
+      textarea.dispatchEvent(new Event('input', { bubbles: true }))
 
-      // Find and click the Save Changes button
-      const saveButton = Array.from(document.querySelectorAll('button')).find((btn) =>
-        btn.textContent?.includes('Save Changes'),
-      )
+      await userEvent.click(page.getByRole('button', { name: /Save Changes/ }))
 
-      if (saveButton) {
-        await userEvent.click(saveButton)
+      // Verify the modal is still visible after saving
+      await waitFor(async () => {
+        await expect(page.getByRole('dialog', { name: 'Manage Languages' })).toBeInTheDocument()
+      })
+    })
 
-        // Verify the modal is still visible after saving
-        await waitFor(async () => {
-          const modalContent = document.querySelector('[data-modal-content="true"]')
-          await expect(modalContent).toBeInTheDocument()
-        })
-      } else {
-        throw new Error('Save Changes button not found')
-      }
+    await step('Verify API saved translation for question 11', async () => {
+      await waitFor(async () => {
+        await expect(latestPatchedAsset).not.toBeNull()
+      })
+
+      const survey = latestPatchedAsset?.content?.survey || []
+      const question11 = survey.find((item) => item.name === 'question_11')
+      const label = question11?.label as Array<string | null> | undefined
+
+      await expect(label && label[1]).toBe('Nom')
     })
 
     await step('Close modal', async () => {

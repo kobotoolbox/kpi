@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Box, Group, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
 import type { PaginatedListResponse } from '#/UniversalTable'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
@@ -13,7 +13,6 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import type { AssetContent, AssetResponse } from '#/dataInterface'
-import { stores } from '#/stores'
 import { type LangObject, getLangString, notify } from '#/utils'
 import LanguagesEditor from './LanguagesEditor'
 import TranslationsEditor from './TranslationsEditor'
@@ -98,6 +97,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [saveButtonText, setSaveButtonText] = useState(t('Save Changes'))
   const [pagination, setPagination] = useState({ limit: 10, start: 0 })
   const [pendingDeleteLanguageIndex, setPendingDeleteLanguageIndex] = useState<number | null>(null)
+  const [pendingUnsavedConfirm, setPendingUnsavedConfirm] = useState<'close' | 'back' | null>(null)
+  const [isTranslationTableUnsaved, setIsTranslationTableUnsaved] = useState(false)
+  // Track if any cell has been edited without committing to state (to avoid first-keystroke parent re-render)
+  const tableHasUnsavedEditsRef = useRef(false)
 
   const translations = asset.content?.translations || []
   const canAddLanguages = !(translations.length === 1 && translations[0] === null)
@@ -110,7 +113,8 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       setTableRows(buildTranslationRows(asset, selectedLangIndex))
       setSaveButtonText(t('Save Changes'))
       setIsSavingTable(false)
-      stores.translations.setTranslationTableUnsaved(false)
+      setIsTranslationTableUnsaved(false)
+      tableHasUnsavedEditsRef.current = false
       setPagination({ limit: 10, start: 0 })
     }
   }, [activeView, asset, selectedLangIndex])
@@ -121,13 +125,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
   const queryClient = useQueryClient()
 
-  const tableQueryKey = [
-    'form-languages-manager-table',
-    asset.uid,
-    selectedLangIndex,
-    pagination.start,
-    pagination.limit,
-  ] as const
+  const tableQueryKey = useMemo(
+    () => ['form-languages-manager-table', asset.uid, selectedLangIndex, pagination.start, pagination.limit] as const,
+    [asset.uid, selectedLangIndex, pagination.start, pagination.limit],
+  )
 
   // Push in-memory updates synchronously so the table never goes through a
   // loading/null state on cell edits or pagination changes.
@@ -139,7 +140,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         results: tableRows.slice(pagination.start, pagination.start + pagination.limit),
       },
     })
-  }, [tableRows, pagination.start, pagination.limit])
+  }, [queryClient, tableQueryKey, tableRows, pagination.start, pagination.limit])
 
   const tableQuery = useQuery<PaginatedListResponse<TranslationRowItem>>({
     // tableRows is intentionally excluded from the key: updates are pushed
@@ -156,7 +157,14 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         },
       }
     },
-    placeholderData: keepPreviousData,
+    enabled: false,
+    initialData: {
+      status: 200,
+      data: {
+        count: tableRows.length,
+        results: tableRows.slice(pagination.start, pagination.start + pagination.limit),
+      },
+    },
   })
 
   async function patchAsset(content: AssetContent) {
@@ -185,21 +193,15 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   const requestClose = useCallback(() => {
-    if (activeView === 'translations' && stores.translations.state.isTranslationTableUnsaved) {
-      modals.openConfirmModal({
-        title: t('Close Translations Table?'),
-        children: t('You will lose all unsaved changes.'),
-        labels: { confirm: t('Close'), cancel: t('Cancel') },
-        onConfirm: () => {
-          stores.translations.setTranslationTableUnsaved(false)
-          props.onRequestClose()
-        },
-      })
+    // Check both state and ref: ref catches unsaved edits before they commit to state,
+    // state catches them after blur.
+    if (activeView === 'translations' && (isTranslationTableUnsaved || tableHasUnsavedEditsRef.current)) {
+      setPendingUnsavedConfirm('close')
       return
     }
 
     props.onRequestClose()
-  }, [activeView, props.onRequestClose])
+  }, [activeView, isTranslationTableUnsaved, props.onRequestClose])
 
   useEffect(() => {
     props.registerOnRequestClose?.(requestClose)
@@ -238,16 +240,8 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   function onBackFromTranslations() {
-    if (stores.translations.state.isTranslationTableUnsaved) {
-      modals.openConfirmModal({
-        title: t('Go back?'),
-        children: t('You will lose all unsaved changes.'),
-        labels: { confirm: t('Confirm'), cancel: t('Cancel') },
-        onConfirm: () => {
-          stores.translations.setTranslationTableUnsaved(false)
-          setActiveView('languages')
-        },
-      })
+    if (isTranslationTableUnsaved || tableHasUnsavedEditsRef.current) {
+      setPendingUnsavedConfirm('back')
       return
     }
 
@@ -287,11 +281,12 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     if (ok) {
       setSaveButtonText(t('Save Changes'))
       setIsSavingTable(false)
-      stores.translations.setTranslationTableUnsaved(false)
+      setIsTranslationTableUnsaved(false)
+      tableHasUnsavedEditsRef.current = false
     } else {
       setSaveButtonText(t('* Save Changes'))
       setIsSavingTable(false)
-      stores.translations.setTranslationTableUnsaved(true)
+      setIsTranslationTableUnsaved(true)
     }
   }
 
@@ -338,15 +333,35 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     })
   }
 
-  function onChangeTranslationCell(absoluteIndex: number, value: string) {
-    setTableRows((prev) => {
-      const copy = [...prev]
-      copy[absoluteIndex].value = value
-      return copy
-    })
-    stores.translations.setTranslationTableUnsaved(true)
+  const onStartEditingCell = useCallback(() => {
+    // Mark the ref without triggering a parent re-render. The close/back guards
+    // will check this ref to catch unsaved edits even before blur commits them.
+    tableHasUnsavedEditsRef.current = true
+  }, [])
+
+  const onChangeTranslationCell = useCallback((absoluteIndex: number, value: string) => {
+    // Commit the edited value only after blur, when the textarea is no longer
+    // focused and a parent render can safely happen. This is where we update the
+    // state to show the * in the save button and fully mark the table as dirty.
+    setTableRows((prev) =>
+      prev.map((row, idx) => {
+        if (idx !== absoluteIndex) {
+          return row
+        }
+        return {
+          ...row,
+          value,
+        }
+      }),
+    )
+    tableHasUnsavedEditsRef.current = true
+    setIsTranslationTableUnsaved(true)
     setSaveButtonText(t('* Save Changes'))
-  }
+  }, [])
+
+  const toggleInlineLanguageForm = useCallback(() => {
+    setShowInlineLanguageForm((prev) => !prev)
+  }, [])
 
   if (!asset?.content) {
     return <LoadingSpinner />
@@ -361,10 +376,57 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
             setPendingDeleteLanguageIndex(null)
             return
           }
+          if (pendingUnsavedConfirm !== null) {
+            setPendingUnsavedConfirm(null)
+            return
+          }
           requestClose()
         }
       }}
     >
+      <ModalNew
+        opened={pendingUnsavedConfirm !== null}
+        onClose={() => {
+          setPendingUnsavedConfirm(null)
+        }}
+        title={pendingUnsavedConfirm === 'close' ? t('Close Translations Table?') : t('Go back?')}
+        size='sm'
+        centered
+        withOverlay={false}
+        closeOnEscape={false}
+      >
+        <Text>{t('You will lose all unsaved changes.')}</Text>
+
+        <Group justify='flex-end' mt='md'>
+          <ButtonNew
+            variant='light'
+            onClick={() => {
+              setPendingUnsavedConfirm(null)
+            }}
+          >
+            {t('Cancel')}
+          </ButtonNew>
+
+          <ButtonNew
+            variant='filled'
+            onClick={() => {
+              const action = pendingUnsavedConfirm
+              setPendingUnsavedConfirm(null)
+              setIsTranslationTableUnsaved(false)
+              tableHasUnsavedEditsRef.current = false
+
+              if (action === 'close') {
+                props.onRequestClose()
+              } else if (action === 'back') {
+                setActiveView('languages')
+              }
+            }}
+          >
+            {pendingUnsavedConfirm === 'close' ? t('Close') : t('Confirm')}
+          </ButtonNew>
+        </Group>
+      </ModalNew>
+
       <ModalNew
         opened={pendingDeleteLanguageIndex !== null}
         onClose={() => {
@@ -425,10 +487,9 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
           queryResult={tableQuery}
           onBack={onBackFromTranslations}
           onSave={saveTableChanges}
-          onToggleInlineLanguageForm={() => {
-            setShowInlineLanguageForm((prev) => !prev)
-          }}
+          onToggleInlineLanguageForm={toggleInlineLanguageForm}
           onLanguageChange={onLanguageChange}
+          onStartEditing={onStartEditingCell}
           onChangeCell={onChangeTranslationCell}
         />
       )}
