@@ -182,10 +182,14 @@ export const BasicFlow: Story = {
         await expect(languageItems.length > 0).toBe(true)
       })
 
-      // Find the French language item container and click its "Update translations" button
+      // Scope the action to the French language card and query by accessible name.
       const frenchLanguageElement = page.getByText(/French \(fr\)/).closest('div[data-with-border="true"]')
-      const updateTranslationsButton = frenchLanguageElement?.querySelector('button[tooltip="Update translations"]')
-      await userEvent.click(updateTranslationsButton as HTMLButtonElement)
+      await expect(frenchLanguageElement).not.toBeNull()
+
+      const updateTranslationsButton = within(frenchLanguageElement as HTMLElement).getByRole('button', {
+        name: 'Update translations',
+      })
+      await userEvent.click(updateTranslationsButton)
 
       // Wait for the translation table/editor to render with row content.
       await waitFor(async () => {

@@ -132,6 +132,7 @@ export default function LanguagesEditor(props: LanguagesEditorProps) {
                       }}
                       disabled={props.isUpdatingAsset}
                       icon={IconWorldCog}
+                      aria-label={t('Update translations')}
                       tooltip={t('Update translations')}
                     />
 
