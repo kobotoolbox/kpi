@@ -27,11 +27,9 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     GEOLOCATION,
     ID,
     NA_REP,
-    NOTES,
     STATUS,
     SUBMISSION_TIME,
     SUBMITTED_BY,
-    TAGS,
     UUID,
     VALIDATION_STATUS,
     XFORM_ID_STRING,
@@ -97,7 +95,7 @@ class AbstractDataFrameBuilder:
         SUBMITTED_BY,
     ]
     # fields NOT within the form def that we want to include
-    ADDITIONAL_COLUMNS = [UUID, SUBMISSION_TIME, TAGS, NOTES, VALIDATION_STATUS]
+    ADDITIONAL_COLUMNS = [UUID, SUBMISSION_TIME, VALIDATION_STATUS]
     BINARY_SELECT_MULTIPLES = False
     """
     Group functionality used by any DataFrameBuilder i.e. XLS, CSV and KML
@@ -187,18 +185,6 @@ class AbstractDataFrameBuilder:
         ]
 
     @classmethod
-    def _tag_edit_string(cls, record):
-        """
-        Turns a list of tags into a string representation.
-        """
-        if '_tags' in record:
-            tags = []
-            for tag in record['_tags']:
-                if ',' in tag and ' ' in tag:
-                    tags.append('"%s"' % tag)
-                else:
-                    tags.append(tag)
-            record.update({'_tags': ', '.join(sorted(tags))})
 
     @classmethod
     def _split_gps_fields(cls, record, gps_fields):
@@ -538,7 +524,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
 
         # check for lists
         if type(value) is list and len(value) > 0 \
-                and key != NOTES and key != ATTACHMENTS:
+                and key != ATTACHMENTS:
             for index, item in enumerate(value):
                 # start at 1
                 index += 1
@@ -579,11 +565,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
         else:
             # anything that's not a list will be in the top level dict so its
             # safe to simply assign
-            if key == NOTES:
-                # Match behavior of
-                # kobo.apps.openrosa.libs.utils.export_tools.dict_to_joined_export()
-                d[key] = '\r\n'.join([v['note'] for v in value])
-            elif key == ATTACHMENTS:
+            if key == ATTACHMENTS:
                 d[key] = []
             else:
                 d[key] = value

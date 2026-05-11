@@ -51,9 +51,7 @@ MONGO_STRFTIME = '%Y-%m-%dT%H:%M:%S'
 NA_REP = 'n/a'
 
 # hold tags
-TAGS = "_tags"
 
-NOTES = "_notes"
 
 # statistics
 MEAN = "mean"

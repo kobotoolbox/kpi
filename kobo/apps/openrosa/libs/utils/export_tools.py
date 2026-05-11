@@ -26,12 +26,10 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     GEOLOCATION,
     ID,
     INDEX,
-    NOTES,
     PARENT_INDEX,
     PARENT_TABLE_NAME,
     STATUS,
     SUBMISSION_TIME,
-    TAGS,
     USERFORM_ID,
     UUID,
     XFORM_ID_STRING,
@@ -147,7 +145,7 @@ def dict_to_joined_export(data, index, indices, name):
     # TODO: test for _geolocation and attachment lists
     if isinstance(data, dict):
         for key, val in data.items():
-            if isinstance(val, list) and key not in [NOTES, TAGS]:
+            if isinstance(val, list):
                 output[key] = []
                 for child in val:
                     if key not in indices:
@@ -171,10 +169,6 @@ def dict_to_joined_export(data, index, indices, name):
             else:
                 if name not in output:
                     output[name] = {}
-                if key in [TAGS]:
-                    output[name][key] = ','.join(val)
-                elif key in [NOTES]:
-                    output[name][key] = '\r\n'.join([v['note'] for v in val])
                 else:
                     output[name][key] = val
 
@@ -191,7 +185,7 @@ class ExportBuilder:
     ]
     # fields we export but are not within the form's structure
     EXTRA_FIELDS = [ID, UUID, SUBMISSION_TIME, INDEX, PARENT_TABLE_NAME,
-                    PARENT_INDEX, TAGS, NOTES]
+                    PARENT_INDEX]
     SPLIT_SELECT_MULTIPLES = True
     BINARY_SELECT_MULTIPLES = False
 
