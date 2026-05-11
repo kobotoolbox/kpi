@@ -154,10 +154,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         return true
       }
 
-      notify.error('failed to update translations')
+      notify.error(t('Failed to update translations'))
       return false
     } catch {
-      notify.error('failed to update translations')
+      notify.error(t('Failed to update translations'))
       return false
     } finally {
       setIsUpdatingAsset(false)
