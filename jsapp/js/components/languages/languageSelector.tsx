@@ -153,16 +153,18 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       disabled={props.isDisabled}
       comboboxProps={{ resetSelectionOnOptionHover: true }}
       nothingFoundMessage={
-        <Group
-          onClick={openSupportPage}
-          gap={'xs'}
-          align='center'
-          style={{ cursor: 'pointer' }}
-          c='var(--mantine-color-blue-5)'
-        >
-          <KoboIcon icon={IconInfoCircleFilled} size='sm' />
-          <Text>{t('I cannot find my language')}</Text>
-        </Group>
+        isLoading ? undefined : (
+          <Group
+            onClick={openSupportPage}
+            gap={'xs'}
+            align='center'
+            style={{ cursor: 'pointer' }}
+            c='var(--mantine-color-blue-5)'
+          >
+            <KoboIcon icon={IconInfoCircleFilled} size='sm' />
+            <Text>{t('I cannot find my language')}</Text>
+          </Group>
+        )
       }
       renderOption={(option) => <Text>{option.option.label}</Text>}
       required={props.required}
