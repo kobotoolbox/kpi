@@ -81,14 +81,25 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     method: 'POST',
     matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
     run: ({ legacyFailurePayload }) => {
-      actions.resources.deployAsset.failed(legacyFailurePayload)
+      actions.resources.deployAsset.failed(legacyFailurePayload, false)
+    },
+  },
+  {
+    endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
+    refluxAction: 'actions.resources.deployAsset.failed (redeployment)',
+    method: 'PATCH',
+    matches: ({ deploymentAssetUid, requestBody }) =>
+      Boolean(deploymentAssetUid && requestBody && 'version_id' in requestBody),
+    run: ({ legacyFailurePayload }) => {
+      actions.resources.deployAsset.failed(legacyFailurePayload, true)
     },
   },
   {
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.setDeploymentActive.failed',
     method: 'PATCH',
-    matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
+    matches: ({ deploymentAssetUid, requestBody }) =>
+      Boolean(deploymentAssetUid && (!requestBody || !('version_id' in requestBody))),
     run: ({ legacyFailurePayload }) => {
       actions.resources.setDeploymentActive.failed(legacyFailurePayload)
     },
