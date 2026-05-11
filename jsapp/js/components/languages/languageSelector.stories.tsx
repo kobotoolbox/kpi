@@ -14,7 +14,7 @@ const queryClient = new QueryClient({
 })
 
 const meta: Meta<typeof LanguageSelector> = {
-  title: 'Components/LanguageSelectorNew',
+  title: 'Components/LanguageSelector',
   component: LanguageSelector,
   decorators: [
     (Story) => (
