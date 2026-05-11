@@ -49,6 +49,7 @@ const Select = <Datum extends string = string>(props: SelectPropsNarrow<Datum>) 
   }, [props.value])
 
   const iconSize = typeof props.size === 'string' ? iconSizeMap[props.size] : 's'
+  const rightSection = props.rightSection ?? <Icon name={isOpened ? 'angle-up' : 'angle-down'} size={iconSize} />
 
   return (
     <MantineSelect
@@ -57,7 +58,7 @@ const Select = <Datum extends string = string>(props: SelectPropsNarrow<Datum>) 
       onChange={onChange}
       onDropdownOpen={() => setIsOpened(true)}
       onDropdownClose={() => setIsOpened(false)}
-      rightSection={<Icon name={isOpened ? 'angle-up' : 'angle-down'} size={iconSize} />}
+      rightSection={rightSection}
     />
   )
 }
