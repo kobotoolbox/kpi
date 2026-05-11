@@ -87,6 +87,9 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
+        // We don't have a nice simple way of getting assetType. It is required
+        // by a few components in Library code, we will fix up the code in there
+        // to avoid over-engineering here.
         actions.resources.deleteAsset.completed({ uid: assetUid, assetType: '' })
       }
     },

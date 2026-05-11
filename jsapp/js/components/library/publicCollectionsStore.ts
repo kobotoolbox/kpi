@@ -277,15 +277,13 @@ class PublicCollectionsStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted({ uid, assetType }: DeleteAssetResponse) {
-    if (assetType === ASSET_TYPES.collection.id) {
-      const found = this.findAsset(uid)
-      if (found) {
-        this.fetchData(true)
-      }
-      // if not found it is possible it is on other page of results, but it is
-      // not important enough to do a data fetch
+  onDeleteAssetCompleted({ uid }: DeleteAssetResponse) {
+    const found = this.findAsset(uid)
+    if (found) {
+      this.fetchData(true)
     }
+    // if not found it is possible it is on other page of results, but it is
+    // not important enough to do a data fetch
   }
 
   // public methods
