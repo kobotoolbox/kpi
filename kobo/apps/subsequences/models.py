@@ -3,6 +3,7 @@ import json
 
 from django.db import models, transaction
 from django.db.models import Q
+from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
@@ -327,6 +328,10 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
     class Meta:
         ordering = ['-date_created']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_status = self.status
+
     @staticmethod
     def make_params_hash(params: dict) -> str:
         """
@@ -396,7 +401,8 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         """
         if self.status == BulkActionStatus.IN_PROGRESS:
             self.items.filter(status=BulkActionItemStatus.PENDING).update(
-                status=BulkActionItemStatus.IN_PROGRESS
+                status=BulkActionItemStatus.IN_PROGRESS,
+                date_modified=timezone.now(),
             )
         elif self.status == BulkActionStatus.CANCELLED:
             self.items.filter(
@@ -404,18 +410,20 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                     BulkActionItemStatus.PENDING,
                     BulkActionItemStatus.IN_PROGRESS,
                 ]
-            ).update(status=BulkActionItemStatus.CANCELLED)
+            ).update(
+                status=BulkActionItemStatus.CANCELLED,
+                date_modified=timezone.now(),
+            )
 
     def save(self, *args, **kwargs):
         is_new = self._state.adding
-        previous_status = None
-        if not is_new:
-            previous_status = type(self).objects.only('status').get(pk=self.pk).status
+        previous_status = self._original_status
 
         with transaction.atomic():
             super().save(*args, **kwargs)
             if not is_new and previous_status != self.status:
                 self._propagate_status_to_items()
+        self._original_status = self.status
 
 
 class SubsequenceBulkActionItem(AbstractTimeStampedModel):

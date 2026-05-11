@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from django.db import IntegrityError
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.shortcuts import User
