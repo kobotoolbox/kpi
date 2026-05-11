@@ -120,5 +120,5 @@ def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
         if dashed_xpath == qpath:
             return xpath
 
-    logging.warn(f'[LRM 0024] - xpath for qpath {qpath} not found. Keeping as qpath.')
+    logging.warning(f'[LRM 0024] - xpath for qpath {qpath} not found. Keeping as qpath.')
     return qpath
