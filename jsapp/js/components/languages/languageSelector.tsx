@@ -183,7 +183,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
         return <Text>{option.option.label}</Text>
       }}
       required={props.required}
-      rightSection={isLoading ? <Loader size="xs" /> : undefined}
+      rightSection={isLoading ? <Loader size='xs' /> : undefined}
     />
   )
 }
