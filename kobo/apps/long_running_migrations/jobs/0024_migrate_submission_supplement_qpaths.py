@@ -52,7 +52,7 @@ def run(dry_run: bool = False):
     for supplement in supplements_with_qpaths:
         print(f'{logging_prefix} - updating supplement {migrated+1}/{total}')
         asset = supplement.asset
-        new_content = get_sanitized_dict_keys(supplement.content, supplement.asset)
+        new_content = get_sanitized_dict_keys(logging_prefix, supplement.content, supplement.asset)
         with transaction.atomic():
             for xpath, actions_for_xpath in new_content.items():
                 if xpath == '_version':
@@ -85,7 +85,7 @@ def run(dry_run: bool = False):
     logging.info(f'{logging_prefix} - Done')
 
 
-def get_sanitized_dict_keys(content_dict: dict, asset: 'Asset') -> dict | None:
+def get_sanitized_dict_keys(logging_prefix: str, content_dict: dict, asset: 'Asset') -> dict | None:
     """
     Update `dict_to_update` keys created with `qpath`(if they are present) with
     their `xpath` counterpart.
@@ -95,7 +95,7 @@ def get_sanitized_dict_keys(content_dict: dict, asset: 'Asset') -> dict | None:
         if old_xpath == '_version':
             continue
         if '-' in old_xpath and '/' not in old_xpath:
-            xpath = qpath_to_xpath(old_xpath, asset)
+            xpath = qpath_to_xpath(logging_prefix, old_xpath, asset)
             if xpath == old_xpath:
                 continue
             del updated_dict[old_xpath]
@@ -103,7 +103,7 @@ def get_sanitized_dict_keys(content_dict: dict, asset: 'Asset') -> dict | None:
     return updated_dict
 
 
-def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
+def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'Asset') -> str:
     """
     We have abandoned `qpath` attribute in favor of `xpath`.
     Existing projects may still use it though.
@@ -120,5 +120,5 @@ def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
         if dashed_xpath == qpath:
             return xpath
 
-    logging.warning(f'[LRM 0024] - xpath for qpath {qpath} not found. Keeping as qpath.')
+    print(f'{logging_prefix} - xpath for qpath {qpath} not found. Keeping as qpath.')
     return qpath
