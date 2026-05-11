@@ -14,7 +14,7 @@ import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import type { AssetContent, AssetResponse } from '#/dataInterface'
 import { stores } from '#/stores'
-import { type LangObject, escapeHtml, getLangString, notify } from '#/utils'
+import { type LangObject, getLangString, notify } from '#/utils'
 import LanguagesEditor from './LanguagesEditor'
 import TranslationsEditor from './TranslationsEditor'
 import {
@@ -325,7 +325,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
       title: t('Change default language?'),
       children: t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
         '##lang##',
-        escapeHtml(String(langString)),
+        String(langString),
       ),
       labels: { confirm: t('Confirm'), cancel: t('Cancel') },
       onConfirm: async () => {
