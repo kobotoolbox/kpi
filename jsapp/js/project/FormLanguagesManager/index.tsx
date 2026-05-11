@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import { Box, Group, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
 import type { PaginatedListResponse } from '#/UniversalTable'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
@@ -119,15 +119,34 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     props.onActiveViewChange?.(activeView)
   }, [activeView, props.onActiveViewChange])
 
+  const queryClient = useQueryClient()
+
+  const tableQueryKey = [
+    'form-languages-manager-table',
+    asset.uid,
+    selectedLangIndex,
+    pagination.start,
+    pagination.limit,
+  ] as const
+
+  // Push in-memory updates synchronously so the table never goes through a
+  // loading/null state on cell edits or pagination changes.
+  useEffect(() => {
+    queryClient.setQueryData(tableQueryKey, {
+      status: 200,
+      data: {
+        count: tableRows.length,
+        results: tableRows.slice(pagination.start, pagination.start + pagination.limit),
+      },
+    })
+  }, [tableRows, pagination.start, pagination.limit])
+
   const tableQuery = useQuery<PaginatedListResponse<TranslationRowItem>>({
-    queryKey: [
-      'form-languages-manager-table',
-      asset.uid,
-      selectedLangIndex,
-      tableRows,
-      pagination.start,
-      pagination.limit,
-    ],
+    // tableRows is intentionally excluded from the key: updates are pushed
+    // synchronously via setQueryData above, so the queryFn only runs on
+    // initial mount to seed the cache.
+    // eslint-disable-next-line @tanstack/query/exhaustive-deps
+    queryKey: tableQueryKey,
     queryFn: async () => {
       return {
         status: 200,
@@ -137,6 +156,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         },
       }
     },
+    placeholderData: keepPreviousData,
   })
 
   async function patchAsset(content: AssetContent) {
