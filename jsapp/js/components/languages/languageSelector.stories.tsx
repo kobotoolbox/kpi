@@ -62,7 +62,7 @@ export const Default: Story = {
     required: true,
     titleOverride: SELECT_LABEL,
     suggestedLanguages: ['ar', 'bn'],
-    hiddenLanguages: [],
+    hiddenLanguages: ['', ''],
   },
 }
 
@@ -72,7 +72,7 @@ export const InteractionTest: Story = {
     required: true,
     titleOverride: SELECT_LABEL,
     suggestedLanguages: ['ar', 'bn'],
-    hiddenLanguages: [],
+    hiddenLanguages: ['', ''],
   },
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement)
