@@ -77,9 +77,10 @@ export interface BridgeFailureRoute {
 
 /**
  * Small type guard used by the route modules to avoid repeating object checks.
+ * Excludes arrays and other non-plain-object values.
  */
 export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function getPathParts(pathname: string): string[] {
