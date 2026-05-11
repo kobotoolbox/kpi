@@ -1,4 +1,8 @@
-from django.db import models
+import hashlib
+import json
+
+from django.db import models, transaction
+from django.db.models import Q
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
@@ -278,3 +282,185 @@ class QuestionAdvancedFeature(models.Model):
             asset=self.asset,
             prefetched_dependencies=prefetched_dependencies,
         )
+
+
+class BulkActionStatus(models.TextChoices):
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    COMPLETE = 'complete'
+    CANCELLED = 'cancelled'
+
+
+class BulkActionItemStatus(models.TextChoices):
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    COMPLETE = 'complete'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
+
+
+class SubsequenceBulkAction(AbstractTimeStampedModel):
+    uid = KpiUidField(uid_prefix='sba', primary_key=True)
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='subsequence_bulk_actions',
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=BulkActionStatus.choices,
+        default=BulkActionStatus.PENDING,
+        db_index=True,
+    )
+    action_id = models.CharField(
+        max_length=60,
+        choices=Action.choices,
+        db_index=True,
+    )
+    question_xpath = models.CharField(max_length=2000)
+    params = LazyDefaultJSONBField(default=dict)
+    # Uses a denormalized username string, similar to `Asset.created_by`,
+    # instead of a foreign key so job records remain intact through user
+    # lifecycle changes and are inexpensive to render.
+    created_by = models.CharField(max_length=150, db_index=True)
+
+    class Meta:
+        ordering = ['-date_created']
+
+    @staticmethod
+    def make_params_hash(params: dict) -> str:
+        """
+        Generates a deterministic SHA-256 hash from a dictionary of parameters
+
+        To ensure idempotency, parameters are sorted by key before serialization
+        so that identical settings always produce the same hash, regardless of
+        dictionary order.
+        """
+        params_json = json.dumps(params, sort_keys=True, separators=(',', ':'))
+        return hashlib.sha256(params_json.encode()).hexdigest()
+
+    @classmethod
+    def create_with_items(
+        cls,
+        *,
+        asset,
+        action_id: str,
+        question_xpath: str,
+        params: dict,
+        created_by: str,
+        submission_root_uuids: list[str],
+        status: str = BulkActionStatus.PENDING,
+    ) -> 'SubsequenceBulkAction':
+        """
+        Orchestrates the atomic creation of a bulk action and its constituent items
+
+        This method wraps the creation of the parent `SubsequenceBulkAction` and all
+        related `SubsequenceBulkActionItem` rows in a single database transaction.
+        If any child item violates the uniqueness constraint, the entire transaction
+        is rolled back to prevent partial or duplicate records.
+        """
+        params_hash = cls.make_params_hash(params)
+
+        with transaction.atomic():
+            parent = cls.objects.create(
+                asset=asset,
+                action_id=action_id,
+                question_xpath=question_xpath,
+                params=params,
+                created_by=created_by,
+                status=status,
+            )
+            SubsequenceBulkActionItem.objects.bulk_create(
+                [
+                    SubsequenceBulkActionItem(
+                        parent=parent,
+                        submission_root_uuid=submission_root_uuid,
+                        action_id=action_id,
+                        question_xpath=question_xpath,
+                        status=BulkActionItemStatus.PENDING,
+                        hash=params_hash,
+                    )
+                    for submission_root_uuid in submission_root_uuids
+                ]
+            )
+        return parent
+
+    def _propagate_status_to_items(self):
+        """
+        Synchronizes the status of non-terminal child items with the parent job
+
+        When a parent job moves to 'in_progress', pending items are also moved
+        to 'in_progress'. When a parent is 'cancelled', all active children are
+        cancelled. Items already in a terminal state (complete, failed) are
+        never modified.
+        """
+        if self.status == BulkActionStatus.IN_PROGRESS:
+            self.items.filter(status=BulkActionItemStatus.PENDING).update(
+                status=BulkActionItemStatus.IN_PROGRESS
+            )
+        elif self.status == BulkActionStatus.CANCELLED:
+            self.items.filter(
+                status__in=[
+                    BulkActionItemStatus.PENDING,
+                    BulkActionItemStatus.IN_PROGRESS,
+                ]
+            ).update(status=BulkActionItemStatus.CANCELLED)
+
+    def save(self, *args, **kwargs):
+        is_new = self._state.adding
+        previous_status = None
+        if not is_new:
+            previous_status = type(self).objects.only('status').get(pk=self.pk).status
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            if not is_new and previous_status != self.status:
+                self._propagate_status_to_items()
+
+
+class SubsequenceBulkActionItem(AbstractTimeStampedModel):
+    uid = KpiUidField(uid_prefix='sbai', primary_key=True)
+    parent = models.ForeignKey(
+        SubsequenceBulkAction,
+        related_name='items',
+        on_delete=models.CASCADE,
+    )
+    submission_root_uuid = models.CharField(max_length=249, db_index=True)
+    action_id = models.CharField(
+        max_length=60,
+        choices=Action.choices,
+        db_index=True,
+    )
+    question_xpath = models.CharField(max_length=2000)
+    status = models.CharField(
+        max_length=20,
+        choices=BulkActionItemStatus.choices,
+        default=BulkActionItemStatus.PENDING,
+        db_index=True,
+    )
+    hash = models.CharField(max_length=64, db_index=True)
+    service_id = models.CharField(max_length=2048, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    'action_id',
+                    'submission_root_uuid',
+                    'question_xpath',
+                    'hash',
+                ],
+                condition=Q(
+                    status__in=[
+                        BulkActionItemStatus.PENDING,
+                        BulkActionItemStatus.IN_PROGRESS,
+                    ]
+                ),
+                name='uniq_active_bulk_job_item_per_submission_action',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.hash and self.parent_id:
+            self.hash = self.parent.make_params_hash(self.parent.params)
+        super().save(*args, **kwargs)

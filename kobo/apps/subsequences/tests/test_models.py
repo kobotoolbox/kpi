@@ -5,7 +5,8 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
-from django.test import TestCase
+from django.db import IntegrityError
+from django.test import TestCase, TransactionTestCase
 from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -16,7 +17,14 @@ from ..actions import (
 )
 from ..constants import SUBMISSION_UUID_FIELD
 from ..exceptions import InvalidAction, InvalidXPath
-from ..models import QuestionAdvancedFeature, SubmissionSupplement
+from ..models import (
+    BulkActionItemStatus,
+    BulkActionStatus,
+    QuestionAdvancedFeature,
+    SubmissionSupplement,
+    SubsequenceBulkAction,
+    SubsequenceBulkActionItem,
+)
 from .constants import EMPTY_SUPPLEMENT
 
 
@@ -509,3 +517,190 @@ class SubmissionSupplementTestCase(TestCase):
                     },
                 },
             )
+
+
+class SubsequenceBulkActionModelTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username='bob',
+            email='bob@example.com',
+            password='password',
+        )
+        self.asset = Asset.objects.create(owner=self.owner, name='Bulk Asset')
+
+    def test_make_params_hash_is_deterministic(self):
+        hash1 = SubsequenceBulkAction.make_params_hash(
+            {'language': 'en', 'locale': 'en-US'}
+        )
+        hash2 = SubsequenceBulkAction.make_params_hash(
+            {'locale': 'en-US', 'language': 'en'}
+        )
+
+        assert hash1 == hash2
+
+    def test_create_with_items_populates_children(self):
+        parent = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by=self.owner.username,
+            submission_root_uuids=['uuid-1', 'uuid-2'],
+        )
+
+        items = list(parent.items.order_by('submission_root_uuid'))
+        assert len(items) == 2
+        assert items[0].action_id == parent.action_id
+        assert items[0].question_xpath == parent.question_xpath
+        assert items[0].hash == SubsequenceBulkAction.make_params_hash(parent.params)
+        assert items[0].status == BulkActionItemStatus.PENDING
+        assert items[1].hash == items[0].hash
+
+    def test_parent_status_in_progress_propagates_only_pending_items(self):
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+            created_by=self.owner.username,
+            status=BulkActionStatus.PENDING,
+        )
+        params_hash = parent.make_params_hash(parent.params)
+        pending = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=params_hash,
+        )
+        complete = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-2',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.COMPLETE,
+            hash=params_hash,
+        )
+
+        parent.status = BulkActionStatus.IN_PROGRESS
+        parent.save()
+
+        pending.refresh_from_db()
+        complete.refresh_from_db()
+        assert pending.status == BulkActionItemStatus.IN_PROGRESS
+        assert complete.status == BulkActionItemStatus.COMPLETE
+
+    def test_parent_status_cancelled_preserves_terminal_items(self):
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_translation',
+            question_xpath='q1',
+            params={'language': 'fr'},
+            created_by=self.owner.username,
+            status=BulkActionStatus.PENDING,
+        )
+        params_hash = parent.make_params_hash(parent.params)
+        pending = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=params_hash,
+        )
+        in_progress = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-2',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.IN_PROGRESS,
+            hash=params_hash,
+        )
+        failed = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-3',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.FAILED,
+            hash=params_hash,
+        )
+
+        parent.status = BulkActionStatus.CANCELLED
+        parent.save()
+
+        pending.refresh_from_db()
+        in_progress.refresh_from_db()
+        failed.refresh_from_db()
+        assert pending.status == BulkActionItemStatus.CANCELLED
+        assert in_progress.status == BulkActionItemStatus.CANCELLED
+        assert failed.status == BulkActionItemStatus.FAILED
+
+
+class SubsequenceBulkActionConstraintTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username='carol',
+            email='carol@example.com',
+            password='password',
+        )
+        self.asset = Asset.objects.create(owner=self.owner, name='Constraint Asset')
+        self.params = {'language': 'en'}
+        self.params_hash = SubsequenceBulkAction.make_params_hash(self.params)
+
+    def test_active_item_uniqueness_constraint_blocks_duplicates(self):
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params=self.params,
+            created_by=self.owner.username,
+        )
+        SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=self.params_hash,
+        )
+
+        with pytest.raises(IntegrityError):
+            SubsequenceBulkActionItem.objects.create(
+                parent=parent,
+                submission_root_uuid='uuid-1',
+                action_id=parent.action_id,
+                question_xpath=parent.question_xpath,
+                status=BulkActionItemStatus.IN_PROGRESS,
+                hash=self.params_hash,
+            )
+
+    def test_atomic_create_with_items_rolls_back_parent_on_constraint_failure(self):
+        existing_parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params=self.params,
+            created_by=self.owner.username,
+        )
+        SubsequenceBulkActionItem.objects.create(
+            parent=existing_parent,
+            submission_root_uuid='uuid-1',
+            action_id=existing_parent.action_id,
+            question_xpath=existing_parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=self.params_hash,
+        )
+
+        previous_count = SubsequenceBulkAction.objects.count()
+        with pytest.raises(IntegrityError):
+            SubsequenceBulkAction.create_with_items(
+                asset=self.asset,
+                action_id='automatic_google_transcription',
+                question_xpath='q1',
+                params=self.params,
+                created_by=self.owner.username,
+                submission_root_uuids=['uuid-1', 'uuid-2'],
+            )
+
+        assert SubsequenceBulkAction.objects.count() == previous_count
