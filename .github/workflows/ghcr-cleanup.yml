@@ -16,7 +16,6 @@ jobs:
           client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
           private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
           owner: kobotoolbox
-          repositories: "kpi"
 
       - uses: snok/container-retention-policy@v3.0.1
         with:
