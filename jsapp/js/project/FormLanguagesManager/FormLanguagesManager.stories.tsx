@@ -137,6 +137,10 @@ export const BasicFlow: Story = {
     })
 
     await step('Set default language', async () => {
+      await waitFor(async () => {
+        await expect(page.getByRole('textbox', { name: 'Default language name' })).toBeInTheDocument()
+      })
+
       const defaultNameInput = page.getByRole('textbox', { name: 'Default language name' })
       const defaultCodeInput = page.getByRole('textbox', { name: 'Default language code' })
 
@@ -164,33 +168,59 @@ export const BasicFlow: Story = {
       })
     })
 
-    await step('Open translations and edit a single value', async () => {
-      const translationRows = Array.from(document.querySelectorAll('.form-view__cell--translation'))
-      const firstRowActions = translationRows[0]?.querySelector('.form-view__cell--translation-actions')
-      const actionButtons = firstRowActions?.querySelectorAll('button')
-
-      await expect(actionButtons && actionButtons.length > 1).toBe(true)
-
-      await userEvent.click(actionButtons![1])
-
+    await step('Open translations table', async () => {
       await waitFor(async () => {
-        await expect(page.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument()
+        const languageItems = page.getAllByText(/French \(fr\)/)
+        await expect(languageItems.length > 0).toBe(true)
       })
 
-      const translationTextarea = document.querySelector(
-        '.translation-table-container textarea',
-      ) as HTMLTextAreaElement | null
-      await expect(translationTextarea).not.toBeNull()
+      // Find the French language item container and click its "Update translations" button
+      const frenchLanguageElement = page.getByText(/French \(fr\)/).closest('div[data-with-border="true"]')
+      const updateTranslationsButton = frenchLanguageElement?.querySelector('button[tooltip="Update translations"]')
+      await userEvent.click(updateTranslationsButton as HTMLButtonElement)
 
-      if (translationTextarea) {
-        await userEvent.type(translationTextarea, 'Nom')
+      // Wait for the translation table to render
+      await waitFor(async () => {
+        const table = document.querySelector('.UniversalTableCore-module__table--gccaF')
+        const rows = table?.querySelectorAll('tbody tr')
+        await expect(rows && rows.length > 0).toBe(true)
+      })
+    })
+
+    await step('Edit a single translation', async () => {
+      // Wait for the translation textarea to be visible
+      await waitFor(async () => {
+        const textarea = document.querySelector('.mantine-Textarea-input') as HTMLTextAreaElement | null
+        await expect(textarea).not.toBeNull()
+      })
+
+      const textarea = document.querySelector('.mantine-Textarea-input') as HTMLTextAreaElement | null
+
+      if (textarea) {
+        await userEvent.click(textarea)
+        // Use the native HTMLTextAreaElement setter so React's synthetic event system
+        // picks up the change and updates the controlled component's state.
+        const nativeSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set
+        nativeSetter?.call(textarea, 'Nom')
+        textarea.dispatchEvent(new Event('input', { bubbles: true }))
       }
 
-      await userEvent.click(page.getByRole('button', { name: 'Save Changes' }))
+      // Find and click the Save Changes button
+      const saveButton = Array.from(document.querySelectorAll('button')).find((btn) =>
+        btn.textContent?.includes('Save Changes'),
+      )
 
-      await waitFor(async () => {
-        await expect(page.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument()
-      })
+      if (saveButton) {
+        await userEvent.click(saveButton)
+
+        // Verify the modal is still visible after saving
+        await waitFor(async () => {
+          const modalContent = document.querySelector('[data-modal-content="true"]')
+          await expect(modalContent).toBeInTheDocument()
+        })
+      } else {
+        throw new Error('Save Changes button not found')
+      }
     })
 
     await step('Close modal', async () => {
