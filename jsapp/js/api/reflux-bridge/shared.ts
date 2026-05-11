@@ -1,5 +1,5 @@
 import type { Asset } from '#/api/models/asset'
-import type { AssetResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse } from '#/dataInterface'
 
 /**
  * Shared bridge types and helpers.
@@ -38,10 +38,7 @@ export interface BridgeSuccessRouteContext extends BridgeRequestRouteContext {
   responseData: unknown
 }
 
-export interface LegacyFailurePayload {
-  status?: number
-  responseJSON?: Record<string, unknown>
-  responseText?: string
+export type LegacyFailurePayload = FailResponse & {
   detail?: unknown
 }
 
@@ -134,21 +131,41 @@ export function parseJsonBody(body: BodyInit | null | undefined): Record<string,
 }
 
 export function toLegacyAsset(asset: Asset | AssetResponse): AssetResponse {
-  return asset as unknown as AssetResponse
+  return asset as AssetResponse
+}
+
+/**
+ * Convert an unknown API payload into the legacy asset shape used by Reflux stores.
+ */
+export function toLegacyAssetFromUnknown(value: unknown): AssetResponse {
+  return toLegacyAsset(value as Asset | AssetResponse)
+}
+
+/**
+ * Read deployment response payloads that embed an `asset` object.
+ */
+export function getLegacyDeploymentAsset(value: unknown): AssetResponse | undefined {
+  if (!isRecord(value) || !isRecord(value.asset)) {
+    return undefined
+  }
+
+  return toLegacyAssetFromUnknown(value.asset)
 }
 
 export function toLegacyFailurePayload(response: BridgeableFailureResponse): LegacyFailurePayload {
   // Legacy failed listeners often expect a jQuery-style failure payload.
   const payload: LegacyFailurePayload = {
+    status: typeof response.status === 'number' ? response.status : 0,
+    statusText: 'error',
     detail: response.error,
   }
 
-  if (typeof response.status === 'number') {
-    payload.status = response.status
+  if (response.headers) {
+    payload.headers = response.headers
   }
 
   if (isRecord(response.data)) {
-    payload.responseJSON = response.data
+    payload.responseJSON = response.data as FailResponse['responseJSON']
   }
 
   if (typeof response.data === 'string') {

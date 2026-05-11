@@ -18,7 +18,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
           !('map_styles' in requestBody),
       ),
     run: ({ legacyFailurePayload }) => {
-      actions.resources.updateAsset.failed(legacyFailurePayload as never)
+      actions.resources.updateAsset.failed(legacyFailurePayload)
     },
   },
   {
@@ -27,7 +27,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     method: 'PATCH',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'report_styles' in requestBody),
     run: ({ legacyFailurePayload }) => {
-      actions.reports.setStyle.failed(legacyFailurePayload as never)
+      actions.reports.setStyle.failed(legacyFailurePayload)
     },
   },
   {
@@ -36,7 +36,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     method: 'PATCH',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'report_custom' in requestBody),
     run: ({ legacyFailurePayload }) => {
-      actions.reports.setCustom.failed(legacyFailurePayload as never)
+      actions.reports.setCustom.failed(legacyFailurePayload)
     },
   },
   {
@@ -45,7 +45,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     method: 'PATCH',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'map_styles' in requestBody),
     run: ({ legacyFailurePayload }) => {
-      actions.map.setMapStyles.failed(legacyFailurePayload as never)
+      actions.map.setMapStyles.failed(legacyFailurePayload)
     },
   },
   {
@@ -56,11 +56,11 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     run: ({ requestBody, legacyFailurePayload }) => {
       // Same endpoint powers both create and clone, so branch by request body.
       if (typeof requestBody?.clone_from === 'string' && requestBody.clone_from.length > 0) {
-        actions.resources.cloneAsset.failed(legacyFailurePayload as never)
+        actions.resources.cloneAsset.failed(legacyFailurePayload)
         return
       }
 
-      actions.resources.createResource.failed(legacyFailurePayload as never)
+      actions.resources.createResource.failed(legacyFailurePayload)
     },
   },
   {
@@ -81,7 +81,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     method: 'POST',
     matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
     run: ({ legacyFailurePayload }) => {
-      actions.resources.deployAsset.failed(legacyFailurePayload as never)
+      actions.resources.deployAsset.failed(legacyFailurePayload)
     },
   },
   {
@@ -90,7 +90,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     method: 'PATCH',
     matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
     run: ({ legacyFailurePayload }) => {
-      actions.resources.setDeploymentActive.failed(legacyFailurePayload as never)
+      actions.resources.setDeploymentActive.failed(legacyFailurePayload)
     },
   },
 ]

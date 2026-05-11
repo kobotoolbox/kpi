@@ -1,9 +1,6 @@
 import { actions } from '#/actions'
-import type { Asset } from '#/api/models/asset'
-import type { DeploymentResponse } from '#/api/models/deploymentResponse'
-import type { AssetResponse } from '#/dataInterface'
 import type { BridgeSuccessRoute } from './shared'
-import { isRecord, toLegacyAsset } from './shared'
+import { getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
 
 /**
  * Response-time success routes.
@@ -25,7 +22,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
           !('map_styles' in requestBody),
       ),
     run: ({ responseData }) => {
-      actions.resources.updateAsset.completed(toLegacyAsset(responseData as unknown as Asset | AssetResponse))
+      actions.resources.updateAsset.completed(toLegacyAssetFromUnknown(responseData))
     },
   },
   {
@@ -35,7 +32,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_styles' in requestBody),
     run: ({ responseData }) => {
-      const asset = toLegacyAsset(responseData as unknown as Asset | AssetResponse)
+      const asset = toLegacyAssetFromUnknown(responseData)
       actions.reports.setStyle.completed(asset)
     },
   },
@@ -46,7 +43,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_custom' in requestBody),
     run: ({ responseData }) => {
-      const asset = toLegacyAsset(responseData as unknown as Asset | AssetResponse)
+      const asset = toLegacyAssetFromUnknown(responseData)
       actions.reports.setCustom.completed(asset)
     },
   },
@@ -58,7 +55,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
       Boolean(assetUid && isRecord(responseData) && requestBody && 'map_styles' in requestBody),
     run: ({ responseData }) => {
       // This is response-time only; `started` is emitted separately in the start route table.
-      const asset = toLegacyAsset(responseData as unknown as Asset | AssetResponse)
+      const asset = toLegacyAssetFromUnknown(responseData)
       actions.map.setMapStyles.completed(asset)
     },
   },
@@ -69,7 +66,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     matches: ({ pathname, responseData }) => pathname === '/api/v2/assets/' && isRecord(responseData),
     run: ({ responseData, requestBody }) => {
       // Same endpoint powers both create and clone, so keep the branch here.
-      const legacyAsset = toLegacyAsset(responseData as unknown as Asset | AssetResponse)
+      const legacyAsset = toLegacyAssetFromUnknown(responseData)
 
       if (typeof requestBody?.clone_from === 'string' && requestBody.clone_from.length > 0) {
         actions.resources.cloneAsset.completed(legacyAsset)
@@ -95,10 +92,14 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     refluxAction: 'actions.resources.deployAsset.completed',
     method: 'POST',
     matches: ({ deploymentAssetUid, responseData }) =>
-      Boolean(deploymentAssetUid && isRecord(responseData) && isRecord((responseData as any)?.asset)),
+      Boolean(deploymentAssetUid && getLegacyDeploymentAsset(responseData)),
     run: ({ responseData }) => {
-      const deployment = responseData as unknown as DeploymentResponse
-      actions.resources.deployAsset.completed(toLegacyAsset(deployment.asset))
+      const asset = getLegacyDeploymentAsset(responseData)
+      if (!asset) {
+        return
+      }
+
+      actions.resources.deployAsset.completed(asset)
     },
   },
   {
@@ -106,10 +107,14 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     refluxAction: 'actions.resources.setDeploymentActive.completed',
     method: 'PATCH',
     matches: ({ deploymentAssetUid, responseData }) =>
-      Boolean(deploymentAssetUid && isRecord(responseData) && isRecord((responseData as any)?.asset)),
+      Boolean(deploymentAssetUid && getLegacyDeploymentAsset(responseData)),
     run: ({ responseData }) => {
-      const deployment = responseData as unknown as DeploymentResponse
-      actions.resources.setDeploymentActive.completed(toLegacyAsset(deployment.asset))
+      const asset = getLegacyDeploymentAsset(responseData)
+      if (!asset) {
+        return
+      }
+
+      actions.resources.setDeploymentActive.completed(asset)
     },
   },
 ]
