@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { Box, Group, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
@@ -184,7 +184,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     }
   }
 
-  function requestClose() {
+  const requestClose = useCallback(() => {
     if (activeView === 'translations' && stores.translations.state.isTranslationTableUnsaved) {
       modals.openConfirmModal({
         title: t('Close Translations Table?'),
@@ -199,7 +199,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     }
 
     props.onRequestClose()
-  }
+  }, [activeView, props.onRequestClose])
 
   useEffect(() => {
     props.registerOnRequestClose?.(requestClose)
@@ -282,7 +282,6 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
     setIsSavingTable(true)
     setSaveButtonText(t('Saving…'))
-    stores.translations.setTranslationTableUnsaved(true)
 
     const ok = await patchAsset(content)
     if (ok) {
