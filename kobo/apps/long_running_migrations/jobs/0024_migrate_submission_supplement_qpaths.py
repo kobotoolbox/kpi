@@ -59,7 +59,16 @@ def run(dry_run: bool = False):
                     continue
                 for action_id in actions_for_xpath.keys():
                     if (asset.uid, xpath, action_id) not in existing_qafs:
-                        params = build_params(asset, xpath, action_id)
+                        try:
+                            params = build_params(asset, xpath, action_id)
+                        except ValueError as ve:
+                            print(
+                                f'{logging_prefix} - failed to build params '
+                                f'for {xpath}, {action_id}: {ve}'
+                            )
+                            existing_qafs.add((asset.uid, xpath, action_id))
+                            continue
+
                         if not dry_run:
                             _, created = QuestionAdvancedFeature.objects.get_or_create(
                                 asset=asset,
