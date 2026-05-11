@@ -104,15 +104,20 @@ export function buildTranslationRows(asset: AssetResponse, langIndex: number): T
 
   content.survey.forEach((row) => {
     const rowName = row.name || row.$autoname
-    const labelLocked = row?.label && rowName
-      ? row.type === GROUP_TYPES_BEGIN.begin_group
-        ? hasRowRestriction(content, rowName, LockingRestrictionName.group_label_edit)
-        : recordKeys(QUESTION_TYPES).includes(row.type as never)
-          ? hasRowRestriction(content, rowName, LockingRestrictionName.question_label_edit)
-          : false
-      : false
+    const labelLocked =
+      row?.label && rowName
+        ? row.type === GROUP_TYPES_BEGIN.begin_group
+          ? hasRowRestriction(content, rowName, LockingRestrictionName.group_label_edit)
+          : recordKeys(QUESTION_TYPES).includes(row.type as never)
+            ? hasRowRestriction(content, rowName, LockingRestrictionName.question_label_edit)
+            : false
+        : false
 
-    if (rowName && hasRowRestriction(content, rowName, LockingRestrictionName.choice_label_edit) && row.select_from_list_name) {
+    if (
+      rowName &&
+      hasRowRestriction(content, rowName, LockingRestrictionName.choice_label_edit) &&
+      row.select_from_list_name
+    ) {
       lockedChoiceLists.push(row.select_from_list_name)
     }
 
