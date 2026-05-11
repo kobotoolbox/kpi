@@ -91,7 +91,7 @@ export default function LanguageForm(props: LanguageFormProps) {
         label={props.isDefault ? t('Default language name') : t('Language name')}
         value={name}
         onChange={(evt) => {
-          setName(toTitleCase(evt.currentTarget.value.trim().toLowerCase()))
+          setName(toTitleCase(evt.currentTarget.value.toLowerCase()))
           setNameError(null)
         }}
         error={nameError}
