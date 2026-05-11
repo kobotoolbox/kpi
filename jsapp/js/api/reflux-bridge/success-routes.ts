@@ -58,6 +58,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
       // This is response-time only; `started` is emitted separately in the start route table.
       const asset = toLegacyAssetFromUnknown(responseData)
       actions.map.setMapStyles.completed(asset)
+      actions.resources.updateAsset.completed(asset)
     },
   },
   {
