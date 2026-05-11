@@ -94,7 +94,8 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     endpoint: 'POST /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.deployAsset.completed',
     method: 'POST',
-    matches: ({ deploymentAssetUid, responseData }) => Boolean(deploymentAssetUid && isRecord(responseData)),
+    matches: ({ deploymentAssetUid, responseData }) =>
+      Boolean(deploymentAssetUid && isRecord(responseData) && isRecord((responseData as any)?.asset)),
     run: ({ responseData }) => {
       const deployment = responseData as unknown as DeploymentResponse
       actions.resources.deployAsset.completed(toLegacyAsset(deployment.asset))
@@ -104,7 +105,8 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.setDeploymentActive.completed',
     method: 'PATCH',
-    matches: ({ deploymentAssetUid, responseData }) => Boolean(deploymentAssetUid && isRecord(responseData)),
+    matches: ({ deploymentAssetUid, responseData }) =>
+      Boolean(deploymentAssetUid && isRecord(responseData) && isRecord((responseData as any)?.asset)),
     run: ({ responseData }) => {
       const deployment = responseData as unknown as DeploymentResponse
       actions.resources.setDeploymentActive.completed(toLegacyAsset(deployment.asset))
