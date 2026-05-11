@@ -636,6 +636,17 @@ class SubsequenceBulkActionModelTestCase(TestCase):
         assert in_progress.status == BulkActionItemStatus.CANCELLED
         assert failed.status == BulkActionItemStatus.FAILED
 
+    def test_create_with_items_raises_error_on_empty_submissions(self):
+        with pytest.raises(ValueError, match='at least one submission'):
+            SubsequenceBulkAction.create_with_items(
+                asset=self.asset,
+                action_id='automatic_google_transcription',
+                question_xpath='q1',
+                params={'language': 'en'},
+                created_by=self.owner.username,
+                submission_root_uuids=[],
+            )
+
 
 class SubsequenceBulkActionConstraintTestCase(TestCase):
     def setUp(self):

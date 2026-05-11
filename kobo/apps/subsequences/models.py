@@ -364,6 +364,9 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         If any child item violates the uniqueness constraint, the entire transaction
         is rolled back to prevent partial or duplicate records.
         """
+        if not submission_root_uuids:
+            raise ValueError('A bulk action must target at least one submission.')
+
         params_hash = cls.make_params_hash(params)
 
         with transaction.atomic():
