@@ -280,14 +280,11 @@ class QuestionAdvancedFeatureViewSet(
 )
 class BulkActionViewSet(
     AssetNestedObjectViewsetMixin,
+    NestedViewSetMixin,
     viewsets.ViewSet,
 ):
     permission_classes = (AssetAdvancedFeaturesPermission,)
     versioning_class = APIV2Versioning
-
-    @property
-    def asset_uid(self):
-        return self.kwargs.get('uid_asset')
 
     def _not_implemented(self):
         raise PlaceholderNotImplementedApiException()

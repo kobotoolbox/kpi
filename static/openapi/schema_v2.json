@@ -2841,7 +2841,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_list",
-                "description": "## List bulk processing jobs on an asset\n\nLists bulk processing jobs for an asset. Each job is organized around one\nquestion and many submissions.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
+                "description": "## List bulk processing jobs on an asset\n\nReturns all bulk processing jobs associated with the specified asset. Each job\nis organized around one question and many submissions.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3115,7 +3115,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{uid_bulk_action}/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_retrieve",
-                "description": "## Retrieve a bulk processing job\n\nRetrieves a single bulk processing job for an asset.\n\nThe response shape is identical to the item returned by the bulk job creation\nendpoint.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
+                "description": "## Retrieve a bulk processing job\n\nReturns detailed information about a single bulk processing job, including its\ncurrent status and processing metadata.\n\nThe response shape is identical to the item returned by the bulk job creation\nendpoint.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
                 "parameters": [
                     {
                         "in": "path",

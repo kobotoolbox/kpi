@@ -556,8 +556,8 @@ export const useAssetsAdvancedFeaturesPartialUpdate = <
 /**
  * ## List bulk processing jobs on an asset
 
-Lists bulk processing jobs for an asset. Each job is organized around one
-question and many submissions.
+Returns all bulk processing jobs associated with the specified asset. Each job
+is organized around one question and many submissions.
 
 This endpoint currently exists to reserve the response contract for frontend
 integration and OpenAPI generation. Runtime processing is not yet implemented.
@@ -767,7 +767,8 @@ export const useAssetsAdvancedFeaturesBulkActionsCreate = <
 /**
  * ## Retrieve a bulk processing job
 
-Retrieves a single bulk processing job for an asset.
+Returns detailed information about a single bulk processing job, including its
+current status and processing metadata.
 
 The response shape is identical to the item returned by the bulk job creation
 endpoint.
