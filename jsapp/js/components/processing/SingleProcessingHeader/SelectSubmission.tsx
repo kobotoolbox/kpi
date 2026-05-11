@@ -8,6 +8,7 @@ import {
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
+import protectorHelpers from '#/protector/protectorHelpers'
 import { removeDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
 
@@ -24,6 +25,7 @@ interface Props {
   submission?: DataResponse
   assetUid: string
   xpath: string
+  hasUnsavedWork: boolean
 }
 
 /**
@@ -31,7 +33,7 @@ interface Props {
  * submissions and questions. It also has means of leaving Single Processing
  * via "DONE" button.
  */
-export default function SelectSubmission({ assetUid, submission, xpath }: Props) {
+export default function SelectSubmission({ assetUid, submission, xpath, hasUnsavedWork }: Props) {
   if (!submission) return
 
   // Because submission times are only accurate to the second,_id
@@ -77,12 +79,16 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
 
   const goPrev = () => {
     if (!queryPrev.data) return
-    goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryPrev.data.submission['meta/rootUuid']), true)
+    protectorHelpers.safeExecute(hasUnsavedWork, () =>
+      goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryPrev.data!.submission['meta/rootUuid']), true),
+    )
   }
 
   const goNext = () => {
     if (!queryNext.data) return
-    goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryNext.data.submission['meta/rootUuid']), true)
+    protectorHelpers.safeExecute(hasUnsavedWork, () =>
+      goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryNext.data!.submission['meta/rootUuid']), true),
+    )
   }
 
   const isLoading = queryPrev.isPending || queryNext.isPending

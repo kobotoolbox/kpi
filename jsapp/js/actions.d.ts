@@ -73,12 +73,17 @@ interface LoadAssetCompletedDefinition extends Function {
 interface DeleteAssetDefinition extends Function {
   (details: { uid: string; assetType: string }, params?: { onComplete?: Function; onFail?: function }): void
   completed: DeleteAssetCompletedDefinition
-  failed: GenericFailedDefinition
+  failed: DeleteAssetFailedDefinition
 }
 
 interface DeleteAssetCompletedDefinition extends Function {
   (response: { uid: string; assetType: AssetTypeName }): void
   listen: (callback: (response: { uid: string; assetType: AssetTypeName }) => void) => Function
+}
+
+interface DeleteAssetFailedDefinition extends Function {
+  (response: { uid: string; assetType: string }): void
+  listen: (callback: (response: { uid: string; assetType: string }) => void) => Function
 }
 
 export interface UpdateAssetDefinitionParams {

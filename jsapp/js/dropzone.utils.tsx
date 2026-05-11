@@ -1,7 +1,7 @@
 import React from 'react'
 
-import type { FileWithPreview } from 'react-dropzone'
-import type { CreateImportRequest, ImportResponse } from '#/dataInterface'
+import type { FileRejection } from 'react-dropzone'
+import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import pageState from '#/pageState.store'
 import { router } from '#/router/legacy'
@@ -10,6 +10,165 @@ import { MODAL_TYPES } from './constants'
 import envStore from './envStore'
 import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
+
+interface ApplyImportParams {
+  destination?: string
+  assetUid: string
+  name: string
+  url?: string
+  base64Encoded?: ArrayBuffer | string | null
+  lastModified?: number
+}
+
+const APPLY_IMPORT_CHECK_INTERVAL = 1000
+
+interface PollImportUntilDoneOptions {
+  getDelayMs?: (attempt: number) => number
+  onPoll?: (importData: ImportResponse, attempt: number) => void
+  waitBeforeFirstCheck?: boolean
+}
+
+/**
+ * Polls import status until backend reports either `complete` or `error`.
+ *
+ * Use it after `createImport` succeeds:
+ *
+ * ```ts
+ * pollImportUntilDone(importUid).then(
+ *   (importData) => { <handle success> },
+ *   (reason) => { <handle failure> },
+ * )
+ * ```
+ */
+export function pollImportUntilDone(uid: string, options: PollImportUntilDoneOptions = {}): Promise<ImportResponse> {
+  const { getDelayMs, onPoll, waitBeforeFirstCheck = false } = options
+
+  return new Promise((resolve, reject) => {
+    let timeoutId: number | undefined
+    let attempt = 0
+
+    const scheduleNextCheck = () => {
+      const nextAttempt = attempt + 1
+      const delayMs = typeof getDelayMs === 'function' ? getDelayMs(nextAttempt) : APPLY_IMPORT_CHECK_INTERVAL
+      timeoutId = window.setTimeout(runCheck, delayMs)
+    }
+
+    const resolveAndCleanup = (importData: ImportResponse) => {
+      if (typeof timeoutId === 'number') {
+        window.clearTimeout(timeoutId)
+      }
+      resolve(importData)
+    }
+
+    const rejectAndCleanup = (reason: ImportResponse) => {
+      if (typeof timeoutId === 'number') {
+        window.clearTimeout(timeoutId)
+      }
+      reject(reason)
+    }
+
+    const runCheck = () => {
+      dataInterface
+        .getImportDetails({ uid })
+        .done((importData: ImportResponse) => {
+          attempt += 1
+          if (typeof onPoll === 'function') {
+            onPoll(importData, attempt)
+          }
+
+          switch (importData.status) {
+            case 'complete':
+              resolveAndCleanup(importData)
+              break
+            case 'error':
+              rejectAndCleanup(importData)
+              break
+            // 'processing' / 'created' - keep polling
+            default:
+              scheduleNextCheck()
+              break
+          }
+        })
+        .fail((failData: ImportResponse) => {
+          rejectAndCleanup(failData)
+        })
+    }
+
+    if (waitBeforeFirstCheck) {
+      scheduleNextCheck()
+    } else {
+      runCheck()
+    }
+  })
+}
+
+function createImportAndResolveFirstAsset(params: ApplyImportParams): Promise<{ uid: string }> {
+  return new Promise((resolve, reject) => {
+    dataInterface
+      .createImport(params)
+      .done((data: ImportResponse) => {
+        pollImportUntilDone(data.uid).then(
+          (importData) => {
+            const finalData = importData.messages?.updated || importData.messages?.created
+            if (finalData && finalData.length > 0 && finalData[0].uid) {
+              resolve(finalData[0])
+            } else {
+              reject(importData)
+            }
+          },
+          (err) => reject(err),
+        )
+      })
+      .fail((err: unknown) => reject(err))
+  })
+}
+
+/**
+ * Reads a `File`, uploads it as an import targeting an existing asset (either replacing it or applying it as
+ * a destination), and resolves with the first created/updated asset entry once the import completes.
+ *
+ * Replaces `mixins.droppable.applyFileToAsset`.
+ */
+export function applyFileToAsset(file: File, asset: AssetResponse): Promise<{ uid: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const params: ApplyImportParams = {
+        destination: asset.url,
+        assetUid: asset.uid,
+        name: file.name,
+        base64Encoded: reader.result,
+        lastModified: file.lastModified,
+      }
+      createImportAndResolveFirstAsset(params).then(resolve, reject)
+    }
+    reader.onerror = () => {
+      reject({
+        messages: {
+          error_type: 'file_read_error',
+          error: t('Failed to read file.'),
+        },
+      })
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+/**
+ * Uploads a URL as an import targeting an existing asset, and resolves with
+ * the first created/updated asset entry once the import completes.
+ *
+ * Replaces `mixins.droppable.applyUrlToAsset`.
+ */
+export function applyUrlToAsset(url: string, asset: AssetResponse): Promise<{ uid: string }> {
+  const params: ApplyImportParams = {
+    destination: asset.url,
+    url,
+    name: asset.name,
+    assetUid: asset.uid,
+  }
+  return createImportAndResolveFirstAsset(params)
+}
 
 const IMPORT_FAILED_GENERIC_MESSAGE = t('Import failed')
 
@@ -36,69 +195,42 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
         library: isLibrary,
       })
       .done((data: ImportResponse) => {
-        // After import was created successfully, we start a loop of checking
-        // the status of it (by calling API). The promise will resolve when it is
-        // complete.
+        // After import is created, we poll until complete/error using shared helper.
         notify(t('Your upload is being processed. This may take a few moments.'))
 
-        let callCount = 0
-        let timeoutId = -1
-
-        function makeIntervalStatusCheck() {
-          // Make the first call only after we've already waited once. This
-          // ensures we don't check for the import status immediately after it
-          // was created.
-          if (timeoutId > 0) {
-            dataInterface
-              .getImportDetails({ uid: data.uid })
-              .done((importData: ImportResponse) => {
-                if (importData.status === 'complete') {
-                  // Stop interval
-                  window.clearTimeout(timeoutId)
-
-                  resolve(importData)
-                } else if (importData.status === 'processing' && callCount === 5) {
-                  notify.warning(t('Your upload is taking longer than usual. Please get back in few minutes.'))
-                } else if (importData.status === 'error') {
-                  // Stop interval
-                  window.clearTimeout(timeoutId)
-
-                  // Gather all useful error information
-                  const errLines = []
-                  errLines.push(t('Import Failed!'))
-                  if (name) {
-                    errLines.push(<code>Name: {name}</code>)
-                  }
-                  if (importData.messages?.error) {
-                    errLines.push(
-                      <code>
-                        ${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}
-                      </code>,
-                    )
-                  }
-                  reject(<div>{join(errLines, <br />)}</div>)
-                }
-              })
-              .fail(() => {
-                // Stop interval
-                window.clearTimeout(timeoutId)
-
-                reject(IMPORT_FAILED_GENERIC_MESSAGE)
-              })
-          }
-
-          callCount += 1
-
-          // Keep the interval alive (can't use `setInterval` with randomized
-          // value, so we use `setTimout` instead).
-          timeoutId = window.setTimeout(
-            makeIntervalStatusCheck,
-            getExponentialDelayTime(callCount, envStore.data.min_retry_time, envStore.data.max_retry_time),
-          )
-        }
-
-        // start the interval check
-        makeIntervalStatusCheck()
+        pollImportUntilDone(data.uid, {
+          waitBeforeFirstCheck: true,
+          getDelayMs: (attempt) =>
+            getExponentialDelayTime(attempt, envStore.data.min_retry_time, envStore.data.max_retry_time),
+          onPoll: (importData, attempt) => {
+            if (importData.status === 'processing' && attempt === 5) {
+              notify.warning(t('Your upload is taking longer than usual. Please check back in a few minutes.'))
+            }
+          },
+        }).then(
+          (importData) => {
+            resolve(importData)
+          },
+          (reason: ImportResponse) => {
+            if (reason?.status === 'error') {
+              const errLines = []
+              errLines.push(t('Import Failed!'))
+              if (name) {
+                errLines.push(<code>Name: {name}</code>)
+              }
+              if (reason.messages?.error) {
+                errLines.push(
+                  <code>
+                    ${reason.messages.error_type}: ${escapeHtml(reason.messages.error)}
+                  </code>,
+                )
+              }
+              reject(<div>{join(errLines, <br />)}</div>)
+            } else {
+              reject(IMPORT_FAILED_GENERIC_MESSAGE)
+            }
+          },
+        )
       })
       .fail(() => {
         reject(t('Failed to create import.'))
@@ -183,10 +315,10 @@ function onImportOneAmongMany(
  * This is a callback function for `Dropzone` component that handles uploading
  * multiple XLSForm files.
  *
- * Note: similar function is available in `mixins.droppable.dropFiles`, but it
- * relies heavily on deprecated technologies.
+ * Note: this implementation supports multi-file XLSForm uploads, but it is
+ * intended for advanced use and remains somewhat rough around the edges.
  */
-export function dropImportXLSForms(accepted: FileWithPreview[], rejected: FileWithPreview[]) {
+export function dropImportXLSForms(accepted: File[], rejected: FileRejection[]) {
   accepted.map((file, index) => {
     const reader = new FileReader()
     reader.onload = () => {
@@ -199,7 +331,8 @@ export function dropImportXLSForms(accepted: FileWithPreview[], rejected: FileWi
     reader.readAsDataURL(file)
   })
 
-  rejected.every((file) => {
+  rejected.every((rejectedFile) => {
+    const file = rejectedFile.file
     if (file.type && file.name) {
       let errMsg = t('Upload error: could not recognize Excel file.')
       errMsg += ` (${t('Uploaded file name: ')} ${file.name})`

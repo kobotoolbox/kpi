@@ -153,7 +153,7 @@ export default function StepCreateAutomated({
             size='m'
             label={t('create transcript')}
             onClick={handleCreateTranscript}
-            isDisabled={anyPending}
+            isDisabled={anyPending || locale === null}
           />
         </div>
       </footer>
