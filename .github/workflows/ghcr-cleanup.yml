@@ -23,4 +23,4 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           image-names: kpi
           cut-off: 90d
-          dry-run: false
+          dry-run: true
