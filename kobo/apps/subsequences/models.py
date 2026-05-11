@@ -286,6 +286,14 @@ class QuestionAdvancedFeature(models.Model):
 
 
 class BulkActionStatus(models.TextChoices):
+    """
+    Represents the lifecycle status of a batch job
+
+    Note: There is no 'failed' status at the parent level. Only individual
+    BulkActionItems can be 'failed'. A parent job is marked as 'complete'
+    once all constituent items have reached a terminal state (complete,
+    failed, or cancelled).
+    """
     PENDING = 'pending'
     IN_PROGRESS = 'in_progress'
     COMPLETE = 'complete'
