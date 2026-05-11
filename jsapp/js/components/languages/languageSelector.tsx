@@ -1,4 +1,4 @@
-import { Group, Text } from '@mantine/core'
+import { Group, Loader, Text } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { IconInfoCircleFilled } from '@tabler/icons-react'
 import { useQueries } from '@tanstack/react-query'
@@ -35,7 +35,8 @@ const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-l
 
 const LanguageSelector = (props: LanguageSelectorProps) => {
   const [searchValue, setSearchValue] = useState('')
-  const [recentlySelected] = useState<LanguageCode[]>([])
+  // TODO: if the recentlySelected language is not a featured language, it fails to show up on the group
+  const [recentlySelected, setRecentlySelected] = useState<LanguageCode[]>([])
   const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
   const isSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
@@ -127,7 +128,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
     const allLanguages = [...suggestedLanguages, ...languages]
     const selectedLanguageObject = allLanguages.find((lang) => lang.code === selectedLanguage) || null
     if (selectedLanguageObject) {
-      recentlySelected.push(selectedLanguageObject?.code)
+      setRecentlySelected((prev) => [...prev, selectedLanguageObject.code])
     }
     props.onLanguageChange(selectedLanguageObject)
   }
@@ -153,9 +154,17 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       clearable
       disabled={props.isDisabled}
       comboboxProps={{ resetSelectionOnOptionHover: true }}
-      // Mantine Select has a built in filtering, but our search already filters based on the query. This is needed so
-      // that the "I cannot find my language" option doesn't get filtered out
-      filter={({ options }) => options}
+      // FIXME: Mantine Select has a built in filtering, but our search already filters based on the query. This is needed so
+      // that the "I cannot find my language" option doesn't get filtered out. This creates another problem, bypassing
+      // Mantine's filter messes something up in its Select logic, and now won't display the results of a finished search
+      //
+      // In other words, when the line below is commented out, the searching works as expected (typing 'aa' makes the dropdown
+      // disappear for a bit, and it opens again when the search is done [good!]), but you can't see the "I cannot find my language"
+      // option anymore.
+      // If the line is uncommented, we can always see the "I cannot find my own language" [good!], but the searching
+      // doesn't display the results immidiately. You would have to close the dropdown, open it again, and search the
+      // cached results to see them
+      //filter={({ options }) => options}
       renderOption={(option) => {
         if (option.option.value === CANNOT_FIND_LANGUAGE) {
           return (
@@ -174,6 +183,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
         return <Text>{option.option.label}</Text>
       }}
       required={props.required}
+      rightSection={isLoading ? <Loader size="xs" /> : undefined}
     />
   )
 }
