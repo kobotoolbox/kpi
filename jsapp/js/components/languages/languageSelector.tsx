@@ -8,7 +8,6 @@ import envStore from '#/envStore'
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode } from '../languages/languagesStore'
-import styles from './languageSelector.module.css'
 
 interface LanguageSelectorProps {
   /**
@@ -30,7 +29,6 @@ interface LanguageSelectorProps {
 const MINIMUM_SEARCH_LENGTH = 2
 // Timeout chosen based on same debounce time in old languageSelector.tsx
 const SEARCH_DEBOUNCE_MS = 300
-const CANNOT_FIND_LANGUAGE = 'CANNOT_FIND_LANGUAGE'
 const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 const LanguageSelector = (props: LanguageSelectorProps) => {
@@ -71,26 +69,32 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
     // Create language groups
     const recentlySelectedItems = allLanguages
       .filter((lang) => recentlySelected.includes(lang.code))
-      .map((lang) => ({
-        value: lang.code,
-        label: `${lang.name} (${lang.code})`,
-      }))
+      .map((lang) => {
+        return {
+          value: lang.code,
+          label: `${lang.name} (${lang.code})`,
+        }
+      })
     const suggestedItems = allLanguages
       .filter((lang) => props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
       .filter((lang) => !recentlySelected?.includes(lang.code))
-      .map((lang) => ({
-        value: lang.code,
-        label: `${lang.name} (${lang.code})`,
-      }))
+      .map((lang) => {
+        return {
+          value: lang.code,
+          label: `${lang.name} (${lang.code})`,
+        }
+      })
     const otherItems = allLanguages
       .filter((lang) => !props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
       .filter((lang) => !recentlySelected?.includes(lang.code))
-      .map((lang) => ({
-        value: lang.code,
-        label: `${lang.name} (${lang.code})`,
-      }))
+      .map((lang) => {
+        return {
+          value: lang.code,
+          label: `${lang.name} (${lang.code})`,
+        }
+      })
 
     // Build groups conditionally
     const groups = []
@@ -110,17 +114,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       group: isSearching ? t('Results') : t('Languages'),
       items: otherItems,
     })
-    // Always show this option on the bottom
-    groups.push({
-      group: '',
-      items: [
-        {
-          value: CANNOT_FIND_LANGUAGE,
-          label: t('I cannot find my language'),
-          disabled: true,
-        },
-      ],
-    })
+
     return groups
   }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages, suggestedLanguages, recentlySelected])
 
@@ -139,12 +133,6 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
 
   return (
     <Select
-      // Semi-hacky way to add custom styling. We need to overwrite the disabled styling for only the
-      // "CANNOT_FIND_LANGUAGE" value. We have to do a higher level change with a CSS module; the style props does not
-      // change the disable opacity and pointer
-      classNames={{
-        option: styles.cannotFindLanguageOption,
-      }}
       onSearchChange={setSearchValue}
       data={languageOptions}
       onChange={onLanguageSelected}
@@ -154,34 +142,19 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       clearable
       disabled={props.isDisabled}
       comboboxProps={{ resetSelectionOnOptionHover: true }}
-      // FIXME: Mantine Select has a built in filtering, but our search already filters based on the query. This is needed so
-      // that the "I cannot find my language" option doesn't get filtered out. This creates another problem, bypassing
-      // Mantine's filter messes something up in its Select logic, and now won't display the results of a finished search
-      //
-      // In other words, when the line below is commented out, the searching works as expected (typing 'aa' makes the dropdown
-      // disappear for a bit, and it opens again when the search is done [good!]), but you can't see the "I cannot find my language"
-      // option anymore.
-      // If the line is uncommented, we can always see the "I cannot find my own language" [good!], but the searching
-      // doesn't display the results immidiately. You would have to close the dropdown, open it again, and search the
-      // cached results to see them
-      //filter={({ options }) => options}
-      renderOption={(option) => {
-        if (option.option.value === CANNOT_FIND_LANGUAGE) {
-          return (
-            <Group
-              onClick={openSupportPage}
-              gap={'xs'}
-              align='center'
-              style={{ cursor: 'pointer' }}
-              c='var(--mantine-color-blue-5)'
-            >
-              <KoboIcon icon={IconInfoCircleFilled} size='sm' />
-              <Text>{option.option.label}</Text>
-            </Group>
-          )
-        }
-        return <Text>{option.option.label}</Text>
-      }}
+      nothingFoundMessage={
+        <Group
+          onClick={openSupportPage}
+          gap={'xs'}
+          align='center'
+          style={{ cursor: 'pointer' }}
+          c='var(--mantine-color-blue-5)'
+        >
+          <KoboIcon icon={IconInfoCircleFilled} size='sm' />
+          <Text>{t('I cannot find my language')}</Text>
+        </Group>
+      }
+      renderOption={(option) => <Text>{option.option.label}</Text>}
       required={props.required}
       rightSection={isLoading ? <Loader size='xs' /> : undefined}
     />
