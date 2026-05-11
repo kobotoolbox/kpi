@@ -48,29 +48,24 @@ export interface BridgeFailureRouteContext extends BridgeSuccessRouteContext {
   legacyFailurePayload: LegacyFailurePayload
 }
 
-export interface BridgeStartRoute {
+export interface BridgeRoute<Context> {
+  /** Metadata: human-readable endpoint signature, e.g. `PATCH /api/v2/assets/:uid/` */
   endpoint: string
+  /** Metadata: a human-readable legacy action path this route is expected to trigger */
   refluxAction: string
+  /** HTTP method this route applies to */
   method: string
-  matches: (context: BridgeRequestRouteContext) => boolean
-  run: (context: BridgeRequestRouteContext) => void
+  /** Predicate that decides whether this route should run for a given context */
+  matches: (context: Context) => boolean
+  /** Side-effect callback that emits the corresponding legacy Reflux action */
+  run: (context: Context) => void
 }
 
-export interface BridgeSuccessRoute {
-  endpoint: string
-  refluxAction: string
-  method: string
-  matches: (context: BridgeSuccessRouteContext) => boolean
-  run: (context: BridgeSuccessRouteContext) => void
-}
+export type BridgeStartRoute = BridgeRoute<BridgeRequestRouteContext>
 
-export interface BridgeFailureRoute {
-  endpoint: string
-  refluxAction: string
-  method: string
-  matches: (context: BridgeFailureRouteContext) => boolean
-  run: (context: BridgeFailureRouteContext) => void
-}
+export type BridgeSuccessRoute = BridgeRoute<BridgeSuccessRouteContext>
+
+export type BridgeFailureRoute = BridgeRoute<BridgeFailureRouteContext>
 
 /**
  * Small type guard used by the route modules to avoid repeating object checks.
