@@ -55,11 +55,11 @@ export const Sizes: Story = {
 }
 
 export const Interaction: Story = {
-  play: async ({ canvasElement }) => {
+  play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
     const button = canvas.getByRole('button')
 
     await userEvent.click(button)
-    await expect(button).toHaveBeenCalled()
+    await expect(args.onClick).toHaveBeenCalled()
   },
 }
