@@ -57,7 +57,7 @@ def run(dry_run: bool = False):
         )
         with transaction.atomic():
             for xpath, actions_for_xpath in new_content.items():
-                if xpath == '_version':
+                if not isinstance(actions_for_xpath, dict):
                     continue
                 for action_id in actions_for_xpath.keys():
                     if (asset.uid, xpath, action_id) not in existing_qafs:
