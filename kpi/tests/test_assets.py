@@ -1252,3 +1252,76 @@ class TestAssetDataCollectors(TestCase):
         patched_set_links.assert_any_call(self.dc0.token)
         patched_set_links.assert_any_call(self.dc1.token)
         assert len(patched_set_links.call_args) == 2
+
+
+class TestExtraMetadataFields(TestCase):
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.user = User.objects.get(username='someuser')
+        self.client.force_login(self.user)
+
+    def test_save_normalizes_invalid_extra_metadata(self):
+        asset = Asset.objects.create(
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': None},
+        )
+
+        asset.refresh_from_db()
+
+        self.assertIsInstance(asset.settings['extra_metadata'], dict)
+        self.assertEqual(asset.settings['extra_metadata'], {})
+
+    def test_save_normalizes_non_dict_extra_metadata(self):
+        asset = Asset.objects.create(
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': 'invalid'},
+        )
+
+        asset.refresh_from_db()
+
+        self.assertEqual(asset.settings['extra_metadata'], {})
+
+    def test_update_without_settings_skips_normalization(self):
+        asset = Asset.objects.create(
+            owner=self.user,
+            name='Old Name',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': {'Manager': 'Alex'}},
+        )
+
+        asset.name = 'New Name'
+        asset.save(update_fields=['name', 'content'])
+
+        asset.refresh_from_db()
+        self.assertEqual(asset.name, 'New Name')
+        self.assertEqual(asset.settings['extra_metadata']['Manager'], 'Alex')
+
+    def test_extra_metadata_lookup_filters_assets(self):
+        matching_asset = Asset.objects.create(
+            name='Matching Asset',
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            settings={'extra_metadata': {'ProjectManager': 'Tom'}},
+        )
+
+        Asset.objects.create(
+            name='Non-Matching',
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            settings={'extra_metadata': {'ProjectManager': 'Bob'}},
+        )
+
+        base_url = reverse('api_v2:asset-list')
+        response = self.client.get(
+            f'{base_url}?q=settings__extra_metadata__icontains:Tom'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['uid'], matching_asset.uid)
