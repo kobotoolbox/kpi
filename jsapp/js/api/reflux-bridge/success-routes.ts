@@ -39,13 +39,15 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   },
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
-    refluxAction: 'actions.reports.setCustom.completed',
+    refluxAction: 'actions.resources.updateAsset.completed (report_custom fallback)',
     method: 'PATCH',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_custom' in requestBody),
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
-      actions.reports.setCustom.completed(asset)
+      // Legacy setCustom.completed expects `(asset, crid)`, but crid is not reliably
+      // recoverable from generic PATCH payloads. Emit updateAsset.completed instead.
+      actions.resources.updateAsset.completed(asset)
     },
   },
   {
