@@ -34,6 +34,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
       actions.reports.setStyle.completed(asset)
+      actions.resources.updateAsset.completed(asset)
     },
   },
   {
