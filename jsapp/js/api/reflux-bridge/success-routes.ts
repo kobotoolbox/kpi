@@ -15,7 +15,15 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.updateAsset.completed',
     method: 'PATCH',
-    matches: ({ assetUid, responseData }) => Boolean(assetUid && isRecord(responseData)),
+    matches: ({ assetUid, responseData, requestBody }) =>
+      Boolean(
+        assetUid &&
+          isRecord(responseData) &&
+          requestBody &&
+          !('report_styles' in requestBody) &&
+          !('report_custom' in requestBody) &&
+          !('map_styles' in requestBody),
+      ),
     run: ({ responseData }) => {
       actions.resources.updateAsset.completed(toLegacyAsset(responseData as unknown as Asset | AssetResponse))
     },

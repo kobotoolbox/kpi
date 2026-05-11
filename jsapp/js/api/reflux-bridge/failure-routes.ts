@@ -9,7 +9,14 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.updateAsset.failed',
     method: 'PATCH',
-    matches: ({ assetUid }) => Boolean(assetUid),
+    matches: ({ assetUid, requestBody }) =>
+      Boolean(
+        assetUid &&
+          requestBody &&
+          !('report_styles' in requestBody) &&
+          !('report_custom' in requestBody) &&
+          !('map_styles' in requestBody),
+      ),
     run: ({ legacyFailurePayload }) => {
       actions.resources.updateAsset.failed(legacyFailurePayload as never)
     },
