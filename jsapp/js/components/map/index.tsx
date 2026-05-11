@@ -447,7 +447,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       selectedQuestion = null
     }
 
-    this.setState({ foundSelectedQuestion: selectedQuestion })
+    const selectedQuestionPath = selectedQuestion ? this.nameOfFieldInGroup(selectedQuestion) : null
+
+    this.setState({ foundSelectedQuestion: selectedQuestionPath })
 
     let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
@@ -457,8 +459,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     const fq = ['_id']
-    if (selectedQuestion) {
-      fq.push(selectedQuestion)
+    if (selectedQuestionPath) {
+      fq.push(selectedQuestionPath)
     }
     if (nextViewBy) {
       fq.push(this.nameOfFieldInGroup(nextViewBy))
@@ -902,7 +904,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   nameOfFieldInGroup(fieldName: string): string {
     if (this.props.asset.content?.survey) {
       const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey)
-      return flatPaths[fieldName]
+      return flatPaths[fieldName] || fieldName
     }
     // Fallback - should never happen
     return fieldName
