@@ -71,7 +71,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     run: ({ assetUid }) => {
       if (assetUid) {
         // DELETE failures only have the path UID to go on.
-        actions.resources.deleteAsset.failed({ uid: assetUid, assetType: '' } as never)
+        actions.resources.deleteAsset.failed({ uid: assetUid, assetType: '' })
       }
     },
   },
