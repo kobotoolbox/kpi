@@ -54,6 +54,9 @@ export * from './failure-routes'
  *
  * This keeps dispatching generic so the route tables stay declarative and the
  * file does not accumulate endpoint-specific branching.
+ *
+ * Each route is error-isolated: if a legacy action throws, we log the error
+ * but do not propagate it. This ensures bridge failures never break the API call.
  */
 function runMatchingRequestRoutes<
   RouteContext extends { method: string },
@@ -61,7 +64,11 @@ function runMatchingRequestRoutes<
 >(routes: ReadonlyArray<Route>, context: RouteContext) {
   routes.forEach((route) => {
     if (route.method === context.method && route.matches(context)) {
-      route.run(context)
+      try {
+        route.run(context)
+      } catch (error) {
+        console.error('[Orval→Reflux Bridge] Error running legacy action route:', error)
+      }
     }
   })
 }
