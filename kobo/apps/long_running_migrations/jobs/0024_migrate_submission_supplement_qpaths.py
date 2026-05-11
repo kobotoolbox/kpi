@@ -40,7 +40,7 @@ def run(dry_run: bool = False):
         params=[r'.*-.*'],
     ).select_related('asset')
 
-    if len(supplements_with_qpaths) == 0:
+    if not supplements_with_qpaths.exists():
         logging.info(f'{logging_prefix} - No more supplements to migrate.')
         return
 
@@ -109,7 +109,7 @@ def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'Asset') -> str:
     Existing projects may still use it though.
     We need to find the equivalent `xpath`.
     """
-    for row in asset.content['survey']:
+    for row in asset.content.get('survey'):
         if '$qpath' in row and '$xpath' in row and row['$qpath'] == qpath:
             return row['$xpath']
 
