@@ -36,10 +36,11 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   // TODO: if the recentlySelected language is not a featured language, it fails to show up on the group
   const [recentlySelected, setRecentlySelected] = useState<LanguageCode[]>([])
   const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
-  const isSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
+  const isSearching = searchValue.length >= MINIMUM_SEARCH_LENGTH
+  const isDebouncedSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
   // "Main" language list (either featured languages or result of searching)
-  const { data, isLoading } = useLanguagesList(isSearching ? ({ q: debouncedSearch } as any) : undefined)
+  const { data, isLoading } = useLanguagesList(isDebouncedSearching ? ({ q: debouncedSearch } as any) : undefined)
   const languages = data?.status === 200 ? data.data.results : []
 
   // Create a query for each suggested language
@@ -133,6 +134,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
 
   return (
     <Select
+      searchValue={searchValue}
       onSearchChange={setSearchValue}
       data={languageOptions}
       onChange={onLanguageSelected}
