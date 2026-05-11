@@ -52,7 +52,9 @@ def run(dry_run: bool = False):
     for supplement in supplements_with_qpaths:
         print(f'{logging_prefix} - updating supplement {migrated+1}/{total}')
         asset = supplement.asset
-        new_content = get_sanitized_dict_keys(logging_prefix, supplement.content, supplement.asset)
+        new_content = get_sanitized_dict_keys(
+            logging_prefix, supplement.content, supplement.asset
+        )
         with transaction.atomic():
             for xpath, actions_for_xpath in new_content.items():
                 if xpath == '_version':
@@ -94,7 +96,9 @@ def run(dry_run: bool = False):
     logging.info(f'{logging_prefix} - Done')
 
 
-def get_sanitized_dict_keys(logging_prefix: str, content_dict: dict, asset: 'Asset') -> dict | None:
+def get_sanitized_dict_keys(
+    logging_prefix: str, content_dict: dict, asset: 'kpi.models.Asset'
+) -> dict | None:
     """
     Update `dict_to_update` keys created with `qpath`(if they are present) with
     their `xpath` counterpart.
