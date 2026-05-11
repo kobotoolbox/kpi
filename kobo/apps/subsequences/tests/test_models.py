@@ -647,6 +647,37 @@ class SubsequenceBulkActionModelTestCase(TestCase):
                 submission_root_uuids=[],
             )
 
+    def test_save_with_update_fields_excluding_status_does_not_propagate(self):
+        """
+        Test that changing status in memory but excluding it from update_fields
+        does not cause inconsistent propagation to children
+        """
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+            created_by=self.owner.username,
+            status=BulkActionStatus.PENDING,
+        )
+        params_hash = parent.make_params_hash(parent.params)
+        item = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=params_hash,
+        )
+
+        parent.status = BulkActionStatus.IN_PROGRESS
+        parent.save(update_fields=['params'])
+
+        parent.refresh_from_db()
+        item.refresh_from_db()
+        assert parent.status == BulkActionItemStatus.PENDING
+        assert item.status == BulkActionItemStatus.PENDING
+
 
 class SubsequenceBulkActionConstraintTestCase(TestCase):
     def setUp(self):

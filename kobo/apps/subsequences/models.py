@@ -385,7 +385,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                         submission_root_uuid=submission_root_uuid,
                         action_id=action_id,
                         question_xpath=question_xpath,
-                        status=BulkActionItemStatus.PENDING,
+                        status=status,
                         hash=params_hash,
                     )
                     for submission_root_uuid in submission_root_uuids
@@ -418,15 +418,29 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 date_modified=timezone.now(),
             )
 
-    def save(self, *args, **kwargs):
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
         is_new = self._state.adding
+        should_sync_items = update_fields is None or 'status' in update_fields
         previous_status = self._original_status
 
         with transaction.atomic():
-            super().save(*args, **kwargs)
-            if not is_new and previous_status != self.status:
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
+            if should_sync_items and not is_new and previous_status != self.status:
                 self._propagate_status_to_items()
-        self._original_status = self.status
+
+        if should_sync_items:
+            self._original_status = self.status
 
 
 class SubsequenceBulkActionItem(AbstractTimeStampedModel):
