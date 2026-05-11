@@ -2838,6 +2838,519 @@
                 }
             }
         },
+        "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/": {
+            "get": {
+                "operationId": "api_v2_assets_advanced_features_bulk_actions_list",
+                "description": "## List bulk processing jobs on an asset\n\nReturns all bulk processing jobs associated with the specified asset. Each job\nis organized around one question and many submissions.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulkActionListResponse"
+                                },
+                                "examples": {
+                                    "BulkActionListResponse": {
+                                        "value": {
+                                            "count": 1,
+                                            "next": null,
+                                            "previous": null,
+                                            "results": [
+                                                {
+                                                    "uid": "ba123456789AbCdEfGhIjklm",
+                                                    "status": "in_progress",
+                                                    "action_id": "automatic_google_transcription",
+                                                    "question_xpath": "q1",
+                                                    "submission_uuids": [
+                                                        "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                        "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                                    ],
+                                                    "submission_statuses": [
+                                                        {
+                                                            "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                            "status": "complete"
+                                                        },
+                                                        {
+                                                            "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                            "status": "in_progress"
+                                                        }
+                                                    ],
+                                                    "params": {
+                                                        "language": "en",
+                                                        "locale": "en-US"
+                                                    },
+                                                    "created_by": {
+                                                        "username": "someuser"
+                                                    },
+                                                    "date_created": "2026-05-05T09:00:00Z",
+                                                    "date_modified": "2026-05-05T09:02:00Z",
+                                                    "cancelled_by": null
+                                                }
+                                            ]
+                                        },
+                                        "summary": "Bulk action list response"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "501": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                }
+                            }
+                        },
+                        "description": "Placeholder endpoint. Runtime behavior not implemented."
+                    }
+                }
+            },
+            "post": {
+                "operationId": "api_v2_assets_advanced_features_bulk_actions_create",
+                "description": "## Create a bulk processing job\n\nCreates a placeholder bulk transcription or bulk translation job for a single\nquestion across multiple submissions.\n\nThis endpoint currently exists to reserve the request and response contract for\nfrontend integration and OpenAPI generation. Runtime processing is not yet\nimplemented.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkActionCreateRequest"
+                            },
+                            "examples": {
+                                "BulkTranscriptionJob": {
+                                    "value": {
+                                        "action_id": "automatic_google_transcription",
+                                        "question_xpath": "q1",
+                                        "submission_uuids": [
+                                            "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                            "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                        ],
+                                        "params": {
+                                            "language": "en",
+                                            "locale": "en-US"
+                                        }
+                                    },
+                                    "summary": "Bulk transcription job"
+                                },
+                                "BulkTranslationJob": {
+                                    "value": {
+                                        "action_id": "automatic_google_translation",
+                                        "question_xpath": "q1",
+                                        "submission_uuids": [
+                                            "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                            "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                        ],
+                                        "params": {
+                                            "language": "fr"
+                                        }
+                                    },
+                                    "summary": "Bulk translation job"
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulkActionResponse"
+                                },
+                                "examples": {
+                                    "BulkActionResponse": {
+                                        "value": {
+                                            "uid": "ba123456789AbCdEfGhIjklm",
+                                            "status": "in_progress",
+                                            "action_id": "automatic_google_transcription",
+                                            "question_xpath": "q1",
+                                            "submission_uuids": [
+                                                "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                            ],
+                                            "submission_statuses": [
+                                                {
+                                                    "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                    "status": "complete"
+                                                },
+                                                {
+                                                    "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                    "status": "in_progress"
+                                                }
+                                            ],
+                                            "params": {
+                                                "language": "en",
+                                                "locale": "en-US"
+                                            },
+                                            "created_by": {
+                                                "username": "someuser"
+                                            },
+                                            "date_created": "2026-05-05T09:00:00Z",
+                                            "date_modified": "2026-05-05T09:02:00Z",
+                                            "cancelled_by": null
+                                        },
+                                        "summary": "Bulk action response"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "501": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                }
+                            }
+                        },
+                        "description": "Placeholder endpoint. Runtime behavior not implemented."
+                    }
+                }
+            }
+        },
+        "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{action_uid}/": {
+            "get": {
+                "operationId": "api_v2_assets_advanced_features_bulk_actions_retrieve",
+                "description": "## Retrieve a bulk processing job\n\nReturns detailed information about a single bulk processing job, including its\ncurrent status and processing metadata.\n\nThe response shape is identical to the item returned by the bulk job creation\nendpoint.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "action_uid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the bulk action job",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulkActionResponse"
+                                },
+                                "examples": {
+                                    "BulkActionResponse": {
+                                        "value": {
+                                            "uid": "ba123456789AbCdEfGhIjklm",
+                                            "status": "in_progress",
+                                            "action_id": "automatic_google_transcription",
+                                            "question_xpath": "q1",
+                                            "submission_uuids": [
+                                                "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                            ],
+                                            "submission_statuses": [
+                                                {
+                                                    "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                    "status": "complete"
+                                                },
+                                                {
+                                                    "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                    "status": "in_progress"
+                                                }
+                                            ],
+                                            "params": {
+                                                "language": "en",
+                                                "locale": "en-US"
+                                            },
+                                            "created_by": {
+                                                "username": "someuser"
+                                            },
+                                            "date_created": "2026-05-05T09:00:00Z",
+                                            "date_modified": "2026-05-05T09:02:00Z",
+                                            "cancelled_by": null
+                                        },
+                                        "summary": "Bulk action response"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "501": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                }
+                            }
+                        },
+                        "description": "Placeholder endpoint. Runtime behavior not implemented."
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "api_v2_assets_advanced_features_bulk_actions_partial_update",
+                "description": "## Update a bulk processing job\n\nCancels a single bulk processing job for an asset.\n\nThe `PATCH` endpoint is reserved for bulk action cancellation.\n\nThe request body sets the job status to `cancelled`.\n\nThis placeholder route currently exists to reserve the cancellation contract for\nfrontend OpenAPI generation. Runtime cancellation behavior is not yet\nimplemented.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "action_uid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the bulk action job",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedBulkActionPatchRequest"
+                            },
+                            "examples": {
+                                "BulkActionCancelRequest": {
+                                    "value": {
+                                        "status": "cancelled"
+                                    },
+                                    "summary": "Bulk action cancel request"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BulkActionResponse"
+                                },
+                                "examples": {
+                                    "BulkActionResponse": {
+                                        "value": {
+                                            "uid": "ba123456789AbCdEfGhIjklm",
+                                            "status": "in_progress",
+                                            "action_id": "automatic_google_transcription",
+                                            "question_xpath": "q1",
+                                            "submission_uuids": [
+                                                "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                            ],
+                                            "submission_statuses": [
+                                                {
+                                                    "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                    "status": "complete"
+                                                },
+                                                {
+                                                    "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                    "status": "in_progress"
+                                                }
+                                            ],
+                                            "params": {
+                                                "language": "en",
+                                                "locale": "en-US"
+                                            },
+                                            "created_by": {
+                                                "username": "someuser"
+                                            },
+                                            "date_created": "2026-05-05T09:00:00Z",
+                                            "date_modified": "2026-05-05T09:02:00Z",
+                                            "cancelled_by": null
+                                        },
+                                        "summary": "Bulk action response"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "501": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                }
+                            }
+                        },
+                        "description": "Placeholder endpoint. Runtime behavior not implemented."
+                    }
+                }
+            }
+        },
         "/api/v2/assets/{uid_asset}/attachments/{id}/": {
             "delete": {
                 "operationId": "api_v2_assets_attachments_destroy",
@@ -20029,6 +20542,14 @@
                 "type": "string",
                 "description": "* `automatic_google_transcription` - automatic_google_transcription\n* `automatic_google_translation` - automatic_google_translation\n* `manual_transcription` - manual_transcription\n* `manual_translation` - manual_translation\n* `manual_qual` - manual_qual\n* `automatic_bedrock_qual` - automatic_bedrock_qual"
             },
+            "ActionIdEnum": {
+                "enum": [
+                    "automatic_google_transcription",
+                    "automatic_google_translation"
+                ],
+                "type": "string",
+                "description": "* `automatic_google_transcription` - automatic_google_transcription\n* `automatic_google_translation` - automatic_google_translation"
+            },
             "AdvancedFeatureCreateResponse": {
                 "type": "object",
                 "properties": {
@@ -21631,6 +22152,203 @@
             "BlankEnum": {
                 "enum": [
                     ""
+                ]
+            },
+            "BulkActionCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "action_id": {
+                        "$ref": "#/components/schemas/ActionIdEnum"
+                    },
+                    "question_xpath": {
+                        "type": "string"
+                    },
+                    "submission_uuids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "params": {
+                        "$ref": "#/components/schemas/BulkActionParamsRequest"
+                    }
+                },
+                "required": [
+                    "action_id",
+                    "params",
+                    "question_xpath",
+                    "submission_uuids"
+                ]
+            },
+            "BulkActionListResponse": {
+                "type": "object",
+                "properties": {
+                    "count": {
+                        "type": "integer"
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BulkActionResponse"
+                        }
+                    }
+                },
+                "required": [
+                    "count",
+                    "results"
+                ]
+            },
+            "BulkActionParamsRequest": {
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "language"
+                ]
+            },
+            "BulkActionParamsResponse": {
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "language"
+                ]
+            },
+            "BulkActionPatchRequestStatusEnum": {
+                "enum": [
+                    "cancelled"
+                ],
+                "type": "string",
+                "description": "* `cancelled` - cancelled"
+            },
+            "BulkActionResponse": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/BulkActionResponseStatusEnum"
+                    },
+                    "action_id": {
+                        "$ref": "#/components/schemas/ActionIdEnum"
+                    },
+                    "question_xpath": {
+                        "type": "string"
+                    },
+                    "submission_uuids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "submission_statuses": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BulkActionSubmissionStatusResponse"
+                        }
+                    },
+                    "params": {
+                        "$ref": "#/components/schemas/BulkActionParamsResponse"
+                    },
+                    "created_by": {
+                        "$ref": "#/components/schemas/BulkActionUserResponse"
+                    },
+                    "date_created": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "date_modified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelled_by": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/BulkActionUserResponse"
+                            }
+                        ],
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "action_id",
+                    "created_by",
+                    "date_created",
+                    "date_modified",
+                    "params",
+                    "question_xpath",
+                    "status",
+                    "submission_statuses",
+                    "submission_uuids",
+                    "uid"
+                ]
+            },
+            "BulkActionResponseStatusEnum": {
+                "enum": [
+                    "pending",
+                    "in_progress",
+                    "complete",
+                    "cancelled"
+                ],
+                "type": "string",
+                "description": "* `pending` - pending\n* `in_progress` - in_progress\n* `complete` - complete\n* `cancelled` - cancelled"
+            },
+            "BulkActionSubmissionStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/BulkActionSubmissionStatusResponseStatusEnum"
+                    }
+                },
+                "required": [
+                    "status",
+                    "uuid"
+                ]
+            },
+            "BulkActionSubmissionStatusResponseStatusEnum": {
+                "enum": [
+                    "pending",
+                    "in_progress",
+                    "complete",
+                    "cancelled",
+                    "failed"
+                ],
+                "type": "string",
+                "description": "* `pending` - pending\n* `in_progress` - in_progress\n* `complete` - complete\n* `cancelled` - cancelled\n* `failed` - failed"
+            },
+            "BulkActionUserResponse": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "username"
                 ]
             },
             "ChangePlan": {
@@ -26658,6 +27376,14 @@
                         ]
                     }
                 ]
+            },
+            "PatchedBulkActionPatchRequest": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/BulkActionPatchRequestStatusEnum"
+                    }
+                }
             },
             "PatchedCurrentUser": {
                 "type": "object",
