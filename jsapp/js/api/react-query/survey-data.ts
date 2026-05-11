@@ -796,17 +796,17 @@ export type assetsAdvancedFeaturesBulkActionsRetrieveResponse =
     headers: Headers
   }
 
-export const getAssetsAdvancedFeaturesBulkActionsRetrieveUrl = (uidAsset: string, uidBulkAction: string) => {
-  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${uidBulkAction}/`
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveUrl = (uidAsset: string, actionUid: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${actionUid}/`
 }
 
 export const assetsAdvancedFeaturesBulkActionsRetrieve = async (
   uidAsset: string,
-  uidBulkAction: string,
+  actionUid: string,
   options?: RequestInit,
 ): Promise<assetsAdvancedFeaturesBulkActionsRetrieveResponse> => {
   return fetchWithAuth<assetsAdvancedFeaturesBulkActionsRetrieveResponse>(
-    getAssetsAdvancedFeaturesBulkActionsRetrieveUrl(uidAsset, uidBulkAction),
+    getAssetsAdvancedFeaturesBulkActionsRetrieveUrl(uidAsset, actionUid),
     {
       ...options,
       method: 'GET',
@@ -814,8 +814,8 @@ export const assetsAdvancedFeaturesBulkActionsRetrieve = async (
   )
 }
 
-export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey = (uidAsset: string, uidBulkAction: string) => {
-  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', uidBulkAction] as const
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey = (uidAsset: string, actionUid: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', actionUid] as const
 }
 
 export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions = <
@@ -823,7 +823,7 @@ export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  uidBulkAction: string,
+  actionUid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -831,13 +831,12 @@ export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey =
-    queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey(uidAsset, uidBulkAction)
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey(uidAsset, actionUid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>> = ({ signal }) =>
-    assetsAdvancedFeaturesBulkActionsRetrieve(uidAsset, uidBulkAction, { signal, ...requestOptions })
+    assetsAdvancedFeaturesBulkActionsRetrieve(uidAsset, actionUid, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(uidAsset && uidBulkAction), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidAsset && actionUid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>,
     TError,
     TData
@@ -854,13 +853,13 @@ export function useAssetsAdvancedFeaturesBulkActionsRetrieve<
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  uidBulkAction: string,
+  actionUid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions(uidAsset, uidBulkAction, options)
+  const queryOptions = getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions(uidAsset, actionUid, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -902,18 +901,18 @@ export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse =
     headers: Headers
   }
 
-export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl = (uidAsset: string, uidBulkAction: string) => {
-  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${uidBulkAction}/`
+export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl = (uidAsset: string, actionUid: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${actionUid}/`
 }
 
 export const assetsAdvancedFeaturesBulkActionsPartialUpdate = async (
   uidAsset: string,
-  uidBulkAction: string,
+  actionUid: string,
   patchedBulkActionPatchRequest: PatchedBulkActionPatchRequest,
   options?: RequestInit,
 ): Promise<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse> => {
   return fetchWithAuth<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse>(
-    getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl(uidAsset, uidBulkAction),
+    getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl(uidAsset, actionUid),
     {
       ...options,
       method: 'PATCH',
@@ -930,14 +929,14 @@ export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions = 
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
     TError,
-    { uidAsset: string; uidBulkAction: string; data: PatchedBulkActionPatchRequest },
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
   TError,
-  { uidAsset: string; uidBulkAction: string; data: PatchedBulkActionPatchRequest },
+  { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
   TContext
 > => {
   const mutationKey = ['assetsAdvancedFeaturesBulkActionsPartialUpdate']
@@ -949,11 +948,11 @@ export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions = 
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
-    { uidAsset: string; uidBulkAction: string; data: PatchedBulkActionPatchRequest }
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest }
   > = (props) => {
-    const { uidAsset, uidBulkAction, data } = props ?? {}
+    const { uidAsset, actionUid, data } = props ?? {}
 
-    return assetsAdvancedFeaturesBulkActionsPartialUpdate(uidAsset, uidBulkAction, data, requestOptions)
+    return assetsAdvancedFeaturesBulkActionsPartialUpdate(uidAsset, actionUid, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -969,7 +968,7 @@ export const useAssetsAdvancedFeaturesBulkActionsPartialUpdate = <TError = Error
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
     TError,
-    { uidAsset: string; uidBulkAction: string; data: PatchedBulkActionPatchRequest },
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>

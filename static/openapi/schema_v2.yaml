@@ -2129,7 +2129,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
           description: Placeholder endpoint. Runtime behavior not implemented.
-  /api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{uid_bulk_action}/:
+  /api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{action_uid}/:
     get:
       operationId: api_v2_assets_advanced_features_bulk_actions_retrieve
       description: |
@@ -2145,16 +2145,16 @@ paths:
         integration and OpenAPI generation. Runtime processing is not yet implemented.
       parameters:
       - in: path
+        name: action_uid
+        schema:
+          type: string
+        description: UID of the bulk action job
+        required: true
+      - in: path
         name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
-        required: true
-      - in: path
-        name: uid_bulk_action
-        schema:
-          type: string
-        description: UID of the bulk action job
         required: true
       tags:
       - Survey data
@@ -2225,16 +2225,16 @@ paths:
         implemented.
       parameters:
       - in: path
+        name: action_uid
+        schema:
+          type: string
+        description: UID of the bulk action job
+        required: true
+      - in: path
         name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
-        required: true
-      - in: path
-        name: uid_bulk_action
-        schema:
-          type: string
-        description: UID of the bulk action job
         required: true
       tags:
       - Survey data

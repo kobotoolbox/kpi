@@ -148,6 +148,13 @@ asset_routes.register(
 )
 
 asset_routes.register(
+    r'advanced-features/bulk-actions',
+    BulkActionViewSet,
+    basename='advanced-features-bulk-actions',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
     r'advanced-features',
     QuestionAdvancedFeatureViewSet,
     basename='advanced-features',
@@ -258,25 +265,6 @@ supplement_url_pattern = [
     ),
 ]
 
-bulk_action_url_patterns = [
-    path(
-        'assets/<uid_asset>/advanced-features/bulk-actions/',
-        BulkActionViewSet.as_view(
-            {'get': 'list', 'post': 'create'},
-            renderer_classes=[JSONRenderer],
-        ),
-        name='advanced-features-bulk-actions-list',
-    ),
-    path(
-        'assets/<uid_asset>/advanced-features/bulk-actions/<uid_bulk_action>/',
-        BulkActionViewSet.as_view(
-            {'get': 'retrieve', 'patch': 'partial_update'},
-            renderer_classes=[JSONRenderer],
-        ),
-        name='advanced-features-bulk-actions-detail',
-    ),
-]
-
 kobo_scim_pattern = [
     path(
         'scim/v2/',
@@ -285,8 +273,7 @@ kobo_scim_pattern = [
 ]
 
 urls_patterns = (
-    bulk_action_url_patterns
-    + router_api_v2.urls
+    router_api_v2.urls
     + enketo_url_aliases
     + supplement_url_pattern
     + kobo_scim_pattern

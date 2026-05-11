@@ -243,7 +243,7 @@ class QuestionAdvancedFeatureViewSet(
         },
         parameters=[
             OpenApiParameter(
-                name='uid_bulk_action',
+                name='action_uid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -268,7 +268,7 @@ class QuestionAdvancedFeatureViewSet(
         },
         parameters=[
             OpenApiParameter(
-                name='uid_bulk_action',
+                name='action_uid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -285,6 +285,8 @@ class BulkActionViewSet(
 ):
     permission_classes = (AssetAdvancedFeaturesPermission,)
     versioning_class = APIV2Versioning
+    lookup_field = 'uid'
+    lookup_url_kwarg = 'action_uid'
 
     def _not_implemented(self):
         raise PlaceholderNotImplementedApiException()
