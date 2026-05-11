@@ -341,7 +341,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   function onChangeTranslationCell(absoluteIndex: number, value: string) {
     setTableRows((prev) => {
       const copy = [...prev]
-      copy[absoluteIndex].value = value
+      copy[absoluteIndex] = { ...copy[absoluteIndex], value }
       return copy
     })
     stores.translations.setTranslationTableUnsaved(true)
