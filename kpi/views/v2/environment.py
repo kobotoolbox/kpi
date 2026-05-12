@@ -1,12 +1,9 @@
-# coding: utf-8
-
 import constance
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
-from drf_spectacular.utils import extend_schema
 from markdown import markdown
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -65,17 +62,6 @@ class EnvironmentViewSet(viewsets.ViewSet):
             key.lower(): getattr(constance.config, key) for key in cls.SIMPLE_CONFIGS
         }
 
-    @extend_schema(
-        tags=['Configuration'],
-        description=read_md('kpi', 'environment/retrieve.md'),
-        responses=open_api_200_ok_response(
-            EnvironmentResponseSerializer,
-            raise_not_found=False,
-            raise_access_forbidden=False,
-            require_auth=False,
-            validate_payload=False,
-        ),
-    )
     def list(self, request, *args, **kwargs):
         data = {}
         data.update(self.process_simple_configs())
