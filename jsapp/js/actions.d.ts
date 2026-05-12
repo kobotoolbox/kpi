@@ -263,7 +263,7 @@ interface ReportsSetCustomDefinition extends Function {
 }
 
 interface ReportsSetCustomCompletedDefinition extends Function {
-  (response: AssetResponse): void
+  (response: AssetResponse, crid: string): void
   listen: (callback: (response: AssetResponse, crid: string) => void) => Function
 }
 

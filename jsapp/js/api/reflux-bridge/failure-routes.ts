@@ -70,7 +70,8 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
-        // DELETE failures only have the path UID to go on.
+        // Intentional difference vs legacy Reflux flow: this bridge route emits only `deleteAsset.failed` and does not
+        // replicate the old inline alert. React-query code is expected to handle user-facing errors when implemented.
         actions.resources.deleteAsset.failed({ uid: assetUid, assetType: '' })
       }
     },

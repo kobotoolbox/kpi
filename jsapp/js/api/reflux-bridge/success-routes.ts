@@ -45,8 +45,9 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_custom' in requestBody),
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
-      // Legacy setCustom.completed expects `(asset, crid)`, but crid is not reliably
-      // recoverable from generic PATCH payloads. Emit updateAsset.completed instead.
+      // Legacy `setCustom.completed` expects `(asset, crid)`, but `crid` is not reliably recoverable from generic PATCH
+      // payloads intercepted in Orval mutator. We intentionally emit `updateAsset.completed` only and accept that one
+      // listener from `reports.tsx` relying specifically on `crid` will not run on this path.
       actions.resources.updateAsset.completed(asset)
     },
   },
