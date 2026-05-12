@@ -70,7 +70,8 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
-        // DELETE failures only have the path UID to go on.
+        // Intentional difference vs legacy Reflux flow: this bridge route emits only `deleteAsset.failed` and does not
+        // replicate the old inline alert. React-query code is expected to handle user-facing errors when implemented.
         actions.resources.deleteAsset.failed({ uid: assetUid, assetType: '' })
       }
     },
@@ -81,14 +82,25 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     method: 'POST',
     matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
     run: ({ legacyFailurePayload }) => {
-      actions.resources.deployAsset.failed(legacyFailurePayload)
+      actions.resources.deployAsset.failed(legacyFailurePayload, false)
+    },
+  },
+  {
+    endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
+    refluxAction: 'actions.resources.deployAsset.failed (redeployment)',
+    method: 'PATCH',
+    matches: ({ deploymentAssetUid, requestBody }) =>
+      Boolean(deploymentAssetUid && requestBody && 'version_id' in requestBody),
+    run: ({ legacyFailurePayload }) => {
+      actions.resources.deployAsset.failed(legacyFailurePayload, true)
     },
   },
   {
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.setDeploymentActive.failed',
     method: 'PATCH',
-    matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
+    matches: ({ deploymentAssetUid, requestBody }) =>
+      Boolean(deploymentAssetUid && (!requestBody || !('version_id' in requestBody))),
     run: ({ legacyFailurePayload }) => {
       actions.resources.setDeploymentActive.failed(legacyFailurePayload)
     },

@@ -86,6 +86,15 @@ interface DeleteAssetFailedDefinition extends Function {
   listen: (callback: (response: { uid: string; assetType: string }) => void) => Function
 }
 
+interface DeployAssetFailedDefinition extends Function {
+  (response: FailResponse, redeployment: boolean): void
+  listen: (callback: (response: FailResponse, redeployment: boolean) => void) => Function
+}
+
+interface DeployAssetDefinition extends GenericDefinition {
+  failed: DeployAssetFailedDefinition
+}
+
 export interface UpdateAssetDefinitionParams {
   onComplete?: (response: AssetResponse) => void
   onFailed?: (response: FailResponse) => void
@@ -254,7 +263,7 @@ interface ReportsSetCustomDefinition extends Function {
 }
 
 interface ReportsSetCustomCompletedDefinition extends Function {
-  (response: AssetResponse): void
+  (response: AssetResponse, crid: string): void
   listen: (callback: (response: AssetResponse, crid: string) => void) => Function
 }
 
@@ -362,7 +371,7 @@ export declare const actions: {
   resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
-    deployAsset: GenericDefinition
+    deployAsset: DeployAssetDefinition
     /** This is "archive" and "unarchive" of asset */
     setDeploymentActive: GenericDefinition
     createSnapshot: GenericDefinition

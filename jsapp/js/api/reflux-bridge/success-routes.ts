@@ -34,17 +34,21 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
       actions.reports.setStyle.completed(asset)
+      actions.resources.updateAsset.completed(asset)
     },
   },
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
-    refluxAction: 'actions.reports.setCustom.completed',
+    refluxAction: 'actions.resources.updateAsset.completed (report_custom fallback)',
     method: 'PATCH',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_custom' in requestBody),
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
-      actions.reports.setCustom.completed(asset)
+      // Legacy `setCustom.completed` expects `(asset, crid)`, but `crid` is not reliably recoverable from generic PATCH
+      // payloads intercepted in Orval mutator. We intentionally emit `updateAsset.completed` only and accept that one
+      // listener from `reports.tsx` relying specifically on `crid` will not run on this path.
+      actions.resources.updateAsset.completed(asset)
     },
   },
   {
@@ -57,6 +61,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
       // This is response-time only; `started` is emitted separately in the start route table.
       const asset = toLegacyAssetFromUnknown(responseData)
       actions.map.setMapStyles.completed(asset)
+      actions.resources.updateAsset.completed(asset)
     },
   },
   {
@@ -83,6 +88,9 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
+        // We don't have a nice simple way of getting assetType. It is required
+        // by a few components in Library code, we will fix up the code in there
+        // to avoid over-engineering here.
         actions.resources.deleteAsset.completed({ uid: assetUid, assetType: '' })
       }
     },
