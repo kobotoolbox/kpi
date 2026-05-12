@@ -5,7 +5,10 @@ from django.db.models import Exists, OuterRef
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
-from kobo.apps.subsequences.utils.versioning import migrate_submission_supplementals
+from kobo.apps.subsequences.utils.versioning import (
+    build_params,
+    migrate_submission_supplementals,
+)
 from kpi.models import Asset
 
 CHUNK_SIZE = 500
@@ -197,63 +200,6 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.WARNING(summary))
 
-    def _build_params(self, asset: Asset, xpath: str, action_id: str) -> list | dict:
-        """
-        Build params for a QuestionAdvancedFeature.
-
-        - manual_qual / automatic_bedrock_qual: extracts question definitions
-          from asset.advanced_features['qual']['qual_survey'].
-        - manual_transcription / automatic_google_transcription: language list
-          from asset.advanced_features['transcript']['languages'].
-        - manual_translation / automatic_google_translation: language list
-          from asset.advanced_features['translation']['languages'].
-        """
-        advanced_features = asset.advanced_features or {}
-
-        if action_id in ('manual_transcription', 'automatic_google_transcription'):
-            languages = advanced_features.get('transcript', {}).get('languages', [])
-            return [{'language': lang} for lang in languages]
-
-        if action_id in ('manual_translation', 'automatic_google_translation'):
-            languages = advanced_features.get('translation', {}).get('languages', [])
-            return [{'language': lang} for lang in languages]
-
-        if action_id in ('manual_qual', 'automatic_bedrock_qual'):
-            qual_survey = advanced_features.get('qual', {}).get('qual_survey', [])
-            # qual_survey items may use 'xpath' (slash) or 'qpath' (dash) as the key
-            questions = [
-                q
-                for q in qual_survey
-                if q.get('xpath') == xpath or q.get('qpath') == xpath
-            ]
-            params = []
-            for q in questions:
-                for required in ('uuid', 'type', 'labels'):
-                    if required not in q:
-                        raise ValueError(
-                            f"qual_survey item missing required field '{required}'"
-                        )
-                entry = {
-                    'uuid': q['uuid'],
-                    'type': QUAL_TYPE_MAP.get(q['type'], q['type']),
-                    'labels': q['labels'],
-                }
-                if 'choices' in q:
-                    entry['choices'] = [
-                        {
-                            k: v
-                            for k, v in c.items()
-                            if k in ('uuid', 'labels', 'options')
-                        }
-                        for c in q['choices']
-                    ]
-                if 'options' in q:
-                    entry['options'] = q['options']
-                params.append(entry)
-            return params
-
-        return {}
-
     def _create_missing_qafs(self, combos: set, dry_run: bool) -> None:
         """
         Create QuestionAdvancedFeature records for (asset_id, xpath, action_id)
@@ -307,7 +253,7 @@ class Command(BaseCommand):
             try:
                 with transaction.atomic():
                     for xpath, action_id in combos_for_asset:
-                        params = self._build_params(asset, xpath, action_id)
+                        params = build_params(asset, xpath, action_id)
                         self.stdout.write(
                             f'  {"[dry-run] " if dry_run else ""}'
                             f'Creating QAF asset={asset.uid}'
