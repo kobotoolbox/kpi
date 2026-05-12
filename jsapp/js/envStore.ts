@@ -75,7 +75,7 @@ export interface SocialApp {
 
 export interface ExtraProjectMetadataOption {
   name: string
-  label: string
+  label: string | Record<string, string>
 }
 
 export interface ExtraProjectMetadataField {
