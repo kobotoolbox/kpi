@@ -185,8 +185,6 @@ class AbstractDataFrameBuilder:
         ]
 
     @classmethod
-
-    @classmethod
     def _split_gps_fields(cls, record, gps_fields):
         updated_gps_fields = {}
         for key, value in record.items():
