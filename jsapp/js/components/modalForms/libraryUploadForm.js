@@ -17,7 +17,7 @@ import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import { escapeHtml, join, notify, validFileTypes } from '#/utils'
-import { renderBackButton } from './modalHelpers'
+import ModalBackButton from './ModalBackButton'
 
 /**
  * @prop {function} onSetModalTitle
@@ -165,7 +165,7 @@ const LibraryUploadForm = observer(
           )}
 
           <bem.Modal__footer>
-            {renderBackButton(this.state.isPending)}
+            <ModalBackButton isDisabled={this.state.isPending} />
 
             <Button
               type='primary'
