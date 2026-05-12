@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from typing import Union
 
+from constance import config
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
@@ -292,3 +293,22 @@ class NoCountPagination(DefaultPagination):
 
         offset = self.offset + self.limit
         return replace_query_param(url, self.offset_query_param, offset)
+
+def custom_max_limit(cls, max_limit):
+    cls.max_limit = max_limit
+    return cls
+
+def use_config_limit(cls):
+    class DynamicPaginator(cls):
+        def __init__(self):
+            max_limit = config.USER_REPORTS_PAGE_SIZE_LIMIT
+            PaginationClass = custom_max_limit(cls, max_limit)
+            self._paginator = PaginationClass()
+
+        def paginate_queryset(self, queryset, request, view=None):
+            return self._paginator.paginate_queryset(queryset, request, view)
+
+        def get_paginated_response(self, data):
+            return self._paginator.get_paginated_response(data)
+
+    return DynamicPaginator

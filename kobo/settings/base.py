@@ -673,6 +673,11 @@ CONSTANCE_CONFIG = {
         False,
         'Allow users to delete their own account.',
     ),
+    'USER_REPORTS_PAGE_SIZE_LIMIT': (
+        1000,
+        'Max page size for the user report endpoint',
+        'positive_int',
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -739,6 +744,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
+        'USER_REPORTS_PAGE_SIZE_LIMIT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
