@@ -29,7 +29,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-     # Turn off dependabot pull requests
+    # Turn off dependabot pull requests
     open-pull-requests-limit: 0
     ignore:
       ##########################################################################
