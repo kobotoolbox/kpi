@@ -86,7 +86,7 @@ export interface ExtraProjectMetadataField {
   }
   type: ExtraProjectMetadataFieldType
   required: boolean
-  options: ExtraProjectMetadataOption[]
+  options?: ExtraProjectMetadataOption[]
 }
 
 type ProjectMetadataFieldKey = 'description' | 'sector' | 'country' | 'operational_purpose' | 'collects_pii'
