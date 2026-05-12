@@ -195,7 +195,7 @@ class ProjectSettings extends React.Component {
     fields.extra_metadata_fields = {}
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
-      const value = asset?.settings?.[field.name]
+      const value = asset?.settings?.extra_metadata?.[field.name]
       const defaultValue =
         field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
           ? []
@@ -566,11 +566,9 @@ class ProjectSettings extends React.Component {
       country: this.state.fields.country,
       operational_purpose: this.state.fields.operational_purpose,
       collects_pii: this.state.fields.collects_pii,
+      extra_metadata: this.state.fields.extra_metadata_fields,
     }
 
-    envStore.data.extra_project_metadata_fields.forEach((field) => {
-      settings[field.name] = this.state.fields.extra_metadata_fields[field.name]
-    })
     return JSON.stringify(settings)
   }
 
