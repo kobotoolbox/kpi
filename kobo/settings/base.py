@@ -676,7 +676,7 @@ CONSTANCE_CONFIG = {
     'USER_REPORTS_PAGE_SIZE_LIMIT': (
         1000,
         'Max page size for the user report endpoint',
-        'positive_int',
+        'natural_int',
     )
 }
 
@@ -707,15 +707,9 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
-    'positive_int_minus_one': ['django.forms.fields.IntegerField', {
-        'min_value': -1
-    }],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
+    'positive_int': ['django.forms.fields.IntegerField', {'min_value': 0}],
+    'positive_int_minus_one': ['django.forms.fields.IntegerField', {'min_value': -1}],
+    'natural_int': ['django.forms.fields.IntegerField', {'min_value': 1}],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
