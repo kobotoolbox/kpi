@@ -135,8 +135,11 @@ export class EnvStoreData {
     return false
   }
 
-  public getExtraFieldLabel(field: ExtraProjectMetadataField, lang = 'default'): string {
-    return field.label[lang] || field.label.default || field.name
+  public getExtraFieldLabel(field: { name: string; label: string | Record<string, string> }, lang = 'default'): string {
+    if (typeof field.label === 'string') {
+      return field.label || field.name
+    }
+    return field.label[lang] || field.label['default'] || field.name
   }
 
   public getProjectMetadataFieldsAsSimpleDict() {

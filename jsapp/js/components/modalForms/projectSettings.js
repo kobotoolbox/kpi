@@ -48,16 +48,21 @@ const ExtraMetadataField = ({ field, value, onChange, hasError }) => {
   ) {
     const options = (field.options ?? []).map((opt) => ({
       value: opt.name,
-      label: opt.label,
+      label: envStore.data.getExtraFieldLabel(opt, currentLang()),
     }))
+
+    const isMulti = field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+    const selectValue = isMulti
+      ? options.filter((opt) => (value ?? []).includes(opt.value))
+      : (options.find((opt) => opt.value === value) ?? null)
 
     return (
       <div className={styles.input}>
         <WrappedSelect
           label={addRequiredToLabel(label, field.required)}
-          isMulti={field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT}
-          value={value}
-          onChange={(val) => onChange(field.name, val)}
+          isMulti={isMulti}
+          value={selectValue}
+          onChange={(val) => onChange(field.name, isMulti ? (val ?? []).map((o) => o.value) : (val?.value ?? null))}
           options={options}
           isLimitedHeight
           isClearable
