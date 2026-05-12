@@ -5,6 +5,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -62,6 +63,7 @@ class EnvironmentViewSet(viewsets.ViewSet):
             key.lower(): getattr(constance.config, key) for key in cls.SIMPLE_CONFIGS
         }
 
+    @extend_schema(exclude=True)
     def list(self, request, *args, **kwargs):
         data = {}
         data.update(self.process_simple_configs())
