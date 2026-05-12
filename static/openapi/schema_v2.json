@@ -10419,39 +10419,6 @@
                 }
             }
         },
-        "/api/v2/environment/": {
-            "get": {
-                "operationId": "api_v2_environment_list",
-                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
-                "tags": [
-                    "Configuration"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/EnvironmentResponse"
-                                    }
-                                }
-                            }
-                        },
-                        "description": null
-                    }
-                }
-            }
-        },
         "/api/v2/imports/": {
             "get": {
                 "operationId": "api_v2_imports_list",
