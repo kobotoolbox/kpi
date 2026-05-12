@@ -295,8 +295,10 @@ class NoCountPagination(DefaultPagination):
         return replace_query_param(url, self.offset_query_param, offset)
 
 def custom_max_limit(cls, max_limit):
-    cls.max_limit = max_limit
-    return cls
+    class NewMaxLimit(cls):
+        pass
+    NewMaxLimit.max_limit = max_limit
+    return NewMaxLimit
 
 def use_constance_config_limit(cls):
     class DynamicPaginator(cls):
