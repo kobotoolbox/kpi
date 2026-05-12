@@ -11,7 +11,7 @@ export interface DebouncedTextInputProps extends Omit<TextInputProps, 'value' | 
   forceNotifyOnBlur?: boolean
 }
 
-const DEFAULT_DEBOUNCE_TIMEOUT = 750
+const DEFAULT_DEBOUNCE_TIMEOUT = 300
 
 /**
  * A TextInput wrapper that adds debounced timeout for typing.

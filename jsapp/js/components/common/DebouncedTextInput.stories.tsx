@@ -61,7 +61,6 @@ export const Default: Story = {
   args: {
     label: 'Search',
     placeholder: 'Type to search…',
-    debounceTimeout: 750,
   },
   render: (args) => <WithCommittedValue {...args} />,
 }
@@ -79,7 +78,8 @@ export const NoImmediateFlush: Story = {
   args: {
     label: 'No immediate flush on blur / Enter',
     placeholder: 'Type to search…',
-    debounceTimeout: 750,
+    // Intentionally long to test Enter key
+    debounceTimeout: 1000,
     forceNotifyByEnter: false,
     forceNotifyOnBlur: false,
   },
@@ -92,30 +92,6 @@ export const Disabled: Story = {
     placeholder: 'Not editable',
     disabled: true,
     value: 'pre-filled value',
-  },
-}
-
-/** Shows the last debounced value committed to a parent component. */
-export const WithCommittedValueDisplay: Story = {
-  args: {
-    label: 'Live debounce demo',
-    placeholder: 'Type something…',
-    debounceTimeout: 750,
-  },
-  render: (args) => {
-    const [committed, setCommitted] = React.useState('')
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <DebouncedTextInput
-          {...args}
-          onChange={(value) => {
-            setCommitted(value)
-            args.onChange(value)
-          }}
-        />
-        <small>Last committed value: &quot;{committed}&quot;</small>
-      </div>
-    )
   },
 }
 
