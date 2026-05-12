@@ -616,7 +616,6 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
             # check for gps and split into components i.e. latitude, longitude,
             # altitude, precision
             self._split_gps_fields(record, self.gps_fields)
-            self._tag_edit_string(record)
             flat_dict = {}
             # re index repeats
             for key, value in record.items():
