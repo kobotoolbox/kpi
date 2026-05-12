@@ -60,8 +60,9 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data: dict) -> SubmissionExportTask:
-        # Create a new export task
         user = get_database_user(self._get_request.user)
+
+        # Create a new export task
         export_task = SubmissionExportTask.objects.create(
             user=user, data=validated_data
         )

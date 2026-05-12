@@ -8,20 +8,14 @@ on:
 jobs:
   cleanup-old-images:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-          owner: kobotoolbox
-          repositories: "kpi"
-
       - uses: snok/container-retention-policy@v3.0.1
         with:
           account: kobotoolbox
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           image-names: kpi
           cut-off: 90d
+          keep-n-most-recent: 1
           dry-run: false
