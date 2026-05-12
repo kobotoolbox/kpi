@@ -298,7 +298,7 @@ def custom_max_limit(cls, max_limit):
     cls.max_limit = max_limit
     return cls
 
-def use_config_limit(cls):
+def use_constance_config_limit(cls):
     class DynamicPaginator(cls):
         def __init__(self):
             max_limit = config.USER_REPORTS_PAGE_SIZE_LIMIT
