@@ -184,8 +184,7 @@ class ExportBuilder:
         DELETEDAT,  # no longer used but may persist in old submissions
     ]
     # fields we export but are not within the form's structure
-    EXTRA_FIELDS = [ID, UUID, SUBMISSION_TIME, INDEX, PARENT_TABLE_NAME,
-                    PARENT_INDEX]
+    EXTRA_FIELDS = [ID, UUID, SUBMISSION_TIME, INDEX, PARENT_TABLE_NAME, PARENT_INDEX]
     SPLIT_SELECT_MULTIPLES = True
     BINARY_SELECT_MULTIPLES = False
 

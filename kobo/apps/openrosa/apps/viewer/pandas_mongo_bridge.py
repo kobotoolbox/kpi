@@ -523,8 +523,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
         d = {}
 
         # check for lists
-        if type(value) is list and len(value) > 0 \
-                and key != ATTACHMENTS:
+        if type(value) is list and len(value) > 0 and key != ATTACHMENTS:
             for index, item in enumerate(value):
                 # start at 1
                 index += 1

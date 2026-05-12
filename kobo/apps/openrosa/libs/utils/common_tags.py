@@ -3,26 +3,26 @@
 # FIELDS ELEGANTLY
 
 # These are common variable tags that we'll want to access
-INSTANCE_DOC_NAME = "_name"
-ID = "_id"
-UUID = "_uuid"
-PICTURE = "picture"
-GPS = "location/gps"
+INSTANCE_DOC_NAME = '_name'
+ID = '_id'
+UUID = '_uuid'
+PICTURE = 'picture'
+GPS = 'location/gps'
 SURVEY_TYPE = '_survey_type_slug'
 
 # Phone IMEI:
-DEVICE_ID = "device_id"  # This tag was used in Phase I
-IMEI = "imei"            # This tag was used in Phase II
+DEVICE_ID = 'device_id'  # This tag was used in Phase I
+IMEI = 'imei'  # This tag was used in Phase II
 # Survey start time:
-START_TIME = "start_time"  # This tag was used in Phase I
-START = "start"            # This tag was used in Phase II
-END_TIME = "end_time"
-END = "end"
+START_TIME = 'start_time'  # This tag was used in Phase I
+START = 'start'  # This tag was used in Phase II
+END_TIME = 'end_time'
+END = 'end'
 
 # value of INSTANCE_DOC_NAME that indicates a registration form
-REGISTRATION = "registration"
+REGISTRATION = 'registration'
 # keys that we'll look for in the registration form
-NAME = "name"
+NAME = 'name'
 
 # extra fields that we're adding to our mongo doc
 XFORM_ID_STRING = '_xform_id_string'
@@ -54,12 +54,12 @@ NA_REP = 'n/a'
 
 
 # statistics
-MEAN = "mean"
-MIN = "min"
-MAX = "max"
-RANGE = "range"
-MEDIAN = "median"
-MODE = "mode"
+MEAN = 'mean'
+MIN = 'min'
+MAX = 'max'
+RANGE = 'range'
+MEDIAN = 'median'
+MODE = 'mode'
 
 
 # List of nested attributes which bypass 'dots' encoding
