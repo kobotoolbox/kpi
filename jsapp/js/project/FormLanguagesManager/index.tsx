@@ -316,14 +316,20 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
   async function changeDefaultLanguage(index: number) {
     const langString = translations[index]
+    const langLabel = langString ?? t('Unnamed language')
     modals.openConfirmModal({
       title: t('Change default language?'),
       children: t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
         '##lang##',
-        String(langString),
+        langLabel,
       ),
       labels: { confirm: t('Confirm'), cancel: t('Cancel') },
       onConfirm: async () => {
+        if (langString === null) {
+          notify.error(t('Cannot set an unnamed language as the default language.'))
+          return
+        }
+
         const content = cloneDeep(asset.content)
         if (content?.settings) {
           content.settings.default_language = langString
