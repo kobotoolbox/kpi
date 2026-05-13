@@ -8,6 +8,7 @@ import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { SurveyFlatPaths } from '#/assetUtils'
 import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
@@ -19,6 +20,7 @@ import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import DataTableCell from '#/components/submissions/DataTableCell'
+import { isBulkProcessingCellInProgress } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import type {
   DataTableSelectedRows,
@@ -93,6 +95,7 @@ const DEFAULT_PAGE_SIZE = 30
 
 interface DataTableProps {
   asset: AssetResponse
+  activeBulkActions?: BulkActionResponse[]
 }
 
 interface DataTableState {
@@ -875,6 +878,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             showGroupName={this.state.showGroupName}
             translationIndex={this.state.translationIndex}
             submissionCount={this.state.submissions.length}
+            isBulkProcessingInProgress={isBulkProcessingCellInProgress(
+              this.props.activeBulkActions || [],
+              row.original,
+              key,
+            )}
           />
         ),
       })
@@ -895,7 +903,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // We set filters here, so they apply for all columns
       if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true
-        col.Filter = ({ filter, onChange }) => (
+        const DropdownFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
           <select
             onChange={(event) => onChange(event.target.value)}
             style={{ width: '100%' }}
@@ -914,9 +922,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               })}
           </select>
         )
+        DropdownFilter.displayName = 'DropdownFilter'
+        col.Filter = DropdownFilter
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
-        col.Filter = ({ filter, onChange }) => (
+        const TextInputFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
           <DebounceInput
             value={filter ? filter.value : undefined}
             debounceTimeout={750}
@@ -925,6 +935,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             placeholder={t('Search')}
           />
         )
+        TextInputFilter.displayName = 'TextInputFilter'
+        col.Filter = TextInputFilter
       }
 
       // Ensure frozen columns stay correctly aligned to the left, even after
@@ -1094,11 +1106,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     enketoHandler.openSubmission(this.props.asset.uid, sid, EnketoActions.edit)
   }
 
-  onPageStateUpdated(pageState: PageStateStoreState) {
+  onPageStateUpdated(newPageState: PageStateStoreState) {
     // This function serves purpose only for Submission Modal and only when
     // user reaches the end of currently loaded submissions in the table with
     // the "next" button (and similarly with "prev" button).
-    if (pageState.modal && pageState.modal.type === MODAL_TYPES.SUBMISSION && !pageState.modal.sid) {
+    if (newPageState.modal && newPageState.modal.type === MODAL_TYPES.SUBMISSION && !newPageState.modal.sid) {
       // HACK: this is our way of forcing `react-table` to switch page. There is
       // a way to manually control pagination, but it would require some
       // refactoring to happen. This hack (i.e. using internal `setState` of
@@ -1106,15 +1118,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // `react-table` to v7, but since that major version is a huge overhaul,
       // we would be refactoring everything regardless.
       let page = 0
-      if (pageState.modal.page === 'next') {
+      if (newPageState.modal.page === 'next') {
         page = this.state.currentPage + 1
-      } else if (pageState.modal.page === 'prev') {
+      } else if (newPageState.modal.page === 'prev') {
         page = this.state.currentPage - 1
       }
       const fetchInstance = this.state.fetchInstance
       fetchInstance?.setState({ page: page })
 
-      this.setState({ submissionPager: pageState.modal.page }, this.fetchDataForCurrentInstance.bind(this))
+      this.setState({ submissionPager: newPageState.modal.page }, this.fetchDataForCurrentInstance.bind(this))
     }
   }
 
@@ -1129,7 +1141,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     if (isChecked) {
       const updatedSelectedRows = { ...selectedRows, [sid]: true }
-      const updatedShiftSelection = {
+      let updatedShiftSelection = {
         ...shiftSelection,
         [sid]: isShiftKeyPressed,
       }
@@ -1140,7 +1152,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         const [start, end] = [lastChecked, sid].map(Number)
         for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
           updatedSelectedRows[i] = true
-          delete updatedShiftSelection[i]
+          // Instead of delete, use object destructuring to remove the key
+          const { [i]: _removed, ...rest } = updatedShiftSelection
+          updatedShiftSelection = rest
         }
       }
       this.setState({
@@ -1163,12 +1177,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Handles whole page bulk checkbox change
    */
   bulkSelectAllRows(isChecked: boolean) {
-    const s = this.state.selectedRows
+    let s = this.state.selectedRows
     this.state.submissions.forEach((r) => {
       if (isChecked) {
         s[r._id] = true
       } else {
-        delete s[r._id]
+        // Instead of delete, use object destructuring to remove the key
+        const { [r._id]: _removed, ...rest } = s
+        s = rest
       }
     })
 
@@ -1384,5 +1400,3 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     )
   }
 }
-
-export default DataTable

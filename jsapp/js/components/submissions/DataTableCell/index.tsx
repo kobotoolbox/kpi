@@ -1,3 +1,4 @@
+import { Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
@@ -24,6 +25,7 @@ interface DataTableCellProps {
   showGroupName: boolean
   translationIndex: number
   submissionCount: number
+  isBulkProcessingInProgress?: boolean
 }
 
 export default function DataTableCell(props: DataTableCellProps) {
@@ -131,6 +133,18 @@ export default function DataTableCell(props: DataTableCellProps) {
         submissionIndex={submissionIndex}
         submissionTotal={props.submissionCount}
       />
+    )
+  }
+
+  if (
+    props.isBulkProcessingInProgress &&
+    props.reactTableRow.value === undefined &&
+    props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+  ) {
+    return (
+      <Text truncate='end' fs='italic' c='gray.6' span>
+        {t('Processing')}
+      </Text>
     )
   }
 

@@ -1,3 +1,4 @@
+import '../jsapp/js/fonts'
 import '../jsapp/scss/main.scss'
 import '#/bemComponents'
 import '@mantine/core/styles.css'
