@@ -127,7 +127,7 @@ def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'kpi.models.Asset') -
             return row['$xpath']
 
     # Could not find it from the survey, let's try to detect it automatically
-    xpaths = asset.get_all_attachment_xpaths(deployed=True)
+    xpaths = asset.get_all_attachment_xpaths()
     for xpath in xpaths:
         dashed_xpath = xpath.replace('/', '-')
         if dashed_xpath == qpath:
