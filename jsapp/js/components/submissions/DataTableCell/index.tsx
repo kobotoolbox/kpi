@@ -17,36 +17,38 @@ import TextModalCell from './TextModalCell'
 
 interface DataTableCellProps {
   asset: AssetResponse
-  row: CellInfo
+  reactTableRow: CellInfo
   columnKey: string
   question?: SurveyRow
   choices: SurveyChoice[]
   showGroupName: boolean
   translationIndex: number
   submissionCount: number
-  showSelectMultipleLabels: boolean
 }
 
 export default function DataTableCell(props: DataTableCellProps) {
+  const shouldShowSelectMultipleLabels = props.translationIndex === 0
+  const submission = props.reactTableRow.original
+  const submissionIndex = props.reactTableRow.index + 1
   const columnName = getColumnLabel(props.asset, props.columnKey, props.showGroupName, props.translationIndex)
 
-  if (typeof props.row.value === 'object' && !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-    return <RepeatGroupCell submissionData={props.row.original} rowName={props.columnKey} />
+  if (typeof props.reactTableRow.value === 'object' && !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+    return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 
-  if (props.question && props.question.type && props.row.value) {
+  if (props.question && props.question.type && props.reactTableRow.value) {
     if (recordKeys(TABLE_MEDIA_TYPES).includes(props.question.type)) {
       let mediaAttachment = null
 
-      const attachmentIndex: number = props.row.original._attachments.findIndex((attachment: SubmissionAttachment) => {
-        return attachment.media_file_basename === props.row.value
-      })
+      const attachmentIndex: number = submission._attachments.findIndex(
+        (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
+      )
 
-      if (props.question.type !== QUESTION_TYPES.text.id && props.row.original._attachments[attachmentIndex]) {
+      if (props.question.type !== QUESTION_TYPES.text.id && submission._attachments[attachmentIndex]) {
         mediaAttachment = getMediaAttachment(
-          props.row.original,
-          props.row.value,
-          props.row.original._attachments[attachmentIndex].question_xpath,
+          submission,
+          props.reactTableRow.value,
+          submission._attachments[attachmentIndex].question_xpath,
         )
       }
 
@@ -59,7 +61,7 @@ export default function DataTableCell(props: DataTableCellProps) {
             <AudioCell
               assetUid={props.asset.uid}
               xpath={props.question.$xpath}
-              submissionData={props.row.original}
+              submissionData={submission}
               mediaAttachment={mediaAttachment}
             />
           )
@@ -71,10 +73,10 @@ export default function DataTableCell(props: DataTableCellProps) {
           <MediaCell
             questionType={props.question.type}
             mediaAttachment={mediaAttachment}
-            mediaName={props.row.value}
-            submissionIndex={props.row.index + 1}
+            mediaName={props.reactTableRow.value}
+            submissionIndex={submissionIndex}
             submissionTotal={props.submissionCount}
-            submission={props.row.original}
+            submission={submission}
             asset={props.asset}
           />
         )
@@ -84,20 +86,20 @@ export default function DataTableCell(props: DataTableCellProps) {
     if (props.question.type === QUESTION_TYPES.select_one.id) {
       const choice = props.choices.find(
         (choiceItem) =>
-          choiceItem.list_name === props.question?.select_from_list_name && choiceItem.name === props.row.value,
+          choiceItem.list_name === props.question?.select_from_list_name && choiceItem.name === props.reactTableRow.value,
       )
       if (choice?.label && choice.label[props.translationIndex]) {
         return <span className='trimmed-text'>{choice.label[props.translationIndex]}</span>
       } else {
-        return <span className='trimmed-text'>{props.row.value}</span>
+        return <span className='trimmed-text'>{props.reactTableRow.value}</span>
       }
     }
     if (
       props.question.type === QUESTION_TYPES.select_multiple.id &&
-      props.row.value &&
-      props.showSelectMultipleLabels
+      props.reactTableRow.value &&
+      shouldShowSelectMultipleLabels
     ) {
-      const values = props.row.value.split(' ')
+      const values = props.reactTableRow.value.split(' ')
       const labels: Array<string | null> = []
       values.forEach((valueItem: string) => {
         const choice = props.choices.find(
@@ -112,31 +114,31 @@ export default function DataTableCell(props: DataTableCellProps) {
       return <span className='trimmed-text'>{labels.join(', ')}</span>
     }
     if (props.question.type === META_QUESTION_TYPES.start || props.question.type === META_QUESTION_TYPES.end) {
-      return <span className='trimmed-text'>{formatTimeDateShort(props.row.value)}</span>
+      return <span className='trimmed-text'>{formatTimeDateShort(props.reactTableRow.value)}</span>
     }
   }
 
   if (props.columnKey === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
-    return <span className='trimmed-text'>{formatTimeDateShort(props.row.value)}</span>
+    return <span className='trimmed-text'>{formatTimeDateShort(props.reactTableRow.value)}</span>
   }
 
   if (props.question?.type === QUESTION_TYPES.text.id) {
     return (
       <TextModalCell
-        text={props.row.value}
+        text={props.reactTableRow.value}
         columnName={columnName}
-        submissionIndex={props.row.index + 1}
+        submissionIndex={submissionIndex}
         submissionTotal={props.submissionCount}
       />
     )
   }
 
   if (
-    props.row.value === undefined &&
+    props.reactTableRow.value === undefined &&
     props.question === undefined &&
     props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
   ) {
-    const supplementalValue = getSupplementalDetailsContent(props.row.original, props.columnKey) || ''
+    const supplementalValue = getSupplementalDetailsContent(submission, props.columnKey) || ''
     if (props.columnKey.endsWith('verified')) {
       return <span className='trimmed-text'>{supplementalValue}</span>
     }
@@ -144,7 +146,7 @@ export default function DataTableCell(props: DataTableCellProps) {
       <TextModalCell
         text={supplementalValue}
         columnName={columnName}
-        submissionIndex={props.row.index + 1}
+        submissionIndex={submissionIndex}
         submissionTotal={props.submissionCount}
       />
     )
@@ -152,7 +154,7 @@ export default function DataTableCell(props: DataTableCellProps) {
 
   return (
     <span className='trimmed-text' dir='auto'>
-      {props.row.value}
+      {props.reactTableRow.value}
     </span>
   )
 }

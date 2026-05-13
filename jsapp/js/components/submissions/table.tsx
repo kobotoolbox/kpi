@@ -868,14 +868,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         Cell: (row: CellInfo) => (
           <DataTableCell
             asset={this.props.asset}
-            row={row}
+            reactTableRow={row}
             columnKey={key}
             question={q}
             choices={choices}
             showGroupName={this.state.showGroupName}
             translationIndex={this.state.translationIndex}
             submissionCount={this.state.submissions.length}
-            showSelectMultipleLabels={!tableStore.getTranslationIndex()}
           />
         ),
       })
