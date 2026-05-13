@@ -50,7 +50,7 @@ def run(dry_run: bool = False):
     existing_qafs: set[tuple[str, str, str]] = set()
 
     for supplement in supplements_with_qpaths:
-        print(f'{logging_prefix} - updating supplement {migrated+1}/{total}')
+        logging.info(f'{logging_prefix} - updating supplement {migrated+1}/{total}')
         asset = supplement.asset
         new_content = get_sanitized_dict_keys(
             logging_prefix, supplement.content, supplement.asset
@@ -64,7 +64,7 @@ def run(dry_run: bool = False):
                         try:
                             params = build_params(asset, xpath, action_id)
                         except ValueError as ve:
-                            print(
+                            logging.warning(
                                 f'{logging_prefix} - failed to build params '
                                 f'for {xpath}, {action_id}: {ve}'
                             )
@@ -79,7 +79,7 @@ def run(dry_run: bool = False):
                                 defaults={'params': params},
                             )
                             if created:
-                                print(
+                                logging.info(
                                     f'{logging_prefix} - Created QAF asset={asset.uid}'
                                     f' xpath={xpath} action={action_id}'
                                 )
@@ -116,7 +116,7 @@ def get_sanitized_dict_keys(
     return updated_dict
 
 
-def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'Asset') -> str:
+def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'kpi.models.Asset') -> str:
     """
     We have abandoned `qpath` attribute in favor of `xpath`.
     Existing projects may still use it though.
@@ -127,11 +127,11 @@ def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'Asset') -> str:
             return row['$xpath']
 
     # Could not find it from the survey, let's try to detect it automatically
-    xpaths = asset.get_attachment_xpaths(deployed=True)
+    xpaths = asset.get_all_attachment_xpaths(deployed=True)
     for xpath in xpaths:
         dashed_xpath = xpath.replace('/', '-')
         if dashed_xpath == qpath:
             return xpath
 
-    print(f'{logging_prefix} - xpath for qpath {qpath} not found. Keeping as qpath.')
+    logging.warning(f'{logging_prefix} - xpath for qpath {qpath} not found. Keeping as qpath.')
     return qpath
