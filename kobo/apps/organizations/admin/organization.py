@@ -1,12 +1,24 @@
+from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
 from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from organizations.base_admin import BaseOrganizationAdmin
 
 if settings.STRIPE_ENABLED:
     from djstripe.models import Price
+
+    from kobo.apps.stripe.exceptions import (
+        DefaultCommunityPlanNotFoundError,
+        ManualInvoicingSetupError,
+        ManualInvoicingSubscriptionExistsError,
+    )
+    from kobo.apps.stripe.utils.manual_invoicing import (
+        create_manual_invoicing_subscription,
+        organization_can_start_manual_invoicing,
+    )
 
 from kobo.apps.kobo_auth.shortcuts import User
 
@@ -24,6 +36,7 @@ class OrgAdmin(BaseOrganizationAdmin):
     readonly_fields = ['id', 'subscription_plan']
     fields = ['id', 'name', 'mmo_override', 'subscription_plan']
     search_fields = ['name']
+    change_form_template = 'admin/organizations/organization/change_form.html'
 
     # parent overrides
     list_display = ['name']
@@ -32,6 +45,8 @@ class OrgAdmin(BaseOrganizationAdmin):
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         organization = self.get_object(request, object_id)
+        extra_context = extra_context or {}
+        extra_context.update(self._get_manual_invoicing_extra_context(organization))
         if (
             organization
             and organization.organization_users.count() > max_users_for_edit_mode()
@@ -50,6 +65,52 @@ class OrgAdmin(BaseOrganizationAdmin):
                 level=messages.WARNING,
             )
         return super().change_view(request, object_id, form_url, extra_context)
+
+    def response_change(self, request, obj):
+        if '_create_manual_invoice_subscription' not in request.POST:
+            return super().response_change(request, obj)
+
+        if not settings.STRIPE_ENABLED:
+            self.message_user(
+                request,
+                'Stripe is disabled. Manual invoicing cannot be started.',
+                messages.ERROR,
+            )
+            return HttpResponseRedirect('.')
+
+        if not organization_can_start_manual_invoicing(obj):
+            self.message_user(
+                request,
+                'This organization already has an active Stripe subscription.',
+                messages.ERROR,
+            )
+            return HttpResponseRedirect('.')
+
+        try:
+            subscription = create_manual_invoicing_subscription(obj)
+        except ManualInvoicingSubscriptionExistsError as err:
+            self.message_user(request, str(err), messages.ERROR)
+        except DefaultCommunityPlanNotFoundError as err:
+            self.message_user(request, str(err), messages.ERROR)
+        except ManualInvoicingSetupError as err:
+            self.message_user(request, str(err), messages.ERROR)
+        except Exception as e:
+            self.message_user(
+                request,
+                f'Manual invoicing setup failed unexpectedly. {e}',
+                messages.ERROR,
+            )
+        else:
+            self.message_user(
+                request,
+                (
+                    'Created Stripe customer and subscription '
+                    f'{subscription.id} for manual invoicing.'
+                ),
+                messages.SUCCESS,
+            )
+
+        return HttpResponseRedirect('.')
 
     def save_related(self, request, form, formsets, change):
         organization_id = form.instance.id
@@ -123,3 +184,27 @@ class OrgAdmin(BaseOrganizationAdmin):
                 mark_safe(message),
                 messages.INFO,
             )
+
+    def _get_manual_invoicing_extra_context(self, organization: Organization | None):
+        context = {
+            'show_manual_invoicing_button': False,
+            'can_create_manual_invoice_subscription': False,
+            'manual_invoicing_help_text': '',
+        }
+        if not settings.STRIPE_ENABLED or not organization:
+            return context
+
+        can_create = organization_can_start_manual_invoicing(organization)
+        context.update(
+            {
+                'show_manual_invoicing_button':
+                    config.ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS,
+                'can_create_manual_invoice_subscription': can_create,
+                'manual_invoicing_help_text': (
+                    config.MANUAL_INVOICE_SUBSCRIPTION_HELP_TEXT
+                    if can_create
+                    else config.MANUAL_INVOICE_SUBSCRIPTION_DISABLED_TEXT
+                ),
+            }
+        )
+        return context

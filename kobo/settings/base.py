@@ -253,6 +253,21 @@ CONSTANCE_CONFIG = {
         ),
         'positive_int',
     ),
+    'ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS': (
+        False,
+        'Enable manual Stripe subscription creation button in Organization admin.',
+    ),
+    'MANUAL_INVOICE_SUBSCRIPTION_HELP_TEXT': (
+        (
+            'Creates a Stripe customer and a free community subscription '
+            'so billing can be updated manually in Stripe dashboard.'
+        ),
+        'Help text shown below the manual Stripe subscription button.',
+    ),
+    'MANUAL_INVOICE_SUBSCRIPTION_DISABLED_TEXT': (
+        'This organization already has an active Stripe subscription.',
+        'Message shown when manual Stripe subscription creation is unavailable.',
+    ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
         True,
         'Allow the use of unsecured endpoints for hooks. '
@@ -736,6 +751,11 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
+    ),
+    'Invoice': (
+        'ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS',
+        'MANUAL_INVOICE_SUBSCRIPTION_HELP_TEXT',
+        'MANUAL_INVOICE_SUBSCRIPTION_DISABLED_TEXT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
