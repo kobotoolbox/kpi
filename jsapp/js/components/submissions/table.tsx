@@ -1,5 +1,4 @@
 import './table.scss'
-import { Group } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
@@ -19,8 +18,8 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import DataTableCell from '#/components/submissions/DataTableCell'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
-import { getMediaAttachment, getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
@@ -38,7 +37,6 @@ import {
   DEFAULT_DATA_CELL_WIDTH,
   SUBMISSION_ACTIONS_ID,
   SortValues,
-  TABLE_MEDIA_TYPES,
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
 import tableStore from '#/components/submissions/tableStore'
@@ -51,7 +49,6 @@ import {
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
 } from '#/components/submissions/tableUtils'
-import TextModalCell from '#/components/submissions/textModalCell.component'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
@@ -79,7 +76,6 @@ import type {
   FailResponse,
   GetSubmissionsOptions,
   PaginatedResponse,
-  SubmissionAttachment,
   SubmissionResponse,
   SurveyChoice,
   SurveyRow,
@@ -89,12 +85,9 @@ import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { formatTimeDateShort, recordKeys } from '#/utils'
+import { recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
-import RepeatGroupCell from './RepeatGroupCell'
-import AudioCell from './audioCell'
-import MediaCell from './mediaCell'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -872,131 +865,19 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
         width: this._getColumnWidth(q?.type),
-        Cell: (row: CellInfo) => {
-          const columnName = getColumnLabel(
-            this.props.asset,
-            key,
-            this.state.showGroupName,
-            this.state.translationIndex,
-          )
-
-          if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            return <RepeatGroupCell submissionData={row.original} rowName={key} />
-          }
-
-          if (q && q.type && row.value) {
-            if (recordKeys(TABLE_MEDIA_TYPES).includes(q.type)) {
-              let mediaAttachment = null
-
-              const attachmentIndex: number = row.original._attachments.findIndex(
-                (attachment: SubmissionAttachment) => {
-                  return attachment.media_file_basename === row.value
-                },
-              )
-
-              if (q.type !== QUESTION_TYPES.text.id && row.original._attachments[attachmentIndex]) {
-                mediaAttachment = getMediaAttachment(
-                  row.original,
-                  row.value,
-                  row.original._attachments[attachmentIndex].question_xpath,
-                )
-              }
-
-              if (q.type === QUESTION_TYPES.audio.id || q.type === QUESTION_TYPES['background-audio'].id) {
-                if (mediaAttachment !== null && q.$xpath !== undefined) {
-                  return (
-                    <AudioCell
-                      assetUid={this.props.asset.uid}
-                      xpath={q.$xpath}
-                      submissionData={row.original}
-                      mediaAttachment={mediaAttachment}
-                    />
-                  )
-                }
-              }
-
-              if (mediaAttachment !== null && q.$xpath !== undefined) {
-                return (
-                  <MediaCell
-                    questionType={q.type}
-                    mediaAttachment={mediaAttachment}
-                    mediaName={row.value}
-                    submissionIndex={row.index + 1}
-                    submissionTotal={this.state.submissions.length}
-                    submission={row.original}
-                    asset={this.props.asset}
-                  />
-                )
-              }
-            }
-
-            // show proper labels for choice questions
-            if (q.type === QUESTION_TYPES.select_one.id) {
-              const choice = choices.find(
-                (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === row.value,
-              )
-              if (choice?.label && choice.label[translationIndex]) {
-                return <span className='trimmed-text'>{choice.label[translationIndex]}</span>
-              } else {
-                return <span className='trimmed-text'>{row.value}</span>
-              }
-            }
-            if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
-              const values = row.value.split(' ')
-              const labels: Array<string | null> = []
-              values.forEach((valueItem: string) => {
-                const choice = choices.find(
-                  (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === valueItem,
-                )
-                if (choice && choice.label && choice.label[translationIndex]) {
-                  labels.push(choice.label[translationIndex])
-                }
-              })
-
-              return <span className='trimmed-text'>{labels.join(', ')}</span>
-            }
-            if (q.type === META_QUESTION_TYPES.start || q.type === META_QUESTION_TYPES.end) {
-              return <span className='trimmed-text'>{formatTimeDateShort(row.value)}</span>
-            }
-          }
-
-          if (key === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
-            return <span className='trimmed-text'>{formatTimeDateShort(row.value)}</span>
-          }
-
-          if (q?.type === QUESTION_TYPES.text.id) {
-            return (
-              <TextModalCell
-                text={row.value}
-                columnName={columnName}
-                submissionIndex={row.index + 1}
-                submissionTotal={this.state.submissions.length}
-              />
-            )
-          }
-
-          // This identifies supplemental details column
-          if (row.value === undefined && q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const supplementalValue = getSupplementalDetailsContent(row.original, key) || ''
-            if (key.endsWith('verified')) {
-              return <Group h='100%'>{supplementalValue}</Group>
-            }
-            return (
-              <TextModalCell
-                text={supplementalValue}
-                columnName={columnName}
-                submissionIndex={row.index + 1}
-                submissionTotal={this.state.submissions.length}
-              />
-            )
-          }
-
-          return (
-            <span className='trimmed-text' dir='auto'>
-              {row.value}
-            </span>
-          )
-        },
+        Cell: (row: CellInfo) => (
+          <DataTableCell
+            asset={this.props.asset}
+            row={row}
+            columnKey={key}
+            question={q}
+            choices={choices}
+            showGroupName={this.state.showGroupName}
+            translationIndex={this.state.translationIndex}
+            submissionCount={this.state.submissions.length}
+            showSelectMultipleLabels={!tableStore.getTranslationIndex()}
+          />
+        ),
       })
 
       return false
