@@ -1,35 +1,18 @@
 /**
  * Public bridge entrypoint used by the shared Orval mutator.
  *
+ * In simple terms, this bridge keeps legacy Reflux listeners working while request code is moved to Orval/react-query.
+ * Every non-GET request is converted into a small context object (method, path, parsed body, and useful IDs).
+ * The bridge then checks route tables for the current lifecycle phase: before request, success response, or failure.
+ *
+ * A route runs only when the endpoint pattern matches the request and its `matches(...)` predicate returns true.
+ * If a route runs, it triggers the legacy callback so older UI code still reacts correctly during the migration.
+ *
  * File layout:
  * - `shared.ts` holds common helpers and shared types.
  * - `start-routes.ts` handles request-time lifecycle callbacks.
  * - `success-routes.ts` handles response-time success bridging.
  * - `failure-routes.ts` handles response-time failure bridging.
- *
- * How to extend this bridge:
- * 1. Find the lifecycle you need.
- *    - Use `start-routes.ts` when a legacy callback must fire before the request starts.
- *    - Use `success-routes.ts` when a legacy callback should fire after a successful response.
- *    - Use `failure-routes.ts` when a legacy callback should fire after a failed response.
- * 2. Search for the closest existing route and copy its shape.
- *    - Keep the new route focused on one endpoint or one request pattern.
- *    - If the same endpoint needs different behavior, add a separate route entry instead of making one route too smart.
- * 3. Use the shared helpers from `shared.ts` when you need to inspect the request.
- *    - `buildBridgeRequestContext()` gives you the method, pathname, request body, and parsed asset UIDs.
- *    - `isRecord()` helps when checking response payloads.
- * 4. Keep the route body small.
- *    - The route should usually only decide whether it matches and then call the legacy action.
- *    - If you need reusable logic, put the helper in `shared.ts` or keep it local to the route file.
- * 5. Keep this file limited to dispatch orchestration.
- *    - Do not add endpoint-specific branching here.
- *    - Do not add feature-specific business logic here.
- *    - This file should only route a request to the correct lifecycle table.
- *
- * Practical rule of thumb:
- * - If you are asking "which file should I edit?", start with the route file that matches the lifecycle.
- * - If you are asking "how do I inspect the request?", use `shared.ts`.
- * - If you are asking "where does the request get dispatched?", this file is the answer.
  */
 
 import { BRIDGE_FAILURE_ROUTES } from './failure-routes'
