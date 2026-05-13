@@ -9,7 +9,7 @@ from kobo.apps.audit_log.permissions import SuperUserPermission
 from kobo.apps.user_reports.models import UserReports
 from kobo.apps.user_reports.seralizers import UserReportsSerializer
 from kpi.filters import SearchFilter
-from kpi.paginators import NoCountPagination
+from kpi.paginators import NoCountPagination, use_constance_config_limit
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.user_reports.serializers import UserReportsListResponse
 from kpi.utils.schema_extensions.markdown import read_md
@@ -40,7 +40,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     queryset = UserReports.objects.all()
     serializer_class = UserReportsSerializer
-    pagination_class = NoCountPagination
+    pagination_class = use_constance_config_limit(NoCountPagination)
     permission_classes = (IsAuthenticated, SuperUserPermission)
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
 
