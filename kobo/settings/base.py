@@ -670,6 +670,11 @@ CONSTANCE_CONFIG = {
         False,
         'Allow users to delete their own account.',
     ),
+    'USER_REPORTS_PAGE_SIZE_LIMIT': (
+        1000,
+        'Max page size for the user report endpoint',
+        'natural_int',
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -699,15 +704,9 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
-    'positive_int_minus_one': ['django.forms.fields.IntegerField', {
-        'min_value': -1
-    }],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
+    'positive_int': ['django.forms.fields.IntegerField', {'min_value': 0}],
+    'positive_int_minus_one': ['django.forms.fields.IntegerField', {'min_value': -1}],
+    'natural_int': ['django.forms.fields.IntegerField', {'min_value': 1}],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -736,6 +735,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
+        'USER_REPORTS_PAGE_SIZE_LIMIT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
