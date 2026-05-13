@@ -86,7 +86,8 @@ export default function DataTableCell(props: DataTableCellProps) {
     if (props.question.type === QUESTION_TYPES.select_one.id) {
       const choice = props.choices.find(
         (choiceItem) =>
-          choiceItem.list_name === props.question?.select_from_list_name && choiceItem.name === props.reactTableRow.value,
+          choiceItem.list_name === props.question?.select_from_list_name &&
+          choiceItem.name === props.reactTableRow.value,
       )
       if (choice?.label && choice.label[props.translationIndex]) {
         return <span className='trimmed-text'>{choice.label[props.translationIndex]}</span>
