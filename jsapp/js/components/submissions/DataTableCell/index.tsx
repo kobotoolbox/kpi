@@ -8,6 +8,7 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { formatTimeDateShort, recordKeys } from '#/utils'
 import { getMediaAttachment, getSupplementalDetailsContent } from '../submissionUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
@@ -29,10 +30,24 @@ interface DataTableCellProps {
 }
 
 export default function DataTableCell(props: DataTableCellProps) {
+  const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
   const shouldShowSelectMultipleLabels = props.translationIndex === 0
   const submission = props.reactTableRow.original
   const submissionIndex = props.reactTableRow.index + 1
   const columnName = getColumnLabel(props.asset, props.columnKey, props.showGroupName, props.translationIndex)
+
+  if (
+    isBulkProcessingFeatureEnabled &&
+    props.isBulkProcessingInProgress &&
+    props.reactTableRow.value === undefined &&
+    props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+  ) {
+    return (
+      <Text truncate='end' fs='italic' c='gray.6' span>
+        {t('Processing')}
+      </Text>
+    )
+  }
 
   if (typeof props.reactTableRow.value === 'object' && !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
@@ -133,18 +148,6 @@ export default function DataTableCell(props: DataTableCellProps) {
         submissionIndex={submissionIndex}
         submissionTotal={props.submissionCount}
       />
-    )
-  }
-
-  if (
-    props.isBulkProcessingInProgress &&
-    props.reactTableRow.value === undefined &&
-    props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
-  ) {
-    return (
-      <Text truncate='end' fs='italic' c='gray.6' span>
-        {t('Processing')}
-      </Text>
     )
   }
 
