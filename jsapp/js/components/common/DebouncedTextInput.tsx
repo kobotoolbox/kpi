@@ -9,6 +9,7 @@ export interface DebouncedTextInputProps extends Omit<TextInputProps, 'value' | 
   debounceTimeout?: number
   forceNotifyByEnter?: boolean
   forceNotifyOnBlur?: boolean
+  onFocus?: React.FocusEventHandler<HTMLInputElement>
 }
 
 const DEFAULT_DEBOUNCE_TIMEOUT = 300
@@ -21,6 +22,7 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
     value,
     onChange,
     onBlur,
+    onFocus,
     onKeyDown,
     debounceTimeout = DEFAULT_DEBOUNCE_TIMEOUT,
     forceNotifyByEnter = true,
@@ -29,34 +31,23 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
   } = props
 
   const [inputValue, setInputValue] = useState(value ?? '')
-  // Tracks the last value we passed to onChange so we can distinguish
-  // "parent echoing our own commit back" from a genuine external update.
-  const lastCommittedValueRef = useRef(value ?? '')
+  // While the input is focused the user is in control of its content. Syncing from the prop during that window would
+  // clobber characters typed since the last debounce commit. When the input is blurred we're safe to accept any
+  // external change the parent sends (e.g. a "clear filters" reset).
+  const isFocusedRef = useRef(false)
 
   useEffect(() => {
-    const normalized = value ?? ''
-    // Only sync from the prop when the parent is driving a real change — not
-    // when it's just mirroring back a value we already committed. Without this
-    // guard, a re-render that arrives while the user is still typing resets
-    // inputValue and silently drops the characters typed since the last commit.
-    if (normalized !== lastCommittedValueRef.current) {
-      setInputValue(normalized)
-      lastCommittedValueRef.current = normalized
+    if (!isFocusedRef.current) {
+      setInputValue(value ?? '')
     }
   }, [value])
 
-  const debouncedOnChange = useDebouncedCallback(
-    (nextValue: string) => {
-      lastCommittedValueRef.current = nextValue
-      onChange(nextValue)
-    },
-    {
-      delay: debounceTimeout,
-      // Flush any pending call when the component unmounts so the parent always receives the last typed value (e.g. when
-      // the input is removed while the debounce timer is still running).
-      flushOnUnmount: true,
-    },
-  )
+  const debouncedOnChange = useDebouncedCallback(onChange, {
+    delay: debounceTimeout,
+    // Flush any pending call when the component unmounts so the parent always receives the last typed value (e.g. when
+    // the input is removed while the debounce timer is still running).
+    flushOnUnmount: true,
+  })
 
   const onInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,6 +60,7 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
 
   const onInputBlur = useCallback(
     (event: React.FocusEvent<HTMLInputElement>) => {
+      isFocusedRef.current = false
       if (forceNotifyOnBlur) {
         debouncedOnChange.flush()
       }
@@ -76,6 +68,14 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
       onBlur?.(event)
     },
     [forceNotifyOnBlur, debouncedOnChange, onBlur],
+  )
+
+  const onInputFocus = useCallback(
+    (event: React.FocusEvent<HTMLInputElement>) => {
+      isFocusedRef.current = true
+      onFocus?.(event)
+    },
+    [onFocus],
   )
 
   const onInputKeyDown = useCallback(
@@ -95,6 +95,7 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
       value={inputValue}
       onChange={onInputChange}
       onBlur={onInputBlur}
+      onFocus={onInputFocus}
       onKeyDown={onInputKeyDown}
     />
   )
