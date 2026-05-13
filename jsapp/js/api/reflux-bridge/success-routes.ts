@@ -45,9 +45,9 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_custom' in requestBody),
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
-      // Legacy `setCustom.completed` expects `(asset, crid)`, but `crid` is not reliably recoverable from generic PATCH
-      // payloads intercepted in Orval mutator. We intentionally emit `updateAsset.completed` only and accept that one
-      // listener from `reports.tsx` relying specifically on `crid` will not run on this path.
+      // Legacy `setCustom.completed` expects `(asset, crid)`, but `crid` is not reliably recoverable from generic
+      // PATCH payloads intercepted in Orval mutator. We intentionally emit `updateAsset.completed` only and accept
+      // that one listener from `reports.tsx` that relies on `crid` will not run on this path.
       actions.resources.updateAsset.completed(asset)
     },
   },
@@ -111,11 +111,34 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
+    // PATCH /deployment/ handles two actions: with `version_id` it is a redeploy,
+    // without it it flips which deployment is active.
+    endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
+    refluxAction: 'actions.resources.deployAsset.completed (redeployment)',
+    method: 'PATCH',
+    matches: ({ deploymentAssetUid, responseData, requestBody }) =>
+      Boolean(
+        deploymentAssetUid && requestBody && 'version_id' in requestBody && getLegacyDeploymentAsset(responseData),
+      ),
+    run: ({ responseData }) => {
+      const asset = getLegacyDeploymentAsset(responseData)
+      if (!asset) {
+        return
+      }
+
+      actions.resources.deployAsset.completed(asset)
+    },
+  },
+  {
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.setDeploymentActive.completed',
     method: 'PATCH',
-    matches: ({ deploymentAssetUid, responseData }) =>
-      Boolean(deploymentAssetUid && getLegacyDeploymentAsset(responseData)),
+    matches: ({ deploymentAssetUid, responseData, requestBody }) =>
+      Boolean(
+        deploymentAssetUid &&
+          (!requestBody || !('version_id' in requestBody)) &&
+          getLegacyDeploymentAsset(responseData),
+      ),
     run: ({ responseData }) => {
       const asset = getLegacyDeploymentAsset(responseData)
       if (!asset) {

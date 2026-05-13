@@ -70,8 +70,8 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
-        // Intentional difference vs legacy Reflux flow: this bridge route emits only `deleteAsset.failed` and does not
-        // replicate the old inline alert. React-query code is expected to handle user-facing errors when implemented.
+        // Intentional difference vs legacy Reflux flow: this bridge route emits only `deleteAsset.failed` and does
+        // not replicate the old inline alert. React-query code is expected to handle user-facing errors.
         actions.resources.deleteAsset.failed({ uid: assetUid, assetType: '' })
       }
     },
@@ -86,6 +86,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     },
   },
   {
+    // PATCH /deployment/ is overloaded: `version_id` means redeploy, otherwise it is set-active.
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.deployAsset.failed (redeployment)',
     method: 'PATCH',
