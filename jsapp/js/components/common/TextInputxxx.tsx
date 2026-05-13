@@ -3,4 +3,7 @@ import type { TextInputProps as TextInputPropsMantine } from '@mantine/core'
 
 export type TextInputProps = TextInputPropsMantine
 
-export default TextInputMantine
+function TextInput(props: TextInputProps) {
+  return <TextInputMantine {...props} />
+}
+export default TextInput
