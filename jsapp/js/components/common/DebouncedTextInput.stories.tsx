@@ -49,7 +49,7 @@ function WithCommittedValue(props: DebouncedTextInputProps) {
         {...props}
         onChange={(value) => {
           setCommitted(value)
-          props.onChange(value)
+          props.onChange?.(value)
         }}
       />
       <small>Last committed value: &quot;{committed ?? '—'}&quot;</small>
