@@ -169,8 +169,7 @@ def dict_to_joined_export(data, index, indices, name):
             else:
                 if name not in output:
                     output[name] = {}
-                else:
-                    output[name][key] = val
+                output[name][key] = val
 
     return output
 
