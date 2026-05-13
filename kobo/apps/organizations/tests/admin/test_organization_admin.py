@@ -133,8 +133,7 @@ class TestOrganizationAdminTestCase(TestCase):
             self.organization
         )
         assert (
-            'Created Stripe customer and community subscription '
-            'sub_manual_invoice'
+            'Created Stripe customer and subscription sub_manual_invoice'
         ) in response.content.decode()
 
     @pytest.mark.skipif(

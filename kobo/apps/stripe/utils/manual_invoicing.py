@@ -48,12 +48,11 @@ def create_manual_invoicing_subscription(organization) -> Subscription:
             'Organization already has an active Stripe subscription.'
         )
 
-    try:
-        owner = organization.owner_user_object
-    except AttributeError as err:
+    owner = organization.owner_user_object
+    if owner is None:
         raise ManualInvoicingSetupError(
             'Organization must have an owner before manual invoicing can start.'
-        ) from err
+        )
 
     price = get_default_community_plan_price()
     stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY

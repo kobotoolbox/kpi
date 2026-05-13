@@ -70,10 +70,13 @@ class OrgAdmin(BaseOrganizationAdmin):
         if '_create_manual_invoice_subscription' not in request.POST:
             return super().response_change(request, obj)
 
-        if not settings.STRIPE_ENABLED:
+        if (
+            not settings.STRIPE_ENABLED
+            or not config.ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS
+        ):
             self.message_user(
                 request,
-                'Stripe is disabled. Manual invoicing cannot be started.',
+                'Manual invoicing subscriptions are currently disabled.',
                 messages.ERROR,
             )
             return HttpResponseRedirect('.')
