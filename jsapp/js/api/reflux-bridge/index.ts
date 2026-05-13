@@ -40,7 +40,7 @@ import type {
   BridgeableRequestConfig,
   BridgeableSuccessResponse,
 } from './shared'
-import { buildBridgeRequestContext, toLegacyFailurePayload } from './shared'
+import { buildBridgeRequestContext, doesEndpointMatchRequest, toLegacyFailurePayload } from './shared'
 import { BRIDGE_START_ROUTES } from './start-routes'
 import { BRIDGE_SUCCESS_ROUTES } from './success-routes'
 
@@ -59,15 +59,24 @@ export * from './failure-routes'
  * but do not propagate it. This ensures bridge failures never break the API call.
  */
 function runMatchingRequestRoutes<
-  RouteContext extends { method: string },
-  Route extends { method: string; matches: (context: RouteContext) => boolean; run: (context: RouteContext) => void },
+  RouteContext extends { method: string; pathname: string },
+  Route extends {
+    endpoint: string
+    refluxAction: string
+    matches: (context: RouteContext) => boolean
+    run: (context: RouteContext) => void
+  },
 >(routes: ReadonlyArray<Route>, context: RouteContext) {
   routes.forEach((route) => {
-    if (route.method === context.method && route.matches(context)) {
+    if (doesEndpointMatchRequest(route.endpoint, context.method, context.pathname) && route.matches(context)) {
       try {
         route.run(context)
       } catch (error) {
-        console.error('[Orval→Reflux Bridge] Error running legacy action route:', error)
+        console.error('[Orval→Reflux Bridge] Error running legacy action route:', {
+          endpoint: route.endpoint,
+          refluxAction: route.refluxAction,
+          error,
+        })
       }
     }
   })

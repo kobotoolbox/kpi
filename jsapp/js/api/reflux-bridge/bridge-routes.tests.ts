@@ -34,6 +34,7 @@ import {
   bridgeOrvalStartToLegacyActions,
   bridgeOrvalSuccessToLegacyActions,
 } from './index'
+import { doesEndpointMatchRequest } from './shared'
 
 describe('reflux bridge route flow', () => {
   beforeEach(() => {
@@ -105,5 +106,25 @@ describe('reflux bridge route flow', () => {
     // Make sure this request did not spill into report-related routes.
     chai.expect(reportActions.setStyle.completed.mock.calls.length).to.equal(0)
     chai.expect(reportActions.setCustom.completed.mock.calls.length).to.equal(0)
+  })
+})
+
+describe('endpoint pattern matching', () => {
+  it('matches dynamic asset endpoint pattern', () => {
+    chai
+      .expect(doesEndpointMatchRequest('PATCH /api/v2/assets/:uid/', 'PATCH', '/api/v2/assets/abc123/'))
+      .to.equal(true)
+  })
+
+  it('does not match a different path shape', () => {
+    chai
+      .expect(doesEndpointMatchRequest('PATCH /api/v2/assets/:uid/', 'PATCH', '/api/v2/assets/abc123/deployment/'))
+      .to.equal(false)
+  })
+
+  it('does not match when method differs', () => {
+    chai
+      .expect(doesEndpointMatchRequest('PATCH /api/v2/assets/:uid/', 'POST', '/api/v2/assets/abc123/'))
+      .to.equal(false)
   })
 })

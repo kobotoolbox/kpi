@@ -11,7 +11,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.updateAsset.completed',
-    method: 'PATCH',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(
         assetUid &&
@@ -28,7 +27,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.reports.setStyle.completed',
-    method: 'PATCH',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_styles' in requestBody),
     run: ({ responseData }) => {
@@ -40,7 +38,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.updateAsset.completed (report_custom fallback)',
-    method: 'PATCH',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && 'report_custom' in requestBody),
     run: ({ responseData }) => {
@@ -54,7 +51,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.map.setMapStyles.completed',
-    method: 'PATCH',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && 'map_styles' in requestBody),
     run: ({ responseData }) => {
@@ -67,7 +63,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'POST /api/v2/assets/',
     refluxAction: 'actions.resources.createResource.completed | actions.resources.cloneAsset.completed',
-    method: 'POST',
     matches: ({ pathname, responseData }) => pathname === '/api/v2/assets/' && isRecord(responseData),
     run: ({ responseData, requestBody }) => {
       // Same endpoint powers both create and clone, so keep the branch here.
@@ -84,7 +79,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'DELETE /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.deleteAsset.completed',
-    method: 'DELETE',
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
@@ -98,7 +92,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'POST /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.deployAsset.completed',
-    method: 'POST',
     matches: ({ deploymentAssetUid, responseData }) =>
       Boolean(deploymentAssetUid && getLegacyDeploymentAsset(responseData)),
     run: ({ responseData }) => {
@@ -115,7 +108,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     // without it it flips which deployment is active.
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.deployAsset.completed (redeployment)',
-    method: 'PATCH',
     matches: ({ deploymentAssetUid, responseData, requestBody }) =>
       Boolean(
         deploymentAssetUid && requestBody && 'version_id' in requestBody && getLegacyDeploymentAsset(responseData),
@@ -132,7 +124,6 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.setDeploymentActive.completed',
-    method: 'PATCH',
     matches: ({ deploymentAssetUid, responseData, requestBody }) =>
       Boolean(
         deploymentAssetUid &&

@@ -11,7 +11,6 @@ export const BRIDGE_START_ROUTES: ReadonlyArray<BridgeStartRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.map.setMapStyles.started',
-    method: 'PATCH',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'map_styles' in requestBody),
     run: ({ assetUid, requestBody }) => {
       // Legacy map style flow still relies on `started` for immediate UI state.

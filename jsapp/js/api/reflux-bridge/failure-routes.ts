@@ -8,7 +8,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.updateAsset.failed',
-    method: 'PATCH',
     matches: ({ assetUid, requestBody }) =>
       Boolean(
         assetUid &&
@@ -24,7 +23,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.reports.setStyle.failed',
-    method: 'PATCH',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'report_styles' in requestBody),
     run: ({ legacyFailurePayload }) => {
       actions.reports.setStyle.failed(legacyFailurePayload)
@@ -33,7 +31,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.reports.setCustom.failed',
-    method: 'PATCH',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'report_custom' in requestBody),
     run: ({ legacyFailurePayload }) => {
       actions.reports.setCustom.failed(legacyFailurePayload)
@@ -42,7 +39,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.map.setMapStyles.failed',
-    method: 'PATCH',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'map_styles' in requestBody),
     run: ({ legacyFailurePayload }) => {
       actions.map.setMapStyles.failed(legacyFailurePayload)
@@ -51,7 +47,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'POST /api/v2/assets/',
     refluxAction: 'actions.resources.createResource.failed | actions.resources.cloneAsset.failed',
-    method: 'POST',
     matches: ({ pathname }) => pathname === '/api/v2/assets/',
     run: ({ requestBody, legacyFailurePayload }) => {
       // Same endpoint powers both create and clone, so branch by request body.
@@ -66,7 +61,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'DELETE /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.deleteAsset.failed',
-    method: 'DELETE',
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
@@ -79,7 +73,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'POST /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.deployAsset.failed',
-    method: 'POST',
     matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
     run: ({ legacyFailurePayload }) => {
       actions.resources.deployAsset.failed(legacyFailurePayload, false)
@@ -89,7 +82,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     // PATCH /deployment/ is overloaded: `version_id` means redeploy, otherwise it is set-active.
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.deployAsset.failed (redeployment)',
-    method: 'PATCH',
     matches: ({ deploymentAssetUid, requestBody }) =>
       Boolean(deploymentAssetUid && requestBody && 'version_id' in requestBody),
     run: ({ legacyFailurePayload }) => {
@@ -99,7 +91,6 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
     refluxAction: 'actions.resources.setDeploymentActive.failed',
-    method: 'PATCH',
     matches: ({ deploymentAssetUid, requestBody }) =>
       Boolean(deploymentAssetUid && (!requestBody || !('version_id' in requestBody))),
     run: ({ legacyFailurePayload }) => {

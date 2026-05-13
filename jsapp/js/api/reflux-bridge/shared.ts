@@ -4,8 +4,8 @@ import type { AssetResponse, FailResponse } from '#/dataInterface'
 /**
  * Shared bridge types and helpers.
  *
- * Keep this file free of route tables and action dispatches; it should only
- * contain reusable parsing, normalization, and context-building logic.
+ * Keep this file free of route tables and action dispatches; it should only contain reusable parsing, normalization,
+ * and context-building logic.
  */
 
 export interface BridgeableSuccessResponse {
@@ -49,12 +49,13 @@ export interface BridgeFailureRouteContext extends BridgeSuccessRouteContext {
 }
 
 export interface BridgeRoute<Context> {
-  /** Metadata: human-readable endpoint signature, e.g. `PATCH /api/v2/assets/:uid/` */
+  /**
+   * Endpoint pattern used for route pre-matching, e.g. `PATCH /api/v2/assets/:uid/`. `:param` segments match a single
+   * non-empty path segment.
+   */
   endpoint: string
-  /** Metadata: a human-readable legacy action path this route is expected to trigger */
+  /** Human-readable legacy action label used for diagnostics and code navigation. */
   refluxAction: string
-  /** HTTP method this route applies to */
-  method: string
   /** Predicate that decides whether this route should run for a given context */
   matches: (context: Context) => boolean
   /** Side-effect callback that emits the corresponding legacy Reflux action */
@@ -190,4 +191,46 @@ export function buildBridgeRequestContext(
     assetUid: getAssetUidFromAssetPath(pathname),
     deploymentAssetUid: getAssetUidFromDeploymentPath(pathname),
   }
+}
+
+/**
+ * Checks whether an incoming request matches a route endpoint pattern.
+ *
+ * `endpoint` is the route declaration (for example, `PATCH /api/v2/assets/:uid/`) and carries both
+ * method and path pattern. We still pass `method` separately because that value comes from normalized
+ * request context (`buildBridgeRequestContext`) and represents what Orval actually sent.
+ *
+ * Keeping both inputs lets us fail fast when a route declaration is malformed or inconsistent with
+ * request context, and avoids relying on route-local duplicate method fields.
+ */
+export function doesEndpointMatchRequest(endpoint: string, method: string, pathname: string): boolean {
+  const separatorIndex = endpoint.indexOf(' ')
+  if (separatorIndex <= 0) {
+    return false
+  }
+
+  const endpointMethod = endpoint.slice(0, separatorIndex)
+  const endpointPathPattern = endpoint.slice(separatorIndex + 1).trim()
+  if (!endpointPathPattern.startsWith('/')) {
+    return false
+  }
+
+  if (endpointMethod !== method) {
+    return false
+  }
+
+  const patternParts = getPathParts(endpointPathPattern)
+  const pathParts = getPathParts(pathname)
+
+  if (patternParts.length !== pathParts.length) {
+    return false
+  }
+
+  return patternParts.every((patternPart, index) => {
+    if (patternPart.startsWith(':')) {
+      return pathParts[index].length > 0
+    }
+
+    return patternPart === pathParts[index]
+  })
 }
