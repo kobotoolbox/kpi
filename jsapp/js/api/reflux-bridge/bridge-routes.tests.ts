@@ -1,14 +1,13 @@
 import chai from 'chai'
 
-// The bridge keeps a few legacy Reflux actions alive while write paths move
-// over to Orval/react-query. That lets old UI code keep reacting to API work
-// without forcing the whole migration to happen in one step.
+// The bridge keeps a few legacy Reflux actions alive while write paths move over to Orval/react-query.
+// That lets old UI code keep reacting to API work without forcing the whole migration to happen in one step.
 
 var mockedActions: any
 
 jest.mock('#/actions', () => {
-  // Keep the mock small. Pulling in the real actions module would drag a lot
-  // of unrelated Reflux setup into a test that only cares about bridge routing.
+  // Keep the mock small. Pulling in the real actions module would drag unrelated Reflux setup
+  // into a test that only cares about bridge routing.
   mockedActions = {
     reports: {
       setStyle: { completed: jest.fn(), failed: jest.fn() },
@@ -43,8 +42,8 @@ describe('reflux bridge route flow', () => {
   })
 
   it('dispatches started, completed and failed map style actions for PATCH /assets/:uid/', () => {
-    // One real request shape gives more confidence here than a pile of tiny
-    // helper tests. This PATCH goes through all three bridge phases.
+    // One real request shape gives more confidence here than a pile of tiny helper tests.
+    // This PATCH goes through all three bridge phases.
     const url = '/api/v2/assets/abc123/'
     const mapStyles = { selectedQuestion: 'q1' }
     const config = {
