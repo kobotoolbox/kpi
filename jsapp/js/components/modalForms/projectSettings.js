@@ -21,7 +21,7 @@ import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import styles from '#/components/modalForms/projectSettings.module.scss'
 import { userCan } from '#/components/permissions/utils'
 import TemplatesList from '#/components/templatesList'
-import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import envStore from '#/envStore'
@@ -31,9 +31,73 @@ import { router, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import { currentLang, escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
+
+/**
+ * Renders the appropriate input for a single extra metadata field based on its
+ * type. Supported types are `single_select`, `multi_select`, and the default
+ * plain-text input.
+ */
+const ExtraMetadataField = ({ field, value, onChange, hasError }) => {
+  const label = envStore.data.getExtraFieldLabel(field, currentLang())
+
+  if (
+    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT ||
+    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+  ) {
+    const options = (field.options ?? []).map((opt) => ({
+      value: opt.name,
+      label: envStore.data.getExtraFieldLabel(opt, currentLang()),
+    }))
+
+    const isMulti = field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+    const selectValue = isMulti
+      ? options.filter((opt) => (value ?? []).includes(opt.value))
+      : (options.find((opt) => opt.value === value) ?? null)
+
+    return (
+      <div className={styles.input}>
+        <WrappedSelect
+          label={addRequiredToLabel(label, field.required)}
+          isMulti={isMulti}
+          value={selectValue}
+          onChange={(val) => onChange(field.name, isMulti ? (val ?? []).map((o) => o.value) : (val?.value ?? null))}
+          options={options}
+          isLimitedHeight
+          isClearable
+          menuPlacement='auto'
+          error={hasError ? t('Please select an option') : false}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.input}>
+      <TextBox
+        value={value}
+        onChange={(val) => onChange(field.name, val)}
+        label={addRequiredToLabel(label, field.required)}
+        placeholder={label}
+        errors={hasError ? t('This field is required') : false}
+      />
+    </div>
+  )
+}
+
+/** Renders all extra metadata fields configured in the environment store. */
+const ExtraMetadataFields = ({ values, onChange, hasFieldError }) =>
+  envStore.data.extra_project_metadata_fields.map((field) => (
+    <ExtraMetadataField
+      key={field.name}
+      field={field}
+      value={values[field.name]}
+      onChange={onChange}
+      hasError={hasFieldError(field.name)}
+    />
+  ))
 
 /**
  * This is used for multiple different purposes:
@@ -134,6 +198,19 @@ class ProjectSettings extends React.Component {
     fields.country = asset?.settings ? asset.settings.country : null
     fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null
+    fields.extra_metadata_fields = {}
+
+    envStore.data.extra_project_metadata_fields.forEach((field) => {
+      const value = asset?.settings?.extra_metadata?.[field.name]
+      const defaultValue =
+        field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+          ? []
+          : field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT
+            ? null
+            : ''
+
+      fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
+    })
 
     return fields
   }
@@ -221,7 +298,11 @@ class ProjectSettings extends React.Component {
     const newStateObj = clonedeep(this.state)
 
     // Set Value
-    newStateObj.fields[fieldName] = newFieldValue
+    if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
+      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue
+    } else {
+      newStateObj.fields[fieldName] = newFieldValue
+    }
 
     // If given field has error and user starts to edit it, we can remove
     // the error and wait for `handleSubmit` to add new ones if necessary.
@@ -485,13 +566,16 @@ class ProjectSettings extends React.Component {
   }
 
   getSettingsForEndpoint() {
-    return JSON.stringify({
+    const settings = {
       description: this.state.fields.description,
       sector: this.state.fields.sector,
       country: this.state.fields.country,
       operational_purpose: this.state.fields.operational_purpose,
       collects_pii: this.state.fields.collects_pii,
-    })
+      extra_metadata: this.state.fields.extra_metadata_fields,
+    }
+
+    return JSON.stringify(settings)
   }
 
   createAssetAndOpenInBuilder() {
@@ -683,6 +767,31 @@ class ProjectSettings extends React.Component {
     if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.fields.collects_pii) {
       fieldsWithErrors.push('collects_pii')
     }
+
+    envStore.data.extra_project_metadata_fields.forEach((field) => {
+      if (!field.required) return
+
+      const val = this.state.fields.extra_metadata_fields[field.name]
+
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT) {
+        if (!Array.isArray(val) || val.length === 0) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT) {
+        if (!val) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      // Default to text fields
+      if (!val?.trim()) {
+        fieldsWithErrors.push(field.name)
+      }
+    })
 
     // Will set either an empty array (no errors) or a list of fieldNames.
     this.setState({ fieldsWithErrors: fieldsWithErrors })
@@ -974,6 +1083,13 @@ class ProjectSettings extends React.Component {
               />
             </div>
           )}
+
+          {/* Extra Project Metadata */}
+          <ExtraMetadataFields
+            values={this.state.fields.extra_metadata_fields}
+            onChange={this.onAnyFieldChange}
+            hasFieldError={this.hasFieldError}
+          />
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||
             this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
