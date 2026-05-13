@@ -133,5 +133,7 @@ def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'kpi.models.Asset') -
         if dashed_xpath == qpath:
             return xpath
 
-    logging.warning(f'{logging_prefix} - xpath for qpath {qpath} not found. Keeping as qpath.')
+    logging.warning(
+        f'{logging_prefix} ' f'- xpath for qpath {qpath} not found. Keeping as qpath.'
+    )
     return qpath
