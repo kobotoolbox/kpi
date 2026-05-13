@@ -906,7 +906,6 @@ class TestExports(TestBase):
                  if x['children/cartoons/characters/name'] == name][0],
                 expected_output['children/cartoons/characters'][index])
 
-
     def test_create_xls_export_non_existent_id(self):
         self._publish_transportation_form()
 
