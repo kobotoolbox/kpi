@@ -1,7 +1,7 @@
 import { useDebouncedCallback } from '@mantine/hooks'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import TextInput from './TextInputxxx'
-import type { TextInputProps } from './TextInputxxx'
+import TextInput from './TextInput'
+import type { TextInputProps } from './TextInput'
 
 export interface DebouncedTextInputProps extends Omit<TextInputProps, 'value' | 'onChange'> {
   value?: string
