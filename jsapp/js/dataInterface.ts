@@ -263,11 +263,9 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
   _attachments: SubmissionAttachment[]
   // TODO: when does this happen to be array of nulls?
   _geolocation: number[] | null[]
-  _notes: string[]
   _status: string
   _submission_time: string
   _submitted_by: string | null
-  _tags: string[]
   // If submission was validated, this would be a proper response, otherwise it's empty object
   _validation_status: ValidationStatusResponse | {}
   _version_?: string
