@@ -1,5 +1,5 @@
 import { useDebouncedCallback } from '@mantine/hooks'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import TextInput from './textInput'
 import type { TextInputProps } from './textInput'
 
@@ -29,17 +29,34 @@ export default function DebouncedTextInput(props: DebouncedTextInputProps) {
   } = props
 
   const [inputValue, setInputValue] = useState(value ?? '')
+  // Tracks the last value we passed to onChange so we can distinguish
+  // "parent echoing our own commit back" from a genuine external update.
+  const lastCommittedValueRef = useRef(value ?? '')
 
   useEffect(() => {
-    setInputValue(value ?? '')
+    const normalized = value ?? ''
+    // Only sync from the prop when the parent is driving a real change — not
+    // when it's just mirroring back a value we already committed. Without this
+    // guard, a re-render that arrives while the user is still typing resets
+    // inputValue and silently drops the characters typed since the last commit.
+    if (normalized !== lastCommittedValueRef.current) {
+      setInputValue(normalized)
+      lastCommittedValueRef.current = normalized
+    }
   }, [value])
 
-  const debouncedOnChange = useDebouncedCallback(onChange, {
-    delay: debounceTimeout,
-    // Flush any pending call when the component unmounts so the parent always receives the last typed value (e.g. when
-    // the input is removed while the debounce timer is still running).
-    flushOnUnmount: true,
-  })
+  const debouncedOnChange = useDebouncedCallback(
+    (nextValue: string) => {
+      lastCommittedValueRef.current = nextValue
+      onChange(nextValue)
+    },
+    {
+      delay: debounceTimeout,
+      // Flush any pending call when the component unmounts so the parent always receives the last typed value (e.g. when
+      // the input is removed while the debounce timer is still running).
+      flushOnUnmount: true,
+    },
+  )
 
   const onInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
