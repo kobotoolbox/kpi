@@ -1,5 +1,3 @@
-# coding: utf-8
-from django.conf import settings
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
@@ -16,7 +14,7 @@ from kobo.apps.openrosa.apps.logger.views import (
 
 # exporting stuff
 from kobo.apps.openrosa.apps.viewer.views import (
-    attachment_url,
+    briefcase_attachment_url,
     create_export,
     delete_export,
     export_download,
@@ -29,18 +27,10 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     # main website views
     path('', RedirectView.as_view(url=koboform.redirect_url('/')), name='home'),
-    # Bring back old url because it's still used by `kpi`
-    path('attachment/', attachment_url, name='attachment_url'),
-    path('attachment/<str:size>', attachment_url, name='attachment_url'),
     re_path(
-        r'^{}$'.format(settings.MEDIA_URL.lstrip('/')),
-        attachment_url,
-        name='attachment_url',
-    ),
-    re_path(
-        r'^{}(?P<size>[^/]+)$'.format(settings.MEDIA_URL.lstrip('/')),
-        attachment_url,
-        name='attachment_url',
+        r'^attachment/briefcase/(?P<att_uid>[^/]+)$',
+        briefcase_attachment_url,
+        name='briefcase-attachment',
     ),
     path(
         'jsi18n/',
