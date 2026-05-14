@@ -43,7 +43,7 @@ export default function DataTableCell(props: DataTableCellProps) {
     props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
   ) {
     return (
-      <Text truncate='end' fs='italic' c='gray.6' span>
+      <Text truncate='end' fs='italic' c='gray.3' span>
         {t('Processing')}
       </Text>
     )
