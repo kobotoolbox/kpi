@@ -40,28 +40,23 @@ export class LibraryAssetFormComponent extends React.Component {
     super(props)
     this.unlisteners = []
 
-    const initialFields = {
-      name: '',
-      organization: '',
-      sector: null,
-      country: null,
-      tags: '',
-      description: '',
-    }
-
-    if (this.props.asset && this.props.asset.settings) {
-      Object.assign(initialFields, this.props.asset.settings)
+    const { asset } = props
+    const fields = {
+      name: asset?.name || '',
+      organization: asset?.settings?.organization || '',
+      country: asset?.settings?.country || null,
+      sector: asset?.settings?.sector || null,
+      tags: asset?.tag_string || '',
+      description: asset?.settings?.description || '',
     }
 
     this.state = {
       isSessionLoaded: !!sessionStore.isLoggedIn,
-      fields: initialFields,
+      fields,
+      extraMetadataFields: {},
       isPending: false,
     }
     autoBind(this)
-    if (this.props.asset) {
-      this.applyPropsData()
-    }
   }
 
   componentDidMount() {
@@ -71,6 +66,15 @@ export class LibraryAssetFormComponent extends React.Component {
         this.setState({ isSessionLoaded: true })
       },
     )
+
+    // Extra metadata fields are admin-configurable. Seed them into their own
+    // state key, loading any saved values from the existing asset if editing.
+    const extraMetadataFields = {}
+    for (const field of envStore.data.extra_project_metadata_fields) {
+      extraMetadataFields[field.name] = this.props.asset?.settings?.extra_metadata?.[field.name] ?? null
+    }
+    this.setState({ extraMetadataFields })
+
     this.unlisteners.push(
       actions.resources.createResource.completed.listen(this.onCreateResourceCompleted.bind(this)),
       actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this)),
@@ -83,24 +87,6 @@ export class LibraryAssetFormComponent extends React.Component {
     this.unlisteners.forEach((clb) => {
       clb()
     })
-  }
-
-  applyPropsData() {
-    const { asset } = this.props
-    const newFields = clonedeep(this.state.fields)
-
-    if (asset.name) {
-      newFields.name = asset.name
-    }
-    if (asset.tag_string) {
-      newFields.tags = asset.tag_string
-    }
-
-    if (asset.settings) {
-      Object.assign(newFields, asset.settings)
-    }
-
-    this.setState({ fields: newFields })
   }
 
   onCreateResourceCompleted(response) {
@@ -135,20 +121,26 @@ export class LibraryAssetFormComponent extends React.Component {
     evt.preventDefault()
     this.setState({ isPending: true })
 
-    const { name, tags, ...settings } = this.state.fields
-
-    const payload = {
-      name: name,
-      settings: JSON.stringify(settings),
-      tag_string: tags,
-    }
+    const settings = JSON.stringify({
+      organization: this.state.fields.organization,
+      country: this.state.fields.country,
+      sector: this.state.fields.sector,
+      description: this.state.fields.description,
+      extra_metadata: this.state.extraMetadataFields,
+    })
 
     if (this.props.asset) {
-      actions.resources.updateAsset(this.props.asset.uid, payload)
+      actions.resources.updateAsset(this.props.asset.uid, {
+        name: this.state.fields.name,
+        settings: settings,
+        tag_string: this.state.fields.tags,
+      })
     } else {
       const params = {
-        ...payload,
+        name: this.state.fields.name,
         asset_type: this.getFormAssetType(),
+        settings: settings,
+        tag_string: this.state.fields.tags,
       }
 
       if (this.isLibrarySingle() && params.asset_type !== ASSET_TYPES.collection.id) {
@@ -168,6 +160,12 @@ export class LibraryAssetFormComponent extends React.Component {
     const fields = clonedeep(this.state.fields)
     fields[fieldName] = newFieldValue
     this.setState({ fields: fields })
+  }
+
+  onExtraFieldChange(fieldName, newFieldValue) {
+    this.setState((prevState) => {
+      return { extraMetadataFields: { ...prevState.extraMetadataFields, [fieldName]: newFieldValue } }
+    })
   }
 
   onNameChange(newValue) {
@@ -265,7 +263,7 @@ export class LibraryAssetFormComponent extends React.Component {
           </bem.FormModal__item>
 
           {/* Extra Project Metadata */}
-          <ExtraProjectMetadataFields values={this.state.fields} onChange={this.onAnyFieldChange} />
+          <ExtraProjectMetadataFields values={this.state.extraMetadataFields} onChange={this.onExtraFieldChange} />
 
           <bem.FormModal__item>
             <KoboTagsInput
