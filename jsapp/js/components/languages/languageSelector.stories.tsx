@@ -138,7 +138,7 @@ export const InteractionTest: Story = {
       await userEvent.click(input)
       await userEvent.type(input, 'swd')
 
-      await expect(await page.findByText('I cannot find my language')).toBeInTheDocument()
+      await expect(await page.findByText('No matching languages found. Try another spelling or language name')).toBeInTheDocument()
     })
 
     await step('Search swed and select Swedish', async () => {

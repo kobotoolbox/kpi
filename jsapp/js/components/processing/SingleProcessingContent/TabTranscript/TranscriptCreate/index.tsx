@@ -50,7 +50,6 @@ export default function TranscriptCreate({
     setLanguageCode(null)
     setStep(CreateSteps.Language)
   }
-  console.log('adv features', asset.advanced_features)
 
   return (
     <>
