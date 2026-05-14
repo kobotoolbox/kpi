@@ -35,7 +35,7 @@ const supplementalSubmission = {
 } as SubmissionResponse
 
 const meta: Meta<typeof DataTableCell> = {
-  title: 'Components/Submissions/DataTableCell',
+  title: 'Components/DataTableCell',
   component: DataTableCell,
   decorators: [
     (Story) => (
