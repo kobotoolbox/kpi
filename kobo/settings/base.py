@@ -347,12 +347,16 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
+    # We are adopting the `CONSTANCE_` prefix as the new standard for all env
+    # variables that override Constance defaults. Legacy variables (e.g., KOBO_*)
+    # will be deprecated and migrated to this new pattern after the upcoming
+    # migration to Constance 4.x
     'ASR_MT_GOOGLE_PROJECT_ID': (
-        'kobo-asr-mt',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
     ),
     'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX': (
-        'kobo-asr-mt-tmp',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX', 'kobo-asr-mt-tmp'),
         (
             'Prefix for temporary ASR/MT files stored on Google Cloud. Useful'
             ' for lifecycle rules: files under this prefix can be deleted after'
@@ -361,7 +365,7 @@ CONSTANCE_CONFIG = {
         ),
     ),
     'ASR_MT_GOOGLE_TRANSLATION_LOCATION': (
-        'us-central1',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_TRANSLATION_LOCATION', 'us-central1'),
         (
             'Google Cloud location to use for large translation tasks. It'
             ' cannot be `global`, and Google only allows certain locations.'
@@ -1029,6 +1033,10 @@ SPECTACULAR_SETTINGS = {
     ),
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'POSTPROCESSING_HOOKS': [
+        'drf_spectacular.hooks.postprocess_schema_enums',
+        'kpi.utils.spectacular_processing.merge_allauth_headless_schema',
+    ],
     'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
     'SWAGGER_UI_SETTINGS': {
         'filter': True,
@@ -1677,6 +1685,11 @@ WEBPACK_LOADER = {
 # This setting sets the prefix in the subject line of the account activation email
 # The default is the URL of the server. Set to blank to fit the email requirements
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+
+# Enable serving django-allauth Headless OpenAPI specs (we ingest these into
+# DRF-Spectacular)
+HEADLESS_SERVE_SPECIFICATION = True
+
 
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND', 'django.core.mail.backends.filebased.EmailBackend'

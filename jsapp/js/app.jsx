@@ -3,14 +3,14 @@
  */
 import '#/bemComponents' // importing it so it exists
 
-import React from 'react'
+import { useDisclosure } from '@mantine/hooks'
+import React, { useEffect, useState } from 'react'
 
 import { MantineProvider } from '@mantine/core'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
-import Reflux from 'reflux'
 import { queryClient } from '#/api/queryClient'
 import bem from '#/bem'
 import Drawer from '#/components/Drawer'
@@ -23,35 +23,103 @@ import pageState from '#/pageState.store'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
 import { RootContextProvider } from '#/rootContextProvider.component'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
-import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
+import {
+  getRouteAssetUid,
+  isInvalidatedPasswordRouteBlockerActive,
+  isTOSAgreementRouteBlockerActive,
+} from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
-import { router, routerGetAssetId, withRouter } from './router/legacy'
+import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { themeKobo } from './theme'
 import ToasterConfig from './toasterConfig'
 
 import './api/mutation-defaults'
 
+/**
+ * Renders the page necessities (wrapper modifiers, BigModal, header, drawer, content area). Extracted from App because
+ * it needs hooks for modal subscription and drawer state.
+ */
+function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle, assetUid }) {
+  const [modal, setModal] = useState(() => pageState.state.modal ?? false)
+  const [isDrawerOpen, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false)
+
+  // Subscribe to modal state changes.
+  useEffect(() => {
+    return pageState.listen((state) => setModal(state.modal ?? false))
+  }, [])
+
+  // Close the drawer on every route change (better mobile experience).
+  useEffect(() => {
+    return router.subscribe(() => {
+      closeDrawer()
+    })
+  }, [closeDrawer])
+
+  const pageWrapperContentModifiers = []
+  if (isFormSingle) {
+    pageWrapperContentModifiers.push('form-landing')
+  }
+  if (isLibrarySingle) {
+    pageWrapperContentModifiers.push('library-landing')
+  }
+
+  const pageWrapperModifiers = {
+    'fixed-drawer': isDrawerOpen,
+    'in-formbuilder': inFormBuilder,
+    'is-modal-visible': Boolean(modal),
+  }
+
+  if (typeof modal === 'object') {
+    pageWrapperModifiers[`is-modal-${modal.type}`] = true
+  }
+
+  return (
+    <>
+      {shouldDisplayMain && <div className='header-stretch-bg' />}
+
+      <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
+        {modal && <BigModal params={modal} />}
+
+        {shouldDisplayMain && (
+          <>
+            <MainHeader assetUid={assetUid} onToggleMobileMenu={toggleDrawer} />
+            <Drawer />
+          </>
+        )}
+
+        <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
+          {shouldDisplayMain && (
+            <>
+              {isFormSingle && <ProjectTopTabs />}
+              <FormViewSideTabs show={isFormSingle} />
+            </>
+          )}
+
+          <Outlet />
+        </bem.PageWrapper__content>
+      </bem.PageWrapper>
+    </>
+  )
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props)
-    this.state = Object.assign({
-      pageState: pageState.state,
-    })
+    this.state = {}
   }
 
   componentDidMount() {
-    router.subscribe(this.onRouteChange.bind(this))
+    this.unsubscribeRouter = router.subscribe(this.onRouteChange.bind(this))
+  }
+
+  componentWillUnmount() {
+    this.unsubscribeRouter?.()
   }
 
   onRouteChange() {
-    // slide out drawer overlay on every page change (better mobile experience)
-    if (this.state.pageState.showFixedDrawer) {
-      pageState.setState({ showFixedDrawer: false })
-    }
-
     // hide modal on every page change
-    if (this.state.pageState.modal) {
+    if (pageState.state.modal) {
       pageState.hideModal()
     }
   }
@@ -75,25 +143,7 @@ class App extends React.Component {
       return <TOSAgreement />
     }
 
-    const assetid = routerGetAssetId()
-
-    const pageWrapperContentModifiers = []
-    if (this.isFormSingle()) {
-      pageWrapperContentModifiers.push('form-landing')
-    }
-    if (this.isLibrarySingle()) {
-      pageWrapperContentModifiers.push('library-landing')
-    }
-
-    const pageWrapperModifiers = {
-      'fixed-drawer': this.state.pageState.showFixedDrawer,
-      'in-formbuilder': this.isFormBuilder(),
-      'is-modal-visible': Boolean(this.state.pageState.modal),
-    }
-
-    if (typeof this.state.pageState.modal === 'object') {
-      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] = true
-    }
+    const assetUid = getRouteAssetUid()
 
     // TODO: We have multiple routes that shouldn't display `MainHeader`,
     // `Drawer`, `ProjectTopTabs` etc. Instead of relying on CSS via
@@ -107,29 +157,13 @@ class App extends React.Component {
               <Tracking />
               <ToasterConfig />
 
-              {this.shouldDisplayMainLayoutElements() && <div className='header-stretch-bg' />}
-
-              <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
-                {this.state.pageState.modal && <BigModal params={this.state.pageState.modal} />}
-
-                {this.shouldDisplayMainLayoutElements() && (
-                  <>
-                    <MainHeader assetUid={assetid} />
-                    <Drawer />
-                  </>
-                )}
-
-                <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
-                  {this.shouldDisplayMainLayoutElements() && (
-                    <>
-                      {this.isFormSingle() && <ProjectTopTabs />}
-                      <FormViewSideTabs show={this.isFormSingle()} />
-                    </>
-                  )}
-
-                  <Outlet />
-                </bem.PageWrapper__content>
-              </bem.PageWrapper>
+              <AppPageWrapper
+                shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
+                inFormBuilder={this.isFormBuilder()}
+                isFormSingle={this.isFormSingle()}
+                isLibrarySingle={this.isLibrarySingle()}
+                assetUid={assetUid}
+              />
             </RootContextProvider>
           </MantineProvider>
 
@@ -151,7 +185,6 @@ class App extends React.Component {
   }
 }
 
-reactMixin(App.prototype, Reflux.connect(pageState, 'pageState'))
 reactMixin(App.prototype, mixins.contextRouter)
 
 export default withRouter(App)

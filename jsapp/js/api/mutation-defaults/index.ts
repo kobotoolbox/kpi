@@ -1,6 +1,7 @@
 /* eslint-disable import/export */
 // ^^ eslint doesn't understand direct exports.
 
+export * from './manage-projects-and-library-content'
 export * from './user-team-organization-usage'
 export * from './survey-data'
 

@@ -13,7 +13,6 @@ import myLibraryStore from '#/components/library/myLibraryStore'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
-import pageState from '#/pageState.store'
 import { RequireOrg } from '#/router/RequireOrg'
 import { router, withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
@@ -33,6 +32,7 @@ import MainHeaderLogo from './mainHeaderLogo.component'
 
 interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null
+  onToggleMobileMenu?: () => void
 }
 
 /**
@@ -87,10 +87,6 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
     )
   }
 
-  toggleFixedDrawer() {
-    pageState.toggleFixedDrawer()
-  }
-
   render() {
     const isLoggedIn = sessionStore.isLoggedIn
 
@@ -119,7 +115,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
         <GitRev />
 
         {isLoggedIn && (
-          <button className={styles.mobileMenuToggle} onClick={this.toggleFixedDrawer}>
+          <button className={styles.mobileMenuToggle} onClick={this.props.onToggleMobileMenu}>
             <Icon name='menu' size='xl' />
           </button>
         )}
