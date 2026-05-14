@@ -1,4 +1,4 @@
-import { Text } from '@mantine/core'
+import { Group, Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
@@ -158,7 +158,7 @@ export default function DataTableCell(props: DataTableCellProps) {
   ) {
     const supplementalValue = getSupplementalDetailsContent(submission, props.columnKey) || ''
     if (props.columnKey.endsWith('verified')) {
-      return <span className='trimmed-text'>{supplementalValue}</span>
+      return <Group h='100%'>{supplementalValue}</Group>
     }
     return (
       <TextModalCell
