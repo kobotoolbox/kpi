@@ -14,6 +14,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import ExtraProjectMetadataFields from '#/components/modalForms/extraProjectMetadataFields'
 import { ASSET_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
@@ -22,6 +23,7 @@ import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
 import ModalBackButton from './ModalBackButton'
+import styles from './libraryAssetForm.module.scss'
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -206,13 +208,11 @@ export class LibraryAssetFormComponent extends React.Component {
       return <LoadingSpinner />
     }
 
-    const currentLang = envStore.data.interface_language || 'en'
-    const dynamicFields = envStore.data.extra_project_metadata_fields || []
     const SECTORS = envStore.data.sector_choices
     const COUNTRIES = envStore.data.country_choices
 
     return (
-      <bem.FormModal__form className='project-settings'>
+      <bem.FormModal__form className={`project-settings ${styles.form}`}>
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
@@ -264,40 +264,8 @@ export class LibraryAssetFormComponent extends React.Component {
             />
           </bem.FormModal__item>
 
-          {dynamicFields.map((field) => {
-            const label = envStore.data.getExtraFieldLabel(field, currentLang)
-            const options = field.options || []
-            const value = this.state.fields[field.name]
-
-            return (
-              <bem.FormModal__item key={field.name}>
-                {options.length > 0 || ['select', 'multiselect'].includes(field.type) ? (
-                  <WrappedSelect
-                    label={label}
-                    value={value}
-                    onChange={(newVal) => this.onAnyFieldChange(field.name, newVal)}
-                    options={options.map((opt) => {
-                      return {
-                        value: opt.name,
-                        label: opt.label || opt.name,
-                      }
-                    })}
-                    isMulti={field.type?.includes('multi')}
-                    isLimitedHeight
-                    isClearable
-                  />
-                ) : (
-                  <TextBox
-                    label={label}
-                    value={value || ''}
-                    onChange={(newVal) => this.onAnyFieldChange(field.name, newVal)}
-                    placeholder={label}
-                    type={field.type === 'text-multiline' ? 'text-multiline' : undefined}
-                  />
-                )}
-              </bem.FormModal__item>
-            )
-          })}
+          {/* Extra Project Metadata */}
+          <ExtraProjectMetadataFields values={this.state.fields} onChange={this.onAnyFieldChange} />
 
           <bem.FormModal__item>
             <KoboTagsInput

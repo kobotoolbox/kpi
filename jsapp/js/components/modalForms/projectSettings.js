@@ -18,10 +18,11 @@ import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
+import ExtraProjectMetadataFields from '#/components/modalForms/extraProjectMetadataFields'
 import styles from '#/components/modalForms/projectSettings.module.scss'
 import { userCan } from '#/components/permissions/utils'
 import TemplatesList from '#/components/templatesList'
-import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import envStore from '#/envStore'
@@ -31,52 +32,9 @@ import { router, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { currentLang, escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
-
-const ExtraMetadataFields = ({ values, onChange, hasFieldError }) =>
-  envStore.data.extra_project_metadata_fields.map((field) => {
-    const label = envStore.data.getExtraFieldLabel(field, currentLang())
-    const hasError = hasFieldError(field.name)
-
-    const options = (field.options ?? []).map((opt) => {
-      return {
-        value: opt.name,
-        label: opt.label,
-      }
-    })
-
-    if (field.type === 'single_select' || field.type === 'multi_select') {
-      return (
-        <div className={styles.input} key={field.name}>
-          <WrappedSelect
-            label={addRequiredToLabel(label, field.required)}
-            isMulti={field.type === 'multi_select'}
-            value={values[field.name]}
-            onChange={(val) => onChange(field.name, val)}
-            options={options}
-            isLimitedHeight
-            isClearable
-            menuPlacement='auto'
-            error={hasError ? t('Please select an option') : false}
-          />
-        </div>
-      )
-    }
-
-    return (
-      <div className={styles.input} key={field.name}>
-        <TextBox
-          value={values[field.name]}
-          onChange={(val) => onChange(field.name, val)}
-          label={addRequiredToLabel(label, field.required)}
-          placeholder={label}
-          errors={hasError ? t('This field is required') : false}
-        />
-      </div>
-    )
-  })
 
 /**
  * This is used for multiple different purposes:
@@ -180,8 +138,13 @@ class ProjectSettings extends React.Component {
     fields.extra_metadata_fields = {}
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
-      const value = asset?.settings?.[field.name]
-      const defaultValue = field.type === 'multi_select' ? [] : field.type === 'single_select' ? null : ''
+      const value = asset?.settings?.extra_metadata?.[field.name]
+      const defaultValue =
+        field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+          ? []
+          : field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT
+            ? null
+            : ''
 
       fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
     })
@@ -546,11 +509,9 @@ class ProjectSettings extends React.Component {
       country: this.state.fields.country,
       operational_purpose: this.state.fields.operational_purpose,
       collects_pii: this.state.fields.collects_pii,
+      extra_metadata: this.state.fields.extra_metadata_fields,
     }
 
-    envStore.data.extra_project_metadata_fields.forEach((field) => {
-      settings[field.name] = this.state.fields.extra_metadata_fields[field.name]
-    })
     return JSON.stringify(settings)
   }
 
@@ -749,14 +710,14 @@ class ProjectSettings extends React.Component {
 
       const val = this.state.fields.extra_metadata_fields[field.name]
 
-      if (field.type === 'multi_select') {
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT) {
         if (!Array.isArray(val) || val.length === 0) {
           fieldsWithErrors.push(field.name)
         }
         return
       }
 
-      if (field.type === 'single_select') {
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT) {
         if (!val) {
           fieldsWithErrors.push(field.name)
         }
@@ -1061,10 +1022,11 @@ class ProjectSettings extends React.Component {
           )}
 
           {/* Extra Project Metadata */}
-          <ExtraMetadataFields
+          <ExtraProjectMetadataFields
             values={this.state.fields.extra_metadata_fields}
             onChange={this.onAnyFieldChange}
             hasFieldError={this.hasFieldError}
+            fieldClassName={styles.input}
           />
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||

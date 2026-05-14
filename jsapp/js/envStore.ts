@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx'
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { ExtraProjectMetadataFieldType } from '#/constants'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import type { UserFieldName } from './account/account.constants'
 
@@ -75,7 +76,7 @@ export interface SocialApp {
 
 export interface ExtraProjectMetadataOption {
   name: string
-  label: string
+  label: string | Record<string, string>
 }
 
 export interface ExtraProjectMetadataField {
@@ -84,9 +85,9 @@ export interface ExtraProjectMetadataField {
     [key: string]: string
     default: string
   }
-  type: 'text' | 'single_select' | 'multi_select'
+  type: ExtraProjectMetadataFieldType
   required: boolean
-  options: ExtraProjectMetadataOption[]
+  options?: ExtraProjectMetadataOption[]
 }
 
 type ProjectMetadataFieldKey = 'description' | 'sector' | 'country' | 'operational_purpose' | 'collects_pii'
@@ -136,8 +137,11 @@ export class EnvStoreData {
     return false
   }
 
-  public getExtraFieldLabel(field: ExtraProjectMetadataField, lang = 'default'): string {
-    return field.label[lang] || field.label.default || field.name
+  public getExtraFieldLabel(field: { name: string; label: string | Record<string, string> }, lang = 'default'): string {
+    if (typeof field.label === 'string') {
+      return field.label || field.name
+    }
+    return field.label[lang] || field.label['default'] || field.name
   }
 
   public getProjectMetadataFieldsAsSimpleDict() {
