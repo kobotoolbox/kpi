@@ -6,5 +6,5 @@ class DefaultCommunityPlanNotFoundError(ManualInvoicingSetupError):
     pass
 
 
-class ManualInvoicingSubscriptionExistsError(ManualInvoicingSetupError):
+class ManualSubscriptionExistsError(ManualInvoicingSetupError):
     pass

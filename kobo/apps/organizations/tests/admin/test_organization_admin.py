@@ -3,7 +3,6 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-from constance.test import override_config
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
@@ -64,7 +63,6 @@ class TestOrganizationAdminTestCase(TestCase):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @override_config(ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS=True)
     @patch(
         'kobo.apps.organizations.admin.organization.organization_can_start_manual_invoicing',  # noqa
         return_value=True,
@@ -78,17 +76,16 @@ class TestOrganizationAdminTestCase(TestCase):
         )
 
         content = response.content.decode()
-        assert 'name="_create_manual_invoice_subscription"' in content
+        assert 'name="_create_manual_subscription"' in content
         assert 'Create Stripe Subscription' in content
         assert not re.search(
-            r'name="_create_manual_invoice_subscription"[^>]*disabled',
+            r'name="_create_manual_subscription"[^>]*disabled',
             content,
         )
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @override_config(ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS=True)
     @patch(
         'kobo.apps.organizations.admin.organization.organization_can_start_manual_invoicing',  # noqa
         return_value=False,
@@ -106,7 +103,7 @@ class TestOrganizationAdminTestCase(TestCase):
 
         content = response.content.decode()
         assert re.search(
-            r'name="_create_manual_invoice_subscription"[^>]*disabled',
+            r'name="_create_manual_subscription"[^>]*disabled',
             content,
         )
         assert 'already has an active Stripe subscription' in content
@@ -114,41 +111,39 @@ class TestOrganizationAdminTestCase(TestCase):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @override_config(ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS=True)
     @patch(
-        'kobo.apps.organizations.admin.organization.create_manual_invoicing_subscription'  # noqa
+        'kobo.apps.organizations.admin.organization.create_manual_subscription'
     )
-    def test_create_manual_invoice_subscription_from_admin(
-        self, create_manual_invoicing_subscription_mock
+    def test_create_manual_subscription_from_admin(
+        self, create_manual_subscription_mock
     ):
-        create_manual_invoicing_subscription_mock.return_value = SimpleNamespace(
+        create_manual_subscription_mock.return_value = SimpleNamespace(
             id='sub_manual_invoice'
         )
 
         response = self._post_change_form(
-            {'_create_manual_invoice_subscription': '1'}
+            {'_create_manual_subscription': '1'}
         )
 
-        create_manual_invoicing_subscription_mock.assert_called_once_with(
+        create_manual_subscription_mock.assert_called_once_with(
             self.organization
         )
         assert (
-            'Created Stripe customer and subscription sub_manual_invoice'
+            'Created Stripe customer and community subscription sub_manual_invoice'
         ) in response.content.decode()
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @override_config(ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS=True)
     @patch(
         'kobo.apps.organizations.admin.organization.organization_can_start_manual_invoicing',  # noqa
         return_value=False,
     )
-    def test_create_manual_invoice_subscription_not_available_with_active_subscription(
+    def test_create_manual_subscription_not_available_with_active_subscription(
         self, _can_start_mock
     ):
         response = self._post_change_form(
-            {'_create_manual_invoice_subscription': '1'}
+            {'_create_manual_subscription': '1'}
         )
 
         assert 'already has an active Stripe subscription' in response.content.decode()

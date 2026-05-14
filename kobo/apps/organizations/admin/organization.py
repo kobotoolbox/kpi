@@ -1,4 +1,3 @@
-from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
 from django.db import transaction
@@ -13,10 +12,10 @@ if settings.STRIPE_ENABLED:
     from kobo.apps.stripe.exceptions import (
         DefaultCommunityPlanNotFoundError,
         ManualInvoicingSetupError,
-        ManualInvoicingSubscriptionExistsError,
+        ManualSubscriptionExistsError,
     )
-    from kobo.apps.stripe.utils.manual_invoicing import (
-        create_manual_invoicing_subscription,
+    from kobo.apps.stripe.utils.manual_subscription import (
+        create_manual_subscription,
         organization_can_start_manual_invoicing,
     )
 
@@ -67,13 +66,10 @@ class OrgAdmin(BaseOrganizationAdmin):
         return super().change_view(request, object_id, form_url, extra_context)
 
     def response_change(self, request, obj):
-        if '_create_manual_invoice_subscription' not in request.POST:
+        if '_create_manual_subscription' not in request.POST:
             return super().response_change(request, obj)
 
-        if (
-            not settings.STRIPE_ENABLED
-            or not config.ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS
-        ):
+        if not settings.STRIPE_ENABLED:
             self.message_user(
                 request,
                 'Manual invoicing subscriptions are currently disabled.',
@@ -90,8 +86,8 @@ class OrgAdmin(BaseOrganizationAdmin):
             return HttpResponseRedirect('.')
 
         try:
-            subscription = create_manual_invoicing_subscription(obj)
-        except ManualInvoicingSubscriptionExistsError as err:
+            subscription = create_manual_subscription(obj)
+        except ManualSubscriptionExistsError as err:
             self.message_user(request, str(err), messages.ERROR)
         except DefaultCommunityPlanNotFoundError as err:
             self.message_user(request, str(err), messages.ERROR)
@@ -107,8 +103,8 @@ class OrgAdmin(BaseOrganizationAdmin):
             self.message_user(
                 request,
                 (
-                    'Created Stripe customer and subscription '
-                    f'{subscription.id} for manual invoicing.'
+                    'Created Stripe customer and community subscription '
+                    f'{subscription.id} for manual setup.'
                 ),
                 messages.SUCCESS,
             )
@@ -191,7 +187,7 @@ class OrgAdmin(BaseOrganizationAdmin):
     def _get_manual_invoicing_extra_context(self, organization: Organization | None):
         context = {
             'show_manual_invoicing_button': False,
-            'can_create_manual_invoice_subscription': False,
+            'can_create_manual_subscription': False,
             'manual_invoicing_help_text': '',
         }
         if not settings.STRIPE_ENABLED or not organization:
@@ -200,13 +196,13 @@ class OrgAdmin(BaseOrganizationAdmin):
         can_create = organization_can_start_manual_invoicing(organization)
         context.update(
             {
-                'show_manual_invoicing_button':
-                    config.ENABLE_MANUAL_INVOICE_SUBSCRIPTIONS,
-                'can_create_manual_invoice_subscription': can_create,
+                'show_manual_invoicing_button': True,
+                'can_create_manual_subscription': can_create,
                 'manual_invoicing_help_text': (
-                    config.MANUAL_INVOICE_SUBSCRIPTION_HELP_TEXT
-                    if can_create
-                    else config.MANUAL_INVOICE_SUBSCRIPTION_DISABLED_TEXT
+                    'Creates a Stripe customer and a free community subscription '
+                    'to facilitate manual setup in the Stripe dashboard.'
+                    if can_create else
+                    'This organization already has an active Stripe subscription.'
                 ),
             }
         )

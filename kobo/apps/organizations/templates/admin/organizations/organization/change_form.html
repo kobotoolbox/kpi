@@ -8,10 +8,10 @@
       <div class="manual-invoice-action">
         <input
           type="submit"
-          name="_create_manual_invoice_subscription"
+          name="_create_manual_subscription"
           value="{% trans 'Create Stripe Subscription' %}"
           style="background:#6772e5;"
-          {% if not can_create_manual_invoice_subscription %}disabled{% endif %}
+          {% if not can_create_manual_subscription %}disabled{% endif %}
         >
 
         {% if manual_invoicing_help_text %}

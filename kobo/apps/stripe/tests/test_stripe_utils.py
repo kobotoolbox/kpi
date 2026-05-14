@@ -27,10 +27,10 @@ from kobo.apps.stripe.tests.utils import (
 )
 from kobo.apps.stripe.exceptions import (
     DefaultCommunityPlanNotFoundError,
-    ManualInvoicingSubscriptionExistsError,
+    ManualSubscriptionExistsError,
 )
-from kobo.apps.stripe.utils.manual_invoicing import (
-    create_manual_invoicing_subscription,
+from kobo.apps.stripe.utils.manual_subscription import (
+    create_manual_subscription,
     get_default_community_plan_price,
     organization_can_start_manual_invoicing,
 )
@@ -612,7 +612,7 @@ class ManualInvoicingUtilsTestCase(BaseTestCase):
     @patch('stripe.Subscription.list')
     @patch('stripe.Customer.modify')
     @patch('djstripe.models.Customer.get_or_create')
-    def test_create_manual_invoicing_subscription(
+    def test_create_manual_subscription(
         self,
         customer_get_or_create_mock,
         customer_modify_mock,
@@ -637,7 +637,7 @@ class ManualInvoicingUtilsTestCase(BaseTestCase):
         subscription_create_mock.return_value = stripe_subscription
         subscription_sync_mock.return_value = SimpleNamespace(id='sub_manual_invoice')
 
-        subscription = create_manual_invoicing_subscription(self.organization)
+        subscription = create_manual_subscription(self.organization)
 
         assert subscription.id == 'sub_manual_invoice'
         subscription_create_mock.assert_called_once()
@@ -649,17 +649,17 @@ class ManualInvoicingUtilsTestCase(BaseTestCase):
         customer.sync_from_stripe_data.assert_called_once_with(customer)
         subscription_sync_mock.assert_called_once_with(stripe_subscription)
 
-    def test_create_manual_invoicing_subscription_rejects_active_subscription(self):
+    def test_create_manual_subscription_rejects_active_subscription(self):
         generate_free_plan()
         generate_plan_subscription(self.organization)
 
         assert not organization_can_start_manual_invoicing(self.organization)
-        with self.assertRaises(ManualInvoicingSubscriptionExistsError):
-            create_manual_invoicing_subscription(self.organization)
+        with self.assertRaises(ManualSubscriptionExistsError):
+            create_manual_subscription(self.organization)
 
-    def test_create_manual_invoicing_subscription_requires_default_plan(self):
+    def test_create_manual_subscription_requires_default_plan(self):
         with self.assertRaises(DefaultCommunityPlanNotFoundError):
-            create_manual_invoicing_subscription(self.organization)
+            create_manual_subscription(self.organization)
 
 
 class ExceededLimitsTestCase(BaseServiceUsageTestCase):

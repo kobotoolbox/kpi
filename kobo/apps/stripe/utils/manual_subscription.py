@@ -7,7 +7,7 @@ from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.exceptions import (
     DefaultCommunityPlanNotFoundError,
     ManualInvoicingSetupError,
-    ManualInvoicingSubscriptionExistsError,
+    ManualSubscriptionExistsError,
 )
 
 
@@ -35,7 +35,7 @@ def organization_can_start_manual_invoicing(organization) -> bool:
     return not bool(organization.active_subscription_billing_details())
 
 
-def create_manual_invoicing_subscription(organization) -> Subscription:
+def create_manual_subscription(organization) -> Subscription:
     """
     Bootstrap manual invoicing by creating a free community subscription in Stripe
 
@@ -44,7 +44,7 @@ def create_manual_invoicing_subscription(organization) -> Subscription:
     transaction.
     """
     if not organization_can_start_manual_invoicing(organization):
-        raise ManualInvoicingSubscriptionExistsError(
+        raise ManualSubscriptionExistsError(
             'Organization already has an active Stripe subscription.'
         )
 
@@ -87,7 +87,7 @@ def create_manual_invoicing_subscription(organization) -> Subscription:
     for stripe_subscription in existing_subscriptions.auto_paging_iter():
         if stripe_subscription.status in ACTIVE_STRIPE_STATUSES:
             Subscription.sync_from_stripe_data(stripe_subscription)
-            raise ManualInvoicingSubscriptionExistsError(
+            raise ManualSubscriptionExistsError(
                 'Organization already has an active Stripe subscription.'
             )
 
