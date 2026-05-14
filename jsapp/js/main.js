@@ -22,6 +22,10 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import '../scss/main.scss'
 
+import $ from 'jquery'
+// jQuery v4 ESM no longer auto-populates window.$/window.jQuery
+// The xlform/Backbone layer reads these globals directly, so we must assign them.
+window.$ = window.jQuery = $
 import React from 'react'
 
 import * as Sentry from '@sentry/react'

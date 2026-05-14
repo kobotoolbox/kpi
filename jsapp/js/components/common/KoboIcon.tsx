@@ -1,6 +1,7 @@
 import type { MantineSize } from '@mantine/core'
 import type { IconProps as SvgIconProps } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
+import type { LegacySvgIconComponent } from './IconLegacySvgMappings'
 import type { IconColor } from './icon'
 
 const MantineSizeToPixelsMap: Record<MantineSize, number> = {
@@ -59,9 +60,8 @@ export default function KoboIcon({ icon, size, color, ...svgProps }: KoboIconPro
     return null
   }
   const IconComponent = icon
-  // Legacy SVG components wrapped by wrapLegacySvgIcon are named "LegacySvgIcon".
-  // Tabler icons use stroke width; legacy fill-based (or varied stroke width) SVGs should not have it applied.
-  const isLegacySvg = IconComponent.displayName === 'LegacySvgIcon' || IconComponent.name === 'LegacySvgIcon'
+  // Tabler icons use stroke width; wrapped legacy SVGs keep their own stroke/fill attributes.
+  const isLegacySvg = (IconComponent as LegacySvgIconComponent).isKoboLegacySvgIcon === true
   return (
     <IconComponent
       {...svgProps}
