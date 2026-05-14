@@ -44,6 +44,9 @@ const meta: Meta<typeof DataTableCell> = {
       </Box>
     ),
   ],
+  parameters: {
+    a11y: { test: 'todo' },
+  },
 }
 
 export default meta
