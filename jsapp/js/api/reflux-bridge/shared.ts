@@ -68,6 +68,12 @@ export type BridgeSuccessRoute = BridgeRoute<BridgeSuccessRouteContext>
 
 export type BridgeFailureRoute = BridgeRoute<BridgeFailureRouteContext>
 
+export enum SpecializedAssetPatchField {
+  ReportStyles = 'report_styles',
+  ReportCustom = 'report_custom',
+  MapStyles = 'map_styles',
+}
+
 /**
  * Small type guard used by the route modules to avoid repeating object checks.
  * Excludes arrays and other non-plain-object values.

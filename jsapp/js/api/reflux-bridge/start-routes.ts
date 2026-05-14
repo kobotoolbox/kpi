@@ -1,5 +1,5 @@
 import { actions } from '#/actions'
-import type { BridgeStartRoute } from './shared'
+import { type BridgeStartRoute, SpecializedAssetPatchField } from './shared'
 
 /**
  * Request-time lifecycle routes.
@@ -11,10 +11,11 @@ export const BRIDGE_START_ROUTES: ReadonlyArray<BridgeStartRoute> = [
   {
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.map.setMapStyles.started',
-    matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'map_styles' in requestBody),
+    matches: ({ assetUid, requestBody }) =>
+      Boolean(assetUid && requestBody && SpecializedAssetPatchField.MapStyles in requestBody),
     run: ({ assetUid, requestBody }) => {
       // Legacy map style flow still relies on `started` for immediate UI state.
-      actions.map.setMapStyles.started(assetUid as string, requestBody?.map_styles)
+      actions.map.setMapStyles.started(assetUid as string, requestBody?.[SpecializedAssetPatchField.MapStyles])
     },
   },
 ]

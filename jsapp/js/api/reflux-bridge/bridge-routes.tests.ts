@@ -3,7 +3,7 @@ import chai from 'chai'
 // The bridge keeps a few legacy Reflux actions alive while write paths move over to Orval/react-query.
 // That lets old UI code keep reacting to API work without forcing the whole migration to happen in one step.
 
-var mockedActions: any
+let mockedActions: any
 
 jest.mock('#/actions', () => {
   // Keep the mock small. Pulling in the real actions module would drag unrelated Reflux setup

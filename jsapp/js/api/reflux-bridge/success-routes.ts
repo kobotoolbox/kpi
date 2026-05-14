@@ -1,6 +1,6 @@
 import { actions } from '#/actions'
 import type { BridgeSuccessRoute } from './shared'
-import { getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
+import { SpecializedAssetPatchField, getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
 
 /**
  * Response-time success routes.
@@ -16,9 +16,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
         assetUid &&
           isRecord(responseData) &&
           requestBody &&
-          !('report_styles' in requestBody) &&
-          !('report_custom' in requestBody) &&
-          !('map_styles' in requestBody),
+          !Object.values(SpecializedAssetPatchField).some((field) => field in requestBody),
       ),
     run: ({ responseData }) => {
       actions.resources.updateAsset.completed(toLegacyAssetFromUnknown(responseData))
@@ -28,7 +26,9 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.reports.setStyle.completed',
     matches: ({ assetUid, responseData, requestBody }) =>
-      Boolean(assetUid && isRecord(responseData) && requestBody && 'report_styles' in requestBody),
+      Boolean(
+        assetUid && isRecord(responseData) && requestBody && SpecializedAssetPatchField.ReportStyles in requestBody,
+      ),
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
       actions.reports.setStyle.completed(asset)
@@ -39,7 +39,9 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.resources.updateAsset.completed (report_custom fallback)',
     matches: ({ assetUid, responseData, requestBody }) =>
-      Boolean(assetUid && isRecord(responseData) && requestBody && 'report_custom' in requestBody),
+      Boolean(
+        assetUid && isRecord(responseData) && requestBody && SpecializedAssetPatchField.ReportCustom in requestBody,
+      ),
     run: ({ responseData }) => {
       const asset = toLegacyAssetFromUnknown(responseData)
       // Legacy `setCustom.completed` expects `(asset, crid)`, but `crid` is not reliably recoverable from generic
@@ -52,7 +54,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     endpoint: 'PATCH /api/v2/assets/:uid/',
     refluxAction: 'actions.map.setMapStyles.completed',
     matches: ({ assetUid, responseData, requestBody }) =>
-      Boolean(assetUid && isRecord(responseData) && requestBody && 'map_styles' in requestBody),
+      Boolean(assetUid && isRecord(responseData) && requestBody && SpecializedAssetPatchField.MapStyles in requestBody),
     run: ({ responseData }) => {
       // This is response-time only; `started` is emitted separately in the start route table.
       const asset = toLegacyAssetFromUnknown(responseData)

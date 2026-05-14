@@ -1,5 +1,5 @@
 import { actions } from '#/actions'
-import type { BridgeFailureRoute } from './shared'
+import { type BridgeFailureRoute, SpecializedAssetPatchField } from './shared'
 
 /**
  * Response-time failure routes. Keep this table focused on legacy `*.failed` callbacks.
@@ -10,11 +10,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     refluxAction: 'actions.resources.updateAsset.failed',
     matches: ({ assetUid, requestBody }) =>
       Boolean(
-        assetUid &&
-          requestBody &&
-          !('report_styles' in requestBody) &&
-          !('report_custom' in requestBody) &&
-          !('map_styles' in requestBody),
+        assetUid && requestBody && !Object.values(SpecializedAssetPatchField).some((field) => field in requestBody),
       ),
     run: ({ legacyFailurePayload }) => {
       actions.resources.updateAsset.failed(legacyFailurePayload)
