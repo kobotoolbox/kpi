@@ -12,7 +12,7 @@ import {
 } from '../submissionUtils.mocks'
 import DataTableCell from './index'
 
-const transcriptColumnKey = `${SUPPLEMENTAL_DETAILS_PROP}/Secret_password_as_an_audio_file/transcript_fr`
+const transcriptColumnKey = `${SUPPLEMENTAL_DETAILS_PROP}/What_is_your_opinion/transcript_fr`
 
 function buildReactTableRow(submission: SubmissionResponse, value: unknown, index = 0): CellInfo {
   return {
@@ -25,10 +25,11 @@ function buildReactTableRow(submission: SubmissionResponse, value: unknown, inde
 const supplementalSubmission = {
   ...simpleSurveySubmission,
   [SUPPLEMENTAL_DETAILS_PROP]: {
-    Secret_password_as_an_audio_file: {
+    What_is_your_opinion: {
       transcript: {
         languageCode: 'fr',
-        value: 'This is french transcript text.',
+        value:
+          "La collecte de données humanitaires est essentielle pour évaluer les besoins réels des populations touchées par des crises. Les organisations utilisent souvent des outils numériques pour recueillir des informations précises en temps réel sur le terrain. Il est crucial de respecter la protection des données personnelles afin de garantir la sécurité des bénéficiaires vulnérables. Une analyse rigoureuse de ces statistiques permet d'optimiser la distribution de l'aide alimentaire et médicale. Enfin, la collaboration entre les différentes agences internationales renforce l'efficacité de l'intervention humanitaire globale.",
       },
     },
   },
@@ -39,7 +40,7 @@ const meta: Meta<typeof DataTableCell> = {
   component: DataTableCell,
   decorators: [
     (Story) => (
-      <Box maw={380} p='md'>
+      <Box maw={250} p='md'>
         <Story />
       </Box>
     ),
