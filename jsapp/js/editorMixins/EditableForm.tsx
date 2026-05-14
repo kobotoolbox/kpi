@@ -79,7 +79,7 @@ const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 const LOCKING_SUPPORT_URL = 'library_locking.html'
-const RECORDING_SUPPORT_URL = 'recording-interviews.html'
+const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
 
 interface LaunchAppData {
   name: string
