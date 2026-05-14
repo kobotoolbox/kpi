@@ -67,8 +67,8 @@ export class LibraryAssetFormComponent extends React.Component {
       },
     )
 
-    // Extra metadata fields are admin-configurable. Seed them into their own
-    // state key, loading any saved values from the existing asset if editing.
+    // Load extra metadata field values from asset settings when editing
+    // or seed with null value when creating a new asset
     const extraMetadataFields = {}
     for (const field of envStore.data.extra_project_metadata_fields) {
       extraMetadataFields[field.name] = this.props.asset?.settings?.extra_metadata?.[field.name] ?? null
@@ -262,7 +262,6 @@ export class LibraryAssetFormComponent extends React.Component {
             />
           </bem.FormModal__item>
 
-          {/* Extra Project Metadata */}
           <ExtraProjectMetadataFields values={this.state.extraMetadataFields} onChange={this.onExtraFieldChange} />
 
           <bem.FormModal__item>
