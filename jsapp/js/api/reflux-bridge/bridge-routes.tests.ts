@@ -1,10 +1,6 @@
-import chai from 'chai'
-
-// The bridge keeps a few legacy Reflux actions alive while write paths move over to Orval/react-query.
-// That lets old UI code keep reacting to API work without forcing the whole migration to happen in one step.
-
-let mockedActions: any
-
+// Jest needs the mock to be defined before any imports. And we use `var` to avoid Jest hoisting issues - it ensures
+// the variable is available when the mock factory runs, preventing ReferenceError from happening.
+var mockedActions: any
 jest.mock('#/actions', () => {
   // Keep the mock small. Pulling in the real actions module would drag unrelated Reflux setup
   // into a test that only cares about bridge routing.
@@ -25,10 +21,10 @@ jest.mock('#/actions', () => {
       setMapStyles: { started: jest.fn(), completed: jest.fn(), failed: jest.fn() },
     },
   }
-
   return { actions: mockedActions }
 })
 
+import chai from 'chai'
 import {
   bridgeOrvalFailureToLegacyActions,
   bridgeOrvalStartToLegacyActions,
