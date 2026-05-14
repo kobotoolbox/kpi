@@ -11,11 +11,7 @@ interface DataTableWrapperProps {
 }
 
 /**
- * Wrapper around DataTable used to inject hook-derived data.
- *
- * DataTable is a class component, so hooks cannot be used directly inside it.
- * This wrapper is the place for hook-based concerns, such as feature-flagged
- * bulk processing state.
+ * Wrapper around DataTable (class component) used to inject hook-derived data.
  */
 export default function DataTableWrapper(props: DataTableWrapperProps) {
   const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
