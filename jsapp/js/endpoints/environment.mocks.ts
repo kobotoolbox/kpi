@@ -360,6 +360,7 @@ const environmentResponse: EnvironmentResponse = {
       label: 'Description',
     },
   ],
+  extra_project_metadata_fields: [],
   user_metadata_fields: [
     {
       name: 'name',
