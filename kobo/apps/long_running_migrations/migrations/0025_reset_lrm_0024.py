@@ -13,6 +13,7 @@ def add_long_running_migration(apps, schema_editor):
         )
         if lrm_0024.status == 'failed':
             lrm_0024.status = 'created'
+            lrm_0024.error = f'previous error: {lrm_0024.error}'
             lrm_0024.save()
     except LongRunningMigration.DoesNotExist:
         # this shouldn't happen, but if it does, there's nothing to do because
