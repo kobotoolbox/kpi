@@ -341,9 +341,11 @@ export const getDefaultDisplaysForTab = (tabName: ProcessingTab | undefined): Di
  * Extracts language codes from an advanced features response and flattens the results
  */
 export function getSuggestedLanguages(advancedFeaturesArray: AdvancedFeatureResponse[]): LanguageCode[] {
-  return advancedFeaturesArray.flatMap((advancedFeature) =>
+  const flattenedLanguages = advancedFeaturesArray.flatMap((advancedFeature) =>
     advancedFeature.params
       .filter((param): param is { language: string } => 'language' in param)
       .map((param) => param.language),
   )
+
+  return [...new Set(flattenedLanguages)]
 }
