@@ -43,9 +43,12 @@ export function isBulkProcessingCellInProgress(
       return false
     }
 
+    // Treat both 'in_progress' and 'pending' as "Processing" to ensure the cell displays
+    // "Processing" for jobs that are queued but not yet started, as well as those already in progress.
     return bulkAction.submission_statuses.some(
       (submissionStatus) =>
-        submissionStatus.status === BulkActionSubmissionStatusResponseStatusEnum.in_progress &&
+        (submissionStatus.status === BulkActionSubmissionStatusResponseStatusEnum.in_progress ||
+          submissionStatus.status === BulkActionSubmissionStatusResponseStatusEnum.pending) &&
         submissionUuids.has(removeDefaultUuidPrefix(submissionStatus.uuid)),
     )
   })
