@@ -114,7 +114,12 @@ class GoogleService(ABC):
         return
 
     @abstractmethod
-    def process_data(self, xpath: str, options: dict) -> dict:
+    def process_data(
+        self,
+        xpath: str,
+        options: dict,
+        bulk_action_uid: str | None = None,
+    ) -> dict:
         pass
 
     def update_counters(self, amount) -> None:
