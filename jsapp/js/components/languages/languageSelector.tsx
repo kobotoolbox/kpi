@@ -33,8 +33,6 @@ const LANGUAGE_SELECTOR_SUPPORT_URL = 'transcription-translation.html#language-l
 
 const LanguageSelector = (props: LanguageSelectorProps) => {
   const [searchValue, setSearchValue] = useState('')
-  // TODO: if the recentlySelected language is not a featured language, it fails to show up on the group
-  const [recentlySelected, setRecentlySelected] = useState<LanguageCode[]>([])
   const [debouncedSearch] = useDebouncedValue(searchValue, SEARCH_DEBOUNCE_MS)
   // Keep UI grouping in sync with what user is typing right now.
   // This avoids a stale "Results" group after clearing the input.
@@ -47,6 +45,8 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   const languages = data?.status === 200 ? data.data.results : []
 
   // Create a query for each suggested language
+  // NOTE: Suggested languages are broken but handled by parent. Once fixed, the parent will pass correct props (this
+  // component's logic is already ready)
   const hasSuggestedLanguages = props.suggestedLanguages && props.suggestedLanguages.length > 0
   const suggestedLanguageQueries = useQueries({
     queries: hasSuggestedLanguages
@@ -71,18 +71,9 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
     ]
 
     // Create language groups
-    const recentlySelectedItems = allLanguages
-      .filter((lang) => recentlySelected.includes(lang.code))
-      .map((lang) => {
-        return {
-          value: lang.code,
-          label: `${lang.name} (${lang.code})`,
-        }
-      })
     const suggestedItems = allLanguages
       .filter((lang) => props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
-      .filter((lang) => !recentlySelected?.includes(lang.code))
       .map((lang) => {
         return {
           value: lang.code,
@@ -92,7 +83,6 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
     const otherItems = allLanguages
       .filter((lang) => !props.suggestedLanguages?.includes(lang.code))
       .filter((lang) => !props.hiddenLanguages?.includes(lang.code))
-      .filter((lang) => !recentlySelected?.includes(lang.code))
       .map((lang) => {
         return {
           value: lang.code,
@@ -102,12 +92,6 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
 
     // Build groups conditionally
     const groups = []
-    if (recentlySelectedItems.length > 0) {
-      groups.push({
-        group: t('Recently selected'),
-        items: recentlySelectedItems,
-      })
-    }
     if (suggestedItems.length > 0) {
       groups.push({
         group: t('Suggested'),
@@ -115,19 +99,16 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       })
     }
     groups.push({
-      group: isSearching ? t('Results') : t('Languages'),
+      group: isSearching ? t('Results') : '',
       items: otherItems,
     })
 
     return groups
-  }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages, suggestedLanguages, recentlySelected])
+  }, [languages, isSearching, props.hiddenLanguages, props.suggestedLanguages, suggestedLanguages])
 
   const onLanguageSelected = (selectedLanguage: string | null) => {
     const allLanguages = [...suggestedLanguages, ...languages]
     const selectedLanguageObject = allLanguages.find((lang) => lang.code === selectedLanguage) || null
-    if (selectedLanguageObject) {
-      setRecentlySelected((prev) => [...prev, selectedLanguageObject.code])
-    }
     props.onLanguageChange(selectedLanguageObject)
   }
 
@@ -143,6 +124,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       onChange={onLanguageSelected}
       value={props.value ?? null}
       label={props.titleOverride}
+      placeholder={t('Search or select a language')}
       searchable
       clearable
       clearButtonProps={{
@@ -162,7 +144,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
             c='var(--mantine-color-blue-5)'
           >
             <KoboIcon icon={IconInfoCircleFilled} size='sm' />
-            <Text>{t('I cannot find my language')}</Text>
+            <Text>{t('No matching languages found. Try another spelling or language name')}</Text>
           </Group>
         )
       }
