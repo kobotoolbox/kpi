@@ -1,3 +1,4 @@
+import { Group } from '@mantine/core'
 import type { CellInfo } from 'react-table'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
