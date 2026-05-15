@@ -1,0 +1,7 @@
+.form {
+  // Make all WrappedSelect controls the same height as a TextBox size L (38px)
+  // so all fields in this modal are visually consistent.
+  :global(.kobo-select .kobo-select__control) {
+    min-height: 38px;
+  }
+}
