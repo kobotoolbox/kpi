@@ -7,7 +7,6 @@ from django.test import TestCase
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.tests.utils import baker_generators  # noqa: registers KpiUidField generator
 from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
 from kobo.apps.superuser_stats.tasks import (
     generate_continued_usage_report,
@@ -30,9 +29,7 @@ class GenerateReportsTestCase(TestCase):
     # ------------------------------------------------------------------ #
 
     def test_generate_domain_report_headers(self):
-        rows = self._run_task_and_get_rows(
-            generate_domain_report, START_DATE, END_DATE
-        )
+        rows = self._run_task_and_get_rows(generate_domain_report, START_DATE, END_DATE)
         assert rows[0] == ['Email Domain', 'Users', 'Projects', 'Submissions']
 
     def test_generate_domain_report_aggregates(self):
@@ -56,14 +53,12 @@ class GenerateReportsTestCase(TestCase):
             date_created=datetime(2025, 6, 1, tzinfo=timezone.utc),
         )
 
-        rows = self._run_task_and_get_rows(
-            generate_domain_report, START_DATE, END_DATE
-        )
+        rows = self._run_task_and_get_rows(generate_domain_report, START_DATE, END_DATE)
 
         domain_row = next(r for r in rows[1:] if r[0] == 'example.com')
-        assert domain_row[1] == '1'    # 1 user
-        assert domain_row[2] == '1'    # 1 asset
-        assert domain_row[3] == '42'   # 42 submissions
+        assert domain_row[1] == '1'  # 1 user
+        assert domain_row[2] == '1'  # 1 asset
+        assert domain_row[3] == '42'  # 42 submissions
 
     def test_generate_domain_report_excludes_out_of_range_users(self):
         baker.make(
@@ -72,9 +67,7 @@ class GenerateReportsTestCase(TestCase):
             date_joined=datetime(2020, 1, 1, tzinfo=timezone.utc),
         )
 
-        rows = self._run_task_and_get_rows(
-            generate_domain_report, START_DATE, END_DATE
-        )
+        rows = self._run_task_and_get_rows(generate_domain_report, START_DATE, END_DATE)
 
         domains = [r[0] for r in rows[1:]]
         assert 'example.com' not in domains
@@ -84,13 +77,17 @@ class GenerateReportsTestCase(TestCase):
     # ------------------------------------------------------------------ #
 
     def test_generate_continued_usage_report_headers(self):
-        rows = self._run_task_and_get_rows(
-            generate_continued_usage_report, END_DATE
-        )
+        rows = self._run_task_and_get_rows(generate_continued_usage_report, END_DATE)
         assert rows[0] == [
-            'Username', 'Date Joined', 'Last Login',
-            'Assets 3m', 'Assets 6m', 'Assets 12m',
-            'Submissions 3m', 'Submissions 6m', 'Submissions 12M',
+            'Username',
+            'Date Joined',
+            'Last Login',
+            'Assets 3m',
+            'Assets 6m',
+            'Assets 12m',
+            'Submissions 3m',
+            'Submissions 6m',
+            'Submissions 12M',
         ]
 
     def test_generate_continued_usage_report_aggregates(self):
@@ -107,9 +104,7 @@ class GenerateReportsTestCase(TestCase):
             xform=None,
         )
 
-        rows = self._run_task_and_get_rows(
-            generate_continued_usage_report, END_DATE
-        )
+        rows = self._run_task_and_get_rows(generate_continued_usage_report, END_DATE)
 
         data_row = next(r for r in rows[1:] if r[0] == user.username)
         # 2025-06 falls within the 12-month window ending 2025-12-31
@@ -124,10 +119,19 @@ class GenerateReportsTestCase(TestCase):
             generate_user_statistics_report, START_DATE, END_DATE
         )
         assert rows[0] == [
-            'Username', 'Name', 'Date Joined', 'Email',
-            'Organization Type', 'Organization', 'Organization Website',
-            'Country', 'Submissions Count', 'Forms Count',
-            'Deployments Count', 'Google ASR Seconds', 'Google MT Seconds',
+            'Username',
+            'Name',
+            'Date Joined',
+            'Email',
+            'Organization Type',
+            'Organization',
+            'Organization Website',
+            'Country',
+            'Submissions Count',
+            'Forms Count',
+            'Deployments Count',
+            'Google ASR Seconds',
+            'Google MT Seconds',
         ]
 
     def test_generate_user_statistics_report_aggregates(self):
@@ -166,11 +170,11 @@ class GenerateReportsTestCase(TestCase):
         )
 
         data_row = next(r for r in rows[1:] if r[0] == user.username)
-        assert data_row[8] == '20'    # submissions count
-        assert data_row[9] == '1'     # forms count
-        assert data_row[10] == '1'    # deployments count
+        assert data_row[8] == '20'  # submissions count
+        assert data_row[9] == '1'  # forms count
+        assert data_row[10] == '1'  # deployments count
         assert data_row[11] == '300'  # google ASR seconds
-        assert data_row[12] == '1500' # google MT characters
+        assert data_row[12] == '1500'  # google MT characters
 
     def test_generate_user_statistics_report_no_nlp_counters(self):
         user = baker.make(User, email='charlie@test.com')
@@ -198,9 +202,17 @@ class GenerateReportsTestCase(TestCase):
     def test_generate_user_report_headers(self):
         rows = self._run_task_and_get_rows(generate_user_report)
         assert rows[0] == [
-            'username', 'email', 'pk', 'first_name', 'last_name',
-            'name', 'organization', 'XForm count',
-            'num_of_submissions', 'date_joined', 'last_login',
+            'username',
+            'email',
+            'pk',
+            'first_name',
+            'last_name',
+            'name',
+            'organization',
+            'XForm count',
+            'num_of_submissions',
+            'date_joined',
+            'last_login',
         ]
 
     def test_generate_user_report_includes_user(self):
