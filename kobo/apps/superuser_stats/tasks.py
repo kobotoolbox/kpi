@@ -95,7 +95,13 @@ def generate_continued_usage_report(output_filename: str, end_date: str):
         )
         submissions_count = MonthlyXFormSubmissionCounter.objects.annotate(
             date=Cast(
-                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                Concat(
+                    Cast(F('year'), output_field=CharField()),
+                    Value('-'),
+                    Cast(F('month'), output_field=CharField()),
+                    Value('-'),
+                    Value('1'),
+                ),
                 DateField(),
             )
         ).filter(
@@ -184,7 +190,13 @@ def generate_domain_report(output_filename: str, start_date: str, end_date: str)
         domain: (
             MonthlyXFormSubmissionCounter.objects.annotate(
                 date=Cast(
-                    Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                    Concat(
+                        Cast(F('year'), output_field=CharField()),
+                        Value('-'),
+                        Cast(F('month'), output_field=CharField()),
+                        Value('-'),
+                        Value('1'),
+                    ),
                     DateField(),
                 )
             )
@@ -409,7 +421,13 @@ def generate_user_statistics_report(
     records = (
         MonthlyXFormSubmissionCounter.objects.annotate(
             date=Cast(
-                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                Concat(
+                    Cast(F('year'), output_field=CharField()),
+                    Value('-'),
+                    Cast(F('month'), output_field=CharField()),
+                    Value('-'),
+                    Value('1'),
+                ),
                 DateField(),
             )
         )
