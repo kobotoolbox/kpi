@@ -79,7 +79,7 @@ const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 const LOCKING_SUPPORT_URL = 'library_locking.html'
-const RECORDING_SUPPORT_URL = 'recording-interviews.html'
+const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
 
 interface LaunchAppData {
   name: string
@@ -383,8 +383,8 @@ export default function EditableForm(props: EditableFormProps) {
     }
 
     let surveyJSON = surveyToValidJson(app?.survey)
-    if (state.asset?.content) {
-      surveyJSON = unnullifyTranslations(surveyJSON, state.asset.content)
+    if (app?.survey._initialParams?.translations_0) {
+      surveyJSON = unnullifyTranslations(surveyJSON, app.survey._initialParams)
     }
     let params: KoboMatrixParserParams & { asset?: string } = { source: surveyJSON }
 
@@ -431,11 +431,12 @@ export default function EditableForm(props: EditableFormProps) {
     }
 
     let surveyJSON = surveyToValidJson(app.survey)
-    if (state.asset?.content) {
-      const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
-      if (surveyJSONWithMatrix) {
-        surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, state.asset.content)
-      }
+    const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
+    if (surveyJSONWithMatrix) {
+      surveyJSON = surveyJSONWithMatrix
+    }
+    if (app.survey._initialParams?.translations_0) {
+      surveyJSON = unnullifyTranslations(surveyJSON, app.survey._initialParams)
     }
     // We normally have `content` as an actual object, not a stringified representation, but since
     // `actions.resources.updateAsset` already works with JSON string, let's extend the types
@@ -619,7 +620,7 @@ export default function EditableForm(props: EditableFormProps) {
 
     try {
       if (assetContent) {
-        survey = dkobo_xlform.model.Survey.loadDict(assetContent)
+        survey = dkobo_xlform.model.Survey.loadDict(clonedeep(assetContent))
         if (newState.files && newState.files.length > 0) {
           survey.availableFiles = newState.files
         }

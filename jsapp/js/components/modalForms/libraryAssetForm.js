@@ -21,7 +21,7 @@ import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
-import { renderBackButton } from './modalHelpers'
+import ModalBackButton from './ModalBackButton'
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -276,7 +276,7 @@ export class LibraryAssetFormComponent extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          {renderBackButton(this.state.isPending)}
+          <ModalBackButton isDisabled={this.state.isPending} />
 
           <Button
             type='primary'

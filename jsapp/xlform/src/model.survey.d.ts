@@ -4,7 +4,7 @@
 // It was reviewed by a dev, but one who doesn't have full understanding of Backbone, plus Form Builder code written in
 // CoffeeScript is quite old and rarely maintained - increasing the risk of having errors in here.
 import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponseFile } from '#/dataInterface'
+import type { AssetContent, AssetResponseFile } from '#/dataInterface'
 import { BaseModel } from './model.base'
 import type { ChoiceLists } from './model.choices'
 import type { SurveyDetails } from './model.surveyDetail'
@@ -76,6 +76,7 @@ export class Survey extends SurveyFragment {
     errors: any[]
   }
   availableFiles?: AssetResponseFile[]
+  _initialParams: AssetContent | Record<string, never>
 
   constructor(options?: any, addlOpts?: any)
 
