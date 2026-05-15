@@ -478,10 +478,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
-  updateWrapperQuery(selectedQuestion: string | null, nextViewBy: string, pageLimit: number) {
+  // `selectedQuestionPath` is normalized in `createDataQuery()` before calling this helper.
+  updateWrapperQuery(selectedQuestionPath: string | null, nextViewBy: string, pageLimit: number) {
     const fq = ['_id']
-    if (selectedQuestion) {
-      fq.push(selectedQuestion)
+    if (selectedQuestionPath) {
+      fq.push(selectedQuestionPath)
     }
     if (nextViewBy) {
       fq.push(this.nameOfFieldInGroup(nextViewBy))
@@ -526,12 +527,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       selectedQuestion = null
     }
 
-    // We set the selected question in this state as well for the display in the MapSettings modal
-    this.setState({ foundSelectedQuestion: selectedQuestion })
+    const selectedQuestionPath = selectedQuestion ? this.nameOfFieldInGroup(selectedQuestion) : null
+
+    // Persist normalized selected geopoint key used by data API and submission payload.
+    this.setState({ foundSelectedQuestion: selectedQuestionPath })
 
     // If totalCount hasn't populated yet, set pageLimit to 1
     if (this.props.totalCount === undefined) {
-      this.updateWrapperQuery(selectedQuestion, nextViewBy, 1)
+      this.updateWrapperQuery(selectedQuestionPath, nextViewBy, 1)
       return
     }
 
@@ -550,7 +553,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     const pageLimit = queryLimit / SUBMISSIONS_PER_PAGE
 
-    this.updateWrapperQuery(selectedQuestion, nextViewBy, pageLimit)
+    this.updateWrapperQuery(selectedQuestionPath, nextViewBy, pageLimit)
   }
 
   rebuildMapLayers(map: L.Map) {
@@ -1033,7 +1036,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   nameOfFieldInGroup(fieldName: string): string {
     if (this.props.asset.content?.survey) {
       const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey)
-      return flatPaths[fieldName]
+      return flatPaths[fieldName] || fieldName
     }
     // Fallback - should never happen
     return fieldName

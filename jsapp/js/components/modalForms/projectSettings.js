@@ -8,6 +8,7 @@ import Dropzone from 'react-dropzone'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 import { archiveAsset, deleteAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import Button from '#/components/common/button'
@@ -20,19 +21,83 @@ import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import styles from '#/components/modalForms/projectSettings.module.scss'
 import { userCan } from '#/components/permissions/utils'
 import TemplatesList from '#/components/templatesList'
-import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import { dataInterface } from '#/dataInterface'
+import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
-import { router } from '#/router/legacy'
-import { withRouter } from '#/router/legacy'
+import { router, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import { currentLang, escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
+
+/**
+ * Renders the appropriate input for a single extra metadata field based on its
+ * type. Supported types are `single_select`, `multi_select`, and the default
+ * plain-text input.
+ */
+const ExtraMetadataField = ({ field, value, onChange, hasError }) => {
+  const label = envStore.data.getExtraFieldLabel(field, currentLang())
+
+  if (
+    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT ||
+    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+  ) {
+    const options = (field.options ?? []).map((opt) => ({
+      value: opt.name,
+      label: envStore.data.getExtraFieldLabel(opt, currentLang()),
+    }))
+
+    const isMulti = field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+    const selectValue = isMulti
+      ? options.filter((opt) => (value ?? []).includes(opt.value))
+      : (options.find((opt) => opt.value === value) ?? null)
+
+    return (
+      <div className={styles.input}>
+        <WrappedSelect
+          label={addRequiredToLabel(label, field.required)}
+          isMulti={isMulti}
+          value={selectValue}
+          onChange={(val) => onChange(field.name, isMulti ? (val ?? []).map((o) => o.value) : (val?.value ?? null))}
+          options={options}
+          isLimitedHeight
+          isClearable
+          menuPlacement='auto'
+          error={hasError ? t('Please select an option') : false}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.input}>
+      <TextBox
+        value={value}
+        onChange={(val) => onChange(field.name, val)}
+        label={addRequiredToLabel(label, field.required)}
+        placeholder={label}
+        errors={hasError ? t('This field is required') : false}
+      />
+    </div>
+  )
+}
+
+/** Renders all extra metadata fields configured in the environment store. */
+const ExtraMetadataFields = ({ values, onChange, hasFieldError }) =>
+  envStore.data.extra_project_metadata_fields.map((field) => (
+    <ExtraMetadataField
+      key={field.name}
+      field={field}
+      value={values[field.name]}
+      onChange={onChange}
+      hasError={hasFieldError(field.name)}
+    />
+  ))
 
 /**
  * This is used for multiple different purposes:
@@ -133,6 +198,19 @@ class ProjectSettings extends React.Component {
     fields.country = asset?.settings ? asset.settings.country : null
     fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null
     fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null
+    fields.extra_metadata_fields = {}
+
+    envStore.data.extra_project_metadata_fields.forEach((field) => {
+      const value = asset?.settings?.extra_metadata?.[field.name]
+      const defaultValue =
+        field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+          ? []
+          : field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT
+            ? null
+            : ''
+
+      fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
+    })
 
     return fields
   }
@@ -220,7 +298,11 @@ class ProjectSettings extends React.Component {
     const newStateObj = clonedeep(this.state)
 
     // Set Value
-    newStateObj.fields[fieldName] = newFieldValue
+    if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
+      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue
+    } else {
+      newStateObj.fields[fieldName] = newFieldValue
+    }
 
     // If given field has error and user starts to edit it, we can remove
     // the error and wait for `handleSubmit` to add new ones if necessary.
@@ -484,13 +566,16 @@ class ProjectSettings extends React.Component {
   }
 
   getSettingsForEndpoint() {
-    return JSON.stringify({
+    const settings = {
       description: this.state.fields.description,
       sector: this.state.fields.sector,
       country: this.state.fields.country,
       operational_purpose: this.state.fields.operational_purpose,
       collects_pii: this.state.fields.collects_pii,
-    })
+      extra_metadata: this.state.fields.extra_metadata_fields,
+    }
+
+    return JSON.stringify(settings)
   }
 
   createAssetAndOpenInBuilder() {
@@ -551,7 +636,7 @@ class ProjectSettings extends React.Component {
           this.setState({ formAsset: asset })
           const importUrl = this.state.importUrl
 
-          this.applyUrlToAsset(importUrl, asset).then(
+          applyUrlToAsset(importUrl, asset).then(
             (data) => {
               dataInterface
                 .getAsset({ id: data.uid })
@@ -571,19 +656,7 @@ class ProjectSettings extends React.Component {
             },
             (response) => {
               this.resetImportUrlButton()
-              const errLines = []
-              errLines.push(t('Import Failed!'))
-              if (importUrl) {
-                errLines.push(<code>Name: {this.getFilenameFromURI(importUrl)}</code>)
-              }
-              if (response.messages.error) {
-                errLines.push(
-                  <code>
-                    {response.messages.error_type}: {response.messages.error}
-                  </code>,
-                )
-              }
-              notify.error(join(errLines, <br />))
+              this.notifyImportFailure(response, importUrl ? this.getFilenameFromURI(importUrl) : null)
             },
           )
         },
@@ -594,13 +667,34 @@ class ProjectSettings extends React.Component {
     }
   }
 
+  notifyImportFailure(response, sourceName) {
+    const messages = response?.messages || response?.responseJSON?.messages
+    const errorType = messages?.error_type
+    const importError = messages?.error
+
+    if (importError) {
+      const errLines = [t('Import Failed!')]
+      if (sourceName) {
+        errLines.push(<code>Name: {sourceName}</code>)
+      }
+      errLines.push(
+        <code>
+          {errorType}: {escapeHtml(importError)}
+        </code>,
+      )
+      notify.error(join(errLines, <br />))
+    } else {
+      handleApiFail(response, t('Import Failed!'))
+    }
+  }
+
   onFileDrop(files) {
     if (files.length >= 1) {
       this.setState({ isUploadFilePending: true })
 
       this.getOrCreateFormAsset().then(
         (asset) => {
-          this.applyFileToAsset(files[0], asset).then(
+          applyFileToAsset(files[0], asset).then(
             (data) => {
               dataInterface
                 .getAsset({ id: data.uid })
@@ -628,19 +722,7 @@ class ProjectSettings extends React.Component {
             },
             (response) => {
               this.setState({ isUploadFilePending: false })
-              const errLines = []
-              errLines.push(t('Import Failed!'))
-              if (files[0].name) {
-                errLines.push(<code>Name: ${files[0].name}</code>)
-              }
-              if (response.messages.error) {
-                errLines.push(
-                  <code>
-                    {response.messages.error_type}: {escapeHtml(response.messages.error)}
-                  </code>,
-                )
-              }
-              notify.error(join(errLines, <br />))
+              this.notifyImportFailure(response, files[0]?.name)
             },
           )
         },
@@ -685,6 +767,31 @@ class ProjectSettings extends React.Component {
     if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.fields.collects_pii) {
       fieldsWithErrors.push('collects_pii')
     }
+
+    envStore.data.extra_project_metadata_fields.forEach((field) => {
+      if (!field.required) return
+
+      const val = this.state.fields.extra_metadata_fields[field.name]
+
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT) {
+        if (!Array.isArray(val) || val.length === 0) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT) {
+        if (!val) {
+          fieldsWithErrors.push(field.name)
+        }
+        return
+      }
+
+      // Default to text fields
+      if (!val?.trim()) {
+        fieldsWithErrors.push(field.name)
+      }
+    })
 
     // Will set either an empty array (no errors) or a list of fieldNames.
     this.setState({ fieldsWithErrors: fieldsWithErrors })
@@ -791,16 +898,18 @@ class ProjectSettings extends React.Component {
         <div className={styles.modalSubheader}>{t('Import an XLSForm from your computer.')}</div>
 
         {!this.state.isUploadFilePending && (
-          <Dropzone
-            onDrop={this.onFileDrop.bind(this)}
-            multiple={false}
-            className='kobo-dropzone'
-            activeClassName='dropzone-active'
-            rejectClassName='dropzone-reject'
-            accept={validFileTypes()}
-          >
-            <i className='k-icon k-icon-file-xls' />
-            {t(' Drag and drop the XLSForm file here or click to browse')}
+          <Dropzone onDrop={this.onFileDrop.bind(this)} multiple={false} accept={validFileTypes()}>
+            {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
+              <div
+                {...getRootProps({
+                  className: cx('kobo-dropzone', { 'dropzone-active': isDragActive, 'dropzone-reject': isDragReject }),
+                })}
+              >
+                <input {...getInputProps()} />
+                <i className='k-icon k-icon-file-xls' />
+                {t(' Drag and drop the XLSForm file here or click to browse')}
+              </div>
+            )}
           </Dropzone>
         )}
         {this.state.isUploadFilePending && (
@@ -975,6 +1084,13 @@ class ProjectSettings extends React.Component {
             </div>
           )}
 
+          {/* Extra Project Metadata */}
+          <ExtraMetadataFields
+            values={this.state.fields.extra_metadata_fields}
+            onChange={this.onAnyFieldChange}
+            hasFieldError={this.hasFieldError}
+          />
+
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||
             this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
             <div className={styles.modalFooter}>
@@ -1102,7 +1218,6 @@ class ProjectSettings extends React.Component {
 }
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin)
-reactMixin(ProjectSettings.prototype, mixins.droppable)
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix)
 

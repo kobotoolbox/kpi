@@ -60,6 +60,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
+            'is_superuser',
             'server_time',
             'date_joined',
             'projects_url',
@@ -78,6 +79,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'email',
             'accepted_tos',
+            'is_superuser',
         )
 
     def get_accepted_tos(self, obj: User) -> bool:

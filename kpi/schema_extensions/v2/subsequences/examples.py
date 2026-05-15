@@ -484,3 +484,111 @@ def get_advanced_features_update_examples() -> list[OpenApiExample]:
             request_only=True,
         ),
     ]
+
+
+def get_bulk_actions_create_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'Bulk transcription job',
+            value={
+                'action_id': 'automatic_google_transcription',
+                'question_xpath': 'q1',
+                'submission_uuids': [
+                    '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+                    '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+                ],
+                'params': {
+                    'language': 'en',
+                    'locale': 'en-US',
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Bulk translation job',
+            value={
+                'action_id': 'automatic_google_translation',
+                'question_xpath': 'q1',
+                'submission_uuids': [
+                    '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+                    '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+                ],
+                'params': {
+                    'language': 'fr',
+                },
+            },
+            request_only=True,
+        ),
+    ]
+
+
+def _bulk_action_response_value() -> dict:
+    return {
+        'uid': 'ba123456789AbCdEfGhIjklm',
+        'status': 'in_progress',
+        'action_id': 'automatic_google_transcription',
+        'question_xpath': 'q1',
+        'submission_uuids': [
+            '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+            '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+        ],
+        'submission_statuses': [
+            {
+                'uuid': '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+                'status': 'complete',
+            },
+            {
+                'uuid': '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+                'status': 'in_progress',
+            },
+        ],
+        'params': {
+            'language': 'en',
+            'locale': 'en-US',
+        },
+        'created_by': {
+            'username': 'someuser',
+        },
+        'date_created': '2026-05-05T09:00:00Z',
+        'date_modified': '2026-05-05T09:02:00Z',
+        'cancelled_by': None,
+    }
+
+
+def get_bulk_action_response_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'Bulk action response',
+            value=_bulk_action_response_value(),
+            response_only=True,
+        ),
+    ]
+
+
+def get_bulk_action_list_response_examples() -> list[OpenApiExample]:
+    response_value = _bulk_action_response_value()
+    return [
+        OpenApiExample(
+            'Bulk action list response',
+            value={
+                'count': 1,
+                'next': None,
+                'previous': None,
+                'results': [response_value],
+            },
+            response_only=True,
+        ),
+    ]
+
+
+def get_bulk_action_patch_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'Bulk action cancel request',
+            value={
+                'status': 'cancelled',
+            },
+            request_only=True,
+        ),
+        *get_bulk_action_response_examples(),
+    ]
