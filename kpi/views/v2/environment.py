@@ -124,6 +124,7 @@ class EnvironmentViewSet(viewsets.ViewSet):
         data['mfa_localized_help_text'] = markdown(I18nUtils.get_mfa_help_text())
         data['mfa_enabled'] = constance.config.MFA_ENABLED
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        data['superuser_auth_enforcement'] = constance.config.SUPERUSER_AUTH_ENFORCEMENT
         return data
 
     @staticmethod

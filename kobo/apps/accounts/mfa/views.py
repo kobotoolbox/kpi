@@ -15,7 +15,7 @@ from kpi.utils.log import logging
 from ..forms import LoginForm
 from .flows import activate_totp, deactivate_totp, regenerate_codes
 from .models import MfaMethodsWrapper
-from .permissions import IsMfaEnabled
+from .permissions import IsMfaEnabled, EnforceSuperuserMFA
 from .serializers import MfaCodeSerializer, UserMfaMethodSerializer
 
 
@@ -107,7 +107,7 @@ class MfaMethodConfirmView(APIView):
 
 
 class MfaMethodDeactivateView(APIView):
-    permission_classes = (IsAuthenticated, IsMfaEnabled)
+    permission_classes = (IsAuthenticated, IsMfaEnabled, EnforceSuperuserMFA)
 
     @staticmethod
     def post(request: Request, method: str) -> Response:

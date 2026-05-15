@@ -133,7 +133,7 @@ const commonOptions = {
       functionName: 't',
       output: path.join(outputPath, 'extracted-strings.json'),
     }),
-    new webpack.ProvidePlugin({ $: 'jquery' }),
+    new webpack.ProvidePlugin({ $: ['jquery', 'default'] }),
   ],
 }
 
