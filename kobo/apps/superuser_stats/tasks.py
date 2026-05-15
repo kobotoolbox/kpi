@@ -504,7 +504,7 @@ def generate_user_statistics_report(
         'Forms Count',
         'Deployments Count',
         'Google ASR Seconds',
-        'Google MT Seconds',
+        'Google MT Characters',
     ]
 
     with default_storage.open(output_filename, 'w') as output:

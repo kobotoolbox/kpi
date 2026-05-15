@@ -8,6 +8,7 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
+from kpi.tests.utils import baker_generators  # noqa: F401 registers KpiUidField gen.
 from kobo.apps.superuser_stats.tasks import (
     generate_continued_usage_report,
     generate_domain_report,
@@ -131,7 +132,7 @@ class GenerateReportsTestCase(TestCase):
             'Forms Count',
             'Deployments Count',
             'Google ASR Seconds',
-            'Google MT Seconds',
+            'Google MT Characters',
         ]
 
     def test_generate_user_statistics_report_aggregates(self):
@@ -173,8 +174,8 @@ class GenerateReportsTestCase(TestCase):
         assert data_row[8] == '20'  # submissions count
         assert data_row[9] == '1'  # forms count
         assert data_row[10] == '1'  # deployments count
-        assert data_row[11] == '300'  # google ASR seconds
-        assert data_row[12] == '1500'  # google MT characters
+        assert data_row[11] == '300'   # 'Google ASR Seconds'
+        assert data_row[12] == '1500'  # 'Google MT Seconds'
 
     def test_generate_user_statistics_report_no_nlp_counters(self):
         user = baker.make(User, email='charlie@test.com')
@@ -224,12 +225,19 @@ class GenerateReportsTestCase(TestCase):
         assert 'diana' in usernames
 
     def _run_task_and_get_rows(self, task_func, *args):
-        buf = io.StringIO()
-        cm = MagicMock()
-        cm.__enter__.return_value = buf
-        cm.__exit__.return_value = False
+        buffers = []
+
+        def _open(*a, **kw):
+            buf = io.StringIO()
+            buffers.append(buf)
+            cm = MagicMock()
+            cm.__enter__.return_value = buf
+            cm.__exit__.return_value = False
+            return cm
+
         with patch('kobo.apps.superuser_stats.tasks.default_storage') as mock_storage:
-            mock_storage.open.return_value = cm
+            mock_storage.open.side_effect = _open
             task_func('output.csv', *args)
-        buf.seek(0)
-        return list(csv.reader(buf))
+
+        buffers[0].seek(0)
+        return list(csv.reader(buffers[0]))
