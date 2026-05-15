@@ -30,7 +30,7 @@ window.$ = window.jQuery = $
 // TODO: remove when select2 is replaced.
 $.isArray = Array.isArray
 $.isFunction = (value) => typeof value === 'function'
-$.trim = (value) => (value == null ? '' : String.prototype.trim.call(value))
+$.trim = (value) => (value == null ? '' : (value + '').trim())
 import React from 'react'
 
 import * as Sentry from '@sentry/react'
