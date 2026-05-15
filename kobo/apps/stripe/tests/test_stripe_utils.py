@@ -32,7 +32,7 @@ from kobo.apps.stripe.exceptions import (
 from kobo.apps.stripe.utils.manual_subscription import (
     create_manual_subscription,
     get_default_community_plan_price,
-    organization_can_start_manual_invoicing,
+    organization_can_start_manual_subscription,
 )
 from kobo.apps.stripe.utils.billing_dates import (
     get_billing_dates_after_canceled_subscription,
@@ -653,7 +653,7 @@ class ManualInvoicingUtilsTestCase(BaseTestCase):
         generate_free_plan()
         generate_plan_subscription(self.organization)
 
-        assert not organization_can_start_manual_invoicing(self.organization)
+        assert not organization_can_start_manual_subscription(self.organization)
         with self.assertRaises(ManualSubscriptionExistsError):
             create_manual_subscription(self.organization)
 

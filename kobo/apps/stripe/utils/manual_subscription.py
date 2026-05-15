@@ -31,7 +31,7 @@ def get_default_community_plan_price() -> Price:
     return price
 
 
-def organization_can_start_manual_invoicing(organization) -> bool:
+def organization_can_start_manual_subscription(organization) -> bool:
     return not bool(organization.active_subscription_billing_details())
 
 
@@ -43,7 +43,7 @@ def create_manual_subscription(organization) -> Subscription:
     are remote Stripe API calls, which cannot be rolled back by a database
     transaction.
     """
-    if not organization_can_start_manual_invoicing(organization):
+    if not organization_can_start_manual_subscription(organization):
         raise ManualSubscriptionExistsError(
             'Organization already has an active Stripe subscription.'
         )
@@ -70,7 +70,7 @@ def create_manual_subscription(organization) -> Subscription:
             'kpi_owner_username': owner.username,
             'kpi_owner_user_id': owner.id,
             'organization_id': organization.id,
-            'manual_invoicing': 'true',
+            'provisioned_via_kobo_admin': 'true',
             'request_url': settings.KOBOFORM_URL,
         },
     )
@@ -81,7 +81,6 @@ def create_manual_subscription(organization) -> Subscription:
     # not synced yet
     existing_subscriptions = stripe.Subscription.list(
         customer=customer.id,
-        status='all',
         limit=100,
     )
     for stripe_subscription in existing_subscriptions.auto_paging_iter():
@@ -98,7 +97,7 @@ def create_manual_subscription(organization) -> Subscription:
             'kpi_owner_username': owner.username,
             'kpi_owner_user_id': owner.id,
             'organization_id': organization.id,
-            'manual_invoicing': 'true',
+            'provisioned_via_kobo_admin': 'true',
             'request_url': settings.KOBOFORM_URL,
         },
     )

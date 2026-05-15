@@ -16,7 +16,7 @@ if settings.STRIPE_ENABLED:
     )
     from kobo.apps.stripe.utils.manual_subscription import (
         create_manual_subscription,
-        organization_can_start_manual_invoicing,
+        organization_can_start_manual_subscription,
     )
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -45,7 +45,7 @@ class OrgAdmin(BaseOrganizationAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         organization = self.get_object(request, object_id)
         extra_context = extra_context or {}
-        extra_context.update(self._get_manual_invoicing_extra_context(organization))
+        extra_context.update(self._get_manual_subscription_extra_context(organization))
         if (
             organization
             and organization.organization_users.count() > max_users_for_edit_mode()
@@ -77,7 +77,7 @@ class OrgAdmin(BaseOrganizationAdmin):
             )
             return HttpResponseRedirect('.')
 
-        if not organization_can_start_manual_invoicing(obj):
+        if not organization_can_start_manual_subscription(obj):
             self.message_user(
                 request,
                 'This organization already has an active Stripe subscription.',
@@ -184,21 +184,21 @@ class OrgAdmin(BaseOrganizationAdmin):
                 messages.INFO,
             )
 
-    def _get_manual_invoicing_extra_context(self, organization: Organization | None):
+    def _get_manual_subscription_extra_context(self, organization: Organization | None):
         context = {
-            'show_manual_invoicing_button': False,
+            'show_manual_subscription_button': False,
             'can_create_manual_subscription': False,
-            'manual_invoicing_help_text': '',
+            'manual_subscription_help_text': '',
         }
         if not settings.STRIPE_ENABLED or not organization:
             return context
 
-        can_create = organization_can_start_manual_invoicing(organization)
+        can_create = organization_can_start_manual_subscription(organization)
         context.update(
             {
-                'show_manual_invoicing_button': True,
+                'show_manual_subscription_button': True,
                 'can_create_manual_subscription': can_create,
-                'manual_invoicing_help_text': (
+                'manual_subscription_help_text': (
                     'Creates a Stripe customer and a free community subscription '
                     'to facilitate manual setup in the Stripe dashboard.'
                     if can_create else

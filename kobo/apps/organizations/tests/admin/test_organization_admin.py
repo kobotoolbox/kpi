@@ -64,7 +64,7 @@ class TestOrganizationAdminTestCase(TestCase):
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
     @patch(
-        'kobo.apps.organizations.admin.organization.organization_can_start_manual_invoicing',  # noqa
+        'kobo.apps.organizations.admin.organization.organization_can_start_manual_subscription',  # noqa
         return_value=True,
     )
     def test_change_form_shows_enabled_manual_invoicing_button(self, _can_start_mock):
@@ -87,7 +87,7 @@ class TestOrganizationAdminTestCase(TestCase):
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
     @patch(
-        'kobo.apps.organizations.admin.organization.organization_can_start_manual_invoicing',  # noqa
+        'kobo.apps.organizations.admin.organization.organization_can_start_manual_subscription',  # noqa
         return_value=False,
     )
     def test_change_form_disables_manual_invoicing_button_for_active_subscription(
@@ -136,7 +136,7 @@ class TestOrganizationAdminTestCase(TestCase):
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
     @patch(
-        'kobo.apps.organizations.admin.organization.organization_can_start_manual_invoicing',  # noqa
+        'kobo.apps.organizations.admin.organization.organization_can_start_manual_subscription',  # noqa
         return_value=False,
     )
     def test_create_manual_subscription_not_available_with_active_subscription(

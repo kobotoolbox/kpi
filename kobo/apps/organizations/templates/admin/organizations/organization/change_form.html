@@ -3,7 +3,7 @@
 
 {% block submit_buttons_bottom %}
   {{ block.super }}
-  {% if show_manual_invoicing_button %}
+  {% if show_manual_subscription_button %}
     <div class="submit-row">
       <div class="manual-invoice-action">
         <input
@@ -14,9 +14,9 @@
           {% if not can_create_manual_subscription %}disabled{% endif %}
         >
 
-        {% if manual_invoicing_help_text %}
+        {% if manual_subscription_help_text %}
           <p class="help" style="margin-top: 8px;">
-            {{ manual_invoicing_help_text }}
+            {{ manual_subscription_help_text }}
           </p>
         {% endif %}
       </div>
