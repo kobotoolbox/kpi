@@ -26,6 +26,11 @@ import $ from 'jquery'
 // jQuery v4 ESM no longer auto-populates window.$/window.jQuery
 // The xlform/Backbone layer reads these globals directly, so we must assign them.
 window.$ = window.jQuery = $
+// jQuery 4 removed $.isArray, $.isFunction, and $.trim. Polyfill for select2 3.x compatibility.
+// TODO: remove when select2 is replaced.
+$.isArray = Array.isArray
+$.isFunction = (value) => typeof value === 'function'
+$.trim = (value) => (value == null ? '' : String.prototype.trim.call(value))
 import React from 'react'
 
 import * as Sentry from '@sentry/react'
