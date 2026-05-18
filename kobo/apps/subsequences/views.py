@@ -300,9 +300,7 @@ class BulkActionViewSet(
 
         # Re-fetch the instance to ensure all related data is included
         # (e.g. for response serialization)
-        instance = SubsequenceBulkAction.objects.prefetch_related(
-            'items'
-        ).get(pk=instance.pk)
+        instance = self.get_queryset().get(pk=instance.pk)
         response_serializer = BulkActionResponseSerializer(instance)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
