@@ -881,18 +881,103 @@ export function useAssetsAdvancedFeaturesBulkActionsRetrieve<
   return query
 }
 
+export type assetsAdvancedFeaturesBulkActionsUpdateResponse200 = {
+  data: BulkActionResponse
+  status: 200
+}
+
+export type assetsAdvancedFeaturesBulkActionsUpdateResponseComposite =
+  assetsAdvancedFeaturesBulkActionsUpdateResponse200
+
+export type assetsAdvancedFeaturesBulkActionsUpdateResponse =
+  assetsAdvancedFeaturesBulkActionsUpdateResponseComposite & {
+    headers: Headers
+  }
+
+export const getAssetsAdvancedFeaturesBulkActionsUpdateUrl = (uidAsset: string, actionUid: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${actionUid}/`
+}
+
+export const assetsAdvancedFeaturesBulkActionsUpdate = async (
+  uidAsset: string,
+  actionUid: string,
+  bulkActionResponse: BulkActionResponse,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsUpdateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsUpdateResponse>(
+    getAssetsAdvancedFeaturesBulkActionsUpdateUrl(uidAsset, actionUid),
+    {
+      ...options,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(bulkActionResponse),
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsUpdate>>,
+    TError,
+    { uidAsset: string; actionUid: string; data: BulkActionResponse },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsUpdate>>,
+  TError,
+  { uidAsset: string; actionUid: string; data: BulkActionResponse },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesBulkActionsUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsUpdate>>,
+    { uidAsset: string; actionUid: string; data: BulkActionResponse }
+  > = (props) => {
+    const { uidAsset, actionUid, data } = props ?? {}
+
+    return assetsAdvancedFeaturesBulkActionsUpdate(uidAsset, actionUid, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsAdvancedFeaturesBulkActionsUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsUpdate>>
+>
+export type AssetsAdvancedFeaturesBulkActionsUpdateMutationBody = BulkActionResponse
+export type AssetsAdvancedFeaturesBulkActionsUpdateMutationError = unknown
+
+export const useAssetsAdvancedFeaturesBulkActionsUpdate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsUpdate>>,
+    TError,
+    { uidAsset: string; actionUid: string; data: BulkActionResponse },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesBulkActionsUpdateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
 /**
  * ## Update a bulk processing job
 
 Cancels a single bulk processing job for an asset.
 
-The `PATCH` endpoint is reserved for bulk action cancellation.
+The `PATCH` endpoint is used for bulk action cancellation.
 
 The request body sets the job status to `cancelled`.
-
-This placeholder route currently exists to reserve the cancellation contract for
-frontend OpenAPI generation. Runtime cancellation behavior is not yet
-implemented.
 
  */
 export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse200 = {
