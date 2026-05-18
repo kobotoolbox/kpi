@@ -14,16 +14,14 @@ import type { DecoratorFunction } from '@storybook/types'
 import React from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { actions } from '#/actions'
+import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
 import assetFactory from '#/endpoints/asset.factory'
 import assetMock from '#/endpoints/asset.mocks'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import assetDataMock from '#/endpoints/assetData.mocks'
-import bulkActionsMock, {
-  completeBulkActionsResponse,
-  failedBulkActionsResponse,
-  processingBulkActionsResponse,
-} from '#/endpoints/bulkActions.mocks'
+import bulkActionFactory from '#/endpoints/bulkAction.factory'
+import bulkActionsMock from '#/endpoints/bulkActions.mocks'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -87,6 +85,10 @@ const minimalSubmissions = [
     ],
   }),
 ]
+const minimaProcessinglBulkAction = bulkActionFactory(minimalSubmissions[1]['meta/rootUuid'], 'fr', {
+  status: BulkActionResponseStatusEnum.in_progress,
+  question_xpath: 'Record_a_sound',
+})
 
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
@@ -134,23 +136,7 @@ export const Default: Story = {}
 export const ProcessingColumn: Story = {
   parameters: {
     msw: {
-      handlers: [...meta.parameters?.msw.handlers, bulkActionsMock(processingBulkActionsResponse)],
-    },
-  },
-}
-
-export const CompleteColumn: Story = {
-  parameters: {
-    msw: {
-      handlers: [...meta.parameters?.msw.handlers, bulkActionsMock(completeBulkActionsResponse)],
-    },
-  },
-}
-
-export const FailedColumn: Story = {
-  parameters: {
-    msw: {
-      handlers: [...meta.parameters?.msw.handlers, bulkActionsMock(failedBulkActionsResponse)],
+      handlers: [...meta.parameters?.msw.handlers, bulkActionsMock({ results: [minimaProcessinglBulkAction] })],
     },
   },
 }
