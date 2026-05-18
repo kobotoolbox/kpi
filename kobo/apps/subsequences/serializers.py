@@ -95,16 +95,24 @@ class BulkActionResponseSerializer(serializers.ModelSerializer):
         ]
 
     def get_submission_uuids(self, obj):
-        return [item.submission_root_uuid for item in obj.items.all()]
+        return [item.submission_root_uuid for item in self._get_items(obj)]
 
     def get_submission_statuses(self, obj):
-        return BulkActionSubmissionStatusSerializer(obj.items.all(), many=True).data
+        return BulkActionSubmissionStatusSerializer(
+            self._get_items(obj),
+            many=True,
+        ).data
 
     def get_created_by(self, obj):
         return {'username': obj.created_by}
 
     def get_cancelled_by(self, obj):
         return None
+
+    def _get_items(self, obj):
+        if not hasattr(obj, '_bulk_action_items_cache'):
+            obj._bulk_action_items_cache = list(obj.items.all())
+        return obj._bulk_action_items_cache
 
 
 class BulkActionCreateSerializer(serializers.Serializer):
@@ -250,7 +258,8 @@ class BulkActionCreateSerializer(serializers.Serializer):
             data = version.get('_data', {})
             if data.get('language') != params.get('language'):
                 continue
-            if data.get('locale') != params.get('locale'):
+            requested_locale = params.get('locale')
+            if requested_locale and data.get('locale') != requested_locale:
                 continue
             matching_versions.append(version)
 
