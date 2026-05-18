@@ -11,6 +11,7 @@ import bulkActionsMock, {
   completeBulkActionsResponse,
   failedBulkActionsResponse,
 } from '#/endpoints/bulkActions.mocks'
+import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import DataTableWrapper from './DataTableWrapper'
@@ -40,6 +41,7 @@ const meta: Meta<typeof DataTableWrapper> = {
       handlers: [
         assetMock(assetWithNestedSupplementalDetails.uid, assetWithNestedSupplementalDetails),
         assetDataMock(assetWithNestedSupplementalDetails.uid),
+        organizationMock(),
       ],
     },
   },
