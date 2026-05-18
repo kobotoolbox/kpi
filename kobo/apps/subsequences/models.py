@@ -4,6 +4,7 @@ import json
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
+from kpi.utils.log import logging
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
@@ -332,6 +333,12 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
     # instead of a foreign key so job records remain intact through user
     # lifecycle changes and are inexpensive to render.
     created_by = models.CharField(max_length=150, db_index=True)
+    cancelled_by = models.CharField(
+        max_length=150,
+        db_index=True,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ['-date_created']
@@ -450,6 +457,50 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         if should_sync_items:
             self._original_status = self.status
 
+    def cancel(self, *, cancelled_by: str | None = None) -> 'SubsequenceBulkAction':
+        """
+        Cancels the bulk action job and propagates cancellation to all eligible
+        child items
+
+        Database state transitions are performed atomically. Failures during
+        external Google cancellation requests are logged and do not roll back
+        the database transaction.
+        """
+        with transaction.atomic():
+            locked = type(self).objects.select_for_update().get(pk=self.pk)
+            if locked.status == BulkActionStatus.CANCELLED:
+                self.refresh_from_db()
+                return self
+
+            in_progress_items = list(
+                locked.items.filter(
+                    status=BulkActionItemStatus.IN_PROGRESS,
+                ).exclude(
+                    service_id__isnull=True,
+                ).exclude(
+                    service_id='',
+                )
+            )
+
+            locked.status = BulkActionStatus.CANCELLED
+            update_fields = ['status']
+            if cancelled_by and locked.cancelled_by != cancelled_by:
+                locked.cancelled_by = cancelled_by
+                update_fields.append('cancelled_by')
+            locked.save(update_fields=update_fields)
+
+        for item in in_progress_items:
+            try:
+                item.cancel_external_operation()
+            except Exception:
+                logging.exception(
+                    'Failed to cancel bulk action external operation for '
+                    f'{locked.uid=}, {item.uid=}, {item.service_id=}'
+                )
+
+        self.refresh_from_db()
+        return self
+
 
 class SubsequenceBulkActionItem(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='sbai', primary_key=True)
@@ -497,3 +548,24 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
         if not self.hash and self.parent_id:
             self.hash = self.parent.make_params_hash(self.parent.params)
         super().save(*args, **kwargs)
+
+    def cancel_external_operation(self) -> None:
+        if not self.service_id:
+            return
+
+        service = self._get_external_service()
+        service.cancel_google_operation(self.service_id)
+
+    def _get_external_service(self):
+        from .integrations.google.google_transcribe import GoogleTranscriptionService
+        from .integrations.google.google_translate import GoogleTranslationService
+
+        service_class_by_action = {
+            Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: GoogleTranscriptionService,
+            Action.AUTOMATIC_GOOGLE_TRANSLATION: GoogleTranslationService,
+        }
+        service_class = service_class_by_action[self.action_id]
+        return service_class(
+            submission={SUBMISSION_UUID_FIELD: self.submission_root_uuid},
+            asset=self.parent.asset,
+        )

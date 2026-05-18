@@ -1,11 +1,9 @@
 from drf_spectacular.utils import (
     OpenApiParameter,
-    OpenApiResponse,
     extend_schema,
     extend_schema_view,
 )
 from rest_framework import mixins, status, viewsets
-from rest_framework.exceptions import APIException
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.response import Response
 
@@ -14,6 +12,7 @@ from kobo.apps.audit_log.models import AuditType
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubsequenceBulkAction
 from kobo.apps.subsequences.serializers import (
+    BulkActionCancelSerializer,
     BulkActionCreateSerializer,
     BulkActionResponseSerializer,
     QuestionAdvancedFeatureSerializer,
@@ -42,18 +41,11 @@ from kpi.schema_extensions.v2.subsequences.serializers import (
 )
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
-    ErrorDetailSerializer,
     open_api_200_ok_response,
     open_api_201_created_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.versioning import APIV2Versioning
-
-
-class PlaceholderNotImplementedApiException(APIException):
-    status_code = status.HTTP_501_NOT_IMPLEMENTED
-    default_detail = 'Bulk processing jobs API is not implemented yet.'
-    default_code = 'not_implemented'
 
 
 @extend_schema(
@@ -220,18 +212,12 @@ class QuestionAdvancedFeatureViewSet(
     partial_update=extend_schema(
         description=read_md('subsequences', 'subsequences/bulk_actions_update.md'),
         request={'application/json': BulkActionPatchRequest},
-        responses={
-            **open_api_200_ok_response(
-                BulkActionResponse,
-                require_auth=False,
-                raise_access_forbidden=False,
-                validate_payload=False,
-            ),
-            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
-                response=ErrorDetailSerializer(),
-                description='Placeholder endpoint. Runtime behavior not implemented.',
-            ),
-        },
+        responses=open_api_200_ok_response(
+            BulkActionResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
         parameters=[
             OpenApiParameter(
                 name='action_uid',
@@ -268,6 +254,7 @@ class BulkActionViewSet(
     NestedViewSetMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
@@ -286,6 +273,8 @@ class BulkActionViewSet(
     def get_serializer_class(self):
         if self.action == 'create':
             return BulkActionCreateSerializer
+        if self.action == 'partial_update':
+            return BulkActionCancelSerializer
         return BulkActionResponseSerializer
 
     def get_serializer_context(self):
@@ -314,6 +303,14 @@ class BulkActionViewSet(
         return Response(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
-        # ToDo: Implement in a separate task
-        _ = self.asset
-        raise PlaceholderNotImplementedApiException()
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        instance = self.get_queryset().get(pk=instance.pk)
+        response_serializer = BulkActionResponseSerializer(instance)
+        return Response(response_serializer.data)

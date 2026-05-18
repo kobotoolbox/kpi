@@ -113,6 +113,20 @@ class GoogleService(ABC):
 
         return
 
+    def cancel_google_operation(self, operation_name: str) -> None:
+        """
+        Cancel a previously started Google long-running operation
+        """
+        google_service = discovery.build(
+            self.API_NAME,
+            self.API_VERSION,
+            credentials=self.credentials,
+        )
+        resource = google_service
+        for subresource in self.API_RESOURCE.split('.'):
+            resource = getattr(resource, subresource)()
+        resource.cancel(name=operation_name, body={}).execute()
+
     @abstractmethod
     def process_data(self, xpath: str, options: dict) -> dict:
         pass

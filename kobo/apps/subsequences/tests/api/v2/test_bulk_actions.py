@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 
 from django.urls import reverse
 from rest_framework import status
@@ -16,11 +17,17 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
     def setUp(self):
         super().setUp()
         self.second_submission_uuid = str(uuid.uuid4())
+        self.third_submission_uuid = str(uuid.uuid4())
         self.asset.deployment.mock_submissions(
             [
                 {
                     'q1': 'answer 2',
                     '_uuid': self.second_submission_uuid,
+                    '_submitted_by': 'someuser',
+                },
+                {
+                    'q1': 'answer 3',
+                    '_uuid': self.third_submission_uuid,
                     '_submitted_by': 'someuser',
                 },
             ]
@@ -153,6 +160,138 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             (self.submission_uuid, BulkActionItemStatus.PENDING),
             (self.second_submission_uuid, BulkActionItemStatus.PENDING),
         }
+
+    def test_cancel_bulk_action(self):
+        action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[
+                self.submission_uuid,
+                self.second_submission_uuid,
+                self.third_submission_uuid,
+            ],
+        )
+        pending_item = action.items.get(submission_root_uuid=self.submission_uuid)
+        in_progress_item = action.items.get(
+            submission_root_uuid=self.second_submission_uuid
+        )
+        complete_item = action.items.get(
+            submission_root_uuid=self.third_submission_uuid
+        )
+        in_progress_item.status = BulkActionItemStatus.IN_PROGRESS
+        in_progress_item.service_id = 'operations/transcription-123'
+        in_progress_item.save(update_fields=['status', 'service_id'])
+        complete_item.status = BulkActionItemStatus.COMPLETE
+        complete_item.save(update_fields=['status'])
+
+        with patch(
+            'kobo.apps.subsequences.models.'
+            'SubsequenceBulkActionItem.cancel_external_operation'
+        ) as cancel_external_operation:
+            response = self.client.patch(
+                self._get_detail_url(action.uid),
+                data={'status': BulkActionStatus.CANCELLED},
+                format='json',
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        action.refresh_from_db()
+        pending_item.refresh_from_db()
+        in_progress_item.refresh_from_db()
+        complete_item.refresh_from_db()
+        assert action.status == BulkActionStatus.CANCELLED
+        assert action.cancelled_by == 'someuser'
+        assert pending_item.status == BulkActionItemStatus.CANCELLED
+        assert in_progress_item.status == BulkActionItemStatus.CANCELLED
+        assert complete_item.status == BulkActionItemStatus.COMPLETE
+        assert response.data['cancelled_by'] == {'username': 'someuser'}
+        cancel_external_operation.assert_called_once_with()
+
+    def test_cancel_bulk_action_is_idempotent(self):
+        action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+        )
+        action.status = BulkActionStatus.CANCELLED
+        action.cancelled_by = 'someuser'
+        action.save(update_fields=['status', 'cancelled_by'])
+
+        with patch(
+            'kobo.apps.subsequences.models.'
+            'SubsequenceBulkActionItem.cancel_external_operation'
+        ) as cancel_external_operation:
+            response = self.client.patch(
+                self._get_detail_url(action.uid),
+                data={'status': BulkActionStatus.CANCELLED},
+                format='json',
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        action.refresh_from_db()
+        assert action.status == BulkActionStatus.CANCELLED
+        assert action.cancelled_by == 'someuser'
+        cancel_external_operation.assert_not_called()
+
+    def test_cancel_bulk_action_logs_external_cancel_failures(self):
+        action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+        )
+        in_progress_item = action.items.get(submission_root_uuid=self.submission_uuid)
+        in_progress_item.status = BulkActionItemStatus.IN_PROGRESS
+        in_progress_item.service_id = 'operations/transcription-123'
+        in_progress_item.save(update_fields=['status', 'service_id'])
+
+        with patch(
+            'kobo.apps.subsequences.models.'
+            'SubsequenceBulkActionItem.cancel_external_operation',
+            side_effect=RuntimeError('boom'),
+        ), patch('kobo.apps.subsequences.models.logging.exception') as log_exception:
+            response = self.client.patch(
+                self._get_detail_url(action.uid),
+                data={'status': BulkActionStatus.CANCELLED},
+                format='json',
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        action.refresh_from_db()
+        in_progress_item.refresh_from_db()
+        assert action.status == BulkActionStatus.CANCELLED
+        assert action.cancelled_by == 'someuser'
+        assert in_progress_item.status == BulkActionItemStatus.CANCELLED
+        log_exception.assert_called_once()
+
+    def test_cannot_cancel_completed_bulk_action(self):
+        action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+            status=BulkActionStatus.COMPLETE,
+        )
+
+        response = self.client.patch(
+            self._get_detail_url(action.uid),
+            data={'status': BulkActionStatus.CANCELLED},
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        action.refresh_from_db()
+        assert action.status == BulkActionStatus.COMPLETE
 
     def test_create_bulk_action_rejects_unknown_submissions(self):
         response = self.client.post(
