@@ -210,13 +210,17 @@ class BulkActionCreateSerializer(serializers.Serializer):
         params: dict,
         submission_uuids: list[str],
     ):
+        supplements_by_uuid = {
+            supplement.submission_uuid: supplement.content or {}
+            for supplement in SubmissionSupplement.objects.filter(
+                asset=asset,
+                submission_uuid__in=submission_uuids,
+            ).only('submission_uuid', 'content')
+        }
+
         ineligible = []
         for submission_uuid in submission_uuids:
-            supplement_obj = SubmissionSupplement.objects.filter(
-                asset=asset,
-                submission_uuid=submission_uuid,
-            ).only('content').first()
-            supplement = (supplement_obj.content or {}) if supplement_obj else {}
+            supplement = supplements_by_uuid.get(submission_uuid, {})
             question_data = supplement.get(question_xpath) or {}
             if action_id == 'automatic_google_transcription':
                 if self._has_existing_transcription(question_data, params):

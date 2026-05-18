@@ -297,15 +297,22 @@ class BulkActionViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+
+        # Re-fetch the instance to ensure all related data is included
+        # (e.g. for response serialization)
+        instance = SubsequenceBulkAction.objects.prefetch_related(
+            'items'
+        ).get(pk=instance.pk)
         response_serializer = BulkActionResponseSerializer(instance)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page or queryset, many=True)
         if page is not None:
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
