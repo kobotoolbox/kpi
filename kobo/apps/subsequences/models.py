@@ -483,7 +483,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
             )
 
             locked.status = BulkActionStatus.CANCELLED
-            update_fields = ['status']
+            update_fields = ['status', 'date_modified']
             if cancelled_by and locked.cancelled_by != cancelled_by:
                 locked.cancelled_by = cancelled_by
                 update_fields.append('cancelled_by')
