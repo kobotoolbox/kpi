@@ -1,5 +1,9 @@
+import { Box } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import type { DecoratorFunction } from '@storybook/types'
 import React from 'react'
+import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { actions } from '#/actions'
 import assetMock from '#/endpoints/asset.mocks'
 import assetDataMock from '#/endpoints/assetData.mocks'
 import bulkActionsMock, {
@@ -7,13 +11,15 @@ import bulkActionsMock, {
   completeBulkActionsResponse,
   failedBulkActionsResponse,
 } from '#/endpoints/bulkActions.mocks'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
+import { ROUTES } from '#/router/routerConstants'
 import DataTableWrapper from './DataTableWrapper'
 import { assetWithNestedSupplementalDetails } from './submissionUtils.mocks'
 
-import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-import { actions } from '#/actions'
-import { queryClientDecorator } from '#/query/queryClient.mocks'
-import { ROUTES } from '#/router/routerConstants'
+// Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
+// cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
+// stretch to fill the row height — just like in the real UI.
+const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={360}>{Story()}</Box>
 
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
@@ -37,7 +43,7 @@ const meta: Meta<typeof DataTableWrapper> = {
       ],
     },
   },
-  decorators: [withRouter, queryClientDecorator],
+  decorators: [withRouter, queryClientDecorator, fixedHeightDecorator],
   loaders: [
     async () => {
       // Set the hash to mimic the real app route for this asset, so that (deprecated) `getCurrentPath` works.
