@@ -1950,10 +1950,26 @@ paths:
 
         Returns all bulk processing jobs associated with the specified asset. Each job
         is organized around one question and many submissions.
-
-        This endpoint currently exists to reserve the response contract for frontend
-        integration and OpenAPI generation. Runtime processing is not yet implemented.
       parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       - in: path
         name: uid_asset
         schema:
@@ -2011,12 +2027,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
     post:
       operationId: api_v2_assets_advanced_features_bulk_actions_create
       description: |
@@ -2024,10 +2034,6 @@ paths:
 
         Creates a placeholder bulk transcription or bulk translation job for a single
         question across multiple submissions.
-
-        This endpoint currently exists to reserve the request and response contract for
-        frontend integration and OpenAPI generation. Runtime processing is not yet
-        implemented.
       parameters:
       - in: path
         name: uid_asset
@@ -2123,12 +2129,6 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
   /api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{action_uid}/:
     get:
       operationId: api_v2_assets_advanced_features_bulk_actions_retrieve
@@ -2140,9 +2140,6 @@ paths:
 
         The response shape is identical to the item returned by the bulk job creation
         endpoint.
-
-        This endpoint currently exists to reserve the response contract for frontend
-        integration and OpenAPI generation. Runtime processing is not yet implemented.
       parameters:
       - in: path
         name: action_uid
@@ -2203,12 +2200,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
     patch:
       operationId: api_v2_assets_advanced_features_bulk_actions_partial_update
       description: |

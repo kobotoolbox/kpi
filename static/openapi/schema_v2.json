@@ -2841,8 +2841,35 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_list",
-                "description": "## List bulk processing jobs on an asset\n\nReturns all bulk processing jobs associated with the specified asset. Each job\nis organized around one question and many submissions.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
+                "description": "## List bulk processing jobs on an asset\n\nReturns all bulk processing jobs associated with the specified asset. Each job\nis organized around one question and many submissions.\n",
                 "parameters": [
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page. Use with `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -2934,22 +2961,12 @@
                             }
                         },
                         "description": ""
-                    },
-                    "501": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                }
-                            }
-                        },
-                        "description": "Placeholder endpoint. Runtime behavior not implemented."
                     }
                 }
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_create",
-                "description": "## Create a bulk processing job\n\nCreates a placeholder bulk transcription or bulk translation job for a single\nquestion across multiple submissions.\n\nThis endpoint currently exists to reserve the request and response contract for\nfrontend integration and OpenAPI generation. Runtime processing is not yet\nimplemented.\n",
+                "description": "## Create a bulk processing job\n\nCreates a placeholder bulk transcription or bulk translation job for a single\nquestion across multiple submissions.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3098,16 +3115,6 @@
                             }
                         },
                         "description": ""
-                    },
-                    "501": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                }
-                            }
-                        },
-                        "description": "Placeholder endpoint. Runtime behavior not implemented."
                     }
                 }
             }
@@ -3115,7 +3122,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{action_uid}/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_retrieve",
-                "description": "## Retrieve a bulk processing job\n\nReturns detailed information about a single bulk processing job, including its\ncurrent status and processing metadata.\n\nThe response shape is identical to the item returned by the bulk job creation\nendpoint.\n\nThis endpoint currently exists to reserve the response contract for frontend\nintegration and OpenAPI generation. Runtime processing is not yet implemented.\n",
+                "description": "## Retrieve a bulk processing job\n\nReturns detailed information about a single bulk processing job, including its\ncurrent status and processing metadata.\n\nThe response shape is identical to the item returned by the bulk job creation\nendpoint.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3210,16 +3217,6 @@
                             }
                         },
                         "description": ""
-                    },
-                    "501": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                }
-                            }
-                        },
-                        "description": "Placeholder endpoint. Runtime behavior not implemented."
                     }
                 }
             },
