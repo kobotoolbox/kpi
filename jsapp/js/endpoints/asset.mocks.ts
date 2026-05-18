@@ -9,8 +9,9 @@ import type { AssetResponse } from '#/dataInterface'
  * Usage: assetMock() for default, or assetMock({ name: 'override' }) for custom.
  */
 const assetMock = (assetUid: string, override?: Partial<AssetResponse>) =>
-  http.get(endpoints.ASSET_URL.replace(':uid', assetUid), ({ params }) => {
-    console.log('msw assetMock hit, uid:', params.uid)
+  http.get(endpoints.ASSET_URL, ({ params }) => {
+    // Only respond for the correct assetUid
+    if (params.uid !== assetUid) return undefined
     return HttpResponse.json({
       ...defaultMockResponse,
       ...override,
