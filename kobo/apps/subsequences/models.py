@@ -565,6 +565,10 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
             Action.AUTOMATIC_GOOGLE_TRANSLATION: GoogleTranslationService,
         }
         service_class = service_class_by_action.get(self.action_id)
+        if service_class is None:
+            raise ValueError(
+                f'No external service registered for action_id={self.action_id}'
+            )
         return service_class(
             submission={SUBMISSION_UUID_FIELD: self.submission_root_uuid},
             asset=self.parent.asset,
