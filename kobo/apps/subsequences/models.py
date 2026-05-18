@@ -564,7 +564,7 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
             Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: GoogleTranscriptionService,
             Action.AUTOMATIC_GOOGLE_TRANSLATION: GoogleTranslationService,
         }
-        service_class = service_class_by_action[self.action_id]
+        service_class = service_class_by_action.get(self.action_id)
         return service_class(
             submission={SUBMISSION_UUID_FIELD: self.submission_root_uuid},
             asset=self.parent.asset,
