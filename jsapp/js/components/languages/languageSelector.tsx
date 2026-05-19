@@ -17,7 +17,6 @@ interface LanguageSelectorProps {
    */
   onLanguageChange: (language: any) => void
   titleOverride?: string
-  /** The following props are from the old languageSelector, and is useful to maintain it's UX*/
   hiddenLanguages?: LanguageCode[]
   suggestedLanguages?: LanguageCode[]
   /** The currently selected language code, used for the UX of single processing view */
