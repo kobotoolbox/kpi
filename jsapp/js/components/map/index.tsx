@@ -1,4 +1,4 @@
-import { Dialog, Group, Menu, Stack, type TooltipProps } from '@mantine/core'
+import { Dialog, Group, Stack, type TooltipProps } from '@mantine/core'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
@@ -8,6 +8,7 @@ import L, { type LayerGroup } from 'leaflet'
 // Libraries
 import React from 'react'
 import bem from '../../../js/bem'
+import Menu from '../../../js/components/common/Menu'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import 'leaflet.markercluster'
