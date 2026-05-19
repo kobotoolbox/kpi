@@ -62,7 +62,7 @@ echo -e '\n\n### Step: Install system dependencies for playwright'
 npx playwright install-deps
 
 echo -e '\n\n### Step: Install JavaScript dependencies'
-npm install
+npm ci
 git diff
 git diff-index --exit-code HEAD # Fail on uncommitted package-lock.json changes
 

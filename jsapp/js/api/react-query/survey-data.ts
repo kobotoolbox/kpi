@@ -25,6 +25,8 @@ import type { AdvancedFeaturePostRequest } from '../models/advancedFeaturePostRe
 
 import type { AdvancedFeatureResponse } from '../models/advancedFeatureResponse'
 
+import type { AssetsAdvancedFeaturesBulkActionsListParams } from '../models/assetsAdvancedFeaturesBulkActionsListParams'
+
 import type { AssetsDataAttachmentsListParams } from '../models/assetsDataAttachmentsListParams'
 
 import type { AssetsDataListParams } from '../models/assetsDataListParams'
@@ -559,9 +561,6 @@ export const useAssetsAdvancedFeaturesPartialUpdate = <
 Returns all bulk processing jobs associated with the specified asset. Each job
 is organized around one question and many submissions.
 
-This endpoint currently exists to reserve the response contract for frontend
-integration and OpenAPI generation. Runtime processing is not yet implemented.
-
  */
 export type assetsAdvancedFeaturesBulkActionsListResponse200 = {
   data: BulkActionListResponse
@@ -581,16 +580,32 @@ export type assetsAdvancedFeaturesBulkActionsListResponse = assetsAdvancedFeatur
   headers: Headers
 }
 
-export const getAssetsAdvancedFeaturesBulkActionsListUrl = (uidAsset: string) => {
-  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/`
+export const getAssetsAdvancedFeaturesBulkActionsListUrl = (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/`
 }
 
 export const assetsAdvancedFeaturesBulkActionsList = async (
   uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
   options?: RequestInit,
 ): Promise<assetsAdvancedFeaturesBulkActionsListResponse> => {
   return fetchWithAuth<assetsAdvancedFeaturesBulkActionsListResponse>(
-    getAssetsAdvancedFeaturesBulkActionsListUrl(uidAsset),
+    getAssetsAdvancedFeaturesBulkActionsListUrl(uidAsset, params),
     {
       ...options,
       method: 'GET',
@@ -598,8 +613,11 @@ export const assetsAdvancedFeaturesBulkActionsList = async (
   )
 }
 
-export const getAssetsAdvancedFeaturesBulkActionsListQueryKey = (uidAsset: string) => {
-  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions'] as const
+export const getAssetsAdvancedFeaturesBulkActionsListQueryKey = (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsAdvancedFeaturesBulkActionsListQueryOptions = <
@@ -607,6 +625,7 @@ export const getAssetsAdvancedFeaturesBulkActionsListQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -614,10 +633,10 @@ export const getAssetsAdvancedFeaturesBulkActionsListQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsListQueryKey(uidAsset)
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsListQueryKey(uidAsset, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>> = ({ signal }) =>
-    assetsAdvancedFeaturesBulkActionsList(uidAsset, { signal, ...requestOptions })
+    assetsAdvancedFeaturesBulkActionsList(uidAsset, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>,
@@ -636,12 +655,13 @@ export function useAssetsAdvancedFeaturesBulkActionsList<
   TError = ErrorDetail,
 >(
   uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsAdvancedFeaturesBulkActionsListQueryOptions(uidAsset, options)
+  const queryOptions = getAssetsAdvancedFeaturesBulkActionsListQueryOptions(uidAsset, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -655,10 +675,6 @@ export function useAssetsAdvancedFeaturesBulkActionsList<
 
 Creates a placeholder bulk transcription or bulk translation job for a single
 question across multiple submissions.
-
-This endpoint currently exists to reserve the request and response contract for
-frontend integration and OpenAPI generation. Runtime processing is not yet
-implemented.
 
  */
 export type assetsAdvancedFeaturesBulkActionsCreateResponse201 = {
@@ -773,9 +789,6 @@ current status and processing metadata.
 The response shape is identical to the item returned by the bulk job creation
 endpoint.
 
-This endpoint currently exists to reserve the response contract for frontend
-integration and OpenAPI generation. Runtime processing is not yet implemented.
-
  */
 export type assetsAdvancedFeaturesBulkActionsRetrieveResponse200 = {
   data: BulkActionResponse
@@ -873,13 +886,9 @@ export function useAssetsAdvancedFeaturesBulkActionsRetrieve<
 
 Cancels a single bulk processing job for an asset.
 
-The `PATCH` endpoint is reserved for bulk action cancellation.
+The `PATCH` endpoint is used for bulk action cancellation.
 
 The request body sets the job status to `cancelled`.
-
-This placeholder route currently exists to reserve the cancellation contract for
-frontend OpenAPI generation. Runtime cancellation behavior is not yet
-implemented.
 
  */
 export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse200 = {
