@@ -52,6 +52,11 @@ export const Default: Story = {
   },
 }
 
+/**
+ * This test is searching for "Adangme" language, selecting it, verifying the selection, undoing the selection. Then
+ * tests for a non-existent language to verify the help message exists. Finally searches again for "Swedish" and
+ * verifys the selection
+ */
 export const InteractionTest: Story = {
   args: {
     onLanguageChange: fn(),

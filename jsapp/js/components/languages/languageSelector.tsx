@@ -22,7 +22,7 @@ interface LanguageSelectorProps {
   suggestedLanguages?: LanguageCode[]
   /** The currently selected language code, used for the UX of single processing view */
   value?: LanguageCode | null
-  isDisabled?: boolean
+  disabled?: boolean
   required?: boolean
 }
 
@@ -132,7 +132,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
         className: 'language-selector-clear-button',
         'aria-label': t('Clear selected language'),
       }}
-      disabled={props.isDisabled}
+      disabled={props.disabled}
       comboboxProps={{
         resetSelectionOnOptionHover: true,
         position: 'bottom',
