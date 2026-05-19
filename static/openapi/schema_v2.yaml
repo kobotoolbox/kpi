@@ -2207,13 +2207,9 @@ paths:
 
         Cancels a single bulk processing job for an asset.
 
-        The `PATCH` endpoint is reserved for bulk action cancellation.
+        The `PATCH` endpoint is used for bulk action cancellation.
 
         The request body sets the job status to `cancelled`.
-
-        This placeholder route currently exists to reserve the cancellation contract for
-        frontend OpenAPI generation. Runtime cancellation behavior is not yet
-        implemented.
       parameters:
       - in: path
         name: action_uid
@@ -2284,12 +2280,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
   /api/v2/assets/{uid_asset}/attachments/{id}/:
     delete:
       operationId: api_v2_assets_attachments_destroy

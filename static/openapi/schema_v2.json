@@ -3222,7 +3222,7 @@
             },
             "patch": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_partial_update",
-                "description": "## Update a bulk processing job\n\nCancels a single bulk processing job for an asset.\n\nThe `PATCH` endpoint is reserved for bulk action cancellation.\n\nThe request body sets the job status to `cancelled`.\n\nThis placeholder route currently exists to reserve the cancellation contract for\nfrontend OpenAPI generation. Runtime cancellation behavior is not yet\nimplemented.\n",
+                "description": "## Update a bulk processing job\n\nCancels a single bulk processing job for an asset.\n\nThe `PATCH` endpoint is used for bulk action cancellation.\n\nThe request body sets the job status to `cancelled`.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3334,16 +3334,6 @@
                             }
                         },
                         "description": ""
-                    },
-                    "501": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                }
-                            }
-                        },
-                        "description": "Placeholder endpoint. Runtime behavior not implemented."
                     }
                 }
             }

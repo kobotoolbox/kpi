@@ -6,6 +6,7 @@ from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
+    BulkActionStatus,
     QuestionAdvancedFeature,
     SubmissionSupplement,
     SubsequenceBulkAction,
@@ -107,7 +108,9 @@ class BulkActionResponseSerializer(serializers.ModelSerializer):
         return {'username': obj.created_by}
 
     def get_cancelled_by(self, obj):
-        return None
+        if not obj.cancelled_by:
+            return None
+        return {'username': obj.cancelled_by}
 
     def _get_items(self, obj):
         if not hasattr(obj, '_bulk_action_items_cache'):
@@ -323,3 +326,27 @@ class BulkActionCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'One or more submissions already have an active matching bulk action.'
             ) from err
+
+
+class BulkActionCancelSerializer(serializers.ModelSerializer):
+    status = serializers.ChoiceField(choices=[BulkActionStatus.CANCELLED])
+
+    class Meta:
+        model = SubsequenceBulkAction
+        fields = ['status']
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if 'status' not in attrs:
+            raise serializers.ValidationError(
+                {'status': ['This field is required.']}
+            )
+        if self.instance.status == BulkActionStatus.COMPLETE:
+            raise serializers.ValidationError(
+                {'status': ['Completed bulk actions cannot be cancelled.']}
+            )
+        return attrs
+
+    def update(self, instance, validated_data):
+        instance.cancel(cancelled_by=self.context['request'].user.username)
+        return instance
