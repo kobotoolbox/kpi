@@ -468,7 +468,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         """
         with transaction.atomic():
             locked = type(self).objects.select_for_update().get(pk=self.pk)
-            if locked.status == BulkActionStatus.CANCELLED:
+            if locked.status in [BulkActionStatus.CANCELLED, BulkActionStatus.COMPLETE]:
                 self.refresh_from_db()
                 return self
 
