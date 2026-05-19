@@ -44,8 +44,6 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   const languages = data?.status === 200 ? data.data.results : []
 
   // Create a query for each suggested language
-  // NOTE: Suggested languages are broken but handled by parent. Once fixed, the parent will pass correct props (this
-  // component's logic is already ready)
   const hasSuggestedLanguages = props.suggestedLanguages && props.suggestedLanguages.length > 0
   const suggestedLanguageQueries = useQueries({
     queries: hasSuggestedLanguages
