@@ -86,7 +86,6 @@ export default function StepSelectLanguage({
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <LanguageSelector
-        titleOverride={titleOverride}
         onLanguageChange={handleChangeLanguage}
         hiddenLanguages={hiddenLanguages}
         suggestedLanguages={suggestedLanguages}

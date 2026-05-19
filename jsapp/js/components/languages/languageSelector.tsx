@@ -120,7 +120,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       data={languageOptions}
       onChange={onLanguageSelected}
       value={props.value ?? null}
-      label={props.titleOverride}
+      label={props.titleOverride ?? t('Select a language')}
       placeholder={t('Search or select a language')}
       searchable
       clearable
