@@ -1,4 +1,4 @@
-import './mediaCell.scss'
+import './MediaCell.scss'
 
 import React from 'react'
 

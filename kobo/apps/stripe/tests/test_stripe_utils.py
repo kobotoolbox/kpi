@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from math import inf
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -23,6 +24,15 @@ from kobo.apps.stripe.tests.utils import (
     _create_payment,
     generate_free_plan,
     generate_plan_subscription,
+)
+from kobo.apps.stripe.exceptions import (
+    DefaultCommunityPlanNotFoundError,
+    ManualSubscriptionExistsError,
+)
+from kobo.apps.stripe.utils.manual_subscription import (
+    create_manual_subscription,
+    get_default_community_plan_price,
+    organization_can_start_manual_subscription,
 )
 from kobo.apps.stripe.utils.billing_dates import (
     get_billing_dates_after_canceled_subscription,
@@ -587,6 +597,69 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         )
 
         assert get_default_plan_name() == product.name
+
+
+class ManualInvoicingUtilsTestCase(BaseTestCase):
+    fixtures = ['test_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.someuser = User.objects.get(username='someuser')
+        cls.organization = cls.someuser.organization
+
+    @patch('djstripe.models.Subscription.sync_from_stripe_data')
+    @patch('stripe.Subscription.create')
+    @patch('stripe.Subscription.list')
+    @patch('stripe.Customer.modify')
+    @patch('djstripe.models.Customer.get_or_create')
+    def test_create_manual_subscription(
+        self,
+        customer_get_or_create_mock,
+        customer_modify_mock,
+        subscription_list_mock,
+        subscription_create_mock,
+        subscription_sync_mock,
+    ):
+        generate_free_plan()
+        price = get_default_community_plan_price()
+        customer = Mock()
+        customer.id = 'cus_manual_invoice'
+        customer.name = None
+        customer.sync_from_stripe_data = Mock()
+        customer_get_or_create_mock.return_value = (customer, False)
+        customer_modify_mock.return_value = customer
+        subscription_list_mock.return_value.auto_paging_iter.return_value = []
+        stripe_subscription = {
+            'id': 'sub_manual_invoice',
+            'status': 'active',
+            'customer': customer.id,
+        }
+        subscription_create_mock.return_value = stripe_subscription
+        subscription_sync_mock.return_value = SimpleNamespace(id='sub_manual_invoice')
+
+        subscription = create_manual_subscription(self.organization)
+
+        assert subscription.id == 'sub_manual_invoice'
+        subscription_create_mock.assert_called_once()
+        create_kwargs = subscription_create_mock.call_args.kwargs
+        assert create_kwargs['customer'] == customer.id
+        assert create_kwargs['items'][0]['price'] == price.id
+        assert create_kwargs['metadata']['organization_id'] == self.organization.id
+        assert create_kwargs['metadata']['kpi_owner_user_id'] == self.someuser.id
+        customer.sync_from_stripe_data.assert_called_once_with(customer)
+        subscription_sync_mock.assert_called_once_with(stripe_subscription)
+
+    def test_create_manual_subscription_rejects_active_subscription(self):
+        generate_free_plan()
+        generate_plan_subscription(self.organization)
+
+        assert not organization_can_start_manual_subscription(self.organization)
+        with self.assertRaises(ManualSubscriptionExistsError):
+            create_manual_subscription(self.organization)
+
+    def test_create_manual_subscription_requires_default_plan(self):
+        with self.assertRaises(DefaultCommunityPlanNotFoundError):
+            create_manual_subscription(self.organization)
 
 
 class ExceededLimitsTestCase(BaseServiceUsageTestCase):
