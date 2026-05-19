@@ -1,6 +1,11 @@
 import type { Filter } from 'react-table'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import { getRowName, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
+import {
+  getRowName,
+  getSurveyFlatPaths,
+  getVirtualSupplementalFieldsForBulkActions,
+  injectSupplementalRowsIntoListOfRows,
+} from '#/assetUtils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import {
   DROPDOWN_FILTER_QUESTION_TYPES,
@@ -23,7 +28,6 @@ import {
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
-import { getBulkProcessingColumnKey } from './bulkProcessingUtils'
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -264,34 +268,7 @@ export function getAllDataColumns(
   })
   output = output.filter((key) => excludedGroups.includes(key) === false)
 
-  // Build virtual supplemental fields for bulk processing columns
-  let virtualSupplementalFields: { dtpath: string; source: string; type: string }[] = []
-  if (bulkActions && Array.isArray(bulkActions)) {
-    // getBulkProcessingColumnKey returns the supplemental column key for each bulk action
-    // We need to build a field object for each, matching the structure expected by injectSupplementalRowsIntoListOfRows
-    virtualSupplementalFields = bulkActions.reduce<{ dtpath: string; source: string; type: string }[]>(
-      (acc, bulkAction) => {
-        const key = getBulkProcessingColumnKey(bulkAction)
-        if (!key) return acc
-        let type = ''
-        if (bulkAction.action_id === 'automatic_google_transcription') {
-          type = 'transcript'
-        } else if (bulkAction.action_id === 'automatic_google_translation') {
-          type = 'translation'
-        } else {
-          type = 'processing'
-        }
-        acc.push({
-          dtpath: key,
-          source: bulkAction.question_xpath,
-          type,
-        })
-        return acc
-      },
-      [],
-    )
-  }
-
+  const virtualSupplementalFields = getVirtualSupplementalFieldsForBulkActions(bulkActions)
   output = injectSupplementalRowsIntoListOfRows(asset, output, virtualSupplementalFields)
   return output
 }

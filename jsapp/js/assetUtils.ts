@@ -38,6 +38,7 @@ import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
 import type { Asset } from './api/models/asset'
 import type { AssetMinimalList } from './api/models/assetMinimalList'
+import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -487,15 +488,15 @@ export function renderQuestionTypeIcon(
 }
 
 /**
- * Injects supplemental details columns next to their respective source rows in
- * a given list of rows. Returns a new updated `rows` list.
+ * Injects supplemental details columns next to their respective source rows in a given list of rows.
+ * Returns a new updated `rows` list.
  *
  * Note: we omit injecting `qualNote` questions.
  *
  * @param asset
  * @param rows - The list of base columns
- * @param virtualSupplementalFields - Optional array of additional supplemental
- *                                    fields (e.g. from bulk processing)
+ * @param virtualSupplementalFields - Optional array of additional supplemental fields that are not present in
+ * the submission (yet) but we want them to appear in the UI (e.g. from ongoing unfinished bulk processing)
  */
 export function injectSupplementalRowsIntoListOfRows(
   asset: AssetResponse,
@@ -666,6 +667,43 @@ export function removeInvalidChars(str: string) {
  */
 export function hasBackgroundAudioEnabled(surveyRow: SurveyRow[]) {
   return surveyRow.some((question) => question.type === QuestionTypeName['background-audio'])
+}
+
+/**
+ * Utility to build virtual supplemental fields for bulk processing columns.
+ * Always returns dtpath as a relative path (no prefix).
+ *
+ * @param bulkActions - Array of bulk action objects
+ * @returns Array of { dtpath, source, type }
+ */
+export function getVirtualSupplementalFieldsForBulkActions(
+  bulkActions?: any[],
+): Array<{ dtpath: string; source: string; type: string }> {
+  if (!Array.isArray(bulkActions) || bulkActions.length === 0) return []
+
+  const result: Array<{ dtpath: string; source: string; type: string }> = []
+  for (const bulkAction of bulkActions) {
+    let key = getBulkProcessingColumnKey(bulkAction)
+    if (!key) continue
+    // Remove prefix if present
+    if (key.startsWith(`${SUPPLEMENTAL_DETAILS_PROP}/`)) {
+      key = key.slice(`${SUPPLEMENTAL_DETAILS_PROP}/`.length)
+    }
+    let type: string
+    if (bulkAction.action_id === 'automatic_google_transcription') {
+      type = 'transcript'
+    } else if (bulkAction.action_id === 'automatic_google_translation') {
+      type = 'translation'
+    } else {
+      type = 'processing'
+    }
+    result.push({
+      dtpath: key,
+      source: bulkAction.question_xpath,
+      type,
+    })
+  }
+  return result
 }
 
 export default {

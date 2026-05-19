@@ -11,8 +11,8 @@ const bulkActionsMock = (assetUid = 'uuid:mock-uuid-1', override?: Partial<BulkA
   http.get<PathParams<'uid'>, never, BulkActionListResponse>(
     endpoints.ASSET_ADVANCED_FEATURES_BULK_ACTIONS,
     ({ params }) => {
-      // // Only respond for the correct assetUid
-      // if (params.uid !== assetUid) return undefined
+      // Only respond for the correct assetUid
+      if (params.uid !== assetUid) return undefined
       return HttpResponse.json({
         ...defaultBulkActionsResponse,
         ...override,

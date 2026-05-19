@@ -1,12 +1,9 @@
-// NOTE FOR FUTURE MAINTAINERS:
-//
+// Note:
 // After extensive experimentation, we found it is practically impossible to have Storybook Docs serve different assets
 // (or submissions) for different stories in this file. Storybook's args/controls system, MSW handler registration,
-// and Docs rendering pipeline all conspire to make per-story API mocks unreliable or outright broken.
-// Docs view will often reuse the same args, reset objects, or ignore per-story MSW handlers, leading to
-// asset/submission mismatches or default/empty data.
-//
-// This file is intentionally minimal and focused on a single scenario to avoid these pitfalls.
+// and Docs rendering pipeline all conspire to make per-story API mocks unreliable or outright broken. Docs view will
+// often reuse the same args, reset objects, or ignore per-story MSW handlers, leading to/ asset/submission mismatches
+// or default/empty data. This file is intentionally minimal and focused to avoid these problems.
 
 import { Box } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
@@ -32,6 +29,35 @@ import DataTableWrapper from './DataTableWrapper'
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
 // stretch to fill the row height — just like in the real UI.
 const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={360}>{Story()}</Box>
+
+// Decorator to set the hash for the current asset UID, so that (deprecated) `getCurrentPath` works.
+// This replaces the previous loader. It reads the UID from the story's args.asset.uid (if present).
+// This ensures each story sets the correct hash for its asset, regardless of which asset is used.
+const setAssetHashDecorator: DecoratorFunction = (Story, context) => {
+  const assetUid = context.args?.asset?.uid
+  if (assetUid) {
+    window.location.hash = ROUTES.FORM_TABLE.replace(':uid', assetUid)
+  }
+  return Story()
+}
+
+// DRY loader to load the asset for the current story
+const loadAssetForStory = async ({ args }: { args: any }) => {
+  const assetUid = args?.asset?.uid
+  if (assetUid) {
+    actions.resources.loadAsset({ id: assetUid })
+  }
+  return {}
+}
+
+const getRouterParams = (assetUid: string) =>
+  reactRouterParameters({
+    location: {
+      // We need route with uid, because `tableStore` uses `getRouteAssetUid`
+      pathParams: { uid: assetUid },
+    },
+    routing: { path: ROUTES.FORM_TABLE },
+  })
 
 // Minimal asset and submissions for simple stories
 
@@ -166,14 +192,14 @@ const meta: Meta<typeof DataTableWrapper> = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
-    reactRouter: reactRouterParameters({
-      location: {
-        // We need route with uid, because `tableStore` uses `getRouteAssetUid`
-        pathParams: { uid: minimalAsset.uid },
+    docs: {
+      description: {
+        component:
+          '⚠️ **Docs view does NOT work reliably for these stories due to per-story MSW handler and asset/submission isolation issues. Use single stories (Default, and Processing Column) please.**',
       },
-      routing: { path: ROUTES.FORM_TABLE },
-    }),
+    },
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
         meMock,
@@ -184,18 +210,9 @@ const meta: Meta<typeof DataTableWrapper> = {
       ],
     },
   },
-  decorators: [withRouter, queryClientDecorator, fixedHeightDecorator],
-  loaders: [
-    async () => {
-      // Set the hash to mimic the real app route for this asset, so that (deprecated) `getCurrentPath` works.
-      // The proper `reactRouter` way doesn't work here entirely, because `getCurrentPath` uses `location.hash`.
-      window.location.hash = ROUTES.FORM_TABLE.replace(':uid', minimalAsset.uid)
-      // We need to load asset in `assetStore`, because `tableStore` needs it. Normally `FormSubScreens` is initiating
-      // the load asset API call, but since we use DataTableWrapper directly, we have to make the call manually.
-      actions.resources.loadAsset({ id: minimalAsset.uid })
-      return {}
-    },
-  ],
+  decorators: [withRouter, queryClientDecorator, fixedHeightDecorator, setAssetHashDecorator],
+  // No global loaders - use per-story loader for asset isolation. With global loader stories stop working and I already
+  // spent too much time debugging this.
 }
 
 export default meta
@@ -206,6 +223,8 @@ export const Default: Story = {
     asset: minimalAsset,
   },
   parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
         meMock,
@@ -216,6 +235,7 @@ export const Default: Story = {
       ],
     },
   },
+  loaders: [loadAssetForStory],
 }
 
 export const ProcessingColumn: Story = {
@@ -223,6 +243,8 @@ export const ProcessingColumn: Story = {
     asset: processingAsset,
   },
   parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(processingAsset.uid),
     msw: {
       handlers: [
         meMock,
@@ -233,4 +255,5 @@ export const ProcessingColumn: Story = {
       ],
     },
   },
+  loaders: [loadAssetForStory],
 }
