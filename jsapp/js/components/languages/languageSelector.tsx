@@ -19,7 +19,7 @@ interface LanguageSelectorProps {
   titleOverride?: string
   hiddenLanguages?: LanguageCode[]
   suggestedLanguages?: LanguageCode[]
-  /** The currently selected language code, used for the UX of single processing view */
+  /** Useful to make this a controlled component if the parent wants a 'back' button to go to a previous step */
   value?: LanguageCode | null
   disabled?: boolean
   required?: boolean
