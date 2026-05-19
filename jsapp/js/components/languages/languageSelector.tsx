@@ -133,7 +133,11 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
         'aria-label': t('Clear selected language'),
       }}
       disabled={props.isDisabled}
-      comboboxProps={{ resetSelectionOnOptionHover: true }}
+      comboboxProps={{
+        resetSelectionOnOptionHover: true,
+        position: 'bottom',
+        middlewares: { flip: false, shift: false },
+      }}
       nothingFoundMessage={
         isLoading ? undefined : (
           <Group
