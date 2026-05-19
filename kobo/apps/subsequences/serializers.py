@@ -1,8 +1,16 @@
 import jsonschema.exceptions
+from django.db import IntegrityError
 from rest_framework import serializers
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
-from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.subsequences.models import (
+    BulkActionItemStatus,
+    QuestionAdvancedFeature,
+    SubmissionSupplement,
+    SubsequenceBulkAction,
+    SubsequenceBulkActionItem,
+)
 
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
@@ -53,3 +61,265 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
         except jsonschema.exceptions.ValidationError as ve:
             raise serializers.ValidationError(ve)
         return data
+
+
+class BulkActionUserSerializer(serializers.Serializer):
+    username = serializers.CharField()
+
+
+class BulkActionSubmissionStatusSerializer(serializers.Serializer):
+    uuid = serializers.CharField(source='submission_root_uuid')
+    status = serializers.CharField()
+
+
+class BulkActionResponseSerializer(serializers.ModelSerializer):
+    submission_uuids = serializers.SerializerMethodField()
+    submission_statuses = serializers.SerializerMethodField()
+    created_by = serializers.SerializerMethodField()
+    cancelled_by = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SubsequenceBulkAction
+        fields = [
+            'uid',
+            'status',
+            'action_id',
+            'question_xpath',
+            'submission_uuids',
+            'submission_statuses',
+            'params',
+            'created_by',
+            'date_created',
+            'date_modified',
+            'cancelled_by',
+        ]
+
+    def get_submission_uuids(self, obj):
+        return [item.submission_root_uuid for item in self._get_items(obj)]
+
+    def get_submission_statuses(self, obj):
+        return BulkActionSubmissionStatusSerializer(
+            self._get_items(obj),
+            many=True,
+        ).data
+
+    def get_created_by(self, obj):
+        return {'username': obj.created_by}
+
+    def get_cancelled_by(self, obj):
+        return None
+
+    def _get_items(self, obj):
+        if not hasattr(obj, '_bulk_action_items_cache'):
+            obj._bulk_action_items_cache = list(obj.items.all())
+        return obj._bulk_action_items_cache
+
+
+class BulkActionCreateSerializer(serializers.Serializer):
+    ACTION_CHOICES = (
+        'automatic_google_transcription',
+        'automatic_google_translation',
+    )
+
+    action_id = serializers.ChoiceField(choices=ACTION_CHOICES)
+    question_xpath = serializers.CharField(max_length=2000)
+    submission_uuids = serializers.ListField(
+        child=serializers.CharField(),
+        allow_empty=False,
+    )
+    params = serializers.DictField()
+
+    def validate_submission_uuids(self, value):
+        deduped = list(dict.fromkeys(value))
+        if len(deduped) != len(value):
+            raise serializers.ValidationError(
+                'submission_uuids must not contain duplicates'
+            )
+        return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        action_id = attrs['action_id']
+        params = attrs['params']
+        question_xpath = attrs['question_xpath']
+        submission_uuids = attrs['submission_uuids']
+        asset = self.context['asset']
+
+        if 'language' not in params:
+            raise serializers.ValidationError(
+                {'params': {'language': ['This field is required.']}}
+            )
+
+        self._validate_submissions_exist(asset, submission_uuids)
+        self._validate_no_existing_results(
+            asset,
+            question_xpath,
+            action_id,
+            params,
+            submission_uuids,
+        )
+        self._validate_no_active_bulk_conflicts(
+            question_xpath,
+            action_id,
+            params,
+            submission_uuids,
+        )
+        return attrs
+
+    def _validate_submissions_exist(self, asset, submission_uuids):
+        if not asset.has_deployment:
+            raise serializers.ValidationError(
+                'Bulk actions can only be created for deployed assets.'
+            )
+        existing = set(
+            Instance.objects.filter(
+                xform=asset.deployment.xform,
+                root_uuid__in=submission_uuids,
+            ).values_list('root_uuid', flat=True)
+        )
+        missing = [uuid for uuid in submission_uuids if uuid not in existing]
+        if missing:
+            raise serializers.ValidationError(
+                {
+                    'submission_uuids': [
+                        f'Unknown submission UUIDs: {", ".join(missing)}'
+                    ]
+                }
+            )
+
+    def _validate_no_active_bulk_conflicts(
+        self,
+        question_xpath: str,
+        action_id: str,
+        params: dict,
+        submission_uuids: list[str],
+    ):
+        params_hash = SubsequenceBulkAction.make_params_hash(params)
+        if SubsequenceBulkActionItem.objects.filter(
+            parent__asset=self.context['asset'],
+            submission_root_uuid__in=submission_uuids,
+            action_id=action_id,
+            question_xpath=question_xpath,
+            hash=params_hash,
+            status__in=[
+                BulkActionItemStatus.PENDING,
+                BulkActionItemStatus.IN_PROGRESS,
+            ],
+        ).exists():
+            raise serializers.ValidationError(
+                'One or more submissions already have an active matching bulk action.'
+            )
+
+    def _validate_no_existing_results(
+        self,
+        asset,
+        question_xpath: str,
+        action_id: str,
+        params: dict,
+        submission_uuids: list[str],
+    ):
+        supplements_by_uuid = {
+            supplement.submission_uuid: supplement.content or {}
+            for supplement in SubmissionSupplement.objects.filter(
+                asset=asset,
+                submission_uuid__in=submission_uuids,
+            ).only('submission_uuid', 'content')
+        }
+
+        ineligible = []
+        for submission_uuid in submission_uuids:
+            supplement = supplements_by_uuid.get(submission_uuid, {})
+            question_data = supplement.get(question_xpath) or {}
+            if action_id == 'automatic_google_transcription':
+                if self._has_existing_transcription(question_data, params):
+                    ineligible.append(submission_uuid)
+            elif action_id == 'automatic_google_translation':
+                if self._has_existing_translation(question_data, params):
+                    ineligible.append(submission_uuid)
+
+        if ineligible:
+            raise serializers.ValidationError(
+                {
+                    'submission_uuids': [
+                        'These submissions already contain matching results: '
+                        + ', '.join(ineligible)
+                    ]
+                }
+            )
+
+    def _has_existing_transcription(self, question_data: dict, params: dict) -> bool:
+        candidates = []
+        for key in ('manual_transcription', 'automatic_google_transcription'):
+            action_data = question_data.get(key) or {}
+            candidates.extend(action_data.get('_versions', []))
+
+        matching_versions = []
+        for version in candidates:
+            data = version.get('_data', {})
+            if data.get('language') != params.get('language'):
+                continue
+            requested_locale = params.get('locale')
+            if requested_locale and data.get('locale') != requested_locale:
+                continue
+            matching_versions.append(version)
+
+        if not matching_versions:
+            return False
+
+        latest = sorted(
+            matching_versions,
+            key=lambda version: (
+                version.get('_dateAccepted') or version.get('_dateCreated') or ''
+            ),
+            reverse=True,
+        )[0]
+        latest_data = latest.get('_data', {})
+        status = latest_data.get('status')
+        if status in ('deleted', 'failed'):
+            return False
+        return latest_data.get('value') is not None or status == 'in_progress'
+
+    def _has_existing_translation(self, question_data: dict, params: dict) -> bool:
+        language = params.get('language')
+        candidate_groups = []
+        for key in ('manual_translation', 'automatic_google_translation'):
+            action_data = question_data.get(key) or {}
+            if language in action_data:
+                candidate_groups.append(action_data[language])
+
+        matching_versions = []
+        for group in candidate_groups:
+            matching_versions.extend(group.get('_versions', []))
+
+        if not matching_versions:
+            return False
+
+        latest = sorted(
+            matching_versions,
+            key=lambda version: (
+                version.get('_dateAccepted') or version.get('_dateCreated') or ''
+            ),
+            reverse=True,
+        )[0]
+        latest_data = latest.get('_data', {})
+        status = latest_data.get('status')
+        if status in ('deleted', 'failed'):
+            return False
+        return latest_data.get('value') is not None or status == 'in_progress'
+
+    def create(self, validated_data):
+        asset = self.context['asset']
+        request = self.context['request']
+        try:
+            return SubsequenceBulkAction.create_with_items(
+                asset=asset,
+                action_id=validated_data['action_id'],
+                question_xpath=validated_data['question_xpath'],
+                params=validated_data['params'],
+                created_by=request.user.username,
+                submission_root_uuids=validated_data['submission_uuids'],
+            )
+        except IntegrityError as err:
+            raise serializers.ValidationError(
+                'One or more submissions already have an active matching bulk action.'
+            ) from err

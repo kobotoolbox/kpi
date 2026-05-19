@@ -7,12 +7,15 @@ from drf_spectacular.utils import (
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import APIException
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework.response import Response
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
-from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubsequenceBulkAction
 from kobo.apps.subsequences.serializers import (
+    BulkActionCreateSerializer,
+    BulkActionResponseSerializer,
     QuestionAdvancedFeatureSerializer,
     QuestionAdvancedFeatureUpdateSerializer,
 )
@@ -194,17 +197,11 @@ class QuestionAdvancedFeatureViewSet(
     create=extend_schema(
         description=read_md('subsequences', 'subsequences/bulk_actions_create.md'),
         request={'application/json': BulkActionCreateRequest},
-        responses={
-            **open_api_201_created_response(
-                BulkActionResponse,
-                require_auth=False,
-                raise_access_forbidden=False,
-            ),
-            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
-                response=ErrorDetailSerializer(),
-                description='Placeholder endpoint. Runtime behavior not implemented.',
-            ),
-        },
+        responses=open_api_201_created_response(
+            BulkActionResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
         examples=(
             get_bulk_actions_create_examples()
             + get_bulk_action_response_examples()
@@ -212,18 +209,12 @@ class QuestionAdvancedFeatureViewSet(
     ),
     list=extend_schema(
         description=read_md('subsequences', 'subsequences/bulk_actions_list.md'),
-        responses={
-            **open_api_200_ok_response(
-                BulkActionListResponse(many=False),
-                require_auth=False,
-                raise_access_forbidden=False,
-                validate_payload=False,
-            ),
-            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
-                response=ErrorDetailSerializer(),
-                description='Placeholder endpoint. Runtime behavior not implemented.',
-            ),
-        },
+        responses=open_api_200_ok_response(
+            BulkActionListResponse(many=False),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
         examples=get_bulk_action_list_response_examples(),
     ),
     partial_update=extend_schema(
@@ -254,18 +245,12 @@ class QuestionAdvancedFeatureViewSet(
     ),
     retrieve=extend_schema(
         description=read_md('subsequences', 'subsequences/bulk_actions_retrieve.md'),
-        responses={
-            **open_api_200_ok_response(
-                BulkActionResponse,
-                require_auth=False,
-                raise_access_forbidden=False,
-                validate_payload=False,
-            ),
-            status.HTTP_501_NOT_IMPLEMENTED: OpenApiResponse(
-                response=ErrorDetailSerializer(),
-                description='Placeholder endpoint. Runtime behavior not implemented.',
-            ),
-        },
+        responses=open_api_200_ok_response(
+            BulkActionResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
         parameters=[
             OpenApiParameter(
                 name='action_uid',
@@ -281,28 +266,54 @@ class QuestionAdvancedFeatureViewSet(
 class BulkActionViewSet(
     AssetNestedObjectViewsetMixin,
     NestedViewSetMixin,
-    viewsets.ViewSet,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
     permission_classes = (AssetAdvancedFeaturesPermission,)
     versioning_class = APIV2Versioning
     lookup_field = 'uid'
     lookup_url_kwarg = 'action_uid'
 
-    def _not_implemented(self):
-        raise PlaceholderNotImplementedApiException()
+    def get_queryset(self):
+        return (
+            SubsequenceBulkAction.objects.filter(asset=self.asset)
+            .prefetch_related('items')
+            .order_by('-date_created')
+        )
 
-    def list(self, request, *args, **kwargs):
-        _ = self.asset
-        self._not_implemented()
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return BulkActionCreateSerializer
+        return BulkActionResponseSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['asset'] = self.asset
+        return context
 
     def create(self, request, *args, **kwargs):
-        _ = self.asset
-        self._not_implemented()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+
+        # Re-fetch the instance to ensure all related data is included
+        # (e.g. for response serialization)
+        instance = self.get_queryset().get(pk=instance.pk)
+        response_serializer = BulkActionResponseSerializer(instance)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
+        # ToDo: Implement in a separate task
         _ = self.asset
-        self._not_implemented()
-
-    def retrieve(self, request, *args, **kwargs):
-        _ = self.asset
-        self._not_implemented()
+        raise PlaceholderNotImplementedApiException()
