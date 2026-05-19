@@ -214,6 +214,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const prevAdditionalFields = prevProps.asset?.analysis_form_json?.additional_fields
     const newAdditionalFields = this.props.asset?.analysis_form_json?.additional_fields
 
+    const prevActiveBulkActions = prevProps.activeBulkActions
+    const newActiveBulkActions = this.props.activeBulkActions
+
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
@@ -229,6 +232,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     } else if (!isEqual(prevAdditionalFields, newAdditionalFields)) {
       // If additional fields have changed, it means that user has added
       // transcript or translations, thus we need to display more columns.
+      this._prepColumns(this.state.submissions)
+    } else if (!isEqual(prevActiveBulkActions, newActiveBulkActions)) {
+      // If bulk actions have changed, it means they might've just gotten loaded
+      // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
   }
@@ -633,7 +640,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Builds and gathers all necessary react-table data and stores in state.
    */
   _prepColumns(data: SubmissionResponse[]) {
-    const allColumns = tableStore.getAllColumns(data)
+    const allColumns = tableStore.getAllColumns(data, this.props.activeBulkActions)
 
     let showLabels = this.state.showLabels
     let showGroupName = this.state.showGroupName

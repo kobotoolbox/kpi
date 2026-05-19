@@ -1,4 +1,5 @@
 import type { Filter } from 'react-table'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { getRowName, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import {
@@ -22,6 +23,7 @@ import {
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
+import { getBulkProcessingColumnKey } from './bulkProcessingUtils'
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -169,7 +171,11 @@ export function getBackgroundAudioQuestionName(asset: AssetResponse): string | n
  *
  * NOTE: includes supplemental details columns (AKA processing columns).
  */
-export function getAllDataColumns(asset: AssetResponse, submissions?: SubmissionResponse[]) {
+export function getAllDataColumns(
+  asset: AssetResponse,
+  submissions?: SubmissionResponse[],
+  bulkActions?: BulkActionResponse[],
+) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -258,9 +264,35 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
   })
   output = output.filter((key) => excludedGroups.includes(key) === false)
 
-  // Handle supplemental details
-  output = injectSupplementalRowsIntoListOfRows(asset, output)
+  // Build virtual supplemental fields for bulk processing columns
+  let virtualSupplementalFields: { dtpath: string; source: string; type: string }[] = []
+  if (bulkActions && Array.isArray(bulkActions)) {
+    // getBulkProcessingColumnKey returns the supplemental column key for each bulk action
+    // We need to build a field object for each, matching the structure expected by injectSupplementalRowsIntoListOfRows
+    virtualSupplementalFields = bulkActions.reduce<{ dtpath: string; source: string; type: string }[]>(
+      (acc, bulkAction) => {
+        const key = getBulkProcessingColumnKey(bulkAction)
+        if (!key) return acc
+        let type = ''
+        if (bulkAction.action_id === 'automatic_google_transcription') {
+          type = 'transcript'
+        } else if (bulkAction.action_id === 'automatic_google_translation') {
+          type = 'translation'
+        } else {
+          type = 'processing'
+        }
+        acc.push({
+          dtpath: key,
+          source: bulkAction.question_xpath,
+          type,
+        })
+        return acc
+      },
+      [],
+    )
+  }
 
+  output = injectSupplementalRowsIntoListOfRows(asset, output, virtualSupplementalFields)
   return output
 }
 

@@ -1,6 +1,7 @@
 import clonedeep from 'lodash.clonedeep'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import assetStore from '#/assetStore'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
@@ -136,14 +137,14 @@ class TableStore extends Reflux.Store {
   }
 
   /** Returns a unique list of columns (keys) that should be displayed to users */
-  getAllColumns(submissions: SubmissionResponse[]) {
+  getAllColumns(submissions: SubmissionResponse[], bulkActions?: BulkActionResponse[]) {
     const asset = this.getCurrentAsset()
 
     if (asset?.content?.survey === undefined) {
       throw new Error('Asset not found')
     }
 
-    return getAllDataColumns(asset, submissions)
+    return getAllDataColumns(asset, submissions, bulkActions)
   }
 
   /** Returns a list of columns that user can hide */

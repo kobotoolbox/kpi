@@ -34,9 +34,11 @@ import DataTableWrapper from './DataTableWrapper'
 const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={360}>{Story()}</Box>
 
 // Minimal asset and submissions for simple stories
+
+// Default story asset and submissions
 const minimalAsset = assetFactory({
   uid: 'audio-asset-uid',
-  name: 'Audio Form',
+  name: 'Audio form',
   content: {
     schema: '1',
     survey: [
@@ -85,7 +87,74 @@ const minimalSubmissions = [
     ],
   }),
 ]
-const minimaProcessinglBulkAction = bulkActionFactory(minimalSubmissions[1]['meta/rootUuid'], 'fr', {
+
+// ProcessingColumn story asset and submissions (unique UID)
+const processingAsset = assetFactory({
+  uid: 'audio-asset-uid-processing',
+  name: 'Audio form with processing',
+  content: {
+    schema: '1',
+    survey: [
+      {
+        type: QuestionTypeName.audio,
+        $kuid: 'snd1',
+        label: ['Record a sound'],
+        $xpath: 'Record_a_sound',
+        required: false,
+        $autoname: 'Record_a_sound',
+      },
+    ],
+    settings: {},
+    translated: ['label'],
+    translations: [null],
+  },
+  effective_permissions: [{ codename: 'change_submissions' }],
+})
+const processingSubmissions = [
+  assetDataFactory(1, {
+    Record_a_sound: 'test1.mp3',
+    _attachments: [
+      {
+        download_url: './test1.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test1.mp3',
+        media_file_basename: 'test1.mp3',
+        uid: 'tst1',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+  }),
+  assetDataFactory(2, {
+    Record_a_sound: 'test2.mp3',
+    _attachments: [
+      {
+        download_url: './test2.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test2.mp3',
+        media_file_basename: 'test2.mp3',
+        uid: 'tst2',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+  }),
+  assetDataFactory(3, {
+    Record_a_sound: 'test3.mp3',
+    _attachments: [
+      {
+        download_url: './test3.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test3.mp3',
+        media_file_basename: 'test3.mp3',
+        uid: 'tst3',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+  }),
+]
+const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/rootUuid'], 'fr', {
   status: BulkActionResponseStatusEnum.in_progress,
   question_xpath: 'Record_a_sound',
 })
@@ -111,6 +180,7 @@ const meta: Meta<typeof DataTableWrapper> = {
         assetMock(minimalAsset.uid, minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
       ],
     },
   },
@@ -131,12 +201,36 @@ const meta: Meta<typeof DataTableWrapper> = {
 export default meta
 type Story = StoryObj<typeof DataTableWrapper>
 
-export const Default: Story = {}
-
-export const ProcessingColumn: Story = {
+export const Default: Story = {
+  args: {
+    asset: minimalAsset,
+  },
   parameters: {
     msw: {
-      handlers: [...meta.parameters?.msw.handlers, bulkActionsMock({ results: [minimaProcessinglBulkAction] })],
+      handlers: [
+        meMock,
+        assetMock(minimalAsset.uid, minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+}
+
+export const ProcessingColumn: Story = {
+  args: {
+    asset: processingAsset,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        meMock,
+        assetMock(processingAsset.uid, processingAsset),
+        assetDataMock(processingAsset.uid, processingSubmissions),
+        organizationMock(),
+        bulkActionsMock(processingAsset.uid, { results: [processingBulkAction] }),
+      ],
     },
   },
 }

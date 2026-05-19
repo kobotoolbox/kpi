@@ -24,7 +24,6 @@ import {
   XML_VALUES_OPTION_VALUE,
 } from '#/constants'
 import type {
-  AnalysisFormJsonField,
   AssetContent,
   AssetResponse,
   PermissionResponse,
@@ -492,8 +491,17 @@ export function renderQuestionTypeIcon(
  * a given list of rows. Returns a new updated `rows` list.
  *
  * Note: we omit injecting `qualNote` questions.
+ *
+ * @param asset
+ * @param rows - The list of base columns
+ * @param virtualSupplementalFields - Optional array of additional supplemental
+ *                                    fields (e.g. from bulk processing)
  */
-export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows: Set<string> | Array<string>) {
+export function injectSupplementalRowsIntoListOfRows(
+  asset: AssetResponse,
+  rows: Set<string> | Array<string>,
+  virtualSupplementalFields?: Array<{ source: string; dtpath: string; type: string }>,
+) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -508,16 +516,18 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
   // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || []
 
-  const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {}
-  additionalFields.forEach((field: AnalysisFormJsonField) => {
+  const allSupplementalFields = [
     // Note questions make sense only in the context of writing responses to
     // Qualitative Analysis questions. They bear no data, so there is no point
     // displaying them outside of Single Processing route. As this function is
     // part of Data Table and Data Downloads, we need to hide the notes.
-    if (field.type === QUAL_NOTE_TYPE) {
-      return
-    }
+    // Merge real and virtual supplemental fields
+    ...additionalFields.filter((field) => field.type !== QUAL_NOTE_TYPE),
+    ...(virtualSupplementalFields || []),
+  ]
 
+  const extraColsBySource: Record<string, Array<{ source: string; dtpath: string; type: string }>> = {}
+  allSupplementalFields.forEach((field) => {
     const sourceName: string = field.source
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = []
