@@ -7,7 +7,7 @@ import {
   useOrganizationsServiceUsageSummary,
 } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
-import LanguageSelector from '#/components/languages/languageSelector'
+import LanguageSelector from '#/components/languages/LanguageSelector'
 import type { LanguageBase, LanguageCode } from '#/components/languages/languagesStore'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
