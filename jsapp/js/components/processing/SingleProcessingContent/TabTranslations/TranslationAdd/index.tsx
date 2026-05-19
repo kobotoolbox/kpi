@@ -8,6 +8,7 @@ import type { SupplementalDataVersionItemAutomatic } from '#/api/models/suppleme
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { CreateSteps } from '#/components/processing/common/types'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
@@ -82,7 +83,7 @@ export default function TranslationAdd({
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           usageType={UsageLimitTypes.TRANSLATION}
           hiddenLanguages={languagesExisting}
-          suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
+          suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           titleOverride={t('Please select the language you want to translate to')}
