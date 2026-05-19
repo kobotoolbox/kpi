@@ -13,7 +13,8 @@ interface LanguageSelectorProps {
   /**
    * TODO: This should be typed as (language: ListLanguage | null) => void but there's a type incompatibility
    * between what StepSelectLanguage expects and what the orval-generated API types are.
-   * Specifically, `transcription_services` and `translation_services` arrays are readonly in new types.
+   * In languagesStore.ts, ListLanguage has `transcription_services` and `translation_services` as regular arrays wheras
+   * the new orval-generated type `Language` has the arrays as readonly. See DEV-2141
    */
   onLanguageChange: (language: any) => void
   titleOverride?: string
@@ -40,6 +41,8 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   const isDebouncedSearching = debouncedSearch.length >= MINIMUM_SEARCH_LENGTH
 
   // "Main" language list (either featured languages or result of searching)
+  // TODO: Orval-generated LanguageListParams does not include a `q` query param but the API allows it, using `as any`
+  // as a workaround. See DEV-2142
   const { data, isLoading } = useLanguagesList(isDebouncedSearching ? ({ q: debouncedSearch } as any) : undefined)
   const languages = data?.status === 200 ? data.data.results : []
 
