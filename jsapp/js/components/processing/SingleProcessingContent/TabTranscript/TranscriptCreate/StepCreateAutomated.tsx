@@ -17,6 +17,7 @@ import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
+import RegionSelectorNew from '#/components/languages/regionSelectorNew'
 
 interface Props {
   asset: AssetResponse
@@ -122,7 +123,7 @@ export default function StepCreateAutomated({
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
-      <RegionSelector
+      <RegionSelectorNew
         isDisabled={anyPending}
         serviceCode='goog'
         serviceType='transcription'
