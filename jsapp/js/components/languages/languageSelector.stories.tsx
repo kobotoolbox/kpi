@@ -1,31 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import environmentMock from '#/endpoints/environment.mocks'
 import languagesMock from '#/endpoints/languages.mocks'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
 import LanguageSelector from '../languages/LanguageSelector'
 
 const SELECT_LABEL = 'Select a language'
 const CLEAR_BUTTON_SELECTOR = 'button.language-selector-clear-button'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-})
-
 const meta: Meta<typeof LanguageSelector> = {
   title: 'Components/LanguageSelector',
   component: LanguageSelector,
-  decorators: [
-    (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <Story />
-      </QueryClientProvider>
-    ),
-  ],
+  decorators: [queryClientDecorator],
   argTypes: {
     required: {
       description: 'A red asterisk after the label',
