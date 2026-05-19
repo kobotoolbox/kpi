@@ -6,6 +6,7 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { CreateSteps } from '#/components/processing/common/types'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
@@ -63,7 +64,7 @@ export default function TranscriptCreate({
           usageType={UsageLimitTypes.TRANSCRIPTION}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
-          suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
+          suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           titleOverride={languageSelectorTitle}
           singleManualButtonLabel={t('transcribe')}
           disableAutomatic={
