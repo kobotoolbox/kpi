@@ -37,7 +37,7 @@ export default function MembersRoute() {
 
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
-    offset: 0,
+    start: 0,
   })
 
   const membersQuery = useOrganizationsMembersList(organization.id, pagination, {

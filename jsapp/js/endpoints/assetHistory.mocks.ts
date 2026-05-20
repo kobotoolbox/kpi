@@ -8,15 +8,15 @@ export const mockAssetUid = 'a1234567890bcdEFGhijkl'
 /**
  * Mock API for project activity (AKA history logs). Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
-const assetHistoryMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, PaginatedResponse<ActivityLogsItem>>(
+const assetHistoryMock = http.get<PathParams<'limit' | 'start' | 'q'>, never, PaginatedResponse<ActivityLogsItem>>(
   endpoints.ASSET_HISTORY.replace(':asset_uid', mockAssetUid),
   (info) => {
     const searchParams = new URL(info.request.url).searchParams
     if (searchParams.get('q') === 'action:add-media') {
       return HttpResponse.json(assetHistoryFilteredResponse)
-    } else if (searchParams.get('limit') === '10' && searchParams.get('offset') === '20') {
+    } else if (searchParams.get('limit') === '10' && searchParams.get('start') === '20') {
       return HttpResponse.json(assetHistoryResponsePage3)
-    } else if (searchParams.get('limit') === '10' && searchParams.get('offset') === '10') {
+    } else if (searchParams.get('limit') === '10' && searchParams.get('start') === '10') {
       return HttpResponse.json(assetHistoryResponsePage2)
     } else {
       return HttpResponse.json(assetHistoryResponsePage1)
@@ -27,7 +27,7 @@ export default assetHistoryMock
 
 const assetHistoryResponsePage1: PaginatedResponse<ActivityLogsItem> = {
   count: 26,
-  next: '/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&offset=10&q=NOT+action%3A%27add-submission%27',
+  next: '/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&start=10&q=NOT+action%3A%27add-submission%27',
   previous: null,
   results: [
     {
@@ -241,7 +241,7 @@ const assetHistoryResponsePage1: PaginatedResponse<ActivityLogsItem> = {
 
 const assetHistoryResponsePage2: PaginatedResponse<ActivityLogsItem> = {
   count: 26,
-  next: 'http://kf.kobo.local/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&offset=20&q=NOT+action%3A%27add-submission%27',
+  next: 'http://kf.kobo.local/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&start=20&q=NOT+action%3A%27add-submission%27',
   previous:
     'http://kf.kobo.local/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&q=NOT+action%3A%27add-submission%27',
   results: [
@@ -497,7 +497,7 @@ const assetHistoryResponsePage3: PaginatedResponse<ActivityLogsItem> = {
   count: 26,
   next: null,
   previous:
-    'http://kf.kobo.local/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&offset=10&q=NOT+action%3A%27add-submission%27',
+    'http://kf.kobo.local/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&start=10&q=NOT+action%3A%27add-submission%27',
   results: [
     {
       user: 'http://kf.kobo.local/api/v2/users/kobo/',

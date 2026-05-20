@@ -59,7 +59,7 @@ class LocaleMiddlewareWithTweaks(LocaleMiddleware):
     """
 
     def process_request(self, request):
-        accept = request.META.get('HTTP_ACCEPT_LANGUAGE', '')
+        accept = request.headers.get('accept-language', '')
         try:
             codes = [code for code, r in parse_accept_lang_header(accept)]
             if 'km' in codes and 'km-kh' not in codes:

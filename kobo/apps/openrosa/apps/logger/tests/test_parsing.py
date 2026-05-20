@@ -2,8 +2,6 @@
 import os
 import re
 
-from defusedxml import minidom
-
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
@@ -18,6 +16,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.utils.xml import minidom_parsestring
 
 XML = 'xml'
 DICT = 'dict'
@@ -108,7 +107,7 @@ class TestXFormInstanceParser(TestBase):
         )
         clean_xml_str = xml_str.strip()
         clean_xml_str = re.sub(r'>\s+<', '><', clean_xml_str)
-        root_node = minidom.parseString(clean_xml_str).documentElement
+        root_node = minidom_parsestring(clean_xml_str).documentElement
         # get the first top-level gps element
         gps_node = root_node.firstChild.nextSibling
         self.assertEqual(gps_node.nodeName, 'gps')

@@ -11,9 +11,11 @@ import type * as Sentry from '@sentry/react'
 import random from 'lodash.random'
 import moment from 'moment'
 import { Cookies } from 'react-cookie'
+import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
-import type { MongoQuery, SubmissionResponse, SurveyRow } from './dataInterface'
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { MongoQuery, SurveyRow } from './dataInterface'
 
 /**
  * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
@@ -285,7 +287,7 @@ export function checkLatLng(geolocation: any[]) {
  * Helper function to parse the string array from a geopoint submission into an array of floating point coordinates for
  * the map display
  */
-export function parseLatLng(submission: SubmissionResponse, selectedQuestion: string | null) {
+export function parseLatLng(submission: DataResponse, selectedQuestion: string | null) {
   // Safe to cast `null` as a string here as this will result in Array['undefined'] if there are no geopoint submissions
   const coordinates: string[] = String(submission[selectedQuestion as string]).split(' ')
 
@@ -300,18 +302,18 @@ export function findFirstGeopoint(survey: SurveyRow[]) {
   return survey.find((question) => question.type && question.type === 'geopoint')
 }
 
-export function validFileTypes() {
-  const VALID_ASSET_UPLOAD_FILE_TYPES = [
-    '.xls',
-    '.xlsx',
-    'application/xls',
-    'application/vnd.ms-excel',
-    'application/octet-stream',
-    'application/vnd.openxmlformats',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    '', // Keep this to fix issue with IE Edge sending an empty MIME type
-  ]
-  return VALID_ASSET_UPLOAD_FILE_TYPES.join(',')
+/**
+ * Use this with the Dropzone `accept` prop in places that allow uploading XLSForms.
+ */
+export function validFileTypes(): Accept {
+  return {
+    'application/vnd.ms-excel': ['.xls'],
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+    'application/xls': ['.xls'],
+    // Keep this to maintain compatibility with environments that report generic MIME.
+    'application/octet-stream': ['.xls', '.xlsx'],
+    'application/vnd.openxmlformats': ['.xlsx'],
+  }
 }
 
 export function escapeHtml(str: string): string {

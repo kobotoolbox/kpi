@@ -17,6 +17,7 @@ declare function t(str: string): string
 // and on the console.log output of a dialog instance.
 
 interface AlertifyDialogSettings {
+  title?: string
   message?: string | null
   labels?: {
     ok?: string
@@ -256,6 +257,13 @@ declare module 'react-autobind' {
    */
   function autoBind(thisToBeBound: any): void
   export default autoBind
+}
+
+declare module '*.svg?react' {
+  import type { FunctionComponent, SVGProps } from 'react'
+
+  const ReactComponent: FunctionComponent<SVGProps<SVGSVGElement>>
+  export default ReactComponent
 }
 
 declare module '*.scss'

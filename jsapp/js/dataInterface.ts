@@ -5,6 +5,7 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
+import $ from 'jquery'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetLockingProfileDefinition } from '#/components/locking/lockingConstants'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
@@ -40,7 +41,7 @@ import { type LangString, recordEntries } from './utils'
 interface AssetsRequestData {
   q?: string
   limit?: number
-  offset?: number
+  start?: number
   parent?: string
   all_public?: boolean
   ordering?: string
@@ -53,7 +54,7 @@ interface AssetsRequestData {
 interface AssetsMetadataRequestData {
   q?: string
   limit?: number
-  offset?: number
+  start?: number
   parent?: string
   all_public?: boolean
   ordering?: string
@@ -123,6 +124,8 @@ export interface CreateImportRequest {
   assetUid?: string
   /** Causes the imported XLSForm to be added as Library Item */
   library?: boolean
+  /** Desired asset type for the imported XLSForm (e.g. 'template') */
+  desired_type?: string
 }
 
 export interface ImportResponse {
@@ -1655,11 +1658,11 @@ export const dataInterface: DataInterface = {
     const searchData: AssetsRequestData = {
       q: predefinedQuery,
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
-      offset: 0,
+      start: 0,
     }
 
     if (params.page && params.pageSize) {
-      searchData.offset = params.page * params.pageSize
+      searchData.start = params.page * params.pageSize
     }
 
     if (params.searchPhrase) {
@@ -1698,11 +1701,11 @@ export const dataInterface: DataInterface = {
     const searchData: AssetsMetadataRequestData = {
       q: predefinedQuery,
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
-      offset: 0,
+      start: 0,
     }
 
     if (params.page && params.pageSize) {
-      searchData.offset = params.page * params.pageSize
+      searchData.start = params.page * params.pageSize
     }
 
     if (params.searchPhrase) {

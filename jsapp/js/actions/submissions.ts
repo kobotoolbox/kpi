@@ -2,6 +2,7 @@
  * submissions related actions
  */
 
+import $ from 'jquery'
 import Reflux from 'reflux'
 import { ROOT_URL } from '#/constants'
 import { dataInterface } from '#/dataInterface'

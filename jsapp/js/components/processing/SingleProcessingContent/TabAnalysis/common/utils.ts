@@ -1,8 +1,20 @@
+import { useLocalStorage } from '@mantine/hooks'
 import type { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import { ANALYSIS_QUESTION_TYPES } from './constants'
+
+const SHOW_HINTS_LOCAL_STORAGE_KEY = 'kpiQualitativeAnalysisShowHints'
+
+export function useShowHints(): [boolean, (value: boolean | ((prevState: boolean) => boolean)) => void, () => void] {
+  return useLocalStorage<boolean>({
+    key: SHOW_HINTS_LOCAL_STORAGE_KEY,
+    defaultValue: true,
+    // We hide hints initially before local storage value is loaded
+    getInitialValueInEffect: false,
+  })
+}
 
 export interface AdvancedFeatureResponseManualQual extends AdvancedFeatureResponse {
   question_xpath: string

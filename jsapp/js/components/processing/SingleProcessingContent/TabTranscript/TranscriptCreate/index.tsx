@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -7,6 +9,7 @@ import { CreateSteps } from '#/components/processing/common/types'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
+import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import { getProcessedFileLabel, getQuestionType } from '../common/utils'
 import { getAttachmentForProcessing } from '../transcript.utils'
 import StepBegin from './StepBegin'
@@ -32,6 +35,8 @@ export default function TranscriptCreate({
 }: Props) {
   const [step, setStep] = useState<CreateSteps>(CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { billingPeriod } = useBillingPeriod()
 
   const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
     '##type##',
@@ -55,6 +60,8 @@ export default function TranscriptCreate({
         <StepSelectLanguage
           onBack={() => setStep(CreateSteps.Begin)}
           onNext={(selectedStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(selectedStep)}
+          onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
+          usageType={UsageLimitTypes.TRANSCRIPTION}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
@@ -87,6 +94,12 @@ export default function TranscriptCreate({
           advancedFeatures={advancedFeatures}
         />
       )}
+      <NlpUsageLimitBlockModal
+        isModalOpen={isLimitBlockModalOpen}
+        usageType={UsageLimitTypes.TRANSCRIPTION}
+        dismissed={() => setIsLimitBlockModalOpen(false)}
+        interval={billingPeriod}
+      />
     </>
   )
 }

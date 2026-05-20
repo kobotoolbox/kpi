@@ -16,7 +16,6 @@ from rest_framework.reverse import reverse
 
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
-from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.schema_extensions.v2.me.fields import (
@@ -61,6 +60,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
+            'is_superuser',
             'server_time',
             'date_joined',
             'projects_url',
@@ -79,6 +79,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'email',
             'accepted_tos',
+            'is_superuser',
         )
 
     def get_accepted_tos(self, obj: User) -> bool:
@@ -232,9 +233,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_extra_details(self, value):
-        desired_metadata_fields = to_python_object(
-            constance.config.USER_METADATA_FIELDS
-        )
+        desired_metadata_fields = constance.config.USER_METADATA_FIELDS
 
         # If the organization type is the special string 'none', then ignore
         # the required-ness of other organization-related fields

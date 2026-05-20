@@ -31,6 +31,7 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   // a lot of options available.
   const isChangingPossible = userCan('change_asset', asset)
   const isManagingPossible = userCan('manage_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
+  const isDeletingPossible = userCan('delete_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
   const isProjectViewAsset = !('permissions' in asset)
 
   return (
@@ -93,7 +94,7 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
 
       {/* Delete */}
       <Button
-        isDisabled={!isManagingPossible}
+        isDisabled={!isDeletingPossible}
         type='secondary-danger'
         size='s'
         startIcon='trash'
@@ -102,7 +103,7 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
             customViewStore.handleAssetsDeleted([deletedAssetUid])
           })
         }
-        tooltip={isManagingPossible ? t('Delete 1 project') : t('Delete project')}
+        tooltip={isDeletingPossible ? t('Delete 1 project') : t('Delete project')}
         tooltipPosition='right'
       />
     </div>

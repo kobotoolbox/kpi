@@ -1,9 +1,8 @@
 import './table.scss'
-
-import React from 'react'
-
+import { Group } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
+import React from 'react'
 import { DebounceInput } from 'react-debounce-input'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
@@ -19,6 +18,7 @@ import Checkbox from '#/components/common/checkbox'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import { getMediaAttachment, getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type {
@@ -89,7 +89,6 @@ import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { stores } from '#/stores'
 import { formatTimeDateShort, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
@@ -104,7 +103,6 @@ interface DataTableProps {
 }
 
 interface DataTableState {
-  isInitialized: boolean
   loading: boolean
   submissions: SubmissionResponse[]
   columns: any[]
@@ -154,7 +152,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   constructor(props: DataTableProps) {
     super(props)
     this.state = {
-      isInitialized: false, // for having asset with content
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
@@ -180,7 +177,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   componentDidMount() {
     this.unlisteners.push(
       tableStore.listen(this.onTableStoreChange.bind(this), this),
-      pageState.listen(this.onPageStateUpdated.bind(this), this),
+      pageState.listen(this.onPageStateUpdated.bind(this)),
       actions.resources.updateSubmissionValidationStatus.completed.listen(
         this.onSubmissionValidationStatusChange.bind(this),
       ),
@@ -199,9 +196,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted.bind(this)),
       actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted.bind(this)),
     )
-
-    // TODO: why this line is needed? Why not use `assetStore`?
-    stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded.bind(this))
   }
 
   componentWillUnmount() {
@@ -210,20 +204,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     })
   }
 
-  /**
-   * This triggers only when asset with `content` was loaded.
-   */
-  whenLoaded() {
-    this.setState({ isInitialized: true })
-  }
-
   componentDidUpdate(prevProps: DataTableProps) {
-    let prevSettings = prevProps.asset.settings[DATA_TABLE_SETTING]
+    let prevSettings = prevProps.asset?.settings?.[DATA_TABLE_SETTING]
     if (!prevSettings) {
       prevSettings = {}
     }
 
-    let newSettings = this.props.asset.settings[DATA_TABLE_SETTING]
+    let newSettings = this.props.asset.settings?.[DATA_TABLE_SETTING]
     if (!newSettings) {
       newSettings = {}
     }
@@ -405,6 +392,28 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
     tableStore.setFrozenColumn(fieldId, isFrozen)
+  }
+
+  onTranscribeSelectedAudioFiles(fieldId: string) {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+
+    console.log('Bulk processing - Transcribe selected audio files', {
+      fieldId,
+      selectedSubmissionIds,
+      selectedRowsCount: selectedSubmissionIds.length,
+      selectedAllPages: this.state.selectAll,
+    })
+  }
+
+  onTranslateSelectedTranscriptions(fieldId: string) {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+
+    console.log('Bulk processing - Translate selected transcriptions', {
+      fieldId,
+      selectedSubmissionIds,
+      selectedRowsCount: selectedSubmissionIds.length,
+      selectedAllPages: this.state.selectAll,
+    })
   }
 
   // We need to distinguish between repeated groups with nested values
@@ -819,11 +828,22 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               <TableColumnSortDropdown
                 asset={this.props.asset}
                 fieldId={key}
+                isAudioQuestionColumn={q?.type === QUESTION_TYPES.audio.id}
+                isTranscriptColumn={getSupplementalPathParts(key).type === 'transcript'}
                 sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange.bind(this)}
                 onHide={this.onHideField.bind(this)}
                 isFieldFrozen={tableStore.isFieldFrozen(key)}
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
+                onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
+                onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
+                isBulkProcessingDisabled={
+                  !(
+                    userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+                    userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
+                  ) ||
+                  (!this.state.selectAll && recordKeys(this.state.selectedRows).length === 0)
+                }
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
@@ -957,9 +977,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           // This identifies supplemental details column
           if (row.value === undefined && q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+            const supplementalValue = getSupplementalDetailsContent(row.original, key) || ''
+            if (key.endsWith('verified')) {
+              return <Group h='100%'>{supplementalValue}</Group>
+            }
             return (
               <TextModalCell
-                text={getSupplementalDetailsContent(row.original, key) || ''}
+                text={supplementalValue}
                 columnName={columnName}
                 submissionIndex={row.index + 1}
                 submissionTotal={this.state.submissions.length}
@@ -1387,10 +1411,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <CenteredMessage message={this.state.error} />
         </bem.FormView>
       )
-    }
-
-    if (!this.state.isInitialized) {
-      return <LoadingSpinner />
     }
 
     const pages = Math.floor((this.state.resultsTotal - 1) / this.state.pageSize + 1)

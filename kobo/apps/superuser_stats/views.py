@@ -37,7 +37,7 @@ def country_report(request):
     today = timezone.now().date()
     first_of_month = today.replace(day=1)
     base_filename = 'country-report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         today,
         datetime.now().microsecond
     )
@@ -84,7 +84,7 @@ def continued_usage_report(request):
     """
     today = timezone.now().date()
     base_filename = 'continued-usage-report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         today,
         timezone.now().microsecond
     )
@@ -128,7 +128,7 @@ def domain_report(request):
     today = timezone.now().date()
     first_of_month = today.replace(day=1)
     base_filename = 'domain-report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         today,
         timezone.now().microsecond
     )
@@ -178,7 +178,7 @@ def forms_count_by_submission_report(request):
     """
     today = timezone.now().date()
     base_filename = 'form-count-by-submissions-count-report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         today,
         datetime.now().microsecond
     )
@@ -204,7 +204,7 @@ def media_storage(request):
     has stored
     """
     base_filename = 'media_storage_report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         date.today(),
         datetime.now().microsecond
     )
@@ -228,7 +228,7 @@ def user_report(request):
     Generates a detailed report with a users details
     """
     base_filename = 'user-report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         date.today(),
         datetime.now().microsecond
     )
@@ -254,7 +254,7 @@ def user_statistics_report(request):
     over a period of time
     """
     base_filename = 'user-statistics-report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         date.today(),
         datetime.now().microsecond
     )
@@ -313,7 +313,7 @@ def user_details_report(request):
         end_date = str(today)
 
     base_filename = 'user-details-report_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
+        re.sub('[^a-zA-Z0-9]', '-', request.headers['host']),
         date.today(),
         datetime.now().microsecond,
     )

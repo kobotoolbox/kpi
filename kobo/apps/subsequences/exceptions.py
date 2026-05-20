@@ -27,6 +27,14 @@ class GoogleCloudStorageBucketNotFound(Exception):
     pass
 
 
+class GoogleTranscriptionServiceNotConfigured(Exception):
+    """
+    Raised when the Google transcription service record is missing
+    """
+
+    pass
+
+
 class SubsequenceDeletionError(Exception):
     """Raised when attempting to delete a value that doesn't exist."""
 
@@ -79,9 +87,31 @@ class SubsequenceVerificationError(Exception):
     pass
 
 
+class SupplementMigrationInProgress(Exception):
+    """
+    Raised when submission supplement data has not yet been migrated to the
+    current schema version. The long-running migration is responsible for
+    the migration. Retry the operation once the migration has completed.
+    """
+
+
 class TranscriptionNotFound(DependencyNotFound):
     pass
 
 
 class TranslationAsyncResultAvailable(Exception):
+    pass
+
+
+class TranscriptionResultNotFound(Exception):
+    """
+    Raised when no transcription output files are found in GCS
+    """
+    pass
+
+
+class TranslationResultNotFound(Exception):
+    """
+    Raised when no translation output files are found in GCS
+    """
     pass

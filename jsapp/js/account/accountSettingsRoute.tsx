@@ -2,7 +2,7 @@ import './accountSettings.scss'
 
 import React, { useEffect, useState } from 'react'
 
-import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import { useBlocker } from 'react-router-dom'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
@@ -70,10 +70,16 @@ const AccountSettings = () => {
     )
   }, [currentLoggedAccount, organization])
 
-  usePrompt({
-    when: !isPristine,
-    message: t('You have unsaved changes. Leave settings without saving?'),
-  })
+  const settingsBlocker = useBlocker(!isPristine)
+  useEffect(() => {
+    if (settingsBlocker.state === 'blocked') {
+      if (window.confirm(t('You have unsaved changes. Leave settings without saving?'))) {
+        settingsBlocker.proceed()
+      } else {
+        settingsBlocker.reset()
+      }
+    }
+  }, [settingsBlocker])
 
   const onUpdateComplete = () => {
     notify(t('Updated profile successfully'))

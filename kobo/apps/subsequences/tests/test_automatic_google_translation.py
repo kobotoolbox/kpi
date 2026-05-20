@@ -4,7 +4,15 @@ from unittest.mock import MagicMock, patch
 import dateutil
 import jsonschema
 import pytest
+from constance.test import override_config
+from ddt import data as ddt_data
+from ddt import ddt, unpack
+from django.conf import settings
+from django.test import TestCase
 
+from kpi.exceptions import UsageLimitExceededException
+from ...kobo_auth.shortcuts import User
+from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from ..exceptions import TranscriptionNotFound
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
@@ -389,8 +397,11 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
 
-@pytest.mark.skip(reason='Skip until asynchronous translation is supported')
-def test_action_is_updated_in_background_if_in_progress():
+def test_async_translation_timeout_is_saved_as_failed():
+    """
+    Persist a failed result when async translation is still running so the user
+    must retry manually instead of relying on background polling
+    """
     action = _get_action()
     mock_service = MagicMock()
     submission = {'meta/rootUuid': '123-abdc'}
@@ -399,13 +410,27 @@ def test_action_is_updated_in_background_if_in_progress():
         'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
-        mock_service.process_data.return_value = {'status': 'in_progress'}
+        mock_service.process_data.return_value = {
+            'status': 'failed',
+            'error': (
+                'Timed out waiting for translation results. Translation may still '
+                'be running. Try again in 5 minutes.'
+            ),
+        }
         with patch(
             'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
-            action.revise_data(submission, EMPTY_SUPPLEMENT, {'language': 'fr'})
+            result = action.revise_data(
+                submission,
+                EMPTY_SUPPLEMENT,
+                {'language': 'fr'},
+            )
 
-        task_mock.apply_async.assert_called_once()
+        task_mock.apply_async.assert_not_called()
+        assert result['fr']['_versions'][0]['_data']['status'] == 'failed'
+        assert result['fr']['_versions'][0]['_data']['language'] == 'fr'
+        error = result['fr']['_versions'][0]['_data']['error']
+        assert 'Try again in 5 minutes.' in error
 
 
 def test_transform_data_for_output():
@@ -499,3 +524,36 @@ def _get_action(question_supplement=None):
         prefetched_dependencies={'question_supplemental_data': supplement},
     )
     return action
+
+
+@ddt
+class AutomaticGoogleTranslationLimitTestCase(TestCase):
+
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @ddt_data(
+        ({'language': 'en', 'accepted': True}, False),
+        ({'language': 'en', 'accepted': False}, False),
+        ({'language': 'en', 'value': None}, False),
+        ({'language': 'en'}, True),
+    )
+    @unpack
+    def test_check_limit(self, action_data, should_raise):
+        u = User.objects.create(username='dummy')
+        xpath = 'group_name/question_name'  # irrelevant for this test
+        params = [{'language': 'fr'}, {'language': 'en'}]
+        action = AutomaticGoogleTranslationAction(xpath, params)
+        with patch(
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+        ) as patched_calculator:
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.MT_CHARACTERS: {'exceeded': True}
+            }
+            if should_raise:
+                with pytest.raises(UsageLimitExceededException):
+                    action.check_limits(u, action_data)
+            else:
+                action.check_limits(u, action_data)
+
+        if not should_raise:
+            patched_calculator.return_value.get_usage_balances.assert_not_called()

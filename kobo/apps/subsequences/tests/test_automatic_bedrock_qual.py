@@ -1,21 +1,24 @@
 import copy
+import time
 import uuid
 from datetime import timedelta
 from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
 
 import jsonschema
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.cache import cache
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions import ManualQualAction
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
     OSS120,
@@ -57,8 +60,10 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_VALIDATION_MAIN_UUID,
 )
 from kobo.apps.subsequences.tests.utils import MockLLMClient
+from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
+from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -670,10 +675,11 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         )
         assert len(patched_get_response_from_llm.call_args) == 2
 
-    @pytest.mark.skipif(
-        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
-    )
+    @override_settings(STRIPE_ENABLED=False)
     def test_run_external_process_updates_llm_usage(self):
+        """
+        Test that counter gets updated even if STRIPE_ENABLED is False
+        """
         today = timezone.now().date()
         current_counters = NLPUsageCounter.objects.filter(
             user=self.asset.owner, asset=self.asset, date=today
@@ -704,11 +710,90 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert result.get('status') == 'failed'
         assert result.get('error') == 'LLM returned empty response'
 
+    def test_timeout_primary_model_fallback_to_backup(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
 
+        # Simulate a timeout error from the primary model
+        timeout_error = ReadTimeoutError(
+            endpoint_url='https://bedrock-runtime.aws.amazon.com',
+            operation_name='invoke_model',
+            message='Read timeout on endpoint URL: (ReadTimeoutError)'
+        )
+
+        with patch.object(
+            self.action,
+            'get_response_from_llm',
+            side_effect=timeout_error,
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # Verify that the backup model was called after the timeout
+        patched_get_response_from_llm.assert_has_calls(
+            [
+                call(ANY, OSS120),
+                call(ANY, ClaudeSonnet)
+            ],
+            any_order=False
+        )
+
+        # Verify it exited gracefully
+        assert result.get('status') == 'failed'
+        assert 'timeout' in result.get('error')
+
+    def test_connect_timeout_primary_model_fallback_to_backup(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+
+        # Simulate a connect timeout error from the primary model
+        timeout_error = ConnectTimeoutError(
+            endpoint_url='https://bedrock-runtime.aws.amazon.com',
+            error='Connect timeout on endpoint URL'
+        )
+
+        with patch.object(
+            self.action,
+            'get_response_from_llm',
+            side_effect=timeout_error,
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # Verify that the backup model was called after the primary connection failed
+        patched_get_response_from_llm.assert_has_calls(
+            [
+                call(ANY, OSS120),
+                call(ANY, ClaudeSonnet)
+            ],
+            any_order=False
+        )
+
+        #  Verify it exited gracefully
+        assert result.get('status') == 'failed'
+        assert 'Connect timeout' in result.get('error')
+
+
+@override_settings(CACHES={
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+})
 class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
     def setUp(self):
         super().setUp()
-        cache.delete(f'throttle_automatic_qa_{self.asset.owner.id}')
+        cache.clear()
+        # SimpleRateThrottle.timer is a direct reference to time.time captured
+        # at import time. freeze_time patches time.time at the module level but
+        # cannot reach this stored reference. We replace it with a lambda that
+        # calls time.time() dynamically so freeze_time can take effect.
+        patcher = patch.object(
+            AutomaticQARateThrottle, 'timer', new=staticmethod(lambda: time.time())
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.submission_uuid = self._add_submission()
         self.transcript_dict = self._add_manual_transcription(self.submission_uuid)
         self.supplement_details_url = reverse(
@@ -805,3 +890,37 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
             self.supplement_details_url, data=self.qa_payload, format='json'
         )
         assert response.status_code == status.HTTP_200_OK
+
+
+@ddt
+class AutomaticBedrockQualLimitTestCase(BaseAutomaticBedrockQualTestCase):
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @data(
+        ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'verified': True}, False),
+        ({'uuid': BEDROCK_QUAL_TEXT_UUID, 'verified': False}, False),
+
+        # Requesting a new generation SHOULD raise exception
+        ({'uuid': BEDROCK_QUAL_TEXT_UUID}, True),
+    )
+    @unpack
+    def test_check_limit(self, action_data, should_raise):
+        # Dynamically skip the enforcement assertion if Stripe is disabled,
+        # this ensures the bypass paths are always tested locally
+        if should_raise and not settings.STRIPE_ENABLED:
+            pytest.skip('Stripe is not enabled')
+
+        user = self.asset.owner
+        with patch(
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+        ) as patched_calculator:
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.LLM_REQUESTS: {'exceeded': True}
+            }
+            if should_raise:
+                with pytest.raises(UsageLimitExceededException):
+                    self.action.check_limits(user, action_data)
+                # Explicitly verify the exception originated from superclass enforcement
+                patched_calculator.return_value.get_usage_balances.assert_called_once()
+            else:
+                self.action.check_limits(user, action_data)
+                patched_calculator.return_value.get_usage_balances.assert_not_called()

@@ -12,7 +12,7 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from wsgiref.util import FileWrapper
 from xml.dom import Node
-from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import ParseError
 from xml.parsers.expat import ExpatError
 from zoneinfo import ZoneInfo
 
@@ -48,6 +48,8 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
     ConflictingAttachmentBasenameError,
     ConflictingSubmissionUUIDError,
+    DeprecatedIdGoneError,
+    DeprecatedIdMissingError,
     DuplicateInstanceError,
     DuplicateUUIDError,
     ExceededUsageLimitError,
@@ -97,6 +99,7 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -196,6 +199,10 @@ def create_instance(
 
     Raises:
         InstanceIdMissingError: If no valid UUID is found in the XML submission.
+        DeprecatedIdMissingError: If a `deprecatedID` is provided but does not match
+                                any known submission.
+        DeprecatedIdGoneError: If a `deprecatedID` refers to a historical submission
+                                version that can no longer be edited.
         DuplicateInstanceError: If there is a submission with the same XML hash and user
                                 without any new attachments.
         ConflictingSubmissionUUIDError: If the same UUID already exists or being
@@ -465,6 +472,12 @@ def http_open_rosa_error_handler(func, request):
     except InstanceIdMissingError:
         result.error = t('Instance ID is required')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except DeprecatedIdGoneError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseGone(result.error)
+    except DeprecatedIdMissingError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseNotFound(result.error)
     except FormInactiveError:
         result.error = t('Form is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
@@ -489,7 +502,7 @@ def http_open_rosa_error_handler(func, request):
     except XForm.DoesNotExist:
         result.error = t('Form does not exist on this account')
         result.http_error_response = OpenRosaResponseNotFound(result.error)
-    except ExpatError:
+    except (ExpatError, ParseError):
         result.error = t('Improperly formatted XML.')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except (ConflictingSubmissionUUIDError, ConflictingAttachmentBasenameError) as e:
@@ -870,7 +883,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # Parse instance XML to get the basename of each file of the updated
     # submission
-    xml_parsed = ET.fromstring(instance.xml)
+    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
     basenames = []
 
     for media_question_xpath in media_question_xpaths:
@@ -1015,6 +1028,15 @@ def _get_instance_from_deprecated_id(
 
     try:
         instance = Instance.objects.get(uuid=old_uuid, xform_id=xform.pk)
+    except Instance.DoesNotExist:
+        if InstanceHistory.objects.filter(
+            uuid=old_uuid, xform_instance__xform_id=xform.pk
+        ).exists():
+            raise DeprecatedIdGoneError(
+                t('Invalid submission - deprecatedID refers to an old version')
+            )
+
+        raise DeprecatedIdMissingError(t('Invalid submission - deprecatedID not found'))
     except MultipleObjectsReturned:
         root_uuid, use_fallback = get_root_uuid_from_xml(xml)
 
@@ -1171,6 +1193,10 @@ class OpenRosaResponsePaymentRequired(OpenRosaResponse):
 
 class OpenRosaResponseForbidden(OpenRosaResponse):
     status_code = 403
+
+
+class OpenRosaResponseGone(OpenRosaResponse):
+    status_code = 410
 
 
 class OpenRosaTemporarilyUnavailable(OpenRosaResponse):

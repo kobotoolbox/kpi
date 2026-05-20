@@ -13,6 +13,8 @@ on:
         value: ${{ jobs.version.outputs.current_minor }}
       current_patch:
         value: ${{ jobs.version.outputs.current_patch }}
+      current_released:
+        value: ${{ jobs.version.outputs.current_released }}
       prev_branch:
         value: ${{ jobs.version.outputs.prev_branch }}
       prev_minor:
@@ -25,6 +27,8 @@ on:
         value: ${{ jobs.version.outputs.next_branch }}
       next_minor:
         value: ${{ jobs.version.outputs.next_minor }}
+      next_patch:
+        value: ${{ jobs.version.outputs.next_patch }}
 
 jobs:
   version:
@@ -33,12 +37,14 @@ jobs:
       current_branch: ${{ steps.version.outputs.current_branch }}
       current_minor: ${{ steps.version.outputs.current_minor }}
       current_patch: ${{ steps.version.outputs.current_patch }}
+      current_released: ${{ steps.version.outputs.current_released }}
       prev_branch: ${{ steps.version.outputs.prev_branch }}
       prev_minor: ${{ steps.version.outputs.prev_minor }}
       prev_patch: ${{ steps.version.outputs.prev_patch }}
       prev_released: ${{ steps.version.outputs.prev_released }}
       next_branch: ${{ steps.version.outputs.next_branch }}
       next_minor: ${{ steps.version.outputs.next_minor }}
+      next_patch: ${{ steps.version.outputs.next_patch }}
     steps:
     - uses: actions/checkout@v6
       with:
