@@ -13,6 +13,7 @@ interface LanguageSelectorProps {
   /**
    * TODO: This should be typed as (language: LanguageList | null) => void but there's a type incompatibility
    * between what StepSelectLanguage expects (LanguageBase/ListLanguage) and what the orval-generated API types are (LanguageList/Language)
+   * See DEV-2141
    */
   onLanguageChange: (language: any) => void
   titleOverride?: string
