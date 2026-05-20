@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hub', '0018_merge_user_tracker_and_extrauserdetails_changes'),
+        ('hub', '0020_fix_constance_json_field_corruption'),
     ]
 
     operations = [
