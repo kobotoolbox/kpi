@@ -1,6 +1,6 @@
-import { ActionIcon, Flex, Group, Select, TextInput } from '@mantine/core'
+import { ActionIcon, Flex, Group, Loader, Select, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLanguagesRetrieve } from '#/api/react-query/other'
 import KoboIcon from '../common/KoboIcon'
 import type { LanguageBase, LanguageCode, TransxServiceCode } from './languagesStore'
@@ -41,14 +41,16 @@ interface RegionSelectorProps {
   serviceCode: TransxServiceCode
   serviceType: 'transcription' | 'translation'
   /** Callback for a region is being selected. */
-  onRegionChange?: (selectedRegion: LanguageCode | null) => void
+  onRegionChange: (selectedRegion: LanguageCode | null) => void
   /** Callback for clicking "x" next to the root language. */
-  onCancel?: () => void
+  onCancel: () => void
 }
 
 const RegionSelectorNew = (props: RegionSelectorProps) => {
-  const { data, isLoading, error } = useLanguagesRetrieve(props.rootLanguage)
+  const { data, isLoading } = useLanguagesRetrieve(props.rootLanguage)
   const language = data?.status === 200 ? (data.data as unknown as DetailedLanguage) : undefined
+  const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
+
   const regionOptions = useMemo(() => {
     const outcome = []
     let serviceRegions
@@ -73,15 +75,42 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
       }
     }
 
-    return outcome
-  }, [props.serviceCode, props.serviceType])
+    // We return the options sorted by their labels.
+    return outcome.sort((a, b) => {
+      const labelA = a.label.toLowerCase() // ignore upper and lowercase
+      const labelB = b.label.toLowerCase() // ignore upper and lowercase
+      if (labelA < labelB) {
+        return -1
+      }
+      if (labelA > labelB) {
+        return 1
+      }
+      return 0 // happens when labels are equal (should not happen in real life)
+    })
+  }, [language, props.serviceCode, props.serviceType])
+
+  // Needed to populate the Select value after getting data
+  useEffect(() => {
+    if (regionOptions.length > 0) {
+      const initialOption = regionOptions[0].value
+      setSelectedRegion(initialOption)
+      props.onRegionChange?.(initialOption)
+    } else {
+      setSelectedRegion(null)
+    }
+  }, [regionOptions])
+
+  const handleRegionChange = (newRegion: string | null) => {
+    setSelectedRegion(newRegion)
+    props.onRegionChange(newRegion)
+  }
 
   return (
-    <Flex component='section' direction='row' align='center' justify='center'>
+    <Flex component='section' direction='row' align='center' justify='center' mb={'xl'}>
       <Group gap='xs'>
         <TextInput
           readOnly
-          value={language?.name}
+          value={language?.name || ''}
           size='sm'
           leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
           w={220}
@@ -95,10 +124,12 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
         <Select
           w={220}
           data={regionOptions}
+          value={selectedRegion}
           size='sm'
-          onChange={props.onRegionChange}
+          onChange={handleRegionChange}
           disabled={props.isDisabled}
           placeholder={t('Select a region...')}
+          rightSection={isLoading ? <Loader size='xs' /> : undefined}
         />
       </Group>
     </Flex>

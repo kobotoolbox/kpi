@@ -1,4 +1,4 @@
-import './regionSelector.scss'
+import './RegionSelector.scss'
 
 import React from 'react'
 
