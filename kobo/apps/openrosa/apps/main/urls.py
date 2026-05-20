@@ -3,6 +3,7 @@ from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 from kobo.apps.openrosa import koboform
+from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.views import (
@@ -43,6 +44,17 @@ urlpatterns = [
         '<str:username>/',
         RedirectView.as_view(url=koboform.redirect_url('/')),
         name='user_profile',
+    ),
+    # briefcase api urls
+    path(
+        'view/submissionList',
+        BriefcaseApi.as_view({'get': 'list', 'head': 'list'}),
+        name='view-submission-list',
+    ),
+    path(
+        'view/downloadSubmission',
+        BriefcaseApi.as_view({'get': 'retrieve', 'head': 'retrieve'}),
+        name='view-download-submission',
     ),
     # exporting stuff
     re_path(
