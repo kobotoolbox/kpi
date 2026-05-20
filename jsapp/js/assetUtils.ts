@@ -39,6 +39,7 @@ import { currentLang } from '#/utils'
 import { ActionIdEnum } from './api/models/actionIdEnum'
 import type { Asset } from './api/models/asset'
 import type { AssetMinimalList } from './api/models/assetMinimalList'
+import type { BulkActionResponse } from './api/models/bulkActionResponse'
 import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
 
 /**
@@ -678,7 +679,7 @@ export function hasBackgroundAudioEnabled(surveyRow: SurveyRow[]) {
  * @returns Array of { dtpath, source, type }
  */
 export function getVirtualSupplementalFieldsForBulkActions(
-  bulkActions?: any[],
+  bulkActions?: BulkActionResponse[],
 ): Array<{ dtpath: string; source: string; type: string }> {
   if (!Array.isArray(bulkActions) || bulkActions.length === 0) return []
 
