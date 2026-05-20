@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from allauth.socialaccount.models import SocialAccount
+from constance.test import override_config
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -455,6 +456,21 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(sub_data['id'], subscription.id)
         self.assertEqual(sub_data['customer'], customer.id)
         self.assertEqual(sub_data['metadata'], {})
+
+    def test_offset_limit_set_by_constance(self):
+        for i in range(20):
+            User.objects.create(username=f'user_{i}')
+        refresh_user_report_snapshots()
+        with override_config(USER_REPORTS_PAGE_SIZE_LIMIT=10):
+            response = self.client.get(f'{self.url}?limit=1')
+            results = response.data['results']
+            assert len(results) == 1
+            response = self.client.get(f'{self.url}')
+            results = response.data['results']
+            assert len(results) == 10
+            response = self.client.get(f'{self.url}?limit=100')
+            results = response.data['results']
+            assert len(results) == 10
 
     def _get_someuser_data(self):
 
