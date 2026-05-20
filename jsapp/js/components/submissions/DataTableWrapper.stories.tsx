@@ -21,6 +21,7 @@ import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import bulkActionsMock from '#/endpoints/bulkActions.mocks'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
+import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import DataTableWrapper from './DataTableWrapper'
@@ -206,6 +207,7 @@ const meta: Meta<typeof DataTableWrapper> = {
         assetMock(minimalAsset.uid, minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
+        organizationServiceUsageMock(),
         bulkActionsMock(minimalAsset.uid, { results: [] }),
       ],
     },
@@ -231,6 +233,7 @@ export const Default: Story = {
         assetMock(minimalAsset.uid, minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
+        organizationServiceUsageMock(),
         bulkActionsMock(minimalAsset.uid, { results: [] }),
       ],
     },
@@ -251,6 +254,7 @@ export const ProcessingColumn: Story = {
         assetMock(processingAsset.uid, processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
+        organizationServiceUsageMock(),
         bulkActionsMock(processingAsset.uid, { results: [processingBulkAction] }),
       ],
     },
