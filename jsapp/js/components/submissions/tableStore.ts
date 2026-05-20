@@ -13,7 +13,13 @@ import {
 } from '#/components/submissions/tableConstants'
 import type { SortValues } from '#/components/submissions/tableConstants'
 import { getAllDataColumns } from '#/components/submissions/tableUtils'
-import type { AssetSettings, AssetTableSettings, SubmissionResponse, TableSortBySetting } from '#/dataInterface'
+import type {
+  AssetResponse,
+  AssetSettings,
+  AssetTableSettings,
+  SubmissionResponse,
+  TableSortBySetting,
+} from '#/dataInterface'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { recordEntries } from '#/utils'
 
@@ -136,20 +142,9 @@ class TableStore extends Reflux.Store {
     return assetStore.getAsset(routeAssetUid)
   }
 
-  /** Returns a unique list of columns (keys) that should be displayed to users */
-  getAllColumns(submissions: SubmissionResponse[], bulkActions?: BulkActionResponse[]) {
-    const asset = this.getCurrentAsset()
-
-    if (asset?.content?.survey === undefined) {
-      throw new Error('Asset not found')
-    }
-
-    return getAllDataColumns(asset, submissions, bulkActions)
-  }
-
   /** Returns a list of columns that user can hide */
-  getHideableColumns(submissions: SubmissionResponse[]) {
-    const columns = this.getAllColumns(submissions)
+  getHideableColumns(asset: AssetResponse, submissions: SubmissionResponse[], bulkActions?: BulkActionResponse[]) {
+    const columns = getAllDataColumns(asset, submissions, bulkActions)
     columns.push(VALIDATION_STATUS_ID_PROP)
     return columns
   }
@@ -261,7 +256,12 @@ class TableStore extends Reflux.Store {
   }
 
   /** Show single column - shortcut method for setFieldsVisibility */
-  showField(submissions: SubmissionResponse[], fieldId: string) {
+  showField(
+    asset: AssetResponse,
+    submissions: SubmissionResponse[],
+    bulkActions: BulkActionResponse[],
+    fieldId: string,
+  ) {
     const selectedColumns = this.getSelectedColumns()
 
     // We start with `null` just to be safe, but the case when selectedColumns
@@ -275,13 +275,18 @@ class TableStore extends Reflux.Store {
       newSelectedColumns.push(fieldId)
     }
 
-    this.setFieldsVisibility(submissions, newSelectedColumns)
+    this.setFieldsVisibility(asset, submissions, bulkActions, newSelectedColumns)
   }
 
   /** Hide single column - a shortcut method for setFieldsVisibility */
-  hideField(submissions: SubmissionResponse[], fieldId: string) {
+  hideField(
+    asset: AssetResponse,
+    submissions: SubmissionResponse[],
+    bulkActions: BulkActionResponse[],
+    fieldId: string,
+  ) {
     const selectedColumns = this.getSelectedColumns()
-    const hideableColumns = this.getHideableColumns(submissions)
+    const hideableColumns = this.getHideableColumns(asset, submissions, bulkActions)
 
     let newSelectedColumns: string[] = []
 
@@ -297,11 +302,16 @@ class TableStore extends Reflux.Store {
       newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1)
     }
 
-    this.setFieldsVisibility(submissions, newSelectedColumns)
+    this.setFieldsVisibility(asset, submissions, bulkActions, newSelectedColumns)
   }
 
-  setFieldsVisibility(submissions: SubmissionResponse[], columnsToBeVisible: string[] | null) {
-    const hideableColumns = this.getHideableColumns(submissions)
+  setFieldsVisibility(
+    asset: AssetResponse,
+    submissions: SubmissionResponse[],
+    bulkActions: BulkActionResponse[],
+    columnsToBeVisible: string[] | null,
+  ) {
+    const hideableColumns = this.getHideableColumns(asset, submissions, bulkActions)
     let newSelectedColumns = columnsToBeVisible
 
     // If we make all possible columns visible, we save `null` value

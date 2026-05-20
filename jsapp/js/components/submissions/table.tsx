@@ -45,6 +45,7 @@ import tableStore from '#/components/submissions/tableStore'
 import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
   buildFilterQuery,
+  getAllDataColumns,
   getBackgroundAudioQuestionName,
   getColumnHXLTags,
   getColumnLabel,
@@ -390,7 +391,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onHideField(fieldId: string) {
-    tableStore.hideField(this.state.submissions, fieldId)
+    tableStore.hideField(this.props.asset, this.state.submissions, this.props.activeBulkActions || [], fieldId)
   }
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
@@ -640,7 +641,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Builds and gathers all necessary react-table data and stores in state.
    */
   _prepColumns(data: SubmissionResponse[]) {
-    const allColumns = tableStore.getAllColumns(data, this.props.activeBulkActions)
+    const allColumns = getAllDataColumns(this.props.asset, data, this.props.activeBulkActions)
 
     let showLabels = this.state.showLabels
     let showGroupName = this.state.showGroupName
@@ -1337,6 +1338,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             <ColumnsHideDropdown
               asset={this.props.asset}
               submissions={this.state.submissions}
+              bulkActions={this.props.activeBulkActions || []}
               showGroupName={this.state.showGroupName}
               translationIndex={this.state.translationIndex}
             />
