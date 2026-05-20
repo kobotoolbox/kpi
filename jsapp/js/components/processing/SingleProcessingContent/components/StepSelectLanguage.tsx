@@ -8,7 +8,7 @@ import {
 } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
 import LanguageSelector from '#/components/languages/LanguageSelector'
-import type { LanguageBase, LanguageCode } from '#/components/languages/languagesStore'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
@@ -55,8 +55,8 @@ export default function StepSelectLanguage({
     ],
   )
 
-  function handleChangeLanguage(newVal: LanguageBase | null) {
-    setLanguageCode(newVal?.code ?? null)
+  function handleChangeLanguage(newVal: LanguageCode | null) {
+    setLanguageCode(newVal ?? null)
   }
 
   const handleClickBack = () => {

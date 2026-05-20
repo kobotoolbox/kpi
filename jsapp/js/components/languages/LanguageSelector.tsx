@@ -15,7 +15,7 @@ interface LanguageSelectorProps {
    * between what StepSelectLanguage expects (LanguageBase/ListLanguage) and what the orval-generated API types are (LanguageList/Language)
    * See DEV-2141
    */
-  onLanguageChange: (language: any) => void
+  onLanguageChange: (language: LanguageCode) => void
   titleOverride?: string
   hiddenLanguages?: LanguageCode[]
   suggestedLanguages?: LanguageCode[]
@@ -108,7 +108,9 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   const onLanguageSelected = (selectedLanguage: string | null) => {
     const allLanguages = [...suggestedLanguages, ...languages]
     const selectedLanguageObject = allLanguages.find((lang) => lang.code === selectedLanguage) || null
-    props.onLanguageChange(selectedLanguageObject)
+    if (selectedLanguageObject) {
+      props.onLanguageChange(selectedLanguageObject.code)
+    }
   }
 
   const openSupportPage = () => {
