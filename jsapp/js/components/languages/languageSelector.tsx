@@ -11,10 +11,8 @@ import type { LanguageCode } from '../languages/languagesStore'
 
 interface LanguageSelectorProps {
   /**
-   * TODO: This should be typed as (language: ListLanguage | null) => void but there's a type incompatibility
-   * between what StepSelectLanguage expects and what the orval-generated API types are.
-   * In languagesStore.ts, ListLanguage has `transcription_services` and `translation_services` as regular arrays wheras
-   * the new orval-generated type `Language` has the arrays as readonly. See DEV-2141
+   * TODO: This should be typed as (language: LanguageList | null) => void but there's a type incompatibility
+   * between what StepSelectLanguage expects (LanguageBase/ListLanguage) and what the orval-generated API types are (LanguageList/Language)
    */
   onLanguageChange: (language: any) => void
   titleOverride?: string
