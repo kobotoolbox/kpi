@@ -36,6 +36,7 @@ import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
+import { ActionIdEnum } from './api/models/actionIdEnum'
 import type { Asset } from './api/models/asset'
 import type { AssetMinimalList } from './api/models/assetMinimalList'
 import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
@@ -690,9 +691,9 @@ export function getVirtualSupplementalFieldsForBulkActions(
       key = key.slice(`${SUPPLEMENTAL_DETAILS_PROP}/`.length)
     }
     let type: string
-    if (bulkAction.action_id === 'automatic_google_transcription') {
+    if (bulkAction.action_id === ActionIdEnum.automatic_google_transcription) {
       type = 'transcript'
-    } else if (bulkAction.action_id === 'automatic_google_translation') {
+    } else if (bulkAction.action_id === ActionIdEnum.automatic_google_translation) {
       type = 'translation'
     } else {
       type = 'processing'
