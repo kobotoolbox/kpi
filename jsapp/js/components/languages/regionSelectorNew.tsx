@@ -1,8 +1,37 @@
-import { ActionIcon, Group, Select, TextInput } from '@mantine/core'
+import { ActionIcon, Flex, Group, Select, TextInput } from '@mantine/core'
+import { IconLanguage, IconX } from '@tabler/icons-react'
 import { useMemo } from 'react'
 import { useLanguagesRetrieve } from '#/api/react-query/other'
 import KoboIcon from '../common/KoboIcon'
-import type { DetailedLanguage, LanguageCode, TransxServiceCode } from './languagesStore'
+import type { LanguageBase, LanguageCode, TransxServiceCode } from './languagesStore'
+
+// FIXME: Temporarily moved these type definitions here to remove the languagesStore.ts until DEV-2143 is done
+interface DetailedLanguageRegion {
+  code: LanguageCode
+  name: string
+}
+
+interface DetailedLanguageServices {
+  [serviceCode: TransxServiceCode]: { [languageCode: LanguageCode]: LanguageCode }
+}
+
+interface DetailedLanguage extends LanguageBase {
+  /**
+   * A list of regions for given language with their unique language codes,
+   * e.g. "Canada", "Belgium", "France", and "Switzerland" for French (fr).
+   */
+  regions: DetailedLanguageRegion[]
+  /**
+   * A list of available transcription services for given language with a map of
+   * "ours to theirs" language codes.
+   */
+  transcription_services: DetailedLanguageServices
+  /**
+   * A list of available translation services for given language with a map of
+   * "ours to theirs" language codes.
+   */
+  translation_services: DetailedLanguageServices
+}
 
 interface RegionSelectorProps {
   isDisabled?: boolean
@@ -48,29 +77,31 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
   }, [props.serviceCode, props.serviceType])
 
   return (
-    <Group gap='xs'>
-      <TextInput
-        readOnly
-        value={language?.name}
-        size='sm'
-        leftSection={<KoboIcon name='language-alt' size='sm' />}
-        w={220}
-        rightSection={
-          <ActionIcon variant='transparent' size='sm' onClick={props.onCancel} disabled={props.isDisabled}>
-            <KoboIcon name='close' size='xs' />
-          </ActionIcon>
-        }
-      />
+    <Flex component='section' direction='row' align='center' justify='center'>
+      <Group gap='xs'>
+        <TextInput
+          readOnly
+          value={language?.name}
+          size='sm'
+          leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
+          w={220}
+          rightSection={
+            <ActionIcon variant='transparent' size='sm' onClick={props.onCancel} disabled={props.isDisabled}>
+              <KoboIcon icon={IconX} size='xs' />
+            </ActionIcon>
+          }
+        />
 
-      <Select
-        w={220}
-        data={regionOptions}
-        size='sm'
-        onChange={props.onRegionChange}
-        disabled={props.isDisabled}
-        placeholder={t('Select a region...')}
-      />
-    </Group>
+        <Select
+          w={220}
+          data={regionOptions}
+          size='sm'
+          onChange={props.onRegionChange}
+          disabled={props.isDisabled}
+          placeholder={t('Select a region...')}
+        />
+      </Group>
+    </Flex>
   )
 }
 
