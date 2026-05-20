@@ -10,7 +10,7 @@ import Select from '../common/Select'
 import type { LanguageCode } from '../languages/languagesStore'
 
 interface LanguageSelectorProps {
-  onLanguageChange: (language: LanguageCode) => void
+  onLanguageChange: (language: LanguageCode | null) => void
   titleOverride?: string
   hiddenLanguages?: LanguageCode[]
   suggestedLanguages?: LanguageCode[]
@@ -103,9 +103,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
   const onLanguageSelected = (selectedLanguage: string | null) => {
     const allLanguages = [...suggestedLanguages, ...languages]
     const selectedLanguageObject = allLanguages.find((lang) => lang.code === selectedLanguage) || null
-    if (selectedLanguageObject) {
-      props.onLanguageChange(selectedLanguageObject.code)
-    }
+    props.onLanguageChange(selectedLanguageObject?.code || null)
   }
 
   const openSupportPage = () => {
