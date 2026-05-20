@@ -12,6 +12,7 @@ from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from kpi.tests.utils.transaction import immediate_on_commit
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
 class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMixin):
@@ -19,6 +20,8 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
     Test that moving an attachment to trash and restoring it updates the
     storage counters
     """
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
     def setUp(self):
         self.factory = APIRequestFactory()
         self.user = User.objects.create(username='owner')
