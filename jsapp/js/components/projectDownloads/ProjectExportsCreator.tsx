@@ -240,8 +240,7 @@ export default class ProjectExportsCreator extends React.Component<
       })
     }
 
-    // For now we do't pass any bulk processing "virtual" columns
-    allRows = new Set(injectSupplementalRowsIntoListOfRows(this.props.asset, allRows, []))
+    allRows = new Set(injectSupplementalRowsIntoListOfRows(this.props.asset, allRows))
 
     return allRows
   }
