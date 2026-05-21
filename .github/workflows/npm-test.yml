@@ -45,6 +45,7 @@ jobs:
       - name: Check for cached node_modules
         uses: actions/cache@v5
         id: cache-nodemodules
+        if: github.actor != 'dependabot[bot]' # skip for dependabot PRs
         with:
           path: node_modules
           key: ${{ github.repository }}/node_modules--${{ runner.os }}-${{ runner.arch }}--node-${{ steps.resolved-node-version.outputs.NODE_VERSION }}--${{ hashFiles('**/package.json', '**/package-lock.json', 'patches/**/*.patch') }}
