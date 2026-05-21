@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 
 import { Box, Group, Stack } from '@mantine/core'
 import type { UseQueryResult } from '@tanstack/react-query'
@@ -7,6 +7,7 @@ import UniversalTable from '#/UniversalTable'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { LangObject } from '#/utils'
 import LanguageForm from './LanguageForm'
+import SaveChangesButton from './SaveChangesButton'
 import TranslationsEditorCell from './TranslationsEditorCell'
 import type { TranslationRowItem } from './types'
 
@@ -32,6 +33,16 @@ interface TranslationsEditorProps {
 
 export default function TranslationsEditor(props: TranslationsEditorProps) {
   const selectedLanguageLabel = props.translations[props.selectedLangIndex] || ''
+
+  // Stable ref that SaveChangesButton hooks into so we can flip its local dirty
+  // state without re-rendering TranslationsEditor (and therefore without
+  // tearing down the active textarea).
+  const markDirtyRef = useRef<() => void>(() => {})
+
+  const handleStartEditing = useCallback(() => {
+    markDirtyRef.current()
+    props.onStartEditing()
+  }, [props.onStartEditing])
 
   const tableColumns: Array<UniversalTableColumn<TranslationRowItem>> = useMemo(
     () => [
@@ -70,7 +81,7 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
               initialValue={row.value || ''}
               disabled={row.isLabelLocked}
               absoluteIndex={absoluteIndex}
-              onStartEditing={props.onStartEditing}
+              onStartEditing={handleStartEditing}
               onChangeCell={props.onChangeCell}
             />
           )
@@ -80,7 +91,7 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
     [
       props.canEditLanguages,
       props.onChangeCell,
-      props.onStartEditing,
+      handleStartEditing,
       props.onToggleInlineLanguageForm,
       props.pagination.start,
       props.selectedLangIndex,
@@ -119,9 +130,12 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
         <ButtonNew variant='light' size='lg' onClick={props.onBack}>
           {t('Back')}
         </ButtonNew>
-        <ButtonNew variant='filled' size='lg' onClick={props.onSave} disabled={props.isSavingTable}>
-          {props.saveButtonText}
-        </ButtonNew>
+        <SaveChangesButton
+          saveButtonText={props.saveButtonText}
+          isSavingTable={props.isSavingTable}
+          onSave={props.onSave}
+          markDirtyRef={markDirtyRef}
+        />
       </Group>
     </Stack>
   )

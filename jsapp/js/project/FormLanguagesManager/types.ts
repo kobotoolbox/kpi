@@ -7,6 +7,12 @@ import { recordKeys } from '#/utils'
 
 export const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 
+export const SAVE_BUTTON_LABEL = {
+  idle: t('Save Changes'),
+  dirty: t('* Save Changes'),
+  saving: t('Saving…'),
+} as const
+
 export type View = 'languages' | 'translations'
 
 export interface TranslationRowItem {

@@ -18,6 +18,7 @@ import { type LangObject, getLangString, notify } from '#/utils'
 import LanguagesEditor from './LanguagesEditor'
 import TranslationsEditor from './TranslationsEditor'
 import {
+  SAVE_BUTTON_LABEL,
   type TranslationRowItem,
   type View,
   buildTranslationRows,
@@ -95,7 +96,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [showInlineLanguageForm, setShowInlineLanguageForm] = useState(false)
   const [isUpdatingAsset, setIsUpdatingAsset] = useState(false)
   const [isSavingTable, setIsSavingTable] = useState(false)
-  const [saveButtonText, setSaveButtonText] = useState(t('Save Changes'))
+  const [saveButtonText, setSaveButtonText] = useState(SAVE_BUTTON_LABEL.idle)
   const [pagination, setPagination] = useState({ limit: 10, start: 0 })
   const [pendingDeleteLanguageIndex, setPendingDeleteLanguageIndex] = useState<number | null>(null)
   const [pendingDefaultLanguageIndex, setPendingDefaultLanguageIndex] = useState<number | null>(null)
@@ -113,7 +114,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   useEffect(() => {
     if (activeView === 'translations') {
       setTableRows(buildTranslationRows(asset, selectedLangIndex))
-      setSaveButtonText(t('Save Changes'))
+      setSaveButtonText(SAVE_BUTTON_LABEL.idle)
       setIsSavingTable(false)
       setIsTranslationTableUnsaved(false)
       tableHasUnsavedEditsRef.current = false
@@ -277,16 +278,16 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     }
 
     setIsSavingTable(true)
-    setSaveButtonText(t('Saving…'))
+    setSaveButtonText(SAVE_BUTTON_LABEL.saving)
 
     const ok = await patchAsset(content)
     if (ok) {
-      setSaveButtonText(t('Save Changes'))
+      setSaveButtonText(SAVE_BUTTON_LABEL.idle)
       setIsSavingTable(false)
       setIsTranslationTableUnsaved(false)
       tableHasUnsavedEditsRef.current = false
     } else {
-      setSaveButtonText(t('* Save Changes'))
+      setSaveButtonText(SAVE_BUTTON_LABEL.dirty)
       setIsSavingTable(false)
       setIsTranslationTableUnsaved(true)
     }
@@ -345,8 +346,11 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   }
 
   const onStartEditingCell = useCallback(() => {
-    // Mark the ref without triggering a parent re-render. The close/back guards
-    // will check this ref to catch unsaved edits even before blur commits them.
+    // Only flip the ref here — never call a setState. Triggering a parent
+    // re-render mid-keystroke (the first keystroke in particular) makes the
+    // Mantine autosize Textarea lose focus, so the asterisk in the save button
+    // is handled locally inside TranslationsEditor instead. The close/back
+    // guards read this ref to catch unsaved edits before onBlur commits them.
     tableHasUnsavedEditsRef.current = true
   }, [])
 
@@ -367,7 +371,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     )
     tableHasUnsavedEditsRef.current = true
     setIsTranslationTableUnsaved(true)
-    setSaveButtonText(t('* Save Changes'))
+    setSaveButtonText(SAVE_BUTTON_LABEL.dirty)
   }, [])
 
   const toggleInlineLanguageForm = useCallback(() => {
