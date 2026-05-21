@@ -1,4 +1,4 @@
-import { Group } from '@mantine/core'
+import { Group, Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
@@ -25,6 +25,7 @@ interface DataTableCellProps {
   showGroupName: boolean
   translationIndex: number
   submissionCount: number
+  isBulkProcessingInProgress?: boolean
 }
 
 export default function DataTableCell(props: DataTableCellProps) {
@@ -32,6 +33,18 @@ export default function DataTableCell(props: DataTableCellProps) {
   const submission = props.reactTableRow.original
   const submissionIndex = props.reactTableRow.index + 1
   const columnName = getColumnLabel(props.asset, props.columnKey, props.showGroupName, props.translationIndex)
+
+  if (
+    props.isBulkProcessingInProgress &&
+    props.reactTableRow.value === undefined &&
+    props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+  ) {
+    return (
+      <Text truncate='end' fs='italic' c='gray.3' span>
+        {t('Processing')}
+      </Text>
+    )
+  }
 
   if (typeof props.reactTableRow.value === 'object' && !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
