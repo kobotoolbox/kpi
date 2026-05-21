@@ -18,7 +18,7 @@ interface RegionSelectorProps {
   onCancel: () => void
 }
 
-const RegionSelectorNew = (props: RegionSelectorProps) => {
+const RegionSelector = (props: RegionSelectorProps) => {
   const { data, isLoading } = useLanguagesRetrieve(props.rootLanguage)
   const language = data?.status === 200 ? data.data : undefined
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
@@ -69,11 +69,15 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
     } else {
       setSelectedRegion(null)
     }
-  }, [regionOptions])
+  }, [regionOptions, props.onRegionChange])
 
   const handleRegionChange = (newRegion: string | null) => {
     setSelectedRegion(newRegion)
     props.onRegionChange(newRegion)
+  }
+
+  if (selectedRegion === null) {
+    return <Loader size='xs' />
   }
 
   return (
@@ -101,7 +105,6 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
             onChange={handleRegionChange}
             disabled={props.isDisabled}
             placeholder={t('Select a region...')}
-            rightSection={isLoading ? <Loader size='xs' /> : undefined}
           />
         )}
       </Group>
@@ -109,4 +112,4 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
   )
 }
 
-export default RegionSelectorNew
+export default RegionSelector

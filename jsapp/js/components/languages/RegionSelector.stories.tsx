@@ -66,8 +66,6 @@ export const InteractionTest: Story = {
         { timeout: 3000 },
       )
     })
-    console.log(user)
-    console.log(args)
 
     await step('Verify language input properties', async () => {
       const languageInput = canvas.getByDisplayValue('English')
