@@ -1,16 +1,37 @@
-import './RegionSelector.scss'
+import { ActionIcon, Flex, Group, Loader, Select, TextInput } from '@mantine/core'
+import { IconLanguage, IconX } from '@tabler/icons-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLanguagesRetrieve } from '#/api/react-query/other'
+import KoboIcon from '../common/KoboIcon'
+import type { LanguageBase, LanguageCode, TransxServiceCode } from './languagesStore'
 
-import React from 'react'
+// FIXME: Temporarily moved these type definitions here to remove the languagesStore.ts until DEV-2143 is done
+interface DetailedLanguageRegion {
+  code: LanguageCode
+  name: string
+}
 
-import { ActionIcon, Group, TextInput } from '@mantine/core'
-import bem, { makeBem } from '#/bem'
-import Select from '#/components/common/Select'
-import Icon from '#/components/common/icon'
-import languagesStore from './languagesStore'
-import type { DetailedLanguage, LanguageCode, TransxServiceCode } from './languagesStore'
+interface DetailedLanguageServices {
+  [serviceCode: TransxServiceCode]: { [languageCode: LanguageCode]: LanguageCode }
+}
 
-bem.RegionSelector = makeBem(null, 'region-selector', 'section')
-bem.RegionSelector__loading = makeBem(bem.RegionSelector, 'loading')
+interface DetailedLanguage extends LanguageBase {
+  /**
+   * A list of regions for given language with their unique language codes,
+   * e.g. "Canada", "Belgium", "France", and "Switzerland" for French (fr).
+   */
+  regions: DetailedLanguageRegion[]
+  /**
+   * A list of available transcription services for given language with a map of
+   * "ours to theirs" language codes.
+   */
+  transcription_services: DetailedLanguageServices
+  /**
+   * A list of available translation services for given language with a map of
+   * "ours to theirs" language codes.
+   */
+  translation_services: DetailedLanguageServices
+}
 
 interface RegionSelectorProps {
   isDisabled?: boolean
@@ -25,77 +46,24 @@ interface RegionSelectorProps {
   onCancel: () => void
 }
 
-interface RegionSelectorState {
-  options: { label: string; value: string }[]
-  selectedOption: LanguageCode | null
-  language?: DetailedLanguage
-}
+const RegionSelectorNew = (props: RegionSelectorProps) => {
+  const { data, isLoading } = useLanguagesRetrieve(props.rootLanguage)
+  const language = data?.status === 200 ? (data.data as unknown as DetailedLanguage) : undefined
+  const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
 
-/**
- * For provided language code, this component displays a region selector (if
- * regions are available for that language). UI also has a cancel button that
- * is just notifying the parent.
- */
-export default class RegionSelector extends React.Component<RegionSelectorProps, RegionSelectorState> {
-  constructor(props: RegionSelectorProps) {
-    super(props)
-    this.state = {
-      options: [],
-      selectedOption: null,
-    }
-  }
-
-  componentDidMount() {
-    this.fetchDetails()
-  }
-
-  componentDidUpdate(prevProps: RegionSelectorProps) {
-    if (prevProps.rootLanguage !== this.props.rootLanguage) {
-      this.fetchDetails()
-    }
-  }
-
-  async fetchDetails() {
-    // Memoization for error handling.
-    const targetLanguage = this.props.rootLanguage
-    this.setState({ language: undefined })
-    if (targetLanguage) {
-      try {
-        const language = await languagesStore.getLanguage(targetLanguage)
-        // Just a safe check if source didn't change as we waited for the response.
-        if (this.props.rootLanguage === language.code) {
-          const options = this.buildOptions(language)
-          const initialOption = options.length > 0 ? options[0].value : null
-          this.setState({
-            language: language,
-            options: options,
-            selectedOption: initialOption,
-          })
-          if (initialOption) {
-            this.props.onRegionChange(initialOption)
-          }
-        }
-      } catch (error) {
-        // Here we use memoized value, as at this point the props might've changed.
-        console.error(`Language ${targetLanguage} not found 6`)
-      }
-    }
-  }
-
-  buildOptions(language: DetailedLanguage): { label: string; value: string }[] {
+  const regionOptions = useMemo(() => {
     const outcome = []
-
     let serviceRegions
-    if (this.props.serviceType === 'transcription') {
-      serviceRegions = language.transcription_services[this.props.serviceCode]
-    } else if (this.props.serviceType === 'translation') {
-      serviceRegions = language.translation_services[this.props.serviceCode]
+    if (props.serviceType === 'transcription') {
+      serviceRegions = language?.transcription_services[props.serviceCode]
+    } else if (props.serviceType === 'translation') {
+      serviceRegions = language?.translation_services[props.serviceCode]
     }
 
     if (serviceRegions) {
       for (const ourLanguageCode in serviceRegions) {
         const serviceLanguageCode = serviceRegions[ourLanguageCode]
-        const label = language.regions.find((region) => region.code === ourLanguageCode)?.name
+        const label = language?.regions.find((region) => region.code === ourLanguageCode)?.name
 
         if (serviceLanguageCode && label) {
           outcome.push({
@@ -118,52 +86,55 @@ export default class RegionSelector extends React.Component<RegionSelectorProps,
       }
       return 0 // happens when labels are equal (should not happen in real life)
     })
-  }
+  }, [language, props.serviceCode, props.serviceType])
 
-  onOptionChange(option: LanguageCode | null) {
-    this.setState({ selectedOption: option })
-    this.props.onRegionChange(option)
-  }
-
-  render() {
-    if (this.state.language === undefined) {
-      return <bem.RegionSelector__loading>…</bem.RegionSelector__loading>
+  // Needed to populate the Select value after getting data
+  useEffect(() => {
+    if (regionOptions.length > 0) {
+      const initialOption = regionOptions[0].value
+      setSelectedRegion(initialOption)
+      props.onRegionChange?.(initialOption)
+    } else {
+      setSelectedRegion(null)
     }
+  }, [regionOptions])
 
-    return (
-      <bem.RegionSelector>
-        <Group gap='xs'>
-          <TextInput
-            readOnly
-            size='sm'
-            value={this.state.language.name}
-            leftSection={<Icon name='language-alt' size='s' />}
-            w={220}
-            rightSection={
-              <ActionIcon
-                variant='transparent'
-                size='sm'
-                onClick={this.props.onCancel}
-                disabled={this.props.isDisabled}
-              >
-                <Icon name='close' size='xs' />
-              </ActionIcon>
-            }
-          />
-
-          {this.state.options.length !== 0 && (
-            <Select
-              w={220}
-              data={this.state.options}
-              value={this.state.selectedOption}
-              size='sm'
-              onChange={(newValue) => this.onOptionChange(newValue)}
-              disabled={this.props.isDisabled}
-              placeholder={t('Select a region...')}
-            />
-          )}
-        </Group>
-      </bem.RegionSelector>
-    )
+  const handleRegionChange = (newRegion: string | null) => {
+    setSelectedRegion(newRegion)
+    props.onRegionChange(newRegion)
   }
+
+  return (
+    <Flex component='section' direction='row' align='center' justify='center' mb={'xl'}>
+      <Group gap='xs'>
+        <TextInput
+          readOnly
+          value={language?.name || ''}
+          size='sm'
+          leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
+          w={220}
+          rightSection={
+            <ActionIcon variant='transparent' size='sm' onClick={props.onCancel} disabled={props.isDisabled}>
+              <KoboIcon icon={IconX} size='xs' />
+            </ActionIcon>
+          }
+        />
+
+        {regionOptions.length > 0 && (
+          <Select
+            w={220}
+            data={regionOptions}
+            value={selectedRegion}
+            size='sm'
+            onChange={handleRegionChange}
+            disabled={props.isDisabled}
+            placeholder={t('Select a region...')}
+            rightSection={isLoading ? <Loader size='xs' /> : undefined}
+          />
+        )}
+      </Group>
+    </Flex>
+  )
 }
+
+export default RegionSelectorNew

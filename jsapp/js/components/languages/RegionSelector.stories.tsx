@@ -2,11 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import languageDetailMock from '#/endpoints/languageDetail.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import RegionSelectorNew from './regionSelectorNew'
+import RegionSelector from './RegionSelector'
 
-const meta: Meta<typeof RegionSelectorNew> = {
+const meta: Meta<typeof RegionSelector> = {
   title: 'Components/RegionSelector',
-  component: RegionSelectorNew,
+  component: RegionSelector,
   argTypes: {
     rootLanguage: { control: 'text' },
     isDisabled: { control: 'boolean' },
@@ -27,7 +27,7 @@ const meta: Meta<typeof RegionSelectorNew> = {
 
 export default meta
 
-type Story = StoryObj<typeof RegionSelectorNew>
+type Story = StoryObj<typeof RegionSelector>
 
 export const Primary: Story = {
   args: {

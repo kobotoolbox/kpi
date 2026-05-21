@@ -11,7 +11,7 @@ import {
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
-import RegionSelectorNew from '#/components/languages/regionSelectorNew'
+import RegionSelector from '#/components/languages/regionSelector'
 import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
@@ -122,7 +122,7 @@ export default function StepCreateAutomated({
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
-      <RegionSelectorNew
+      <RegionSelector
         isDisabled={anyPending}
         serviceCode='goog'
         serviceType='transcription'
