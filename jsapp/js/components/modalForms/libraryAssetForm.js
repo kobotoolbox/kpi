@@ -14,6 +14,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import ExtraProjectMetadataFields from '#/components/modalForms/extraProjectMetadataFields'
 import { ASSET_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
@@ -22,6 +23,7 @@ import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
 import ModalBackButton from './ModalBackButton'
+import styles from './libraryAssetForm.module.scss'
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -37,22 +39,24 @@ export class LibraryAssetFormComponent extends React.Component {
   constructor(props) {
     super(props)
     this.unlisteners = []
+
+    const { asset } = props
+    const fields = {
+      name: asset?.name || '',
+      organization: asset?.settings?.organization || '',
+      country: asset?.settings?.country || null,
+      sector: asset?.settings?.sector || null,
+      tags: asset?.tag_string || '',
+      description: asset?.settings?.description || '',
+    }
+
     this.state = {
       isSessionLoaded: !!sessionStore.isLoggedIn,
-      fields: {
-        name: '',
-        organization: '',
-        country: null,
-        sector: null,
-        tags: '',
-        description: '',
-      },
+      fields,
+      extraMetadataFields: {},
       isPending: false,
     }
     autoBind(this)
-    if (this.props.asset) {
-      this.applyPropsData()
-    }
   }
 
   componentDidMount() {
@@ -62,6 +66,15 @@ export class LibraryAssetFormComponent extends React.Component {
         this.setState({ isSessionLoaded: true })
       },
     )
+
+    // Load extra metadata field values from asset settings when editing
+    // or seed with null value when creating a new asset
+    const extraMetadataFields = {}
+    for (const field of envStore.data.extra_project_metadata_fields) {
+      extraMetadataFields[field.name] = this.props.asset?.settings?.extra_metadata?.[field.name] ?? null
+    }
+    this.setState({ extraMetadataFields })
+
     this.unlisteners.push(
       actions.resources.createResource.completed.listen(this.onCreateResourceCompleted.bind(this)),
       actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this)),
@@ -74,27 +87,6 @@ export class LibraryAssetFormComponent extends React.Component {
     this.unlisteners.forEach((clb) => {
       clb()
     })
-  }
-
-  applyPropsData() {
-    if (this.props.asset.name) {
-      this.state.fields.name = this.props.asset.name
-    }
-    if (this.props.asset.settings.organization) {
-      this.state.fields.organization = this.props.asset.settings.organization
-    }
-    if (this.props.asset.settings.country) {
-      this.state.fields.country = this.props.asset.settings.country
-    }
-    if (this.props.asset.settings.sector) {
-      this.state.fields.sector = this.props.asset.settings.sector
-    }
-    if (this.props.asset.tag_string) {
-      this.state.fields.tags = this.props.asset.tag_string
-    }
-    if (this.props.asset.settings.description) {
-      this.state.fields.description = this.props.asset.settings.description
-    }
   }
 
   onCreateResourceCompleted(response) {
@@ -129,27 +121,25 @@ export class LibraryAssetFormComponent extends React.Component {
     evt.preventDefault()
     this.setState({ isPending: true })
 
+    const settings = JSON.stringify({
+      organization: this.state.fields.organization,
+      country: this.state.fields.country,
+      sector: this.state.fields.sector,
+      description: this.state.fields.description,
+      extra_metadata: this.state.extraMetadataFields,
+    })
+
     if (this.props.asset) {
       actions.resources.updateAsset(this.props.asset.uid, {
         name: this.state.fields.name,
-        settings: JSON.stringify({
-          organization: this.state.fields.organization,
-          country: this.state.fields.country,
-          sector: this.state.fields.sector,
-          description: this.state.fields.description,
-        }),
+        settings: settings,
         tag_string: this.state.fields.tags,
       })
     } else {
       const params = {
         name: this.state.fields.name,
         asset_type: this.getFormAssetType(),
-        settings: JSON.stringify({
-          organization: this.state.fields.organization,
-          country: this.state.fields.country,
-          sector: this.state.fields.sector,
-          description: this.state.fields.description,
-        }),
+        settings: settings,
         tag_string: this.state.fields.tags,
       }
 
@@ -170,6 +160,12 @@ export class LibraryAssetFormComponent extends React.Component {
     const fields = clonedeep(this.state.fields)
     fields[fieldName] = newFieldValue
     this.setState({ fields: fields })
+  }
+
+  onExtraFieldChange(fieldName, newFieldValue) {
+    this.setState((prevState) => {
+      return { extraMetadataFields: { ...prevState.extraMetadataFields, [fieldName]: newFieldValue } }
+    })
   }
 
   onNameChange(newValue) {
@@ -214,7 +210,7 @@ export class LibraryAssetFormComponent extends React.Component {
     const COUNTRIES = envStore.data.country_choices
 
     return (
-      <bem.FormModal__form className='project-settings'>
+      <bem.FormModal__form className={`project-settings ${styles.form}`}>
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
@@ -265,6 +261,8 @@ export class LibraryAssetFormComponent extends React.Component {
               isClearable
             />
           </bem.FormModal__item>
+
+          <ExtraProjectMetadataFields values={this.state.extraMetadataFields} onChange={this.onExtraFieldChange} />
 
           <bem.FormModal__item>
             <KoboTagsInput
