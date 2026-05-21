@@ -49,7 +49,8 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
       {
         key: 'original',
         label: t('Original string'),
-        size: 360,
+        size: 100,
+        grow: true,
         cellFormatter: (row) => <div className={row.isLabelLocked ? 'rt-td--disabled' : ''}>{row.original}</div>,
       },
       {
@@ -70,7 +71,8 @@ export default function TranslationsEditor(props: TranslationsEditorProps) {
             </ButtonNew>
           </Group>
         ),
-        size: 740,
+        size: 200,
+        grow: true,
         cellFormatter: (row, rowIndex) => {
           const absoluteIndex = props.pagination.start + rowIndex
           return (
