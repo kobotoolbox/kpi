@@ -88,7 +88,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
   formAssetTypeRef.current = formAssetType
 
   useEffect(() => {
-    when(
+    const disposeSessionWhen = when(
       () => sessionStore.isInitialLoadComplete,
       () => setIsSessionLoaded(true),
     )
@@ -131,6 +131,10 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
     ]
 
     return () => {
+      // Cancel the pending MobX reaction in case we unmount before the
+      // session finishes loading — otherwise it would try to setState on
+      // an unmounted component.
+      disposeSessionWhen()
       unlisteners.forEach((clb) => clb())
     }
   }, [navigate])
