@@ -10,8 +10,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { LanguageTranscriptionServicesItem } from './languageTranscriptionServicesItem'
-import type { LanguageTranslationServicesItem } from './languageTranslationServicesItem'
+import type { LanguageTranscriptionServices } from './languageTranscriptionServices'
+import type { LanguageTranslationServices } from './languageTranslationServices'
 
 export interface Language {
   /** @maxLength 200 */
@@ -19,7 +19,7 @@ export interface Language {
   /** @maxLength 10 */
   code: string
   featured?: boolean
-  readonly transcription_services: readonly LanguageTranscriptionServicesItem[]
-  readonly translation_services: readonly LanguageTranslationServicesItem[]
+  readonly transcription_services: LanguageTranscriptionServices
+  readonly translation_services: LanguageTranslationServices
   regions: LanguageRegion[]
 }
