@@ -31,7 +31,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         cls.create_stripe_api_key()
 
     def setUp(self):
-        self.url = reverse('api_v2:environment-list')
+        self.url = reverse('api_v2:environment')
         self.user = User.objects.get(username='someuser')
         self.password = 'someuser'
 

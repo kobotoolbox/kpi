@@ -184,6 +184,6 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
 
         # `/api/v2/environment/`
         response = self.client.get(
-            reverse(self._get_endpoint('environment-list')), **headers
+            reverse(self._get_endpoint('environment')), **headers
         )
         assert response.status_code == status.HTTP_200_OK

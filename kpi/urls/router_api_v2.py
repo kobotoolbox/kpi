@@ -274,7 +274,7 @@ kobo_scim_pattern = [
 ]
 
 additional_urls = [
-    path(r'environment', EnvironmentView.as_view(), name='environment')
+    path(r'environment/', EnvironmentView.as_view(), name='environment')
 ]
 
 urls_patterns = (

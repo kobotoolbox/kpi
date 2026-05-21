@@ -12,7 +12,7 @@ class GlobalSettingsTestCase(TestCase, RequiresStripeAPIKeyMixin):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.url = reverse('api_v2:environment-list')
+        self.url = reverse('api_v2:environment')
 
     @classmethod
     def setUpTestData(cls):
