@@ -134,7 +134,7 @@ export function buildTranslationRows(asset: AssetResponse, langIndex: number): T
       if (choice.label && choice.label[0]) {
         rows.push({
           original: String(choice.label[0]),
-          value: (choice.label[langIndex] as string | null) || null,
+          value: (choice.label[langIndex] as string | null) ?? null,
           name: choice.name || choice.$autovalue || '',
           listName: choice.list_name,
           itemProp: 'label',
