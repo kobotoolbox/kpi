@@ -1,15 +1,16 @@
 import { actions } from '#/actions'
-import { type BridgeStartRoute, SpecializedAssetPatchField } from './shared'
+import { endpoints } from '#/api.endpoints'
+import { type BridgeStartHandler, SpecializedAssetPatchField } from './shared'
 
 /**
- * Request-time lifecycle routes.
+ * Request-time lifecycle handlers.
  *
  * Keep this table limited to callbacks that must fire before the request is
  * sent, such as legacy `started` actions.
  */
-export const BRIDGE_START_ROUTES: ReadonlyArray<BridgeStartRoute> = [
+export const BRIDGE_START_HANDLERS: ReadonlyArray<BridgeStartHandler> = [
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.map.setMapStyles.started',
     matches: ({ assetUid, requestBody }) =>
       Boolean(assetUid && requestBody && SpecializedAssetPatchField.MapStyles in requestBody),

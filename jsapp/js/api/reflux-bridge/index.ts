@@ -3,61 +3,61 @@
  *
  * In simple terms, this bridge keeps legacy Reflux listeners working while request code is moved to Orval/react-query.
  * Every non-GET request is converted into a small context object (method, path, parsed body, and useful IDs).
- * The bridge then checks route tables for the current lifecycle phase: before request, success response, or failure.
+ * The bridge then checks handler tables for the current lifecycle phase: before request, success response, or failure.
  *
- * A route runs only when the endpoint pattern matches the request and its `matches(...)` predicate returns true.
- * If a route runs, it triggers the legacy callback so older UI code still reacts correctly during the migration.
+ * A handler runs only when the endpoint pattern matches the request and its `matches(...)` predicate returns true.
+ * If a handler runs, it triggers the legacy callback so older UI code still reacts correctly during the migration.
  *
  * File layout:
  * - `shared.ts` holds common helpers and shared types.
- * - `start-routes.ts` handles request-time lifecycle callbacks.
- * - `success-routes.ts` handles response-time success bridging.
- * - `failure-routes.ts` handles response-time failure bridging.
+ * - `start-handlers.ts` handles request-time lifecycle callbacks.
+ * - `success-handlers.ts` handles response-time success bridging.
+ * - `failure-handlers.ts` handles response-time failure bridging.
  */
 
-import { BRIDGE_FAILURE_ROUTES } from './failure-routes'
+import { BRIDGE_FAILURE_HANDLERS } from './failure-handlers'
 import type {
-  BridgeFailureRouteContext,
-  BridgeSuccessRouteContext,
+  BridgeFailureHandlerContext,
+  BridgeSuccessHandlerContext,
   BridgeableFailureResponse,
   BridgeableRequestConfig,
   BridgeableSuccessResponse,
 } from './shared'
-import { buildBridgeRequestContext, doesEndpointMatchRequest, toLegacyFailurePayload } from './shared'
-import { BRIDGE_START_ROUTES } from './start-routes'
-import { BRIDGE_SUCCESS_ROUTES } from './success-routes'
+import { buildBridgeRequestContext, doesEndpointMatchHandler, toLegacyFailurePayload } from './shared'
+import { BRIDGE_START_HANDLERS } from './start-handlers'
+import { BRIDGE_SUCCESS_HANDLERS } from './success-handlers'
 
 export * from './shared'
-export * from './start-routes'
-export * from './success-routes'
-export * from './failure-routes'
+export * from './start-handlers'
+export * from './success-handlers'
+export * from './failure-handlers'
 
 /**
- * Run every matching route for the given lifecycle context.
+ * Run every matching handler for the given lifecycle context.
  *
- * This keeps dispatching generic so the route tables stay declarative and the
+ * This keeps dispatching generic so the handler tables stay declarative and the
  * file does not accumulate endpoint-specific branching.
  *
- * Each route is error-isolated: if a legacy action throws, we log the error
+ * Each handler is error-isolated: if a legacy action throws, we log the error
  * but do not propagate it. This ensures bridge failures never break the API call.
  */
-function runMatchingRequestRoutes<
-  RouteContext extends { method: string; pathname: string },
-  Route extends {
+function runMatchingRequestHandlers<
+  HandlerContext extends { method: string; pathname: string },
+  Handler extends {
     endpoint: string
     refluxAction: string
-    matches: (context: RouteContext) => boolean
-    run: (context: RouteContext) => void
+    matches: (context: HandlerContext) => boolean
+    run: (context: HandlerContext) => void
   },
->(routes: ReadonlyArray<Route>, context: RouteContext) {
-  routes.forEach((route) => {
-    if (doesEndpointMatchRequest(route.endpoint, context.method, context.pathname) && route.matches(context)) {
+>(handlers: ReadonlyArray<Handler>, context: HandlerContext) {
+  handlers.forEach((handler) => {
+    if (doesEndpointMatchHandler(handler.endpoint, context.method, context.pathname) && handler.matches(context)) {
       try {
-        route.run(context)
+        handler.run(context)
       } catch (error) {
-        console.error('[Orval→Reflux Bridge] Error running legacy action route:', {
-          endpoint: route.endpoint,
-          refluxAction: route.refluxAction,
+        console.error('[Orval→Reflux Bridge] Error running legacy action handler:', {
+          endpoint: handler.endpoint,
+          refluxAction: handler.refluxAction,
           error,
         })
       }
@@ -73,7 +73,7 @@ export function bridgeOrvalStartToLegacyActions(url: string, config: BridgeableR
     return
   }
 
-  runMatchingRequestRoutes(BRIDGE_START_ROUTES, context)
+  runMatchingRequestHandlers(BRIDGE_START_HANDLERS, context)
 }
 
 export function bridgeOrvalSuccessToLegacyActions(
@@ -88,12 +88,12 @@ export function bridgeOrvalSuccessToLegacyActions(
     return
   }
 
-  const successContext: BridgeSuccessRouteContext = {
+  const successContext: BridgeSuccessHandlerContext = {
     ...requestContext,
     responseData: response.data,
   }
 
-  runMatchingRequestRoutes(BRIDGE_SUCCESS_ROUTES, successContext)
+  runMatchingRequestHandlers(BRIDGE_SUCCESS_HANDLERS, successContext)
 }
 
 export function bridgeOrvalFailureToLegacyActions(
@@ -108,7 +108,7 @@ export function bridgeOrvalFailureToLegacyActions(
     return
   }
 
-  const failureContext: BridgeFailureRouteContext = {
+  const failureContext: BridgeFailureHandlerContext = {
     ...requestContext,
     responseData: response.data,
     failureData: response.data,
@@ -116,5 +116,5 @@ export function bridgeOrvalFailureToLegacyActions(
     legacyFailurePayload: toLegacyFailurePayload(response),
   }
 
-  runMatchingRequestRoutes(BRIDGE_FAILURE_ROUTES, failureContext)
+  runMatchingRequestHandlers(BRIDGE_FAILURE_HANDLERS, failureContext)
 }

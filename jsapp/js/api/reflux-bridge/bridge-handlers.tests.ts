@@ -30,9 +30,9 @@ import {
   bridgeOrvalStartToLegacyActions,
   bridgeOrvalSuccessToLegacyActions,
 } from './index'
-import { doesEndpointMatchRequest } from './shared'
+import { doesEndpointMatchHandler } from './shared'
 
-describe('reflux bridge route flow', () => {
+describe('reflux bridge handler flow', () => {
   beforeEach(() => {
     // Start each test from a clean slate so the assertions stay local.
     jest.clearAllMocks()
@@ -99,7 +99,7 @@ describe('reflux bridge route flow', () => {
 
     chai.expect(resourceActions.updateAsset.completed.mock.calls).to.deep.equal([[successAsset]])
 
-    // Make sure this request did not spill into report-related routes.
+    // Make sure this request did not spill into report-related handlers.
     chai.expect(reportActions.setStyle.completed.mock.calls.length).to.equal(0)
     chai.expect(reportActions.setCustom.completed.mock.calls.length).to.equal(0)
   })
@@ -108,19 +108,19 @@ describe('reflux bridge route flow', () => {
 describe('endpoint pattern matching', () => {
   it('matches dynamic asset endpoint pattern', () => {
     chai
-      .expect(doesEndpointMatchRequest('PATCH /api/v2/assets/:uid/', 'PATCH', '/api/v2/assets/abc123/'))
+      .expect(doesEndpointMatchHandler('PATCH /api/v2/assets/:uid/', 'PATCH', '/api/v2/assets/abc123/'))
       .to.equal(true)
   })
 
   it('does not match a different path shape', () => {
     chai
-      .expect(doesEndpointMatchRequest('PATCH /api/v2/assets/:uid/', 'PATCH', '/api/v2/assets/abc123/deployment/'))
+      .expect(doesEndpointMatchHandler('PATCH /api/v2/assets/:uid/', 'PATCH', '/api/v2/assets/abc123/deployment/'))
       .to.equal(false)
   })
 
   it('does not match when method differs', () => {
     chai
-      .expect(doesEndpointMatchRequest('PATCH /api/v2/assets/:uid/', 'POST', '/api/v2/assets/abc123/'))
+      .expect(doesEndpointMatchHandler('PATCH /api/v2/assets/:uid/', 'POST', '/api/v2/assets/abc123/'))
       .to.equal(false)
   })
 })

@@ -1,12 +1,13 @@
 import { actions } from '#/actions'
-import { type BridgeFailureRoute, SpecializedAssetPatchField } from './shared'
+import { endpoints } from '#/api.endpoints'
+import { type BridgeFailureHandler, SpecializedAssetPatchField } from './shared'
 
 /**
- * Response-time failure routes. Keep this table focused on legacy `*.failed` callbacks.
+ * Response-time failure handlers. Keep this table focused on legacy `*.failed` callbacks.
  */
-export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
+export const BRIDGE_FAILURE_HANDLERS: ReadonlyArray<BridgeFailureHandler> = [
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.resources.updateAsset.failed',
     matches: ({ assetUid, requestBody }) =>
       Boolean(
@@ -17,7 +18,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.reports.setStyle.failed',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'report_styles' in requestBody),
     run: ({ legacyFailurePayload }) => {
@@ -25,7 +26,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.reports.setCustom.failed',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'report_custom' in requestBody),
     run: ({ legacyFailurePayload }) => {
@@ -33,7 +34,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.map.setMapStyles.failed',
     matches: ({ assetUid, requestBody }) => Boolean(assetUid && requestBody && 'map_styles' in requestBody),
     run: ({ legacyFailurePayload }) => {
@@ -41,9 +42,9 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     },
   },
   {
-    endpoint: 'POST /api/v2/assets/',
+    endpoint: `POST ${endpoints.ASSETS_URL}`,
     refluxAction: 'actions.resources.createResource.failed | actions.resources.cloneAsset.failed',
-    matches: ({ pathname }) => pathname === '/api/v2/assets/',
+    matches: ({ pathname }) => pathname === endpoints.ASSETS_URL,
     run: ({ requestBody, legacyFailurePayload }) => {
       // Same endpoint powers both create and clone, so branch by request body.
       if (typeof requestBody?.clone_from === 'string' && requestBody.clone_from.length > 0) {
@@ -55,19 +56,19 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     },
   },
   {
-    endpoint: 'DELETE /api/v2/assets/:uid/',
+    endpoint: `DELETE ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.resources.deleteAsset.failed',
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
       if (assetUid) {
-        // Intentional difference vs legacy Reflux flow: this bridge route emits only `deleteAsset.failed` and does
+        // Intentional difference vs legacy Reflux flow: this bridge handler emits only `deleteAsset.failed` and does
         // not replicate the old inline alert. React-query code is expected to handle user-facing errors.
         actions.resources.deleteAsset.failed({ uid: assetUid, assetType: '' })
       }
     },
   },
   {
-    endpoint: 'POST /api/v2/assets/:uid/deployment/',
+    endpoint: `POST ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.deployAsset.failed',
     matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),
     run: ({ legacyFailurePayload }) => {
@@ -76,7 +77,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
   },
   {
     // PATCH /deployment/ is overloaded: `version_id` means redeploy, otherwise it is set-active.
-    endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
+    endpoint: `PATCH ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.deployAsset.failed (redeployment)',
     matches: ({ deploymentAssetUid, requestBody }) =>
       Boolean(deploymentAssetUid && requestBody && 'version_id' in requestBody),
@@ -85,7 +86,7 @@ export const BRIDGE_FAILURE_ROUTES: ReadonlyArray<BridgeFailureRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
+    endpoint: `PATCH ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.setDeploymentActive.failed',
     matches: ({ deploymentAssetUid, requestBody }) =>
       Boolean(deploymentAssetUid && (!requestBody || !('version_id' in requestBody))),

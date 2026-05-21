@@ -1,15 +1,16 @@
 import { actions } from '#/actions'
-import type { BridgeSuccessRoute } from './shared'
+import { endpoints } from '#/api.endpoints'
+import type { BridgeSuccessHandler } from './shared'
 import { SpecializedAssetPatchField, getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
 
 /**
- * Response-time success routes.
+ * Response-time success handlers.
  *
  * Add entries here when a successful mutation should refresh legacy Reflux `*.completed` listeners.
  */
-export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
+export const BRIDGE_SUCCESS_HANDLERS: ReadonlyArray<BridgeSuccessHandler> = [
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.resources.updateAsset.completed',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(
@@ -23,7 +24,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.reports.setStyle.completed',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(
@@ -36,7 +37,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.resources.updateAsset.completed (report_custom fallback)',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(
@@ -51,21 +52,21 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/',
+    endpoint: `PATCH ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.map.setMapStyles.completed',
     matches: ({ assetUid, responseData, requestBody }) =>
       Boolean(assetUid && isRecord(responseData) && requestBody && SpecializedAssetPatchField.MapStyles in requestBody),
     run: ({ responseData }) => {
-      // This is response-time only; `started` is emitted separately in the start route table.
+      // This is response-time only; `started` is emitted separately in the start handler table.
       const asset = toLegacyAssetFromUnknown(responseData)
       actions.map.setMapStyles.completed(asset)
       actions.resources.updateAsset.completed(asset)
     },
   },
   {
-    endpoint: 'POST /api/v2/assets/',
+    endpoint: `POST ${endpoints.ASSETS_URL}`,
     refluxAction: 'actions.resources.createResource.completed | actions.resources.cloneAsset.completed',
-    matches: ({ pathname, responseData }) => pathname === '/api/v2/assets/' && isRecord(responseData),
+    matches: ({ pathname, responseData }) => pathname === endpoints.ASSETS_URL && isRecord(responseData),
     run: ({ responseData, requestBody }) => {
       // Same endpoint powers both create and clone, so keep the branch here.
       const legacyAsset = toLegacyAssetFromUnknown(responseData)
@@ -79,7 +80,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
-    endpoint: 'DELETE /api/v2/assets/:uid/',
+    endpoint: `DELETE ${endpoints.ASSET_URL}`,
     refluxAction: 'actions.resources.deleteAsset.completed',
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid }) => {
@@ -92,7 +93,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
-    endpoint: 'POST /api/v2/assets/:uid/deployment/',
+    endpoint: `POST ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.deployAsset.completed',
     matches: ({ deploymentAssetUid, responseData }) =>
       Boolean(deploymentAssetUid && getLegacyDeploymentAsset(responseData)),
@@ -106,9 +107,9 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
-    // PATCH /deployment/ handles two actions: with `version_id` it is a redeploy,
+    // PATCH /deployment/ handles two cases: with `version_id` it is a redeploy,
     // without it it flips which deployment is active.
-    endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
+    endpoint: `PATCH ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.deployAsset.completed (redeployment)',
     matches: ({ deploymentAssetUid, responseData, requestBody }) =>
       Boolean(
@@ -124,7 +125,7 @@ export const BRIDGE_SUCCESS_ROUTES: ReadonlyArray<BridgeSuccessRoute> = [
     },
   },
   {
-    endpoint: 'PATCH /api/v2/assets/:uid/deployment/',
+    endpoint: `PATCH ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.setDeploymentActive.completed',
     matches: ({ deploymentAssetUid, responseData, requestBody }) =>
       Boolean(
