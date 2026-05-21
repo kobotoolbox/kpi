@@ -6,8 +6,8 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
@@ -33,7 +33,7 @@ def check_asr_mt_access_for_user(user):
     )
 
 
-class EnvironmentViewSet(viewsets.ViewSet):
+class EnvironmentView(APIView):
     """
     GET-only view for certain server-provided configuration data
 

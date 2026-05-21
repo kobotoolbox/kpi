@@ -7924,6 +7924,32 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/environment:
+    get:
+      operationId: api_v2_environment_retrieve
+      description: |
+        Retrieve Kobo server environment configurations.
+
+        This endpoint provides a wide range of configuration details required by the frontend client, including:
+        - Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).
+        - Frontend configuration (retry times, usage limit enforcement, etc).
+        - Global static lists (sectors, countries, interface languages, operational purposes).
+        - Metadata configuration (available project and user metadata fields).
+        - Features configurations (MFA, password entropy meter, custom guidance text).
+        - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
+      tags:
+      - Configuration
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentResponse'
+          description: null
   /api/v2/imports/:
     get:
       operationId: api_v2_imports_list
@@ -11971,32 +11997,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /environment/:
-    get:
-      operationId: environment_retrieve
-      description: |
-        Retrieve Kobo server environment configurations.
-
-        This endpoint provides a wide range of configuration details required by the frontend client, including:
-        - Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).
-        - Frontend configuration (retry times, usage limit enforcement, etc).
-        - Global static lists (sectors, countries, interface languages, operational purposes).
-        - Metadata configuration (available project and user metadata fields).
-        - Features configurations (MFA, password entropy meter, custom guidance text).
-        - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
-      tags:
-      - Configuration
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EnvironmentResponse'
-          description: null
   /me/:
     get:
       operationId: me_retrieve

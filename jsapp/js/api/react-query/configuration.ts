@@ -42,7 +42,7 @@ export type environmentRetrieveResponse = environmentRetrieveResponseComposite &
 }
 
 export const getEnvironmentRetrieveUrl = () => {
-  return `/environment/`
+  return `/api/v2/environment`
 }
 
 export const environmentRetrieve = async (options?: RequestInit): Promise<environmentRetrieveResponse> => {
@@ -53,7 +53,7 @@ export const environmentRetrieve = async (options?: RequestInit): Promise<enviro
 }
 
 export const getEnvironmentRetrieveQueryKey = () => {
-  return ['environment'] as const
+  return ['api', 'v2', 'environment'] as const
 }
 
 export const getEnvironmentRetrieveQueryOptions = <
