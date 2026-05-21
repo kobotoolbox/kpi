@@ -76,7 +76,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
     props.onRegionChange(newRegion)
   }
 
-  if (selectedRegion === null) {
+  if (isLoading) {
     return <Loader size='xs' />
   }
 
