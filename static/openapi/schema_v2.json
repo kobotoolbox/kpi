@@ -25144,9 +25144,9 @@
                     },
                     "transcription_services": {
                         "type": "object",
-                        "additional_properties": {
+                        "additionalProperties": {
                             "type": "object",
-                            "additional_properties": {
+                            "additionalProperties": {
                                 "type": "string"
                             }
                         },
@@ -25154,9 +25154,9 @@
                     },
                     "translation_services": {
                         "type": "object",
-                        "additional_properties": {
+                        "additionalProperties": {
                             "type": "object",
-                            "additional_properties": {
+                            "additionalProperties": {
                                 "type": "string"
                             }
                         },

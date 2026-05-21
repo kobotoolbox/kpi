@@ -17857,16 +17857,16 @@ components:
           type: boolean
         transcription_services:
           type: object
-          additional_properties:
+          additionalProperties:
             type: object
-            additional_properties:
+            additionalProperties:
               type: string
           readOnly: true
         translation_services:
           type: object
-          additional_properties:
+          additionalProperties:
             type: object
-            additional_properties:
+            additionalProperties:
               type: string
           readOnly: true
         regions:
