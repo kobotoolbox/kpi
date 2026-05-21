@@ -17,25 +17,21 @@ import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { type LangObject, getLangString, notify } from '#/utils'
 import LanguagesEditor from './LanguagesEditor'
 import TranslationsEditor from './TranslationsEditor'
-import {
-  SAVE_BUTTON_LABEL,
-  type TranslationRowItem,
-  type View,
-  buildTranslationRows,
-  deleteTranslations,
-  prepareTranslations,
-} from './types'
+import type { TranslationRowItem } from './types'
+import { SAVE_BUTTON_LABEL, buildTranslationRows, deleteTranslations, prepareTranslations } from './utils'
+
+type FormLanguagesManagerView = 'languages' | 'translations'
 
 interface FormLanguagesManagerProps {
   asset: AssetResponse
   onRequestClose: () => void
   registerOnRequestClose?: (closeHandler: () => void) => void
-  onActiveViewChange?: (view: View) => void
+  onActiveViewChange?: (view: FormLanguagesManagerView) => void
 }
 
 export function openFormLanguagesModal(asset: AssetResponse) {
   let requestModalClose = () => {}
-  const modalSizeByView: Record<View, string> = {
+  const modalSizeByView: Record<FormLanguagesManagerView, string> = {
     languages: 'lg',
     translations: '80%',
   }
@@ -88,7 +84,7 @@ export function openFormLanguagesModal(asset: AssetResponse) {
 
 export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [asset, setAsset] = useState(props.asset)
-  const [activeView, setActiveView] = useState<View>('languages')
+  const [activeView, setActiveView] = useState<FormLanguagesManagerView>('languages')
   const [selectedLangIndex, setSelectedLangIndex] = useState(0)
   const [tableRows, setTableRows] = useState<TranslationRowItem[]>([])
   const [showAddLanguageForm, setShowAddLanguageForm] = useState(false)

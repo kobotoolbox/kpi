@@ -11,7 +11,8 @@ import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import type { LangObject } from '#/utils'
 import LanguageForm from './LanguageForm'
-import { LANGUAGE_SUPPORT_URL } from './types'
+
+const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 
 interface LanguagesEditorProps {
   asset: AssetResponse

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import ButtonNew from '#/components/common/ButtonNew'
-import { SAVE_BUTTON_LABEL } from './types'
+import { SAVE_BUTTON_LABEL } from './utils'
 
 export type MarkDirtyRef = React.MutableRefObject<() => void>
 
