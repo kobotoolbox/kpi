@@ -71,7 +71,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             request = self.factory.post('/submission', data, format='json')
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
-            expected_queries = FuzzyInt(42, 47)
+            expected_queries = FuzzyInt(40, 45)
             # In stripe-enabled environments usage limit enforcement
             # requires additional queries
             # TODO: Constance adds three extra queries when checking

@@ -16341,16 +16341,6 @@ components:
           type: string
           format: date-time
           title: ' submission time'
-        _tags:
-          type: array
-          items:
-            type: string
-          title: ' tags'
-        _notes:
-          type: array
-          items:
-            type: string
-          title: ' notes'
         _validation_status:
           oneOf:
           - $ref: '#/components/schemas/DataValidationStatus'
@@ -16378,11 +16368,9 @@ components:
       - _attachments
       - _geolocation
       - _id
-      - _notes
       - _status
       - _submission_time
       - _submitted_by
-      - _tags
       - _uuid
       - _validation_status
       - _xform_id_string
