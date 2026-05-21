@@ -3,35 +3,7 @@ import { IconLanguage, IconX } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLanguagesRetrieve } from '#/api/react-query/other'
 import KoboIcon from '../common/KoboIcon'
-import type { LanguageBase, LanguageCode, TransxServiceCode } from './languagesStore'
-
-// FIXME: Temporarily moved these type definitions here to remove the languagesStore.ts until DEV-2143 is done
-interface DetailedLanguageRegion {
-  code: LanguageCode
-  name: string
-}
-
-interface DetailedLanguageServices {
-  [serviceCode: TransxServiceCode]: { [languageCode: LanguageCode]: LanguageCode }
-}
-
-interface DetailedLanguage extends LanguageBase {
-  /**
-   * A list of regions for given language with their unique language codes,
-   * e.g. "Canada", "Belgium", "France", and "Switzerland" for French (fr).
-   */
-  regions: DetailedLanguageRegion[]
-  /**
-   * A list of available transcription services for given language with a map of
-   * "ours to theirs" language codes.
-   */
-  transcription_services: DetailedLanguageServices
-  /**
-   * A list of available translation services for given language with a map of
-   * "ours to theirs" language codes.
-   */
-  translation_services: DetailedLanguageServices
-}
+import type { LanguageCode, TransxServiceCode } from './languagesStore'
 
 interface RegionSelectorProps {
   isDisabled?: boolean
@@ -48,7 +20,7 @@ interface RegionSelectorProps {
 
 const RegionSelectorNew = (props: RegionSelectorProps) => {
   const { data, isLoading } = useLanguagesRetrieve(props.rootLanguage)
-  const language = data?.status === 200 ? (data.data as unknown as DetailedLanguage) : undefined
+  const language = data?.status === 200 ? data.data : undefined
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
 
   const regionOptions = useMemo(() => {
