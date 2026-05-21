@@ -309,6 +309,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     const ok = await patchAsset(content)
     if (ok) {
       setPendingDeleteLanguageIndex(null)
+      // Indices to the right of the deleted one have shifted, so any open
+      // rename form would now be pointing at a different language. Close it
+      // to avoid submitting stale data against the wrong index.
+      setRenameLanguageIndex(-1)
     }
   }
 
