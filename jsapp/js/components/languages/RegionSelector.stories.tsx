@@ -91,7 +91,7 @@ export const InteractionTest: Story = {
           const regionSelect = canvas.getByPlaceholderText('Select a region...')
           expect(regionSelect).toBeInTheDocument()
         },
-        { timeout: 3000 }
+        { timeout: 3000 },
       )
     })
 
@@ -100,7 +100,7 @@ export const InteractionTest: Story = {
         async () => {
           expect(args.onRegionChange).toHaveBeenCalled()
         },
-        { timeout: 3000 }
+        { timeout: 3000 },
       )
       const firstCall = (args.onRegionChange as ReturnType<typeof fn>).mock.calls[0]
       expect(firstCall[0]).toBeTruthy()
@@ -121,15 +121,13 @@ export const InteractionTest: Story = {
       const options = document.querySelectorAll('[role="option"]')
       expect(options.length).toBe(2)
 
-      const optionTexts = Array.from(options).map(option => option.textContent)
+      const optionTexts = Array.from(options).map((option) => option.textContent)
       expect(optionTexts).toEqual(['United Kingdom', 'United States'])
     })
 
     await step('Select a different region', async () => {
       const options = document.querySelectorAll('[role="option"]')
-      const unitedStatesOption = Array.from(options).find(
-        option => option.textContent === 'United States'
-      )
+      const unitedStatesOption = Array.from(options).find((option) => option.textContent === 'United States')
       expect(unitedStatesOption).toBeInTheDocument()
       await user.click(unitedStatesOption!)
     })

@@ -11,13 +11,12 @@ import {
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
-import RegionSelector from '#/components/languages/RegionSelector'
+import RegionSelectorNew from '#/components/languages/regionSelectorNew'
 import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import RegionSelectorNew from '#/components/languages/regionSelectorNew'
 
 interface Props {
   asset: AssetResponse
