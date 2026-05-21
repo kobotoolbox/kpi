@@ -31,6 +31,8 @@ export const cssVariablesResolverKobo: CSSVariablesResolver = () => {
       '--kobo-z-index-modal-overlay': String(KOBO_Z_INDEX.modalOverlay),
       '--kobo-z-index-modal': String(KOBO_Z_INDEX.modal),
       '--kobo-z-index-tooltip': String(KOBO_Z_INDEX.tooltip),
+      '--kobo-z-index-nested-modal-overlay': String(KOBO_Z_INDEX.nestedModalOverlay),
+      '--kobo-z-index-nested-modal': String(KOBO_Z_INDEX.nestedModal),
       '--kobo-z-index-dropdown': String(KOBO_Z_INDEX.dropdown),
     },
     light: {},

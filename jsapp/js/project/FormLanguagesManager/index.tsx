@@ -13,6 +13,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import type { AssetContent, AssetResponse } from '#/dataInterface'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { type LangObject, getLangString, notify } from '#/utils'
 import LanguagesEditor from './LanguagesEditor'
 import TranslationsEditor from './TranslationsEditor'
@@ -97,6 +98,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
   const [saveButtonText, setSaveButtonText] = useState(t('Save Changes'))
   const [pagination, setPagination] = useState({ limit: 10, start: 0 })
   const [pendingDeleteLanguageIndex, setPendingDeleteLanguageIndex] = useState<number | null>(null)
+  const [pendingDefaultLanguageIndex, setPendingDefaultLanguageIndex] = useState<number | null>(null)
   const [pendingUnsavedConfirm, setPendingUnsavedConfirm] = useState<'close' | 'back' | null>(null)
   const [isTranslationTableUnsaved, setIsTranslationTableUnsaved] = useState(false)
   // Track if any cell has been edited without committing to state (to avoid first-keystroke parent re-render)
@@ -314,29 +316,32 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     }
   }
 
-  async function changeDefaultLanguage(index: number) {
-    const langString = translations[index]
-    const langLabel = langString ?? t('Unnamed language')
-    modals.openConfirmModal({
-      title: t('Change default language?'),
-      children: t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
-        '##lang##',
-        langLabel,
-      ),
-      labels: { confirm: t('Confirm'), cancel: t('Cancel') },
-      onConfirm: async () => {
-        if (langString === null) {
-          notify.error(t('Cannot set an unnamed language as the default language.'))
-          return
-        }
+  function changeDefaultLanguage(index: number) {
+    setPendingDefaultLanguageIndex(index)
+  }
 
-        const content = cloneDeep(asset.content)
-        if (content?.settings) {
-          content.settings.default_language = langString
-          await patchAsset(content)
-        }
-      },
-    })
+  async function confirmChangeDefaultLanguage() {
+    if (pendingDefaultLanguageIndex === null) {
+      return
+    }
+
+    const langString = translations[pendingDefaultLanguageIndex]
+    if (langString === null) {
+      notify.error(t('Cannot set an unnamed language as the default language.'))
+      setPendingDefaultLanguageIndex(null)
+      return
+    }
+
+    const content = cloneDeep(asset.content)
+    if (content?.settings) {
+      content.settings.default_language = langString
+      const ok = await patchAsset(content)
+      if (ok) {
+        setPendingDefaultLanguageIndex(null)
+      }
+    } else {
+      setPendingDefaultLanguageIndex(null)
+    }
   }
 
   const onStartEditingCell = useCallback(() => {
@@ -382,6 +387,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
             setPendingDeleteLanguageIndex(null)
             return
           }
+          if (pendingDefaultLanguageIndex !== null) {
+            setPendingDefaultLanguageIndex(null)
+            return
+          }
           if (pendingUnsavedConfirm !== null) {
             setPendingUnsavedConfirm(null)
             return
@@ -398,8 +407,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         title={pendingUnsavedConfirm === 'close' ? t('Close Translations Table?') : t('Go back?')}
         size='sm'
         centered
-        withOverlay={false}
+        withOverlay={true}
         closeOnEscape={false}
+        zIndex={KOBO_Z_INDEX.nestedModal}
+        overlayProps={{ zIndex: KOBO_Z_INDEX.nestedModalOverlay }}
       >
         <Text>{t('You will lose all unsaved changes.')}</Text>
 
@@ -441,8 +452,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         title={t('Delete language?')}
         size='sm'
         centered
-        withOverlay={false}
+        withOverlay={true}
         closeOnEscape={false}
+        zIndex={KOBO_Z_INDEX.nestedModal}
+        overlayProps={{ zIndex: KOBO_Z_INDEX.nestedModalOverlay }}
       >
         <Text>{t('Are you sure you want to delete this language? This action is not reversible.')}</Text>
 
@@ -458,6 +471,43 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
 
           <ButtonNew variant='danger' loading={isUpdatingAsset} onClick={confirmDeleteLanguage}>
             {t('Delete')}
+          </ButtonNew>
+        </Group>
+      </ModalNew>
+
+      <ModalNew
+        opened={pendingDefaultLanguageIndex !== null}
+        onClose={() => {
+          setPendingDefaultLanguageIndex(null)
+        }}
+        title={t('Change default language?')}
+        size='sm'
+        centered
+        withOverlay={true}
+        closeOnEscape={false}
+        zIndex={KOBO_Z_INDEX.nestedModal}
+        overlayProps={{ zIndex: KOBO_Z_INDEX.nestedModalOverlay }}
+      >
+        <Text>
+          {t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
+            '##lang##',
+            (pendingDefaultLanguageIndex !== null ? translations[pendingDefaultLanguageIndex] : null) ??
+              t('Unnamed language'),
+          )}
+        </Text>
+
+        <Group justify='flex-end' mt='md'>
+          <ButtonNew
+            variant='light'
+            onClick={() => {
+              setPendingDefaultLanguageIndex(null)
+            }}
+          >
+            {t('Cancel')}
+          </ButtonNew>
+
+          <ButtonNew variant='filled' loading={isUpdatingAsset} onClick={confirmChangeDefaultLanguage}>
+            {t('Confirm')}
           </ButtonNew>
         </Group>
       </ModalNew>
