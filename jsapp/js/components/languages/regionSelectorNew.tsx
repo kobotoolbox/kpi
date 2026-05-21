@@ -56,7 +56,6 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
     let serviceRegions
     if (props.serviceType === 'transcription') {
       serviceRegions = language?.transcription_services[props.serviceCode]
-      console.log('service2', language?.translation_services)
     } else if (props.serviceType === 'translation') {
       serviceRegions = language?.translation_services[props.serviceCode]
     }
@@ -121,16 +120,18 @@ const RegionSelectorNew = (props: RegionSelectorProps) => {
           }
         />
 
-        <Select
-          w={220}
-          data={regionOptions}
-          value={selectedRegion}
-          size='sm'
-          onChange={handleRegionChange}
-          disabled={props.isDisabled}
-          placeholder={t('Select a region...')}
-          rightSection={isLoading ? <Loader size='xs' /> : undefined}
-        />
+        {regionOptions.length > 0 && (
+          <Select
+            w={220}
+            data={regionOptions}
+            value={selectedRegion}
+            size='sm'
+            onChange={handleRegionChange}
+            disabled={props.isDisabled}
+            placeholder={t('Select a region...')}
+            rightSection={isLoading ? <Loader size='xs' /> : undefined}
+          />
+        )}
       </Group>
     </Flex>
   )
