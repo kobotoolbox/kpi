@@ -119,7 +119,7 @@ export function buildTranslationRows(asset: AssetResponse, langIndex: number): T
       if (Array.isArray(rowValue) && rowValue[0]) {
         rows.push({
           original: String(rowValue[0]),
-          value: (rowValue[langIndex] as string | null) || null,
+          value: (rowValue[langIndex] as string | null) ?? null,
           name: rowName || '',
           itemProp: property,
           contentProp: 'survey',
