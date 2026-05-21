@@ -4,7 +4,7 @@ import clonedeep from 'lodash.clonedeep'
 import { when } from 'mobx'
 import autoBind from 'react-autobind'
 import { actions } from '#/actions'
-import assetUtils from '#/assetUtils'
+import { removeInvalidChars } from '#/assetUtils'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import KoboTagsInput from '#/components/common/koboTagsInput'
@@ -12,16 +12,42 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
-import ExtraProjectMetadataFields from '#/components/modalForms/extraProjectMetadataFields'
-import { ASSET_TYPES } from '#/constants'
+import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
+import { ASSET_TYPES, type AssetTypeName } from '#/constants'
+import type { AssetResponse, AssetSettings, LabelValuePair } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
 import { getRouteAssetUid, isAnyLibraryRoute } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
+import styles from './LibraryAssetForm.module.scss'
 import ModalBackButton from './ModalBackButton'
-import styles from './libraryAssetForm.module.scss'
+
+interface LibraryAssetFormProps extends WithRouterProps {
+  asset?: AssetResponse
+  assetType?: AssetTypeName
+  onSetModalTitle?: (title: string) => void
+}
+
+interface FormFields {
+  name: string
+  organization: string
+  country: AssetSettings['country']
+  sector: AssetSettings['sector']
+  tags: string
+  description: string
+}
+
+type ExtraMetadataValues = Record<string, string | string[] | null>
+
+interface LibraryAssetFormState {
+  isSessionLoaded: boolean
+  fields: FormFields
+  extraMetadataFields: ExtraMetadataValues
+  isPending: boolean
+}
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -30,16 +56,15 @@ import styles from './libraryAssetForm.module.scss'
  * - ProjectSettings
  * - AccountSettingsRoute
  * - LibraryAssetForm
- *
- * @prop {Object} asset - Modal asset.
  */
-export class LibraryAssetFormComponent extends React.Component {
-  constructor(props) {
+export class LibraryAssetFormComponent extends React.Component<LibraryAssetFormProps, LibraryAssetFormState> {
+  private unlisteners: Function[] = []
+
+  constructor(props: LibraryAssetFormProps) {
     super(props)
-    this.unlisteners = []
 
     const { asset } = props
-    const fields = {
+    const fields: FormFields = {
       name: asset?.name || '',
       organization: asset?.settings?.organization || '',
       country: asset?.settings?.country || null,
@@ -67,7 +92,7 @@ export class LibraryAssetFormComponent extends React.Component {
 
     // Load extra metadata field values from asset settings when editing
     // or seed with null value when creating a new asset
-    const extraMetadataFields = {}
+    const extraMetadataFields: ExtraMetadataValues = {}
     for (const field of envStore.data.extra_project_metadata_fields) {
       extraMetadataFields[field.name] = this.props.asset?.settings?.extra_metadata?.[field.name] ?? null
     }
@@ -87,10 +112,12 @@ export class LibraryAssetFormComponent extends React.Component {
     })
   }
 
-  onCreateResourceCompleted(response) {
+  onCreateResourceCompleted(response: AssetResponse) {
     this.setState({ isPending: false })
     notify(
-      t('##type## ##name## created').replace('##type##', this.getFormAssetType()).replace('##name##', response.name),
+      t('##type## ##name## created')
+        .replace('##type##', this.getFormAssetType() || 'asset')
+        .replace('##name##', response.name),
     )
     pageState.hideModal()
     if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
@@ -102,7 +129,7 @@ export class LibraryAssetFormComponent extends React.Component {
 
   onCreateResourceFailed() {
     this.setState({ isPending: false })
-    notify(t('Failed to create ##type##').replace('##type##', this.getFormAssetType()), 'error')
+    notify(t('Failed to create ##type##').replace('##type##', this.getFormAssetType() || 'asset'), 'error')
   }
 
   onUpdateAssetCompleted() {
@@ -112,10 +139,10 @@ export class LibraryAssetFormComponent extends React.Component {
 
   onUpdateAssetFailed() {
     this.setState({ isPending: false })
-    notify(t('Failed to update ##type##').replace('##type##', this.getFormAssetType()), 'error')
+    notify(t('Failed to update ##type##').replace('##type##', this.getFormAssetType() || 'asset'), 'error')
   }
 
-  onSubmit(evt) {
+  onSubmit(evt: React.FormEvent | React.MouseEvent) {
     evt.preventDefault()
     this.setState({ isPending: true })
 
@@ -134,7 +161,13 @@ export class LibraryAssetFormComponent extends React.Component {
         tag_string: this.state.fields.tags,
       })
     } else {
-      const params = {
+      const params: {
+        name: string
+        asset_type: AssetTypeName | undefined
+        settings: string
+        tag_string: string
+        parent?: string
+      } = {
         name: this.state.fields.name,
         asset_type: this.getFormAssetType(),
         settings: settings,
@@ -155,30 +188,30 @@ export class LibraryAssetFormComponent extends React.Component {
     }
   }
 
-  onAnyFieldChange(fieldName, newFieldValue) {
+  onAnyFieldChange<K extends keyof FormFields>(fieldName: K, newFieldValue: FormFields[K]) {
     const fields = clonedeep(this.state.fields)
     fields[fieldName] = newFieldValue
     this.setState({ fields: fields })
   }
 
-  onExtraFieldChange(fieldName, newFieldValue) {
+  onExtraFieldChange(fieldName: string, newFieldValue: string | string[] | null) {
     this.setState((prevState) => {
       return { extraMetadataFields: { ...prevState.extraMetadataFields, [fieldName]: newFieldValue } }
     })
   }
 
-  onNameChange(newValue) {
-    this.onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue))
+  onNameChange(newValue: string) {
+    this.onAnyFieldChange('name', removeInvalidChars(newValue))
   }
 
-  onDescriptionChange(newValue) {
-    this.onAnyFieldChange('description', assetUtils.removeInvalidChars(newValue))
+  onDescriptionChange(newValue: string) {
+    this.onAnyFieldChange('description', removeInvalidChars(newValue))
   }
 
   /**
    * @returns existing asset type or desired asset type
    */
-  getFormAssetType() {
+  getFormAssetType(): AssetTypeName | undefined {
     return this.props.asset ? this.props.asset.asset_type : this.props.assetType
   }
 
@@ -205,8 +238,8 @@ export class LibraryAssetFormComponent extends React.Component {
       return <LoadingSpinner />
     }
 
-    const SECTORS = envStore.data.sector_choices
-    const COUNTRIES = envStore.data.country_choices
+    const SECTORS: LabelValuePair[] = envStore.data.sector_choices
+    const COUNTRIES: LabelValuePair[] = envStore.data.country_choices
 
     return (
       <bem.FormModal__form className={`project-settings ${styles.form}`}>
@@ -216,7 +249,7 @@ export class LibraryAssetFormComponent extends React.Component {
               value={this.state.fields.name}
               onChange={this.onNameChange.bind(this)}
               label={t('Name')}
-              placeholder={t('Enter title of ##type## here').replace('##type##', this.getFormAssetType())}
+              placeholder={t('Enter title of ##type## here').replace('##type##', this.getFormAssetType() ?? '')}
             />
           </bem.FormModal__item>
 
