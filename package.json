@@ -22,7 +22,6 @@
     "backbone-validation": "^0.11.5",
     "chai-deep-equal-ignore-undefined": "^1.1.1",
     "classnames": "^2.3.1",
-    "coffeelint-no-implicit-returns": "^0.0.6",
     "fuse.js": "^7.3.0",
     "immer": "^10.1.1",
     "immutable": "^3.8.2",
@@ -81,6 +80,7 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@0x6b/ttf2woff2-wasm": "^0.11.1",
     "@babel/preset-env": "^7.22.5",
     "@biomejs/biome": "^1.9.4",
     "@eslint/compat": "^1.2.4",
@@ -148,6 +148,7 @@
     "circular-dependency-plugin": "^5.2.2",
     "coffee-loader": "^0.9.0",
     "coffeelint": "^1.16.2",
+    "coffeelint-no-implicit-returns": "^0.0.6",
     "coffeescript": "^1.12.0",
     "concurrently": "^9.2.1",
     "css-loader": "^6.11.0",
@@ -183,7 +184,7 @@
     "sass": "^1.92.1",
     "sass-loader": "^16.0.5",
     "speed-measure-webpack-plugin": "^1.5.0",
-    "storybook": "^9.0.0-beta.11",
+    "storybook": "^9.1.20",
     "storybook-addon-remix-react-router": "^3.1",
     "storybook-dark-mode": "^4.0.2",
     "style-loader": "^4.0.0",
@@ -201,7 +202,7 @@
     "webpack-bundle-tracker": "^1.5.0",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2",
-    "webpack-extract-translation-keys-plugin": "^6.1.0",
+    "webpack-extract-translation-keys-plugin": "^6.2.0",
     "whatwg-fetch": "^3.6.20"
   },
   "overrides": {
@@ -212,8 +213,12 @@
       "react": "$react",
       "react-dom": "$react-dom"
     },
-    "storybook": "$storybook",
-    "coffee-script": "$coffeescript"
+    "coffeelint": {
+      "coffee-script": "npm:coffeescript@1.12.0"
+    },
+    "@vusion/webfonts-generator": {
+      "ttf2woff2": "npm:@0x6b/ttf2woff2-wasm@0.11.1"
+    }
   },
   "scripts": {
     "preinstall": "npm run hint",
@@ -261,5 +266,17 @@
     "workerDirectory": [
       "msw-mocks"
     ]
+  },
+  "aube": {
+    "allowBuilds": {
+      "@biomejs/biome": true,
+      "@parcel/watcher": true,
+      "@swc/core": true,
+      "core-js-pure": false,
+      "esbuild": true,
+      "msw": true,
+      "ttf2woff2": false,
+      "unrs-resolver": true
+    }
   }
 }
