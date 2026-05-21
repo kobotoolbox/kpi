@@ -1,4 +1,5 @@
 import type { ButtonVariant } from '@mantine/core'
+// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
 import { Button, rem } from '@mantine/core'
 import classes from './Button.module.css'
 

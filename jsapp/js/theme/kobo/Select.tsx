@@ -1,5 +1,5 @@
+// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
 import { Select } from '@mantine/core'
-
 import classes from './Select.module.css'
 
 export const SelectThemeKobo = Select.extend({
