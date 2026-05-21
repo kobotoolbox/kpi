@@ -612,6 +612,7 @@ export interface AssetSettings {
   collects_pii?: LabelValuePair | null
   operational_purpose?: LabelValuePair | null
   country_codes?: string[]
+  extra_metadata?: Record<string, string | string[] | null>
 }
 
 /** This is the asset object Frontend uses with the endpoints. */

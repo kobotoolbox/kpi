@@ -780,6 +780,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'value': {'$ref': '#/$defs/value'},
                 'error': {'$ref': '#/$defs/error'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language', 'status'],
             'allOf': [
@@ -858,6 +859,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                     'then': {},  # optional
                     'else': {'not': {'required': ['accepted']}},
                 },
+                'bulk_action_uid': {'type': 'string'},
             },
         }
 
@@ -870,11 +872,12 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         - `value` is optional but, if present, it MUST be `null`
            (no other type allowed).
         - `accepted` is optional.
+        - `bulk_action_uid` is optional and identifies a SubsequenceBulkAction.
         - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
           * If `value` is present (and thus equals null), `accepted` must be absent.
           * If `accepted` is present, `value` must be absent.
         - No additional properties are allowed beyond:
-          `language`, `locale`, `value`, `accepted`.
+          `language`, `locale`, `value`, `accepted`, `bulk_action_uid`.
         """
 
         return {
@@ -886,6 +889,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'locale': {'$ref': '#/$defs/locale'},
                 'value': {'$ref': '#/$defs/value_null_only'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language'],
             'allOf': [
@@ -898,6 +902,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'accepted': {'const': True},
                 # Only null is permitted for `value`
                 'value_null_only': {'type': 'null'},
+                'bulk_action_uid': {'type': 'string'},
             },
         }
 
@@ -948,13 +953,19 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             }
 
         # Otherwise, trigger the external service.
+        bulk_action_uid = action_data.get('bulk_action_uid')
+
         NLPService = self.get_nlp_service_class()  # noqa
         try:
             service = NLPService(submission, asset=self.asset)
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
 
-        service_data = service.process_data(self.source_question_xpath, action_data)
+        service_data = service.process_data(
+            self.source_question_xpath,
+            action_data,
+            bulk_action_uid=bulk_action_uid,
+        )
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
