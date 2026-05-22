@@ -62,10 +62,10 @@ export default function StepSelectLanguage({
   const handleClickBack = () => {
     // When clicking "back" we either unselect the language (inner component "back" action) by clearing it,
     // or if no language is selected, we let the parent know (the parent flow "back" action).
-    if (languageCode !== null) {
-      setLanguageCode(null)
-    } else {
+    if (languageCode === null) {
       onBack()
+    } else {
+      setLanguageCode(null)
     }
   }
 

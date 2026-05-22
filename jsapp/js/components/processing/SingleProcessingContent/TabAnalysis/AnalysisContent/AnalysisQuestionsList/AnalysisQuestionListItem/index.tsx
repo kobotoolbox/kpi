@@ -360,7 +360,7 @@ export default function AnalysisQuestionListItem({
       case 'qualSelectOne': {
         // Use local state if available, otherwise fall back to server data
         const currentValue =
-          localRadioValue !== undefined ? localRadioValue : ((queryAnswer.data?._data as any)?.value as string)
+          localRadioValue === undefined ? ((queryAnswer.data?._data as any)?.value as string) : localRadioValue
         // select one requires a custom clear function to also reset local radio state
         const handleClearSelection = async () => {
           setLocalRadioValue(getEmptyAnswer(qaQuestion.type) as string)
