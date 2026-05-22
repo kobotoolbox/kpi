@@ -94,9 +94,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
 
-        self.assertIn(
-            SCIM_SCHEMA_LIST_RESPONSE, data['schemas']
-        )
+        self.assertIn(SCIM_SCHEMA_LIST_RESPONSE, data['schemas'])
         self.assertEqual(data['totalResults'], 2)
         self.assertEqual(data['itemsPerPage'], 2)
         self.assertEqual(data['startIndex'], 1)
@@ -523,7 +521,7 @@ class ScimUsersAPITests(APITestCase):
     def test_reactivation_only_enables_sso_linked_accounts(self):
         """
         Verify that when a user is reactivated via SCIM, only the accounts linked to
-        an SSO provider are reactivated. Password-auth accounts with the same email 
+        an SSO provider are reactivated. Password-auth accounts with the same email
         remain disabled.
         """
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')

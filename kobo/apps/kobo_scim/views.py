@@ -1,5 +1,5 @@
-import re
 import json
+import re
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
@@ -190,9 +190,7 @@ class ScimUserViewSet(
             with transaction.atomic():
                 # First, check if user exists via SocialAccount linkage
                 social_account = (
-                    SocialAccount.objects.filter(
-                        provider=self.idp_provider_id, uid=uid
-                    )
+                    SocialAccount.objects.filter(provider=self.idp_provider_id, uid=uid)
                     .select_related('user')
                     .first()
                 )
@@ -305,9 +303,7 @@ class ScimUserViewSet(
 
         # Only include users that are linked to this IdP's SocialApp.
         if self.idp.social_app:
-            queryset = queryset.filter(
-                socialaccount__provider=self.idp_provider_id
-            )
+            queryset = queryset.filter(socialaccount__provider=self.idp_provider_id)
         else:
             # If the IdP doesn't have a SocialApp, it can't be mapped to any users
             return User.objects.none()
@@ -494,9 +490,7 @@ class ScimSchemasView(APIView):
                     'description': 'User Account',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/{SCIM_SCHEMA_USER}'
-                        ),
+                        'location': (f'{location}/{SCIM_SCHEMA_USER}'),
                     },
                     'attributes': [
                         {
@@ -608,9 +602,7 @@ class ScimSchemasView(APIView):
                     'description': 'Group',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/{SCIM_SCHEMA_GROUP}'
-                        ),
+                        'location': (f'{location}/{SCIM_SCHEMA_GROUP}'),
                     },
                     'attributes': [
                         {

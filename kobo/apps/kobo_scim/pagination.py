@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 
-from kpi.paginators import DefaultPagination
 from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_LIST_RESPONSE
+from kpi.paginators import DefaultPagination
 
 
 class ScimPagination(DefaultPagination):
