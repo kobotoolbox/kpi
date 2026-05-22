@@ -4,6 +4,7 @@ import json
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.utils.functional import cached_property
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
@@ -127,6 +128,16 @@ class ScimUserViewSet(
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
+    @cached_property
+    def idp(self):
+        return getattr(self.request, 'auth', None)
+
+    @cached_property
+    def idp_provider_id(self):
+        if self.idp and self.idp.social_app:
+            return self.idp.social_app.provider_id
+        return None
+
     @extend_schema(
         responses=scim_responses(
             {
@@ -140,8 +151,7 @@ class ScimUserViewSet(
         """
         Handle POST requests (user provisioning from IdP).
         """
-        idp = request.auth
-        if not idp or not idp.social_app:
+        if not self.idp or not self.idp.social_app:
             return Response(
                 {'detail': 'IdP not configured for user provisioning'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -181,7 +191,7 @@ class ScimUserViewSet(
                 # First, check if user exists via SocialAccount linkage
                 social_account = (
                     SocialAccount.objects.filter(
-                        provider=idp.social_app.provider_id, uid=uid
+                        provider=self.idp_provider_id, uid=uid
                     )
                     .select_related('user')
                     .first()
@@ -215,12 +225,11 @@ class ScimUserViewSet(
                 # We catch IntegrityError here just in case another IdP already
                 # has this exact uid linked.
                 SocialAccount.objects.get_or_create(
-                    user=user, provider=idp.social_app.provider_id, uid=uid
+                    user=user, provider=self.idp_provider_id, uid=uid
                 )
 
                 if data.get('active', True):
-                    provider_id = idp.social_app.provider_id if idp.social_app else None
-                    self._reactivate_sso_linked_accounts(user.email, provider_id, user)
+                    self._reactivate_sso_linked_accounts(user.email, user)
 
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -270,15 +279,13 @@ class ScimUserViewSet(
         was_active = serializer.instance.is_active
         instance = serializer.save()
         if not was_active and instance.is_active:
-            idp = self.request.auth
-            provider_id = idp.social_app.provider_id if idp and idp.social_app else None
-            self._reactivate_sso_linked_accounts(instance.email, provider_id, instance)
+            self._reactivate_sso_linked_accounts(instance.email, instance)
 
-    def _reactivate_sso_linked_accounts(self, email, provider_id=None, current_user=None):
+    def _reactivate_sso_linked_accounts(self, email, current_user=None):
         if email:
             targets = User.objects.filter(email__iexact=email, is_active=False)
-            if provider_id:
-                targets = targets.filter(socialaccount__provider=provider_id)
+            if self.idp_provider_id:
+                targets = targets.filter(socialaccount__provider=self.idp_provider_id)
             else:
                 targets = targets.filter(socialaccount__isnull=False)
             targets.update(is_active=True)
@@ -289,8 +296,7 @@ class ScimUserViewSet(
 
     def get_queryset(self):
         # The idp_slug in the URL MUST match the authenticated IdP
-        idp = self.request.auth
-        if not idp or idp.slug != self.kwargs.get('idp_slug'):
+        if not self.idp or self.idp.slug != self.kwargs.get('idp_slug'):
             # Return empty if cross-tenant or missing
             return User.objects.none()
 
@@ -298,9 +304,9 @@ class ScimUserViewSet(
         queryset = super().get_queryset().exclude(id=settings.ANONYMOUS_USER_ID)
 
         # Only include users that are linked to this IdP's SocialApp.
-        if idp.social_app:
+        if self.idp.social_app:
             queryset = queryset.filter(
-                socialaccount__provider=idp.social_app.provider_id
+                socialaccount__provider=self.idp_provider_id
             )
         else:
             # If the IdP doesn't have a SocialApp, it can't be mapped to any users
@@ -393,9 +399,7 @@ class ScimUserViewSet(
                 self.perform_destroy(instance)
             else:
                 # Re-enabling the user
-                idp = self.request.auth
-                provider_id = idp.social_app.provider_id if idp and idp.social_app else None
-                self._reactivate_sso_linked_accounts(instance.email, provider_id, instance)
+                self._reactivate_sso_linked_accounts(instance.email, instance)
 
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
