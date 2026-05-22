@@ -34,6 +34,7 @@ from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
     ScimErrorSerializer,
 )
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
+from kobo.apps.kobo_scim.utils import apply_scim_user_metadata
 
 
 def normalize_scim_patch_operations(operations):
@@ -229,6 +230,8 @@ class ScimUserViewSet(
                 if data.get('active', True):
                     self._reactivate_sso_linked_accounts(user.email, user)
 
+                apply_scim_user_metadata(user, data)
+
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -278,6 +281,8 @@ class ScimUserViewSet(
         instance = serializer.save()
         if not was_active and instance.is_active:
             self._reactivate_sso_linked_accounts(instance.email, instance)
+        
+        apply_scim_user_metadata(instance, self.request.data)
 
     def _reactivate_sso_linked_accounts(self, email, current_user=None):
         if email:
@@ -376,6 +381,7 @@ class ScimUserViewSet(
         operations = normalize_scim_patch_operations(request.data.get('Operations', []))
 
         active_status = None
+        scim_patch_data = {}
         for op in operations:
             if op.get('op', '').lower() == 'replace':
                 path = op.get('path')
@@ -386,8 +392,22 @@ class ScimUserViewSet(
                     active_status = str(value).lower() == 'true'
 
                 # Case 2: path is omitted, value is an object (or stringified object)
-                elif not path and isinstance(value, dict) and 'active' in value:
-                    active_status = str(value['active']).lower() == 'true'
+                elif not path and isinstance(value, dict):
+                    if 'active' in value:
+                        active_status = str(value['active']).lower() == 'true'
+                    # Merge for metadata mapping
+                    for k, v in value.items():
+                        if isinstance(v, dict) and k in scim_patch_data and isinstance(scim_patch_data[k], dict):
+                            scim_patch_data[k].update(v)
+                        else:
+                            scim_patch_data[k] = v
+
+                # Case 3: other path
+                elif path:
+                    scim_patch_data[path] = value
+
+        if scim_patch_data:
+            apply_scim_user_metadata(instance, scim_patch_data)
 
         if active_status is not None:
             if active_status is False:
@@ -397,6 +417,7 @@ class ScimUserViewSet(
                 # Re-enabling the user
                 self._reactivate_sso_linked_accounts(instance.email, instance)
 
+        if scim_patch_data or active_status is not None:
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
             serializer = self.get_serializer(instance)
