@@ -6,6 +6,11 @@ from rest_framework.test import APITestCase
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_LIST_RESPONSE,
+    SCIM_SCHEMA_PATCH_OP,
+    SCIM_SCHEMA_USER,
+)
 from kobo.apps.kobo_scim.models import IdentityProvider
 
 
@@ -90,7 +95,7 @@ class ScimUsersAPITests(APITestCase):
         data = response.json()
 
         self.assertIn(
-            'urn:ietf:params:scim:api:messages:2.0:ListResponse', data['schemas']
+            SCIM_SCHEMA_LIST_RESPONSE, data['schemas']
         )
         self.assertEqual(data['totalResults'], 2)
         self.assertEqual(data['itemsPerPage'], 2)
@@ -111,7 +116,7 @@ class ScimUsersAPITests(APITestCase):
     def test_create_user_success(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'schemas': [SCIM_SCHEMA_USER],
             'userName': 'newscimuser',
             'name': {'givenName': 'New', 'familyName': 'Scim'},
             'emails': [
@@ -156,7 +161,7 @@ class ScimUsersAPITests(APITestCase):
         # Note: Not linked to SocialAccount yet!
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'schemas': [SCIM_SCHEMA_USER],
             'userName': 'idp_username',
             'emails': [{'primary': True, 'value': 'existing_match@example.com'}],
             'active': True,
@@ -189,7 +194,7 @@ class ScimUsersAPITests(APITestCase):
         )
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'schemas': [SCIM_SCHEMA_USER],
             'userName': 'rejoined_user',
             'emails': [{'primary': True, 'value': 'rejoined@example.com'}],
             'active': True,
@@ -227,7 +232,7 @@ class ScimUsersAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
-        self.assertIn('urn:ietf:params:scim:schemas:core:2.0:User', data['schemas'])
+        self.assertIn(SCIM_SCHEMA_USER, data['schemas'])
         self.assertEqual(data['userName'], 'jdoe')
         self.assertEqual(data['active'], True)
 
@@ -387,7 +392,7 @@ class ScimUsersAPITests(APITestCase):
         )
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [{'op': 'replace', 'path': 'active', 'value': False}],
         }
 
@@ -412,7 +417,7 @@ class ScimUsersAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [
                 {'op': 'replace', 'path': 'name.familyName', 'value': 'Smith'}
             ],
@@ -525,17 +530,17 @@ class ScimUsersAPITests(APITestCase):
 
         # Setup: james01 (SSO linked), james02 (password auth), james03 (password auth)
         james01 = User.objects.create_user(
-            username='james01', email='james@nrc.org', is_active=True
+            username='james01', email='james@test.org', is_active=True
         )
         SocialAccount.objects.create(
             user=james01, provider=self.social_app.provider_id, uid='james-sso-uid'
         )
 
         james02 = User.objects.create_user(
-            username='james02', email='james@nrc.org', is_active=True
+            username='james02', email='james@test.org', is_active=True
         )
         james03 = User.objects.create_user(
-            username='james03', email='james@nrc.org', is_active=True
+            username='james03', email='james@test.org', is_active=True
         )
 
         # Should deactivate all 3
@@ -553,7 +558,7 @@ class ScimUsersAPITests(APITestCase):
 
         # Reactivate via PATCH
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [{'op': 'replace', 'path': 'active', 'value': True}],
         }
         response = self.client.patch(
@@ -576,24 +581,24 @@ class ScimUsersAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         james01 = User.objects.create_user(
-            username='james01', email='james@nrc.org', is_active=False
+            username='james01', email='james@test.org', is_active=False
         )
         SocialAccount.objects.create(
             user=james01, provider=self.social_app.provider_id, uid='james-sso-uid-post'
         )
 
         james02 = User.objects.create_user(
-            username='james02', email='james@nrc.org', is_active=False
+            username='james02', email='james@test.org', is_active=False
         )
         james03 = User.objects.create_user(
-            username='james03', email='james@nrc.org', is_active=False
+            username='james03', email='james@test.org', is_active=False
         )
 
         # Reprovision via POST
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'schemas': [SCIM_SCHEMA_USER],
             'userName': 'james01',
-            'emails': [{'primary': True, 'value': 'james@nrc.org'}],
+            'emails': [{'primary': True, 'value': 'james@test.org'}],
             'active': True,
             'externalId': 'james-sso-uid-post',
         }

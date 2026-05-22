@@ -17,6 +17,15 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
+from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_ERROR,
+    SCIM_SCHEMA_GROUP,
+    SCIM_SCHEMA_LIST_RESPONSE,
+    SCIM_SCHEMA_RESOURCE_TYPE,
+    SCIM_SCHEMA_SCHEMA,
+    SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
+    SCIM_SCHEMA_USER,
+)
 from kobo.apps.kobo_scim.models import ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
@@ -219,7 +228,7 @@ class ScimUserViewSet(
             # This is a safe fallback for edge cases like duplicate SocialAccount UIDs
             return Response(
                 {
-                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
+                    'schemas': [SCIM_SCHEMA_ERROR],
                     'detail': 'One or more attributes in the resource already exists.',
                     'status': '409',
                 },
@@ -249,7 +258,7 @@ class ScimUserViewSet(
             # return SCIM 409 format.
             return Response(
                 {
-                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
+                    'schemas': [SCIM_SCHEMA_ERROR],
                     'detail': 'One or more attributes in the resource already exists.',
                     'status': '409',
                 },
@@ -414,7 +423,7 @@ class ScimServiceProviderConfigView(APIView):
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig'],
+            'schemas': [SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG],
             'patch': {'supported': True},
             'bulk': {'supported': False},
             'filter': {'supported': True, 'maxResults': 100},
@@ -462,20 +471,20 @@ class ScimSchemasView(APIView):
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
             'totalResults': 2,
             'itemsPerPage': 2,
             'startIndex': 1,
             'Resources': [
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
-                    'id': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schemas': [SCIM_SCHEMA_SCHEMA],
+                    'id': SCIM_SCHEMA_USER,
                     'name': 'User',
                     'description': 'User Account',
                     'meta': {
                         'resourceType': 'Schema',
                         'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:User'
+                            f'{location}/{SCIM_SCHEMA_USER}'
                         ),
                     },
                     'attributes': [
@@ -582,14 +591,14 @@ class ScimSchemasView(APIView):
                     ],
                 },
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
-                    'id': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schemas': [SCIM_SCHEMA_SCHEMA],
+                    'id': SCIM_SCHEMA_GROUP,
                     'name': 'Group',
                     'description': 'Group',
                     'meta': {
                         'resourceType': 'Schema',
                         'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group'
+                            f'{location}/{SCIM_SCHEMA_GROUP}'
                         ),
                     },
                     'attributes': [
@@ -682,18 +691,18 @@ class ScimResourceTypesView(APIView):
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
             'totalResults': 2,
             'itemsPerPage': 2,
             'startIndex': 1,
             'Resources': [
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'schemas': [SCIM_SCHEMA_RESOURCE_TYPE],
                     'id': 'User',
                     'name': 'User',
                     'endpoint': '/Users',
                     'description': 'User Account',
-                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schema': SCIM_SCHEMA_USER,
                     'schemaExtensions': [],
                     'meta': {
                         'resourceType': 'ResourceType',
@@ -701,12 +710,12 @@ class ScimResourceTypesView(APIView):
                     },
                 },
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'schemas': [SCIM_SCHEMA_RESOURCE_TYPE],
                     'id': 'Group',
                     'name': 'Group',
                     'endpoint': '/Groups',
                     'description': 'Group',
-                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schema': SCIM_SCHEMA_GROUP,
                     'schemaExtensions': [],
                     'meta': {
                         'resourceType': 'ResourceType',
