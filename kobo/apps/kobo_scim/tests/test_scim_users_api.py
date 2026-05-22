@@ -1,4 +1,5 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from constance.test import override_config
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -637,30 +638,25 @@ class ScimUsersAPITests(APITestCase):
         self.assertFalse(james03.is_active)
         self.assertFalse(james04.is_active)
 
-    @override_settings(
-        CONSTANCE_CONFIG={
-            'USER_METADATA_FIELDS': (
-                [
-                    {
-                        'name': 'country',
-                        'required': False,
-                        'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
-                        'scim_value_mapping': {'United States': 'US'},
-                    },
-                    {
-                        'name': 'bio',
-                        'required': False,
-                        'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.bio',
-                    },
-                    {
-                        'name': 'organization',
-                        'required': False,
-                        'scim_mapping': 'org',
-                    }
-                ],
-                '',
-            )
-        }
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'country',
+                'required': False,
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+                'scim_value_mapping': {'United States': 'US'},
+            },
+            {
+                'name': 'bio',
+                'required': False,
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.bio',
+            },
+            {
+                'name': 'organization',
+                'required': False,
+                'scim_mapping': 'org',
+            }
+        ]
     )
     def test_custom_metadata_mapping(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
@@ -698,19 +694,14 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(profile.description, 'Test bio')  # bio maps to description
         self.assertEqual(profile.organization, 'Acme Corp')
 
-    @override_settings(
-        CONSTANCE_CONFIG={
-            'USER_METADATA_FIELDS': (
-                [
-                    {
-                        'name': 'country',
-                        'required': False,
-                        'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
-                    }
-                ],
-                '',
-            )
-        }
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'country',
+                'required': False,
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+            }
+        ]
     )
     def test_patch_metadata_mapping(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')

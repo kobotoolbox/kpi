@@ -38,15 +38,40 @@ def apply_scim_user_metadata(user, scim_data):
         if scim_mapping in scim_data:
             value = scim_data[scim_mapping]
         else:
-            # Extract value from scim_data based on scim_mapping path
-            keys = scim_mapping.split('.')
-            value = scim_data
-            for key in keys:
-                if isinstance(value, dict):
-                    value = value.get(key)
-                else:
-                    value = None
-                    break
+            value = None
+            # Try to match a top-level key first (like an extension URN)
+            matched_key = None
+            if isinstance(scim_data, dict):
+                for key in scim_data.keys():
+                    if scim_mapping.startswith(key):
+                        # Ensure we match the longest prefix to avoid partial matches
+                        if matched_key is None or len(key) > len(matched_key):
+                            matched_key = key
+            
+            if matched_key:
+                remainder = scim_mapping[len(matched_key):]
+                if remainder.startswith('.') or remainder.startswith(':'):
+                    remainder = remainder[1:]
+                
+                value = scim_data[matched_key]
+                if remainder:
+                    keys = remainder.replace(':', '.').split('.')
+                    for k in keys:
+                        if isinstance(value, dict):
+                            value = value.get(k)
+                        else:
+                            value = None
+                            break
+            else:
+                # Fallback to simple dot splitting if no top-level key matched
+                keys = scim_mapping.split('.')
+                value = scim_data
+                for key in keys:
+                    if isinstance(value, dict):
+                        value = value.get(key)
+                    else:
+                        value = None
+                        break
 
         if value is None:
             continue
