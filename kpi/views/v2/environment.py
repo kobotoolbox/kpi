@@ -179,7 +179,7 @@ class EnvironmentView(APIView):
         data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
 
-        for key in EnvironmentViewSet.OTHER_CONFIGS:
+        for key in EnvironmentView.OTHER_CONFIGS:
             data[key.lower()] = getattr(constance.config, key)
 
         if settings.STRIPE_ENABLED:
