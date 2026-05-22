@@ -2,10 +2,11 @@ import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
+import { cleanupTags } from '#/assetUtils'
 import bem from '#/bem'
+import TagsInput from '#/components/common/TagsInput'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
-import KoboTagsInput from '#/components/common/koboTagsInput'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Radio from '#/components/common/radio'
 import TextBox from '#/components/common/textBox'
@@ -416,15 +417,15 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    * handle fields
    */
 
-  onSubsetFieldsChange(newValue: string) {
-    this.setState({ subsetFields: newValue.split(',') })
+  onSubsetFieldsChange(newValue: string[]) {
+    this.setState({ subsetFields: Array.from(new Set(cleanupTags(newValue))) })
   }
 
   renderFieldsSelector() {
     return (
       <bem.FormModal__item>
-        <KoboTagsInput
-          tags={this.state.subsetFields.join(',')}
+        <TagsInput
+          value={this.state.subsetFields}
           onChange={this.onSubsetFieldsChange.bind(this)}
           placeholder={t('Add field(s)')}
           label={t('Select fields subset')}

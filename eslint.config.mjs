@@ -222,6 +222,11 @@ const tsConfig = {
             importNames: ['Select'],
             message: "Use Select from 'jsapp/js/components/common' instead.",
           },
+          {
+            name: '@mantine/core',
+            importNames: ['TagsInput'],
+            message: "Use TagsInput from 'jsapp/js/components/common' instead.",
+          },
         ],
       },
     ],

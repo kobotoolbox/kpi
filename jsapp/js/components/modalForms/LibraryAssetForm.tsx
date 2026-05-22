@@ -3,10 +3,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { when } from 'mobx'
 import { useNavigate } from 'react-router-dom'
 import { actions } from '#/actions'
-import { removeInvalidChars } from '#/assetUtils'
+import { cleanupTags, removeInvalidChars } from '#/assetUtils'
 import bem from '#/bem'
+import TagsInput from '#/components/common/TagsInput'
 import Button from '#/components/common/button'
-import KoboTagsInput from '#/components/common/koboTagsInput'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
@@ -33,7 +33,7 @@ type ExtraMetadataValues = Record<string, string | string[] | null>
 interface FormFields {
   name: string
   organization: string
-  tags: string
+  tags: string[]
   description: string
   sector: AssetSettings['sector']
   country: AssetSettings['country']
@@ -66,7 +66,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
     return {
       name: asset?.name ?? '',
       organization: asset?.settings?.organization ?? '',
-      tags: asset?.tag_string ?? '',
+      tags: asset?.tag_string ? asset.tag_string.split(',') : [],
       description: asset?.settings?.description ?? '',
       sector: asset?.settings?.sector ?? null,
       country: asset?.settings?.country ?? null,
@@ -182,7 +182,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
       actions.resources.updateAsset(asset.uid, {
         name: fields.name,
         settings,
-        tag_string: fields.tags,
+        tag_string: fields.tags.join(','),
       })
       return
     }
@@ -197,7 +197,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
       name: fields.name,
       asset_type: formAssetType,
       settings,
-      tag_string: fields.tags,
+      tag_string: fields.tags.join(','),
     }
 
     const currentAssetUid = getRouteAssetUid()
@@ -320,7 +320,11 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
         <ExtraProjectMetadataFields values={extraMetadataFields} onChange={onExtraFieldChange} />
 
         <bem.FormModal__item>
-          <KoboTagsInput tags={fields.tags} onChange={(val) => setField('tags', val)} label={t('Tags')} />
+          <TagsInput
+            value={fields.tags}
+            onChange={(val) => setField('tags', Array.from(new Set(cleanupTags(val))))}
+            label={t('Tags')}
+          />
         </bem.FormModal__item>
       </bem.FormModal__item>
 
