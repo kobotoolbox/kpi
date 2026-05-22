@@ -1,5 +1,5 @@
 import jsonschema.exceptions
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
@@ -314,18 +314,51 @@ class BulkActionCreateSerializer(serializers.Serializer):
         asset = self.context['asset']
         request = self.context['request']
         try:
-            return SubsequenceBulkAction.create_with_items(
-                asset=asset,
-                action_id=validated_data['action_id'],
-                question_xpath=validated_data['question_xpath'],
-                params=validated_data['params'],
-                created_by=request.user.username,
-                submission_root_uuids=validated_data['submission_uuids'],
-            )
+            with transaction.atomic():
+                self._ensure_question_advanced_feature(
+                    asset=asset,
+                    action_id=validated_data['action_id'],
+                    question_xpath=validated_data['question_xpath'],
+                    params=validated_data['params'],
+                )
+                bulk_action = SubsequenceBulkAction.create_with_items(
+                    asset=asset,
+                    action_id=validated_data['action_id'],
+                    question_xpath=validated_data['question_xpath'],
+                    params=validated_data['params'],
+                    created_by=request.user.username,
+                    submission_root_uuids=validated_data['submission_uuids'],
+                )
+                bulk_action.start_batch()
+            return bulk_action
         except IntegrityError as err:
             raise serializers.ValidationError(
                 'One or more submissions already have an active matching bulk action.'
             ) from err
+
+    def _ensure_question_advanced_feature(
+        self,
+        *,
+        asset,
+        action_id: str,
+        question_xpath: str,
+        params: dict,
+    ) -> None:
+        feature_params = [{'language': params['language']}]
+        feature, created = QuestionAdvancedFeature.objects.get_or_create(
+            asset=asset,
+            question_xpath=question_xpath,
+            action=action_id,
+            defaults={'params': feature_params},
+        )
+        if created:
+            return
+
+        action = feature.to_action()
+        action.update_params(feature_params)
+        if action.params != feature.params:
+            feature.params = action.params
+            feature.save(update_fields=['params'])
 
 
 class BulkActionCancelSerializer(serializers.ModelSerializer):
