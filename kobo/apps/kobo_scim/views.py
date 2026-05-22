@@ -280,13 +280,22 @@ class ScimUserViewSet(
             self._reactivate_sso_linked_accounts(instance.email, instance)
 
     def _reactivate_sso_linked_accounts(self, email, current_user=None):
+        # Handle users with the same email:
         if email:
             targets = User.objects.filter(email__iexact=email, is_active=False)
             if self.idp_provider_id:
                 targets = targets.filter(socialaccount__provider=self.idp_provider_id)
             else:
                 targets = targets.filter(socialaccount__isnull=False)
-            targets.update(is_active=True)
+            
+            for target in targets:
+                target.is_active = True
+                target.save(update_fields=['is_active'])
+                
+                # Update in-memory instance to prevent the fallback block below
+                # from firing an extra, redundant save() call.
+                if current_user and current_user.pk == target.pk:
+                    current_user.is_active = True
 
         if current_user and not current_user.is_active:
             current_user.is_active = True
