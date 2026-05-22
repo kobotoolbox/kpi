@@ -17,7 +17,7 @@ class V1APIGoneView(APIView):
 
     authentication_classes = []
     permission_classes = []
-    renderer_classes = [JSONRenderer, XMLRenderer, BasicHTMLRenderer]
+    renderer_classes = [BasicHTMLRenderer, JSONRenderer, XMLRenderer]
 
     def _get_404_response(self):
         message = _(
