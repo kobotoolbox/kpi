@@ -9,7 +9,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   MutationFunction,
   QueryFunction,
@@ -18,58 +18,107 @@ import type {
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
-import { useMutation, useQuery } from '@tanstack/react-query'
 
 import type { AddAuthenticatorConflictResponse } from '../models/addAuthenticatorConflictResponse'
+
 import type { AuthenticatedByCodeResponse } from '../models/authenticatedByCodeResponse'
+
 import type { AuthenticatedByPasswordAnd2FAResponse } from '../models/authenticatedByPasswordAnd2FAResponse'
+
 import type { AuthenticatedByPasswordResponse } from '../models/authenticatedByPasswordResponse'
+
 import type { AuthenticatedResponse } from '../models/authenticatedResponse'
+
 import type { AuthenticationOrReauthenticationResponse } from '../models/authenticationOrReauthenticationResponse'
+
 import type { AuthenticationResponse } from '../models/authenticationResponse'
+
 import type { AuthenticatorsResponse } from '../models/authenticatorsResponse'
+
 import type { ChangePasswordBody } from '../models/changePasswordBody'
+
 import type { ConfigurationResponse } from '../models/configurationResponse'
+
 import type { ConfirmLoginCodeBody } from '../models/confirmLoginCodeBody'
+
 import type { ConflictResponse } from '../models/conflictResponse'
+
 import type { EmailAddressesResponse } from '../models/emailAddressesResponse'
+
 import type { EmailBody } from '../models/emailBody'
+
 import type { EmailVerificationInfoResponse } from '../models/emailVerificationInfoResponse'
+
 import type { EndSessionsBody } from '../models/endSessionsBody'
+
 import type { ErrorResponse } from '../models/errorResponse'
+
 import type { ForbiddenResponse } from '../models/forbiddenResponse'
+
 import type { LoginBody } from '../models/loginBody'
-import type { MarkPrimaryEmailBody } from '../models/markPrimaryEmailBody'
+
 import type { MFAAuthenticateBody } from '../models/mFAAuthenticateBody'
+
+import type { MarkPrimaryEmailBody } from '../models/markPrimaryEmailBody'
+
 import type { NotFoundResponse } from '../models/notFoundResponse'
+
 import type { PasswordResetInfoResponse } from '../models/passwordResetInfoResponse'
+
 import type { PhoneBody } from '../models/phoneBody'
+
 import type { PhoneNumberChangeResponse } from '../models/phoneNumberChangeResponse'
+
 import type { PhoneNumbersResponse } from '../models/phoneNumbersResponse'
+
 import type { ProviderAccountBody } from '../models/providerAccountBody'
+
 import type { ProviderAccountsResponse } from '../models/providerAccountsResponse'
+
 import type { ProviderRedirectBody } from '../models/providerRedirectBody'
+
 import type { ProviderSignupBody } from '../models/providerSignupBody'
+
 import type { ProviderSignupResponse } from '../models/providerSignupResponse'
+
 import type { ProviderTokenBody } from '../models/providerTokenBody'
+
 import type { ReauthenticateBody } from '../models/reauthenticateBody'
+
 import type { ReauthenticationRequiredResponse } from '../models/reauthenticationRequiredResponse'
+
 import type { RecoveryCodesResponse } from '../models/recoveryCodesResponse'
+
 import type { RefreshTokenBody } from '../models/refreshTokenBody'
+
 import type { RefreshTokenResponse } from '../models/refreshTokenResponse'
+
 import type { RequestPasswordBody } from '../models/requestPasswordBody'
+
 import type { ResetPasswordBody } from '../models/resetPasswordBody'
+
 import type { SessionGoneResponse } from '../models/sessionGoneResponse'
+
 import type { SessionsResponse } from '../models/sessionsResponse'
+
 import type { SetupTOTPBody } from '../models/setupTOTPBody'
+
 import type { SignupBody } from '../models/signupBody'
+
 import type { StatusOKResponse } from '../models/statusOKResponse'
+
 import type { TOTPAuthenticatorNotFoundResponse } from '../models/tOTPAuthenticatorNotFoundResponse'
+
 import type { TOTPAuthenticatorResponse } from '../models/tOTPAuthenticatorResponse'
+
 import type { TooManyRequestsResponse } from '../models/tooManyRequestsResponse'
+
 import type { UnauthenticatedResponse } from '../models/unauthenticatedResponse'
+
 import type { VerifyEmailBody } from '../models/verifyEmailBody'
+
 import type { VerifyPhoneBody } from '../models/verifyPhoneBody'
+
 import { fetchWithAuth } from '../orval.mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
