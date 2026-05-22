@@ -93,13 +93,15 @@ REMOVED_V1_API_PREFIXES = [
     'view/submissionList',
 ]
 
-urlpatterns.append(
-    re_path(
-        r'^({prefixes})(/.*)?$'.format(prefixes='|'.join(REMOVED_V1_API_PREFIXES)),
-        v1_api_gone_view,
-        name='v1_api_gone'
+for prefix in REMOVED_V1_API_PREFIXES:
+    prefix_name = prefix.replace('/', '-')
+    urlpatterns.append(
+        re_path(
+            rf'^{prefix}(/.*)?$',
+            v1_api_gone_view,
+            name=f'v1_api_gone-{prefix_name}'
+        )
     )
-)
 
 if settings.ENABLE_METRICS:
     urlpatterns.append(
