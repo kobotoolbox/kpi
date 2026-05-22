@@ -14,7 +14,7 @@ from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
-    PERM_VIEW_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS, PERM_MANAGE_ASSET,
 )
 from kpi.exceptions import DeploymentNotFound
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
@@ -165,6 +165,11 @@ class AssetPermission(
             and user_has_project_view_asset_perm(obj, user, PERM_VIEW_ASSET)
         ):
             return True
+        if method == 'DELETE':
+            if obj.has_perm(user, PERM_MANAGE_ASSET):
+                if not obj.has_deployment or obj.deployment.submission_count == 0:
+                    if obj.created_by == user.username:
+                        return True
 
         return super().has_object_permission(request, view, obj)
 
