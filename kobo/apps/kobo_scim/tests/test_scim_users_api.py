@@ -542,6 +542,12 @@ class ScimUsersAPITests(APITestCase):
         james03 = User.objects.create_user(
             username='james03', email='james@test.org', is_active=True
         )
+        james04 = User.objects.create_user(
+            username='james04', email='james@test.org', is_active=True
+        )
+        SocialAccount.objects.create(
+            user=james04, provider='other-provider-id', uid='james-other-uid'
+        )
 
         # Should deactivate all 3
         response = self.client.delete(
@@ -552,9 +558,11 @@ class ScimUsersAPITests(APITestCase):
         james01.refresh_from_db()
         james02.refresh_from_db()
         james03.refresh_from_db()
+        james04.refresh_from_db()
         self.assertFalse(james01.is_active)
         self.assertFalse(james02.is_active)
         self.assertFalse(james03.is_active)
+        self.assertFalse(james04.is_active)
 
         # Reactivate via PATCH
         payload = {
@@ -572,10 +580,12 @@ class ScimUsersAPITests(APITestCase):
         james01.refresh_from_db()
         james02.refresh_from_db()
         james03.refresh_from_db()
+        james04.refresh_from_db()
 
         self.assertTrue(james01.is_active)
         self.assertFalse(james02.is_active)
         self.assertFalse(james03.is_active)
+        self.assertFalse(james04.is_active)
 
     def test_reprovisioning_reactivates_sso_linked_accounts_only(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
@@ -592,6 +602,12 @@ class ScimUsersAPITests(APITestCase):
         )
         james03 = User.objects.create_user(
             username='james03', email='james@test.org', is_active=False
+        )
+        james04 = User.objects.create_user(
+            username='james04', email='james@test.org', is_active=False
+        )
+        SocialAccount.objects.create(
+            user=james04, provider='other-provider-post', uid='james-other-uid-post'
         )
 
         # Reprovision via POST
@@ -613,7 +629,9 @@ class ScimUsersAPITests(APITestCase):
         james01.refresh_from_db()
         james02.refresh_from_db()
         james03.refresh_from_db()
+        james04.refresh_from_db()
 
         self.assertTrue(james01.is_active)
         self.assertFalse(james02.is_active)
         self.assertFalse(james03.is_active)
+        self.assertFalse(james04.is_active)

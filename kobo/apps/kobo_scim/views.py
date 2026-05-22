@@ -219,7 +219,8 @@ class ScimUserViewSet(
                 )
 
                 if data.get('active', True):
-                    self._reactivate_sso_linked_accounts(user.email, user)
+                    provider_id = idp.social_app.provider_id if idp.social_app else None
+                    self._reactivate_sso_linked_accounts(user.email, provider_id, user)
 
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -269,13 +270,17 @@ class ScimUserViewSet(
         was_active = serializer.instance.is_active
         instance = serializer.save()
         if not was_active and instance.is_active:
-            self._reactivate_sso_linked_accounts(instance.email, instance)
+            idp = self.request.auth
+            provider_id = idp.social_app.provider_id if idp and idp.social_app else None
+            self._reactivate_sso_linked_accounts(instance.email, provider_id, instance)
 
-    def _reactivate_sso_linked_accounts(self, email, current_user=None):
+    def _reactivate_sso_linked_accounts(self, email, provider_id=None, current_user=None):
         if email:
-            targets = User.objects.filter(
-                email__iexact=email, socialaccount__isnull=False, is_active=False
-            )
+            targets = User.objects.filter(email__iexact=email, is_active=False)
+            if provider_id:
+                targets = targets.filter(socialaccount__provider=provider_id)
+            else:
+                targets = targets.filter(socialaccount__isnull=False)
             targets.update(is_active=True)
 
         if current_user and not current_user.is_active:
@@ -388,7 +393,9 @@ class ScimUserViewSet(
                 self.perform_destroy(instance)
             else:
                 # Re-enabling the user
-                self._reactivate_sso_linked_accounts(instance.email, instance)
+                idp = self.request.auth
+                provider_id = idp.social_app.provider_id if idp and idp.social_app else None
+                self._reactivate_sso_linked_accounts(instance.email, provider_id, instance)
 
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
