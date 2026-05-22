@@ -7,6 +7,7 @@ from rest_framework import status
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
+    QuestionAdvancedFeature,
     SubmissionSupplement,
     SubsequenceBulkAction,
 )
@@ -93,8 +94,14 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
         assert action.asset == self.asset
-        assert action.status == BulkActionStatus.PENDING
+        assert action.status == BulkActionStatus.IN_PROGRESS
         assert action.created_by == 'someuser'
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        assert feature.params == [{'language': 'en'}]
         assert response.data['action_id'] == 'automatic_google_transcription'
         assert response.data['question_xpath'] == 'q1'
         assert set(response.data['submission_uuids']) == {
@@ -105,8 +112,8 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             (item['uuid'], item['status'])
             for item in response.data['submission_statuses']
         } == {
-            (self.submission_uuid, BulkActionItemStatus.PENDING),
-            (self.second_submission_uuid, BulkActionItemStatus.PENDING),
+            (self.submission_uuid, BulkActionItemStatus.IN_PROGRESS),
+            (self.second_submission_uuid, BulkActionItemStatus.IN_PROGRESS),
         }
         assert response.data['params'] == {'language': 'en', 'locale': 'en-US'}
         assert response.data['created_by'] == {'username': 'someuser'}

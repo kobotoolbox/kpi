@@ -1,14 +1,29 @@
 import uuid
+from datetime import timedelta
 from unittest.mock import patch
 
+from django.test import override_settings
+from django.utils import timezone
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
-from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.subsequences.models import (
+    BulkActionItemStatus,
+    BulkActionStatus,
+    QuestionAdvancedFeature,
+    SubmissionSupplement,
+    SubsequenceBulkAction,
+)
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.tasks import poll_run_external_process_failure
 
 
-from kobo.apps.subsequences.tasks import poll_run_external_process
+from kobo.apps.subsequences.tasks import (
+    poll_run_external_process,
+    resume_stuck_bulk_actions,
+    start_bulk_item_job,
+    update_batch_status,
+)
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 
 
@@ -232,3 +247,285 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         )
         self.assertEqual(latest_version['_data']['status'], 'failed')
         self.assertEqual(latest_version['_data']['error'], 'Maximum retries exceeded.')
+
+
+class TestSubsequenceBulkActionExecution(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        self.owner = User.objects.get(username='someuser')
+        self.asset = Asset(
+            owner=self.owner,
+            content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]},
+        )
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.question_xpath = 'q1'
+        self.action_id = Action.AUTOMATIC_GOOGLE_TRANSCRIPTION
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            action=self.action_id,
+            question_xpath=self.question_xpath,
+            params=[{'language': 'en'}],
+        )
+        self.submission_uuid = str(uuid.uuid4())
+        self.second_submission_uuid = str(uuid.uuid4())
+        self.asset.deployment.mock_submissions(
+            [
+                {
+                    self.question_xpath: 'audio-1.mp3',
+                    '_uuid': self.submission_uuid,
+                    '_submitted_by': self.owner.username,
+                },
+                {
+                    self.question_xpath: 'audio-2.mp3',
+                    '_uuid': self.second_submission_uuid,
+                    '_submitted_by': self.owner.username,
+                },
+            ]
+        )
+        self.bulk_action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id=self.action_id,
+            question_xpath=self.question_xpath,
+            params={'language': 'en'},
+            created_by=self.owner.username,
+            submission_root_uuids=[
+                self.submission_uuid,
+                self.second_submission_uuid,
+            ],
+        )
+
+    @override_settings(
+        BULK_ACTION_RATE_LIMITS={
+            Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: {'max_jobs_per_minute': 120}
+        },
+        BULK_ACTION_STATUS_POLL_INTERVAL=17,
+    )
+    def test_start_batch_transitions_and_schedules_tasks(self):
+        with patch(
+            'kobo.apps.subsequences.tasks.start_bulk_item_job.apply_async'
+        ) as enqueue_item_job, patch(
+            'kobo.apps.subsequences.tasks.update_batch_status.apply_async'
+        ) as enqueue_batch_poll:
+            with self.captureOnCommitCallbacks(execute=True):
+                self.bulk_action.start_batch()
+
+        self.bulk_action.refresh_from_db()
+        item_statuses = set(
+            self.bulk_action.items.values_list('status', flat=True)
+        )
+        self.assertEqual(self.bulk_action.status, BulkActionStatus.IN_PROGRESS)
+        self.assertEqual(item_statuses, {BulkActionItemStatus.IN_PROGRESS})
+        self.assertEqual(enqueue_item_job.call_count, 2)
+        self.assertEqual(
+            enqueue_item_job.call_args_list[0].kwargs['countdown'],
+            0,
+        )
+        self.assertEqual(
+            enqueue_item_job.call_args_list[1].kwargs['countdown'],
+            0.5,
+        )
+        enqueue_batch_poll.assert_called_once_with(
+            args=(self.bulk_action.pk,),
+            countdown=17,
+        )
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_marks_item_complete(self, mock_run_external_process):
+        mock_run_external_process.return_value = {
+            'status': 'complete',
+            'value': 'Done!',
+            'language': 'en',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+
+        with patch('kobo.apps.subsequences.tasks.update_batch_status.delay') as delay:
+            start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.COMPLETE)
+        delay.assert_not_called()
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset,
+            submission_root_uuid=self.submission_uuid,
+        )
+        latest_version = supplement_data[self.question_xpath][self.action_id][
+            '_versions'
+        ][0]
+        self.assertEqual(latest_version['_data']['status'], 'complete')
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_keeps_item_in_progress_for_async_work(
+        self,
+        mock_run_external_process,
+    ):
+        mock_run_external_process.return_value = {
+            'status': 'in_progress',
+            'language': 'en',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ) as enqueue_poll, patch(
+            'kobo.apps.subsequences.tasks.update_batch_status.delay'
+        ) as delay:
+            start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.IN_PROGRESS)
+        delay.assert_not_called()
+        enqueue_poll.assert_called_once()
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_marks_item_failed(
+        self,
+        mock_run_external_process,
+    ):
+        mock_run_external_process.return_value = {
+            'status': 'failed',
+            'error': 'Transcription is not supported for language "en-US"',
+            'language': 'en',
+            'locale': 'en-US',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+
+        start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.FAILED)
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_poll_run_external_process_updates_bulk_item_status(
+        self,
+        mock_run_external_process,
+    ):
+        mock_run_external_process.return_value = {
+            'status': 'complete',
+            'value': 'Done!',
+            'language': 'en',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        item.status = BulkActionItemStatus.IN_PROGRESS
+        item.save(update_fields=['status'])
+        submission = {'meta/rootUuid': self.submission_uuid}
+
+        poll_run_external_process(
+            asset_id=self.asset.id,
+            submission=submission,
+            question_xpath=self.question_xpath,
+            action_id=self.action_id,
+            action_data={
+                'language': 'en',
+                'bulk_action_uid': self.bulk_action.uid,
+            },
+        )
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.COMPLETE)
+
+    def test_poll_run_external_process_uses_saved_supplement_when_revise_data_returns_none(
+        self,
+    ):
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        item.status = BulkActionItemStatus.IN_PROGRESS
+        item.save(update_fields=['status'])
+        submission = {'meta/rootUuid': self.submission_uuid}
+
+        with patch(
+            'kobo.apps.subsequences.actions.base.'
+            'BaseAutomaticNLPAction.run_external_process'
+        ) as mock_run_external_process:
+            mock_run_external_process.return_value = {
+                'status': 'in_progress',
+                'language': 'en',
+            }
+            SubmissionSupplement.revise_data(
+                self.asset,
+                submission,
+                {
+                    '_version': '20250820',
+                    self.question_xpath: {
+                        self.action_id: {
+                            'language': 'en',
+                            'bulk_action_uid': self.bulk_action.uid,
+                        }
+                    },
+                },
+            )
+
+        with patch(
+            'kobo.apps.subsequences.models.SubmissionSupplement.revise_data',
+            return_value=None,
+        ):
+            with self.assertRaises(SubsequenceTimeoutError):
+                poll_run_external_process(
+                    asset_id=self.asset.id,
+                    submission=submission,
+                    question_xpath=self.question_xpath,
+                    action_id=self.action_id,
+                    action_data={
+                        'language': 'en',
+                        'bulk_action_uid': self.bulk_action.uid,
+                    },
+                )
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.IN_PROGRESS)
+
+    def test_update_batch_status_marks_parent_complete(self):
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        self.bulk_action.items.filter(
+            submission_root_uuid=self.submission_uuid
+        ).update(status=BulkActionItemStatus.COMPLETE)
+        self.bulk_action.items.filter(
+            submission_root_uuid=self.second_submission_uuid
+        ).update(status=BulkActionItemStatus.FAILED)
+
+        with patch(
+            'kobo.apps.subsequences.tasks.update_batch_status.apply_async'
+        ) as reschedule:
+            update_batch_status(self.bulk_action.pk)
+
+        self.bulk_action.refresh_from_db()
+        self.assertEqual(self.bulk_action.status, BulkActionStatus.COMPLETE)
+        self.assertEqual(self.bulk_action.progress, 100)
+        reschedule.assert_not_called()
+
+    @override_settings(BULK_ACTION_STUCK_THRESHOLD=60)
+    def test_resume_stuck_bulk_actions_requeues_polling(self):
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            date_modified=timezone.now() - timedelta(minutes=5)
+        )
+
+        with patch('kobo.apps.subsequences.tasks.update_batch_status.delay') as delay:
+            resume_stuck_bulk_actions()
+
+        delay.assert_called_once_with(self.bulk_action.pk)

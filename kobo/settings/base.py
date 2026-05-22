@@ -1265,6 +1265,23 @@ def dj_stripe_request_callback_method():
     pass
 
 
+BULK_ACTION_RATE_LIMITS = {
+    'automatic_google_transcription': {
+        'max_jobs_per_minute': 120,
+    },
+    'automatic_google_translation': {
+        'max_jobs_per_minute': 300,
+    },
+}
+
+BULK_ACTION_STATUS_POLL_INTERVAL = env.int(
+    'BULK_ACTION_STATUS_POLL_INTERVAL',
+    30,
+)
+BULK_ACTION_STUCK_THRESHOLD = env.int(
+    'BULK_ACTION_STUCK_THRESHOLD',
+    BULK_ACTION_STATUS_POLL_INTERVAL * 10,
+)
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
@@ -1596,6 +1613,11 @@ CELERY_BEAT_SCHEDULE = {
     'mark-zombie-submissions': {
         'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'resume-stuck-subsequence-bulk-actions': {
+        'task': 'kobo.apps.subsequences.tasks.resume_stuck_bulk_actions',
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
