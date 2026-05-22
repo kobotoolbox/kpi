@@ -514,3 +514,101 @@ class ScimUsersAPITests(APITestCase):
 
         self.user1.refresh_from_db()
         self.assertFalse(self.user1.is_active)
+
+    def test_reactivation_only_enables_sso_linked_accounts(self):
+        """
+        Verify that when a user is reactivated via SCIM, only the accounts linked to
+        an SSO provider are reactivated. Password-auth accounts with the same email 
+        remain disabled.
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # Setup: james01 (SSO linked), james02 (password auth), james03 (password auth)
+        james01 = User.objects.create_user(
+            username='james01', email='james@nrc.org', is_active=True
+        )
+        SocialAccount.objects.create(
+            user=james01, provider=self.social_app.provider_id, uid='james-sso-uid'
+        )
+
+        james02 = User.objects.create_user(
+            username='james02', email='james@nrc.org', is_active=True
+        )
+        james03 = User.objects.create_user(
+            username='james03', email='james@nrc.org', is_active=True
+        )
+
+        # Should deactivate all 3
+        response = self.client.delete(
+            f'{self.url}/{james01.id}', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        james01.refresh_from_db()
+        james02.refresh_from_db()
+        james03.refresh_from_db()
+        self.assertFalse(james01.is_active)
+        self.assertFalse(james02.is_active)
+        self.assertFalse(james03.is_active)
+
+        # Reactivate via PATCH
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'Operations': [{'op': 'replace', 'path': 'active', 'value': True}],
+        }
+        response = self.client.patch(
+            f'{self.url}/{james01.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        james01.refresh_from_db()
+        james02.refresh_from_db()
+        james03.refresh_from_db()
+
+        self.assertTrue(james01.is_active)
+        self.assertFalse(james02.is_active)
+        self.assertFalse(james03.is_active)
+
+    def test_reprovisioning_reactivates_sso_linked_accounts_only(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        james01 = User.objects.create_user(
+            username='james01', email='james@nrc.org', is_active=False
+        )
+        SocialAccount.objects.create(
+            user=james01, provider=self.social_app.provider_id, uid='james-sso-uid-post'
+        )
+
+        james02 = User.objects.create_user(
+            username='james02', email='james@nrc.org', is_active=False
+        )
+        james03 = User.objects.create_user(
+            username='james03', email='james@nrc.org', is_active=False
+        )
+
+        # Reprovision via POST
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'userName': 'james01',
+            'emails': [{'primary': True, 'value': 'james@nrc.org'}],
+            'active': True,
+            'externalId': 'james-sso-uid-post',
+        }
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        james01.refresh_from_db()
+        james02.refresh_from_db()
+        james03.refresh_from_db()
+
+        self.assertTrue(james01.is_active)
+        self.assertFalse(james02.is_active)
+        self.assertFalse(james03.is_active)
