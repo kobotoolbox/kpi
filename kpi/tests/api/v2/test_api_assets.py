@@ -695,6 +695,19 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         # Anotheruser's own asset must still appear
         assert own_asset.uid in result_uids
 
+    def test_extra_metadata_defaults_are_returned_on_list(self):
+        ExtraProjectMetadataField.objects.create(
+            name='Text',
+            type=ExtraProjectMetadataFieldType.TEXT,
+        )
+
+        response = self.client.get(reverse('api_v2:asset-list'), format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'][0]['settings']['extra_metadata'] == {
+            'Text': None,
+        }
+
     def _setup_current_user_permissions_only(self):
         """
         Create an asset owned by someuser, grant view_asset to anotheruser
