@@ -1,11 +1,14 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_PATCH_OP,
@@ -633,3 +636,128 @@ class ScimUsersAPITests(APITestCase):
         self.assertFalse(james02.is_active)
         self.assertFalse(james03.is_active)
         self.assertFalse(james04.is_active)
+
+    @override_settings(
+        CONSTANCE_CONFIG={
+            'USER_METADATA_FIELDS': (
+                [
+                    {
+                        'name': 'country',
+                        'required': False,
+                        'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+                        'scim_value_mapping': {'United States': 'US'},
+                    },
+                    {
+                        'name': 'bio',
+                        'required': False,
+                        'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.bio',
+                    },
+                    {
+                        'name': 'organization',
+                        'required': False,
+                        'scim_mapping': 'org',
+                    }
+                ],
+                '',
+            )
+        }
+    )
+    def test_custom_metadata_mapping(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        payload = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'metadata_user',
+            'emails': [{'primary': True, 'value': 'meta@example.com'}],
+            'active': True,
+            'org': 'Acme Corp',
+            'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User': {
+                'country': 'United States',
+                'bio': 'Test bio'
+            }
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        user = User.objects.get(username='metadata_user')
+        
+        # Check ExtraUserDetail
+        extra, _ = ExtraUserDetail.objects.get_or_create(user=user)
+        self.assertEqual(extra.data.get('country'), 'US')
+        self.assertEqual(extra.data.get('bio'), 'Test bio')
+        self.assertEqual(extra.data.get('organization'), 'Acme Corp')
+
+        # Check UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        self.assertEqual(profile.country, 'US')
+        self.assertEqual(profile.description, 'Test bio')  # bio maps to description
+        self.assertEqual(profile.organization, 'Acme Corp')
+
+    @override_settings(
+        CONSTANCE_CONFIG={
+            'USER_METADATA_FIELDS': (
+                [
+                    {
+                        'name': 'country',
+                        'required': False,
+                        'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+                    }
+                ],
+                '',
+            )
+        }
+    )
+    def test_patch_metadata_mapping(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        
+        # We test both styles of PATCH (path vs value)
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {
+                    'op': 'replace',
+                    'path': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+                    'value': 'CA'
+                }
+            ],
+        }
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        profile, _ = UserProfile.objects.get_or_create(user=self.user1)
+        self.assertEqual(profile.country, 'CA')
+
+        # Test value-based update
+        payload2 = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {
+                    'op': 'replace',
+                    'value': {
+                        'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User': {
+                            'country': 'UK'
+                        }
+                    }
+                }
+            ],
+        }
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload2,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        profile.refresh_from_db()
+        self.assertEqual(profile.country, 'UK')
