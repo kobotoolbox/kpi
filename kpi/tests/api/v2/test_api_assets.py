@@ -32,6 +32,10 @@ from kpi.constants import (
 )
 from kpi.models import Asset, AssetFile, AssetVersion
 from kpi.models.asset import AssetDeploymentStatus
+from kpi.models.extra_project_metadata_field import (
+    ExtraProjectMetadataField,
+    ExtraProjectMetadataFieldType,
+)
 from kpi.serializers.v2.asset import AssetListSerializer
 from kpi.tests.base_test_case import (
     BaseAssetDetailTestCase,
@@ -1464,6 +1468,7 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             'country_codes': [],
             'description': '',
             'mysetting': 'value',
+            'extra_metadata': {},
             'organization': '',
             'sector': {},
         }
@@ -2116,6 +2121,78 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         usernames = self._get_perm_usernames(response.data['permissions'])
         self.assertIn('someuser', usernames)
         self.assertIn(self.thirduser.username, usernames)
+
+    def test_extra_metadata_defaults_are_returned(self):
+        """
+        Existing assets should include newly configured extra metadata fields
+        with default empty values in the detail response.
+        """
+        asset = Asset.objects.create(
+            owner=self.asset.owner,
+            name='Survey without extra metadata',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+
+        ExtraProjectMetadataField.objects.create(
+            name='Text',
+            type=ExtraProjectMetadataFieldType.TEXT,
+        )
+        ExtraProjectMetadataField.objects.create(
+            name='Select one',
+            type=ExtraProjectMetadataFieldType.SINGLE_SELECT,
+            options=[
+                {'name': 'one', 'label': '1st Option'},
+                {'name': 'two', 'label': '2nd Option'},
+                {'name': 'three', 'label': '3rd option'},
+            ],
+        )
+        ExtraProjectMetadataField.objects.create(
+            name='Select multiple',
+            type=ExtraProjectMetadataFieldType.MULTI_SELECT,
+            options=[
+                {'name': 'cat', 'label': 'Animal 1'},
+                {'name': 'dog', 'label': 'Animal 2'},
+                {'name': 'hamster', 'label': 'Animal 3'},
+            ],
+        )
+
+        response = self.client.get(
+            reverse('api_v2:asset-detail', kwargs={'uid_asset': asset.uid}),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['settings']['extra_metadata'] == {
+            'Select multiple': [],
+            'Select one': None,
+            'Text': None,
+        }
+
+    def test_deleted_extra_metadata_fields_are_not_returned(self):
+        """
+        Deleted extra metadata field definitions should not appear in the
+        detail response, even if stale values remain in asset settings.
+        """
+        field = ExtraProjectMetadataField.objects.create(
+            name='Text',
+            type=ExtraProjectMetadataFieldType.TEXT,
+        )
+        asset = Asset.objects.create(
+            owner=self.asset.owner,
+            name='Old Name',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': {'Text': 'stale value'}},
+        )
+
+        field.delete()
+
+        response = self.client.get(
+            reverse('api_v2:asset-detail', kwargs={'uid_asset': asset.uid}),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['settings']['extra_metadata'] == {}
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

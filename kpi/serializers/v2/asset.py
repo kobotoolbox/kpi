@@ -40,8 +40,14 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import WritableJSONField
-from kpi.models import Asset, ObjectPermission, UserAssetSubscription
+from kpi.models import (
+    Asset,
+    ExtraProjectMetadataField,
+    ObjectPermission,
+    UserAssetSubscription,
+)
 from kpi.models.asset import AssetDeploymentStatus
+from kpi.models.extra_project_metadata_field import ExtraProjectMetadataFieldType
 from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
@@ -498,6 +504,27 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             instance = super().create(validated_data)
 
         return instance
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        if 'settings' not in representation:
+            return representation
+
+        settings = representation.setdefault('settings', {})
+        extra_metadata = settings.setdefault('extra_metadata', {})
+
+        if not isinstance(extra_metadata, dict):
+            extra_metadata = {}
+
+        defaults = self._get_extra_metadata_defaults()
+
+        settings['extra_metadata'] = {
+            field_name: extra_metadata.get(field_name, default_value)
+            for field_name, default_value in defaults.items()
+        }
+
+        return representation
 
     def update(self, asset, validated_data):
         request = self.context['request']
@@ -1063,6 +1090,21 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _content(self, obj):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
+
+    def _get_extra_metadata_defaults(self):
+        defaults = {}
+
+        fields = self.context.get('extra_project_metadata_fields')
+        if fields is None:
+            fields = ExtraProjectMetadataField.objects.all()
+
+        for field in fields:
+            if field.type == ExtraProjectMetadataFieldType.MULTI_SELECT:
+                defaults[field.name] = []
+            else:
+                defaults[field.name] = None
+
+        return defaults
 
     def _get_status(self, perm_assignments):
         """
