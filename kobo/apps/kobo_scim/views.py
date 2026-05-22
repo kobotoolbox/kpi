@@ -282,11 +282,11 @@ class ScimUserViewSet(
     def _reactivate_sso_linked_accounts(self, email, current_user=None):
         # Handle users with the same email:
         if email:
-            targets = User.objects.filter(email__iexact=email, is_active=False)
-            if self.idp_provider_id:
-                targets = targets.filter(socialaccount__provider=self.idp_provider_id)
-            else:
-                targets = targets.filter(socialaccount__isnull=False)
+            targets = User.objects.filter(
+                email__iexact=email, 
+                is_active=False, 
+                socialaccount__provider=self.idp_provider_id
+            )
             
             for target in targets:
                 target.is_active = True
