@@ -43,36 +43,31 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
   // Support custom labels for project metadata, if defined
   const metadata = envStore.data.getProjectMetadataFieldsAsSimpleDict()
 
-  // Compute extra metadata fields that have a non-empty value
+  // Compute display values for all extra metadata fields
   const extraMetadata = props.asset.settings.extra_metadata ?? {}
   const lang = currentLang()
-  const extraFieldsWithValues = envStore.data.extra_project_metadata_fields
-    .filter((field) => {
-      const value = extraMetadata[field.name]
-      return value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0)
-    })
-    .map((field) => {
-      const value = extraMetadata[field.name]
-      let displayValue: string
+  const extraFields = envStore.data.extra_project_metadata_fields.map((field) => {
+    const value = extraMetadata[field.name]
+    let displayValue: string
 
-      if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT) {
-        const opt = field.options?.find((o) => o.name === value)
-        displayValue = opt ? envStore.data.getExtraFieldLabel(opt, lang) : String(value ?? '')
-      } else if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT) {
-        const values = Array.isArray(value) ? value : []
-        displayValue =
-          values
-            .map((v) => {
-              const opt = field.options?.find((o) => o.name === v)
-              return opt ? envStore.data.getExtraFieldLabel(opt, lang) : v
-            })
-            .join(', ') || '-'
-      } else {
-        displayValue = String(value ?? '') || '-'
-      }
+    if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT) {
+      const opt = field.options?.find((o) => o.name === value)
+      displayValue = opt ? envStore.data.getExtraFieldLabel(opt, lang) : String(value ?? '') || '-'
+    } else if (field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT) {
+      const values = Array.isArray(value) ? value : []
+      displayValue =
+        values
+          .map((v) => {
+            const opt = field.options?.find((o) => o.name === v)
+            return opt ? envStore.data.getExtraFieldLabel(opt, lang) : v
+          })
+          .join(', ') || '-'
+    } else {
+      displayValue = String(value ?? '') || '-'
+    }
 
-      return { field, displayValue }
-    })
+    return { field, displayValue }
+  })
 
   return (
     <bem.FormView__row>
@@ -166,6 +161,18 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           </bem.FormView__group>
         )}
 
+        {/* extra metadata fields */}
+        {extraFields.length > 0 && (
+          <bem.FormView__group m='items'>
+            {extraFields.map(({ field, displayValue }) => (
+              <bem.FormView__cell key={field.name} m='padding'>
+                <bem.FormView__label>{envStore.data.getExtraFieldLabel(field, lang)}</bem.FormView__label>
+                {displayValue}
+              </bem.FormView__cell>
+            ))}
+          </bem.FormView__group>
+        )}
+
         {/* languages */}
         {props.asset.summary?.languages && props.asset.summary.languages.length > 1 && (
           <bem.FormView__group m='items'>
@@ -199,18 +206,6 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
                 {props.asset.settings.collects_pii?.label ?? '-'}
               </bem.FormView__cell>
             )}
-          </bem.FormView__group>
-        )}
-
-        {/* extra metadata fields */}
-        {extraFieldsWithValues.length > 0 && (
-          <bem.FormView__group m='items'>
-            {extraFieldsWithValues.map(({ field, displayValue }) => (
-              <bem.FormView__cell key={field.name} m='padding'>
-                <bem.FormView__label>{envStore.data.getExtraFieldLabel(field, lang)}</bem.FormView__label>
-                {displayValue}
-              </bem.FormView__cell>
-            ))}
           </bem.FormView__group>
         )}
       </bem.FormView__cell>

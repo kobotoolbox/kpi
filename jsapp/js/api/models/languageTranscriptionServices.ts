@@ -10,21 +10,4 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type LanguagesListParams = {
-  /**
-   * Number of results to return per page. Use with `start`.
-   */
-  limit?: number
-  /**
-   * Deprecated alias of `start`.
-   */
-  offset?: number
-  /**
-   * Search languages by name or code
-   */
-  q?: string
-  /**
-   * The initial index from which to return the results. Use with `limit`.
-   */
-  start?: number
-}
+export type LanguageTranscriptionServices = { [key: string]: { [key: string]: string } }
