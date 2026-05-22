@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import re
 from typing import Optional
@@ -508,20 +509,22 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
 
-        if 'settings' not in representation:
+        settings = representation.get('settings')
+        if not isinstance(settings, dict):
             return representation
 
-        settings = representation.setdefault('settings', {})
-        extra_metadata = settings.setdefault('extra_metadata', {})
+        settings = copy.deepcopy(settings)
+        representation['settings'] = settings
 
+        extra_metadata = settings.get('extra_metadata')
         if not isinstance(extra_metadata, dict):
             extra_metadata = {}
 
         defaults = self._get_extra_metadata_defaults()
 
         settings['extra_metadata'] = {
-            field_name: extra_metadata.get(field_name, default_value)
-            for field_name, default_value in defaults.items()
+            key: extra_metadata.get(key, default)
+            for key, default in defaults.items()
         }
 
         return representation

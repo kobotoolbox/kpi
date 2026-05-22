@@ -42,6 +42,7 @@ from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
+from kpi.models.extra_project_metadata_field import ExtraProjectMetadataField
 from kpi.models.object_permission import ObjectPermission
 from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.permissions import (
@@ -910,6 +911,10 @@ class AssetViewSet(
                 context_['organizations_per_asset'] = (
                     self.get_organizations_per_asset_ids(asset_ids)
                 )
+
+            context_['extra_project_metadata_fields'] = list(
+                ExtraProjectMetadataField.objects.all()
+            )
 
         return context_
 
