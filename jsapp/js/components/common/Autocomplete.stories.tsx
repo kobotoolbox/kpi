@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+
 import Autocomplete from './Autocomplete'
 
 const meta: Meta<typeof Autocomplete> = {

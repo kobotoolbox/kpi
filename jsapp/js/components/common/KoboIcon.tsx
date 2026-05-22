@@ -1,6 +1,8 @@
+import type { ComponentType } from 'react'
+
 import type { MantineSize } from '@mantine/core'
 import type { IconProps as SvgIconProps } from '@tabler/icons-react'
-import type { ComponentType } from 'react'
+
 import type { LegacySvgIconComponent } from './IconLegacySvgMappings'
 import type { IconColor } from './icon'
 

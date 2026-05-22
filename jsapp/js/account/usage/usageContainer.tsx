@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 
 import { Paper } from '@mantine/core'
 import cx from 'classnames'
+
 import type { LimitAmount, OneTimeAddOn, RecurringInterval } from '#/account/stripe.types'
 import { Limits, USAGE_TYPE } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
@@ -10,9 +11,10 @@ import Badge from '#/components/common/badge'
 import Icon from '#/components/common/icon'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
-import { useLimitDisplay } from '../stripe.utils'
-import OneTimeAddOnUsageModal from './oneTimeAddOnUsageModal/oneTimeAddOnUsageModal.component'
 
+import { useLimitDisplay } from '../stripe.utils'
+
+import OneTimeAddOnUsageModal from './oneTimeAddOnUsageModal/oneTimeAddOnUsageModal.component'
 import cardStyles from './usage.module.scss'
 
 interface UsageContainerProps {

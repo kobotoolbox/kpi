@@ -3,11 +3,13 @@ import './regionSelector.scss'
 import React from 'react'
 
 import { ActionIcon, Group, TextInput } from '@mantine/core'
+
 import bem, { makeBem } from '#/bem'
-import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
-import languagesStore from './languagesStore'
+import Select from '#/components/common/Select'
+
 import type { DetailedLanguage, LanguageCode, TransxServiceCode } from './languagesStore'
+import languagesStore from './languagesStore'
 
 bem.RegionSelector = makeBem(null, 'region-selector', 'section')
 bem.RegionSelector__loading = makeBem(bem.RegionSelector, 'loading')

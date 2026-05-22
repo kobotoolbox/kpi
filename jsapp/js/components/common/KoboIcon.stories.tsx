@@ -1,16 +1,18 @@
 import { Group, Stack, Table, type TableData, Text } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import * as TablerIcons from '@tabler/icons-react'
 import type { TablerIcon } from '@tabler/icons-react'
+import * as TablerIcons from '@tabler/icons-react'
+
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
+
 import IconLegacySupport from './IconLegacySupport'
 import { resolveLegacySvgIconByName } from './IconLegacySvgMappings'
-import KoboIcon from './KoboIcon'
-import type { KoboIconProps } from './KoboIcon'
-import { getLegacyIconsCatalog } from './KoboIconMappings'
-import Icon from './icon'
 import type { IconColor } from './icon'
+import Icon from './icon'
+import type { KoboIconProps } from './KoboIcon'
+import KoboIcon from './KoboIcon'
+import { getLegacyIconsCatalog } from './KoboIconMappings'
 
 const iconColors: Array<IconColor | undefined> = [undefined, 'mid-red', 'storm', 'teal', 'amber', 'blue']
 const iconSizes = ['xs', 'sm', 'md', 'lg', 'xl'] satisfies Array<Exclude<NonNullable<KoboIconProps['size']>, number>>

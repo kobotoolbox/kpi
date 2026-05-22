@@ -1,11 +1,15 @@
+import React from 'react'
+
 import { Box, Group, Input, Stack } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
-import React from 'react'
+
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
+
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { generateUuid } from '#/utils'
+
 import styles from './SelectXFieldsEditor.module.scss'
 
 interface Props {

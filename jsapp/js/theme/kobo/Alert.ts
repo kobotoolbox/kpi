@@ -1,5 +1,7 @@
 import { Alert } from '@mantine/core'
+
 import type { AlertType } from '#/components/common/alert'
+
 import classes from './Alert.module.css'
 
 declare module '@mantine/core' {

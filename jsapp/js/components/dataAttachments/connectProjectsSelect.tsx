@@ -1,5 +1,7 @@
 import Select from 'react-select'
+
 import bem from '#/bem'
+
 import type { ConnectableAsset } from './common'
 
 interface ConnectProjectsSelectProps {

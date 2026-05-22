@@ -1,5 +1,6 @@
-import type { ElementProps } from '@mantine/core'
 import type { ElementType } from 'react'
+
+import type { ElementProps } from '@mantine/core'
 
 /**
  * For polymorphic components Storybook fails to infer props, use this helper to make StoryArgs you need.

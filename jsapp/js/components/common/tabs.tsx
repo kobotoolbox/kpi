@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
+
 import styles from './tabs.module.scss'
 
 interface Tab {

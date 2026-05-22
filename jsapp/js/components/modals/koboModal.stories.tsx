@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+
 import Button from '../common/button'
+
 import KoboModal from './koboModal'
 import KoboModalContent from './koboModalContent'
 import KoboModalFooter from './koboModalFooter'

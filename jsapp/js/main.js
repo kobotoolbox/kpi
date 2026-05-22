@@ -15,6 +15,7 @@ import './fonts'
 import '../scss/main.scss'
 
 import $ from 'jquery'
+
 // jQuery v4 ESM no longer auto-populates window.$/window.jQuery
 // The xlform/Backbone layer reads these globals directly, so we must assign them.
 window.$ = window.jQuery = $
@@ -23,6 +24,7 @@ window.$ = window.jQuery = $
 $.isArray = Array.isArray
 $.isFunction = (value) => typeof value === 'function'
 $.trim = (value) => (value == null ? '' : (value + '').trim())
+
 import React from 'react'
 
 import * as Sentry from '@sentry/react'
@@ -30,8 +32,10 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
 import Modal from 'react-modal'
+
 import AllRoutes from '#/router/allRoutes'
 import { csrfSafeMethod, currentLang } from '#/utils'
+
 import RegistrationPasswordApp from './registrationPasswordApp'
 
 const sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]')

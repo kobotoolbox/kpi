@@ -9,7 +9,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import { useMutation, useQuery } from '@tanstack/react-query'
+
 import type {
   MutationFunction,
   QueryFunction,
@@ -18,27 +18,18 @@ import type {
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 import type { AssetSnapshotCreateRequest } from '../models/assetSnapshotCreateRequest'
-
 import type { AssetSnapshotResponse } from '../models/assetSnapshotResponse'
-
 import type { AssetSnapshotsListParams } from '../models/assetSnapshotsListParams'
-
 import type { AssetSnapshotsRetrieveParams } from '../models/assetSnapshotsRetrieveParams'
-
 import type { AssetValidContentResponse } from '../models/assetValidContentResponse'
-
 import type { ContentResponse } from '../models/contentResponse'
-
 import type { ErrorDetail } from '../models/errorDetail'
-
 import type { ErrorObject } from '../models/errorObject'
-
 import type { OpenRosaXFormResponse } from '../models/openRosaXFormResponse'
-
 import type { PaginatedAssetSnapshotResponseList } from '../models/paginatedAssetSnapshotResponseList'
-
 import { fetchWithAuth } from '../orval.mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]

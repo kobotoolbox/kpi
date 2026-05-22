@@ -1,14 +1,18 @@
 import React from 'react'
 
 import cx from 'classnames'
+
 import type { DataResponse } from '#/api/models/dataResponse'
+
 import { findRowByXpath } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+
 import { getAttachmentForProcessing } from '../SingleProcessingContent/TabTranscript/transcript.utils'
+
 import styles from './sidebarSubmissionMedia.module.scss'
 
 interface SidebarSubmissionMediaProps {

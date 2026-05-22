@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react'
+
 import type { SelectProps } from '@mantine/core'
 // eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper around Mantine Select.
 import { Select as MantineSelect } from '@mantine/core'
-import { useEffect, useState } from 'react'
 
 import type { IconSize } from './icon'
 import Icon from './icon'

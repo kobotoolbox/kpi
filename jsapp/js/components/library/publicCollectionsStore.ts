@@ -1,10 +1,11 @@
 import { reaction } from 'mobx'
 import type { RouterState } from 'react-router'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
-import { ASSETS_TABLE_COLUMNS, ORDER_DIRECTIONS } from '#/components/assetsTable/assetsTableConstants'
 import type { AssetsTableColumn } from '#/components/assetsTable/assetsTableConstants'
+import { ASSETS_TABLE_COLUMNS, ORDER_DIRECTIONS } from '#/components/assetsTable/assetsTableConstants'
 import searchBoxStore from '#/components/header/searchBoxStore'
 import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
 import type {

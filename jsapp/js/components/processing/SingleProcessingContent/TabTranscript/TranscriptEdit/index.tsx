@@ -1,11 +1,15 @@
 import React, { useState } from 'react'
+
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
+
 import bodyStyles from '../../../common/processingBody.module.scss'
+
 import Editor from './Editor'
 import Viewer from './Viewer'
 

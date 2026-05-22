@@ -1,10 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { ComponentProps } from 'react'
+
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, within } from 'storybook/test'
+
 import ActionIcon from './ActionIcon'
-import Menu from './Menu'
 import Icon from './icon'
+import Menu from './Menu'
 import '@mantine/core/styles.css'
+
 import ButtonNew from './ButtonNew'
 
 type StoryArgs = ComponentProps<typeof Menu> & {

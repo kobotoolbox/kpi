@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
+
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { dataInterface } from '#/dataInterface'
 import { notify } from '#/utils'
+
 import styles from './apiTokenSection.module.scss'
 
 const HIDDEN_TOKEN_VALUE = '*'.repeat(40)

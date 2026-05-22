@@ -1,5 +1,6 @@
 import { Group, Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
+
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
@@ -9,8 +10,10 @@ import {
 } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { formatTimeDateShort, recordKeys } from '#/utils'
+
 import { getMediaAttachment, getSupplementalDetailsContent } from '../submissionUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
+
 import AudioCell from './AudioCell'
 import MediaCell from './MediaCell'
 import RepeatGroupCell from './RepeatGroupCell'

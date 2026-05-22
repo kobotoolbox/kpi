@@ -1,4 +1,5 @@
 import type { Column } from 'react-table'
+
 import type { SubmissionResponse, SurveyRow } from '#/dataInterface'
 
 export type SubmissionPageName = 'next' | 'prev'

@@ -1,6 +1,8 @@
+import { useState } from 'react'
+
 import type { AutocompleteProps } from '@mantine/core'
 import { Group, Autocomplete as MantineAutocomplete } from '@mantine/core'
-import { useState } from 'react'
+
 import Icon from './icon'
 
 // TODO: These props are subject to change pending the replacement of the language selector see DEV-1401. Most likely

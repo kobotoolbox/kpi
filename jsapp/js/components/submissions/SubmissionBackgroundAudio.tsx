@@ -3,8 +3,7 @@ import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem from '#/bem'
 import AudioPlayer from '#/components/common/audioPlayer'
-import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
-import type { SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 
 interface SubmissionBackgroundAudioProps {
   asset: AssetResponse

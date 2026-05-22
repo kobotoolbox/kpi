@@ -1,4 +1,5 @@
 import type { AssetContentSettings, AssetResponse } from '#/dataInterface'
+
 import type { Asset } from './api/models/asset'
 
 export function parseTags(asset: Asset | AssetResponse) {

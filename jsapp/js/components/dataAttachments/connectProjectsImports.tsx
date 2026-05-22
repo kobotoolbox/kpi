@@ -1,12 +1,16 @@
+import React, { useState } from 'react'
+
 import { Group, Modal, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import React, { useState } from 'react'
+
 import ButtonNew from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import type { AssetResponse } from '#/dataInterface'
+
 import ActionIcon from '../common/ActionIcon'
 import Icon from '../common/icon'
+
 import type { AttachedSourceItem } from './common'
 
 interface ConnectProjectsImportsProps {

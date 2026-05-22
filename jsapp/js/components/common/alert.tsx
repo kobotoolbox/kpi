@@ -1,8 +1,10 @@
 import { forwardRef } from 'react'
 
-import { Alert as AlertMantine } from '@mantine/core'
 import type { AlertProps as AlertPropsMantine } from '@mantine/core'
+import { Alert as AlertMantine } from '@mantine/core'
+
 import type { IconName } from '#/k-icons'
+
 import Icon from './icon'
 
 export type AlertType = 'default' | 'error' | 'success' | 'warning' | 'info'

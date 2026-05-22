@@ -1,7 +1,9 @@
 import { faker } from '@faker-js/faker'
 import type { ColumnPinningPosition } from '@tanstack/react-table'
+
 import Avatar from '#/components/common/avatar'
 import { formatDate } from '#/utils'
+
 import type { UniversalTableColumn } from './UniversalTableCore'
 
 /**

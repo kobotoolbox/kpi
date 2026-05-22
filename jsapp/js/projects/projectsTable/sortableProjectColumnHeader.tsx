@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
+
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
+
 import type { ProjectFieldDefinition, ProjectFieldName } from '../projectViews/constants'
+
 import type { ProjectsTableOrder } from './projectsTable'
 import styles from './projectsTableHeader.module.scss'
 import rowStyles from './projectsTableRow.module.scss'

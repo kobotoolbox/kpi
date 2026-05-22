@@ -1,14 +1,18 @@
 import React, { useState } from 'react'
 
 import classNames from 'classnames'
+
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import { useAssetsAdvancedFeaturesCreate } from '#/api/react-query/survey-data'
+
 import type { AssetResponse } from '#/dataInterface'
+
 import bodyStyles from '../../common/processingBody.module.scss'
+
 import AnalysisContent from './AnalysisContent'
 import AnalysisHeader from './AnalysisHeader'
 import type { AdvancedFeatureResponseManualQual } from './common/utils'

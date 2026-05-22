@@ -1,4 +1,5 @@
 import { Menu } from '@mantine/core'
+
 import classes from './Menu.module.css'
 
 declare module '@mantine/core' {

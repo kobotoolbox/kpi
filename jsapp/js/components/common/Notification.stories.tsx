@@ -1,7 +1,8 @@
 import type { MantineSize } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import * as TablerIcons from '@tabler/icons-react'
 import type { TablerIcon } from '@tabler/icons-react'
+import * as TablerIcons from '@tabler/icons-react'
+
 import KoboIcon from './KoboIcon'
 import Notification, { type NotificationProps } from './Notification'
 

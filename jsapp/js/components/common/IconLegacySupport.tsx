@@ -1,9 +1,11 @@
 import type { MantineSize } from '@mantine/core'
 import type { TablerIcon } from '@tabler/icons-react'
+
 import type { IconName } from '#/k-icons'
+
+import type { IconSize } from './icon'
 import KoboIcon from './KoboIcon'
 import { resolveIconComponentByLegacyName } from './KoboIconMappings'
-import type { IconSize } from './icon'
 
 export interface IconLegacySupportProps {
   icon: IconName | TablerIcon

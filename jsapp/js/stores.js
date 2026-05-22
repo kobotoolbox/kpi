@@ -16,7 +16,9 @@
  */
 
 import Reflux from 'reflux'
+
 import { recordKeys } from '#/utils'
+
 import { actions } from './actions'
 
 function changes(orig_obj, new_obj) {

@@ -4,18 +4,20 @@ import {
   type CellContext,
   type Column,
   type ColumnPinningPosition,
-  type PaginationState,
-  type TableOptions,
   flexRender,
   getCoreRowModel,
+  type PaginationState,
+  type TableOptions,
   useReactTable,
 } from '@tanstack/react-table'
 import cx from 'classnames'
+
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { useViewportSize } from '#/hooks/useViewportSize'
 import { generateUuid } from '#/utils'
+
 import styles from './UniversalTableCore.module.scss'
 
 export interface UniversalTableColumn<DataItem> {

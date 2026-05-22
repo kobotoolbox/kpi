@@ -1,13 +1,15 @@
-import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
-import type { MantineSize } from '@mantine/core'
-import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core'
-import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
-import { forwardRef } from 'react'
 import type { ComponentType } from 'react'
+import { forwardRef } from 'react'
+
+import type { ButtonProps as ButtonPropsMantine, MantineSize, TooltipProps } from '@mantine/core'
+import { Button as ButtonMantine, createPolymorphicComponent, Tooltip } from '@mantine/core'
+import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
+
 import type { IconName } from '#/k-icons'
+
 import IconLegacySupport from './IconLegacySupport'
-import KoboIcon from './KoboIcon'
 import type { IconSize } from './icon'
+import KoboIcon from './KoboIcon'
 
 const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
   sm: 'xs',

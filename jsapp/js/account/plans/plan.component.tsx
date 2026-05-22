@@ -3,13 +3,15 @@ import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef,
 import classnames from 'classnames'
 import { when } from 'mobx'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import { PlanContainer } from '#/account/plans/planContainer.component'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { Price, Product, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
 import { getSubscriptionsForProductId, processCheckoutResponse } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import type { OrganizationResponse } from '#/api/models/organizationResponse'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
@@ -17,8 +19,10 @@ import envStore from '#/envStore'
 import { useRefreshApiFetcher } from '#/hooks/useRefreshApiFetcher.hook'
 import useWhen from '#/hooks/useWhen.hook'
 import { notify } from '#/utils'
+
 import { postCheckout, postCustomerPortal } from '../stripe.api'
 import { ProductsContext } from '../useProducts.hook'
+
 import styles from './plan.module.scss'
 
 export interface PlanState {

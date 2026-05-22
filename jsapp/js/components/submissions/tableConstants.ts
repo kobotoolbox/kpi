@@ -1,11 +1,11 @@
+import type { AnyRowTypeName } from '#/constants'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
+  createEnum,
   META_QUESTION_TYPES,
   MiscRowTypeName,
   QuestionTypeName,
-  createEnum,
 } from '#/constants'
-import type { AnyRowTypeName } from '#/constants'
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions'
 

@@ -1,7 +1,9 @@
 import React from 'react'
 
 import { useParams } from 'react-router-dom'
+
 import { ROOT_URL } from '#/constants'
+
 import { DEFAULT_EXCLUDED_FIELDS, DEFAULT_ORDERABLE_FIELDS, DEFAULT_VISIBLE_FIELDS } from './projectViews/constants'
 import UniversalProjectsRoute from './universalProjectsRoute'
 
