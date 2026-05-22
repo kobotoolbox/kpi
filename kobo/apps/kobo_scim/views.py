@@ -201,13 +201,6 @@ class ScimUserViewSet(
                         last_name=last_name,
                         is_active=data.get('active', True),
                     )
-                else:
-                    # If they exist, optionally reactivate them if the IdP sends
-                    # active=True. (A deprovisioned user in Kobo is not deleted
-                    # but deactivated).
-                    if not user.is_active and data.get('active', True):
-                        user.is_active = True
-                        user.save(update_fields=['is_active'])
 
                 # Ensure the SocialAccount link exists so SSO works flawlessly.
                 # We catch IntegrityError here just in case another IdP already
@@ -215,6 +208,9 @@ class ScimUserViewSet(
                 SocialAccount.objects.get_or_create(
                     user=user, provider=idp.social_app.provider_id, uid=uid
                 )
+
+                if data.get('active', True):
+                    self._reactivate_sso_linked_accounts(user.email, user)
 
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -259,6 +255,23 @@ class ScimUserViewSet(
                 },
                 status=status.HTTP_409_CONFLICT,
             )
+
+    def perform_update(self, serializer):
+        was_active = serializer.instance.is_active
+        instance = serializer.save()
+        if not was_active and instance.is_active:
+            self._reactivate_sso_linked_accounts(instance.email, instance)
+
+    def _reactivate_sso_linked_accounts(self, email, current_user=None):
+        if email:
+            targets = User.objects.filter(
+                email__iexact=email, socialaccount__isnull=False, is_active=False
+            )
+            targets.update(is_active=True)
+
+        if current_user and not current_user.is_active:
+            current_user.is_active = True
+            current_user.save(update_fields=['is_active'])
 
     def get_queryset(self):
         # The idp_slug in the URL MUST match the authenticated IdP
@@ -366,8 +379,7 @@ class ScimUserViewSet(
                 self.perform_destroy(instance)
             else:
                 # Re-enabling the user
-                instance.is_active = True
-                instance.save(update_fields=['is_active'])
+                self._reactivate_sso_linked_accounts(instance.email, instance)
 
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
