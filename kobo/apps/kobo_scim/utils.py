@@ -12,7 +12,7 @@ def apply_scim_user_metadata(user, scim_data):
     metadata_fields = getattr(config, 'USER_METADATA_FIELDS', None)
 
     if not isinstance(metadata_fields, list):
-        return
+        return False
 
     # Fields that map directly to UserProfile model attributes
     user_profile_fields = {
@@ -21,6 +21,7 @@ def apply_scim_user_metadata(user, scim_data):
 
     extra_details_updated = False
     profile_updated = False
+    matched_any = False
 
     extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
     metadata = extra_user_detail.data or {}
@@ -76,6 +77,8 @@ def apply_scim_user_metadata(user, scim_data):
         if value is None:
             continue
 
+        matched_any = True
+
         # Apply value mapping if defined
         value_mapping = field_def.get('scim_value_mapping')
         if isinstance(value_mapping, dict) and str(value) in value_mapping:
@@ -105,3 +108,5 @@ def apply_scim_user_metadata(user, scim_data):
 
     if profile_updated:
         profile.save()
+
+    return matched_any

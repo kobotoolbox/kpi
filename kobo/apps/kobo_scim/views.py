@@ -406,8 +406,9 @@ class ScimUserViewSet(
                 elif path:
                     scim_patch_data[path] = value
 
+        metadata_processed = False
         if scim_patch_data:
-            apply_scim_user_metadata(instance, scim_patch_data)
+            metadata_processed = apply_scim_user_metadata(instance, scim_patch_data)
 
         if active_status is not None:
             if active_status is False:
@@ -417,7 +418,7 @@ class ScimUserViewSet(
                 # Re-enabling the user
                 self._reactivate_sso_linked_accounts(instance.email, instance)
 
-        if scim_patch_data or active_status is not None:
+        if metadata_processed or active_status is not None:
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
             serializer = self.get_serializer(instance)
