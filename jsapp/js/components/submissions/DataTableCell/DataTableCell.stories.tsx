@@ -1,0 +1,95 @@
+import { Box } from '@mantine/core'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import type { CellInfo } from 'react-table'
+import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
+import type { SubmissionResponse } from '#/dataInterface'
+import {
+  simpleSurvey,
+  simpleSurveyAsset,
+  simpleSurveyChoices,
+  simpleSurveySubmission,
+  simpleSurveySubmissionEmpty,
+} from '../submissionUtils.mocks'
+import DataTableCell from './index'
+
+const transcriptColumnKey = `${SUPPLEMENTAL_DETAILS_PROP}/What_is_your_opinion/transcript_fr`
+
+function buildReactTableRow(submission: SubmissionResponse, value: unknown, index = 0): CellInfo {
+  return {
+    original: submission,
+    value,
+    index,
+  } as CellInfo
+}
+
+const supplementalSubmission = {
+  ...simpleSurveySubmission,
+  [SUPPLEMENTAL_DETAILS_PROP]: {
+    What_is_your_opinion: {
+      transcript: {
+        languageCode: 'fr',
+        value:
+          "La collecte de données humanitaires est essentielle pour évaluer les besoins réels des populations touchées par des crises. Les organisations utilisent souvent des outils numériques pour recueillir des informations précises en temps réel sur le terrain. Il est crucial de respecter la protection des données personnelles afin de garantir la sécurité des bénéficiaires vulnérables. Une analyse rigoureuse de ces statistiques permet d'optimiser la distribution de l'aide alimentaire et médicale. Enfin, la collaboration entre les différentes agences internationales renforce l'efficacité de l'intervention humanitaire globale.",
+      },
+    },
+  },
+} as SubmissionResponse
+
+const meta: Meta<typeof DataTableCell> = {
+  title: 'Components/DataTableCell',
+  component: DataTableCell,
+  decorators: [
+    (Story) => (
+      <Box maw={250} p='md'>
+        <Story />
+      </Box>
+    ),
+  ],
+  parameters: {
+    a11y: { test: 'todo' },
+  },
+}
+
+export default meta
+
+type Story = StoryObj<typeof DataTableCell>
+
+export const PlainText: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(simpleSurveySubmission, 'Leszek'),
+    columnKey: 'First_name',
+    question: simpleSurvey[2],
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+}
+
+export const SupplementalTranscript: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(supplementalSubmission, undefined),
+    columnKey: transcriptColumnKey,
+    question: undefined,
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+}
+
+export const BulkProcessingInProgress: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(simpleSurveySubmissionEmpty, undefined),
+    columnKey: transcriptColumnKey,
+    question: undefined,
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+    isBulkProcessingInProgress: true,
+  },
+}

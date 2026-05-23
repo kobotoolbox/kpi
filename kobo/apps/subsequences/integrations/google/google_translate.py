@@ -129,13 +129,19 @@ class GoogleTranslationService(GoogleService):
         )
         return response, len(content)
 
-    def process_data(self, xpath: str, params: dict) -> dict:
+    def process_data(
+        self,
+        xpath: str,
+        params: dict,
+        bulk_action_uid: str | None = None,
+    ) -> dict:
         """
         Translate one submission value using either sync or async Google APIs
 
-        NOTE: When `bulk_action_uid` is present, operation tracking can use the
-        future SubsequenceBulkActionItem model. Until that model exists, this
-        method falls back to the existing cache-based tracking.
+        `bulk_action_uid` is an optional identifier for the SubsequenceBulkActionItem
+        that is being processed. It is only relevant for async translations and if no
+        bulk action item is available, async translations fall back to the existing
+        cache-based operation tracking.
         """
         try:
             content = params['_dependency']['value']
@@ -160,7 +166,6 @@ class GoogleTranslationService(GoogleService):
                 target_language_code,
             )
 
-        bulk_action_uid = params.get('bulk_action_uid')
         operation_name = self._get_operation_reference(
             xpath,
             source_language_code,

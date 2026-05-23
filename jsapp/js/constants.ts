@@ -95,6 +95,15 @@ export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   REPLACE: 'replaceProject',
 })
 
+export const EXTRA_PROJECT_METADATA_FIELD_TYPES = Object.freeze({
+  TEXT: 'text',
+  SINGLE_SELECT: 'single_select',
+  MULTI_SELECT: 'multi_select',
+} as const)
+
+export type ExtraProjectMetadataFieldType =
+  (typeof EXTRA_PROJECT_METADATA_FIELD_TYPES)[keyof typeof EXTRA_PROJECT_METADATA_FIELD_TYPES]
+
 export type UpdateStatesKey = 'UNSAVED_CHANGES' | 'UP_TO_DATE' | 'PENDING_UPDATE' | 'SAVE_FAILED'
 export type UpdateStatesValue = -1 | true | false | 'SAVE_FAILED'
 

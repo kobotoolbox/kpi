@@ -5,6 +5,7 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
+import $ from 'jquery'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetLockingProfileDefinition } from '#/components/locking/lockingConstants'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
@@ -613,6 +614,7 @@ export interface AssetSettings {
   collects_pii?: LabelValuePair | null
   operational_purpose?: LabelValuePair | null
   country_codes?: string[]
+  extra_metadata?: Record<string, string | string[] | null>
 }
 
 /** This is the asset object Frontend uses with the endpoints. */

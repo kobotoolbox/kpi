@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { getSupplementalPathParts } from './processingUtils'
+import { type SupplementalPathParts, buildSupplementalPath, getSupplementalPathParts } from './processingUtils'
 
 describe('getSupplementalPathParts', () => {
   it('should return proper path parts for transcript', () => {
@@ -88,6 +88,72 @@ describe('getSupplementalPathParts', () => {
       sourceRowName: 'outer_group/middle_group/inner_group/What_did_you_hear',
       sourceRowPath: 'outer_group/middle_group/inner_group/What_did_you_hear',
       type: null,
+    })
+  })
+
+  describe('buildSupplementalPath', () => {
+    it('should build path for transcript', () => {
+      const path = buildSupplementalPath({
+        sourceRowPath: 'your_name',
+        type: 'transcript',
+        languageCode: 'de',
+        sourceRowName: 'your_name',
+      })
+      chai.expect(path).to.equal('_supplementalDetails/your_name/transcript_de')
+    })
+
+    it('should build path for translation', () => {
+      const path = buildSupplementalPath({
+        sourceRowPath: 'your_name',
+        type: 'translation',
+        languageCode: 'pl',
+        sourceRowName: 'your_name',
+      })
+      chai.expect(path).to.equal('_supplementalDetails/your_name/translation_pl')
+    })
+
+    it('should build path for transcript of a nested question', () => {
+      const path = buildSupplementalPath({
+        sourceRowPath: 'outer_group/middle_group/inner_group/What_did_you_hear',
+        type: 'transcript',
+        languageCode: 'fr',
+        sourceRowName: 'What_did_you_hear',
+      })
+      chai
+        .expect(path)
+        .to.equal('_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/transcript_fr')
+    })
+
+    it('should round-trip with getSupplementalPathParts for transcript', () => {
+      const input: SupplementalPathParts = {
+        sourceRowPath: 'foo/bar',
+        type: 'transcript',
+        languageCode: 'en',
+        sourceRowName: 'bar',
+      }
+      const path = buildSupplementalPath(input)
+      const parsed = getSupplementalPathParts(path)
+      chai.expect(parsed).to.include({
+        sourceRowPath: 'foo/bar',
+        type: 'transcript',
+        languageCode: 'en',
+      })
+    })
+
+    it('should round-trip with getSupplementalPathParts for translation', () => {
+      const input: SupplementalPathParts = {
+        sourceRowPath: 'foo/bar',
+        type: 'translation',
+        languageCode: 'es',
+        sourceRowName: 'bar',
+      }
+      const path = buildSupplementalPath(input)
+      const parsed = getSupplementalPathParts(path)
+      chai.expect(parsed).to.include({
+        sourceRowPath: 'foo/bar',
+        type: 'translation',
+        languageCode: 'es',
+      })
     })
   })
 })

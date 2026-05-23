@@ -1,6 +1,6 @@
 import type { SubmissionResponse } from '#/dataInterface'
+import { getRepeatGroupAnswers } from '../submissionUtils'
 import styles from './RepeatGroupCell.module.scss'
-import { getRepeatGroupAnswers } from './submissionUtils'
 
 interface RepeatGroupCellProps {
   submissionData: SubmissionResponse

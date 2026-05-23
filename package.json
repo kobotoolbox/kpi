@@ -27,8 +27,8 @@
     "fuse.js": "^7.3.0",
     "immer": "^10.1.1",
     "immutable": "^3.8.2",
-    "jquery": "^3.5.1",
-    "jquery-ui": "^1.13.2",
+    "jquery": "^4.0.0",
+    "jquery-ui": "^1.14.2",
     "jszip": "^3.4.0",
     "leaflet": "^1.9.2",
     "leaflet.heat": "^0.2.0",
@@ -108,7 +108,7 @@
     "@types/coffeescript": "^2.5.7",
     "@types/gtag.js": "^0.0.20",
     "@types/jest": "^30.0.0",
-    "@types/jquery": "^3.5.33",
+    "@types/jquery": "^4.0.0",
     "@types/leaflet": "^1.9.20",
     "@types/leaflet.heat": "^0.2.5",
     "@types/leaflet.markercluster": "^1.5.5",
@@ -258,6 +258,8 @@
   "bugs": "https://github.com/kobotoolbox/kpi/issues",
   "homepage": "https://github.com/kobotoolbox/kpi",
   "msw": {
-    "workerDirectory": ["msw-mocks"]
+    "workerDirectory": [
+      "msw-mocks"
+    ]
   }
 }

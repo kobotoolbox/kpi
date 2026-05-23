@@ -4,8 +4,8 @@ import type { AssetResponse, FailResponse } from '#/dataInterface'
 /**
  * Shared bridge types and helpers.
  *
- * Keep this file free of route tables and action dispatches; it should only
- * contain reusable parsing, normalization, and context-building logic.
+ * Keep this file free of handler tables and action dispatches; it should only contain reusable parsing, normalization,
+ * and context-building logic.
  */
 
 export interface BridgeableSuccessResponse {
@@ -26,7 +26,7 @@ export interface BridgeableRequestConfig {
   body?: BodyInit | null
 }
 
-export interface BridgeRequestRouteContext {
+export interface BridgeRequestHandlerContext {
   method: string
   pathname: string
   requestBody?: Record<string, unknown>
@@ -34,7 +34,7 @@ export interface BridgeRequestRouteContext {
   deploymentAssetUid?: string
 }
 
-export interface BridgeSuccessRouteContext extends BridgeRequestRouteContext {
+export interface BridgeSuccessHandlerContext extends BridgeRequestHandlerContext {
   responseData: unknown
 }
 
@@ -42,33 +42,49 @@ export type LegacyFailurePayload = FailResponse & {
   detail?: unknown
 }
 
-export interface BridgeFailureRouteContext extends BridgeSuccessRouteContext {
+export interface BridgeFailureHandlerContext extends BridgeSuccessHandlerContext {
   failureData?: unknown
   failureError: unknown
   legacyFailurePayload: LegacyFailurePayload
 }
 
-export interface BridgeRoute<Context> {
-  /** Metadata: human-readable endpoint signature, e.g. `PATCH /api/v2/assets/:uid/` */
+export interface BridgeHandler<Context> {
+  /**
+   * Endpoint pattern used for handler pre-matching, e.g. `PATCH /api/v2/assets/:uid/`. `:param` segments match a single
+   * non-empty path segment.
+   */
   endpoint: string
-  /** Metadata: a human-readable legacy action path this route is expected to trigger */
+  /** Human-readable legacy action label used for diagnostics and code navigation. */
   refluxAction: string
-  /** HTTP method this route applies to */
-  method: string
-  /** Predicate that decides whether this route should run for a given context */
+  /** Predicate that decides whether this handler should run for a given context */
   matches: (context: Context) => boolean
   /** Side-effect callback that emits the corresponding legacy Reflux action */
   run: (context: Context) => void
 }
 
-export type BridgeStartRoute = BridgeRoute<BridgeRequestRouteContext>
+export type BridgeStartHandler = BridgeHandler<BridgeRequestHandlerContext>
 
-export type BridgeSuccessRoute = BridgeRoute<BridgeSuccessRouteContext>
+export type BridgeSuccessHandler = BridgeHandler<BridgeSuccessHandlerContext>
 
-export type BridgeFailureRoute = BridgeRoute<BridgeFailureRouteContext>
+export type BridgeFailureHandler = BridgeHandler<BridgeFailureHandlerContext>
+
+// Backwards-compatible aliases for route-named files kept during migration.
+export type BridgeRequestRouteContext = BridgeRequestHandlerContext
+export type BridgeSuccessRouteContext = BridgeSuccessHandlerContext
+export type BridgeFailureRouteContext = BridgeFailureHandlerContext
+export type BridgeRoute<Context> = BridgeHandler<Context>
+export type BridgeStartRoute = BridgeStartHandler
+export type BridgeSuccessRoute = BridgeSuccessHandler
+export type BridgeFailureRoute = BridgeFailureHandler
+
+export enum SpecializedAssetPatchField {
+  ReportStyles = 'report_styles',
+  ReportCustom = 'report_custom',
+  MapStyles = 'map_styles',
+}
 
 /**
- * Small type guard used by the route modules to avoid repeating object checks.
+ * Small type guard used by the handler modules to avoid repeating object checks.
  * Excludes arrays and other non-plain-object values.
  */
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -112,7 +128,7 @@ export function toPathname(url: string): string {
 
 export function parseJsonBody(body: BodyInit | null | undefined): Record<string, unknown> | undefined {
   // Orval sends JSON payloads as strings for mutation requests.
-  // Parsing lets route matching distinguish create vs clone, or similar forks.
+  // Parsing lets handler matching distinguish create vs clone, or similar forks.
   if (typeof body !== 'string') {
     return undefined
   }
@@ -177,7 +193,7 @@ export function toLegacyFailurePayload(response: BridgeableFailureResponse): Leg
 export function buildBridgeRequestContext(
   url: string,
   config: BridgeableRequestConfig,
-): BridgeRequestRouteContext | undefined {
+): BridgeRequestHandlerContext | undefined {
   const method = config.method?.toUpperCase()
   if (!method || method === 'GET') {
     return undefined
@@ -190,4 +206,46 @@ export function buildBridgeRequestContext(
     assetUid: getAssetUidFromAssetPath(pathname),
     deploymentAssetUid: getAssetUidFromDeploymentPath(pathname),
   }
+}
+
+/**
+ * Checks whether an incoming request matches a handler endpoint pattern.
+ *
+ * `endpoint` is the handler declaration (for example, `PATCH /api/v2/assets/:uid/`) and carries both
+ * method and path pattern. We still pass `method` separately because that value comes from normalized
+ * request context (`buildBridgeRequestContext`) and represents what Orval actually sent.
+ *
+ * Keeping both inputs lets us fail fast when a handler declaration is malformed or inconsistent with
+ * request context, and avoids relying on handler-local duplicate method fields.
+ */
+export function doesEndpointMatchHandler(endpoint: string, method: string, pathname: string): boolean {
+  const separatorIndex = endpoint.indexOf(' ')
+  if (separatorIndex <= 0) {
+    return false
+  }
+
+  const endpointMethod = endpoint.slice(0, separatorIndex)
+  const endpointPathPattern = endpoint.slice(separatorIndex + 1).trim()
+  if (!endpointPathPattern.startsWith('/')) {
+    return false
+  }
+
+  if (endpointMethod !== method) {
+    return false
+  }
+
+  const patternParts = getPathParts(endpointPathPattern)
+  const pathParts = getPathParts(pathname)
+
+  if (patternParts.length !== pathParts.length) {
+    return false
+  }
+
+  return patternParts.every((patternPart, index) => {
+    if (patternPart.startsWith(':')) {
+      return pathParts[index].length > 0
+    }
+
+    return patternPart === pathParts[index]
+  })
 }

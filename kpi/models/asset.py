@@ -846,6 +846,27 @@ class Asset(
         except IndexError:
             return None
 
+    def validate_and_normalize_settings(self):
+        if not self.settings:
+            self.settings = {}
+            return
+
+        if not isinstance(self.settings, dict):
+            self.settings = {}
+            return
+
+        # Run unconditionally for all asset types to ensure a consistent
+        # 'extra_metadata' namespace across surveys, templates, and library items.
+        if 'extra_metadata' not in self.settings:
+            return
+
+        extra_metadata = self.settings.get('extra_metadata')
+
+        if extra_metadata is None:
+            self.settings['extra_metadata'] = {}
+        elif not isinstance(extra_metadata, dict):
+            self.settings['extra_metadata'] = {}
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """Used by serializers to improve performance when listing assets"""
@@ -974,6 +995,9 @@ class Asset(
 
         if not update_fields or update_fields and 'advanced_features' in update_fields:
             migrate_advanced_features(self, save_asset=False)
+
+        if not update_fields or 'settings' in update_fields:
+            self.validate_and_normalize_settings()
 
         # standardize settings (only when required)
         if (
