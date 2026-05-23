@@ -4,6 +4,9 @@
     "includes": [
       "**/jsapp/**",
       "!**/jsapp/compiled",
+      // Ignore API files that are generated from OpenAPI spec.
+      "!**/jsapp/js/api/models",
+      "!**/jsapp/js/api/react-query",
       // Ignore minified committed JS files.
       "!**/*.css",
       "!**/*.min.js",
