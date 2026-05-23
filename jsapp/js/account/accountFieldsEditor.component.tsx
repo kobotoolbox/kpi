@@ -1,12 +1,15 @@
 import React from 'react'
 
 import cx from 'classnames'
+
 import Select from '#/components/common/Select'
 import { addRequiredToLabel } from '#/textUtils'
 import { recordValues } from '#/utils'
+
 import Checkbox from '../components/common/checkbox'
 import TextBox from '../components/common/textBox'
 import envStore from '../envStore'
+
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
 import styles from './accountFieldsEditor.module.scss'
 import { ORGANIZATION_TYPES } from './organization/OrganizationSettingsRoute'

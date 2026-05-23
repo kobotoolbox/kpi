@@ -1,8 +1,11 @@
 import { useLocalStorage } from '@mantine/hooks'
+
 import type { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
+
 import type { QualVersionItem } from '#/components/processing/common/types'
+
 import { ANALYSIS_QUESTION_TYPES } from './constants'
 
 const SHOW_HINTS_LOCAL_STORAGE_KEY = 'kpiQualitativeAnalysisShowHints'

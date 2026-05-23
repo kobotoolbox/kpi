@@ -3,6 +3,7 @@
  */
 
 import Reflux from 'reflux'
+
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { INVALID_PERMS_ERROR, validateBackendPermissions } from '#/components/permissions/validatePermissions'

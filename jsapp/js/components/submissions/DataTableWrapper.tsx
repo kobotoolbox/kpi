@@ -1,9 +1,12 @@
 import React from 'react'
+
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { useAssetsAdvancedFeaturesBulkActionsList } from '#/api/react-query/survey-data'
+
 import type { AssetResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
+
 import { DataTable } from './table'
 
 interface DataTableWrapperProps {

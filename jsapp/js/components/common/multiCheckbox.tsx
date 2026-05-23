@@ -3,6 +3,7 @@ import './multiCheckbox.scss'
 import React from 'react'
 
 import { Stack, Text } from '@mantine/core'
+
 import bem, { makeBem } from '#/bem'
 import Checkbox from '#/components/common/checkbox'
 

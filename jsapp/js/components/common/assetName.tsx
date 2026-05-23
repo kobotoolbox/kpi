@@ -4,6 +4,7 @@ import React from 'react'
 
 import type { Asset } from '#/api/models/asset'
 import type { AssetMinimalList } from '#/api/models/assetMinimalList'
+
 import { getAssetDisplayName } from '#/assetUtils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { hasLongWords } from '#/textUtils'

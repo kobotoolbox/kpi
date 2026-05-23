@@ -6,6 +6,7 @@ import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import { addRequiredToLabel } from '#/textUtils'
 import { currentLang } from '#/utils'
+
 import styles from './extraProjectMetadataFields.module.scss'
 
 /**

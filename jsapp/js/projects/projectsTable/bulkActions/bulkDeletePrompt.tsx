@@ -7,6 +7,7 @@ import customViewStore from '#/projects/customViewStore'
 import { invalidateSidebarQueries } from '#/sidebar/SidebarFormsList'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
+
 import styles from './bulkDeletePrompt.module.scss'
 
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive'

@@ -1,4 +1,5 @@
 import type { PartialPermission } from '#/dataInterface'
+
 import type { PermissionCodename } from '../permissions/permConstants'
 
 /**

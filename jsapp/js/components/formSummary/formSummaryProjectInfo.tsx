@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { handleApiFail } from '#/api'
 import { getCountryDisplayString, getSectorDisplayString } from '#/assetUtils'

@@ -1,4 +1,5 @@
 import type { PaginatedResponse, PermissionResponse, PermissionsConfigResponse } from '#/dataInterface'
+
 import type { PermsFormDataPartialWithUsername } from './permParser'
 
 /**

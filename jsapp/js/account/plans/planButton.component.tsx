@@ -1,8 +1,9 @@
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import BillingButton from '#/account/plans/billingButton.component'
 import { postCustomerPortal } from '#/account/stripe.api'
 import type { Price, SinglePricedProduct } from '#/account/stripe.types'
 import { processCheckoutResponse } from '#/account/stripe.utils'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 
 interface PlanButtonProps {
   buySubscription: (price: Price) => void

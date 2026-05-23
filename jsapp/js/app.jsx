@@ -3,18 +3,20 @@
  */
 import '#/bemComponents' // importing it so it exists
 
-import { useDisclosure } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
 import { MantineProvider } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
+
 import { queryClient } from '#/api/queryClient'
+
 import bem from '#/bem'
-import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
+import Drawer from '#/components/Drawer'
 import FormViewSideTabs from '#/components/formViewSideTabs'
 import MainHeader from '#/components/header/mainHeader.component'
 import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
@@ -29,6 +31,7 @@ import {
   isTOSAgreementRouteBlockerActive,
 } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
+
 import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { themeKobo } from './theme'

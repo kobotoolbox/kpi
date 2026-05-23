@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { ROOT_URL } from '#/constants'
+
 import {
   HOME_DEFAULT_VISIBLE_FIELDS,
   HOME_EXCLUDED_FIELDS,

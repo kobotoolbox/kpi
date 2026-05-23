@@ -3,14 +3,18 @@ import React from 'react'
 import { MantineProvider } from '@mantine/core'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
+
 import { queryClient } from '#/api/queryClient'
+
 import bem from '#/bem'
 import AccountMenu from '#/components/header/accountMenu'
 import MainHeaderBase from '#/components/header/mainHeaderBase.component'
 import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
 import sessionStore from '#/stores/session'
 import { themeKobo } from '#/theme'
+
 import ToasterConfig from '../toasterConfig'
+
 import { RequireOrg } from './RequireOrg'
 import { Tracking } from './useTracking'
 

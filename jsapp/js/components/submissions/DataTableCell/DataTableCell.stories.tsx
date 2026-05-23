@@ -1,8 +1,10 @@
 import { Box } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { CellInfo } from 'react-table'
+
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
+
 import {
   simpleSurvey,
   simpleSurveyAsset,
@@ -10,6 +12,7 @@ import {
   simpleSurveySubmission,
   simpleSurveySubmissionEmpty,
 } from '../submissionUtils.mocks'
+
 import DataTableCell from './index'
 
 const transcriptColumnKey = `${SUPPLEMENTAL_DETAILS_PROP}/What_is_your_opinion/transcript_fr`

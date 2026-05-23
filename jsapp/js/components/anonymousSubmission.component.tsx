@@ -4,6 +4,7 @@ import Icon from '#/components/common/icon'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
+
 import styles from './anonymousSubmission.module.scss'
 
 interface AnonymousSubmissionProps {

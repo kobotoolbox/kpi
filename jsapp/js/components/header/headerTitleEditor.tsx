@@ -1,6 +1,7 @@
 import React from 'react'
 
 import autoBind from 'react-autobind'
+
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import { getAssetDisplayName, removeInvalidChars } from '#/assetUtils'

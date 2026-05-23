@@ -4,6 +4,7 @@ import cx from 'classnames'
 import { observer } from 'mobx-react'
 import autoBind from 'react-autobind'
 import Dropzone from 'react-dropzone'
+
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
@@ -17,6 +18,7 @@ import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import { escapeHtml, join, notify, validFileTypes } from '#/utils'
+
 import ModalBackButton from './ModalBackButton'
 
 /**

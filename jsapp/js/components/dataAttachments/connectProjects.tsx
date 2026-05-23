@@ -3,9 +3,11 @@ import './connect-projects.scss'
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
-import type { ServerError } from '#/api/ServerError'
+
 import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react-query/survey-data'
+import type { ServerError } from '#/api/ServerError'
+
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
@@ -14,6 +16,7 @@ import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
+
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
 import ConnectProjectsImports from './connectProjectsImports'

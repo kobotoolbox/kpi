@@ -2,6 +2,7 @@ import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
 import DocumentTitle from 'react-document-title'
+
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
 import bem from '#/bem'
@@ -11,6 +12,7 @@ import CollectionAssetsTable from '#/components/library/collectionAssetsTable'
 import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getRouteAssetUid } from '#/router/routerUtils'
+
 import AssetBreadcrumbs from './assetBreadcrumbs'
 import AssetContentSummary from './assetContentSummary'
 import AssetInfoBox from './assetInfoBox'

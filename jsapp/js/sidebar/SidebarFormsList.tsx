@@ -1,7 +1,8 @@
-import { Stack, Text } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
+
+import { Stack, Text } from '@mantine/core'
 import { useLocation } from 'react-router-dom'
-import { actions } from '#/actions'
+
 import { queryClient } from '#/api/queryClient'
 import {
   getAssetsCountsRetrieveQueryKey,
@@ -16,11 +17,15 @@ import {
   useOrganizationsAssetsCountsRetrieve,
   useProjectViewsAssetsCountsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+
+import { actions } from '#/actions'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
+
 import LoadingSpinner from '../components/common/loadingSpinner'
-import SidebarFormsListCategory from './SidebarFormsListCategory'
+
 import type { SidebarContext } from './common'
+import SidebarFormsListCategory from './SidebarFormsListCategory'
 
 function resolveSidebarContext(currentPath: string): SidebarContext | undefined {
   if (currentPath === PROJECTS_ROUTES.MY_ORG_PROJECTS) {

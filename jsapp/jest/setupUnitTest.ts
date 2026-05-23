@@ -1,9 +1,10 @@
 // Polyfill global fetch (for Node 20 and older)
 import 'whatwg-fetch'
-import { TextDecoder, TextEncoder } from 'node:util'
 
 import chai from 'chai'
 import $ from 'jquery'
+
+import { TextDecoder, TextEncoder } from 'node:util'
 
 // React Router v7 expects these globals in the test runtime.
 Object.defineProperty(globalThis, 'TextEncoder', { value: TextEncoder, configurable: true })

@@ -2,9 +2,11 @@ import React from 'react'
 
 import cx from 'classnames'
 import InfiniteScroll from 'react-infinite-scroller'
+
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import type { OrderDirection, ProjectFieldName } from '#/projects/projectViews/constants'
+
 import styles from './projectsTable.module.scss'
 import ProjectsTableHeader from './projectsTableHeader'
 import ProjectsTableRow from './projectsTableRow'

@@ -1,12 +1,14 @@
 import React, { useMemo } from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
+
 import { getRowNameByXpath } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import SubmissionDataList from '#/components/submissions/submissionDataList'
 import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordKeys } from '#/utils'
+
 import styles from './sidebarSubmissionData.module.scss'
 
 interface SidebarSubmissionDataProps {

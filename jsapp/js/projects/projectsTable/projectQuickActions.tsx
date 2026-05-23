@@ -2,6 +2,7 @@ import React from 'react'
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import { archiveAsset, deleteAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
 import { getAssetDisplayName } from '#/assetUtils'
 import Button from '#/components/common/button'
@@ -9,6 +10,7 @@ import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from '#/dataInterface'
 import customViewStore from '#/projects/customViewStore'
+
 import styles from './projectActions.module.scss'
 
 interface ProjectQuickActionsProps {

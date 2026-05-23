@@ -1,14 +1,18 @@
+import { useEffect, useState } from 'react'
+
 import { Box, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
+
 import styles from './DeleteAccountBanner.module.scss'
 import DeleteAccountModal from './DeleteAccountModal'
 

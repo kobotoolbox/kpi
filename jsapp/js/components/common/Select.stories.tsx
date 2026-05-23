@@ -1,5 +1,6 @@
 import { type MantineSize, Stack } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+
 import Select from './Select'
 
 const sizes: MantineSize[] = ['xs', 'sm', 'md', 'lg', 'xl']

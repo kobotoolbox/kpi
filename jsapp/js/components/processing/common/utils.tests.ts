@@ -1,4 +1,5 @@
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+
 import { getSuggestedLanguages } from './utils'
 
 // Mock AdvancedFeatureResponse objects for tests

@@ -1,10 +1,14 @@
+import { useMemo, useState } from 'react'
+
 import { Group, Loader, Text } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { IconInfoCircleFilled } from '@tabler/icons-react'
 import { useQueries } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
+
 import envStore from '#/envStore'
+
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode } from '../languages/languagesStore'

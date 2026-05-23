@@ -4,6 +4,7 @@ import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
+
 import styles from './analysisContentEmpty.module.scss'
 
 interface Props {

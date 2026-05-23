@@ -1,11 +1,11 @@
 import './tableColumnSortDropdown.scss'
 
-import React from 'react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 
 import { Group } from '@mantine/core'
-import Menu from '#/components/common/Menu'
+
 import Icon from '#/components/common/icon'
+import Menu from '#/components/common/Menu'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'

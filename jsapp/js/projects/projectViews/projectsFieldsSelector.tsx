@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import Button from '#/components/common/button'
-import MultiCheckbox from '#/components/common/multiCheckbox'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
+import MultiCheckbox from '#/components/common/multiCheckbox'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { recordValues } from '#/utils'
+
 import type { ProjectFieldName } from './constants'
 import { PROJECT_FIELDS } from './constants'
 import styles from './projectsFieldsSelector.module.scss'

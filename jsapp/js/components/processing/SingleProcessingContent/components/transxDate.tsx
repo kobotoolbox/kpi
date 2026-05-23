@@ -1,8 +1,11 @@
 import React, { useMemo } from 'react'
 
 import cx from 'classnames'
+
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+
 import { formatTime, formatTimeDateShort } from '#/utils'
+
 import type { TransxVersionItem } from '../../common/types'
 import {
   getAllTranscriptVersions,
@@ -10,6 +13,7 @@ import {
   isVersionItemTranscript,
   isVersionItemTranslation,
 } from '../../common/utils'
+
 import styles from './transxDate.module.scss'
 
 interface TransxDateProps {

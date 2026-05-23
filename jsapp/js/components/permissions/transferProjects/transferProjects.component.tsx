@@ -11,7 +11,8 @@ import KoboModalHeader from '#/components/modals/koboModalHeader'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
-import { TransferStatuses, cancelInvite, sendInvite } from './transferProjects.api'
+
+import { cancelInvite, sendInvite, TransferStatuses } from './transferProjects.api'
 import styles from './transferProjects.module.scss'
 
 const SUPPORT_TRANSFER_OWNERSHIP_URL = 'project_sharing_settings.html#transferring-ownership-of-a-project'

@@ -2,8 +2,9 @@ import React from 'react'
 
 import cx from 'classnames'
 import DocumentTitle from 'react-document-title'
-import Dropzone from 'react-dropzone'
 import type { FileRejection } from 'react-dropzone'
+import Dropzone from 'react-dropzone'
+
 import bem from '#/bem'
 import AssetsTable from '#/components/assetsTable/assetsTable'
 import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
@@ -13,8 +14,9 @@ import { dropImportXLSForms } from '#/dropzone.utils'
 import pageState from '#/pageState.store'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { validFileTypes } from '#/utils'
-import myLibraryStore from './myLibraryStore'
+
 import type { MyLibraryStoreData } from './myLibraryStore'
+import myLibraryStore from './myLibraryStore'
 
 export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreData> {
   private unlisteners: Function[] = []

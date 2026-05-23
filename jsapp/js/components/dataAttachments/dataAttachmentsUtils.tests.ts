@@ -1,4 +1,5 @@
 import chai from 'chai'
+
 import { extractInvalidFieldsFromResponseMessage } from './dataAttachmentsUtils'
 
 describe('dataAttachmentsUtils', () => {

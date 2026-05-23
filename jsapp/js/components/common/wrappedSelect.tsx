@@ -2,6 +2,7 @@ import React from 'react'
 
 import type { Props } from 'react-select'
 import Select from 'react-select'
+
 import bem from '#/bem'
 
 // NOTE: react-select is going to implement this soon-ish:

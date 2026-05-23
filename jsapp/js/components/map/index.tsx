@@ -1,3 +1,6 @@
+// Libraries
+import React from 'react'
+
 import { Dialog, Group, Stack, type TooltipProps } from '@mantine/core'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
@@ -5,31 +8,22 @@ import { Dialog, Group, Stack, type TooltipProps } from '@mantine/core'
 import omnivore, { type OmnivoreFunction } from '@mapbox/leaflet-omnivore'
 import JSZip from 'jszip'
 import L, { type LayerGroup } from 'leaflet'
-// Libraries
-import React from 'react'
+
 import bem from '../../../js/bem'
 import Menu from '../../../js/components/common/Menu'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
+
 import { check } from '@placemarkio/check-geojson'
 
+import { actions } from '../../../js/actions'
+import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 import ActionIcon from '../../../js/components/common/ActionIcon'
 import ButtonNew from '../../../js/components/common/ButtonNew'
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
 import Modal from '../../../js/components/common/modal'
-// Partial components
-import MapSettings from './MapSettings'
-
-import { actions } from '../../../js/actions'
-import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
-// Stores, hooks and utilities
-import { dataInterface } from '../../../js/dataInterface'
-import pageState from '../../../js/pageState.store'
-import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
-
 // Constants and types
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
 import type {
@@ -40,11 +34,21 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '../../../js/dataInterface'
+// Stores, hooks and utilities
+import { dataInterface } from '../../../js/dataInterface'
+import pageState from '../../../js/pageState.store'
+import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
+import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
+
+// Partial components
+import MapSettings from './MapSettings'
 
 // Styles
 import './map.scss'
 import './map.marker-colors.scss'
+
 import type { DataResponse } from '#/api/models/dataResponse'
+
 import { fetchGetUrl } from '../../../js/api'
 
 const SUBMISSIONS_PER_PAGE = 1000

@@ -3,7 +3,9 @@ import {
   getAssetsPartialUpdateMutationOptions,
   getAssetsRetrieveQueryKey,
 } from '#/api/react-query/manage-projects-and-library-content'
+
 import { queryClient } from '../queryClient'
+
 import { invalidateInfiniteList, invalidateItem, invalidatePaginatedList } from './common'
 
 queryClient.setMutationDefaults(

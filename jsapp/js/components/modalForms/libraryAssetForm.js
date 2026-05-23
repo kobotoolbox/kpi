@@ -5,6 +5,7 @@ import { when } from 'mobx'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
 import bem from '#/bem'
@@ -22,8 +23,9 @@ import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
-import ModalBackButton from './ModalBackButton'
+
 import styles from './libraryAssetForm.module.scss'
+import ModalBackButton from './ModalBackButton'
 
 /**
  * Modal for creating or updating library asset (collection or template)

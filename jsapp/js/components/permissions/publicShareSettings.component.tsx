@@ -9,7 +9,9 @@ import { ROOT_URL } from '#/constants'
 import type { PermissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { ANON_USERNAME_URL } from '#/users/utils'
+
 import AnonymousSubmission from '../anonymousSubmission.component'
+
 import permConfig from './permConfig'
 import type { PermissionCodename } from './permConstants'
 

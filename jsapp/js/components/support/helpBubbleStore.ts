@@ -1,6 +1,7 @@
 import $ from 'jquery'
 import throttle from 'lodash.throttle'
 import { makeAutoObservable, when } from 'mobx'
+
 import { handleApiFail } from '#/api'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'

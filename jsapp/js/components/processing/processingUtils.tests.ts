@@ -1,5 +1,6 @@
 import chai from 'chai'
-import { type SupplementalPathParts, buildSupplementalPath, getSupplementalPathParts } from './processingUtils'
+
+import { buildSupplementalPath, getSupplementalPathParts, type SupplementalPathParts } from './processingUtils'
 
 describe('getSupplementalPathParts', () => {
   it('should return proper path parts for transcript', () => {

@@ -1,7 +1,9 @@
 import { type MouseEvent, useCallback, useEffect, useState } from 'react'
-import type { ServerError } from '#/api/ServerError'
+
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataCreate, useAssetsPairedDataPartialUpdate } from '#/api/react-query/survey-data'
+import type { ServerError } from '#/api/ServerError'
+
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'

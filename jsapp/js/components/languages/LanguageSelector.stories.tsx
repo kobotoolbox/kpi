@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+
 import environmentMock from '#/endpoints/environment.mocks'
 import languagesMock from '#/endpoints/languages.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
+
 import LanguageSelector from '../languages/LanguageSelector'
 
 const SELECT_LABEL = 'Select a language'

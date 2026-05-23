@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
-import Chart from 'chart.js/auto'
 import type { ChartConfiguration } from 'chart.js/auto'
+import Chart from 'chart.js/auto'
 import classNames from 'classnames'
 import moment from 'moment'
+
 import { fetchGet, handleApiFail } from '#/api'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
 import { formatDate, recordKeys, recordValues } from '#/utils'
+
 import styles from './submissionsCountGraph.module.scss'
 
 /** YYYY-MM-DD */

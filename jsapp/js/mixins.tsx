@@ -1,9 +1,10 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
+
 import { removeAssetSharing } from '#/assetQuickActions'
-import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
+import assetStore from '#/assetStore'
 import type { AssetResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -17,6 +18,7 @@ import {
   isPublicCollectionsRoute,
 } from '#/router/routerUtils'
 import { notify, recordKeys } from '#/utils'
+
 import { actions } from './actions'
 import { ASSET_TYPES } from './constants'
 
