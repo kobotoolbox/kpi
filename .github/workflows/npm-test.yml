@@ -42,14 +42,13 @@ jobs:
 
       # Cache: Use cache for node_modules
       #        Keyed on os, node version, package-lock, and patches
-      - uses: actions/cache@v5
-        name: Check for cached node_modules
+      - name: Check for cached node_modules
+        uses: actions/cache@v5
         id: cache-nodemodules
-        env:
-          cache-name: cache-node-modules
+        if: github.actor != 'dependabot[bot]' # skip for dependabot PRs
         with:
           path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+          key: ${{ github.repository }}/node_modules--${{ runner.os }}-${{ runner.arch }}--node-${{ steps.resolved-node-version.outputs.NODE_VERSION }}--${{ hashFiles('**/package.json', '**/package-lock.json', 'patches/**/*.patch') }}
 
       # Cache hit:  If the cache key matches,
       #             /node_modules/ will have been copied from a previous run.
