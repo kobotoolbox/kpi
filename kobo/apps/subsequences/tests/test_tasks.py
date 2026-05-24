@@ -441,6 +441,22 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         item.refresh_from_db()
         self.assertEqual(item.status, BulkActionItemStatus.FAILED)
 
+    def test_start_bulk_item_job_marks_item_failed_when_submission_lookup_raises(
+        self,
+    ):
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+
+        with patch(
+            'kobo.apps.subsequences.tasks._get_submission_for_bulk_action_item',
+            side_effect=RuntimeError('deployment unavailable'),
+        ):
+            start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.FAILED)
+
     @patch(
         'kobo.apps.subsequences.actions.base.'
         'BaseAutomaticNLPAction.run_external_process'

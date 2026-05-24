@@ -184,10 +184,18 @@ def start_bulk_item_job(bulk_action_item_id: str):
 
     action = item.parent
     asset = action.asset
-    submission = _get_submission_for_bulk_action_item(item)
+    try:
+        submission = _get_submission_for_bulk_action_item(item)
+    except Exception:
+        logging.exception(
+            'Failed to load submission for bulk item '
+            f'{item.uid=}, {action.uid=}, {item.submission_root_uuid=}'
+        )
+        _mark_bulk_item_failed(item)
+        return
+
     if submission is None:
-        item.status = 'failed'
-        item.save(update_fields=['status', 'date_modified'])
+        _mark_bulk_item_failed(item)
         return
 
     incoming_action_data = dict(action.params)
@@ -210,8 +218,7 @@ def start_bulk_item_job(bulk_action_item_id: str):
             'Bulk item execution failed for '
             f'{item.uid=}, {action.uid=}, {item.submission_root_uuid=}'
         )
-        item.status = 'failed'
-        item.save(update_fields=['status', 'date_modified'])
+        _mark_bulk_item_failed(item)
         return
 
     if supplement_data is None:
@@ -220,36 +227,42 @@ def start_bulk_item_job(bulk_action_item_id: str):
             submission=submission,
         )
 
-    if supplement_data:
-        try:
-            extracted_status = _extract_bulk_item_status(
-                asset=asset,
-                action=action,
-                supplement_data=supplement_data,
-                action_data=incoming_action_data,
-            )
-        except Exception:
-            logging.exception(
-                'Failed to extract bulk item status for '
-                f'{item.uid=}, {action.uid=}, {item.submission_root_uuid=}'
-            )
-            item.status = 'failed'
-            item.save(update_fields=['status', 'date_modified'])
-            return
+    if not supplement_data:
+        logging.error(
+            'Bulk item execution produced no supplement data for '
+            f'{item.uid=}, {action.uid=}, {item.submission_root_uuid=}'
+        )
+        _mark_bulk_item_failed(item)
+        return
 
-        item.status = extracted_status
-        item.save(update_fields=['status', 'date_modified'])
-        if extracted_status == 'in_progress':
-            poll_run_external_process.apply_async(
-                kwargs={
-                    'submission': submission,
-                    'action_data': incoming_action_data,
-                    'action_id': action.action_id,
-                    'asset_id': asset.pk,
-                    'question_xpath': action.question_xpath,
-                },
-                countdown=10,
-            )
+    try:
+        extracted_status = _extract_bulk_item_status(
+            asset=asset,
+            action=action,
+            supplement_data=supplement_data,
+            action_data=incoming_action_data,
+        )
+    except Exception:
+        logging.exception(
+            'Failed to extract bulk item status for '
+            f'{item.uid=}, {action.uid=}, {item.submission_root_uuid=}'
+        )
+        _mark_bulk_item_failed(item)
+        return
+
+    item.status = extracted_status
+    item.save(update_fields=['status', 'date_modified'])
+    if extracted_status == 'in_progress':
+        poll_run_external_process.apply_async(
+            kwargs={
+                'submission': submission,
+                'action_data': incoming_action_data,
+                'action_id': action.action_id,
+                'asset_id': asset.pk,
+                'question_xpath': action.question_xpath,
+            },
+            countdown=10,
+        )
 
 
 @celery_app.task(queue='kpi_low_priority_queue')
@@ -337,6 +350,14 @@ def _get_submission_for_bulk_action_item(item):
         query={'meta/rootUuid': add_uuid_prefix(item.submission_root_uuid)},
     )
     return next(iter(submissions), None)
+
+
+def _mark_bulk_item_failed(item) -> None:
+    """
+    Move a child item to failed so the parent batch can reach a terminal state
+    """
+    item.status = 'failed'
+    item.save(update_fields=['status', 'date_modified'])
 
 
 def _get_submission_supplement_data(asset, submission: dict) -> dict:
