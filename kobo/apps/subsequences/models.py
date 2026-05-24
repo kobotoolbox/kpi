@@ -474,7 +474,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 return self
 
             locked.status = BulkActionStatus.IN_PROGRESS
-            locked.save(update_fields=['status'])
+            locked.save(update_fields=['status', 'date_modified'])
             transaction.on_commit(lambda: locked._schedule_batch_tasks())
 
         self.refresh_from_db()

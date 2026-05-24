@@ -344,7 +344,7 @@ class BulkActionCreateSerializer(serializers.Serializer):
         question_xpath: str,
         params: dict,
     ) -> None:
-        feature_params = [{'language': params['language']}]
+        feature_params = self._get_question_advanced_feature_params(params)
         feature, created = QuestionAdvancedFeature.objects.get_or_create(
             asset=asset,
             question_xpath=question_xpath,
@@ -359,6 +359,12 @@ class BulkActionCreateSerializer(serializers.Serializer):
         if action.params != feature.params:
             feature.params = action.params
             feature.save(update_fields=['params'])
+
+    def _get_question_advanced_feature_params(self, params: dict) -> list[dict]:
+        language = params.get('language')
+        if not language:
+            return []
+        return [{'language': language}]
 
 
 class BulkActionCancelSerializer(serializers.ModelSerializer):

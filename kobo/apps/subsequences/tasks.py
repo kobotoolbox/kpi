@@ -173,7 +173,13 @@ def start_bulk_item_job(bulk_action_item_id: str):
         .get(pk=bulk_action_item_id)
     )
 
-    if item.status != 'in_progress':
+    # Handle early dequeues (race conditions) and ignore terminal states
+    if item.status == 'pending':
+        if item.parent.status != 'in_progress':
+            return
+        item.status = 'in_progress'
+        item.save(update_fields=['status', 'date_modified'])
+    elif item.status != 'in_progress':
         return
 
     action = item.parent
@@ -286,7 +292,7 @@ def update_batch_status(subsequence_bulk_action_id: str):
         progress = int((terminal / total) * 100) if total else 100
         next_status = 'in_progress' if active else 'complete'
 
-        update_fields = ['progress']
+        update_fields = ['progress', 'date_modified']
         action.progress = progress
         if action.status != next_status:
             action.status = next_status

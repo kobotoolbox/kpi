@@ -304,6 +304,11 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         BULK_ACTION_STATUS_POLL_INTERVAL=17,
     )
     def test_start_batch_transitions_and_schedules_tasks(self):
+        old_modified = timezone.now() - timedelta(minutes=5)
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            date_modified=old_modified
+        )
+
         with patch(
             'kobo.apps.subsequences.tasks.start_bulk_item_job.apply_async'
         ) as enqueue_item_job, patch(
@@ -317,6 +322,7 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
             self.bulk_action.items.values_list('status', flat=True)
         )
         self.assertEqual(self.bulk_action.status, BulkActionStatus.IN_PROGRESS)
+        self.assertGreater(self.bulk_action.date_modified, old_modified)
         self.assertEqual(item_statuses, {BulkActionItemStatus.IN_PROGRESS})
         self.assertEqual(enqueue_item_job.call_count, 2)
         self.assertEqual(
@@ -393,6 +399,29 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         'kobo.apps.subsequences.actions.base.'
         'BaseAutomaticNLPAction.run_external_process'
     )
+    def test_start_bulk_item_job_processes_pending_item_for_running_parent(
+        self,
+        mock_run_external_process,
+    ):
+        mock_run_external_process.return_value = {
+            'status': 'complete',
+            'value': 'Done!',
+            'language': 'en',
+        }
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+
+        start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.COMPLETE)
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
     def test_start_bulk_item_job_marks_item_failed(
         self,
         mock_run_external_process,
@@ -446,7 +475,7 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         item.refresh_from_db()
         self.assertEqual(item.status, BulkActionItemStatus.COMPLETE)
 
-    def test_poll_run_external_process_uses_saved_supplement_when_revise_data_returns_none(
+    def test_poll_run_external_process_uses_saved_supplement_when_revise_data_returns_none(  # noqa: E501
         self,
     ):
         item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
@@ -500,6 +529,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
     def test_update_batch_status_marks_parent_complete(self):
         self.bulk_action.status = BulkActionStatus.IN_PROGRESS
         self.bulk_action.save(update_fields=['status'])
+        old_modified = timezone.now() - timedelta(minutes=5)
+        SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
+            date_modified=old_modified
+        )
         self.bulk_action.items.filter(
             submission_root_uuid=self.submission_uuid
         ).update(status=BulkActionItemStatus.COMPLETE)
@@ -515,6 +548,7 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         self.bulk_action.refresh_from_db()
         self.assertEqual(self.bulk_action.status, BulkActionStatus.COMPLETE)
         self.assertEqual(self.bulk_action.progress, 100)
+        self.assertGreater(self.bulk_action.date_modified, old_modified)
         reschedule.assert_not_called()
 
     @override_settings(BULK_ACTION_STUCK_THRESHOLD=60)
