@@ -129,6 +129,7 @@ export default function StepCreateAutomated({
         rootLanguage={languageCode}
         onRegionChange={handleChangeLocale}
         onCancel={handleClickBack}
+        mb={'xl'}
       />
 
       <h2>{t('Transcription provider')}</h2>

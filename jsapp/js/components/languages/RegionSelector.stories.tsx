@@ -62,22 +62,15 @@ export const InteractionTest: Story = {
         async () => {
           const languageInput = canvas.getByDisplayValue('English')
           expect(languageInput).toBeInTheDocument()
+          expect(languageInput).toHaveAttribute('readonly')
+          expect(languageInput).toHaveValue('English')
         },
         { timeout: 3000 },
       )
     })
 
-    await step('Verify language input properties', async () => {
-      const languageInput = canvas.getByDisplayValue('English')
-      expect(languageInput).toHaveAttribute('readonly')
-      expect(languageInput).toHaveValue('English')
-
-      const languageIcon = languageInput.parentElement?.querySelector('svg')
-      expect(languageIcon).toBeInTheDocument()
-    })
-
     await step('Verify cancel button is present and enabled', async () => {
-      const cancelButton = canvas.getByRole('button', { name: '' })
+      const cancelButton = canvas.getByRole('button', { name: 'Close' })
       expect(cancelButton).toBeInTheDocument()
       expect(cancelButton).not.toBeDisabled()
     })
@@ -111,16 +104,12 @@ export const InteractionTest: Story = {
       await waitFor(async () => {
         const options = document.querySelectorAll('[role="option"]')
         expect(options.length).toBeGreaterThan(0)
+        expect(options.length).toBe(2)
+
+        // Verify alphabetical sorting
+        const optionTexts = Array.from(options).map((option) => option.textContent)
+        expect(optionTexts).toEqual(['United Kingdom', 'United States'])
       })
-    })
-
-    //
-    await step('Verify region options are sorted alphabetically', async () => {
-      const options = document.querySelectorAll('[role="option"]')
-      expect(options.length).toBe(2)
-
-      const optionTexts = Array.from(options).map((option) => option.textContent)
-      expect(optionTexts).toEqual(['United Kingdom', 'United States'])
     })
 
     await step('Select a different region', async () => {
@@ -128,14 +117,11 @@ export const InteractionTest: Story = {
       const unitedStatesOption = Array.from(options).find((option) => option.textContent === 'United States')
       expect(unitedStatesOption).toBeInTheDocument()
       await user.click(unitedStatesOption!)
-    })
 
-    await step('Verify onRegionChange callback is called with correct value', async () => {
-      await waitFor(() => {
-        const calls = (args.onRegionChange as ReturnType<typeof fn>).mock.calls
-        const lastCall = calls[calls.length - 1]
-        expect(lastCall[0]).toBe('en-US')
-      })
+      // Verify correct option
+      const calls = (args.onRegionChange as ReturnType<typeof fn>).mock.calls
+      const lastCall = calls[calls.length - 1]
+      expect(lastCall[0]).toBe('en-US')
     })
 
     await step('Verify the select shows the selected value', async () => {
@@ -146,7 +132,7 @@ export const InteractionTest: Story = {
     })
 
     await step('Test cancel button functionality', async () => {
-      const cancelButton = canvas.getByRole('button', { name: '' })
+      const cancelButton = canvas.getByRole('button', { name: 'Close' })
       await user.click(cancelButton)
 
       await waitFor(() => {

@@ -1,3 +1,4 @@
+import type { FlexProps } from '@mantine/core'
 import { ActionIcon, Flex, Group, Loader, Select, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -5,7 +6,7 @@ import { useLanguagesRetrieve } from '#/api/react-query/other'
 import KoboIcon from '../common/KoboIcon'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 
-interface RegionSelectorProps {
+interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   disabled?: boolean
   /** The root language code of a language that possibly has regions. */
   rootLanguage: LanguageCode
@@ -81,7 +82,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
   }
 
   return (
-    <Flex component='section' direction='row' align='center' justify='center' mb={'xl'}>
+    <Flex component='section' direction='row' align='center' justify='center' mb={props?.mb}>
       <Group gap='xs'>
         <TextInput
           readOnly
@@ -90,7 +91,13 @@ const RegionSelector = (props: RegionSelectorProps) => {
           leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
           w={220}
           rightSection={
-            <ActionIcon variant='transparent' size='sm' onClick={props.onCancel} disabled={props.disabled}>
+            <ActionIcon
+              aria-label={t('Close')}
+              variant='transparent'
+              size='sm'
+              onClick={props.onCancel}
+              disabled={props.disabled}
+            >
               <KoboIcon icon={IconX} size='xs' />
             </ActionIcon>
           }
