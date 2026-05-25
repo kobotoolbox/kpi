@@ -1950,10 +1950,26 @@ paths:
 
         Returns all bulk processing jobs associated with the specified asset. Each job
         is organized around one question and many submissions.
-
-        This endpoint currently exists to reserve the response contract for frontend
-        integration and OpenAPI generation. Runtime processing is not yet implemented.
       parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       - in: path
         name: uid_asset
         schema:
@@ -2011,12 +2027,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
     post:
       operationId: api_v2_assets_advanced_features_bulk_actions_create
       description: |
@@ -2024,10 +2034,6 @@ paths:
 
         Creates a placeholder bulk transcription or bulk translation job for a single
         question across multiple submissions.
-
-        This endpoint currently exists to reserve the request and response contract for
-        frontend integration and OpenAPI generation. Runtime processing is not yet
-        implemented.
       parameters:
       - in: path
         name: uid_asset
@@ -2123,12 +2129,6 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
   /api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{action_uid}/:
     get:
       operationId: api_v2_assets_advanced_features_bulk_actions_retrieve
@@ -2140,9 +2140,6 @@ paths:
 
         The response shape is identical to the item returned by the bulk job creation
         endpoint.
-
-        This endpoint currently exists to reserve the response contract for frontend
-        integration and OpenAPI generation. Runtime processing is not yet implemented.
       parameters:
       - in: path
         name: action_uid
@@ -2203,12 +2200,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
     patch:
       operationId: api_v2_assets_advanced_features_bulk_actions_partial_update
       description: |
@@ -2216,13 +2207,9 @@ paths:
 
         Cancels a single bulk processing job for an asset.
 
-        The `PATCH` endpoint is reserved for bulk action cancellation.
+        The `PATCH` endpoint is used for bulk action cancellation.
 
         The request body sets the job status to `cancelled`.
-
-        This placeholder route currently exists to reserve the cancellation contract for
-        frontend OpenAPI generation. Runtime cancellation behavior is not yet
-        implemented.
       parameters:
       - in: path
         name: action_uid
@@ -2293,12 +2280,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-        '501':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-          description: Placeholder endpoint. Runtime behavior not implemented.
   /api/v2/assets/{uid_asset}/attachments/{id}/:
     delete:
       operationId: api_v2_assets_attachments_destroy
@@ -8132,6 +8113,11 @@ paths:
         description: Deprecated alias of `start`.
         schema:
           type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Search languages by name or code
       - name: start
         required: false
         in: query
@@ -11990,6 +11976,32 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /environment/:
+    get:
+      operationId: environment_retrieve
+      description: |
+        Retrieve Kobo server environment configurations.
+
+        This endpoint provides a wide range of configuration details required by the frontend client, including:
+        - Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).
+        - Frontend configuration (retry times, usage limit enforcement, etc).
+        - Global static lists (sectors, countries, interface languages, operational purposes).
+        - Metadata configuration (available project and user metadata fields).
+        - Features configurations (MFA, password entropy meter, custom guidance text).
+        - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
+      tags:
+      - Configuration
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentResponse'
+          description: null
   /me/:
     get:
       operationId: me_retrieve
@@ -16776,6 +16788,157 @@ components:
       required:
       - url
       - version
+    EnvironmentResponse:
+      type: object
+      properties:
+        terms_of_service_url:
+          type: string
+          nullable: true
+        privacy_policy_url:
+          type: string
+          nullable: true
+        source_code_url:
+          type: string
+          nullable: true
+        support_email:
+          type: string
+          nullable: true
+        support_url:
+          type: string
+          nullable: true
+        academy_url:
+          type: string
+          nullable: true
+        community_url:
+          type: string
+          nullable: true
+        frontend_min_retry_time:
+          type: integer
+        frontend_max_retry_time:
+          type: integer
+        use_team_label:
+          type: boolean
+        usage_limit_enforcement:
+          type: boolean
+        allow_self_account_deletion:
+          type: boolean
+        project_history_log_lifespan:
+          type: integer
+        sector_choices:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            maxItems: 2
+            minItems: 2
+          description: A list of (value, label) tuples for sectors
+        operational_purpose_choices:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            maxItems: 2
+            minItems: 2
+          description: A list of (value, label) tuples for operational purposes
+        country_choices:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            maxItems: 2
+            minItems: 2
+          description: A list of (country_code, country_name) tuples
+        interface_languages:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            maxItems: 2
+            minItems: 2
+          description: A list of (language_code, language_name) tuples
+        mfa_localized_help_text:
+          type: string
+          description: Markdown string for MFA help text
+        mfa_enabled:
+          type: boolean
+        mfa_code_length:
+          type: integer
+        enable_password_entropy_meter:
+          type: boolean
+        enable_custom_password_guidance_text:
+          type: boolean
+        custom_password_localized_help_text:
+          type: string
+          description: Markdown string for custom password help text
+        project_metadata_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetadataField'
+        extra_project_metadata_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetadataField'
+        user_metadata_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetadataField'
+        social_apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialApp'
+        asr_mt_features_enabled:
+          type: boolean
+          description: Whether ASR and MT features are enabled for the current user
+        submission_placeholder:
+          type: string
+          description: Placeholder text for submissions
+        stripe_public_key:
+          type: string
+          nullable: true
+        terms_of_service__sitewidemessage__exists:
+          type: boolean
+          description: Indicates if a sitewide message for TOS exists
+        open_rosa_server:
+          type: string
+          format: uri
+          description: The OpenRosa server URL (KC)
+      required:
+      - academy_url
+      - allow_self_account_deletion
+      - asr_mt_features_enabled
+      - community_url
+      - country_choices
+      - custom_password_localized_help_text
+      - enable_custom_password_guidance_text
+      - enable_password_entropy_meter
+      - extra_project_metadata_fields
+      - frontend_max_retry_time
+      - frontend_min_retry_time
+      - interface_languages
+      - mfa_code_length
+      - mfa_enabled
+      - mfa_localized_help_text
+      - open_rosa_server
+      - operational_purpose_choices
+      - privacy_policy_url
+      - project_history_log_lifespan
+      - project_metadata_fields
+      - sector_choices
+      - social_apps
+      - source_code_url
+      - stripe_public_key
+      - submission_placeholder
+      - support_email
+      - support_url
+      - terms_of_service__sitewidemessage__exists
+      - terms_of_service_url
+      - usage_limit_enforcement
+      - use_team_label
+      - user_metadata_fields
     ErrorDetail:
       type: object
       properties:
@@ -17693,24 +17856,18 @@ components:
         featured:
           type: boolean
         transcription_services:
-          type: array
-          items:
+          type: object
+          additionalProperties:
             type: object
-            properties:
-              code:
-                type: string
-              name:
-                type: string
+            additionalProperties:
+              type: string
           readOnly: true
         translation_services:
-          type: array
-          items:
+          type: object
+          additionalProperties:
             type: object
-            properties:
-              code:
-                type: string
-              name:
-                type: string
+            additionalProperties:
+              type: string
           readOnly: true
         regions:
           type: array
@@ -17967,6 +18124,37 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
+    MetadataField:
+      type: object
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        required:
+          type: boolean
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetadataFieldOption'
+          nullable: true
+      required:
+      - label
+      - name
+    MetadataFieldOption:
+      type: object
+      properties:
+        name:
+          type: string
+        label:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+      - label
+      - name
     NlpUsage:
       type: object
       properties:
@@ -21263,6 +21451,23 @@ components:
       - provider
       - uid
       - username
+    SocialApp:
+      type: object
+      properties:
+        provider:
+          type: string
+        name:
+          type: string
+        client_id:
+          type: string
+        provider_id:
+          type: string
+          nullable: true
+      required:
+      - client_id
+      - name
+      - provider
+      - provider_id
     StripeIntervalEnum:
       enum:
       - day
