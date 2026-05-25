@@ -53,8 +53,7 @@ export default function TranslationAdd({
    * This is for going back from manual/automated to language selector step
    */
   function goBackFromCreateStep() {
-    // TODO HACKFIX: Because `LanguageSelector` is not a controlled component, the selected language inside of it and
-    // the one we have here might become out of sync. Let's ensure we clear it out when re-displaying language step)
+    // Clear the selected language when returning to the language selection step
     setLanguageCode(null)
     setStep(CreateSteps.Language)
   }
