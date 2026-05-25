@@ -78,7 +78,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
   }
 
   if (isLoading) {
-    return <Loader size='xs' />
+    return <Loader size='xs' mb={props?.mb}/>
   }
 
   return (
@@ -86,7 +86,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
       <Group gap='xs'>
         <TextInput
           readOnly
-          value={language?.name || ''}
+          value={language?.name || t('Cannot load regions')}
           size='sm'
           leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
           w={220}
