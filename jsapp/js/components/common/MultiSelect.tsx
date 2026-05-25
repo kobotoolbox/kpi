@@ -3,31 +3,8 @@ import type { MultiSelectProps } from '@mantine/core'
 import { MultiSelect as MantineMultiSelect } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
-import type { IconSize } from './icon'
-import Icon from './icon'
-
-const iconSizeMap: Record<string, IconSize> = {
-  xs: 'xxs',
-  sm: 'xs',
-  md: 's',
-  lg: 'm',
-  xl: 'l',
-}
-
-interface ComboboxStringItem<T extends string> {
-  value: T
-  disabled?: boolean
-}
-interface ComboboxItem<T extends string> extends ComboboxStringItem<T> {
-  label: string
-}
-interface ComboboxItemGroup<T extends string, Item = ComboboxItem<T> | T> {
-  group: string
-  items: Item[]
-}
-type ComboboxData<T extends string> =
-  | Array<string | ComboboxItem<T> | ComboboxItemGroup<T>>
-  | ReadonlyArray<string | ComboboxItem<T> | ComboboxItemGroup<T>>
+import type { ComboboxData } from './select.types'
+import { useSelectChevron } from './useSelectChevron'
 
 interface MultiSelectPropsNarrow<Datum extends string = string>
   extends Omit<MultiSelectProps, 'onChange' | 'value' | 'defaultValue'> {
@@ -39,12 +16,12 @@ interface MultiSelectPropsNarrow<Datum extends string = string>
 
 const MultiSelect = <Datum extends string = string>(props: MultiSelectPropsNarrow<Datum>) => {
   const [value, setValue] = useState<Datum[]>(props.value || [])
-  const [isOpened, setIsOpened] = useState(props.defaultDropdownOpened || false)
-
-  const iconSize = typeof props.size === 'string' ? iconSizeMap[props.size] : 's'
-  // Allow callers to render custom content (for example a loading spinner)
-  // instead of always forcing the default chevron icon.
-  const rightSection = props.rightSection ?? <Icon name={isOpened ? 'angle-up' : 'angle-down'} size={iconSize} />
+  const { rightSection, rightSectionWidth, onDropdownOpen, onDropdownClose } = useSelectChevron({
+    size: props.size,
+    rightSection: props.rightSection,
+    rightSectionWidth: props.rightSectionWidth,
+    defaultDropdownOpened: props.defaultDropdownOpened,
+  })
 
   useEffect(() => {
     setValue(props.value || [])
@@ -65,17 +42,13 @@ const MultiSelect = <Datum extends string = string>(props: MultiSelectPropsNarro
     ...props.comboboxProps,
   }
 
-  // Keep chevron/clear affordances in a stable right section width.
-  // This avoids jitter and keeps alignment consistent with Select.
-  const rightSectionWidth = props.rightSectionWidth ?? 44
-
   return (
     <MantineMultiSelect
       {...props}
       value={value}
       onChange={onChange}
-      onDropdownOpen={() => setIsOpened(true)}
-      onDropdownClose={() => setIsOpened(false)}
+      onDropdownOpen={onDropdownOpen}
+      onDropdownClose={onDropdownClose}
       rightSection={rightSection}
       rightSectionWidth={rightSectionWidth}
       comboboxProps={mergedComboboxProps}
