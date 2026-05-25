@@ -20,7 +20,6 @@ import pageState from '#/pageState.store'
 import { getRouteAssetUid, isAnyLibraryRoute } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
-import styles from './LibraryAssetForm.module.scss'
 import ModalBackButton from './ModalBackButton'
 
 interface LibraryAssetFormProps {
