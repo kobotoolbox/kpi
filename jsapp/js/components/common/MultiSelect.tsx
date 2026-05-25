@@ -2,7 +2,6 @@ import type { MultiSelectProps } from '@mantine/core'
 // eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper around Mantine MultiSelect.
 import { MultiSelect as MantineMultiSelect } from '@mantine/core'
 import { useEffect, useState } from 'react'
-
 import type { ComboboxData } from './select.types'
 import { useSelectChevron } from './useSelectChevron'
 

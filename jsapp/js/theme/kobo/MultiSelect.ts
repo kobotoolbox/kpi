@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports -- Theme extensions must import Mantine primitives.
 import { MultiSelect } from '@mantine/core'
-import baseClasses from './SelectBase.module.css'
 import classes from './MultiSelect.module.css'
+import baseClasses from './SelectBase.module.css'
 
 export const MultiSelectThemeKobo = MultiSelect.extend({
   classNames: {
