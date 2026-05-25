@@ -14,7 +14,10 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
-from kobo.apps.subsequences.views import QuestionAdvancedFeatureViewSet
+from kobo.apps.subsequences.views import (
+    BulkActionViewSet,
+    QuestionAdvancedFeatureViewSet,
+)
 from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.constants import API_NAMESPACES
 from kpi.permissions import AdvancedSubmissionPermission
@@ -40,8 +43,6 @@ from kpi.views.v2.tag import TagViewSet
 from kpi.views.v2.tos import TermsOfServiceViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
-
-
 
 
 URL_NAMESPACE = API_NAMESPACES['v2']
@@ -104,6 +105,13 @@ asset_routes.register(
     r'attachments',
     AttachmentDeleteViewSet,
     basename='asset-attachments',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
+    r'advanced-features/bulk-actions',
+    BulkActionViewSet,
+    basename='advanced-features-bulk-actions',
     parents_query_lookups=['asset'],
 )
 
@@ -206,7 +214,7 @@ enketo_url_aliases = [
 
 # Declared here instead of using `@action` on the ViewSet because it requires a
 # custom lookup field (`root_uuid`), which is not supported by DRF Spectacular.
-supplement_url_pattern = [
+supplement_url_patterns = [
     path(
         'assets/<uid_asset>/data/<root_uuid>/supplement/',
         DataViewSet.as_view(
@@ -218,7 +226,7 @@ supplement_url_pattern = [
     ),
 ]
 
-kobo_scim_pattern = [
+kobo_scim_url_patterns = [
     path(
         'scim/v2/',
         include('kobo.apps.kobo_scim.urls', namespace='kobo_scim'),
@@ -249,6 +257,6 @@ urls_patterns = (
     router_api_v2.urls
     + openrosa_url_patterns
     + enketo_url_aliases
-    + supplement_url_pattern
-    + kobo_scim_pattern
+    + supplement_url_patterns
+    + kobo_scim_url_patterns
 )

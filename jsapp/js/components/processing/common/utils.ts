@@ -1,4 +1,5 @@
 import { ActionEnum } from '#/api/models/actionEnum'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
 import type { SupplementalDataAutomaticTranslation } from '#/api/models/supplementalDataAutomaticTranslation'
@@ -334,4 +335,17 @@ export const getDefaultDisplaysForTab = (tabName: ProcessingTab | undefined): Di
     return []
   }
   return DefaultDisplays.get(tabName) || []
+}
+
+/**
+ * Extracts language codes from an advanced features response and flattens the results
+ */
+export function getSuggestedLanguages(advancedFeaturesArray: AdvancedFeatureResponse[]): LanguageCode[] {
+  const flattenedLanguages = advancedFeaturesArray.flatMap((advancedFeature) =>
+    advancedFeature.params
+      .filter((param): param is { language: string } => 'language' in param)
+      .map((param) => param.language),
+  )
+
+  return [...new Set(flattenedLanguages)]
 }

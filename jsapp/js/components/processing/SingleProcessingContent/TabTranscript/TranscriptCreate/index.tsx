@@ -6,6 +6,7 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { CreateSteps } from '#/components/processing/common/types'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
@@ -45,8 +46,7 @@ export default function TranscriptCreate({
   const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
 
   function goBackToLanguageStep() {
-    // TODO HACKFIX: Because `LanguageSelector` is not a controlled component, the selected language inside of it and
-    // the one we have here might become out of sync. Let's ensure we clear it out when re-displaying language step)
+    // Clear the selected language when returning to the language selection step
     setLanguageCode(null)
     setStep(CreateSteps.Language)
   }
@@ -64,7 +64,7 @@ export default function TranscriptCreate({
           usageType={UsageLimitTypes.TRANSCRIPTION}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
-          suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
+          suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           titleOverride={languageSelectorTitle}
           singleManualButtonLabel={t('transcribe')}
           disableAutomatic={

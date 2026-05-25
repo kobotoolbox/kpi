@@ -25,6 +25,8 @@ import type { AdvancedFeaturePostRequest } from '../models/advancedFeaturePostRe
 
 import type { AdvancedFeatureResponse } from '../models/advancedFeatureResponse'
 
+import type { AssetsAdvancedFeaturesBulkActionsListParams } from '../models/assetsAdvancedFeaturesBulkActionsListParams'
+
 import type { AssetsDataAttachmentsListParams } from '../models/assetsDataAttachmentsListParams'
 
 import type { AssetsDataListParams } from '../models/assetsDataListParams'
@@ -42,6 +44,12 @@ import type { AssetsFilesListParams } from '../models/assetsFilesListParams'
 import type { AssetsPairedDataListParams } from '../models/assetsPairedDataListParams'
 
 import type { AttachmentRetrieveParams } from '../models/attachmentRetrieveParams'
+
+import type { BulkActionCreateRequest } from '../models/bulkActionCreateRequest'
+
+import type { BulkActionListResponse } from '../models/bulkActionListResponse'
+
+import type { BulkActionResponse } from '../models/bulkActionResponse'
 
 import type { CreateFilePayload } from '../models/createFilePayload'
 
@@ -92,6 +100,8 @@ import type { PairedData } from '../models/pairedData'
 import type { PairedDataResponse } from '../models/pairedDataResponse'
 
 import type { PatchedAdvancedFeaturePatchRequest } from '../models/patchedAdvancedFeaturePatchRequest'
+
+import type { PatchedBulkActionPatchRequest } from '../models/patchedBulkActionPatchRequest'
 
 import type { PatchedDataBulkUpdate } from '../models/patchedDataBulkUpdate'
 
@@ -542,6 +552,437 @@ export const useAssetsAdvancedFeaturesPartialUpdate = <
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsAdvancedFeaturesPartialUpdateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## List bulk processing jobs on an asset
+
+Returns all bulk processing jobs associated with the specified asset. Each job
+is organized around one question and many submissions.
+
+ */
+export type assetsAdvancedFeaturesBulkActionsListResponse200 = {
+  data: BulkActionListResponse
+  status: 200
+}
+
+export type assetsAdvancedFeaturesBulkActionsListResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesBulkActionsListResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsListResponse200
+  | assetsAdvancedFeaturesBulkActionsListResponse404
+
+export type assetsAdvancedFeaturesBulkActionsListResponse = assetsAdvancedFeaturesBulkActionsListResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsListUrl = (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/`
+}
+
+export const assetsAdvancedFeaturesBulkActionsList = async (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsListResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsListResponse>(
+    getAssetsAdvancedFeaturesBulkActionsListUrl(uidAsset, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsListQueryKey = (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsListQueryKey(uidAsset, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>> = ({ signal }) =>
+    assetsAdvancedFeaturesBulkActionsList(uidAsset, params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsAdvancedFeaturesBulkActionsListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>
+>
+export type AssetsAdvancedFeaturesBulkActionsListQueryError = ErrorDetail
+
+export function useAssetsAdvancedFeaturesBulkActionsList<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesBulkActionsListQueryOptions(uidAsset, params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Create a bulk processing job
+
+Creates a placeholder bulk transcription or bulk translation job for a single
+question across multiple submissions.
+
+ */
+export type assetsAdvancedFeaturesBulkActionsCreateResponse201 = {
+  data: BulkActionResponse
+  status: 201
+}
+
+export type assetsAdvancedFeaturesBulkActionsCreateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsAdvancedFeaturesBulkActionsCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesBulkActionsCreateResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsCreateResponse201
+  | assetsAdvancedFeaturesBulkActionsCreateResponse400
+  | assetsAdvancedFeaturesBulkActionsCreateResponse404
+
+export type assetsAdvancedFeaturesBulkActionsCreateResponse =
+  assetsAdvancedFeaturesBulkActionsCreateResponseComposite & {
+    headers: Headers
+  }
+
+export const getAssetsAdvancedFeaturesBulkActionsCreateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/`
+}
+
+export const assetsAdvancedFeaturesBulkActionsCreate = async (
+  uidAsset: string,
+  bulkActionCreateRequest: BulkActionCreateRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsCreateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsCreateResponse>(
+    getAssetsAdvancedFeaturesBulkActionsCreateUrl(uidAsset),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(bulkActionCreateRequest),
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+    TError,
+    { uidAsset: string; data: BulkActionCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+  TError,
+  { uidAsset: string; data: BulkActionCreateRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesBulkActionsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+    { uidAsset: string; data: BulkActionCreateRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsAdvancedFeaturesBulkActionsCreate(uidAsset, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsAdvancedFeaturesBulkActionsCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>
+>
+export type AssetsAdvancedFeaturesBulkActionsCreateMutationBody = BulkActionCreateRequest
+export type AssetsAdvancedFeaturesBulkActionsCreateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsAdvancedFeaturesBulkActionsCreate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+    TError,
+    { uidAsset: string; data: BulkActionCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesBulkActionsCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Retrieve a bulk processing job
+
+Returns detailed information about a single bulk processing job, including its
+current status and processing metadata.
+
+The response shape is identical to the item returned by the bulk job creation
+endpoint.
+
+ */
+export type assetsAdvancedFeaturesBulkActionsRetrieveResponse200 = {
+  data: BulkActionResponse
+  status: 200
+}
+
+export type assetsAdvancedFeaturesBulkActionsRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesBulkActionsRetrieveResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsRetrieveResponse200
+  | assetsAdvancedFeaturesBulkActionsRetrieveResponse404
+
+export type assetsAdvancedFeaturesBulkActionsRetrieveResponse =
+  assetsAdvancedFeaturesBulkActionsRetrieveResponseComposite & {
+    headers: Headers
+  }
+
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveUrl = (uidAsset: string, actionUid: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${actionUid}/`
+}
+
+export const assetsAdvancedFeaturesBulkActionsRetrieve = async (
+  uidAsset: string,
+  actionUid: string,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsRetrieveResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsRetrieveResponse>(
+    getAssetsAdvancedFeaturesBulkActionsRetrieveUrl(uidAsset, actionUid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey = (uidAsset: string, actionUid: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', actionUid] as const
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  actionUid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey(uidAsset, actionUid)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>> = ({ signal }) =>
+    assetsAdvancedFeaturesBulkActionsRetrieve(uidAsset, actionUid, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && actionUid), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsAdvancedFeaturesBulkActionsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>
+>
+export type AssetsAdvancedFeaturesBulkActionsRetrieveQueryError = ErrorDetail
+
+export function useAssetsAdvancedFeaturesBulkActionsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  actionUid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions(uidAsset, actionUid, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Update a bulk processing job
+
+Cancels a single bulk processing job for an asset.
+
+The `PATCH` endpoint is used for bulk action cancellation.
+
+The request body sets the job status to `cancelled`.
+
+ */
+export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse200 = {
+  data: BulkActionResponse
+  status: 200
+}
+
+export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsPartialUpdateResponse200
+  | assetsAdvancedFeaturesBulkActionsPartialUpdateResponse404
+
+export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse =
+  assetsAdvancedFeaturesBulkActionsPartialUpdateResponseComposite & {
+    headers: Headers
+  }
+
+export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl = (uidAsset: string, actionUid: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${actionUid}/`
+}
+
+export const assetsAdvancedFeaturesBulkActionsPartialUpdate = async (
+  uidAsset: string,
+  actionUid: string,
+  patchedBulkActionPatchRequest: PatchedBulkActionPatchRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse>(
+    getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl(uidAsset, actionUid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedBulkActionPatchRequest),
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions = <
+  TError = ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+    TError,
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+  TError,
+  { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesBulkActionsPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest }
+  > = (props) => {
+    const { uidAsset, actionUid, data } = props ?? {}
+
+    return assetsAdvancedFeaturesBulkActionsPartialUpdate(uidAsset, actionUid, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>
+>
+export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationBody = PatchedBulkActionPatchRequest
+export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationError = ErrorDetail
+
+export const useAssetsAdvancedFeaturesBulkActionsPartialUpdate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+    TError,
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions)
 }

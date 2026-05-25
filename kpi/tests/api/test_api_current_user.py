@@ -17,7 +17,7 @@ from kpi.utils.gravatar_url import gravatar_url
 
 class CurrentUserTestCase(BaseTestCase):
     def setUp(self) -> None:
-        self.url = reverse('currentuser-detail')
+        self.url = reverse(self._get_endpoint('currentuser-detail'))
         self.user = User.objects.create_user(
             username='delete_me',
             password='delete_me',
@@ -240,6 +240,7 @@ class CurrentUserTestCase(BaseTestCase):
             'first_name': self.user.first_name,
             'last_name': self.user.last_name,
             'email': self.user.email,
+            'is_superuser': self.user.is_superuser,
             'server_time': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
             'date_joined': self.user.date_joined.strftime('%Y-%m-%dT%H:%M:%SZ'),
             'projects_url': '/'.join((settings.KOBOCAT_URL, self.user.username)),

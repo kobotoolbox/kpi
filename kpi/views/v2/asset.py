@@ -445,6 +445,7 @@ class AssetViewSet(
         'name__icontains',
         'owner__username__icontains',
         'settings__description__icontains',
+        'settings__extra_metadata__icontains',
         'summary__icontains',
         'tags__name__icontains',
         'uid__icontains',

@@ -1,20 +1,23 @@
 import React from 'react'
 
+import cx from 'classnames'
 import { observer } from 'mobx-react'
 import autoBind from 'react-autobind'
 import Dropzone from 'react-dropzone'
-import reactMixin from 'react-mixin'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { ASSET_TYPES } from '#/constants'
+import myLibraryStore from '#/components/library/myLibraryStore'
+import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
+import { dataInterface } from '#/dataInterface'
+import { pollImportUntilDone } from '#/dropzone.utils'
 import envStore from '#/envStore'
-import mixins from '#/mixins'
+import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
 import sessionStore from '#/stores/session'
-import { validFileTypes } from '#/utils'
-import { renderBackButton } from './modalHelpers'
+import { escapeHtml, join, notify, validFileTypes } from '#/utils'
+import ModalBackButton from './ModalBackButton'
 
 /**
  * @prop {function} onSetModalTitle
@@ -49,20 +52,65 @@ const LibraryUploadForm = observer(
 
     onSubmit(evt) {
       evt.preventDefault()
-      // The modal will be closed from outside this component upon successful
-      // import, thus we never set it back to `false` here.
-      // TODO: This should be improved, but we should migrate the modal to using
-      // new `KoboModal` component first.
       this.setState({ isPending: true })
 
-      // Only pass desired type if user wants to upload as template. Back-end code
-      // will create either a block, or a collection - based on the file content.
-      const options = {}
-      if (this.state.isUploadAsTemplateChecked) {
-        options.desired_type = ASSET_TYPES.template.id
-      }
+      const file = this.state.currentFile
+      const reader = new FileReader()
+      reader.onload = () => {
+        const params = {
+          name: file.name,
+          base64Encoded: reader.result,
+          library: true,
+        }
+        // Only pass desired type if user wants to upload as template. Back-end code will create either a block, or
+        // a collection - based on the file content.
+        if (this.state.isUploadAsTemplateChecked) {
+          params.desired_type = ASSET_TYPES.template.id
+        }
+        dataInterface
+          .createImport(params)
+          .done((data) => {
+            // Keep previous behavior: switch to a dedicated upload modal that stays visible until import processing
+            // finishes.
+            pageState.switchModal({
+              type: MODAL_TYPES.UPLOADING_XLS,
+              filename: file.name,
+            })
 
-      this.dropFiles([this.state.currentFile], [], evt, options)
+            pollImportUntilDone(data.uid).then(
+              () => {
+                myLibraryStore.fetchData(true)
+                notify(t('XLS Import completed'))
+                pageState.hideModal()
+              },
+              (response) => {
+                const errLines = []
+                errLines.push(t('Import Failed!'))
+                if (file.name) {
+                  errLines.push(<code>Name: {file.name}</code>)
+                }
+                if (response?.messages?.error) {
+                  errLines.push(
+                    <code>
+                      {response.messages.error_type}: {escapeHtml(response.messages.error)}
+                    </code>,
+                  )
+                }
+                notify.error(<div>{join(errLines, <br />)}</div>)
+                pageState.hideModal()
+              },
+            )
+          })
+          .fail(() => {
+            notify.error(t('Failed to create import.'))
+            this.setState({ isPending: false })
+          })
+      }
+      reader.onerror = () => {
+        notify.error(t('Failed to read file.'))
+        this.setState({ isPending: false })
+      }
+      reader.readAsDataURL(file)
     }
 
     render() {
@@ -77,23 +125,25 @@ const LibraryUploadForm = observer(
           {!this.state.isPending && (
             <React.Fragment>
               <bem.FormModal__item>
-                <Dropzone
-                  onDrop={this.onFileDrop.bind(this)}
-                  multiple={false}
-                  className='dropzone'
-                  activeClassName='dropzone-active'
-                  rejectClassName='dropzone-reject'
-                  accept={validFileTypes()}
-                >
-                  <i className='k-icon k-icon-file-xls' />
-                  {this.state.currentFile && this.state.currentFile.name}
-                  {!this.state.currentFile && t(' Drag and drop the XLSForm file here or click to browse')}
+                <Dropzone onDrop={this.onFileDrop.bind(this)} multiple={false} accept={validFileTypes()}>
+                  {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
+                    <div
+                      {...getRootProps({
+                        className: cx('dropzone', { 'dropzone-active': isDragActive, 'dropzone-reject': isDragReject }),
+                      })}
+                    >
+                      <input {...getInputProps()} />
+                      <i className='k-icon k-icon-file-xls' />
+                      {this.state.currentFile && this.state.currentFile.name}
+                      {!this.state.currentFile && t(' Drag and drop the XLSForm file here or click to browse')}
+                    </div>
+                  )}
                 </Dropzone>
               </bem.FormModal__item>
 
               <bem.FormModal__item>
                 <Checkbox
-                  checked={this.state.is}
+                  checked={this.state.isUploadAsTemplateChecked}
                   disabled={this.state.isPending}
                   onChange={this.onUploadAsTemplateChange.bind(this)}
                   label={t('Upload as template')}
@@ -115,7 +165,7 @@ const LibraryUploadForm = observer(
           )}
 
           <bem.Modal__footer>
-            {renderBackButton(this.state.isPending)}
+            <ModalBackButton isDisabled={this.state.isPending} />
 
             <Button
               type='primary'
@@ -131,7 +181,5 @@ const LibraryUploadForm = observer(
     }
   },
 )
-
-reactMixin(LibraryUploadForm.prototype, mixins.droppable)
 
 export default withRouter(LibraryUploadForm)

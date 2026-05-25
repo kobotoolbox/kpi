@@ -103,13 +103,13 @@ class ManagedCollectionsStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted({ uid, assetType }: DeleteAssetResponse) {
-    if (assetType === ASSET_TYPES.collection.id) {
-      const index = findIndex(this.data.collections, { uid: uid })
-      if (index !== -1) {
-        this.data.collections.splice(index, 1)
-        this.trigger(this.data)
-      }
+  onDeleteAssetCompleted({ uid }: DeleteAssetResponse) {
+    // We don't care here what type of asset is coming in, as we are guarding
+    // the data cleanup with uid
+    const index = findIndex(this.data.collections, { uid: uid })
+    if (index !== -1) {
+      this.data.collections.splice(index, 1)
+      this.trigger(this.data)
     }
   }
 

@@ -5,6 +5,7 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
+import $ from 'jquery'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetLockingProfileDefinition } from '#/components/locking/lockingConstants'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
@@ -123,6 +124,8 @@ export interface CreateImportRequest {
   assetUid?: string
   /** Causes the imported XLSForm to be added as Library Item */
   library?: boolean
+  /** Desired asset type for the imported XLSForm (e.g. 'template') */
+  desired_type?: string
 }
 
 export interface ImportResponse {
@@ -263,11 +266,9 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
   _attachments: SubmissionAttachment[]
   // TODO: when does this happen to be array of nulls?
   _geolocation: number[] | null[]
-  _notes: string[]
   _status: string
   _submission_time: string
   _submitted_by: string | null
-  _tags: string[]
   // If submission was validated, this would be a proper response, otherwise it's empty object
   _validation_status: ValidationStatusResponse | {}
   _version_?: string
@@ -611,6 +612,7 @@ export interface AssetSettings {
   collects_pii?: LabelValuePair | null
   operational_purpose?: LabelValuePair | null
   country_codes?: string[]
+  extra_metadata?: Record<string, string | string[] | null>
 }
 
 /** This is the asset object Frontend uses with the endpoints. */

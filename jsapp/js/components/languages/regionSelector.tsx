@@ -2,17 +2,15 @@ import './regionSelector.scss'
 
 import React from 'react'
 
+import { ActionIcon, Group, TextInput } from '@mantine/core'
 import bem, { makeBem } from '#/bem'
-import Button from '#/components/common/button'
+import Select from '#/components/common/Select'
 import Icon from '#/components/common/icon'
-import KoboSelect from '#/components/common/koboSelect'
-import type { KoboSelectOption } from '#/components/common/koboSelect'
 import languagesStore from './languagesStore'
 import type { DetailedLanguage, LanguageCode, TransxServiceCode } from './languagesStore'
 
 bem.RegionSelector = makeBem(null, 'region-selector', 'section')
 bem.RegionSelector__loading = makeBem(bem.RegionSelector, 'loading')
-bem.RegionSelector__rootLanguage = makeBem(bem.RegionSelector, 'root-language')
 
 interface RegionSelectorProps {
   isDisabled?: boolean
@@ -28,7 +26,7 @@ interface RegionSelectorProps {
 }
 
 interface RegionSelectorState {
-  options: KoboSelectOption[]
+  options: { label: string; value: string }[]
   selectedOption: LanguageCode | null
   language?: DetailedLanguage
 }
@@ -67,10 +65,15 @@ export default class RegionSelector extends React.Component<RegionSelectorProps,
         // Just a safe check if source didn't change as we waited for the response.
         if (this.props.rootLanguage === language.code) {
           const options = this.buildOptions(language)
+          const initialOption = options.length > 0 ? options[0].value : null
           this.setState({
             language: language,
             options: options,
+            selectedOption: initialOption,
           })
+          if (initialOption) {
+            this.props.onRegionChange(initialOption)
+          }
         }
       } catch (error) {
         // Here we use memoized value, as at this point the props might've changed.
@@ -79,7 +82,7 @@ export default class RegionSelector extends React.Component<RegionSelectorProps,
     }
   }
 
-  buildOptions(language: DetailedLanguage): KoboSelectOption[] {
+  buildOptions(language: DetailedLanguage): { label: string; value: string }[] {
     const outcome = []
 
     let serviceRegions
@@ -129,31 +132,37 @@ export default class RegionSelector extends React.Component<RegionSelectorProps,
 
     return (
       <bem.RegionSelector>
-        <bem.RegionSelector__rootLanguage>
-          <Icon name='language-alt' />
-
-          <label title={this.state.language.name}>{this.state.language.name}</label>
-
-          <Button
-            type='text'
-            size='s'
-            startIcon='close'
-            onClick={this.props.onCancel}
-            isDisabled={this.props.isDisabled}
+        <Group gap='xs'>
+          <TextInput
+            readOnly
+            size='sm'
+            value={this.state.language.name}
+            leftSection={<Icon name='language-alt' size='s' />}
+            w={220}
+            rightSection={
+              <ActionIcon
+                variant='transparent'
+                size='sm'
+                onClick={this.props.onCancel}
+                disabled={this.props.isDisabled}
+              >
+                <Icon name='close' size='xs' />
+              </ActionIcon>
+            }
           />
-        </bem.RegionSelector__rootLanguage>
 
-        {this.state.options.length !== 0 && (
-          <KoboSelect
-            name='regionselector'
-            type='gray'
-            size='m'
-            options={this.state.options}
-            selectedOption={this.state.selectedOption}
-            onChange={this.onOptionChange.bind(this)}
-            isDisabled={this.props.isDisabled}
-          />
-        )}
+          {this.state.options.length !== 0 && (
+            <Select
+              w={220}
+              data={this.state.options}
+              value={this.state.selectedOption}
+              size='sm'
+              onChange={(newValue) => this.onOptionChange(newValue)}
+              disabled={this.props.isDisabled}
+              placeholder={t('Select a region...')}
+            />
+          )}
+        </Group>
       </bem.RegionSelector>
     )
   }

@@ -20,6 +20,10 @@ export type LanguagesListParams = {
    */
   offset?: number
   /**
+   * Search languages by name or code
+   */
+  q?: string
+  /**
    * The initial index from which to return the results. Use with `limit`.
    */
   start?: number

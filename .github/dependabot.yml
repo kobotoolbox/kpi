@@ -29,7 +29,8 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    open-pull-requests-limit: 10
+    # Turn off dependabot pull requests
+    open-pull-requests-limit: 0
     ignore:
       ##########################################################################
       # Deps that we do not plan to update

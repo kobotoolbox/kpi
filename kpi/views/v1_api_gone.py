@@ -17,14 +17,20 @@ class V1APIGoneView(APIView):
 
     authentication_classes = []
     permission_classes = []
-    renderer_classes = [JSONRenderer, XMLRenderer, BasicHTMLRenderer]
+    renderer_classes = [BasicHTMLRenderer, JSONRenderer, XMLRenderer]
 
-    def http_method_not_allowed(self, request, *args, **kwargs):
+    def _get_404_response(self):
         message = _(
             'The V1 API has been removed. Please read the migration '
             'article at https://support.kobotoolbox.org/migrating_api.html'
         )
-        return Response({'detail': message}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'detail': message}, status=status.HTTP_410_GONE)
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        return self._get_404_response()
+
+    def options(self, request, *args, **kwargs):
+        return self._get_404_response()
 
 
 v1_api_gone_view = V1APIGoneView.as_view()
