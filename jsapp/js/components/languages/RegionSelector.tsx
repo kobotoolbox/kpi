@@ -78,7 +78,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
   }
 
   if (isLoading) {
-    return <Loader size='xs' mb={props?.mb}/>
+    return <Loader size='xs' mb={props?.mb} />
   }
 
   return (
