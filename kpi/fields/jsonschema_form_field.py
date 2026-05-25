@@ -109,10 +109,10 @@ class MetadataFieldsListField(JsonSchemaFormField):
                     'scim_mapping': {'type': 'string'},
                     'scim_value_mapping': {
                         'type': 'object',
-                        'additionalProperties': {'type': 'string'}
-                    }
-                }
-            }
+                        'additionalProperties': {'type': 'string'},
+                    },
+                },
+            },
         }
         super().__init__(*args, schema=schema, **kwargs)
 

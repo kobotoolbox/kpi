@@ -1,6 +1,5 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from constance.test import override_config
-from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -9,13 +8,13 @@ from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_PATCH_OP,
     SCIM_SCHEMA_USER,
 )
 from kobo.apps.kobo_scim.models import IdentityProvider
+from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
 class ScimUsersAPITests(APITestCase):
@@ -655,7 +654,7 @@ class ScimUsersAPITests(APITestCase):
                 'name': 'organization',
                 'required': False,
                 'scim_mapping': 'org',
-            }
+            },
         ]
     )
     def test_custom_metadata_mapping(self):
@@ -668,8 +667,8 @@ class ScimUsersAPITests(APITestCase):
             'org': 'Acme Corp',
             'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User': {
                 'country': 'United States',
-                'bio': 'Test bio'
-            }
+                'bio': 'Test bio',
+            },
         }
 
         response = self.client.post(
@@ -681,7 +680,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         user = User.objects.get(username='metadata_user')
-        
+
         # Check ExtraUserDetail
         extra, _ = ExtraUserDetail.objects.get_or_create(user=user)
         self.assertEqual(extra.data.get('country'), 'US')
@@ -705,7 +704,7 @@ class ScimUsersAPITests(APITestCase):
     )
     def test_patch_metadata_mapping(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        
+
         # We test both styles of PATCH (path vs value)
         payload = {
             'schemas': [SCIM_SCHEMA_PATCH_OP],
@@ -713,7 +712,7 @@ class ScimUsersAPITests(APITestCase):
                 {
                     'op': 'replace',
                     'path': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
-                    'value': 'CA'
+                    'value': 'CA',
                 }
             ],
         }
@@ -738,7 +737,7 @@ class ScimUsersAPITests(APITestCase):
                         'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User': {
                             'country': 'UK'
                         }
-                    }
+                    },
                 }
             ],
         }
@@ -749,6 +748,6 @@ class ScimUsersAPITests(APITestCase):
             HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         profile.refresh_from_db()
         self.assertEqual(profile.country, 'UK')

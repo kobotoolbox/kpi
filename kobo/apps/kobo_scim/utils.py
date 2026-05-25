@@ -16,7 +16,12 @@ def apply_scim_user_metadata(user, scim_data):
 
     # Fields that map directly to UserProfile model attributes
     user_profile_fields = {
-        'name', 'city', 'country', 'organization', 'twitter', 'address'
+        'name',
+        'city',
+        'country',
+        'organization',
+        'twitter',
+        'address',
     }
 
     extra_details_updated = False
@@ -48,12 +53,12 @@ def apply_scim_user_metadata(user, scim_data):
                         # Ensure we match the longest prefix to avoid partial matches
                         if matched_key is None or len(key) > len(matched_key):
                             matched_key = key
-            
+
             if matched_key:
-                remainder = scim_mapping[len(matched_key):]
+                remainder = scim_mapping[len(matched_key) :]
                 if remainder.startswith('.') or remainder.startswith(':'):
                     remainder = remainder[1:]
-                
+
                 value = scim_data[matched_key]
                 if remainder:
                     keys = remainder.replace(':', '.').split('.')

@@ -281,7 +281,7 @@ class ScimUserViewSet(
         instance = serializer.save()
         if not was_active and instance.is_active:
             self._reactivate_sso_linked_accounts(instance.email, instance)
-        
+
         apply_scim_user_metadata(instance, self.request.data)
 
     def _reactivate_sso_linked_accounts(self, email, current_user=None):
@@ -397,7 +397,11 @@ class ScimUserViewSet(
                         active_status = str(value['active']).lower() == 'true'
                     # Merge for metadata mapping
                     for k, v in value.items():
-                        if isinstance(v, dict) and k in scim_patch_data and isinstance(scim_patch_data[k], dict):
+                        if (
+                            isinstance(v, dict)
+                            and k in scim_patch_data
+                            and isinstance(scim_patch_data[k], dict)
+                        ):
                             scim_patch_data[k].update(v)
                         else:
                             scim_patch_data[k] = v
