@@ -753,6 +753,39 @@ class ScimUsersAPITests(APITestCase):
         profile.refresh_from_db()
         self.assertEqual(profile.country, 'UK')
 
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'country',
+                'required': False,
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+            }
+        ]
+    )
+    def test_patch_add_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {
+                    'op': 'add',
+                    'path': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                    'value': 'CA',
+                }
+            ],
+        }
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        profile, _ = UserProfile.objects.get_or_create(user=self.user1)
+        self.assertEqual(profile.country, 'CA')
+
     def test_reactivation_of_user_without_email_works(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         no_email_user = User.objects.create_user(

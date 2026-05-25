@@ -392,7 +392,7 @@ class ScimUserViewSet(
         active_status = None
         scim_patch_data = {}
         for op in operations:
-            if op.get('op', '').lower() == 'replace':
+            if op.get('op', '').lower() in ('replace', 'add'):
                 path = op.get('path')
                 value = op.get('value')
 
