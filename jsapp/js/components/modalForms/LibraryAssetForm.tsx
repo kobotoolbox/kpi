@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
+import { TextInput, Textarea } from '@mantine/core'
 import { when } from 'mobx'
 import { useNavigate } from 'react-router-dom'
 import { actions } from '#/actions'
@@ -10,7 +11,6 @@ import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import KoboTagsInput from '#/components/common/koboTagsInput'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import TextBox from '#/components/common/textBox'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
 import { ASSET_TYPES, type AssetTypeName } from '#/constants'
@@ -258,9 +258,9 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
     <bem.FormModal__form className={`project-settings ${styles.form}`}>
       <bem.FormModal__item m='wrapper' disabled={isPending}>
         <bem.FormModal__item>
-          <TextBox
+          <TextInput
             value={fields.name}
-            onChange={(val) => setField('name', removeInvalidChars(val))}
+            onChange={(evt) => setField('name', removeInvalidChars(evt.currentTarget.value))}
             label={t('Name')}
             placeholder={t('Enter title of ##type## here').replace('##type##', formAssetType ?? '')}
           />
@@ -268,10 +268,11 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
 
         {metadataFields.description && (
           <bem.FormModal__item>
-            <TextBox
-              type='text-multiline'
+            <Textarea
+              autosize
+              minRows={1}
               value={fields.description}
-              onChange={(val) => setField('description', removeInvalidChars(val))}
+              onChange={(evt) => setField('description', removeInvalidChars(evt.currentTarget.value))}
               label={metadataFields.description.label || t('Description')}
               placeholder={t('Enter short description here')}
             />
@@ -279,9 +280,9 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
         )}
 
         <bem.FormModal__item>
-          <TextBox
+          <TextInput
             value={fields.organization}
-            onChange={(val) => setField('organization', val)}
+            onChange={(evt) => setField('organization', evt.currentTarget.value)}
             label={t('Organization')}
           />
         </bem.FormModal__item>
