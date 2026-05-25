@@ -5,5 +5,9 @@ class ServicesField(serializers.JSONField):
     pass
 
 
+class ServicesDetailField(serializers.JSONField):
+    pass
+
+
 class LanguageUrlField(serializers.URLField):
     pass

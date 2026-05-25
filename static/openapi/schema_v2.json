@@ -11192,6 +11192,14 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Search languages by name or code"
+                    },
+                    {
                         "name": "start",
                         "required": false,
                         "in": "query",
@@ -25119,31 +25127,21 @@
                         "type": "boolean"
                     },
                     "transcription_services": {
-                        "type": "array",
-                        "items": {
+                        "type": "object",
+                        "additionalProperties": {
                             "type": "object",
-                            "properties": {
-                                "code": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                }
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         },
                         "readOnly": true
                     },
                     "translation_services": {
-                        "type": "array",
-                        "items": {
+                        "type": "object",
+                        "additionalProperties": {
                             "type": "object",
-                            "properties": {
-                                "code": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                }
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         },
                         "readOnly": true
