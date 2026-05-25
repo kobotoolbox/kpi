@@ -304,6 +304,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         BULK_ACTION_STATUS_POLL_INTERVAL=17,
     )
     def test_start_batch_transitions_and_schedules_tasks(self):
+        """
+        Test that start_batch moves the parent and items to in_progress and
+        schedules item execution plus parent polling after commit
+        """
         old_modified = timezone.now() - timedelta(minutes=5)
         SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(
             date_modified=old_modified
@@ -343,6 +347,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         'BaseAutomaticNLPAction.run_external_process'
     )
     def test_start_bulk_item_job_marks_item_complete(self, mock_run_external_process):
+        """
+        Test that a completed service result marks the child item complete and
+        writes the completed supplement version
+        """
         mock_run_external_process.return_value = {
             'status': 'complete',
             'value': 'Done!',
@@ -375,6 +383,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         self,
         mock_run_external_process,
     ):
+        """
+        Test that an in-progress service result keeps the child item active and
+        schedules the shared async poller
+        """
         mock_run_external_process.return_value = {
             'status': 'in_progress',
             'language': 'en',
@@ -403,6 +415,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         self,
         mock_run_external_process,
     ):
+        """
+        Test that a pending child item can self-heal and run when its parent is
+        already in progress
+        """
         mock_run_external_process.return_value = {
             'status': 'complete',
             'value': 'Done!',
@@ -426,6 +442,9 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         self,
         mock_run_external_process,
     ):
+        """
+        Test that a failed service result marks the child item failed
+        """
         mock_run_external_process.return_value = {
             'status': 'failed',
             'error': 'Transcription is not supported for language "en-US"',
@@ -444,6 +463,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
     def test_start_bulk_item_job_marks_item_failed_when_submission_lookup_raises(
         self,
     ):
+        """
+        Test that submission lookup errors mark the child item failed instead of
+        leaving the batch active forever
+        """
         item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
         self.bulk_action.status = BulkActionStatus.IN_PROGRESS
         self.bulk_action.save(update_fields=['status'])
@@ -465,6 +488,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         self,
         mock_run_external_process,
     ):
+        """
+        Test that the shared async poller mirrors a completed supplement status
+        back to the matching bulk child item
+        """
         mock_run_external_process.return_value = {
             'status': 'complete',
             'value': 'Done!',
@@ -494,6 +521,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
     def test_poll_run_external_process_uses_saved_supplement_when_revise_data_returns_none(  # noqa: E501
         self,
     ):
+        """
+        Test that poll retries can read the existing supplement when revise_data
+        has no new version to return
+        """
         item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
         self.bulk_action.status = BulkActionStatus.IN_PROGRESS
         self.bulk_action.save(update_fields=['status'])
@@ -543,6 +574,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         self.assertEqual(item.status, BulkActionItemStatus.IN_PROGRESS)
 
     def test_update_batch_status_marks_parent_complete(self):
+        """
+        Test that parent polling marks the batch complete once every child item
+        reaches a terminal state
+        """
         self.bulk_action.status = BulkActionStatus.IN_PROGRESS
         self.bulk_action.save(update_fields=['status'])
         old_modified = timezone.now() - timedelta(minutes=5)
@@ -569,6 +604,9 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
 
     @override_settings(BULK_ACTION_STUCK_THRESHOLD=60)
     def test_resume_stuck_bulk_actions_requeues_polling(self):
+        """
+        Test that the watchdog restarts polling for stale in-progress batches
+        """
         self.bulk_action.status = BulkActionStatus.IN_PROGRESS
         self.bulk_action.save(update_fields=['status'])
         SubsequenceBulkAction.objects.filter(pk=self.bulk_action.pk).update(

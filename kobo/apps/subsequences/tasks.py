@@ -44,9 +44,10 @@ def poll_run_external_process(
     SubmissionSupplement = apps.get_model(
         'subsequences', 'SubmissionSupplement'
     )  # noqa: N806
+    request_action_data = _get_bulk_action_request_data(action_data)
     incoming_data = {
         '_version': SCHEMA_VERSIONS[0],
-        question_xpath: {action_id: action_data},
+        question_xpath: {action_id: dict(request_action_data)},
     }
     asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
     # FIXME: revise_data cannot handle action_data with dependencies already attached
@@ -61,11 +62,11 @@ def poll_run_external_process(
         asset=asset,
         action=action,
         supplement_data=supplement_data,
-        action_data=action_data,
+        action_data=request_action_data,
     )
     _update_bulk_action_item_status(
         submission=submission,
-        action_data=action_data,
+        action_data=request_action_data,
         status=last_status,
     )
 
@@ -90,7 +91,7 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     submission = kwargs['kwargs']['submission']
     question_xpath = kwargs['kwargs']['question_xpath']
     action_id = kwargs['kwargs']['action_id']
-    action_data = kwargs['kwargs']['action_data']
+    action_data = _get_bulk_action_request_data(kwargs['kwargs']['action_data'])
 
     asset = (
         Asset.objects.only('pk', 'owner_id', 'advanced_features')
@@ -114,7 +115,8 @@ def poll_run_external_process_failure(sender=None, **kwargs):
 
     # FIXME: raises KeyError if action results are further nested (eg translations)
     action_supplemental_data = supplemental_data[question_xpath][action_id]
-    action_data.update(
+    failed_action_data = dict(action_data)
+    failed_action_data.update(
         {
             'error': error,
             'status': 'failed',
@@ -127,7 +129,7 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     )
 
     new_action_supplemental_data = action.get_new_action_supplemental_data(
-        action_supplemental_data, action_data, dependency_supplemental_data
+        action_supplemental_data, failed_action_data, dependency_supplemental_data
     )
 
     submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
@@ -198,12 +200,12 @@ def start_bulk_item_job(bulk_action_item_id: str):
         _mark_bulk_item_failed(item)
         return
 
-    incoming_action_data = dict(action.params)
-    incoming_action_data['bulk_action_uid'] = action.uid
+    request_action_data = dict(action.params)
+    request_action_data['bulk_action_uid'] = action.uid
     incoming_data = {
         '_version': SCHEMA_VERSIONS[0],
         action.question_xpath: {
-            action.action_id: incoming_action_data,
+            action.action_id: dict(request_action_data),
         },
     }
 
@@ -240,7 +242,7 @@ def start_bulk_item_job(bulk_action_item_id: str):
             asset=asset,
             action=action,
             supplement_data=supplement_data,
-            action_data=incoming_action_data,
+            action_data=request_action_data,
         )
     except Exception:
         logging.exception(
@@ -252,11 +254,26 @@ def start_bulk_item_job(bulk_action_item_id: str):
 
     item.status = extracted_status
     item.save(update_fields=['status', 'date_modified'])
+    if extracted_status == 'failed':
+        try:
+            error = _extract_bulk_item_error(
+                asset=asset,
+                action=action,
+                supplement_data=supplement_data,
+                action_data=request_action_data,
+            )
+        except Exception:
+            error = None
+        logging.error(
+            'Bulk item execution finished with failed status for '
+            f'{item.uid=}, {action.uid=}, {item.submission_root_uuid=}, '
+            f'{action.action_id=}, error={error!r}'
+        )
     if extracted_status == 'in_progress':
         poll_run_external_process.apply_async(
             kwargs={
                 'submission': submission,
-                'action_data': incoming_action_data,
+                'action_data': request_action_data,
                 'action_id': action.action_id,
                 'asset_id': asset.pk,
                 'question_xpath': action.question_xpath,
@@ -341,6 +358,21 @@ def resume_stuck_bulk_actions():
         update_batch_status.delay(action_id)
 
 
+def _get_bulk_action_request_data(action_data: dict) -> dict:
+    """
+    Return action input data without service result fields
+
+    Automatic actions mutate their input dict by merging service responses into
+    it before writing supplement versions. Celery retries must receive only the
+    original request fields, otherwise schema validation rejects result-only
+    keys such as status, error, or value on the next poll.
+    """
+    request_action_data = dict(action_data)
+    for result_key in ('status', 'error', 'value'):
+        request_action_data.pop(result_key, None)
+    return request_action_data
+
+
 def _get_submission_for_bulk_action_item(item):
     """
     Load the deployed submission targeted by a bulk action item
@@ -387,6 +419,48 @@ def _extract_bulk_item_status(
     `action` may be either a SubsequenceBulkAction or a QuestionAdvancedFeature,
     depending on whether the caller is the bulk starter or the shared poller.
     """
+    version_data = _extract_bulk_item_version_data(
+        asset,
+        action,
+        supplement_data,
+        action_data,
+    )
+    status = version_data.get('status')
+    if not status:
+        action_id = action.action_id if hasattr(action, 'action_id') else action.action
+        raise ValueError(
+            f'No status found in supplemental data for {action_id}'
+        )
+    return status
+
+
+def _extract_bulk_item_error(
+    asset,
+    action,
+    supplement_data: dict,
+    action_data: dict,
+) -> str | None:
+    """
+    Extract the latest failure message from supplement content for logging.
+    """
+    version_data = _extract_bulk_item_version_data(
+        asset=asset,
+        action=action,
+        supplement_data=supplement_data,
+        action_data=action_data,
+    )
+    return version_data.get('error')
+
+
+def _extract_bulk_item_version_data(
+    asset,
+    action,
+    supplement_data: dict,
+    action_data: dict,
+) -> dict:
+    """
+    Return the latest stored result data for a bulk-aware action.
+    """
     question_xpath = action.question_xpath
     action_id = action.action_id if hasattr(action, 'action_id') else action.action
     action_handler = _get_advanced_feature(
@@ -394,9 +468,7 @@ def _extract_bulk_item_status(
         question_xpath,
         action_id,
     ).to_action()
-    raw_action_data = (
-        supplement_data.get(question_xpath, {}).get(action_id) or {}
-    )
+    raw_action_data = supplement_data.get(question_xpath, {}).get(action_id) or {}
     localized_action_data = raw_action_data
     if action_handler.action_class_config.allow_multiple:
         data_key = action_handler.action_class_config.action_data_key
@@ -406,6 +478,7 @@ def _extract_bulk_item_status(
                 'has no action_data_key'
             )
         localized_action_data = raw_action_data.get(action_data.get(data_key)) or {}
+
     versions = localized_action_data.get(action_handler.VERSION_FIELD) or []
     if not versions:
         raise ValueError(
@@ -413,12 +486,11 @@ def _extract_bulk_item_status(
         )
 
     version_data = versions[0].get(action_handler.VERSION_DATA_FIELD) or {}
-    status = version_data.get('status')
-    if not status:
+    if not version_data:
         raise ValueError(
-            f'No status found in supplemental data for {action_id}'
+            f'No version data found in supplemental data for {action_id}'
         )
-    return status
+    return version_data
 
 
 def _get_advanced_feature(asset, question_xpath: str, action_id: str):
