@@ -45,9 +45,42 @@ from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 
+class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
+    """
+    The DRF router adds trailing slashes to all URL patterns by default.
+    Django's APPEND_SLASH redirects requests missing their trailing slash,
+    which loses POST payloads.
+
+    This router creates alias URL patterns without trailing slashes for
+    OpenRosa endpoints so they can be served directly without redirection.
+    """
+
+    OPENROSA_ENDPOINT_NAMES = {
+        'assetsnapshot-form-list': ('asset_snapshots/<uid_asset_snapshot>/formList'),
+        'assetsnapshot-manifest': ('asset_snapshots/<uid_asset_snapshot>/manifest'),
+        'assetsnapshot-submission': ('asset_snapshots/<uid_asset_snapshot>/submission'),
+    }
+
+    def get_urls(self, *args, **kwargs):
+        urls = super().get_urls(*args, **kwargs)
+        names_to_alias = dict(self.OPENROSA_ENDPOINT_NAMES)
+        original_urls = [url for url in urls if url.name not in names_to_alias]
+        for url in urls:
+            if url.name in names_to_alias:
+                alias_path = names_to_alias.pop(url.name)
+                original_urls.append(
+                    path(
+                        alias_path,
+                        url.callback,
+                        name=f'{url.name}-openrosa',
+                    )
+                )
+        return original_urls
+
+
 URL_NAMESPACE = API_NAMESPACES['v2']
 
-router_api_v2 = ExtendedDefaultRouter()
+router_api_v2 = OpenRosaCompatibleExtendedRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
 asset_routes.register(
@@ -57,35 +90,40 @@ asset_routes.register(
     parents_query_lookups=['asset'],
 )
 
-asset_routes.register(r'files',
-                      AssetFileViewSet,
-                      basename='asset-file',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'files',
+    AssetFileViewSet,
+    basename='asset-file',
+    parents_query_lookups=['asset'],
+)
 
-asset_routes.register(r'permission-assignments',
-                      AssetPermissionAssignmentViewSet,
-                      basename='asset-permission-assignment',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'permission-assignments',
+    AssetPermissionAssignmentViewSet,
+    basename='asset-permission-assignment',
+    parents_query_lookups=['asset'],
+)
 
-asset_routes.register(r'versions',
-                      AssetVersionViewSet,
-                      basename='asset-version',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'versions',
+    AssetVersionViewSet,
+    basename='asset-version',
+    parents_query_lookups=['asset'],
+)
 
-asset_routes.register(r'export-settings',
-                      AssetExportSettingsViewSet,
-                      basename='asset-export-settings',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'export-settings',
+    AssetExportSettingsViewSet,
+    basename='asset-export-settings',
+    parents_query_lookups=['asset'],
+)
 
-asset_routes.register(r'exports',
-                      ExportTaskViewSet,
-                      basename='asset-export',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'exports',
+    ExportTaskViewSet,
+    basename='asset-export',
+    parents_query_lookups=['asset'],
+)
 
 asset_routes.register(
     r'paired-data',
@@ -122,37 +160,43 @@ asset_routes.register(
     parents_query_lookups=['asset'],
 )
 
-data_routes = asset_routes.register(r'data',
-                                    DataViewSet,
-                                    basename='submission',
-                                    parents_query_lookups=['asset'],
-                                    )
+data_routes = asset_routes.register(
+    r'data',
+    DataViewSet,
+    basename='submission',
+    parents_query_lookups=['asset'],
+)
 
-data_routes.register(r'attachments',
-                     AttachmentViewSet,
-                     basename='attachment',
-                     parents_query_lookups=['asset', 'data'],
-                     )
+data_routes.register(
+    r'attachments',
+    AttachmentViewSet,
+    basename='attachment',
+    parents_query_lookups=['asset', 'data'],
+)
 
-hook_routes = asset_routes.register(r'hooks',
-                                    HookViewSet,
-                                    basename='hook',
-                                    parents_query_lookups=['asset'],
-                                    )
+hook_routes = asset_routes.register(
+    r'hooks',
+    HookViewSet,
+    basename='hook',
+    parents_query_lookups=['asset'],
+)
 
-hook_routes.register(r'logs',
-                     HookLogViewSet,
-                     basename='hook-log',
-                     parents_query_lookups=['asset', 'hook'],
-                     )
+hook_routes.register(
+    r'logs',
+    HookLogViewSet,
+    basename='hook-log',
+    parents_query_lookups=['asset', 'hook'],
+)
 
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
-router_api_v2.register(r'asset_subscriptions',
-                       UserAssetSubscriptionViewSet)
+router_api_v2.register(r'asset_subscriptions', UserAssetSubscriptionViewSet)
 router_api_v2.register(r'asset_usage', AssetUsageViewSet, basename='asset-usage')
 router_api_v2.register(r'imports', ImportTaskViewSet)
-router_api_v2.register(r'organizations',
-                       OrganizationViewSet, basename='organizations',)
+router_api_v2.register(
+    r'organizations',
+    OrganizationViewSet,
+    basename='organizations',
+)
 router_api_v2.register(
     r'organizations/(?P<uid_organization>[^/.]+)/members',
     OrganizationMemberViewSet,
@@ -166,8 +210,7 @@ router_api_v2.register(
 
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)
-router_api_v2.register(r'service_usage',
-                       ServiceUsageViewSet, basename='service-usage')
+router_api_v2.register(r'service_usage', ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
 router_api_v2.register(r'user-reports', UserReportsViewSet, basename='user-reports')
 router_api_v2.register(r'tags', TagViewSet, basename='tags')
@@ -233,29 +276,8 @@ kobo_scim_url_patterns = [
     ),
 ]
 
-# OpenRosa endpoints that must not end with a slash to avoid losing POST
-# payloads during redirection.
-openrosa_url_patterns = [
-    path(
-        'asset_snapshots/<uid_asset_snapshot>/formList',
-        AssetSnapshotViewSet.as_view({'get': 'form_list', 'head': 'form_list'}),
-        name='assetsnapshot-form-list-openrosa',
-    ),
-    path(
-        'asset_snapshots/<uid_asset_snapshot>/manifest',
-        AssetSnapshotViewSet.as_view({'get': 'manifest', 'head': 'manifest'}),
-        name='assetsnapshot-manifest-openrosa',
-    ),
-    path(
-        'asset_snapshots/<uid_asset_snapshot>/submission',
-        AssetSnapshotViewSet.as_view({'post': 'submission', 'head': 'submission'}),
-        name='assetsnapshot-submission-openrosa',
-    ),
-]
-
 urls_patterns = (
     router_api_v2.urls
-    + openrosa_url_patterns
     + enketo_url_aliases
     + supplement_url_patterns
     + kobo_scim_url_patterns
