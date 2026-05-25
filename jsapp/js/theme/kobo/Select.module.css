@@ -64,3 +64,16 @@
   stroke: currentcolor;
   stroke-width: 0.5;
 }
+
+.groupLabel {
+  color: var(--mantine-color-gray-4);
+}
+
+.groupLabel::after {
+  background-color: var(--mantine-color-gray-6);
+}
+
+.required {
+  color: var(--mantine-color-red-7);
+  font-size: var(--mantine-font-size-lg);
+}
