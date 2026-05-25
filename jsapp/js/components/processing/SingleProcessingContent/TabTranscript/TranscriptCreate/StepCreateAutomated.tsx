@@ -123,7 +123,7 @@ export default function StepCreateAutomated({
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
       <RegionSelector
-        isDisabled={anyPending}
+        disabled={anyPending}
         serviceCode='goog'
         serviceType='transcription'
         rootLanguage={languageCode}

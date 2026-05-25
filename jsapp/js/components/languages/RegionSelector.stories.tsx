@@ -9,7 +9,7 @@ const meta: Meta<typeof RegionSelector> = {
   component: RegionSelector,
   argTypes: {
     rootLanguage: { control: 'text' },
-    isDisabled: { control: 'boolean' },
+    disabled: { control: 'boolean' },
     serviceCode: { control: 'text' },
     serviceType: {
       control: 'radio',
@@ -32,7 +32,7 @@ type Story = StoryObj<typeof RegionSelector>
 export const Primary: Story = {
   args: {
     rootLanguage: 'en',
-    isDisabled: false,
+    disabled: false,
     serviceCode: 'goog',
     serviceType: 'transcription',
     onRegionChange: (selectedRegion) => {
@@ -47,7 +47,7 @@ export const Primary: Story = {
 export const InteractionTest: Story = {
   args: {
     rootLanguage: 'en',
-    isDisabled: false,
+    disabled: false,
     serviceCode: 'goog',
     serviceType: 'transcription',
     onRegionChange: fn(),

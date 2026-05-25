@@ -169,7 +169,7 @@ export default function StepCreateAutomated({
       <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
 
       <RegionSelector
-        isDisabled={anyPending}
+        disabled={anyPending}
         serviceCode='goog'
         serviceType='translation'
         rootLanguage={languageCode}

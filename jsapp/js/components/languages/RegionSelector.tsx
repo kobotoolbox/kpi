@@ -6,7 +6,7 @@ import KoboIcon from '../common/KoboIcon'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 
 interface RegionSelectorProps {
-  isDisabled?: boolean
+  disabled?: boolean
   /** The root language code of a language that possibly has regions. */
   rootLanguage: LanguageCode
   /** We display regions only from selected provider of given type. */
@@ -90,7 +90,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
           leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
           w={220}
           rightSection={
-            <ActionIcon variant='transparent' size='sm' onClick={props.onCancel} disabled={props.isDisabled}>
+            <ActionIcon variant='transparent' size='sm' onClick={props.onCancel} disabled={props.disabled}>
               <KoboIcon icon={IconX} size='xs' />
             </ActionIcon>
           }
@@ -103,7 +103,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
             value={selectedRegion}
             size='sm'
             onChange={handleRegionChange}
-            disabled={props.isDisabled}
+            disabled={props.disabled}
             placeholder={t('Select a region...')}
           />
         )}
