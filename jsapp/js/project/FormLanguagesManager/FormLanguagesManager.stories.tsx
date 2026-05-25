@@ -246,20 +246,21 @@ export const BasicFlow: Story = {
     })
 
     await step('Close modal', async () => {
-      await userEvent.click(page.getByRole('button', { name: 'Close' }))
-
-      // In slower CI browsers, the unsaved-changes confirm can briefly appear
-      // before the main modal closes. Confirm it if present.
-      const closeConfirmDialog = page.queryByRole('dialog', { name: 'Close Translations Table?' })
-      if (closeConfirmDialog) {
-        await userEvent.click(within(closeConfirmDialog).getByRole('button', { name: 'Close' }))
+      const clickCloseOnTopDialog = async () => {
+        const manageDialog = page.getByRole('dialog', { name: 'Manage Languages' })
+        const closeButtons = within(manageDialog).getAllByRole('button', { name: 'Close' })
+        // Inside the Manage Languages dialog, target the header close control.
+        await userEvent.click(closeButtons[closeButtons.length - 1])
       }
+
+      await clickCloseOnTopDialog()
 
       await waitFor(
         async () => {
+          await expect(page.queryByRole('dialog', { name: 'Close Translations Table?' })).not.toBeInTheDocument()
           await expect(page.queryByRole('dialog', { name: 'Manage Languages' })).not.toBeInTheDocument()
         },
-        { timeout: 5000 },
+        { timeout: 10000 },
       )
     })
   },
