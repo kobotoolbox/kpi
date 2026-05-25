@@ -283,15 +283,15 @@ class ScimUserViewSet(
         # Handle users with the same email:
         if email:
             targets = User.objects.filter(
-                email__iexact=email, 
-                is_active=False, 
+                email__iexact=email,
+                is_active=False,
                 socialaccount__provider=self.idp_provider_id
             )
-            
+
             for target in targets:
                 target.is_active = True
                 target.save(update_fields=['is_active'])
-                
+
                 # Update in-memory instance to prevent the fallback block below
                 # from firing an extra, redundant save() call.
                 if current_user and current_user.pk == target.pk:
