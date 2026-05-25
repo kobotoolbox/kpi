@@ -51,6 +51,19 @@ def test_valid_user_data_passes_validation():
         action.validate_data(data)
 
 
+def test_valid_user_data_accepts_bulk_action_uid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+
+    action.validate_data(
+        {
+            'language': 'fr',
+            'bulk_action_uid': 'bulk-action-uid',
+        }
+    )
+
+
 def test_valid_automatic_transcription_data_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
@@ -84,6 +97,49 @@ def test_valid_automatic_transcription_data_passes_validation():
 
     for data in allowed_data:
         action.validate_external_data(data)
+
+
+def test_valid_automatic_transcription_data_accepts_bulk_action_uid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+
+    action.validate_external_data(
+        {
+            'language': 'fr',
+            'status': 'complete',
+            'value': 'Bonjour',
+            'bulk_action_uid': 'bulk-action-uid',
+        }
+    )
+
+
+def test_plain_language_request_without_locale_can_complete():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'en'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+    mock_sup_det = EMPTY_SUPPLEMENT
+
+    mock_service = MagicMock()
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
+        return_value=mock_service,
+    ):
+        mock_service.process_data.return_value = {
+            'value': 'Hello world',
+            'status': 'complete',
+        }
+        mock_sup_det = action.revise_data(
+            EMPTY_SUBMISSION,
+            mock_sup_det,
+            {'language': 'en', 'locale': None},
+        )
+
+    latest_version = mock_sup_det['_versions'][0]['_data']
+    assert latest_version['language'] == 'en'
+    assert latest_version['locale'] is None
+    assert latest_version['status'] == 'complete'
+    assert latest_version['value'] == 'Hello world'
 
 
 def test_invalid_user_data_fails_validation():
@@ -189,6 +245,36 @@ def test_valid_result_passes_validation():
     assert mock_sup_det['_versions'][1]['_data']['status'] == 'deleted'
 
 
+def test_result_schema_accepts_bulk_action_uid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+
+    mock_service = MagicMock()
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_transcription'
+        '.GoogleTranscriptionService'
+    )
+    with patch(service_path, return_value=mock_service):
+        mock_service.process_data.return_value = {
+            'value': 'Bonjour',
+            'status': 'complete',
+        }
+        mock_sup_det = action.revise_data(
+            EMPTY_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {
+                'language': 'fr',
+                'bulk_action_uid': 'bulk-action-uid',
+            },
+        )
+
+    action.validate_result(mock_sup_det)
+
+    latest_version_data = mock_sup_det['_versions'][0]['_data']
+    assert latest_version_data['bulk_action_uid'] == 'bulk-action-uid'
+
+
 def test_acceptance_does_not_produce_versions():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
@@ -263,6 +349,45 @@ def test_invalid_result_fails_validation():
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_result(mock_sup_det)
+
+
+def test_run_external_process_passes_bulk_action_uid_to_service():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+
+    mock_service = MagicMock()
+    mock_service.process_data.return_value = {
+        'value': 'Bonjour',
+        'status': 'complete',
+    }
+
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_transcription'
+        '.GoogleTranscriptionService'
+    )
+    with patch(service_path, return_value=mock_service):
+        result = action.run_external_process(
+            EMPTY_SUBMISSION,
+            {},
+            {
+                'language': 'fr',
+                'bulk_action_uid': 'bulk-action-uid',
+            },
+        )
+
+    mock_service.process_data.assert_called_once_with(
+        xpath,
+        {
+            'language': 'fr',
+            'bulk_action_uid': 'bulk-action-uid',
+        },
+        bulk_action_uid='bulk-action-uid',
+    )
+    assert result == {
+        'value': 'Bonjour',
+        'status': 'complete',
+    }
 
 
 def test_transcription_versions_are_retained_in_supplemental_details():

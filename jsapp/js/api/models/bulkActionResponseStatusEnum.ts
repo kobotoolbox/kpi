@@ -10,7 +10,19 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type LanguageTranscriptionServicesItem = {
-  code?: string
-  name?: string
-}
+/**
+ * * `pending` - pending
+ * `in_progress` - in_progress
+ * `complete` - complete
+ * `cancelled` - cancelled
+ */
+export type BulkActionResponseStatusEnum =
+  (typeof BulkActionResponseStatusEnum)[keyof typeof BulkActionResponseStatusEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const BulkActionResponseStatusEnum = {
+  pending: 'pending',
+  in_progress: 'in_progress',
+  complete: 'complete',
+  cancelled: 'cancelled',
+} as const

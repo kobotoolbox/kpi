@@ -2,6 +2,11 @@ import type { Updater } from '@tanstack/react-query'
 import { queryClient } from '../queryClient'
 
 /**
+ * Marker appended by infinite-query hooks to distinguish those snapshots from regular list snapshots.
+ */
+export const INFINITE_QUERY_KEY_MARKER = 'infinite'
+
+/**
  * Beware that `getUsersListQueryKey(undefined)` (and alike) doesn't select all pages for list endpoint as expected!
  * Unfortunately, it will invalidate all specific users as well.
  *
@@ -22,9 +27,21 @@ const filterPaginatedListSnapshots = ([listSnapshotKey]: [readonly unknown[], un
  */
 export const invalidatePaginatedList = (queryKey: readonly unknown[]) => {
   const listSnapshots = queryClient.getQueriesData({ queryKey: queryKey }).filter(filterPaginatedListSnapshots)
-  console.log(queryClient.getQueriesData({ queryKey: queryKey }))
-  console.log(listSnapshots)
   for (const [snapshotKey] of listSnapshots) queryClient.invalidateQueries({ queryKey: snapshotKey })
+}
+
+/**
+ * Invalidate all infinite-query snapshots that share the provided query-key prefix.
+ *
+ * By convention, infinite-query keys append {@link INFINITE_QUERY_KEY_MARKER} as the last segment.
+ */
+export const invalidateInfiniteList = (queryKey: readonly unknown[]) => {
+  queryClient.invalidateQueries({
+    predicate: ({ queryKey: candidateKey }) =>
+      candidateKey.length > queryKey.length &&
+      queryKey.every((keyPart, index) => candidateKey[index] === keyPart) &&
+      candidateKey.at(-1) === INFINITE_QUERY_KEY_MARKER,
+  })
 }
 
 /**

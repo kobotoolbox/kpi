@@ -38,6 +38,12 @@
   width: auto;
 }
 
+/* Mantine sets this padding inline for combined clear+chevron section, so we must override it. */
+.section[data-position='right'] [data-combined-clear-section],
+.section[data-position='right']:not(:has([data-combined-clear-section])) {
+  padding-inline-end: var(--mantine-spacing-sm) !important;
+}
+
 .section i {
   display: flex;
   color: var(--mantine-color-gray-4);
@@ -45,8 +51,29 @@
 
 .section button {
   background-color: transparent;
+  color: var(--mantine-color-gray-4);
 }
 
 .section button:hover {
   background-color: transparent;
+  color: var(--mantine-color-gray-4);
+}
+
+/* Make the built in clear icon look the same as our icon */
+.section button svg {
+  stroke: currentcolor;
+  stroke-width: 0.5;
+}
+
+.groupLabel {
+  color: var(--mantine-color-gray-4);
+}
+
+.groupLabel::after {
+  background-color: var(--mantine-color-gray-6);
+}
+
+.required {
+  color: var(--mantine-color-red-7);
+  font-size: var(--mantine-font-size-lg);
 }

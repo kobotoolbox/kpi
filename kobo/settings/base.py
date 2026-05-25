@@ -347,12 +347,16 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
+    # We are adopting the `CONSTANCE_` prefix as the new standard for all env
+    # variables that override Constance defaults. Legacy variables (e.g., KOBO_*)
+    # will be deprecated and migrated to this new pattern after the upcoming
+    # migration to Constance 4.x
     'ASR_MT_GOOGLE_PROJECT_ID': (
-        'kobo-asr-mt',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
     ),
     'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX': (
-        'kobo-asr-mt-tmp',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX', 'kobo-asr-mt-tmp'),
         (
             'Prefix for temporary ASR/MT files stored on Google Cloud. Useful'
             ' for lifecycle rules: files under this prefix can be deleted after'
@@ -361,7 +365,7 @@ CONSTANCE_CONFIG = {
         ),
     ),
     'ASR_MT_GOOGLE_TRANSLATION_LOCATION': (
-        'us-central1',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_TRANSLATION_LOCATION', 'us-central1'),
         (
             'Google Cloud location to use for large translation tasks. It'
             ' cannot be `global`, and Google only allows certain locations.'
@@ -666,6 +670,11 @@ CONSTANCE_CONFIG = {
         False,
         'Allow users to delete their own account.',
     ),
+    'USER_REPORTS_PAGE_SIZE_LIMIT': (
+        1000,
+        'Max page size for the user report endpoint',
+        'natural_int',
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -695,15 +704,9 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
-    'positive_int_minus_one': ['django.forms.fields.IntegerField', {
-        'min_value': -1
-    }],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
+    'positive_int': ['django.forms.fields.IntegerField', {'min_value': 0}],
+    'positive_int_minus_one': ['django.forms.fields.IntegerField', {'min_value': -1}],
+    'natural_int': ['django.forms.fields.IntegerField', {'min_value': 1}],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -732,6 +735,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
+        'USER_REPORTS_PAGE_SIZE_LIMIT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -802,7 +806,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
 
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
-CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'constance'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
@@ -1733,19 +1737,22 @@ if MASS_EMAILS_CONDENSE_SEND:
     }
 
 """ AWS configuration (email and storage) """
+# Only set explicit credentials if provided via environment variables.
+# boto3 will otherwise fall back to ~/.aws/credentials, instance profiles, etc.
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
-    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
-    AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
-    AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
-    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
-    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
-    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
-    # Only set the region if it is present in environment.
-    if region := env.str('AWS_S3_REGION_NAME', False):
-        AWS_S3_REGION_NAME = region
+AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
+AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
+AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
+AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
+
+AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+# Only set the region if it is present in the environment.
+if region := env.str('AWS_S3_REGION_NAME', False):
+    AWS_S3_REGION_NAME = region
 
 AWS_SES_CONFIGURATION_SET = env.str('AWS_SES_CONFIGURATION_SET', None)
 
@@ -2015,6 +2022,12 @@ CACHES = {
     'enketo_redis_main': env.cache_url(
         'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
     ),
+    # Isolated backend for Constance with a versioned key prefix to prevent
+    # cache format collisions between old and new workers during rolling deploys.
+    'constance': {
+        **env.cache_url(default='redis://change-me.invalid:6380/3'),
+        'KEY_PREFIX': 'constance_4x',
+    },
 }
 
 # How long to retain cached responses for kpi endpoints

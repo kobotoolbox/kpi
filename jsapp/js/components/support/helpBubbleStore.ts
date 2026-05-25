@@ -1,3 +1,4 @@
+import $ from 'jquery'
 import throttle from 'lodash.throttle'
 import { makeAutoObservable, when } from 'mobx'
 import { handleApiFail } from '#/api'
