@@ -5,13 +5,17 @@ from django.core.cache import caches
 
 def clear_constance_cache(apps, schema_editor):
     """
-    Clears all constance-related keys from the Django cache.
+    Clears all constance-related keys from the isolated constance cache backend.
 
-    When upgrading from a version that used a custom constance backend with a
-    broken get() method, the cache (Redis) may contain raw JSON strings instead
-    of decoded Python objects. This migration forces a full cache invalidation
-    so that constance repopulates from the database with correctly decoded
-    values on the next access.
+    Starting with this release, constance uses a dedicated cache backend
+    ('constance') with KEY_PREFIX='constance_4x' instead of the shared
+    'default' backend. This isolates constance cache keys from old workers
+    during rolling deploys, preventing cross-format deserialization errors
+    between constance 3.x and 4.x serialization formats.
+
+    This migration wipes the new namespace so that constance repopulates from
+    the database on first access, guaranteeing no stale data from a previous
+    deployment is served.
     """
     try:
         cache_backend_name = constance_settings.DATABASE_CACHE_BACKEND
@@ -21,6 +25,9 @@ def clear_constance_cache(apps, schema_editor):
         cache = caches[cache_backend_name]
         prefix = constance_settings.DATABASE_PREFIX
         keys = [f'{prefix}{key}' for key in constance_settings.CONFIG]
+        # 'autofilled' is a sentinel Constance sets after bulk-loading all keys
+        # from the DB into cache. Without clearing it, Constance would skip the
+        # autofill and never repopulate the individual keys we just deleted.
         keys.append(f'{prefix}autofilled')
         cache.delete_many(keys)
     except Exception:
