@@ -72,10 +72,12 @@ export type BridgeFailureHandler = BridgeHandler<BridgeFailureHandlerContext>
 export type BridgeRequestRouteContext = BridgeRequestHandlerContext
 export type BridgeSuccessRouteContext = BridgeSuccessHandlerContext
 export type BridgeFailureRouteContext = BridgeFailureHandlerContext
-export type BridgeRoute<Context> = BridgeHandler<Context>
-export type BridgeStartRoute = BridgeStartHandler
-export type BridgeSuccessRoute = BridgeSuccessHandler
-export type BridgeFailureRoute = BridgeFailureHandler
+export interface BridgeRoute<Context> extends BridgeHandler<Context> {
+  method: string
+}
+export type BridgeStartRoute = BridgeRoute<BridgeRequestRouteContext>
+export type BridgeSuccessRoute = BridgeRoute<BridgeSuccessRouteContext>
+export type BridgeFailureRoute = BridgeRoute<BridgeFailureRouteContext>
 
 export enum SpecializedAssetPatchField {
   ReportStyles = 'report_styles',
