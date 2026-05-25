@@ -292,6 +292,48 @@ def start_bulk_item_job(bulk_action_item_id: str):
         )
 
 
+@task_failure.connect(sender=start_bulk_item_job)
+def start_bulk_item_job_failure(sender=None, **kwargs):
+    """
+    Mark a bulk child item failed when Celery exhausts start retries
+
+    `start_bulk_item_job` retries long-running Google operations by raising
+    SubsequenceTimeoutError. Once Celery gives up, this handler prevents the
+    child item from staying in_progress forever and blocking the parent batch.
+    """
+    bulk_action_item_id = _get_task_argument(
+        kwargs,
+        argument_name='bulk_action_item_id',
+        argument_position=0,
+    )
+    if bulk_action_item_id is None:
+        return
+
+    SubsequenceBulkActionItem = apps.get_model(  # noqa: N806
+        'subsequences',
+        'SubsequenceBulkActionItem',
+    )
+    item = (
+        SubsequenceBulkActionItem.objects.select_related('parent')
+        .filter(pk=bulk_action_item_id)
+        .first()
+    )
+    if item is None:
+        logging.error(
+            'Failed to update status to "failed" in start_bulk_item_job_failure '
+            f'for item {bulk_action_item_id}'
+        )
+        return
+
+    logging.error(
+        f'start_bulk_item_job permanently failed after max retries '
+        f'for item {bulk_action_item_id}'
+    )
+    if item.status in ['pending', 'in_progress']:
+        _mark_bulk_item_failed(item)
+        update_batch_status.delay(item.parent.pk)
+
+
 @celery_app.task(queue='kpi_low_priority_queue')
 def update_batch_status(subsequence_bulk_action_id: str):
     """
@@ -381,6 +423,29 @@ def _get_bulk_action_request_data(action_data: dict) -> dict:
     for result_key in ('status', 'error', 'value'):
         request_action_data.pop(result_key, None)
     return request_action_data
+
+
+def _get_task_argument(
+    signal_kwargs: dict,
+    argument_name: str,
+    argument_position: int,
+):
+    """
+    Read a task argument from Celery signal kwargs
+
+    Celery exposes task inputs as separate `args` and `kwargs` values. Handlers
+    use this helper so they work whether a task was enqueued positionally or by
+    keyword.
+    """
+    task_kwargs = signal_kwargs.get('kwargs') or {}
+    if argument_name in task_kwargs:
+        return task_kwargs[argument_name]
+
+    task_args = signal_kwargs.get('args') or ()
+    try:
+        return task_args[argument_position]
+    except IndexError:
+        return None
 
 
 def _get_submission_for_bulk_action_item(item):
