@@ -523,6 +523,7 @@ def _update_bulk_action_item_status(
     SubsequenceBulkActionItem.objects.filter(
         parent__uid=bulk_action_uid,
         submission_root_uuid=submission_uuid,
+        status__in=['pending', 'in_progress'],
     ).update(
         status=status,
         date_modified=timezone.now(),
