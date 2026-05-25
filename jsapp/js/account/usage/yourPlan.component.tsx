@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { SubscriptionChangeType } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
@@ -26,7 +26,6 @@ const BADGE_COLOR_KEYS: { [key in SubscriptionChangeType]: BadgeColor } = {
  * Show the user's current plan and any storage add-ons, with links to the Plans page
  */
 export const YourPlan = () => {
-  const navigate = useNavigate()
   const [subscriptions] = useState(() => subscriptionStore)
   const [env] = useState(() => envStore)
   const [session] = useState(() => sessionStore)
@@ -96,7 +95,7 @@ export const YourPlan = () => {
         </div>
         {showPlanUpdateLink && (
           <nav>
-            <ButtonNew size='lg' variant='light' component='a' href={'#' + ACCOUNT_ROUTES.PLAN}>
+            <ButtonNew size='lg' variant='light' component={Link} to={ACCOUNT_ROUTES.PLAN}>
               {t('See plans')}
             </ButtonNew>
             {/* This is commented out until the add-ons tab on the Plans page is implemented

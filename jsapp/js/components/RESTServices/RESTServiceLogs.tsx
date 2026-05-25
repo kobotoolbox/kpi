@@ -1,6 +1,7 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
+import { Link } from 'react-router-dom'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
@@ -17,6 +18,7 @@ import type {
   RetryExternalServiceLogsResponse,
 } from '#/dataInterface'
 import pageState from '#/pageState.store'
+import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { formatTime, notify } from '#/utils'
 
@@ -215,8 +217,8 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
         <ButtonNew
           size='md'
           variant='light'
-          component='a'
-          href={`/#/forms/${this.state.assetUid}/settings/rest`}
+          component={Link}
+          to={ROUTES.FORM_REST.replace(':uid', this.state.assetUid)}
           leftIcon='angle-left'
         >
           {t('Back to REST Services')}
