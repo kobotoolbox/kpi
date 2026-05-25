@@ -3,8 +3,6 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 import { when } from 'mobx'
 import autoBind from 'react-autobind'
-import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
 import bem from '#/bem'
@@ -17,9 +15,9 @@ import managedCollectionsStore from '#/components/library/managedCollectionsStor
 import ExtraProjectMetadataFields from '#/components/modalForms/extraProjectMetadataFields'
 import { ASSET_TYPES } from '#/constants'
 import envStore from '#/envStore'
-import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { withRouter } from '#/router/legacy'
+import { getRouteAssetUid, isAnyLibraryRoute } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
 import ModalBackButton from './ModalBackButton'
@@ -143,8 +141,9 @@ export class LibraryAssetFormComponent extends React.Component {
         tag_string: this.state.fields.tags,
       }
 
-      if (this.isLibrarySingle() && params.asset_type !== ASSET_TYPES.collection.id) {
-        const found = managedCollectionsStore.find(this.currentAssetID())
+      const currentAssetUid = getRouteAssetUid()
+      if (currentAssetUid && isAnyLibraryRoute() && params.asset_type !== ASSET_TYPES.collection.id) {
+        const found = managedCollectionsStore.find(currentAssetUid)
         if (found && found.asset_type === ASSET_TYPES.collection.id) {
           // when creating from within a collection page, make the new asset
           // a child of this collection
@@ -288,8 +287,5 @@ export class LibraryAssetFormComponent extends React.Component {
     )
   }
 }
-
-reactMixin(LibraryAssetFormComponent.prototype, Reflux.ListenerMixin)
-reactMixin(LibraryAssetFormComponent.prototype, mixins.contextRouter)
 
 export const LibraryAssetForm = withRouter(LibraryAssetFormComponent)
