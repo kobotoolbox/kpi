@@ -101,7 +101,7 @@ const LibraryUploadForm = observer(
 
                 <small>
                   {t('Note that this will be ignored when uploading a collection file.')}{' '}
-                  <a href={envStore.data.support_url + 'question_library.html#importing-collections'} target='_blank'>
+                  <a href={envStore.data.support_url + 'import_collection.html'} target='_blank'>
                     {t('Learn more')}
                   </a>
                 </small>
