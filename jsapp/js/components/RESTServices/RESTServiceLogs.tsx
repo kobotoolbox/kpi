@@ -4,6 +4,7 @@ import alertify from 'alertifyjs'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
+import ButtonNew from '#/components/common/ButtonNew'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { HOOK_LOG_STATUSES, MODAL_TYPES } from '#/constants'
@@ -16,7 +17,6 @@ import type {
   RetryExternalServiceLogsResponse,
 } from '#/dataInterface'
 import pageState from '#/pageState.store'
-import { router } from '#/router/legacy'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { formatTime, notify } from '#/utils'
 
@@ -212,15 +212,15 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
   renderHeader() {
     return (
       <header className='rest-services-list__header'>
-        <Button
-          type='secondary'
-          size='m'
-          onClick={() => {
-            router?.navigate(`/forms/${this.state.assetUid}/settings/rest`)
-          }}
-          startIcon='angle-left'
-          label={t('Back to REST Services')}
-        />
+        <ButtonNew
+          size='md'
+          variant='light'
+          component='a'
+          href={`/#/forms/${this.state.assetUid}/settings/rest`}
+          leftIcon='angle-left'
+        >
+          {t('Back to REST Services')}
+        </ButtonNew>
 
         <h2 className='rest-services-list__header-label rest-services-list__header-label--big'>
           {this.state.hookName}
