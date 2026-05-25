@@ -52,6 +52,8 @@ const Select = <Datum extends string = string>(props: SelectPropsNarrow<Datum>) 
   // Allow callers to render custom content (for example a loading spinner)
   // instead of always forcing the default chevron icon.
   const rightSection = props.rightSection ?? <Icon name={isOpened ? 'angle-up' : 'angle-down'} size={iconSize} />
+  // Match MultiSelect default so both controls keep identical right-side layout.
+  const rightSectionWidth = props.rightSectionWidth ?? 44
 
   return (
     <MantineSelect
@@ -61,6 +63,7 @@ const Select = <Datum extends string = string>(props: SelectPropsNarrow<Datum>) 
       onDropdownOpen={() => setIsOpened(true)}
       onDropdownClose={() => setIsOpened(false)}
       rightSection={rightSection}
+      rightSectionWidth={rightSectionWidth}
     />
   )
 }

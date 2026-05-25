@@ -56,6 +56,19 @@ const MultiSelect = <Datum extends string = string>(props: MultiSelectPropsNarro
     props.onChange?.(nextValue)
   }
 
+  // Render the dropdown in-place by default.
+  // In our app layout/modals, portal rendering has intermittently triggered
+  // "ResizeObserver loop completed with undelivered notifications" when many
+  // pills wrap over multiple lines.
+  const mergedComboboxProps = {
+    withinPortal: false,
+    ...props.comboboxProps,
+  }
+
+  // Keep chevron/clear affordances in a stable right section width.
+  // This avoids jitter and keeps alignment consistent with Select.
+  const rightSectionWidth = props.rightSectionWidth ?? 44
+
   return (
     <MantineMultiSelect
       {...props}
@@ -64,6 +77,8 @@ const MultiSelect = <Datum extends string = string>(props: MultiSelectPropsNarro
       onDropdownOpen={() => setIsOpened(true)}
       onDropdownClose={() => setIsOpened(false)}
       rightSection={rightSection}
+      rightSectionWidth={rightSectionWidth}
+      comboboxProps={mergedComboboxProps}
     />
   )
 }
