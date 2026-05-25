@@ -12,6 +12,7 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_PATCH_OP,
     SCIM_SCHEMA_USER,
+    SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER,
 )
 from kobo.apps.kobo_scim.models import IdentityProvider
 from kobo.apps.openrosa.apps.main.models import UserProfile
@@ -642,13 +643,13 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
                 'scim_value_mapping': {'United States': 'US'},
             },
             {
                 'name': 'bio',
                 'required': False,
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.bio',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.bio',
             },
             {
                 'name': 'organization',
@@ -665,7 +666,7 @@ class ScimUsersAPITests(APITestCase):
             'emails': [{'primary': True, 'value': 'meta@example.com'}],
             'active': True,
             'org': 'Acme Corp',
-            'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User': {
+            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
                 'country': 'United States',
                 'bio': 'Test bio',
             },
@@ -698,7 +699,7 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
             }
         ]
     )
@@ -711,7 +712,7 @@ class ScimUsersAPITests(APITestCase):
             'Operations': [
                 {
                     'op': 'replace',
-                    'path': 'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.country',
+                    'path': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
                     'value': 'CA',
                 }
             ],
@@ -734,7 +735,7 @@ class ScimUsersAPITests(APITestCase):
                 {
                     'op': 'replace',
                     'value': {
-                        'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User': {
+                        SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
                             'country': 'UK'
                         }
                     },
