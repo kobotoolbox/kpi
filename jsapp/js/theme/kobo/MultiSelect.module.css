@@ -2,84 +2,13 @@
   background-color: var(--mantine-color-gray-7);
 }
 
-.input {
-  border-color: var(--mantine-color-gray-6);
-}
-
 .inputField::placeholder {
   color: var(--mantine-color-gray-4);
   opacity: 1;
 }
 
-.input:focus-visible:not([data-error]) {
-  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
-}
-
-/* Hides caret in FF */
-.input[readonly] {
-  caret-color: transparent;
-}
-
-.dropdown {
-  border-color: var(--mantine-color-gray-6);
-}
-
-.option {
-  border-radius: 0;
-  color: var(--mantine-color-gray-1);
-}
-
-.option:hover {
-  background-color: var(--mantine-color-blue-9);
-}
-
-.option[data-combobox-selected],
-.option[data-combobox-active] {
-  background-color: var(--mantine-color-blue-9);
-}
-
-.section[data-position='right'] {
-  width: auto;
-}
-
-/* Mantine sets this padding inline for combined clear+chevron section, so we must override it. */
-.section[data-position='right'] [data-combined-clear-section],
-.section[data-position='right']:not(:has([data-combined-clear-section])) {
-  padding-inline-end: var(--mantine-spacing-sm) !important;
-}
-
-.section i {
-  display: flex;
-  color: var(--mantine-color-gray-4);
-}
-
-.section button {
-  background-color: transparent;
-  color: var(--mantine-color-gray-4);
-}
-
-.section button:hover {
-  background-color: transparent;
-  color: var(--mantine-color-gray-4);
-}
-
-/* Make the built in clear icon look the same as our icon */
+/* Match chevron visual size in MultiSelect. */
 .section button svg {
-  stroke: currentcolor;
-  stroke-width: 0.5;
   width: 1rem;
   height: 1rem;
-}
-
-.groupLabel {
-  color: var(--mantine-color-gray-4);
-}
-
-.groupLabel::after {
-  background-color: var(--mantine-color-gray-6);
-}
-
-.required {
-  color: var(--mantine-color-red-7);
-  font-size: var(--mantine-font-size-lg);
 }

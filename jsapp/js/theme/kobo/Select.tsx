@@ -1,8 +1,13 @@
+// eslint-disable-next-line no-restricted-imports -- Theme extensions must import Mantine primitives.
 import { Select } from '@mantine/core'
+import baseClasses from './SelectBase.module.css'
 import classes from './Select.module.css'
 
 export const SelectThemeKobo = Select.extend({
-  classNames: classes,
+  classNames: {
+    ...baseClasses,
+    input: [baseClasses.input, classes.input].filter(Boolean).join(' '),
+  },
   defaultProps: {
     withCheckIcon: false,
     allowDeselect: false,
