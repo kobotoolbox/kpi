@@ -50,13 +50,23 @@ def poll_run_external_process(
         question_xpath: {action_id: dict(request_action_data)},
     }
     asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
-    # FIXME: revise_data cannot handle action_data with dependencies already attached
     supplement_data = SubmissionSupplement.revise_data(asset, submission, incoming_data)
     if supplement_data is None:
         supplement_data = _get_submission_supplement_data(
             asset=asset,
             submission=submission,
         )
+    if not supplement_data:
+        logging.error(
+            f'Background polling found no supplement data for {action_id} '
+            f'on submission {submission.get(SUBMISSION_UUID_FIELD)}'
+        )
+        _update_bulk_action_item_status(
+            submission=submission,
+            action_data=request_action_data,
+            status='failed',
+        )
+        return
     action = _get_advanced_feature(asset, question_xpath, action_id)
     last_status = _extract_bulk_item_status(
         asset=asset,
