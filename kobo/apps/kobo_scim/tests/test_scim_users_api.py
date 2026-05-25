@@ -724,7 +724,7 @@ class ScimUsersAPITests(APITestCase):
             HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
+        
         profile, _ = UserProfile.objects.get_or_create(user=self.user1)
         self.assertEqual(profile.country, 'CA')
 
@@ -752,3 +752,27 @@ class ScimUsersAPITests(APITestCase):
 
         profile.refresh_from_db()
         self.assertEqual(profile.country, 'UK')
+
+    def test_reactivation_of_user_without_email_works(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        no_email_user = User.objects.create_user(
+            username='noemailuser', email='', is_active=False
+        )
+        SocialAccount.objects.create(
+            user=no_email_user, provider=self.social_app.provider_id, uid='no-email-uid'
+        )
+
+        # Reactivate via PATCH
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [{'op': 'replace', 'path': 'active', 'value': True}],
+        }
+        response = self.client.patch(
+            f'{self.url}/{no_email_user.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        no_email_user.refresh_from_db()
+        self.assertTrue(no_email_user.is_active)
