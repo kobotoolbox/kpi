@@ -16,17 +16,8 @@
 
   font-size: var(--mantine-font-size-md);
 
-  &[data-hovered] {
-    color: var(--mantine-color-gray-1);
-    background-color: var(--mantine-color-gray-8);
-  }
-
   &[data-variant='danger'] {
     color: var(--mantine-color-red-5);
-
-    &[data-hovered] {
-      color: var(--mantine-color-red-6);
-    }
   }
 }
 

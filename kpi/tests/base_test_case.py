@@ -18,7 +18,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 class BaseTestCase(APITestCase):
 
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+    URL_NAMESPACE = None
 
     @staticmethod
     def absolute_reverse(*args, **kwargs):

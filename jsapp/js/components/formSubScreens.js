@@ -21,7 +21,7 @@ import LimitNotifications from './usageLimits/limitNotifications.component'
 const ConnectProjects = React.lazy(
   () => import(/* webpackPrefetch: true */ '#/components/dataAttachments/connectProjects'),
 )
-const DataTable = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/submissions/table'))
+const DataTable = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/submissions/DataTableWrapper'))
 const ProjectDownloads = React.lazy(
   () => import(/* webpackPrefetch: true */ '#/components/projectDownloads/ProjectDownloads'),
 )

@@ -1,5 +1,5 @@
-@use 'scss/colors';
-@use 'scss/breakpoints';
+@use "scss/colors";
+@use "scss/breakpoints";
 
 .uploadInstructions {
   margin-bottom: 20px;
@@ -29,6 +29,11 @@
   .input {
     min-width: 75%; // Most rows are wide enough to get their own row,
     flex: 1; // and when they do, they grow to occupy the full available width
+
+    // Grow WrappedSelect control to match TextBox size L height
+    :global(.kobo-select__control) {
+      min-height: 38px;
+    }
   }
 
   .sector,

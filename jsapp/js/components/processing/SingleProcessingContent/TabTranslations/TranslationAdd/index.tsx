@@ -8,6 +8,7 @@ import type { SupplementalDataVersionItemAutomatic } from '#/api/models/suppleme
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { CreateSteps } from '#/components/processing/common/types'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
@@ -52,8 +53,7 @@ export default function TranslationAdd({
    * This is for going back from manual/automated to language selector step
    */
   function goBackFromCreateStep() {
-    // TODO HACKFIX: Because `LanguageSelector` is not a controlled component, the selected language inside of it and
-    // the one we have here might become out of sync. Let's ensure we clear it out when re-displaying language step)
+    // Clear the selected language when returning to the language selection step
     setLanguageCode(null)
     setStep(CreateSteps.Language)
   }
@@ -82,7 +82,7 @@ export default function TranslationAdd({
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           usageType={UsageLimitTypes.TRANSLATION}
           hiddenLanguages={languagesExisting}
-          suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
+          suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           titleOverride={t('Please select the language you want to translate to')}

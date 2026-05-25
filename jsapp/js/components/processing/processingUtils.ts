@@ -3,7 +3,7 @@ import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 
 type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual' | 'qualVerification'
 
-interface SupplementalPathParts {
+export interface SupplementalPathParts {
   sourceRowName: string
   /**
    * Includes groups. Will be the same as `sourceRowName` if there are no groups.
@@ -88,4 +88,37 @@ export function getSupplementalPathParts(path: string): SupplementalPathParts {
   }
 
   return output
+}
+
+/**
+ * Builds a supplemental details path string from its components.
+ * Accepts a SupplementalPathParts object (as returned by getSupplementalPathParts).
+ * Only relevant fields for each type are required.
+ */
+export function buildSupplementalPath(args: Partial<SupplementalPathParts>): string {
+  if (!args.type) throw new Error('type is required')
+  switch (args.type) {
+    case 'transcript': {
+      if (!args.sourceRowPath) throw new Error('sourceRowPath is required for transcript')
+      if (!args.languageCode) throw new Error('languageCode is required for transcript')
+      return `${SUPPLEMENTAL_DETAILS_PROP}/${args.sourceRowPath}/transcript_${args.languageCode}`
+    }
+    case 'translation': {
+      if (!args.sourceRowPath) throw new Error('sourceRowPath is required for translation')
+      if (!args.languageCode) throw new Error('languageCode is required for translation')
+      return `${SUPPLEMENTAL_DETAILS_PROP}/${args.sourceRowPath}/translation_${args.languageCode}`
+    }
+    case 'qual': {
+      if (!args.sourceRowPath) throw new Error('sourceRowPath is required for qual')
+      if (!args.analysisQuestionUuid) throw new Error('analysisQuestionUuid is required for qual')
+      return `${SUPPLEMENTAL_DETAILS_PROP}/${args.sourceRowPath}/${args.analysisQuestionUuid}`
+    }
+    case 'qualVerification': {
+      if (!args.sourceRowPath) throw new Error('sourceRowPath is required for qualVerification')
+      if (!args.analysisQuestionUuid) throw new Error('analysisQuestionUuid is required for qualVerification')
+      return `${SUPPLEMENTAL_DETAILS_PROP}/${args.sourceRowPath}/${args.analysisQuestionUuid}/verified`
+    }
+    default:
+      throw new Error('Unsupported supplemental path type')
+  }
 }
