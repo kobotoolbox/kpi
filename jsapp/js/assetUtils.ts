@@ -519,6 +519,12 @@ export function injectSupplementalRowsIntoListOfRows(
   // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || []
 
+  // Include the additional virtual fields, ensuring there are no duplicates
+  const existingDtpaths = new Set(additionalFields.map((f) => f.dtpath))
+  const uniqueVirtualFields = (virtualSupplementalFields || []).filter(
+    (virtualField) => !existingDtpaths.has(virtualField.dtpath),
+  )
+
   const allSupplementalFields = [
     // Note questions make sense only in the context of writing responses to
     // Qualitative Analysis questions. They bear no data, so there is no point
@@ -526,7 +532,7 @@ export function injectSupplementalRowsIntoListOfRows(
     // part of Data Table and Data Downloads, we need to hide the notes.
     // Merge real and virtual supplemental fields
     ...additionalFields.filter((field) => field.type !== QUAL_NOTE_TYPE),
-    ...(virtualSupplementalFields || []),
+    ...(uniqueVirtualFields || []),
   ]
 
   const extraColsBySource: Record<string, Array<{ source: string; dtpath: string; type: string }>> = {}
