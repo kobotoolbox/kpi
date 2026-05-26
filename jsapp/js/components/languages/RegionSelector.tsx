@@ -1,5 +1,5 @@
 import type { FlexProps } from '@mantine/core'
-import { ActionIcon, Alert, Flex, Group, Loader, Select, Text, TextInput } from '@mantine/core'
+import { ActionIcon, Flex, Group, Loader, Select, Text, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLanguagesRetrieve } from '#/api/react-query/other'
@@ -82,7 +82,11 @@ const RegionSelector = (props: RegionSelectorProps) => {
   }
 
   if (isError) {
-    return <Text c='var(--mantine-color-red-5)' size='sm' mb={props?.mb}>Failed to load regions</Text>
+    return (
+      <Text c='var(--mantine-color-red-5)' size='sm' mb={props?.mb}>
+        Failed to load regions
+      </Text>
+    )
   }
 
   return (
