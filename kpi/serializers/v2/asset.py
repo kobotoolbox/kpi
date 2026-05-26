@@ -260,13 +260,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 # all assets are owned by the user, so they can delete all of them
                 return
 
-            all_asset_uids = Asset.objects.filter(uid__in=asset_uids).values_list('uid', flat=True)
+            all_asset_uids = Asset.objects.filter(uid__in=asset_uids).values_list(
+                'uid', flat=True
+            )
             if sorted(all_asset_uids) != sorted(asset_uids):
                 # at least one of the asset uids doesn't exist.
                 # technically this should probably raise a 404 but since it raises a
                 # 403 if all other assets are owned by the requester, keep it consistent
                 raise exceptions.PermissionDenied()
-
 
             # special case: non-owners can delete assets
             # 1. They created the asset
