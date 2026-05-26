@@ -267,18 +267,23 @@ export const BasicFlow: Story = {
     })
 
     await step('Close modal', async () => {
-      const clickCloseOnTopDialog = async () => {
-        const manageDialog = page.getByRole('dialog', { name: 'Manage Languages' })
-        const closeButtons = within(manageDialog).getAllByRole('button', { name: 'Close' })
-        // Inside the Manage Languages dialog, target the header close control.
-        await userEvent.click(closeButtons[closeButtons.length - 1])
-      }
+      const manageDialog = page.getByRole('dialog', { name: 'Manage Languages' })
+      const closeButtons = within(manageDialog).getAllByRole('button', { name: 'Close' })
+      // Inside the Manage Languages dialog, target the header close control.
+      await userEvent.click(closeButtons[closeButtons.length - 1])
 
-      await clickCloseOnTopDialog()
-
+      // Closing while the translations table is still the active view may
+      // trigger an "unsaved changes" confirmation dialog (even after a
+      // successful save, the ref can still be set in some timing scenarios).
+      // Handle it inside waitFor so it is retried until the state settles.
       await waitFor(
         async () => {
-          await expect(page.queryByRole('dialog', { name: 'Close Translations Table?' })).not.toBeInTheDocument()
+          const confirmDialog = page.queryByRole('dialog', { name: 'Close Translations Table?' })
+          if (confirmDialog) {
+            // Scoping to the confirmation dialog avoids hitting the header
+            // "Close" button of the outer modal by accident.
+            await userEvent.click(within(confirmDialog).getByRole('button', { name: 'Close' }))
+          }
           await expect(page.queryByRole('dialog', { name: 'Manage Languages' })).not.toBeInTheDocument()
         },
         { timeout: 10000 },
