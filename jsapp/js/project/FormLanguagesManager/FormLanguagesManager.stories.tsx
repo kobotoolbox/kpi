@@ -213,6 +213,7 @@ export const BasicFlow: Story = {
       const paginationFooter = tableRootContainer?.querySelector('footer')
 
       await expect(paginationFooter).not.toBeNull()
+      await expect(paginationFooter).toBeDefined()
 
       // In this state, first/previous are disabled, so the first enabled
       // button is always "next page".
