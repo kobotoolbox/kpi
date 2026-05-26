@@ -502,6 +502,10 @@ def get_bulk_actions_create_examples() -> list[OpenApiExample]:
                     'locale': 'en-US',
                 },
             },
+            description=(
+                'Starts Google transcription for the selected audio question '
+                'across the listed submissions. `locale` is optional.'
+            ),
             request_only=True,
         ),
         OpenApiExample(
@@ -517,17 +521,30 @@ def get_bulk_actions_create_examples() -> list[OpenApiExample]:
                     'language': 'fr',
                 },
             },
+            description=(
+                'Starts Google translation for the selected question across '
+                'the listed submissions. `language` is the target language.'
+            ),
             request_only=True,
         ),
     ]
 
 
-def _bulk_action_response_value() -> dict:
+def _bulk_action_response_value(
+    *,
+    action_id: str = 'automatic_google_transcription',
+) -> dict:
+    params = {'language': 'fr'}
+    question_xpath = 'q1'
+    if action_id == 'automatic_google_transcription':
+        params = {'language': 'en', 'locale': 'en-US'}
+        question_xpath = 'q1'
+
     return {
         'uid': 'ba123456789AbCdEfGhIjklm',
         'status': 'in_progress',
-        'action_id': 'automatic_google_transcription',
-        'question_xpath': 'q1',
+        'action_id': action_id,
+        'question_xpath': question_xpath,
         'submission_uuids': [
             '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
             '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
@@ -542,10 +559,8 @@ def _bulk_action_response_value() -> dict:
                 'status': 'in_progress',
             },
         ],
-        'params': {
-            'language': 'en',
-            'locale': 'en-US',
-        },
+        'params': params,
+        'progress': 50,
         'created_by': {
             'username': 'someuser',
         },
@@ -558,23 +573,55 @@ def _bulk_action_response_value() -> dict:
 def get_bulk_action_response_examples() -> list[OpenApiExample]:
     return [
         OpenApiExample(
-            'Bulk action response',
-            value=_bulk_action_response_value(),
+            'Bulk transcription job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_transcription',
+            ),
+            description=(
+                'Bulk transcription responses include the action params used '
+                'to start the job. `locale` appears when it was supplied.'
+            ),
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk translation job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_translation',
+            ),
+            description=(
+                'Bulk translation responses use the same job shape. '
+                '`params.language` is the target translation language.'
+            ),
             response_only=True,
         ),
     ]
 
 
 def get_bulk_action_list_response_examples() -> list[OpenApiExample]:
-    response_value = _bulk_action_response_value()
+    transcription_response = _bulk_action_response_value(
+        action_id='automatic_google_transcription',
+    )
+    translation_response = _bulk_action_response_value(
+        action_id='automatic_google_translation',
+    )
     return [
         OpenApiExample(
-            'Bulk action list response',
+            'Bulk transcription job response',
             value={
                 'count': 1,
                 'next': None,
                 'previous': None,
-                'results': [response_value],
+                'results': [transcription_response],
+            },
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk translation job response',
+            value={
+                'count': 1,
+                'next': None,
+                'previous': None,
+                'results': [translation_response],
             },
             response_only=True,
         ),
