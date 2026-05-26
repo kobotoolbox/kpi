@@ -216,6 +216,7 @@ def briefcase_attachment_url(request, att_uid):
     user = request.user
     if (
         not user.is_superuser
+        and not xform.shared_data
         and xform.user != user
         and not user.has_perm(PERM_VIEW_SUBMISSIONS, xform.asset)
     ):
