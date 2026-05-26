@@ -45,6 +45,7 @@ import tableStore from '#/components/submissions/tableStore'
 import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
   buildFilterQuery,
+  getAllDataColumns,
   getBackgroundAudioQuestionName,
   getColumnHXLTags,
   getColumnLabel,
@@ -214,6 +215,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const prevAdditionalFields = prevProps.asset?.analysis_form_json?.additional_fields
     const newAdditionalFields = this.props.asset?.analysis_form_json?.additional_fields
 
+    const prevActiveBulkActions = prevProps.activeBulkActions
+    const newActiveBulkActions = this.props.activeBulkActions
+
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
@@ -229,6 +233,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     } else if (!isEqual(prevAdditionalFields, newAdditionalFields)) {
       // If additional fields have changed, it means that user has added
       // transcript or translations, thus we need to display more columns.
+      this._prepColumns(this.state.submissions)
+    } else if (!isEqual(prevActiveBulkActions, newActiveBulkActions)) {
+      // If bulk actions have changed, it means they might've just gotten loaded
+      // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
   }
@@ -383,7 +391,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onHideField(fieldId: string) {
-    tableStore.hideField(this.state.submissions, fieldId)
+    tableStore.hideField(this.props.asset, this.state.submissions, this.props.activeBulkActions || [], fieldId)
   }
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
@@ -633,7 +641,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Builds and gathers all necessary react-table data and stores in state.
    */
   _prepColumns(data: SubmissionResponse[]) {
-    const allColumns = tableStore.getAllColumns(data)
+    const allColumns = getAllDataColumns(this.props.asset, data, this.props.activeBulkActions)
 
     let showLabels = this.state.showLabels
     let showGroupName = this.state.showGroupName
@@ -1329,6 +1337,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             <ColumnsHideDropdown
               asset={this.props.asset}
               submissions={this.state.submissions}
+              bulkActions={this.props.activeBulkActions || []}
               showGroupName={this.state.showGroupName}
               translationIndex={this.state.translationIndex}
             />
