@@ -113,19 +113,19 @@ queryClient.setMutationDefaults(
                 // version rather than prepending a new one (which would have value: undefined
                 // and corrupt the answer in optimistic UI)
                 const newVersions =
-                  value !== undefined
-                    ? [
+                  value === undefined
+                    ? existingVersions.length > 0 && verified !== undefined
+                      ? [{ ...existingVersions[0], verified }, ...existingVersions.slice(1)]
+                      : existingVersions
+                    : [
                         {
                           _uuid: '<mock-uuid-not-used>',
                           _data: { uuid, value },
                           _dateCreated: new Date().toISOString(),
-                          ...(verified !== undefined ? { verified } : {}),
+                          ...(verified === undefined ? {} : { verified }),
                         }, // Note: this is the actual optimistically added object.
                         ...existingVersions,
                       ]
-                    : existingVersions.length > 0 && verified !== undefined
-                      ? [{ ...existingVersions[0], verified }, ...existingVersions.slice(1)]
-                      : existingVersions
 
                 return {
                   ...response,

@@ -115,7 +115,31 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
 
     const isArea = this.props.style.report_type === CHART_STYLES.area.value
 
-    if (data.values !== undefined) {
+    if (data.values === undefined) {
+      if (data.percentages) {
+        maxPercentage = Math.max(...data.percentages)
+        datasets.push({
+          data: data.percentages,
+          barPercentage: 0.5,
+          fill: isArea,
+          backgroundColor: colors,
+        })
+      }
+      if (data.responseLabels) {
+        data.responseLabels.forEach((r, i) => {
+          if (data.responseLabels && r !== null) {
+            data.responseLabels[i] = truncateLabel(r)
+          }
+        })
+      }
+      if (data.responses) {
+        data.responses.forEach((r, i) => {
+          if (data.responses) {
+            data.responses[i] = truncateLabel(r)
+          }
+        })
+      }
+    } else {
       if (data.responseLabels) {
         data.responseLabels.forEach((r, i) => {
           if (data.responseLabels && r !== null) {
@@ -147,30 +171,6 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
 
       maxPercentage = Math.max(...allPercentages)
       showLegend = true
-    } else {
-      if (data.percentages) {
-        maxPercentage = Math.max(...data.percentages)
-        datasets.push({
-          data: data.percentages,
-          barPercentage: 0.5,
-          fill: isArea,
-          backgroundColor: colors,
-        })
-      }
-      if (data.responseLabels) {
-        data.responseLabels.forEach((r, i) => {
-          if (data.responseLabels && r !== null) {
-            data.responseLabels[i] = truncateLabel(r)
-          }
-        })
-      }
-      if (data.responses) {
-        data.responses.forEach((r, i) => {
-          if (data.responses) {
-            data.responses[i] = truncateLabel(r)
-          }
-        })
-      }
     }
 
     maxPercentage = maxPercentage < 85 ? (Number.parseInt(String(maxPercentage / 10), 10) + 1) * 10 : 100

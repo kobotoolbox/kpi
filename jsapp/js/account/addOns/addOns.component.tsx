@@ -52,15 +52,11 @@ export default function addOns() {
     setAddOnProducts(addonProducts)
   }, [products.products])
 
-  useWhen(
-    () => subscriptionStore.isInitialised,
-    () => {
-      setSubscribedAddOns(subscriptionStore.addOnsResponse)
-      setSubscribedPlans(subscriptionStore.planResponse)
-      setIsBusy(false)
-    },
-    [],
-  )
+  useWhen(() => subscriptionStore.isInitialised, () => {
+    setSubscribedAddOns(subscriptionStore.addOnsResponse)
+    setSubscribedPlans(subscriptionStore.planResponse)
+    setIsBusy(false)
+  }, [])
 
   if (!addOnProducts.length) {
     return null

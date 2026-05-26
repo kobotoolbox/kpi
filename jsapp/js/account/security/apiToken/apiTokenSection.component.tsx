@@ -50,7 +50,7 @@ export default function ApiTokenDisplay() {
       <div className={cx(securityStyles.securitySectionBody, styles.body)}>
         <TextBox
           type={isVisible && !isFetching && token !== null ? 'text' : 'password'}
-          value={token !== null ? token : HIDDEN_TOKEN_VALUE}
+          value={token === null ? HIDDEN_TOKEN_VALUE : token}
           readOnly
           className={styles.token}
         />

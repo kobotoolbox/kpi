@@ -18,13 +18,7 @@ import { getAssetUIDFromUrl, notify } from '#/utils'
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
  */
-export default function InviteeActionsDropdown({
-  target,
-  invite,
-}: {
-  target: ReactNode
-  invite: InviteResponse
-}) {
+export default function InviteeActionsDropdown({ target, invite }: { target: ReactNode; invite: InviteResponse }) {
   const [organization] = useOrganizationAssumed()
 
   const [opened, { open, close }] = useDisclosure()

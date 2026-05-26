@@ -45,7 +45,7 @@ import { recordEntries } from '#/utils'
 const reactCreateBemElement = (base: string, el = 'div') => {
   let elUnwrap
   if (el.match) {
-    elUnwrap = el.match(/\<(\w+)\s?\/?\>/)
+    elUnwrap = el.match(/<(\w+)\s?\/?>/)
     if (elUnwrap) {
       el = elUnwrap[1]
     }

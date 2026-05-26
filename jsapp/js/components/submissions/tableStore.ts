@@ -337,10 +337,10 @@ class TableStore extends Reflux.Store {
   getShowGroupName() {
     let showGroupName
     const tableSettings = this.getTableSettings()
-    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
-      showGroupName = tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP]
-    } else {
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] === 'undefined') {
       showGroupName = true
+    } else {
+      showGroupName = tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP]
     }
     return showGroupName
   }
@@ -357,10 +357,10 @@ class TableStore extends Reflux.Store {
   getShowHXLTags() {
     let showHXLTags
     const tableSettings = this.getTableSettings()
-    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
-      showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL]
-    } else {
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] === 'undefined') {
       showHXLTags = false
+    } else {
+      showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL]
     }
     return showHXLTags
   }

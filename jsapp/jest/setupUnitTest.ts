@@ -1,6 +1,6 @@
 // Polyfill global fetch (for Node 20 and older)
 import 'whatwg-fetch'
-import { TextDecoder, TextEncoder } from 'util'
+import { TextDecoder, TextEncoder } from 'node:util'
 
 import chai from 'chai'
 import $ from 'jquery'

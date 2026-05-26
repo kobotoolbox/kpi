@@ -123,7 +123,7 @@ export default function ResponseForm({
 
   // Prioritize user's currently selected status
   const displayedVerificationStatus =
-    verificationStatus !== undefined ? verificationStatus : (answer?.verified ?? false)
+    verificationStatus === undefined ? (answer?.verified ?? false) : verificationStatus
 
   const handleVerificationChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.currentTarget.checked
