@@ -70,7 +70,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
     } else {
       setSelectedRegion(null)
     }
-  }, [regionOptions, props.onRegionChange])
+  }, [regionOptions])
 
   const handleRegionChange = (newRegion: string | null) => {
     setSelectedRegion(newRegion)
