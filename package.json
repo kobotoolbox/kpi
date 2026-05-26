@@ -57,7 +57,6 @@
     "react-autobind": "^1.0.6",
     "react-cookie": "^8.0.1",
     "react-copy-to-clipboard": "^5.1.1",
-    "react-debounce-input": "^3.2.2",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-document-title": "^2.0.3",

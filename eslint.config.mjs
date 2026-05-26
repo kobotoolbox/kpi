@@ -232,6 +232,11 @@ const tsConfig = {
             importNames: ['Textarea'],
             message: "Use Textarea from 'jsapp/js/components/common' instead.",
           },
+          {
+            name: '@mantine/core',
+            importNames: ['TextInput'],
+            message: "Use TextInput from 'jsapp/js/components/common' instead.",
+          },
         ],
       },
     ],
