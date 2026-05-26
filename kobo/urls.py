@@ -36,8 +36,6 @@ REMOVED_V1_API_PREFIXES = [
     'users',
     'formUpload',
     'upload',
-    'view/downloadSubmission',
-    'view/submissionList',
 ]
 
 urlpatterns = [
