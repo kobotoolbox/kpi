@@ -254,7 +254,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
   }
 
   return (
-    <bem.FormModal__form className={`project-settings ${styles.form}`}>
+    <bem.FormModal__form className='project-settings'>
       <bem.FormModal__item m='wrapper' disabled={isPending}>
         <bem.FormModal__item>
           <TextInput
