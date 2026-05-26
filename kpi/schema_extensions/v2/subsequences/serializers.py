@@ -119,6 +119,7 @@ BulkActionResponse = inline_serializer_class(
         'submission_uuids': serializers.ListField(child=serializers.CharField()),
         'submission_statuses': BulkActionSubmissionStatusResponse(many=True),
         'params': BulkActionParamsResponse(),
+        'progress': serializers.IntegerField(min_value=0, max_value=100),
         'created_by': BulkActionUserResponse(),
         'date_created': serializers.DateTimeField(),
         'date_modified': serializers.DateTimeField(),
