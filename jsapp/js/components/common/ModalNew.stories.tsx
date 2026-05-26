@@ -1,33 +1,35 @@
 import type { ModalProps } from '@mantine/core'
-import { Button, Center, Group, Modal, Stack, Text } from '@mantine/core'
+import { Center, Group, Stack, Text } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { useArgs } from 'storybook/preview-api'
+import ButtonNew from './ButtonNew'
+import ModalNew from './ModalNew'
 
 const RenderModal = ({ ...args }: ModalProps) => {
   const [{ opened }, updateArgs] = useArgs()
 
   return (
     <Center w={400} h={80}>
-      <Button onClick={() => updateArgs({ opened: !opened })}>Open modal</Button>
-      <Modal {...args} onClose={() => updateArgs({ opened: !opened })}>
+      <ButtonNew onClick={() => updateArgs({ opened: !opened })}>Open modal</ButtonNew>
+      <ModalNew {...args} onClose={() => updateArgs({ opened: !opened })}>
         <Stack>
           <Text p='md'>Example modal content. Press esc, click outside or close button to close.</Text>
           <Group justify='flex-end'>
-            <Button variant='danger'>Won&apos;t close</Button>
-            <Button onClick={() => updateArgs({ opened: false })}>Close</Button>
+            <ButtonNew variant='danger'>Won&apos;t close</ButtonNew>
+            <ButtonNew onClick={() => updateArgs({ opened: false })}>Close</ButtonNew>
           </Group>
         </Stack>
-      </Modal>
+      </ModalNew>
     </Center>
   )
 }
 
 /**
- * Mantine [Modal](https://mantine.dev/core/modal/) component stories.
+ * Mantine [Modal](https://mantine.dev/core/modal/) wrapper component stories.
  */
-const meta: Meta<typeof Modal> = {
-  title: 'Design system old/Modal',
-  component: Modal,
+const meta: Meta<typeof ModalNew> = {
+  title: 'Design system/ModalNew',
+  component: ModalNew,
   render: RenderModal,
   argTypes: {
     opened: {
@@ -71,7 +73,7 @@ const meta: Meta<typeof Modal> = {
   parameters: { a11y: { test: 'todo' } },
 }
 
-type Story = StoryObj<typeof Modal>
+type Story = StoryObj<typeof ModalNew>
 
 export const Basic: Story = {
   args: {},

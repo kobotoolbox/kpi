@@ -1,0 +1,109 @@
+import chai from 'chai'
+
+// The bridge keeps a few legacy Reflux actions alive while write paths move over to Orval/react-query.
+// That lets old UI code keep reacting to API work without forcing the whole migration to happen in one step.
+
+var mockedActions: any
+
+jest.mock('#/actions', () => {
+  // Keep the mock small. Pulling in the real actions module would drag unrelated Reflux setup
+  // into a test that only cares about bridge routing.
+  mockedActions = {
+    reports: {
+      setStyle: { completed: jest.fn(), failed: jest.fn() },
+      setCustom: { completed: jest.fn(), failed: jest.fn() },
+    },
+    resources: {
+      updateAsset: { completed: jest.fn(), failed: jest.fn() },
+      createResource: { completed: jest.fn(), failed: jest.fn() },
+      cloneAsset: { completed: jest.fn(), failed: jest.fn() },
+      deleteAsset: { completed: jest.fn(), failed: jest.fn() },
+      deployAsset: { completed: jest.fn(), failed: jest.fn() },
+      setDeploymentActive: { completed: jest.fn(), failed: jest.fn() },
+    },
+    map: {
+      setMapStyles: { started: jest.fn(), completed: jest.fn(), failed: jest.fn() },
+    },
+  }
+
+  return { actions: mockedActions }
+})
+
+import {
+  bridgeOrvalFailureToLegacyActions,
+  bridgeOrvalStartToLegacyActions,
+  bridgeOrvalSuccessToLegacyActions,
+} from './index'
+
+describe('reflux bridge route flow', () => {
+  beforeEach(() => {
+    // Start each test from a clean slate so the assertions stay local.
+    jest.clearAllMocks()
+  })
+
+  it('dispatches started, completed and failed map style actions for PATCH /assets/:uid/', () => {
+    // One real request shape gives more confidence here than a pile of tiny helper tests.
+    // This PATCH goes through all three bridge phases.
+    const url = '/api/v2/assets/abc123/'
+    const mapStyles = { selectedQuestion: 'q1' }
+    const config = {
+      method: 'PATCH' as const,
+      body: JSON.stringify({ map_styles: mapStyles }),
+    }
+
+    // Legacy listeners expect `started` before the request goes out.
+    bridgeOrvalStartToLegacyActions(url, config)
+
+    const successAsset = {
+      uid: 'abc123',
+      map_styles: mapStyles,
+    }
+
+    // A successful response should hit the matching `.completed` actions.
+    bridgeOrvalSuccessToLegacyActions(url, config, {
+      data: successAsset,
+      status: 200,
+      headers: new Headers(),
+    })
+
+    // Failed responses are reshaped to look like the old failure payloads.
+    bridgeOrvalFailureToLegacyActions(url, config, {
+      error: new Error('fail'),
+      data: { detail: 'broken map style' },
+      status: 400,
+      headers: new Headers(),
+    })
+
+    const mapActions = mockedActions.map.setMapStyles as unknown as {
+      started: jest.Mock
+      completed: jest.Mock
+      failed: jest.Mock
+    }
+
+    const resourceActions = mockedActions.resources as unknown as {
+      updateAsset: { completed: jest.Mock }
+    }
+
+    const reportActions = mockedActions.reports as unknown as {
+      setStyle: { completed: jest.Mock }
+      setCustom: { completed: jest.Mock }
+    }
+
+    // This is the contract we care about for `map_styles` PATCH requests.
+    chai.expect(mapActions.started.mock.calls).to.deep.equal([['abc123', mapStyles]])
+    chai.expect(mapActions.completed.mock.calls).to.deep.equal([[successAsset]])
+    chai.expect(mapActions.failed.mock.calls.length).to.equal(1)
+
+    // Check only the parts that matter for legacy listeners here.
+    const failedPayload = mapActions.failed.mock.calls[0][0]
+    chai.expect(failedPayload.status).to.equal(400)
+    chai.expect(failedPayload.statusText).to.equal('error')
+    chai.expect(failedPayload.responseJSON).to.deep.equal({ detail: 'broken map style' })
+
+    chai.expect(resourceActions.updateAsset.completed.mock.calls).to.deep.equal([[successAsset]])
+
+    // Make sure this request did not spill into report-related routes.
+    chai.expect(reportActions.setStyle.completed.mock.calls.length).to.equal(0)
+    chai.expect(reportActions.setCustom.completed.mock.calls.length).to.equal(0)
+  })
+})

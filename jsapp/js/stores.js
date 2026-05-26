@@ -55,29 +55,6 @@ stores.surveyState = Reflux.createStore({
 /**
  * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
-stores.translations = Reflux.createStore({
-  init() {
-    this.state = {
-      isTranslationTableUnsaved: false,
-    }
-  },
-  setState(change) {
-    const changed = changes(this.state, change)
-    if (changed) {
-      Object.assign(this.state, changed)
-      this.trigger(changed)
-    }
-  },
-  setTranslationTableUnsaved(isUnsaved) {
-    this.setState({
-      isTranslationTableUnsaved: isUnsaved,
-    })
-  },
-})
-
-/**
- * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
- */
 stores.snapshots = Reflux.createStore({
   init() {
     this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated)
