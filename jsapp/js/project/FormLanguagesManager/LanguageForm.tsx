@@ -1,7 +1,7 @@
+import { Group } from '@mantine/core'
 import React, { useState } from 'react'
-
-import { Group, TextInput } from '@mantine/core'
 import ButtonNew from '#/components/common/ButtonNew'
+import TextInput from '#/components/common/TextInput'
 import { toTitleCase } from '#/textUtils'
 import type { LangObject } from '#/utils'
 import { getLangAsObject } from '#/utils'
