@@ -90,7 +90,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
       <Group gap='xs'>
         <TextInput
           readOnly
-          value={language?.name || t('Cannot load regions')}
+          value={language?.name || ''}
           size='sm'
           leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
           w={220}
