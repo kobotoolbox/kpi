@@ -290,7 +290,7 @@ class ScimUserViewSet(
             targets = User.objects.filter(
                 email__iexact=email,
                 is_active=False,
-                socialaccount__provider=self.idp_provider_id
+                socialaccount__provider=self.idp_provider_id,
             )
 
             for target in targets:

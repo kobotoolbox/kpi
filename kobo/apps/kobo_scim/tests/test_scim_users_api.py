@@ -9,10 +9,10 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER,
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_PATCH_OP,
     SCIM_SCHEMA_USER,
-    SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER,
 )
 from kobo.apps.kobo_scim.models import IdentityProvider
 from kobo.apps.openrosa.apps.main.models import UserProfile
@@ -724,7 +724,7 @@ class ScimUsersAPITests(APITestCase):
             HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         profile, _ = UserProfile.objects.get_or_create(user=self.user1)
         self.assertEqual(profile.country, 'CA')
 
@@ -734,11 +734,7 @@ class ScimUsersAPITests(APITestCase):
             'Operations': [
                 {
                     'op': 'replace',
-                    'value': {
-                        SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
-                            'country': 'UK'
-                        }
-                    },
+                    'value': {SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {'country': 'UK'}},
                 }
             ],
         }
@@ -782,7 +778,7 @@ class ScimUsersAPITests(APITestCase):
             HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         profile, _ = UserProfile.objects.get_or_create(user=self.user1)
         self.assertEqual(profile.country, 'CA')
 
