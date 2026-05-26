@@ -184,6 +184,16 @@ const processingSubmissions = [
 const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/rootUuid'], 'fr', {
   status: BulkActionResponseStatusEnum.in_progress,
   question_xpath: 'Record_a_sound',
+  created_by: {
+    username: 'zefir',
+  },
+})
+const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/rootUuid'], 'es', {
+  status: BulkActionResponseStatusEnum.pending,
+  question_xpath: 'Record_a_sound',
+  created_by: {
+    username: 'other-user',
+  },
 })
 
 const meta: Meta<typeof DataTableWrapper> = {
@@ -256,6 +266,27 @@ export const ProcessingColumn: Story = {
         organizationMock(),
         organizationServiceUsageMock(),
         bulkActionsMock(processingAsset.uid, { results: [processingBulkAction] }),
+      ],
+    },
+  },
+  loaders: [loadAssetForStory],
+}
+
+export const ProcessingBannerOtherUser: Story = {
+  args: {
+    asset: processingAsset,
+  },
+  parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(processingAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        assetMock(processingAsset.uid, processingAsset),
+        assetDataMock(processingAsset.uid, processingSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(),
+        bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
       ],
     },
   },
