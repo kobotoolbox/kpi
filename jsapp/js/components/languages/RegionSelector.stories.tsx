@@ -93,7 +93,8 @@ export const InteractionTest: Story = {
         },
         { timeout: 3000 },
       )
-      const firstCall = (args.onRegionChange as ReturnType<typeof fn>).mock.calls[0]
+      // onRegionChange first sends null before the data loads, we need to get the most recent post-load call with -1
+      const firstCall = (args.onRegionChange as ReturnType<typeof fn>).mock.calls.at(-1)!
       expect(firstCall[0]).toBeTruthy()
     })
 
