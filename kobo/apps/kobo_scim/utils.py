@@ -25,7 +25,7 @@ def apply_scim_user_metadata(user, scim_data):
     }
 
     extra_details_updated = False
-    profile_updated = False
+    updated_profile_fields = set()
     matched_any = False
 
     extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
@@ -92,16 +92,16 @@ def apply_scim_user_metadata(user, scim_data):
         # Determine where to save the field in UserProfile
         if field_name == 'bio':
             profile.description = value
-            profile_updated = True
+            updated_profile_fields.add('description')
         elif field_name == 'organization_website':
             profile.home_page = value
-            profile_updated = True
+            updated_profile_fields.add('home_page')
         elif field_name == 'phone_number':
             profile.phonenumber = value
-            profile_updated = True
+            updated_profile_fields.add('phonenumber')
         elif field_name in user_profile_fields:
             setattr(profile, field_name, value)
-            profile_updated = True
+            updated_profile_fields.add(field_name)
 
         # Always save to ExtraUserDetail.data for a complete metadata source
         metadata[field_name] = value
@@ -111,7 +111,7 @@ def apply_scim_user_metadata(user, scim_data):
         extra_user_detail.data = metadata
         extra_user_detail.save(update_fields=['data'])
 
-    if profile_updated:
-        profile.save()
+    if updated_profile_fields:
+        profile.save(update_fields=list(updated_profile_fields))
 
     return matched_any
