@@ -2,6 +2,7 @@
 import { MultiSelect } from '@mantine/core'
 import classes from './MultiSelect.module.css'
 import baseClasses from './SelectBase.module.css'
+import { KOBO_Z_INDEX } from './zIndex'
 
 export const MultiSelectThemeKobo = MultiSelect.extend({
   classNames: {
@@ -18,7 +19,7 @@ export const MultiSelectThemeKobo = MultiSelect.extend({
       offset: 0,
       dropdownPadding: 0,
       // needed in order to display correctly in a modal
-      zIndex: 5000,
+      zIndex: KOBO_Z_INDEX.dropdown,
     },
   },
 })

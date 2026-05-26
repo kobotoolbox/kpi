@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { MantineProvider } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import { queryClient } from '#/api/queryClient'
@@ -9,7 +10,8 @@ import AccountMenu from '#/components/header/accountMenu'
 import MainHeaderBase from '#/components/header/mainHeaderBase.component'
 import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
 import sessionStore from '#/stores/session'
-import { themeKobo } from '#/theme'
+import { cssVariablesResolverKobo, themeKobo } from '#/theme'
+import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import ToasterConfig from '../toasterConfig'
 import { RequireOrg } from './RequireOrg'
 import { Tracking } from './useTracking'
@@ -26,23 +28,25 @@ export default function BasicLayout(props: BasicLayoutProps) {
   return (
     <DocumentTitle title='KoboToolbox'>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={themeKobo}>
-          <Tracking />
-          <ToasterConfig />
-          <div className='header-stretch-bg' />
+        <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+          <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
+            <Tracking />
+            <ToasterConfig />
+            <div className='header-stretch-bg' />
 
-          <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
-            <MainHeaderBase>
-              <MainHeaderLogo />
-              {sessionStore.isLoggedIn && (
-                <RequireOrg>
-                  <AccountMenu />
-                </RequireOrg>
-              )}
-            </MainHeaderBase>
+            <bem.PageWrapper className='mdl-layout mdl-layout--fixed-header'>
+              <MainHeaderBase>
+                <MainHeaderLogo />
+                {sessionStore.isLoggedIn && (
+                  <RequireOrg>
+                    <AccountMenu />
+                  </RequireOrg>
+                )}
+              </MainHeaderBase>
 
-            <bem.PageWrapper__content className='mdl-layout__content'>{props.children}</bem.PageWrapper__content>
-          </bem.PageWrapper>
+              <bem.PageWrapper__content className='mdl-layout__content'>{props.children}</bem.PageWrapper__content>
+            </bem.PageWrapper>
+          </ModalsProvider>
         </MantineProvider>
       </QueryClientProvider>
     </DocumentTitle>

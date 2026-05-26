@@ -7,6 +7,7 @@ import { useDisclosure } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
 import { MantineProvider } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
@@ -31,7 +32,8 @@ import {
 import TOSAgreement from '#/router/tosAgreement.component'
 import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
-import { themeKobo } from './theme'
+import { cssVariablesResolverKobo, themeKobo } from './theme'
+import { KOBO_MODAL_SHARED_PROPS } from './theme/kobo/Modal'
 import ToasterConfig from './toasterConfig'
 
 import './api/mutation-defaults'
@@ -152,19 +154,21 @@ class App extends React.Component {
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
-          <MantineProvider theme={themeKobo}>
-            <RootContextProvider>
-              <Tracking />
-              <ToasterConfig />
+          <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+            <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
+              <RootContextProvider>
+                <Tracking />
+                <ToasterConfig />
 
-              <AppPageWrapper
-                shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
-                inFormBuilder={this.isFormBuilder()}
-                isFormSingle={this.isFormSingle()}
-                isLibrarySingle={this.isLibrarySingle()}
-                assetUid={assetUid}
-              />
-            </RootContextProvider>
+                <AppPageWrapper
+                  shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
+                  inFormBuilder={this.isFormBuilder()}
+                  isFormSingle={this.isFormSingle()}
+                  isLibrarySingle={this.isLibrarySingle()}
+                  assetUid={assetUid}
+                />
+              </RootContextProvider>
+            </ModalsProvider>
           </MantineProvider>
 
           {/* React Query Devtools - GUI for inspecting and modifying query status

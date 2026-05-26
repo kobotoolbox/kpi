@@ -1,9 +1,11 @@
 import { createTheme, rem } from '@mantine/core'
+import type { CSSVariablesResolver } from '@mantine/core'
 import { ActionIconThemeKobo } from './ActionIcon'
 import { AlertThemeKobo } from './Alert'
 import { AutocompleteThemeKobo } from './Autocomplete'
 import { ButtonThemeKobo } from './Button'
 import { CheckboxThemeKobo } from './Checkbox'
+import { CloseButtonThemeKobo } from './CloseButton'
 import { DividerThemeKobo } from './Divider'
 import { InputBaseThemeKobo } from './InputBase'
 import { LoaderThemeKobo } from './Loader'
@@ -18,8 +20,25 @@ import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
+import { TextareaThemeKobo } from './Textarea'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
+import { KOBO_Z_INDEX, KOBO_Z_INDEX_CSS_VARS } from './zIndex'
+
+export const cssVariablesResolverKobo: CSSVariablesResolver = () => {
+  return {
+    variables: {
+      '--kobo-z-index-modal-overlay': String(KOBO_Z_INDEX.modalOverlay),
+      '--kobo-z-index-modal': String(KOBO_Z_INDEX.modal),
+      '--kobo-z-index-tooltip': String(KOBO_Z_INDEX.tooltip),
+      '--kobo-z-index-nested-modal-overlay': String(KOBO_Z_INDEX.nestedModalOverlay),
+      '--kobo-z-index-nested-modal': String(KOBO_Z_INDEX.nestedModal),
+      '--kobo-z-index-dropdown': String(KOBO_Z_INDEX.dropdown),
+    },
+    light: {},
+    dark: {},
+  }
+}
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -119,10 +138,16 @@ export const themeKobo = createTheme({
     xxs: '8px',
   },
 
+  other: {
+    zIndex: KOBO_Z_INDEX,
+    zIndexCssVars: KOBO_Z_INDEX_CSS_VARS,
+  },
+
   components: {
     ActionIcon: ActionIconThemeKobo,
     Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
+    CloseButton: CloseButtonThemeKobo,
     InputBase: InputBaseThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
@@ -135,6 +160,7 @@ export const themeKobo = createTheme({
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
     NumberInput: NumberInputThemeKobo,
+    Textarea: TextareaThemeKobo,
     Paper: PaperThemeKobo,
     Pill: PillThemeKobo,
     Checkbox: CheckboxThemeKobo,
