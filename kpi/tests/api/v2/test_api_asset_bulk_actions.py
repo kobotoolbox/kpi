@@ -498,7 +498,6 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         a0 = self._add_one_asset_for_user_via_api('someuser', False)
 
         creator = someuser if is_creator else anotheruser
-        self.client.force_login(creator)
         a1 = self._add_one_asset_for_user_via_api(creator.username, True)
 
         if not has_manage_asset:
