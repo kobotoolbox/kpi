@@ -1,5 +1,6 @@
-import type { AutocompleteProps } from '@mantine/core'
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { Group, Autocomplete as MantineAutocomplete } from '@mantine/core'
+import type { AutocompleteProps } from '@mantine/core'
 import { useState } from 'react'
 import Icon from './icon'
 
