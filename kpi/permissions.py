@@ -12,9 +12,10 @@ from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_METADATA_ASSET,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
-    PERM_VIEW_SUBMISSIONS, PERM_MANAGE_ASSET,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import DeploymentNotFound
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin

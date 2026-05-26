@@ -249,14 +249,35 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
+            if objects_count != len(asset_uids):
+                raise exceptions.PermissionDenied()
         else:
             objects_count = Asset.objects.filter(
                 owner__in=user_filter,
                 uid__in=asset_uids,
             ).count()
+            if objects_count == len(asset_uids):
+                # all assets are owned by the user, so they can delete all of them
+                return
 
-        if objects_count != len(asset_uids):
-            raise exceptions.PermissionDenied()
+            # special case: non-owners can delete assets
+            # 1. They created the asset
+            # 2. They still have manage_asset
+            # 3. The asset has no submissions
+
+            # note: prefetch_related('permissions') doesn't help here because has_perm
+            # gets ObjectPermissions and then filters by asset rather than going
+            # through asset.permissions
+            for asset in Asset.objects.filter(uid__in=asset_uids).defer('content'):
+                has_submissions = (
+                    asset.has_deployment and asset.deployment.submission_count > 0
+                )
+                if (
+                    asset.created_by != self.__user.username
+                    or not asset.has_perm(self.__user, PERM_MANAGE_ASSET)
+                    or has_submissions
+                ):
+                    raise exceptions.PermissionDenied()
 
     def _toggle_trash(self, asset_uids: list[str], put_back_: bool):
         # The main goal of the annotation below is to pass always the same
