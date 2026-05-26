@@ -69,6 +69,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
       props.onRegionChange?.(initialOption)
     } else {
       setSelectedRegion(null)
+      props.onRegionChange?.(null)
     }
   }, [regionOptions])
 
