@@ -12,4 +12,5 @@
   font-size: var(--mantine-font-size-xl);
   font-weight: var(--mantine-heading-font-weight);
   color: var(--mantine-color-gray-0);
+  width: 100%;
 }

@@ -3,7 +3,6 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
 import { ASSETS_TABLE_COLUMNS, ORDER_DIRECTIONS } from '#/components/assetsTable/assetsTableConstants'
-import type { AssetTypeName } from '#/constants'
 import type { AssetResponse, AssetsResponse, MetadataResponse, SearchAssetsPredefinedParams } from '#/dataInterface'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { router } from '#/router/legacy'
@@ -256,18 +255,16 @@ class SingleCollectionStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted(response: { uid: string; assetType: AssetTypeName }) {
-    if (assetUtils.isLibraryAsset(response.assetType)) {
-      const found = this.findAsset(response.uid)
-      if (found) {
-        if (this.data.totalUserAssets !== null) {
-          this.data.totalUserAssets--
-        }
-        this.fetchData(true)
+  onDeleteAssetCompleted(response: { uid: string }) {
+    const found = this.findAsset(response.uid)
+    if (found) {
+      if (this.data.totalUserAssets !== null) {
+        this.data.totalUserAssets--
       }
-      // if not found it is possible it is on other page of results, but it is
-      // not important enough to do a data fetch
+      this.fetchData(true)
     }
+    // if not found it is possible it is on other page of results, but it is
+    // not important enough to do a data fetch
   }
 
   // public methods
