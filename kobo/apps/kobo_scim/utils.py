@@ -1,4 +1,5 @@
 from constance import config
+from django.db import transaction
 
 from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.openrosa.apps.main.models import UserProfile
@@ -111,11 +112,13 @@ def apply_scim_user_metadata(user, scim_data):
         metadata[field_name] = value
         extra_details_updated = True
 
-    if extra_details_updated:
-        extra_user_detail.data = metadata
-        extra_user_detail.save(update_fields=['data'])
+    if extra_details_updated or updated_profile_fields:
+        with transaction.atomic():
+            if extra_details_updated:
+                extra_user_detail.data = metadata
+                extra_user_detail.save(update_fields=['data'])
 
-    if updated_profile_fields:
-        profile.save(update_fields=list(updated_profile_fields))
+            if updated_profile_fields:
+                profile.save(update_fields=list(updated_profile_fields))
 
     return matched_any
