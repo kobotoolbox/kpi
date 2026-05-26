@@ -2,7 +2,6 @@ import './table.scss'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
-import { DebounceInput } from 'react-debounce-input'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
@@ -12,6 +11,7 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { SurveyFlatPaths } from '#/assetUtils'
 import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
+import DebouncedTextInput from '#/components/common/DebouncedTextInput'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -935,12 +935,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
         const TextInputFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
-          <DebounceInput
+          <DebouncedTextInput
             value={filter ? filter.value : undefined}
-            debounceTimeout={750}
-            onChange={(event) => onChange(event.target.value)}
-            className='table-filter-input'
+            onChange={onChange}
             placeholder={t('Search')}
+            size='xs'
           />
         )
         TextInputFilter.displayName = 'TextInputFilter'

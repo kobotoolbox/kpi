@@ -141,22 +141,6 @@ $s-data-table-font: 13px;
         overflow: initial;
       }
 
-      .table-filter-input {
-        width: 100%;
-        border: 0;
-        background: colors.$kobo-white;
-        border-radius: 3px;
-        height: 28px;
-        min-height: 28px;
-        vertical-align: top;
-        display: inline-block;
-        font-size: 12px;
-
-        &::placeholder {
-          color: colors.$kobo-gray-600;
-        }
-      }
-
       select {
         margin-top: 2px;
         margin-right: 2px;
