@@ -270,7 +270,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             # through asset.permissions
             for asset in (
                 Asset.objects.filter(uid__in=asset_uids)
-                .exclude(owner=self.__user)
+                .exclude(owner__in=user_filter)
                 .defer('content')
             ):
                 has_submissions = (
