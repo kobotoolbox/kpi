@@ -198,11 +198,28 @@ export const BasicFlow: Story = {
     })
 
     await step('Go to next translations page', async () => {
-      const nextPageButton = document.querySelector('.k-icon-angle-right')?.closest('button') as
-        | HTMLButtonElement
-        | undefined
+      // Wait for first-page row content instead of matching pagination text,
+      // because the "Page X of Y" label can be split across nested elements.
+      await waitFor(async () => {
+        await expect(page.getByText('Question 1')).toBeInTheDocument()
+      })
 
-      await expect(nextPageButton).toBeDefined()
+      const translationsTable = page.getByText('Question 1').closest('table')
+      await expect(translationsTable).not.toBeNull()
+
+      // Scope pagination lookup to this table's container to avoid interacting
+      // with unrelated controls elsewhere in the document.
+      const tableRootContainer = (translationsTable as HTMLTableElement).parentElement?.parentElement
+      const paginationFooter = tableRootContainer?.querySelector('footer')
+
+      await expect(paginationFooter).not.toBeNull()
+      await expect(paginationFooter).toBeDefined()
+
+      // In this state, first/previous are disabled, so the first enabled
+      // button is always "next page".
+      const nextPageButton = (paginationFooter as HTMLElement).querySelector('button:not([disabled])')
+      await expect(nextPageButton).not.toBeNull()
+
       await userEvent.click(nextPageButton as HTMLButtonElement)
 
       await waitFor(async () => {
@@ -216,7 +233,12 @@ export const BasicFlow: Story = {
         await expect(page.getByText('Question 11')).toBeInTheDocument()
       })
 
-      const textarea = page.getByRole('textbox') as HTMLTextAreaElement
+      // Scope textbox lookup to the "Question 11" row so we do not hit
+      // another input when multiple textboxes exist in the modal.
+      const question11Row = page.getByText('Question 11').closest('tr')
+      await expect(question11Row).not.toBeNull()
+
+      const textarea = within(question11Row as HTMLElement).getByRole('textbox') as HTMLTextAreaElement
 
       await userEvent.click(textarea)
       // Use the native HTMLTextAreaElement setter so React's synthetic event system
@@ -246,18 +268,23 @@ export const BasicFlow: Story = {
     })
 
     await step('Close modal', async () => {
-      const clickCloseOnTopDialog = async () => {
-        const manageDialog = page.getByRole('dialog', { name: 'Manage Languages' })
-        const closeButtons = within(manageDialog).getAllByRole('button', { name: 'Close' })
-        // Inside the Manage Languages dialog, target the header close control.
-        await userEvent.click(closeButtons[closeButtons.length - 1])
-      }
+      const manageDialog = page.getByRole('dialog', { name: 'Manage Languages' })
+      const closeButtons = within(manageDialog).getAllByRole('button', { name: 'Close' })
+      // Inside the Manage Languages dialog, target the header close control.
+      await userEvent.click(closeButtons[closeButtons.length - 1])
 
-      await clickCloseOnTopDialog()
-
+      // Closing while the translations table is still the active view may
+      // trigger an "unsaved changes" confirmation dialog (even after a
+      // successful save, the ref can still be set in some timing scenarios).
+      // Handle it inside waitFor so it is retried until the state settles.
       await waitFor(
         async () => {
-          await expect(page.queryByRole('dialog', { name: 'Close Translations Table?' })).not.toBeInTheDocument()
+          const confirmDialog = page.queryByRole('dialog', { name: 'Close Translations Table?' })
+          if (confirmDialog) {
+            // Scoping to the confirmation dialog avoids hitting the header
+            // "Close" button of the outer modal by accident.
+            await userEvent.click(within(confirmDialog).getByRole('button', { name: 'Close' }))
+          }
           await expect(page.queryByRole('dialog', { name: 'Manage Languages' })).not.toBeInTheDocument()
         },
         { timeout: 10000 },
