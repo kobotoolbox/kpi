@@ -231,7 +231,7 @@ class ScimUserViewSet(
                 if active_status:
                     self._reactivate_sso_linked_accounts(user.email, user)
                 else:
-                    # If the IdP provisions the user as deactivated, or links to an 
+                    # If the IdP provisions the user as deactivated, or links to an
                     # existing user but specifies active=False, deactivate them.
                     self.perform_destroy(user)
 
@@ -285,7 +285,7 @@ class ScimUserViewSet(
         with transaction.atomic():
             was_active = serializer.instance.is_active
             instance = serializer.save()
-            
+
             if was_active and not instance.is_active:
                 self.perform_destroy(instance)
             elif not was_active and instance.is_active:
