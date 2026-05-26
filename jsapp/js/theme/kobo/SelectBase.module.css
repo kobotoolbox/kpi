@@ -13,6 +13,7 @@
 
 .dropdown {
   border-color: var(--mantine-color-gray-6);
+  padding: 0;
 }
 
 .option {

@@ -9,6 +9,7 @@ export const SelectThemeKobo = Select.extend({
     input: [baseClasses.input, classes.input].filter(Boolean).join(' '),
   },
   defaultProps: {
+    size: 'md',
     withCheckIcon: false,
     allowDeselect: false,
     comboboxProps: {
