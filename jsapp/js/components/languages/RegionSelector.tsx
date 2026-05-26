@@ -1,5 +1,5 @@
 import type { FlexProps } from '@mantine/core'
-import { ActionIcon, Flex, Group, Loader, Select, TextInput } from '@mantine/core'
+import { ActionIcon, Alert, Flex, Group, Loader, Select, Text, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLanguagesRetrieve } from '#/api/react-query/other'
@@ -20,7 +20,7 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
 }
 
 const RegionSelector = (props: RegionSelectorProps) => {
-  const { data, isLoading } = useLanguagesRetrieve(props.rootLanguage)
+  const { data, isLoading, isError } = useLanguagesRetrieve(props.rootLanguage)
   const language = data?.status === 200 ? data.data : undefined
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
 
@@ -79,6 +79,10 @@ const RegionSelector = (props: RegionSelectorProps) => {
 
   if (isLoading) {
     return <Loader size='xs' mb={props?.mb} />
+  }
+
+  if (isError) {
+    return <Text c='var(--mantine-color-red-5)' size='sm' mb={props?.mb}>Failed to load regions</Text>
   }
 
   return (
