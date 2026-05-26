@@ -16,7 +16,7 @@ class V1APIGoneViewTest(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
 
-    @data('get', 'post', 'put', 'patch', 'delete', 'options')
+    @data('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     def test_returns_410_for_any_method(self, method):
         response = getattr(self.client, method)('/api/v1/')
         assert response.status_code == status.HTTP_410_GONE
