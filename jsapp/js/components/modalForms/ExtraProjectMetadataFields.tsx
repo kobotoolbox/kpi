@@ -23,7 +23,6 @@ interface ExtraProjectMetadataFieldProps {
   value: FieldRawValue
   onChange: FieldChangeHandler
   hasError?: boolean
-  fieldClassName?: string
 }
 
 /**
@@ -35,13 +34,7 @@ interface ExtraProjectMetadataFieldProps {
  * string key or array of string keys) and the primitive value format expected
  * by the shared `Select` and `MultiSelect` components.
  */
-const ExtraProjectMetadataField = ({
-  field,
-  value,
-  onChange,
-  hasError,
-  fieldClassName,
-}: ExtraProjectMetadataFieldProps) => {
+const ExtraProjectMetadataField = ({ field, value, onChange, hasError }: ExtraProjectMetadataFieldProps) => {
   const label = envStore.data.getExtraFieldLabel(field, currentLang())
 
   if (
@@ -60,43 +53,41 @@ const ExtraProjectMetadataField = ({
     const multiSelectValue = multiValue
     const singleSelectValue = options.find((opt) => opt.value === value)?.value ?? null
 
-    return (
-      <div className={fieldClassName}>
-        {isMulti ? (
-          <MultiSelect
-            label={addRequiredToLabel(label, field.required)}
-            value={multiSelectValue}
-            onChange={(newValue) => onChange(field.name, newValue)}
-            data={options}
-            clearable
-            maxDropdownHeight={220}
-            error={hasError ? t('Please select an option') : undefined}
-          />
-        ) : (
-          <Select
-            label={addRequiredToLabel(label, field.required)}
-            value={singleSelectValue}
-            onChange={(newValue) => onChange(field.name, newValue)}
-            data={options}
-            clearable
-            maxDropdownHeight={220}
-            error={hasError ? t('Please select an option') : undefined}
-          />
-        )}
-      </div>
-    )
+    if (isMulti) {
+      return (
+        <MultiSelect
+          label={addRequiredToLabel(label, field.required)}
+          value={multiSelectValue}
+          onChange={(newValue) => onChange(field.name, newValue)}
+          data={options}
+          clearable
+          maxDropdownHeight={220}
+          error={hasError ? t('Please select an option') : undefined}
+        />
+      )
+    } else {
+      return (
+        <Select
+          label={addRequiredToLabel(label, field.required)}
+          value={singleSelectValue}
+          onChange={(newValue) => onChange(field.name, newValue)}
+          data={options}
+          clearable
+          maxDropdownHeight={220}
+          error={hasError ? t('Please select an option') : undefined}
+        />
+      )
+    }
   }
 
   return (
-    <div className={fieldClassName}>
-      <TextBox
-        value={typeof value === 'string' ? value : ''}
-        onChange={(val) => onChange(field.name, val)}
-        label={addRequiredToLabel(label, field.required)}
-        placeholder={label}
-        errors={hasError ? t('This field is required') : false}
-      />
-    </div>
+    <TextBox
+      value={typeof value === 'string' ? value : ''}
+      onChange={(val) => onChange(field.name, val)}
+      label={addRequiredToLabel(label, field.required)}
+      placeholder={label}
+      errors={hasError ? t('This field is required') : false}
+    />
   )
 }
 
@@ -136,7 +127,6 @@ const ExtraProjectMetadataFields = ({
           value={values[field.name]}
           onChange={onChange}
           hasError={hasFieldError(field.name)}
-          fieldClassName={fieldClassName}
         />
       ))}
     </Stack>
