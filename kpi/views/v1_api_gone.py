@@ -12,7 +12,7 @@ class V1APIGoneView(APIView):
     """
     Catch-all view for the removed V1 API.
     Returns a 410 with a link to the migration article natively via
-    DRF content negotiation (JSON, XML, HTML).
+    DRF content negotiation (HTML, JSON, XML).
     """
 
     authentication_classes = []
