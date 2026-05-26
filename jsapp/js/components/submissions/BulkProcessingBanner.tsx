@@ -1,18 +1,46 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Alert from '#/components/common/alert'
+import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
+import { useSession } from '#/stores/useSession'
 
 interface BulkProcessingBannerProps {
+  assetUid: string
   activeBulkActionsCount: number
-  isVisible: boolean
+  hasActiveBulkActionsCreatedByAnotherUser: boolean
 }
+
+const BANNER_DISMISSAL_VALUE = 'dismissed'
 
 /**
  * Displays an informational banner when active bulk processing is running in
  * the table and at least one job was created by another user.
  */
 export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
+  const session = useSession()
+  const username = session.currentLoggedAccount?.username || ''
+  const storageKey = useSafeUsernameStorageKey(`kpiBulkProcessingBanner-${props.assetUid}`, username)
+  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
+
+  useEffect(() => {
+    const bannerStatus = storageKey && sessionStorage.getItem(storageKey)
+    setIsBannerDismissed(bannerStatus === BANNER_DISMISSAL_VALUE)
+  }, [storageKey])
+
+  function handleCloseBanner() {
+    if (!storageKey) {
+      return
+    }
+    sessionStorage.setItem(storageKey, BANNER_DISMISSAL_VALUE)
+    setIsBannerDismissed(true)
+  }
+
   // Guard early so parent can pass values safely without extra conditionals.
-  if (!props.isVisible || props.activeBulkActionsCount < 1) {
+  if (
+    !props.hasActiveBulkActionsCreatedByAnotherUser ||
+    props.activeBulkActionsCount < 1 ||
+    isBannerDismissed === undefined ||
+    isBannerDismissed
+  ) {
     return null
   }
 
@@ -28,7 +56,14 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   return (
     // We wrap it in a div to avoid flexbox squashing the content.
     <div>
-      <Alert type='info' iconName='information' mt='md' ml={0} mr={0}>
+      <Alert
+        type='info'
+        iconName='information'
+        p='md'
+        withCloseButton
+        closeButtonLabel={t('Dismiss banner')}
+        onClose={handleCloseBanner}
+      >
         {message}
       </Alert>
     </div>

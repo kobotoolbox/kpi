@@ -17,8 +17,7 @@ export default function DataTableWrapper(props: DataTableWrapperProps) {
     <DataTable
       asset={props.asset}
       activeBulkActions={activeBulkActions}
-      // DataTable keeps a UI-oriented prop name, wrapper maps domain boolean to it.
-      showBulkProcessingBanner={hasActiveBulkActionsCreatedByAnotherUser}
+      hasActiveBulkActionsCreatedByAnotherUser={hasActiveBulkActionsCreatedByAnotherUser}
     />
   )
 }

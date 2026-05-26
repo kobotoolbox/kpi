@@ -98,7 +98,7 @@ const DEFAULT_PAGE_SIZE = 30
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
-  showBulkProcessingBanner?: boolean
+  hasActiveBulkActionsCreatedByAnotherUser?: boolean
 }
 
 interface DataTableState {
@@ -1334,8 +1334,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         <bem.FormView__item m='banner-container'>
           <LimitNotifications />
           <BulkProcessingBanner
+            assetUid={this.props.asset.uid}
             activeBulkActionsCount={this.props.activeBulkActions?.length || 0}
-            isVisible={Boolean(this.props.showBulkProcessingBanner)}
+            hasActiveBulkActionsCreatedByAnotherUser={Boolean(this.props.hasActiveBulkActionsCreatedByAnotherUser)}
           />
         </bem.FormView__item>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
