@@ -1,4 +1,4 @@
-import { Stack } from '@mantine/core'
+import { Box, Stack } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { useState } from 'react'
 import { expect, userEvent, within } from 'storybook/test'
@@ -9,9 +9,9 @@ const meta: Meta<typeof TagsInput> = {
   component: TagsInput,
   decorators: [
     (Story) => (
-      <div style={{ maxWidth: 520, padding: 40, margin: 'auto' }}>
+      <Box maw={520} m='auto'>
         <Story />
-      </div>
+      </Box>
     ),
   ],
   args: {
@@ -48,8 +48,8 @@ export const PresetValues: Story = {
     await userEvent.type(input, 'Water{enter}')
     await expect(canvas.getByText('Current value: Health,Humanitarian,Field-ops,Water')).toBeInTheDocument()
 
-    const removeButtons = canvas.getAllByRole('button')
-    await userEvent.click(removeButtons[removeButtons.length - 1])
+    await userEvent.click(input)
+    await userEvent.keyboard('{Backspace}')
     await expect(canvas.getByText('Current value: Health,Humanitarian,Field-ops')).toBeInTheDocument()
   },
 }
