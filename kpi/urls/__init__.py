@@ -7,7 +7,6 @@ from hub.models import ConfigurationFile
 from kpi.utils.log import logging
 from kpi.views import home, modern_browsers
 from kpi.views.current_user import CurrentUserViewSet
-from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.logout import logout_from_all_devices
@@ -43,8 +42,6 @@ urlpatterns = [
     path('jsi18n/', JavaScriptCatalog.as_view(),
          name='javascript-catalog'),
     path('token/', TokenView.as_view(), name='token'),
-    # TODO: Deprecate this endpoint and move it to the v2 API
-    path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.content_view, name='configurationfile'),
     path('private-media/', include(private_storage.urls)),

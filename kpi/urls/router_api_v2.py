@@ -34,6 +34,7 @@ from kpi.views.v2.attachment import AttachmentViewSet
 from kpi.views.v2.attachment_delete import AttachmentDeleteViewSet
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.data import DataViewSet
+from kpi.views.v2.environment import EnvironmentView
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
 from kpi.views.v2.paired_data import PairedDataViewset
@@ -272,9 +273,14 @@ kobo_scim_pattern = [
     ),
 ]
 
+additional_urls = [
+    path(r'environment/', EnvironmentView.as_view(), name='environment')
+]
+
 urls_patterns = (
     router_api_v2.urls
     + enketo_url_aliases
     + supplement_url_pattern
     + kobo_scim_pattern
+    + additional_urls
 )
