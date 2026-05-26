@@ -14,6 +14,7 @@ from kpi.utils.spectacular_processing import (
     V2APISchemaGenerator,
 )
 from kpi.utils.urls import is_request_for_html
+from kpi.views.v1_api_gone import v1_api_gone_view
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
 admin.autodiscover()
@@ -71,6 +72,34 @@ urlpatterns = [
     path('markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     path('help/', include('kobo.apps.help.urls')),
 ]
+
+# V1 API fall-through route. This ensures removed V1 routes return a 404
+# instructing users to read the API migration guide.
+REMOVED_V1_API_PREFIXES = [
+    'api/v1',
+    'asset_snapshots',
+    'asset_subscriptions',
+    'assets',
+    'authorized_application',
+    'exports',
+    'imports',
+    'permissions',
+    'sitewide_messages',
+    'tags',
+    'users',
+    'formUpload',
+    'upload',
+    'view/downloadSubmission',
+    'view/submissionList',
+]
+
+urlpatterns.append(
+    re_path(
+        r'^({prefixes})(/.*)?$'.format(prefixes='|'.join(REMOVED_V1_API_PREFIXES)),
+        v1_api_gone_view,
+        name='v1_api_gone'
+    )
+)
 
 if settings.ENABLE_METRICS:
     urlpatterns.append(
