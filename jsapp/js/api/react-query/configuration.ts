@@ -42,7 +42,7 @@ export type environmentRetrieveResponse = environmentRetrieveResponseComposite &
 }
 
 export const getEnvironmentRetrieveUrl = () => {
-  return `/api/v2/environment`
+  return `/api/v2/environment/`
 }
 
 export const environmentRetrieve = async (options?: RequestInit): Promise<environmentRetrieveResponse> => {

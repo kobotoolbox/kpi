@@ -7924,7 +7924,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/environment:
+  /api/v2/environment/:
     get:
       operationId: api_v2_environment_retrieve
       description: |
@@ -16855,6 +16855,8 @@ components:
           type: boolean
         mfa_code_length:
           type: integer
+        superuser_auth_enforcement:
+          type: boolean
         enable_password_entropy_meter:
           type: boolean
         enable_custom_password_guidance_text:
@@ -16920,6 +16922,7 @@ components:
       - source_code_url
       - stripe_public_key
       - submission_placeholder
+      - superuser_auth_enforcement
       - support_email
       - support_url
       - terms_of_service__sitewidemessage__exists
