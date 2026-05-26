@@ -690,7 +690,9 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function safeNavigateToAsset() {
-    if (!state.asset || !state.backRoute) {
+    // Previously this was checking for asset, but when you create a "block", asset will be created only after saving,
+    // so we need to allow users going back without saving.
+    if (!state.backRoute) {
       return
     }
 

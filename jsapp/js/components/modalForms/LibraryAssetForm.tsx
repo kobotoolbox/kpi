@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react'
 
+import { Stack, TextInput, Textarea } from '@mantine/core'
 import { when } from 'mobx'
 import { useNavigate } from 'react-router-dom'
 import { actions } from '#/actions'
 import { cleanupTags, removeInvalidChars } from '#/assetUtils'
 import bem from '#/bem'
 import TagsInput from '#/components/common/TagsInput'
+import MultiSelect from '#/components/common/MultiSelect'
+import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import TextBox from '#/components/common/textBox'
-import WrappedSelect from '#/components/common/wrappedSelect'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
 import { ASSET_TYPES, type AssetTypeName } from '#/constants'
@@ -19,7 +20,6 @@ import pageState from '#/pageState.store'
 import { getRouteAssetUid, isAnyLibraryRoute } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
-import styles from './LibraryAssetForm.module.scss'
 import ModalBackButton from './ModalBackButton'
 
 interface LibraryAssetFormProps {
@@ -141,6 +141,9 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
 
   // Configured metadata field definitions (`undefined` when disabled).
   const metadataFields = envStore.data.getProjectMetadataFieldsAsSimpleDict()
+  const sectors: LabelValuePair[] = envStore.data.sector_choices
+  const countries: LabelValuePair[] = envStore.data.country_choices
+  const operationalPurposes: LabelValuePair[] = envStore.data.operational_purpose_choices
 
   const setField = <K extends keyof FormFields>(fieldName: K, newValue: FormFields[K]) => {
     setFields((prev) => {
@@ -148,15 +151,41 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
     })
   }
 
-  /**
-   * `WrappedSelect` types its `onChange` argument as `unknown` (it wraps
-   * react-select and stays generic). This helper localizes that one cast so
-   * call sites stay typed against `FormFields`.
-   */
-  const setFieldFromSelect =
-    <K extends keyof FormFields>(fieldName: K) =>
-    (val: unknown) =>
-      setField(fieldName, val as FormFields[K])
+  const toSingleSelectValue = (
+    value: AssetSettings['sector'] | AssetSettings['operational_purpose'] | AssetSettings['collects_pii'],
+  ): string | null =>
+    value && typeof value === 'object' && 'value' in value && typeof value.value === 'string' ? value.value : null
+
+  const toMultiSelectValue = (value: AssetSettings['country']): string[] => {
+    if (!value) {
+      return []
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => item.value)
+    }
+
+    return [value.value]
+  }
+
+  const fromSingleSelectValue = (newValue: string | null, option?: LabelValuePair): LabelValuePair | null => {
+    if (!newValue) {
+      return null
+    }
+
+    return {
+      value: newValue,
+      label: option?.label || newValue,
+    }
+  }
+
+  const onCountryChange = (values: string[]) => {
+    const nextCountries = values
+      .map((value) => countries.find((country) => country.value === value))
+      .filter((country): country is LabelValuePair => Boolean(country))
+
+    setField('country', nextCountries.length ? nextCountries : null)
+  }
 
   const onExtraFieldChange = (fieldName: string, newValue: string | string[] | null) => {
     setExtraMetadataFields((prev) => {
@@ -224,108 +253,90 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
     return <LoadingSpinner />
   }
 
-  const sectors: LabelValuePair[] = envStore.data.sector_choices
-  const countries: LabelValuePair[] = envStore.data.country_choices
-  const operationalPurposes: LabelValuePair[] = envStore.data.operational_purpose_choices
-
   return (
-    <bem.FormModal__form className={`project-settings ${styles.form}`}>
+    <bem.FormModal__form className='project-settings'>
       <bem.FormModal__item m='wrapper' disabled={isPending}>
-        <bem.FormModal__item>
-          <TextBox
+        <Stack gap={15}>
+          <TextInput
             value={fields.name}
-            onChange={(val) => setField('name', removeInvalidChars(val))}
+            onChange={(evt) => setField('name', removeInvalidChars(evt.currentTarget.value))}
             label={t('Name')}
             placeholder={t('Enter title of ##type## here').replace('##type##', formAssetType ?? '')}
           />
-        </bem.FormModal__item>
 
-        {metadataFields.description && (
-          <bem.FormModal__item>
-            <TextBox
-              type='text-multiline'
+          {metadataFields.description && (
+            <Textarea
+              autosize
+              minRows={1}
               value={fields.description}
-              onChange={(val) => setField('description', removeInvalidChars(val))}
+              onChange={(evt) => setField('description', removeInvalidChars(evt.currentTarget.value))}
               label={metadataFields.description.label || t('Description')}
               placeholder={t('Enter short description here')}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        <bem.FormModal__item>
-          <TextBox
+          <TextInput
             value={fields.organization}
-            onChange={(val) => setField('organization', val)}
+            onChange={(evt) => setField('organization', evt.currentTarget.value)}
             label={t('Organization')}
           />
-        </bem.FormModal__item>
 
-        {metadataFields.sector && (
-          <bem.FormModal__item>
-            <WrappedSelect
+          {metadataFields.sector && (
+            <Select
               label={metadataFields.sector.label || t('Primary Sector')}
-              value={fields.sector}
-              onChange={setFieldFromSelect('sector')}
-              options={sectors}
-              isLimitedHeight
-              isClearable
+              value={toSingleSelectValue(fields.sector)}
+              onChange={(newValue, option) => setField('sector', fromSingleSelectValue(newValue, option))}
+              data={sectors}
+              clearable
+              maxDropdownHeight={220}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        {metadataFields.country && (
-          <bem.FormModal__item>
-            <WrappedSelect
+          {metadataFields.country && (
+            <MultiSelect
               label={metadataFields.country.label || t('Country')}
-              isMulti
-              value={fields.country}
-              onChange={setFieldFromSelect('country')}
-              options={countries}
-              isLimitedHeight
-              isClearable
+              value={toMultiSelectValue(fields.country)}
+              onChange={onCountryChange}
+              data={countries}
+              clearable
+              maxDropdownHeight={220}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        {metadataFields.operational_purpose && (
-          <bem.FormModal__item>
-            <WrappedSelect
+          {metadataFields.operational_purpose && (
+            <Select
               label={metadataFields.operational_purpose.label || t('Operational purpose of data')}
-              value={fields.operational_purpose}
-              onChange={setFieldFromSelect('operational_purpose')}
-              options={operationalPurposes}
-              isLimitedHeight
-              isClearable
+              value={toSingleSelectValue(fields.operational_purpose)}
+              onChange={(newValue, option) => setField('operational_purpose', fromSingleSelectValue(newValue, option))}
+              data={operationalPurposes}
+              clearable
+              maxDropdownHeight={220}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        {metadataFields.collects_pii && (
-          <bem.FormModal__item>
-            <WrappedSelect
+          {metadataFields.collects_pii && (
+            <Select
               label={
                 metadataFields.collects_pii.label || t('Does this project collect personally identifiable information?')
               }
-              value={fields.collects_pii}
-              onChange={setFieldFromSelect('collects_pii')}
-              options={[
+              value={toSingleSelectValue(fields.collects_pii)}
+              onChange={(newValue, option) => setField('collects_pii', fromSingleSelectValue(newValue, option))}
+              data={[
                 { value: 'Yes', label: t('Yes') },
                 { value: 'No', label: t('No') },
               ]}
-              isClearable
+              clearable
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        <ExtraProjectMetadataFields values={extraMetadataFields} onChange={onExtraFieldChange} />
+          <ExtraProjectMetadataFields values={extraMetadataFields} onChange={onExtraFieldChange} />
 
-        <bem.FormModal__item>
           <TagsInput
             value={fields.tags}
             onChange={(val) => setField('tags', Array.from(new Set(cleanupTags(val))))}
             label={t('Tags')}
           />
-        </bem.FormModal__item>
+        </Stack>
       </bem.FormModal__item>
 
       <bem.Modal__footer>
