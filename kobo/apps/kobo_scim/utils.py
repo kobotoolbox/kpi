@@ -49,7 +49,11 @@ def apply_scim_user_metadata(user, scim_data):
             matched_key = None
             if isinstance(scim_data, dict):
                 for key in scim_data.keys():
-                    if scim_mapping.startswith(key):
+                    if (
+                        scim_mapping == key
+                        or scim_mapping.startswith(f'{key}.')
+                        or scim_mapping.startswith(f'{key}:')
+                    ):
                         # Ensure we match the longest prefix to avoid partial matches
                         if matched_key is None or len(key) > len(matched_key):
                             matched_key = key
