@@ -297,6 +297,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+
 @ddt
 class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
 
@@ -516,3 +517,24 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
             assert response.status_code == 403
             assert not a0.pending_delete
             assert not a1.pending_delete
+
+    def test_deleting_mixed_assets_owned_and_created(self):
+        # we own this asset, so should be able to delete it even if it has submissions
+        owned_asset = self._add_one_asset_for_someuser()
+        owned_asset.deployment.mock_submissions([{}])
+        org_owner = User.objects.create_user(username='orgowner', password='')
+        org = org_owner.organization
+        org.mmo_override = True
+        org.save()
+
+        someuser = User.objects.get(username='someuser')
+        org.add_user(someuser)
+        created_asset = self._add_one_asset_for_user_via_api('someuser')
+        response = self._create_send_payload(
+            [owned_asset.uid, created_asset.uid], 'delete'
+        )
+        created_asset.refresh_from_db()
+        owned_asset.refresh_from_db()
+        assert response.status_code == status.HTTP_200_OK
+        assert created_asset.pending_delete
+        assert owned_asset.pending_delete

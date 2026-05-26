@@ -268,7 +268,11 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             # note: prefetch_related('permissions') doesn't help here because has_perm
             # gets ObjectPermissions and then filters by asset rather than going
             # through asset.permissions
-            for asset in Asset.objects.filter(uid__in=asset_uids).defer('content'):
+            for asset in (
+                Asset.objects.filter(uid__in=asset_uids)
+                .exclude(owner=self.__user)
+                .defer('content')
+            ):
                 has_submissions = (
                     asset.has_deployment and asset.deployment.submission_count > 0
                 )
