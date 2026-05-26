@@ -41,7 +41,8 @@ def apply_scim_user_metadata(user, scim_data):
         if not field_name or not scim_mapping:
             continue
 
-        # First check if exact scim_mapping string is a key in scim_data (useful for flat patch operations)
+        # First check if exact scim_mapping string is a key in scim_data 
+        # (useful for flat patch operations)
         if scim_mapping in scim_data:
             value = scim_data[scim_mapping]
         else:
@@ -60,7 +61,7 @@ def apply_scim_user_metadata(user, scim_data):
                             matched_key = key
 
             if matched_key:
-                remainder = scim_mapping[len(matched_key) :]
+                remainder = scim_mapping[len(matched_key):]
                 if remainder.startswith('.') or remainder.startswith(':'):
                     remainder = remainder[1:]
 

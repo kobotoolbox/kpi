@@ -420,16 +420,17 @@ class ScimUserViewSet(
                     scim_patch_data[path] = value
 
         metadata_processed = False
-        if scim_patch_data:
-            metadata_processed = apply_scim_user_metadata(instance, scim_patch_data)
+        with transaction.atomic():
+            if active_status is not None:
+                if active_status is False:
+                    # Disabling the user
+                    self.perform_destroy(instance)
+                else:
+                    # Re-enabling the user
+                    self._reactivate_sso_linked_accounts(instance.email, instance)
 
-        if active_status is not None:
-            if active_status is False:
-                # Disabling the user
-                self.perform_destroy(instance)
-            else:
-                # Re-enabling the user
-                self._reactivate_sso_linked_accounts(instance.email, instance)
+            if scim_patch_data:
+                metadata_processed = apply_scim_user_metadata(instance, scim_patch_data)
 
         if metadata_processed or active_status is not None:
             # SCIM expects the updated resource returned on successful PATCH
