@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import { TextInput, Textarea } from '@mantine/core'
+import { Stack, TextInput, Textarea } from '@mantine/core'
 import { when } from 'mobx'
 import { useNavigate } from 'react-router-dom'
 import { actions } from '#/actions'
@@ -256,17 +256,15 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
   return (
     <bem.FormModal__form className='project-settings'>
       <bem.FormModal__item m='wrapper' disabled={isPending}>
-        <bem.FormModal__item>
+        <Stack gap={15}>
           <TextInput
             value={fields.name}
             onChange={(evt) => setField('name', removeInvalidChars(evt.currentTarget.value))}
             label={t('Name')}
             placeholder={t('Enter title of ##type## here').replace('##type##', formAssetType ?? '')}
           />
-        </bem.FormModal__item>
 
-        {metadataFields.description && (
-          <bem.FormModal__item>
+          {metadataFields.description && (
             <Textarea
               autosize
               minRows={1}
@@ -275,19 +273,15 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
               label={metadataFields.description.label || t('Description')}
               placeholder={t('Enter short description here')}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        <bem.FormModal__item>
           <TextInput
             value={fields.organization}
             onChange={(evt) => setField('organization', evt.currentTarget.value)}
             label={t('Organization')}
           />
-        </bem.FormModal__item>
 
-        {metadataFields.sector && (
-          <bem.FormModal__item>
+          {metadataFields.sector && (
             <Select
               label={metadataFields.sector.label || t('Primary Sector')}
               value={toSingleSelectValue(fields.sector)}
@@ -296,11 +290,9 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
               clearable
               maxDropdownHeight={220}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        {metadataFields.country && (
-          <bem.FormModal__item>
+          {metadataFields.country && (
             <MultiSelect
               label={metadataFields.country.label || t('Country')}
               value={toMultiSelectValue(fields.country)}
@@ -309,11 +301,9 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
               clearable
               maxDropdownHeight={220}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        {metadataFields.operational_purpose && (
-          <bem.FormModal__item>
+          {metadataFields.operational_purpose && (
             <Select
               label={metadataFields.operational_purpose.label || t('Operational purpose of data')}
               value={toSingleSelectValue(fields.operational_purpose)}
@@ -322,11 +312,9 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
               clearable
               maxDropdownHeight={220}
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        {metadataFields.collects_pii && (
-          <bem.FormModal__item>
+          {metadataFields.collects_pii && (
             <Select
               label={
                 metadataFields.collects_pii.label || t('Does this project collect personally identifiable information?')
@@ -339,14 +327,12 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
               ]}
               clearable
             />
-          </bem.FormModal__item>
-        )}
+          )}
 
-        <ExtraProjectMetadataFields values={extraMetadataFields} onChange={onExtraFieldChange} />
+          <ExtraProjectMetadataFields values={extraMetadataFields} onChange={onExtraFieldChange} />
 
-        <bem.FormModal__item>
           <KoboTagsInput tags={fields.tags} onChange={(val) => setField('tags', val)} label={t('Tags')} />
-        </bem.FormModal__item>
+        </Stack>
       </bem.FormModal__item>
 
       <bem.Modal__footer>
