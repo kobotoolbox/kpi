@@ -20,7 +20,35 @@ from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 admin.autodiscover()
 admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
 
+# V1 API fall-through route. This ensures removed V1 routes return a 410
+# instructing users to read the API migration guide.
+REMOVED_V1_API_PREFIXES = [
+    'api/v1',
+    'asset_snapshots',
+    'asset_subscriptions',
+    'assets',
+    'authorized_application',
+    'exports',
+    'imports',
+    'permissions',
+    'sitewide_messages',
+    'tags',
+    'users',
+    'formUpload',
+    'upload',
+]
+
 urlpatterns = [
+    # Must stay first: main.urls has a catch-all path('<str:username>/')
+    # that would intercept single-segment paths before these can match.
+    *[
+        re_path(
+            rf'^{prefix}(/.*)?$',
+            v1_api_gone_view,
+            name=f'v1_api_gone-{prefix.replace("/", "-")}',
+        )
+        for prefix in REMOVED_V1_API_PREFIXES
+    ],
     path(
         'api/v2/schema/',
         SpectacularAPIView.as_view(
@@ -72,36 +100,6 @@ urlpatterns = [
     path('markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     path('help/', include('kobo.apps.help.urls')),
 ]
-
-# V1 API fall-through route. This ensures removed V1 routes return a 404
-# instructing users to read the API migration guide.
-REMOVED_V1_API_PREFIXES = [
-    'api/v1',
-    'asset_snapshots',
-    'asset_subscriptions',
-    'assets',
-    'authorized_application',
-    'exports',
-    'imports',
-    'permissions',
-    'sitewide_messages',
-    'tags',
-    'users',
-    'formUpload',
-    'upload',
-    'view/downloadSubmission',
-    'view/submissionList',
-]
-
-for prefix in REMOVED_V1_API_PREFIXES:
-    prefix_name = prefix.replace('/', '-')
-    urlpatterns.append(
-        re_path(
-            rf'^{prefix}(/.*)?$',
-            v1_api_gone_view,
-            name=f'v1_api_gone-{prefix_name}'
-        )
-    )
 
 if settings.ENABLE_METRICS:
     urlpatterns.append(
