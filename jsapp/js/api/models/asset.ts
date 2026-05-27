@@ -95,4 +95,9 @@ export interface Asset {
   readonly owner_label: string
   /** @nullable */
   readonly last_modified_by: string | null
+  /**
+   * @maxLength 150
+   * @nullable
+   */
+  created_by?: string | null
 }

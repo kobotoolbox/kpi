@@ -21139,6 +21139,11 @@
                         "type": "string",
                         "readOnly": true,
                         "nullable": true
+                    },
+                    "created_by": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 150
                     }
                 },
                 "required": [

@@ -473,7 +473,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'paired_data',
             'project_ownership',
             'owner_label',
-            'last_modified_by'
+            'last_modified_by',
+            'created_by',
         )
         read_only_fields = ('last_modified_by', 'uid')
         extra_kwargs = {
@@ -1156,6 +1157,7 @@ class AssetListSerializer(AssetSerializer):
             'data_sharing',
             'owner_label',
             'last_modified_by',
+            'created_by'
         )
 
     def get_permissions(self, asset):
