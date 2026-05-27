@@ -340,7 +340,7 @@ def update_batch_status(subsequence_bulk_action_id: str):
             update_fields.append('status')
         bulk_action.save(update_fields=update_fields)
 
-    if next_status == BulkActionItemStatus.IN_PROGRESS:
+    if next_status == BulkActionStatus.IN_PROGRESS:
         update_batch_status.apply_async(
             args=(subsequence_bulk_action_id,),
             countdown=settings.BULK_ACTION_STATUS_POLL_INTERVAL,
