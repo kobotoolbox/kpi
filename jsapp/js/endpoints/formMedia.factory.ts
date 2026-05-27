@@ -22,6 +22,7 @@ export default function formMediaFactory(index: number, overrides: Partial<FormM
     description: 'default',
     date_created: new Date(2026, 0, index).toISOString(),
     content: `/media/mock/${filename}`,
+    ...overrides,
     metadata: {
       hash: `hash-${index}`,
       size: 1024,
@@ -30,6 +31,5 @@ export default function formMediaFactory(index: number, overrides: Partial<FormM
       mimetype: 'image/png',
       ...overrides.metadata,
     },
-    ...overrides,
   }
 }
