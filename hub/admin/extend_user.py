@@ -5,8 +5,10 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
-from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
+from django.contrib.auth.forms import (
+    UserChangeForm as DjangoUserChangeForm,
+    AdminUserCreationForm,
+)
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
@@ -71,7 +73,7 @@ class UserChangeForm(DjangoUserChangeForm):
         return cleaned_data
 
 
-class UserCreationForm(DjangoUserCreationForm):
+class UserCreationForm(AdminUserCreationForm):
 
     username = CharField(
         label='username',
@@ -190,6 +192,15 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     readonly_fields = UserAdmin.readonly_fields + (
         'deployed_forms_count',
         'monthly_submission_count',
+    )
+    add_fieldsets = (
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': ('username', 'password1', 'password2'),
+            },
+        ),
     )
     fieldsets = UserAdmin.fieldsets + (
         (
