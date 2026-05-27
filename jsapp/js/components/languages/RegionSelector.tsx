@@ -85,7 +85,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
   if (isError) {
     return (
       <Text c='var(--mantine-color-red-5)' size='sm' mb={props?.mb}>
-        Failed to load regions
+        {t('Failed to load regions')}
       </Text>
     )
   }
