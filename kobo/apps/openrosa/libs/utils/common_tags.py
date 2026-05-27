@@ -2,8 +2,6 @@
 # WE SHOULD PUT MORE STRUCTURE ON THESE TAGS SO WE CAN ACCESS DOCUMENT
 # FIELDS ELEGANTLY
 
-# These are common variable tags that we'll want to access
-INSTANCE_DOC_NAME = '_name'
 ID = '_id'
 UUID = '_uuid'
 PICTURE = 'picture'
@@ -18,11 +16,6 @@ START_TIME = 'start_time'  # This tag was used in Phase I
 START = 'start'  # This tag was used in Phase II
 END_TIME = 'end_time'
 END = 'end'
-
-# value of INSTANCE_DOC_NAME that indicates a registration form
-REGISTRATION = 'registration'
-# keys that we'll look for in the registration form
-NAME = 'name'
 
 # extra fields that we're adding to our mongo doc
 XFORM_ID_STRING = '_xform_id_string'
@@ -49,18 +42,6 @@ MONGO_STRFTIME = '%Y-%m-%dT%H:%M:%S'
 
 # how to represent N/A in exports
 NA_REP = 'n/a'
-
-# hold tags
-
-
-# statistics
-MEAN = 'mean'
-MIN = 'min'
-MAX = 'max'
-RANGE = 'range'
-MEDIAN = 'median'
-MODE = 'mode'
-
 
 # List of nested attributes which bypass 'dots' encoding
 NESTED_RESERVED_ATTRIBUTES = [
