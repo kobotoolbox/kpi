@@ -282,8 +282,9 @@ export default function FormMedia(props: FormMediaProps) {
                   href={item.content}
                   target='_blank'
                   rel='noreferrer'
-                  // Added manually by frontend, not backend. See uploadMedia().
-                  download={item.metadata.filename}
+                  // Keep native browser navigation for URL-based entries.
+                  // `download` is only useful for uploaded files.
+                  download={item.metadata.redirect_url ? undefined : item.metadata.filename}
                 >
                   {getReadableFileName(item)}
                 </a>
