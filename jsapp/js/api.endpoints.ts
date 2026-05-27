@@ -13,6 +13,8 @@ export const endpoints = {
   ASSET_URL: '/api/v2/assets/:uid/',
   ASSET_DATA_URL: '/api/v2/assets/:uid/data/',
   ASSET_DEPLOYMENT_URL: '/api/v2/assets/:uid/deployment/',
+  ASSET_FILES_LIST: '/api/v2/assets/:uid/files/',
+  ASSET_FILE_DETAIL: '/api/v2/assets/:uid/files/:fileUid/',
   ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
   ME_URL: '/me/',
   PRODUCTS_URL: '/api/v2/stripe/products/',
