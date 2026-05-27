@@ -12,6 +12,7 @@ import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import type { AssetFileResponse, PaginatedResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { notify, truncateString, truncateUrl } from '#/utils'
+import usePendingUploads from './usePendingUploads'
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'
 const MEDIA_SUPPORT_URL = 'upload_media.html'
@@ -66,8 +67,13 @@ export default function FormMedia(props: FormMediaProps) {
   const [inputURL, setInputURL] = useState('')
   // Show a loading state before first media list fetch resolves.
   const [isInitialised, setIsInitialised] = useState(false)
-  const [isUploadFilePending, setIsUploadFilePending] = useState(false)
   const [isUploadURLPending, setIsUploadURLPending] = useState(false)
+  const {
+    isPending: isUploadFilePending,
+    beginBatch: beginPendingFileUploads,
+    resolveOne: resolveOnePendingFileUpload,
+    reset: resetPendingFileUploads,
+  } = usePendingUploads()
 
   const loadMedia = useCallback(() => {
     actions.media.loadMedia(props.asset.uid)
@@ -76,15 +82,28 @@ export default function FormMedia(props: FormMediaProps) {
   useEffect(() => {
     const onGetMediaCompleted = (response: PaginatedResponse<FormMediaItem>) => {
       setUploadedAssets(response.results)
-      setIsUploadFilePending(false)
-      setIsUploadURLPending(false)
       setIsInitialised(true)
+    }
+
+    const onUploadCompleted = () => {
+      // For file uploads this decrements the in-flight counter.
+      // For URL uploads there is no file counter, so just clear button pending.
+      const resolvedFileUpload = resolveOnePendingFileUpload()
+      if (!resolvedFileUpload) {
+        // If we did not resolve a file upload, this completion belongs to the
+        // URL flow, so we only clear the URL button spinner.
+        setIsUploadURLPending(false)
+      }
     }
 
     const onUploadFailed = (response: { responseJSON?: FieldErrors }) => {
       setFieldsErrors(response?.responseJSON ?? {})
-      setIsUploadFilePending(false)
-      setIsUploadURLPending(false)
+
+      const resolvedFileUpload = resolveOnePendingFileUpload()
+      if (!resolvedFileUpload) {
+        // Same reasoning as success branch: this is most likely URL upload.
+        setIsUploadURLPending(false)
+      }
     }
 
     // Initial fetch for media list when this screen mounts.
@@ -93,18 +112,26 @@ export default function FormMedia(props: FormMediaProps) {
     // Keep listening to legacy Reflux actions until this feature is moved
     // to React Query. We clean up listeners in the effect return.
     const stopLoadMediaCompleted = actions.media.loadMedia.completed.listen(onGetMediaCompleted)
+    const stopUploadCompleted = actions.media.uploadMedia.completed.listen(onUploadCompleted)
     const stopUploadFailed = actions.media.uploadMedia.failed.listen(onUploadFailed)
 
     return () => {
+      // Avoid stale pending state if the user leaves this route mid-upload.
+      resetPendingFileUploads()
+
       if (typeof stopLoadMediaCompleted === 'function') {
         stopLoadMediaCompleted()
+      }
+
+      if (typeof stopUploadCompleted === 'function') {
+        stopUploadCompleted()
       }
 
       if (typeof stopUploadFailed === 'function') {
         stopUploadFailed()
       }
     }
-  }, [loadMedia])
+  }, [loadMedia, resetPendingFileUploads, resolveOnePendingFileUpload])
 
   const toBase64 = useCallback(
     // Backend accepts base64 payloads for uploaded files.
@@ -138,22 +165,30 @@ export default function FormMedia(props: FormMediaProps) {
         return
       }
 
-      setIsUploadFilePending(true)
+      beginPendingFileUploads(files.length)
 
       // We intentionally upload each file independently.
       // Reflux will refresh the list when each upload completes.
       files.forEach(async (file) => {
-        const base64File = await toBase64(file)
+        try {
+          // We await per-file conversion before sending the upload request.
+          const base64File = await toBase64(file)
 
-        uploadMedia({
-          description: DEFAULT_MEDIA_DESCRIPTION,
-          file_type: ASSET_FILE_TYPES.form_media.id,
-          metadata: JSON.stringify({ filename: file.name }),
-          base64Encoded: base64File,
-        })
+          uploadMedia({
+            description: DEFAULT_MEDIA_DESCRIPTION,
+            file_type: ASSET_FILE_TYPES.form_media.id,
+            metadata: JSON.stringify({ filename: file.name }),
+            base64Encoded: base64File,
+          })
+        } catch {
+          // If file reading fails before request dispatch, no action callback
+          // will fire, so we must resolve this pending slot manually.
+          resolveOnePendingFileUpload()
+          notify.error(t('Could not process one of the selected files.'))
+        }
       })
     },
-    [toBase64, uploadMedia],
+    [beginPendingFileUploads, resolveOnePendingFileUpload, toBase64, uploadMedia],
   )
 
   const onSubmitURL = useCallback(() => {
