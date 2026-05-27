@@ -258,13 +258,6 @@ interface ReportsSetCustomCompletedDefinition extends Function {
   listen: (callback: (response: AssetResponse, crid: string) => void) => Function
 }
 
-interface MapSetMapStylesDefinition extends Function {
-  (assetUid: string, newMapSettings: AssetMapStyles): void
-  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function
-  started: MapSetMapStylesStartedDefinition
-  completed: GenericCallbackDefinition
-  failed: GenericFailedDefinition
-}
 interface HooksGetLogsDefinition extends Function {
   (
     assetUid: string,

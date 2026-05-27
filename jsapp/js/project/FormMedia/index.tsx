@@ -3,6 +3,7 @@ import { Anchor, Group, Stack, Text } from '@mantine/core'
 import React, { useCallback, useEffect, useState } from 'react'
 import Dropzone from 'react-dropzone'
 import { actions } from '#/actions'
+import type { MediaUploadPayload, MediaUploadSource } from '#/actions/mediaActions'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
@@ -85,23 +86,22 @@ export default function FormMedia(props: FormMediaProps) {
       setIsInitialised(true)
     }
 
-    const onUploadCompleted = () => {
-      // For file uploads this decrements the in-flight counter.
-      // For URL uploads there is no file counter, so just clear button pending.
-      const resolvedFileUpload = resolveOnePendingFileUpload()
-      if (!resolvedFileUpload) {
-        // If we did not resolve a file upload, this completion belongs to the
-        // URL flow, so we only clear the URL button spinner.
-        setIsUploadURLPending(false)
+    const onUploadCompleted = (_uid: string, uploadSource: MediaUploadSource) => {
+      if (uploadSource === 'file') {
+        resolveOnePendingFileUpload()
+        return
       }
+
+      setIsUploadURLPending(false)
     }
 
-    const onUploadFailed = (response: { responseJSON?: FieldErrors }) => {
-      setFieldsErrors(response?.responseJSON ?? {})
+    const onUploadFailed = (response: unknown, uploadSource: MediaUploadSource) => {
+      const typedResponse = response as { responseJSON?: FieldErrors } | undefined
+      setFieldsErrors(typedResponse?.responseJSON ?? {})
 
-      const resolvedFileUpload = resolveOnePendingFileUpload()
-      if (!resolvedFileUpload) {
-        // Same reasoning as success branch: this is most likely URL upload.
+      if (uploadSource === 'file') {
+        resolveOnePendingFileUpload()
+      } else {
         setIsUploadURLPending(false)
       }
     }
@@ -146,15 +146,10 @@ export default function FormMedia(props: FormMediaProps) {
   )
 
   const uploadMedia = useCallback(
-    (formMediaJSON: {
-      description: string
-      file_type: string
-      metadata: string
-      base64Encoded?: string | ArrayBuffer | null
-    }) => {
+    (formMediaJSON: MediaUploadPayload, uploadSource: MediaUploadSource) => {
       // Clear stale errors so users only see feedback for the latest attempt.
       setFieldsErrors({})
-      actions.media.uploadMedia(props.asset.uid, formMediaJSON)
+      actions.media.uploadMedia(props.asset.uid, formMediaJSON, uploadSource)
     },
     [props.asset.uid],
   )
@@ -174,12 +169,15 @@ export default function FormMedia(props: FormMediaProps) {
           // We await per-file conversion before sending the upload request.
           const base64File = await toBase64(file)
 
-          uploadMedia({
-            description: DEFAULT_MEDIA_DESCRIPTION,
-            file_type: ASSET_FILE_TYPES.form_media.id,
-            metadata: JSON.stringify({ filename: file.name }),
-            base64Encoded: base64File,
-          })
+          uploadMedia(
+            {
+              description: DEFAULT_MEDIA_DESCRIPTION,
+              file_type: ASSET_FILE_TYPES.form_media.id,
+              metadata: JSON.stringify({ filename: file.name }),
+              base64Encoded: base64File,
+            },
+            'file',
+          )
         } catch {
           // If file reading fails before request dispatch, no action callback
           // will fire, so we must resolve this pending slot manually.
@@ -203,11 +201,14 @@ export default function FormMedia(props: FormMediaProps) {
     setInputURL('')
 
     // For URL uploads backend expects redirect_url inside metadata JSON.
-    uploadMedia({
-      description: DEFAULT_MEDIA_DESCRIPTION,
-      file_type: ASSET_FILE_TYPES.form_media.id,
-      metadata: JSON.stringify({ redirect_url: url }),
-    })
+    uploadMedia(
+      {
+        description: DEFAULT_MEDIA_DESCRIPTION,
+        file_type: ASSET_FILE_TYPES.form_media.id,
+        metadata: JSON.stringify({ redirect_url: url }),
+      },
+      'url',
+    )
   }, [inputURL, uploadMedia])
 
   const onDeleteMedia = useCallback(
