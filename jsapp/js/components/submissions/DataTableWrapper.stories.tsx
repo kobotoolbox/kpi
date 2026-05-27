@@ -24,8 +24,8 @@ import organizationMock from '#/endpoints/organization.mocks'
 import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
+import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
-import { withBulkProcessingBannerSessionReset } from './bulkProcessingBanner.storiesUtils'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can

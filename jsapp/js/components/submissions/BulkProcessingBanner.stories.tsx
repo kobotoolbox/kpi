@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import BulkProcessingBanner from './BulkProcessingBanner'
-import { withBulkProcessingBannerSessionReset } from './bulkProcessingBanner.storiesUtils'
+import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 
 const meta: Meta<typeof BulkProcessingBanner> = {
   title: 'Components/BulkProcessingBanner',
