@@ -538,14 +538,14 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
 
         update_batch_status.apply_async(
             args=(self.pk,),
-            countdown=getattr(settings, 'BULK_ACTION_STATUS_POLL_INTERVAL', 30),
+            countdown=settings.BULK_ACTION_STATUS_POLL_INTERVAL,
         )
 
     def _get_delay_between_jobs(self) -> float:
         """
         Return the per-item enqueue delay required by configured rate limits
         """
-        config = getattr(settings, 'BULK_ACTION_RATE_LIMITS', {}).get(self.action_id)
+        config = settings.BULK_ACTION_RATE_LIMITS.get(self.action_id)
         if not config:
             return 0
 
