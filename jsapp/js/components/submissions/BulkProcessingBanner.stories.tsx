@@ -7,6 +7,7 @@ const meta: Meta<typeof BulkProcessingBanner> = {
   component: BulkProcessingBanner,
   decorators: [withBulkProcessingBannerSessionReset],
   args: {
+    assetUid: 'asset-uid-story',
     hasActiveBulkActionsCreatedByAnotherUser: true,
     activeBulkActionsCount: 1,
   },
