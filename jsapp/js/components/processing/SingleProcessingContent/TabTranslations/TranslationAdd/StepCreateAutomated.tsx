@@ -13,8 +13,8 @@ import {
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
-import RegionSelector from '#/components/languages/regionSelector'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -169,12 +169,13 @@ export default function StepCreateAutomated({
       <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
 
       <RegionSelector
-        isDisabled={anyPending}
+        disabled={anyPending}
         serviceCode='goog'
         serviceType='translation'
         rootLanguage={languageCode}
         onRegionChange={handleChangeLocale}
         onCancel={handleClickBack}
+        mb={'xl'}
       />
 
       <h2>{t('Translation provider')}</h2>
