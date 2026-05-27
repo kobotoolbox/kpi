@@ -20,7 +20,14 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
 
   useEffect(() => {
-    const bannerStatus = storageKey && sessionStorage.getItem(storageKey)
+    if (!storageKey) {
+      // Wait for the async username hash before reading dismissal state,
+      // otherwise dismissed users can briefly see the banner flash.
+      setIsBannerDismissed(undefined)
+      return
+    }
+
+    const bannerStatus = sessionStorage.getItem(storageKey)
     setIsBannerDismissed(bannerStatus === BANNER_DISMISSAL_VALUE)
   }, [storageKey])
 
