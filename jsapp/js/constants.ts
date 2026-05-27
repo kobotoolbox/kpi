@@ -82,8 +82,6 @@ export const MODAL_TYPES = {
   REPLACE_PROJECT: 'replace-project',
   TABLE_SETTINGS: 'table-settings',
   REST_SERVICES: 'rest-services',
-  FORM_LANGUAGES: 'form-languages',
-  FORM_TRANSLATIONS_TABLE: 'form-translation-table',
   ASSET_TAGS: 'asset-tags',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',

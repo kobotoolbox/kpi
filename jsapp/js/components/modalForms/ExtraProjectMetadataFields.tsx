@@ -3,10 +3,27 @@ import React from 'react'
 import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
-import envStore from '#/envStore'
+import envStore, { type ExtraProjectMetadataField } from '#/envStore'
 import { addRequiredToLabel } from '#/textUtils'
 import { currentLang } from '#/utils'
 import styles from './extraProjectMetadataFields.module.scss'
+
+type FieldRawValue = string | string[] | null | undefined
+
+type FieldChangeHandler = (fieldName: string, newValue: string | string[] | null) => void
+
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface ExtraProjectMetadataFieldProps {
+  field: ExtraProjectMetadataField
+  value: FieldRawValue
+  onChange: FieldChangeHandler
+  hasError?: boolean
+  fieldClassName?: string
+}
 
 /**
  * Renders the appropriate input for a single extra metadata field based on its
@@ -17,7 +34,13 @@ import styles from './extraProjectMetadataFields.module.scss'
  * string key or array of string keys) and the option objects that
  * `WrappedSelect` expects, so callers can always work with plain primitives.
  */
-const ExtraProjectMetadataField = ({ field, value, onChange, hasError, fieldClassName }) => {
+const ExtraProjectMetadataField = ({
+  field,
+  value,
+  onChange,
+  hasError,
+  fieldClassName,
+}: ExtraProjectMetadataFieldProps) => {
   const label = envStore.data.getExtraFieldLabel(field, currentLang())
   const wrapperClass = fieldClassName ?? styles.field
 
@@ -25,7 +48,7 @@ const ExtraProjectMetadataField = ({ field, value, onChange, hasError, fieldClas
     field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT ||
     field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
   ) {
-    const options = (field.options ?? []).map((opt) => {
+    const options: SelectOption[] = (field.options ?? []).map((opt) => {
       return {
         value: opt.name,
         label: envStore.data.getExtraFieldLabel(opt, currentLang()),
@@ -33,8 +56,9 @@ const ExtraProjectMetadataField = ({ field, value, onChange, hasError, fieldClas
     })
 
     const isMulti = field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
+    const multiValue = Array.isArray(value) ? value : []
     const selectValue = isMulti
-      ? options.filter((opt) => (value ?? []).includes(opt.value))
+      ? options.filter((opt) => multiValue.includes(opt.value))
       : (options.find((opt) => opt.value === value) ?? null)
 
     return (
@@ -43,12 +67,19 @@ const ExtraProjectMetadataField = ({ field, value, onChange, hasError, fieldClas
           label={addRequiredToLabel(label, field.required)}
           isMulti={isMulti}
           value={selectValue}
-          onChange={(val) => onChange(field.name, isMulti ? (val ?? []).map((o) => o.value) : (val?.value ?? null))}
+          onChange={(val: unknown) =>
+            onChange(
+              field.name,
+              isMulti
+                ? ((val as readonly SelectOption[] | null) ?? []).map((o) => o.value)
+                : ((val as SelectOption | null)?.value ?? null),
+            )
+          }
           options={options}
           isLimitedHeight
           isClearable
           menuPlacement='auto'
-          error={hasError ? t('Please select an option') : false}
+          error={hasError ? t('Please select an option') : undefined}
         />
       </div>
     )
@@ -57,7 +88,7 @@ const ExtraProjectMetadataField = ({ field, value, onChange, hasError, fieldClas
   return (
     <div className={wrapperClass}>
       <TextBox
-        value={value ?? ''}
+        value={typeof value === 'string' ? value : ''}
         onChange={(val) => onChange(field.name, val)}
         label={addRequiredToLabel(label, field.required)}
         placeholder={label}
@@ -67,16 +98,29 @@ const ExtraProjectMetadataField = ({ field, value, onChange, hasError, fieldClas
   )
 }
 
+interface ExtraProjectMetadataFieldsProps {
+  /** Map of field name → current raw value. */
+  values: Record<string, FieldRawValue>
+  /** Called with (fieldName, newRawValue). */
+  onChange: FieldChangeHandler
+  /**
+   * Returns true when a field has a validation error. Defaults to always
+   * returning false (no errors shown).
+   */
+  hasFieldError?: (fieldName: string) => boolean
+  fieldClassName?: string
+}
+
 /**
  * Renders all extra project metadata fields configured by the superuser in the
  * environment store.
- *
- * @param {Object} values - Map of field name → current raw value.
- * @param {Function} onChange - Called with (fieldName, newRawValue).
- * @param {Function} [hasFieldError] - Returns true when a field has a
- *   validation error. Defaults to always returning false (no errors shown).
  */
-const ExtraProjectMetadataFields = ({ values, onChange, hasFieldError = () => false, fieldClassName }) =>
+const ExtraProjectMetadataFields = ({
+  values,
+  onChange,
+  hasFieldError = () => false,
+  fieldClassName,
+}: ExtraProjectMetadataFieldsProps) =>
   envStore.data.extra_project_metadata_fields.map((field) => (
     <ExtraProjectMetadataField
       key={field.name}

@@ -46,16 +46,6 @@
       {% trans "If you are trying to verify an email address change, please go to the security tab under your account settings, and click the 'resend' button to receive an activation link." %}
     </p>
 
-    {% url 'account_email' as email_url %}
-
-    <p class="registration__message">
-      {% trans "Need help?" %}
-      <a href="https://www.kobotoolbox.org/contact/?reason=support&support=account_support">
-        {% trans "Contact support" %}
-      </a>
-      {% trans "if you're having trouble accessing your account." %}
-    </p>
-
   {% endif %}
   </form>
 

@@ -4,6 +4,7 @@ import React from 'react'
 
 import Fuse from 'fuse.js'
 import { actions } from '#/actions'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import koboDropdownActions from '#/components/common/koboDropdownActions'
@@ -23,6 +24,7 @@ bem.ColumnsHideForm__footer = makeBem(bem.ColumnsHideForm, 'footer', 'footer')
 export interface ColumnsHideFormProps {
   asset: AssetResponse
   submissions: SubmissionResponse[]
+  bulkActions: BulkActionResponse[]
   showGroupName: boolean
   translationIndex: number
 }
@@ -64,7 +66,9 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
   }
 
   prepareColumns() {
-    const allColumnsIds = [...tableStore.getHideableColumns(this.props.submissions)]
+    const allColumnsIds = [
+      ...tableStore.getHideableColumns(this.props.asset, this.props.submissions, this.props.bulkActions),
+    ]
 
     const allColumns: ColumnsHideColumn[] = []
     allColumnsIds.forEach((fieldId) => {
@@ -91,7 +95,12 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
 
   onApply() {
     this.setState({ isPending: true })
-    tableStore.setFieldsVisibility(this.props.submissions, this.state.selectedColumns)
+    tableStore.setFieldsVisibility(
+      this.props.asset,
+      this.props.submissions,
+      this.props.bulkActions,
+      this.state.selectedColumns,
+    )
   }
 
   onFieldToggleChange(fieldId: string, isSelected: boolean) {
