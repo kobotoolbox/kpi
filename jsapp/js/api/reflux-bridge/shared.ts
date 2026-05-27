@@ -68,6 +68,17 @@ export type BridgeSuccessHandler = BridgeHandler<BridgeSuccessHandlerContext>
 
 export type BridgeFailureHandler = BridgeHandler<BridgeFailureHandlerContext>
 
+// Backwards-compatible aliases for route-named files kept during migration.
+export type BridgeRequestRouteContext = BridgeRequestHandlerContext
+export type BridgeSuccessRouteContext = BridgeSuccessHandlerContext
+export type BridgeFailureRouteContext = BridgeFailureHandlerContext
+export interface BridgeRoute<Context> extends BridgeHandler<Context> {
+  method: string
+}
+export type BridgeStartRoute = BridgeRoute<BridgeRequestRouteContext>
+export type BridgeSuccessRoute = BridgeRoute<BridgeSuccessRouteContext>
+export type BridgeFailureRoute = BridgeRoute<BridgeFailureRouteContext>
+
 export enum SpecializedAssetPatchField {
   ReportStyles = 'report_styles',
   ReportCustom = 'report_custom',

@@ -1,5 +1,5 @@
 import type { SelectProps } from '@mantine/core'
-// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper around Mantine Select.
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { Select as MantineSelect } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
