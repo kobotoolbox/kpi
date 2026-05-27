@@ -56,6 +56,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
     def test_last_modified_by_field_not_assigned(self):
         pass
 
+    @unittest.skip(reason='`created_by` field only exists in v2 endpoint')
+    def test_created_by_field_not_assigned(self):
+        pass
+
     @unittest.skip(reason='`date_deployed` field only exists in v2 endpoint')
     def test_list_can_load_with_desynchronized_assets(self):
         pass
@@ -116,6 +120,10 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
 
     @unittest.skip(reason='`last_modified_by` property only exists in v2 endpoint')
     def test_cannot_modified_last_modified_by(self):
+        pass
+
+    @unittest.skip(reason='`created_by` property only exists in v2 endpoint')
+    def test_cannot_modify_created_by(self):
         pass
 
     @unittest.skip(reason='`last_modified_by` property only exists in v2 endpoint')
