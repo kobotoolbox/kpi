@@ -8,6 +8,7 @@ import { useSession } from '#/stores/useSession'
 interface UseDataTableBulkActionsResult {
   activeBulkActions: BulkActionResponse[]
   hasActiveBulkActionsCreatedByAnotherUser: boolean
+  currentUsername: string | undefined
 }
 
 /**
@@ -51,5 +52,6 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
   return {
     activeBulkActions,
     hasActiveBulkActionsCreatedByAnotherUser,
+    currentUsername,
   }
 }

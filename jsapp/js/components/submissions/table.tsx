@@ -99,6 +99,7 @@ interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
   hasActiveBulkActionsCreatedByAnotherUser?: boolean
+  currentUsername?: string
 }
 
 interface DataTableState {
@@ -1335,6 +1336,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <LimitNotifications />
           <BulkProcessingBanner
             assetUid={this.props.asset.uid}
+            currentUsername={this.props.currentUsername}
             activeBulkActionsCount={this.props.activeBulkActions?.length || 0}
             hasActiveBulkActionsCreatedByAnotherUser={Boolean(this.props.hasActiveBulkActionsCreatedByAnotherUser)}
           />

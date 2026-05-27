@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
-import { useSession } from '#/stores/useSession'
 
 interface BulkProcessingBannerProps {
   assetUid: string
+  currentUsername: string | undefined
   activeBulkActionsCount: number
   hasActiveBulkActionsCreatedByAnotherUser: boolean
 }
@@ -16,9 +16,7 @@ const BANNER_DISMISSAL_VALUE = 'dismissed'
  * the table and at least one job was created by another user.
  */
 export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
-  const session = useSession()
-  const username = session.currentLoggedAccount?.username || ''
-  const storageKey = useSafeUsernameStorageKey(`kpiBulkProcessingBanner-${props.assetUid}`, username)
+  const storageKey = useSafeUsernameStorageKey(`kpiBulkProcessingBanner-${props.assetUid}`, props.currentUsername || '')
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
 
   useEffect(() => {
@@ -36,6 +34,7 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
 
   // Guard early so parent can pass values safely without extra conditionals.
   if (
+    !props.currentUsername ||
     !props.hasActiveBulkActionsCreatedByAnotherUser ||
     props.activeBulkActionsCount < 1 ||
     isBannerDismissed === undefined ||

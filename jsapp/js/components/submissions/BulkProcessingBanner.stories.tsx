@@ -8,6 +8,7 @@ const meta: Meta<typeof BulkProcessingBanner> = {
   decorators: [withBulkProcessingBannerSessionReset],
   args: {
     assetUid: 'asset-uid-story',
+    currentUsername: 'storybook-user',
     hasActiveBulkActionsCreatedByAnotherUser: true,
     activeBulkActionsCount: 1,
   },
