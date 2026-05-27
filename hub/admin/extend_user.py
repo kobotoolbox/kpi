@@ -193,6 +193,9 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         'deployed_forms_count',
         'monthly_submission_count',
     )
+    # same add_fieldsets as UserAdmin but without the 'usable_password' field, which
+    # we don't want. Admins should not be able to enable/disable password access on
+    # a per-user basis
     add_fieldsets = (
         (
             None,
