@@ -15024,12 +15024,17 @@ components:
           type: string
           readOnly: true
           nullable: true
+        created_by:
+          type: string
+          readOnly: true
+          nullable: true
       required:
       - access_types
       - analysis_form_json
       - asset_type
       - assignable_permissions
       - children
+      - created_by
       - data
       - deployed_version_id
       - deployed_versions
