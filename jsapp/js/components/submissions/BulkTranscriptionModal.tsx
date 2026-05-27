@@ -1,6 +1,6 @@
 import { Group, Text } from '@mantine/core'
+import ModalNew from '#/components/common/ModalNew'
 import ButtonNew from '../common/ButtonNew'
-import ModalMantine from '../common/ModalNew'
 
 interface Props {
   opened: boolean
@@ -9,7 +9,15 @@ interface Props {
 
 export default function BulkTranscriptionModal({ opened, onClose }: Props) {
   return (
-    <ModalMantine opened={opened} onClose={onClose} title='Transcribe selected audio files' size='md' centered>
+    <ModalNew
+      opened={opened}
+      onClose={onClose}
+      title={t('Transcribe selected audio files')}
+      size='md'
+      centered
+      withOverlay={true}
+      closeOnEscape={false}
+    >
       <Text size='sm' mb='sm'>
         {t('Start transcribing audio')}
       </Text>
@@ -24,6 +32,6 @@ export default function BulkTranscriptionModal({ opened, onClose }: Props) {
           {t('Start Transcription')}
         </ButtonNew>
       </Group>
-    </ModalMantine>
+    </ModalNew>
   )
 }
