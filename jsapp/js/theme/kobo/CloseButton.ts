@@ -10,6 +10,7 @@ export const CloseButtonThemeKobo = CloseButton.extend({
     return {
       root: {
         '--cb-size': rem(20),
+        '--cb-icon-size': rem(20),
         '--cb-color': theme.colors.gray[4],
         '--cb-hover-color': theme.colors.blue[5],
       },
