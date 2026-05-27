@@ -89,6 +89,7 @@ class BulkActionResponseSerializer(serializers.ModelSerializer):
             'submission_uuids',
             'submission_statuses',
             'params',
+            'progress',
             'created_by',
             'date_created',
             'date_modified',
