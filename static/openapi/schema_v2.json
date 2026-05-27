@@ -21142,8 +21142,8 @@
                     },
                     "created_by": {
                         "type": "string",
-                        "nullable": true,
-                        "maxLength": 150
+                        "readOnly": true,
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -21152,6 +21152,7 @@
                     "asset_type",
                     "assignable_permissions",
                     "children",
+                    "created_by",
                     "data",
                     "deployed_version_id",
                     "deployed_versions",

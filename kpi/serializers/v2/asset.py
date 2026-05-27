@@ -476,7 +476,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'last_modified_by',
             'created_by',
         )
-        read_only_fields = ('last_modified_by', 'uid')
+        read_only_fields = ('last_modified_by', 'created_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
