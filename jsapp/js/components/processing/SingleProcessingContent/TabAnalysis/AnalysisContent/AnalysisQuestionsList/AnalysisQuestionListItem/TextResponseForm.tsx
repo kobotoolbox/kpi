@@ -16,9 +16,11 @@ export default function TextResponseForm({ qaAnswer, onSave, disabled, isAnswerA
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
   // Sync local state when a new version is set (e.g. after AI generation)
   useEffect(() => {
-    if (!isAnswerAIGenerated) return
-    clearTimeout(typingTimer)
-    setValue(((qaAnswer?._data as any)?.value as string) ?? '')
+    const newValue = ((qaAnswer?._data as any)?.value as string) ?? ''
+    if (isAnswerAIGenerated || newValue === '') {
+      clearTimeout(typingTimer)
+      setValue(newValue)
+    }
   }, [qaAnswer?._uuid, isAnswerAIGenerated])
   const handleBlur = async () => {
     clearTimeout(typingTimer)

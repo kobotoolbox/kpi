@@ -253,7 +253,7 @@ class Asset(
     # set directly.
     _deployment_status = models.CharField(
         max_length=8,
-        choices=AssetDeploymentStatus.choices,
+        choices=AssetDeploymentStatus,
         null=True,
         blank=True,
         db_index=True
@@ -846,6 +846,27 @@ class Asset(
         except IndexError:
             return None
 
+    def validate_and_normalize_settings(self):
+        if not self.settings:
+            self.settings = {}
+            return
+
+        if not isinstance(self.settings, dict):
+            self.settings = {}
+            return
+
+        # Run unconditionally for all asset types to ensure a consistent
+        # 'extra_metadata' namespace across surveys, templates, and library items.
+        if 'extra_metadata' not in self.settings:
+            return
+
+        extra_metadata = self.settings.get('extra_metadata')
+
+        if extra_metadata is None:
+            self.settings['extra_metadata'] = {}
+        elif not isinstance(extra_metadata, dict):
+            self.settings['extra_metadata'] = {}
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """Used by serializers to improve performance when listing assets"""
@@ -974,6 +995,9 @@ class Asset(
 
         if not update_fields or update_fields and 'advanced_features' in update_fields:
             migrate_advanced_features(self, save_asset=False)
+
+        if not update_fields or 'settings' in update_fields:
+            self.validate_and_normalize_settings()
 
         # standardize settings (only when required)
         if (
@@ -1188,20 +1212,22 @@ class Asset(
         self.save(update_fields=['summary'])
 
     @property
-    def version__content_hash(self):
+    def version__content_hash(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.content_hash
 
+        return None
+
     @property
-    def version_id(self):
+    def version_id(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.uid
+
+        return None
 
     @property
     def version_number_and_date(self) -> str:
@@ -1470,12 +1496,18 @@ class Asset(
         if not content.get('translations') and existing_translations:
             content['translations'] = existing_translations
 
-        # Suffix plain hint strings to the default language
+        # Suffix plain hint and label strings to the default language
         default_lang = settings_data.get('default_language')
         if default_lang:
             for row in content.get('survey', []):
                 if 'hint' in row and isinstance(row['hint'], str):
                     row[f'hint::{default_lang}'] = row.pop('hint')
+            # Only suffix plain labels for multilingual forms. On single-language
+            # forms, plain `label` is the expected format for an unnamed translation.
+            if len(existing_translations) > 1:
+                for row in content.get('survey', []) + content.get('choices', []):
+                    if 'label' in row and isinstance(row['label'], str):
+                        row[f'label::{default_lang}'] = row.pop('label')
 
 
 class UserAssetSubscription(models.Model):

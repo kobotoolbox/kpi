@@ -9,6 +9,7 @@ import './assetActionButtons.scss'
 
 import React from 'react'
 
+import { IconWorldFilled } from '@tabler/icons-react'
 import debounce from 'lodash.debounce'
 import autoBind from 'react-autobind'
 import { Link } from 'react-router-dom'
@@ -19,6 +20,7 @@ import {
   cloneAssetAsSurvey,
   cloneAssetAsTemplate,
   deleteAsset,
+  deployAsset,
   manageAssetLanguages,
   manageAssetSettings,
   manageAssetSharing,
@@ -36,12 +38,12 @@ import { userCan } from '#/components/permissions/utils'
 import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
 import type { AssetDownloads, AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
-import mixins from '#/mixins'
 import PopoverMenu from '#/popoverMenu'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyFormRoute, isAnyLibraryItemRoute } from '#/router/routerUtils'
+import KoboIcon from '../common/KoboIcon'
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse
@@ -159,7 +161,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   deploy() {
-    mixins.dmix.deployAsset(this.props.asset)
+    deployAsset(this.props.asset)
   }
 
   archive() {
@@ -273,7 +275,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id && (
           <bem.PopoverMenu__link onClick={this.editLanguages}>
-            <i className='k-icon k-icon-language' />
+            <KoboIcon icon={IconWorldFilled} size={28} />
             {t('Manage translations')}
           </bem.PopoverMenu__link>
         )}

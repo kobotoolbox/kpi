@@ -1,29 +1,38 @@
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { ActionIcon as ActionIconMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
-import type { ActionIconProps as ActionIconPropsMantine } from '@mantine/core/lib/components'
-import type { TooltipProps } from '@mantine/core/lib/components'
+import type { ActionIconProps as ActionIconPropsMantine, TooltipProps } from '@mantine/core'
+import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import { forwardRef } from 'react'
+import type { ComponentType } from 'react'
 import type { IconName } from '#/k-icons'
-import Icon, { type IconSize } from './icon'
+import IconLegacySupport from './IconLegacySupport'
+import KoboIcon from './KoboIcon'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   /** Text for tooltip */
   tooltip?: React.ReactNode
   /** Additional tooltip configuration */
   tooltipProps?: Partial<Omit<TooltipProps, 'label'>>
-
-  iconName: IconName
-  size: 'sm' | 'md' | 'lg'
+  /** @deprecated Legacy icon name from `k-icons`, please use `icon` */
+  iconName?: IconName
+  /** Tabler icon component or resolved SVG component (e.g. from `resolveLegacySvgIconByName`) */
+  icon?: TablerIcon | ComponentType<SvgIconProps>
+  size: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, ...props }, ref) => {
-  // Currently, our icon sizes only use a single letter instead of
-  // Mantine's 'sm', 'md', etc. So here we grab the first letter.
-  const iconSize = props.size[0] as IconSize
+const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, icon, ...props }, ref) => {
+  const content =
+    props.children ??
+    (icon ? (
+      <KoboIcon icon={icon} size={props.size} />
+    ) : iconName ? (
+      <IconLegacySupport icon={iconName} size={props.size} />
+    ) : undefined)
 
   if (!props.tooltip) {
     return (
       <ActionIconMantine {...props} ref={ref}>
-        <Icon name={iconName} size={iconSize} />
+        {content}
       </ActionIconMantine>
     )
   }
@@ -31,7 +40,7 @@ const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, .
   return (
     <Tooltip label={props.tooltip} {...props.tooltipProps}>
       <ActionIconMantine {...props} ref={ref}>
-        <Icon name={iconName} size={iconSize} />
+        {content}
       </ActionIconMantine>
     </Tooltip>
   )

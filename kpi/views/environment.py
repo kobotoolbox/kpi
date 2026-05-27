@@ -9,13 +9,19 @@ from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
-from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.static_lists import COUNTRIES
-from kpi.utils.object_permission import get_database_user
+from kpi.models import ExtraProjectMetadataField
+from kpi.schema_extensions.v2.environment.serializers import (
+    EnvironmentResponseSerializer,
+)
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
+from kpi.versioning import APIV2Versioning
 
 
 def check_asr_mt_access_for_user(user):
@@ -33,6 +39,12 @@ def check_asr_mt_access_for_user(user):
 class EnvironmentView(APIView):
     """
     GET-only view for certain server-provided configuration data
+
+    Available actions:
+    - retrieve              → GET /environment/
+
+    Documentation:
+    - docs/api/v2/environment/retrieve.md
     """
 
     SIMPLE_CONFIGS = [
@@ -54,6 +66,8 @@ class EnvironmentView(APIView):
         'PROJECT_HISTORY_LOG_LIFESPAN',
     ]
 
+    versioning_class = APIV2Versioning
+
     @classmethod
     def process_simple_configs(cls):
         return {
@@ -61,6 +75,17 @@ class EnvironmentView(APIView):
             for key in cls.SIMPLE_CONFIGS
         }
 
+    @extend_schema(
+        tags=['Configuration'],
+        description=read_md('kpi', 'environment/retrieve.md'),
+        responses=open_api_200_ok_response(
+            EnvironmentResponseSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    )
     def get(self, request, *args, **kwargs):
         data = {}
         data.update(self.process_simple_configs())
@@ -68,6 +93,7 @@ class EnvironmentView(APIView):
         data.update(self.process_mfa_configs(request))
         data.update(self.process_password_configs(request))
         data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_extra_project_metadata_configs(request))
         data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
         data.update(self.static_configs(request))
@@ -99,17 +125,32 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
+    def process_extra_project_metadata_configs(request):
+        fields = ExtraProjectMetadataField.objects.all()
+
+        extra_fields_data = []
+        for field in fields:
+            extra_fields_data.append(
+                {
+                    'name': field.name,
+                    'label': field.label,
+                    'type': field.type,
+                    'required': field.is_required,
+                    'options': field.options,
+                }
+            )
+
+        return {'extra_project_metadata_fields': extra_fields_data}
+
+    @staticmethod
     def process_mfa_configs(request):
         data = {}
         data['mfa_localized_help_text'] = markdown(
             I18nUtils.get_mfa_help_text()
         )
         data['mfa_enabled'] = constance.config.MFA_ENABLED
-        data['mfa_per_user_availability'] = MfaAvailableToUser.objects.filter(
-            user=get_database_user(request.user)
-        ).exists()
-        data['mfa_has_availability_list'] = MfaAvailableToUser.objects.all().exists()
         data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        data['superuser_auth_enforcement'] = constance.config.SUPERUSER_AUTH_ENFORCEMENT
         return data
 
     @staticmethod

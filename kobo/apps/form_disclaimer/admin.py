@@ -6,6 +6,7 @@ from .forms import FormDisclaimerForm, OverriddenFormDisclaimerForm
 from .models import FormDisclaimer, OverriddenFormDisclaimer
 
 
+@admin.register(FormDisclaimer)
 class FormDisclaimerAdmin(MarkdownxModelAdminBase):
 
     form = FormDisclaimerForm
@@ -42,6 +43,7 @@ class FormDisclaimerAdmin(MarkdownxModelAdminBase):
             super().delete_queryset(request, queryset)
 
 
+@admin.register(OverriddenFormDisclaimer)
 class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
 
     class Media:
@@ -85,5 +87,3 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
         return 'Overridden' if obj.message.strip() else 'Hidden'
 
 
-admin.site.register(FormDisclaimer, FormDisclaimerAdmin)
-admin.site.register(OverriddenFormDisclaimer, OverridenFormDisclaimerAdmin)

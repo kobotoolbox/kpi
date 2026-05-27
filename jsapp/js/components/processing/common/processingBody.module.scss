@@ -58,14 +58,6 @@
   }
 }
 
-.root :global .region-selector {
-  margin: 0;
-
-  &:not(:last-child) {
-    margin-bottom: 40px;
-  }
-}
-
 .text {
   white-space: pre-wrap;
   border-top: 2px solid colors.$kobo-gray-200;

@@ -1,7 +1,7 @@
-import { forwardRef } from 'react'
-
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { Alert as AlertMantine } from '@mantine/core'
-import type { AlertProps as AlertPropsMantine } from '@mantine/core/lib/components'
+import type { AlertProps as AlertPropsMantine } from '@mantine/core'
+import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
 import Icon from './icon'
 

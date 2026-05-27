@@ -40,6 +40,7 @@ export const ButtonThemeKobo = Button.extend({
           '--button-hover': theme.colors.blue[8],
         }),
         ...(props.variant === 'outline' && {
+          '--button-bg': theme.colors.gray[9],
           '--button-bd': '1px solid var(--mantine-color-gray-6)',
           '--button-color': theme.colors.gray[2],
           '--button-hover': theme.colors.gray[7],

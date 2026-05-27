@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import pytest
 from allauth.socialaccount.models import SocialAccount
+from constance.test import override_config
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -71,9 +73,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                'details': 'The data source for user reports is missing. '
-                'Please run 0002_create_user_reports_mv to create the '
-                'materialized view: user_reports_userreportsmv.',
+                'details': (
+                    'The data source for user reports is missing. '
+                    'Please run `./manage.py manage_user_reports_mv --create` to '
+                    'create the materialized view: user_reports_userreportsmv.'
+                )
             },
         )
 
@@ -177,7 +181,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         DailyXFormSubmissionCounter.objects.create(
             user_id=self.someuser.id,
-            date=timezone.now().date() - timezone.timedelta(days=100),
+            date=timezone.now().date() - timedelta(days=100),
             counter=135,
         )
         NLPUsageCounter.objects.create(
@@ -185,7 +189,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         NLPUsageCounter.objects.create(
             user_id=self.someuser.id,
-            date=timezone.now().date() - timezone.timedelta(days=100),
+            date=timezone.now().date() - timedelta(days=100),
             total_asr_seconds=80,
         )
         UserProfile.objects.filter(user_id=self.someuser.id).update(
@@ -327,7 +331,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertTrue(results[0]['accepted_tos'])
 
     def test_ordering_by_date_joined(self):
-        base_date = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        base_date = datetime(2023, 1, 1, tzinfo=ZoneInfo('UTC'))
         adminuser = User.objects.get(username='adminuser')
         adminuser.date_joined = base_date
         adminuser.save()
@@ -452,6 +456,21 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(sub_data['id'], subscription.id)
         self.assertEqual(sub_data['customer'], customer.id)
         self.assertEqual(sub_data['metadata'], {})
+
+    def test_offset_limit_set_by_constance(self):
+        for i in range(20):
+            User.objects.create(username=f'user_{i}')
+        refresh_user_report_snapshots()
+        with override_config(USER_REPORTS_PAGE_SIZE_LIMIT=10):
+            response = self.client.get(f'{self.url}?limit=1')
+            results = response.data['results']
+            assert len(results) == 1
+            response = self.client.get(f'{self.url}')
+            results = response.data['results']
+            assert len(results) == 10
+            response = self.client.get(f'{self.url}?limit=100')
+            results = response.data['results']
+            assert len(results) == 10
 
     def _get_someuser_data(self):
 

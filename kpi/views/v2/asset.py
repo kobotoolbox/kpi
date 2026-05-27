@@ -43,7 +43,7 @@ from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
-from kpi.paginators import AssetPagination
+from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.permissions import (
     AssetPermission,
     PostMappedToChangePermission,
@@ -87,7 +87,9 @@ from kpi.schema_extensions.v2.deployments.serializers import (
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
+    AssetListCountSerializer,
     AssetListSerializer,
+    AssetMinimalListSerializer,
     AssetSerializer,
 )
 from kpi.serializers.v2.deployment import DeploymentSerializer
@@ -105,7 +107,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from kpi.utils.strings import to_bool
+from kpi.utils.strings import strtobool
 
 
 @extend_schema(
@@ -195,6 +197,49 @@ from kpi.utils.strings import to_bool
             raise_not_found=False,
             validate_payload=False,
         ),
+    ),
+    counts=extend_schema(
+        description=read_md('kpi', 'assets/counts.md'),
+        responses=open_api_200_ok_response(
+            AssetListCountSerializer,
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    minimal_list=extend_schema(
+        description=read_md('kpi', 'assets/minimal_list.md'),
+        responses=open_api_200_ok_response(
+            AssetMinimalListSerializer(many=True),
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Number of results to return per page.',
+            ),
+            OpenApiParameter(
+                name='start',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='The initial index from which to return the results.',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'assets/list.md'),
@@ -355,7 +400,9 @@ class AssetViewSet(
     - xform          → GET /api/v2/assets/{uid_asset}/xform/
     - xls            → GET /api/v2/assets/{uid_asset}/xls/
     - bulk           → POST /api/v2/assets/bulk/
+    - counts         → GET /api/v2/assets/counts/
     - hash           → GET /api/v2/assets/hash/
+    - minimal_list   → GET /api/v2/assets/minimal-list/
     - metadata       → GET /api/v2/assets/metadata/
 
     Documentation:
@@ -371,7 +418,9 @@ class AssetViewSet(
     - docs/api/v2/assets/xform.md
     - docs/api/v2/assets/xls.md
     - docs/api/v2/assets/bulk.md
+    - docs/api/v2/assets/counts.md
     - docs/api/v2/assets/hash.md
+    - docs/api/v2/assets/minimal_list.md
     - docs/api/v2/assets/metadata.md
     """
 
@@ -396,6 +445,7 @@ class AssetViewSet(
         'name__icontains',
         'owner__username__icontains',
         'settings__description__icontains',
+        'settings__extra_metadata__icontains',
         'summary__icontains',
         'tags__name__icontains',
         'uid__icontains',
@@ -625,18 +675,15 @@ class AssetViewSet(
         return asset
 
     def get_queryset(self, *args, **kwargs):
-
         if self.detail:
             # For detail views, we must explicitly bypass the NestedViewSetMixin.
             return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
-
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
+            # we only want this for the 'list' action, not the other non-detail
+            # endpoints, which don't need all the prefetched info
             return queryset.model.optimize_queryset_for_list(queryset)
-        else:
-            # This is called to retrieve an individual record. How much do we
-            # have to care about optimizations for that?
-            return queryset
+        return queryset
 
     def get_metadata(self, queryset):
         """
@@ -673,20 +720,25 @@ class AssetViewSet(
                         metadata['languages'].add(language)
 
             try:
-                country = record['settings']['country']
-                value = country['value']
-                label = country['label']
-            except (KeyError, TypeError):
+                # "country" is actually a list of countries
+                countries = record['settings'].get('country') or []
+            except (KeyError, TypeError, AttributeError):
                 pass
             else:
-                if value and value not in metadata['countries']:
-                    metadata['countries'][value] = label
+                for country_record in countries:
+                    try:
+                        value = country_record['value']
+                        label = country_record['label']
+                    except (KeyError, TypeError):
+                        continue
+                    if value and value not in metadata['countries']:
+                        metadata['countries'][value] = label
 
             try:
-                sector = record['settings']['sector']
+                sector = record['settings'].get('sector') or {}
                 value = sector['value']
                 label = sector['label']
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, AttributeError):
                 pass
             else:
                 if value and value not in metadata['sectors']:
@@ -733,8 +785,9 @@ class AssetViewSet(
     def get_serializer_class(self):
         if self.action == 'list':
             return AssetListSerializer
-        else:
-            return AssetSerializer
+        if self.action == 'minimal_list':
+            return AssetMinimalListSerializer
+        return AssetSerializer
 
     def get_serializer_context(self):
         """
@@ -770,7 +823,7 @@ class AssetViewSet(
             # discover_asset/view_asset for anonymous (memory optimization).
             # Pass ?current_user_permissions_only=false to load all users'
             # permissions (needed when the client displays full permission lists).
-            current_user_permissions_only = to_bool(
+            current_user_permissions_only = strtobool(
                 self.request.query_params.get('current_user_permissions_only', False)
             )
             context_['object_permissions_per_asset'] = self.cache_all_assets_perms(
@@ -886,6 +939,28 @@ class AssetViewSet(
 
         serializer = self.get_serializer(self._filtered_queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def counts(self, request):
+        self._filtered_queryset = self.filter_queryset(self.get_queryset())
+        serializer = AssetListCountSerializer(
+            self._filtered_queryset, context={'request': request}
+        )
+        return Response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        pagination_class=NoCountPagination,
+        url_path='minimal-list',
+    )
+    def minimal_list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(
+            self.get_queryset().only('uid', 'name', '_deployment_status')
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def hash(self, request):

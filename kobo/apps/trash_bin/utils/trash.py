@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from copy import deepcopy
 from collections.abc import Iterable
+from copy import deepcopy
 from datetime import timedelta
 from typing import Optional
 
@@ -35,7 +35,7 @@ from ..type_aliases import (
     DeletionCallback,
     TrashBinModel,
     TrashBinModelInstance,
-    TrashObject
+    TrashObject,
 )
 from ..utils import temporarily_disconnect_signals
 
@@ -194,8 +194,12 @@ def process_deletion(
 
     deletion_callback(object_trash)
 
-    # Delete related periodic task
-    PeriodicTask.objects.get(pk=object_trash.periodic_task_id).delete()
+    # The related PeriodicTask is intentionally NOT deleted here to avoid
+    # triggering a `PeriodicTasks.changed()` signal for each completed task.
+    # On high-volume servers, these individual signals cause Celery Beat to
+    # reload its entire schedule thousands of times, starving task dispatch.
+    # The garbage_collector task cleans up orphaned PeriodicTasks in batch
+    # with signals suppressed (via `temporarily_disconnect_signals`).
     return object_trash, True
 
 

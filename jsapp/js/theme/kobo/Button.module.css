@@ -24,7 +24,7 @@
 
   &[data-variant='outline'] {
     &:active {
-      background-color: transparent;
+      background-color: var(--button-bg);
       border-color: var(--mantine-color-gray-5);
     }
   }

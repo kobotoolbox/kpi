@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
@@ -14,17 +14,20 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
-from kobo.apps.subsequences.views import QuestionAdvancedFeatureViewSet
+from kobo.apps.subsequences.views import (
+    BulkActionViewSet,
+    QuestionAdvancedFeatureViewSet,
+)
 from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.constants import API_NAMESPACES
 from kpi.permissions import AdvancedSubmissionPermission
 from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
-from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
+from kpi.views.v2.asset_submission_counts import AssetSubmissionCountsViewSet
 from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
@@ -86,11 +89,12 @@ URL_NAMESPACE = API_NAMESPACES['v2']
 router_api_v2 = OpenRosaCompatibleExtendedRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
-asset_routes.register(r'counts',
-                      AssetCountsViewSet,
-                      basename='asset-counts',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'counts',
+    AssetSubmissionCountsViewSet,
+    basename='asset-counts',
+    parents_query_lookups=['asset'],
+)
 
 asset_routes.register(r'files',
                       AssetFileViewSet,
@@ -140,6 +144,13 @@ asset_routes.register(
     r'attachments',
     AttachmentDeleteViewSet,
     basename='asset-attachments',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
+    r'advanced-features/bulk-actions',
+    BulkActionViewSet,
+    basename='advanced-features-bulk-actions',
     parents_query_lookups=['asset'],
 )
 
@@ -254,4 +265,16 @@ supplement_url_pattern = [
     ),
 ]
 
-urls_patterns = router_api_v2.urls + enketo_url_aliases + supplement_url_pattern
+kobo_scim_pattern = [
+    path(
+        'scim/v2/',
+        include('kobo.apps.kobo_scim.urls', namespace='kobo_scim'),
+    ),
+]
+
+urls_patterns = (
+    router_api_v2.urls
+    + enketo_url_aliases
+    + supplement_url_pattern
+    + kobo_scim_pattern
+)

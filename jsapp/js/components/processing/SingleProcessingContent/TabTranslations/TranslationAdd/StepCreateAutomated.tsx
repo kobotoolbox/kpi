@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
+import { ServerError } from '#/api/ServerError'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -12,8 +13,8 @@ import {
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
-import RegionSelector from '#/components/languages/regionSelector'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -26,6 +27,7 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse
   onBack: () => void
+  onLimitExceeded: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
@@ -36,6 +38,7 @@ export default function StepCreateAutomated({
   languageCode,
   submission,
   onBack,
+  onLimitExceeded,
   onCreate,
   advancedFeatures,
 }: Props) {
@@ -58,6 +61,13 @@ export default function StepCreateAutomated({
           translationVersion?._data.status === 'failed'
         ) {
           notify(translationVersion?._data.error, 'error', {}, translationVersion?._data.error)
+        }
+      },
+      onError: (err) => {
+        if (err instanceof ServerError && err.response.status === 402) {
+          onLimitExceeded()
+        } else {
+          notify.error(t('Failed to create automatic translation. Please try again later.'))
         }
       },
     },
@@ -117,16 +127,21 @@ export default function StepCreateAutomated({
       })
     }
 
-    await mutationCreateAutomaticTranslation.mutateAsync({
-      uidAsset: asset.uid,
-      rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
-      data: {
-        _version: SUBSEQUENCES_SCHEMA_VERSION,
-        [questionXpath]: {
-          automatic_google_translation: { language: languageCode, locale },
+    try {
+      await mutationCreateAutomaticTranslation.mutateAsync({
+        uidAsset: asset.uid,
+        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        data: {
+          _version: SUBSEQUENCES_SCHEMA_VERSION,
+          [questionXpath]: {
+            automatic_google_translation: { language: languageCode, locale },
+          },
         },
-      },
-    })
+      })
+    } catch {
+      // Error is handled by the onError callback above
+      return
+    }
 
     onCreate(languageCode, 'automated')
   }
@@ -154,12 +169,13 @@ export default function StepCreateAutomated({
       <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
 
       <RegionSelector
-        isDisabled={anyPending}
+        disabled={anyPending}
         serviceCode='goog'
         serviceType='translation'
         rootLanguage={languageCode}
         onRegionChange={handleChangeLocale}
         onCancel={handleClickBack}
+        mb={'xl'}
       />
 
       <h2>{t('Translation provider')}</h2>

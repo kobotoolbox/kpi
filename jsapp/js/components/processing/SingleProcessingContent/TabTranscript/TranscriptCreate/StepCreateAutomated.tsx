@@ -10,8 +10,8 @@ import {
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
+import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
-import RegionSelector from '#/components/languages/regionSelector'
 import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
@@ -123,12 +123,13 @@ export default function StepCreateAutomated({
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
       <RegionSelector
-        isDisabled={anyPending}
+        disabled={anyPending}
         serviceCode='goog'
         serviceType='transcription'
         rootLanguage={languageCode}
         onRegionChange={handleChangeLocale}
         onCancel={handleClickBack}
+        mb={'xl'}
       />
 
       <h2>{t('Transcription provider')}</h2>
@@ -153,7 +154,7 @@ export default function StepCreateAutomated({
             size='m'
             label={t('create transcript')}
             onClick={handleCreateTranscript}
-            isDisabled={anyPending}
+            isDisabled={anyPending || locale === null}
           />
         </div>
       </footer>

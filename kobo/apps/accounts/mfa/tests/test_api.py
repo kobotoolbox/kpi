@@ -1,12 +1,14 @@
 from constance.test import override_config
+from allauth.mfa.models import Authenticator
 from django.test import override_settings
 from django.urls import reverse
 from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.tests.kpi_test_case import BaseTestCase
-from ..models import MfaAvailableToUser, MfaMethodsWrapper
+from ..models import MfaMethodsWrapper
 from .utils import activate_mfa_for_user, get_mfa_code_for_user
 
 METHOD = 'app'
@@ -60,31 +62,6 @@ class MfaApiTestCase(BaseTestCase):
         assert first_secret != second_secret
         assert first_response.json() != second_response.json()
 
-    @override_config(MFA_ENABLED=True)
-    def test_mfa_whitelisting(self):
-        anotheruser = User.objects.get(username='anotheruser')
-        self.client.login(username='anotheruser', password='anotheruser')
-
-        # Test when whitelist is disabled
-        activate_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        assert activate_response.status_code == status.HTTP_200_OK
-
-        # Enable the MFA whitelist by adding a user
-        someuser_mfa_activation = MfaAvailableToUser.objects.create(
-            user=self.someuser
-        )
-
-        activate_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        assert activate_response.status_code == status.HTTP_403_FORBIDDEN
-
-        mfa_availability = MfaAvailableToUser.objects.create(user=anotheruser)
-        activate_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        assert activate_response.status_code == status.HTTP_200_OK
-
-        # Reset MFA whitelist state
-        mfa_availability.delete()
-        someuser_mfa_activation.delete()
-
     def test_regenerate_codes(self):
         response = self.client.post(
             reverse('mfa-regenerate', args=(METHOD,)), data={'code': '1234567890'}
@@ -112,6 +89,9 @@ class MfaApiTestCase(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         mfamethods = MfaMethodsWrapper.objects.get(user=self.someuser)
         assert mfamethods.is_active is False
+        assert mfamethods.totp is None
+        assert mfamethods.recovery_codes is None
+        assert Authenticator.objects.filter(user=self.someuser).count() == 0
 
     def test_reactivate_generates_different_secret(self):
         """
@@ -136,3 +116,55 @@ class MfaApiTestCase(BaseTestCase):
             user=self.someuser, name=METHOD
         ).secret
         assert first_secret != second_secret
+
+    def test_mfa_activation_syncs_user_profile(self):
+        """
+        Test that activating MFA also updates the `is_mfa_active` flag in UserProfile
+        """
+        profile, _ = UserProfile.objects.get_or_create(user=self.someuser)
+        profile.refresh_from_db()
+        self.assertTrue(profile.is_mfa_active)
+
+    def test_mfa_deactivation_syncs_user_profile(self):
+        """
+        Test that deactivating MFA also updates the `is_mfa_active` flag in UserProfile
+        """
+        profile, _ = UserProfile.objects.get_or_create(user=self.someuser)
+        profile.refresh_from_db()
+        self.assertTrue(profile.is_mfa_active)
+
+        code = get_mfa_code_for_user(self.someuser)
+        response = self.client.post(
+            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        profile.refresh_from_db()
+        self.assertFalse(profile.is_mfa_active)
+
+    @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
+    def test_superuser_deactivation_prohibited_when_enforced(self):
+        """
+        Verify that a superuser cannot deactivate MFA if SUPERUSER_AUTH_ENFORCEMENT
+        is True
+        """
+        superuser = User.objects.create_superuser(
+            username='admin_user', password='adminpassword', email='admin@example.com'
+        )
+        activate_mfa_for_user(self.client, superuser)
+        self.client.force_login(superuser)
+
+        code = get_mfa_code_for_user(superuser)
+        response = self.client.post(
+            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            response.json()['detail'],
+            'Superusers cannot deactivate MFA while SUPERUSER_AUTH_ENFORCEMENT'
+            ' is active.',
+        )
+
+        mfa_method = MfaMethodsWrapper.objects.get(user=superuser)
+        self.assertTrue(mfa_method.is_active)

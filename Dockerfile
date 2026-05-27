@@ -15,7 +15,7 @@
 #########################################
 
 # If you update a base image, make sure to update the
-# runners in .github/workflows/ to the corresponding 
+# runners in .github/workflows/ to the corresponding
 # Ubuntu version.
 
 
@@ -123,7 +123,7 @@ RUN --mount=from=npm-install,source=/srv/src/kpi/node_modules,target=/srv/src/kp
 # 🐍 Python 'pip-dependencies' #
 #                              #
 ################################
-FROM ghcr.io/astral-sh/uv:python3.10-bookworm AS pip-dependencies
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS pip-dependencies
 ENV TMP_DIR=/srv/tmp \
     VIRTUAL_ENV=/opt/venv
 RUN python -m venv "$VIRTUAL_ENV"
@@ -132,12 +132,14 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
+RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_framework
+
 #####################################
 #                                   #
 # 🧰 KPI production image 'kpi-app' #
 #                                   #
 #####################################
-FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim AS kpi-app
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS kpi-app
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
@@ -235,14 +237,12 @@ COPY --from=webpack-build-prod --parents \
 ###########################
 # Organize static assets. #
 ###########################
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --ignore rest_framework
 
-######################################
-# Retrieve and compile translations. #
-######################################
-RUN git submodule init && \
-    git submodule update --remote && \
-    python manage.py compilemessages
+#########################
+# Compile translations. #
+#########################
+RUN python manage.py compilemessages
 
 ##########################################
 # Persist the log and email directories. #

@@ -97,7 +97,7 @@ def _process_instances_batch(
 ) -> bool:
     instance_batch_ids = []
     instance_batch = []
-    for instance in instance_queryset.iterator():
+    for instance in instance_queryset.iterator(chunk_size=CHUNK_SIZE):
         try:
             instance._populate_root_uuid()  # noqa
         except AssertionError as e:

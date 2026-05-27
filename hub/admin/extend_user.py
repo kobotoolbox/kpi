@@ -31,9 +31,9 @@ from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
 
-def validate_superuser_auth(obj) -> bool:
+def validate_superuser_auth(obj, can_save_as_superuser: bool) -> bool:
     if (
-        obj.is_superuser
+        can_save_as_superuser
         and config.SUPERUSER_AUTH_ENFORCEMENT
         and obj.has_usable_password()
         and not MfaMethodsWrapper.objects.filter(user=obj, is_active=True).exists()
@@ -54,6 +54,7 @@ class UserChangeForm(DjangoUserChangeForm):
     def clean(self):
         cleaned_data = super().clean()
         is_active = cleaned_data['is_active']
+        is_superuser = cleaned_data.get('is_superuser', False)
         if is_active and AccountTrash.objects.filter(user_id=self.instance.pk).exists():
             url = reverse('admin:trash_bin_accounttrash_changelist')
             raise ValidationError(
@@ -62,8 +63,8 @@ class UserChangeForm(DjangoUserChangeForm):
                     f' from here.'
                 )
             )
-        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(
-            self.instance
+        if is_superuser and not validate_superuser_auth(
+            self.instance, can_save_as_superuser=is_superuser
         ):
             raise ValidationError('Superusers with a usable password must enable MFA.')
 
@@ -94,6 +95,7 @@ class OrgInline(admin.StackedInline):
     classes = ('no-upper',)
     raw_id_fields = ('user', 'organization')
 
+    @admin.display(description='Active Subscription')
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
             return (
@@ -111,7 +113,6 @@ class OrgInline(admin.StackedInline):
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
 
-    active_subscription_status.short_description = 'Active Subscription'
 
 
 class InactiveUsersAsOfFilter(SimpleListFilter):
@@ -265,6 +266,20 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             return '-'
 
         return date_removed
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Return a tuple of field names that should be read-only in the admin panel.
+
+        If modifying an existing user record, the username field is enforced as
+        read-only to prevent downstream data integrity issues.
+        """
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj and 'username' not in readonly_fields:
+            readonly_fields = readonly_fields + ('username',)
+
+        # Allow username editing during user creation
+        return readonly_fields
 
     @admin.display(description='Status')
     def get_status(self, obj):

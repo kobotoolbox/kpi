@@ -5,7 +5,7 @@ from rest_framework import authentication, exceptions, permissions
 from kobo.apps.kobo_scim.models import IdentityProvider
 
 
-class SCIMAuthentication(authentication.BaseAuthentication):
+class ScimAuthentication(authentication.BaseAuthentication):
     """
     SCIM API Key Authentication.
     Validates a Bearer token against the `scim_api_key` field of active

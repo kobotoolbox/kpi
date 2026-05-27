@@ -1,25 +1,31 @@
 import './tableColumnSortDropdown.scss'
 
 import React from 'react'
+import { useState } from 'react'
 
-import classNames from 'classnames'
-import KoboDropdown from '#/components/common/koboDropdown'
+import { Group } from '@mantine/core'
+import Menu from '#/components/common/Menu'
+import Icon from '#/components/common/icon'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'
 import type { AssetResponse } from '#/dataInterface'
-
-const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 interface TableColumnSortDropdownProps {
   asset: AssetResponse
   /** one of table columns */
   fieldId: string
+  isAudioQuestionColumn?: boolean
+  isTranscriptColumn?: boolean
   sortValue: SortValues | null
   onSortChange: (fieldId: string, sortValue: SortValues | null) => void
   onHide: (fieldId: string) => void
   isFieldFrozen: boolean
   onFrozenChange: (fieldId: string, isFrozen: boolean) => void
+  onTranscribeSelectedAudioFiles?: (fieldId: string) => void
+  onTranslateSelectedTranscriptions?: (fieldId: string) => void
+  isBulkProcessingDisabled?: boolean
   /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
@@ -29,42 +35,35 @@ interface TableColumnSortDropdownProps {
 }
 
 /**
- * A wrapper around KoboDropdown to be used in table header to sort columns.
+ * A dropdown used in table header to sort and manage columns.
  */
 export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
+
+  const canTranscribeSelectedAudioFiles =
+    isBulkProcessingFeatureEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
+  const canTranslateSelectedTranscriptions =
+    isBulkProcessingFeatureEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
+  const shouldRenderBulkProcessingButtons = canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions
+
   function renderTrigger() {
-    const sortIcon = ['k-icon']
+    let sortIconName: 'sort-ascending' | 'sort-descending' | null = null
     if (props.sortValue && props.sortValue === SortValues.ASCENDING) {
-      sortIcon.push('k-icon-sort-ascending')
+      sortIconName = 'sort-ascending'
     }
     if (props.sortValue && props.sortValue === SortValues.DESCENDING) {
-      sortIcon.push('k-icon-sort-descending')
+      sortIconName = 'sort-descending'
     }
 
     return (
       <div className='table-column-sort-dropdown-trigger' dir='auto'>
         {props.additionalTriggerContent}
-        {props.sortValue && <i className={sortIcon.join(' ')} />}
-        <i className='k-icon k-icon-caret-up' />
-        <i className='k-icon k-icon-caret-down' />
+        {sortIconName && <Icon name={sortIconName} size='inherit' />}
+        {isMenuOpen && <Icon name='caret-up' size='inherit' />}
+        {!isMenuOpen && <Icon name='caret-down' size='inherit' />}
       </div>
     )
-  }
-
-  function clearSort() {
-    props.onSortChange(props.fieldId, null)
-  }
-
-  function changeSort(sortValue: SortValues, evt: React.MouseEvent<HTMLButtonElement>) {
-    const eventTarget = evt.target as HTMLButtonElement
-
-    // When clicking on clear icon button, we need to avoid triggering also the
-    // change sort button. We can't use `stopPropagation` on `clearSort` as it
-    // breaks `onMenuClick` functionality.
-    if (eventTarget?.classList?.contains(CLEAR_BUTTON_CLASS_NAME)) {
-      return
-    }
-    props.onSortChange(props.fieldId, sortValue)
   }
 
   function hideField() {
@@ -75,68 +74,120 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     props.onFrozenChange(props.fieldId, isFrozen)
   }
 
+  function transcribeSelectedAudioFiles() {
+    props.onTranscribeSelectedAudioFiles?.(props.fieldId)
+  }
+
+  function translateSelectedTranscriptions() {
+    props.onTranslateSelectedTranscriptions?.(props.fieldId)
+  }
+
   function renderSortButton(buttonSortValue: SortValues) {
     return (
-      <button
-        className={classNames({
-          'sort-dropdown-menu-button': true,
-          'sort-dropdown-menu-button--active': props.sortValue === buttonSortValue,
-        })}
-        onClick={(evt) => {
-          changeSort(buttonSortValue, evt)
-        }}
-      >
-        {buttonSortValue === SortValues.ASCENDING && [
-          <i key='0' className='k-icon k-icon-sort-ascending' />,
-          <span key='1'>{t('Sort A→Z')}</span>,
-        ]}
-        {buttonSortValue === SortValues.DESCENDING && [
-          <i key='0' className='k-icon k-icon-sort-descending' />,
-          <span key='1'>{t('Sort Z→A')}</span>,
-        ]}
+      <Group gap='xxs'>
+        <Menu.Item
+          flex={1}
+          fw={props.sortValue === buttonSortValue ? '800' : undefined}
+          onClick={() => {
+            props.onSortChange(props.fieldId, buttonSortValue)
+          }}
+          leftSection={
+            buttonSortValue === SortValues.ASCENDING ? (
+              <Icon name='sort-ascending' size='inherit' />
+            ) : (
+              <Icon name='sort-descending' size='inherit' />
+            )
+          }
+        >
+          {buttonSortValue === SortValues.ASCENDING && t('Sort A→Z')}
+          {buttonSortValue === SortValues.DESCENDING && t('Sort Z→A')}
+        </Menu.Item>
 
         {props.sortValue === buttonSortValue && (
-          <i onClick={clearSort} className={classNames('k-icon', 'k-icon-close', CLEAR_BUTTON_CLASS_NAME)} />
+          <Menu.Item
+            w='auto'
+            onClick={() => {
+              props.onSortChange(props.fieldId, null)
+            }}
+            aria-label={t('Clear sort')}
+          >
+            {/* make it block to not misalign in the layout */}
+            <Icon name='close' style={{ display: 'block' }} />
+          </Menu.Item>
         )}
-      </button>
+      </Group>
     )
   }
 
   return (
-    <KoboDropdown
-      hideOnMenuClick
-      name='table-column-sort'
-      triggerContent={renderTrigger()}
-      menuContent={
-        <React.Fragment>
+    <div className='table-column-sort-dropdown'>
+      <Menu closeOnItemClick offset={0} onOpen={() => setIsMenuOpen(true)} onClose={() => setIsMenuOpen(false)}>
+        <Menu.Target>
+          <button type='button' className='table-column-sort-dropdown-trigger-button'>
+            {renderTrigger()}
+          </button>
+        </Menu.Target>
+
+        <Menu.Dropdown>
           {renderSortButton(SortValues.ASCENDING)}
           {renderSortButton(SortValues.DESCENDING)}
 
-          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-            <button className='sort-dropdown-menu-button' onClick={hideField}>
-              <i className='k-icon k-icon-hide' />
-              <span>{t('Hide field')}</span>
-            </button>
+          {shouldRenderBulkProcessingButtons && (
+            <>
+              <Menu.Divider />
+
+              {canTranscribeSelectedAudioFiles && (
+                <Menu.Item
+                  className='sort-dropdown-menu-button'
+                  disabled={props.isBulkProcessingDisabled}
+                  onClick={transcribeSelectedAudioFiles}
+                  leftSection={<Icon name='qt-audio' size='inherit' />}
+                >
+                  {t('Transcribe selected audio files')}
+                </Menu.Item>
+              )}
+
+              {canTranslateSelectedTranscriptions && (
+                <Menu.Item
+                  className='sort-dropdown-menu-button'
+                  disabled={props.isBulkProcessingDisabled}
+                  onClick={translateSelectedTranscriptions}
+                  leftSection={<Icon name='transcripts' size='inherit' />}
+                >
+                  {t('Translate selected transcriptions')}
+                </Menu.Item>
+              )}
+            </>
           )}
+
           {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-            <button
-              className='sort-dropdown-menu-button'
-              onClick={() => {
-                changeFieldFrozen(!props.isFieldFrozen)
-              }}
-            >
-              {props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-unfreeze' />,
-                <span key='1'>{t('Unfreeze field')}</span>,
-              ]}
-              {!props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-freeze' />,
-                <span key='1'>{t('Freeze field')}</span>,
-              ]}
-            </button>
+            <>
+              <Menu.Divider />
+
+              <Menu.Item
+                className='sort-dropdown-menu-button'
+                onClick={hideField}
+                leftSection={<Icon name='hide' size='inherit' />}
+              >
+                {t('Hide field')}
+              </Menu.Item>
+
+              <Menu.Item
+                className='sort-dropdown-menu-button'
+                onClick={() => {
+                  changeFieldFrozen(!props.isFieldFrozen)
+                }}
+                leftSection={
+                  props.isFieldFrozen ? <Icon name='unfreeze' size='inherit' /> : <Icon name='freeze' size='inherit' />
+                }
+              >
+                {props.isFieldFrozen && t('Unfreeze field')}
+                {!props.isFieldFrozen && t('Freeze field')}
+              </Menu.Item>
+            </>
           )}
-        </React.Fragment>
-      }
-    />
+        </Menu.Dropdown>
+      </Menu>
+    </div>
   )
 }

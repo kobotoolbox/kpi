@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                         default=dict,
                         help_text=(
                             'Translation map: '
-                            "{'default': 'Country', 'fr': 'Pays'}"
+                            '{"default": "Country", "fr": "Pays"}'
                         ),
                     ),
                 ),
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                     models.JSONField(
                         blank=True,
                         default=list,
-                        help_text="List of {'name': 'val', 'label': {...}} dicts",
+                        help_text='List of [{"name": "value", "label": "value"}] dicts',
                     ),
                 ),
             ],

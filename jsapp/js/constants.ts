@@ -82,10 +82,7 @@ export const MODAL_TYPES = {
   REPLACE_PROJECT: 'replace-project',
   TABLE_SETTINGS: 'table-settings',
   REST_SERVICES: 'rest-services',
-  FORM_LANGUAGES: 'form-languages',
-  FORM_TRANSLATIONS_TABLE: 'form-translation-table',
   ASSET_TAGS: 'asset-tags',
-  ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
@@ -97,6 +94,15 @@ export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
 })
+
+export const EXTRA_PROJECT_METADATA_FIELD_TYPES = Object.freeze({
+  TEXT: 'text',
+  SINGLE_SELECT: 'single_select',
+  MULTI_SELECT: 'multi_select',
+} as const)
+
+export type ExtraProjectMetadataFieldType =
+  (typeof EXTRA_PROJECT_METADATA_FIELD_TYPES)[keyof typeof EXTRA_PROJECT_METADATA_FIELD_TYPES]
 
 export type UpdateStatesKey = 'UNSAVED_CHANGES' | 'UP_TO_DATE' | 'PENDING_UPDATE' | 'SAVE_FAILED'
 export type UpdateStatesValue = -1 | true | false | 'SAVE_FAILED'
@@ -495,7 +501,7 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name',
 }
 
-export const QUERY_LIMIT_DEFAULT = 5000
+export const QUERY_LIMIT_DEFAULT = 1000
 
 export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   form_media: 50,

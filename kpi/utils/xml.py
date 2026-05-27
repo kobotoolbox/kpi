@@ -3,35 +3,23 @@ from __future__ import annotations
 import re
 from typing import Optional, Union
 from xml.dom import Node
+from xml.dom import minidom
+from xml.etree import ElementTree as ET
 
-from defusedxml import minidom
-from defusedxml.lxml import fromstring
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
-from django_request_cache import cache_for_request
 from lxml import etree
-from shortuuid import ShortUUID
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
-from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
 
-# Goals for the future:
+# Goal for the future: all XML handling is done in this file. No other files
+# import anything from xml, lxml, etc. directly; instead, they import helpers
+# from this file.
 #
-# 1. All XML handling is done in this file. No other files import anything from
-#    xml, lxml, etc. directly; instead, they import helpers from this file.
-#
-# 2. All XML parsing is done by defusedxml. However:
-#     The defusedxml modules are not drop-in replacements of their stdlib
-#     counterparts. The modules only provide functions and classes related to
-#     parsing and loading of XML. For all other features, use the classes,
-#     functions, and constants from the stdlib modules.
-#     (https://github.com/tiran/defusedxml)
-#
-# The imports below are those given as examples by the defusedxml
-# "documentation" (the README), except for correcting a typo in the second
-# import:
-from defusedxml import ElementTree as DET
-from xml.etree import ElementTree as ET
+# As of Python 3.8+ / lxml 4.6.2+, the standard library and lxml XML parsers
+# are hardened against XXE, entity expansion bombs, and external DTD fetching
+# by default, making defusedxml unnecessary for this project (Python 3.12,
+# lxml 5.4).
 
 
 def add_xml_declaration(
@@ -61,50 +49,6 @@ def add_xml_declaration(
     return xml_
 
 
-def check_entities(
-    elementtree: etree.ElementTree,
-    dtd_forbidden: bool = False,
-    entities_forbidden: bool = True
-):
-    """
-    This function is to be used with the lxml library using examples
-    found in the defusedxml library since support for lxml is depreciated
-    Does not return content. This function will only raise exceptions if
-    unaccepted content is contained in the XML.
-    """
-
-    docinfo = elementtree.docinfo
-    if docinfo.doctype:
-        if dtd_forbidden:
-            raise DTDForbiddenException
-        if entities_forbidden:
-            raise EntitiesForbiddenException
-
-    if entities_forbidden:
-        for dtd_entity in docinfo.internalDTD, docinfo.externalDTD:
-            if dtd_entity is None:
-                continue
-            for entity in dtd_entity.interentities():
-                raise EntitiesForbiddenException
-
-
-def check_lxml_fromstring(
-    text: str,
-    base_url: str = None,
-    forbid_dtd: bool = False,
-    forbid_entities: bool = True,
-):
-    """
-    This function is used to replace the `lxml.etree.fromstring` method similarly to
-    defusedxml's replacement for the method.
-    Returns an ElementTree object
-    """
-    rootelement = fromstring(text, base_url=base_url)
-    elementtree = rootelement.getroottree()
-    check_entities(elementtree, forbid_dtd, forbid_entities)
-    return rootelement
-
-
 def edit_submission_xml(
     xml_parsed: 'xml.etree.ElementTree.Element',
     path: str,
@@ -119,26 +63,15 @@ def edit_submission_xml(
 
 
 def fromstring_preserve_root_xmlns(
-    text: str,
-    forbid_dtd: bool = False,
-    forbid_entities: bool = True,
-    forbid_external: bool = True,
+    text: Union[str, bytes],
 ) -> ET.Element:
     """
     Parse an XML string, but leave the default namespace in the `xmlns`
     attribute if the root element has one, and do not use Clark notation
     prefixes on tag names for the default namespace.
-
-    Copied from `defusedxml.common._generate_etree_functions()`, except that
-    the `target` is changed to a custom class. Necessary because
-    `defusedxml.ElementTree.fromstring()`, unlike the standard library
-    `xml.etree.ElementTree.fromstring()`, does not allow specifying a parser.
     """
-    parser = DET.DefusedXMLParser(
+    parser = ET.XMLParser(
         target=OmitDefaultNamespacePrefixTreeBuilder(),
-        forbid_dtd=forbid_dtd,
-        forbid_entities=forbid_entities,
-        forbid_external=forbid_external,
     )
     parser.feed(text)
     return parser.close()
@@ -174,13 +107,19 @@ def get_or_create_element(
     return el
 
 
+def minidom_parsestring(text: Union[str, bytes]) -> minidom.Document:
+    """
+    Thin wrapper so callers don't import minidom directly for parsing.
+    """
+    return minidom.parseString(text)
+
+
 def strip_nodes(
     source: Union[str, bytes],
     nodes_to_keep: list,
     use_xpath: bool = False,
     xml_declaration: bool = False,
     rename_root_node_to: Optional[str] = None,
-    bulk_action_cache_key: str = None,
 ) -> str:
     """
     Returns a stripped version of `source`. It keeps only nodes provided in
@@ -188,124 +127,64 @@ def strip_nodes(
     If `rename_root_node_to` is provided, the root node will be renamed to the
     value of that parameter in the returned XML string.
 
-    A random string can be passed to `bulk_action_cache_key` to get the
-    XPaths only once if calling `strip_nodes()` several times in a loop.
+    When `use_xpath=True`, `nodes_to_keep` must contain full hierarchical
+    paths (e.g. `['group/question', 'simple_q']`). This routes to the faster
+    `_filter_nodes_by_xpaths()` which builds paths incrementally and prunes
+    subtrees early, avoiding per-node `tree.getpath()` calls.
+
+    When `use_xpath=False` (default), `nodes_to_keep` contains plain tag
+    names. The full path of each node is resolved against the submission tree.
     """
     # Force `source` to be bytes in case it contains an XML declaration
     # `etree` does not support strings with xml declarations.
     if isinstance(source, str):
         source = source.encode()
 
-    # Build xml to be parsed
     xml_doc = etree.fromstring(source)
     tree = etree.ElementTree(xml_doc)
     root_element = tree.getroot()
-    root_path = tree.getpath(root_element)
 
-    # `@cache_for_request` uses the parameters of the function it decorates
-    # to generate the key under which the returned value of the function is
-    # stored for cache purpose.
-    # `cache_key` is only there to serve that purpose and ensure
-    # `@cache_for_request` uniqueness.
-    @cache_for_request
-    def get_xpath_matches(cache_key: str):
-        if use_xpath:
-            xpaths_ = []
-            for xpath_ in nodes_to_keep:
-                xpaths_.append(f"/{xpath_.strip('/')}/")
-            return xpaths_
+    if nodes_to_keep and use_xpath:
+        xpath_matches = [f"/{x.strip('/')}/" for x in nodes_to_keep]
+        _filter_nodes_by_xpaths(root_element, xpath_matches)
+    elif nodes_to_keep:
+        root_path = tree.getpath(root_element)
+
+        def remove_root_path(path_: str) -> str:
+            return path_.replace(root_path, '')
 
         xpath_matches = []
-        # Retrieve XPaths of all nodes we need to keep
+        # Retrieve XPaths of all nodes we need to keep.
         for node_to_keep in nodes_to_keep:
             for node in tree.iter(node_to_keep):
                 xpath_match = remove_root_path(tree.getpath(node))
-                # To make a difference between XPaths with same beginning
-                # string, we need to add a trailing slash for later comparison
-                # in `process_node()`.
-                # For example, `subgroup1` would match both `subgroup1/` and
-                # `subgroup11/`, but `subgroup1/` correctly excludes
-                # `subgroup11/`
+                # Add a trailing slash to distinguish `subgroup1/` from
+                # `subgroup11/` during the startswith check below.
                 xpath_matches.append(f'{xpath_match}/')
 
-        return xpath_matches
+        def process_node(node_: etree._Element, xpath_matches_: list):
+            """
+            Recursive bottom-up traversal. Children are processed before their
+            parent so that a matched child can tag its parent as `do_not_delete`
+            before the parent itself is evaluated.
+            """
+            for child in node_.getchildren():
+                process_node(child, xpath_matches_)
 
-    def process_node(node_: etree._Element, xpath_matches_: list):
-        """
-        `process_node()` is a recursive function.
+            node_xpath = remove_root_path(tree.getpath(node_))
 
-        First, it loops through all children of the root element.
-        Then for each child, it loops through its children if any, etc...
-        When all children are processed, it checks whether the node should be
-        removed or not.
+            if (
+                not f'{node_xpath}/'.startswith(tuple(xpath_matches_))
+                and node_.get('do_not_delete') != 'true'
+            ):
+                if node_ != root_element:
+                    node_.getparent().remove(node_)
+            elif node_xpath != '':
+                node_.getparent().set('do_not_delete', 'true')
 
-        The most nested children are processed first in order to know which
-        parents must be kept.
+            if node_.attrib.get('do_not_delete'):
+                del node_.attrib['do_not_delete']
 
-        For example:
-        With `nodes_to_keep = ['question_2', 'question_3']` and this XML:
-        <root>
-          <group>
-              <question_1>Value1</question_1>
-              <question_2>Value2</question_2>
-          </group>
-          <question_3>Value3</question_3>
-        </root>
-
-         Nodes are processed in this order:
-         - `<question_1>`: Removed because not in `nodes_to_keep`
-
-         - `<question_2>`: Kept. Parent node `<group>` is tagged `do_not_delete`
-
-         - `<group>`: Kept even if it is not in `nodes_to_keep` because
-                      it is tagged `do_not_delete` by its child `<question_2>`
-
-         - `<question_3>`: Kept.
-
-        Results:
-        <root>
-          <group>
-              <question_2>Value2</question1>
-          </group>
-          <question3>Value3</question3>
-        </root>
-        """
-        for child in node_.getchildren():
-            process_node(child, xpath_matches_)
-
-        # Get XPath of current node
-        node_xpath = remove_root_path(tree.getpath(node_))
-
-        # If `node_path` does not start with one of the occurrences previously
-        # found, it must be removed.
-        if (
-            not f'{node_xpath}/'.startswith(tuple(xpath_matches_))
-            and node_.get('do_not_delete') != 'true'
-        ):
-            if node_ != root_element:
-                node_.getparent().remove(node_)
-        elif node_xpath != '':
-            # node matches, keep its parent too.
-            node_.getparent().set('do_not_delete', 'true')
-
-        # All children have been processed and `node_` seems to be a parent we
-        # need to keep. Remove `do_not_delete` flag to avoid rendering it in
-        # final xml
-        if node_.attrib.get('do_not_delete'):
-            del node_.attrib['do_not_delete']
-
-    def remove_root_path(path_: str) -> str:
-        return path_.replace(root_path, '')
-
-    if len(nodes_to_keep):
-        # Always sends an unique string to `get_xpath_matches()`
-        # See comments above the function
-        if bulk_action_cache_key is None:
-            cache_key = ShortUUID().random(24)
-        else:
-            cache_key = bulk_action_cache_key
-
-        xpath_matches = get_xpath_matches(cache_key=cache_key)
         process_node(root_element, xpath_matches)
 
     if rename_root_node_to:
@@ -319,15 +198,58 @@ def strip_nodes(
     ).decode()
 
 
-def xml_tostring(el: ET.Element) -> str:
+def xml_tostring(el: ET.Element, **kwargs) -> str:
     """
     Thin wrapper around `ElementTree.tostring()` as a step toward a future
     where all XML handling is done in this file
     """
+    if 'encoding' in kwargs:
+        raise NotImplementedError(
+            'Do not pass an `encoding` argument. The returned encoding is'
+            ' always `unicode`.'
+        )
     # "Use encoding="unicode" to generate a Unicode string (otherwise, a
     # bytestring is generated)."
     # https://docs.python.org/3.10/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring
-    return DET.tostring(el, encoding='unicode')
+    return ET.tostring(el, encoding='unicode', **kwargs)
+
+
+def _filter_nodes_by_xpaths(root: etree._Element, xpath_matches: list) -> None:
+    """
+    Remove from `root` all descendant nodes that are neither a kept node nor
+    an ancestor of a kept node, according to `xpath_matches`.
+
+    Paths are built incrementally during traversal to avoid calling
+    `tree.getpath()` on every node, which is O(depth) per call in lxml.
+    The algorithm is iterative to avoid Python recursion limits on deeply
+    nested XML.
+
+    `xpath_matches` must contain absolute paths with a leading and trailing
+    slash, e.g. `['/group/question/', '/simple_q/']`.
+    """
+    keep_prefixes = tuple(xpath_matches)
+
+    # Pre-compute the set of all ancestor paths so the per-node ancestor check
+    # is O(1) (set lookup) instead of O(N_fields) (linear scan).
+    # For a kept path '/group/question/', the ancestors are '/group/'.
+    ancestor_paths: set = set()
+    for kp in xpath_matches:
+        path = '/'
+        for part in kp.strip('/').split('/')[:-1]:
+            path = f'{path}{part}/'
+            ancestor_paths.add(path)
+
+    # Seed the stack with root's direct children. Root itself is never removed.
+    stack = [(child, root, '/') for child in root]
+    while stack:
+        node, parent, parent_path = stack.pop()
+        node_path = f'{parent_path}{node.tag}/'
+        is_kept = node_path.startswith(keep_prefixes)
+        is_ancestor = not is_kept and node_path in ancestor_paths
+        if not is_kept and not is_ancestor:
+            parent.remove(node)
+        else:
+            stack.extend((child, node, node_path) for child in node)
 
 
 class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
@@ -503,15 +425,20 @@ class XMLFormWithDisclaimer:
         # Order by '-asset_id' to ensure that default is overridden later if
         # an override exists for the same language. See `_get_translations()`
 
-        disclaimers = (
-            FormDisclaimer.objects.annotate(language_code=F('language__code'))
-            .values('language_code', 'message', 'default', 'hidden')
-            .filter(Q(asset__isnull=True) | Q(asset=asset))
-            .order_by('-hidden', '-asset_id', 'language_code')
-        )
+        # Use pre-fetched disclaimers when available (set by XFormListApi for
+        # the formList endpoint) to avoid one query per form.
+        if hasattr(asset, '_cached_disclaimers'):
+            disclaimers = asset._cached_disclaimers
+        else:
+            disclaimers = (
+                FormDisclaimer.objects.annotate(language_code=F('language__code'))
+                .values('language_code', 'message', 'default', 'hidden')
+                .filter(Q(asset__isnull=True) | Q(asset=asset))
+                .order_by('-hidden', '-asset_id', 'language_code')
+            )
 
         if not disclaimers:
-            return
+            return None
 
         return disclaimers
 

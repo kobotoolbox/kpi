@@ -1,6 +1,5 @@
 import React from 'react'
 
-import alertify from 'alertifyjs'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
@@ -9,15 +8,12 @@ import RESTServicesForm from '#/components/RESTServices/RESTServicesForm'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
-import TranslationSettings from '#/components/modalForms/TranslationSettings'
+import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
 import { AssetTagsForm } from '#/components/modalForms/assetTagsForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
-import EncryptForm from '#/components/modalForms/encryptForm'
-import { LibraryAssetForm } from '#/components/modalForms/libraryAssetForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
 import LibraryUploadForm from '#/components/modalForms/libraryUploadForm'
 import ProjectSettings from '#/components/modalForms/projectSettings'
-import TranslationTable from '#/components/modalForms/translationTable'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import TableMediaPreview from '#/components/submissions/tableMediaPreview'
@@ -122,13 +118,10 @@ class BigModal extends React.Component {
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
-        const uid = this.props.params.assetid || this.props.params.uid
-        stores.allAssets.whenLoaded(uid, (asset) => {
-          actions.resources.createSnapshot({
-            asset: asset.url,
-          })
-        })
         this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
+        actions.resources.createSnapshot({
+          asset: this.props.params.assetUrl,
+        })
 
         this.setState({
           title: t('Form Preview'),
@@ -158,21 +151,6 @@ class BigModal extends React.Component {
 
       case MODAL_TYPES.TABLE_SETTINGS:
         this.setModalTitle(t('Table display options'))
-        break
-
-      case MODAL_TYPES.FORM_LANGUAGES:
-        this.setModalTitle(t('Manage Languages'))
-        break
-
-      case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
-        this.setState({
-          title: t('Translations Table'),
-          modalClass: 'modal--large',
-        })
-        break
-
-      case MODAL_TYPES.ENCRYPT_FORM:
-        this.setModalTitle(t('Manage Form Encryption'))
         break
 
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
@@ -258,31 +236,8 @@ class BigModal extends React.Component {
     return null
   }
 
-  /**
-   * @param {string} title
-   * @param {string} message
-   */
-  displaySafeCloseConfirm(title, message) {
-    const dialog = alertify.dialog('confirm')
-    const opts = {
-      title: title,
-      message: message,
-      labels: { ok: t('Close'), cancel: t('Cancel') },
-      onok: pageState.hideModal,
-      oncancel: dialog.destroy,
-    }
-    dialog.set(opts).show()
-  }
-
   onModalClose() {
-    if (
-      this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
-      stores.translations.state.isTranslationTableUnsaved
-    ) {
-      this.displaySafeCloseConfirm(t('Close Translations Table?'), t('You will lose all unsaved changes.'))
-    } else {
-      pageState.hideModal()
-    }
+    pageState.hideModal()
   }
 
   render() {
@@ -362,19 +317,6 @@ class BigModal extends React.Component {
           {this.props.params.type === MODAL_TYPES.TABLE_SETTINGS && <TableSettings asset={this.props.params.asset} />}
           {this.props.params.type === MODAL_TYPES.REST_SERVICES && (
             <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
-          )}
-          {this.props.params.type === MODAL_TYPES.FORM_LANGUAGES && (
-            <TranslationSettings asset={this.props.params.asset} />
-          )}
-          {this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE && (
-            <TranslationTable
-              asset={this.props.params.asset}
-              langString={this.props.params.langString}
-              langIndex={this.props.params.langIndex}
-            />
-          )}
-          {this.props.params.type === MODAL_TYPES.ENCRYPT_FORM && (
-            <EncryptForm asset={this.props.params.asset} assetUid={this.props.params.assetUid} />
           )}
           {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
             <BulkEditSubmissionsForm

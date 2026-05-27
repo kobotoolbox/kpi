@@ -1,4 +1,10 @@
-from django.db import models
+import hashlib
+import json
+
+from django.db import models, transaction
+from django.db.models import Q
+from django.utils import timezone
+from kpi.utils.log import logging
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
@@ -95,7 +101,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     'question_supplemental_data': question_supplemental_data,
                 }
                 action = feature.to_action(prefetched_dependencies)
-                action.check_limits(asset.owner)
+                action.check_limits(asset.owner, action_data)
 
                 if not (
                     action_supplemental_data := action.revise_data(
@@ -277,4 +283,293 @@ class QuestionAdvancedFeature(models.Model):
             params=self.params,
             asset=self.asset,
             prefetched_dependencies=prefetched_dependencies,
+        )
+
+
+class BulkActionStatus(models.TextChoices):
+    """
+    Represents the lifecycle status of a batch job
+
+    Note: There is no 'failed' status at the parent level. Only individual
+    BulkActionItems can be 'failed'. A parent job is marked as 'complete'
+    once all constituent items have reached a terminal state (complete,
+    failed, or cancelled).
+    """
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    COMPLETE = 'complete'
+    CANCELLED = 'cancelled'
+
+
+class BulkActionItemStatus(models.TextChoices):
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    COMPLETE = 'complete'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
+
+
+class SubsequenceBulkAction(AbstractTimeStampedModel):
+    uid = KpiUidField(uid_prefix='sba', primary_key=True)
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='subsequence_bulk_actions',
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=BulkActionStatus.choices,
+        default=BulkActionStatus.PENDING,
+        db_index=True,
+    )
+    action_id = models.CharField(
+        max_length=60,
+        choices=Action.choices,
+        db_index=True,
+    )
+    question_xpath = models.CharField(max_length=2000)
+    params = LazyDefaultJSONBField(default=dict)
+    # Uses a denormalized username string, similar to `Asset.created_by`,
+    # instead of a foreign key so job records remain intact through user
+    # lifecycle changes and are inexpensive to render.
+    created_by = models.CharField(max_length=150, db_index=True)
+    cancelled_by = models.CharField(
+        max_length=150,
+        db_index=True,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ['-date_created']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_status = self.status
+
+    @staticmethod
+    def make_params_hash(params: dict) -> str:
+        """
+        Generates a deterministic SHA-256 hash from a dictionary of parameters
+
+        To ensure idempotency, parameters are sorted by key before serialization
+        so that identical settings always produce the same hash, regardless of
+        dictionary order.
+        """
+        params_json = json.dumps(params, sort_keys=True, separators=(',', ':'))
+        return hashlib.sha256(params_json.encode()).hexdigest()
+
+    @classmethod
+    def create_with_items(
+        cls,
+        *,
+        asset,
+        action_id: str,
+        question_xpath: str,
+        params: dict,
+        created_by: str,
+        submission_root_uuids: list[str],
+        status: str = BulkActionStatus.PENDING,
+    ) -> 'SubsequenceBulkAction':
+        """
+        Orchestrates the atomic creation of a bulk action and its constituent items
+
+        This method wraps the creation of the parent `SubsequenceBulkAction` and all
+        related `SubsequenceBulkActionItem` rows in a single database transaction.
+        If any child item violates the uniqueness constraint, the entire transaction
+        is rolled back to prevent partial or duplicate records.
+        """
+        if not submission_root_uuids:
+            raise ValueError('A bulk action must target at least one submission.')
+
+        params_hash = cls.make_params_hash(params)
+
+        with transaction.atomic():
+            parent = cls.objects.create(
+                asset=asset,
+                action_id=action_id,
+                question_xpath=question_xpath,
+                params=params,
+                created_by=created_by,
+                status=status,
+            )
+            SubsequenceBulkActionItem.objects.bulk_create(
+                [
+                    SubsequenceBulkActionItem(
+                        parent=parent,
+                        submission_root_uuid=submission_root_uuid,
+                        action_id=action_id,
+                        question_xpath=question_xpath,
+                        status=status,
+                        hash=params_hash,
+                    )
+                    for submission_root_uuid in submission_root_uuids
+                ]
+            )
+        return parent
+
+    def _propagate_status_to_items(self):
+        """
+        Synchronizes the status of non-terminal child items with the parent job
+
+        When a parent job moves to 'in_progress', pending items are also moved
+        to 'in_progress'. When a parent is 'cancelled', all active children are
+        cancelled. Items already in a terminal state (complete, failed) are
+        never modified.
+        """
+        if self.status == BulkActionStatus.IN_PROGRESS:
+            self.items.filter(status=BulkActionItemStatus.PENDING).update(
+                status=BulkActionItemStatus.IN_PROGRESS,
+                date_modified=timezone.now(),
+            )
+        elif self.status == BulkActionStatus.CANCELLED:
+            self.items.filter(
+                status__in=[
+                    BulkActionItemStatus.PENDING,
+                    BulkActionItemStatus.IN_PROGRESS,
+                ]
+            ).update(
+                status=BulkActionItemStatus.CANCELLED,
+                date_modified=timezone.now(),
+            )
+
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        is_new = self._state.adding
+        should_sync_items = update_fields is None or 'status' in update_fields
+        previous_status = self._original_status
+
+        with transaction.atomic():
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
+            if should_sync_items and not is_new and previous_status != self.status:
+                self._propagate_status_to_items()
+
+        if should_sync_items:
+            self._original_status = self.status
+
+    def cancel(self, *, cancelled_by: str | None = None) -> 'SubsequenceBulkAction':
+        """
+        Cancels the bulk action job and propagates cancellation to all eligible
+        child items
+
+        Database state transitions are performed atomically. Failures during
+        external Google cancellation requests are logged and do not roll back
+        the database transaction.
+        """
+        with transaction.atomic():
+            locked = type(self).objects.select_for_update().get(pk=self.pk)
+            if locked.status in [BulkActionStatus.CANCELLED, BulkActionStatus.COMPLETE]:
+                self.refresh_from_db()
+                return self
+
+            in_progress_items = list(
+                locked.items.filter(
+                    status=BulkActionItemStatus.IN_PROGRESS,
+                ).exclude(
+                    service_id__isnull=True,
+                ).exclude(
+                    service_id='',
+                )
+            )
+
+            locked.status = BulkActionStatus.CANCELLED
+            update_fields = ['status', 'date_modified']
+            if cancelled_by and locked.cancelled_by != cancelled_by:
+                locked.cancelled_by = cancelled_by
+                update_fields.append('cancelled_by')
+            locked.save(update_fields=update_fields)
+
+        for item in in_progress_items:
+            try:
+                item.cancel_external_operation()
+            except Exception:
+                logging.exception(
+                    'Failed to cancel bulk action external operation for '
+                    f'{locked.uid=}, {item.uid=}, {item.service_id=}'
+                )
+
+        self.refresh_from_db()
+        return self
+
+
+class SubsequenceBulkActionItem(AbstractTimeStampedModel):
+    uid = KpiUidField(uid_prefix='sbai', primary_key=True)
+    parent = models.ForeignKey(
+        SubsequenceBulkAction,
+        related_name='items',
+        on_delete=models.CASCADE,
+    )
+    submission_root_uuid = models.CharField(max_length=249, db_index=True)
+    action_id = models.CharField(
+        max_length=60,
+        choices=Action.choices,
+        db_index=True,
+    )
+    question_xpath = models.CharField(max_length=2000)
+    status = models.CharField(
+        max_length=20,
+        choices=BulkActionItemStatus.choices,
+        default=BulkActionItemStatus.PENDING,
+        db_index=True,
+    )
+    hash = models.CharField(max_length=64, db_index=True)
+    service_id = models.CharField(max_length=2048, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    'action_id',
+                    'submission_root_uuid',
+                    'question_xpath',
+                    'hash',
+                ],
+                condition=Q(
+                    status__in=[
+                        BulkActionItemStatus.PENDING,
+                        BulkActionItemStatus.IN_PROGRESS,
+                    ]
+                ),
+                name='uniq_active_bulk_job_item_per_submission_action',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.hash and self.parent_id:
+            self.hash = self.parent.make_params_hash(self.parent.params)
+        super().save(*args, **kwargs)
+
+    def cancel_external_operation(self) -> None:
+        if not self.service_id:
+            return
+
+        service = self._get_external_service()
+        service.cancel_google_operation(self.service_id)
+
+    def _get_external_service(self):
+        from .integrations.google.google_transcribe import GoogleTranscriptionService
+        from .integrations.google.google_translate import GoogleTranslationService
+
+        service_class_by_action = {
+            Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: GoogleTranscriptionService,
+            Action.AUTOMATIC_GOOGLE_TRANSLATION: GoogleTranslationService,
+        }
+        service_class = service_class_by_action.get(self.action_id)
+        if service_class is None:
+            raise ValueError(
+                f'No external service registered for action_id={self.action_id}'
+            )
+        return service_class(
+            submission={SUBMISSION_UUID_FIELD: self.submission_root_uuid},
+            asset=self.parent.asset,
         )

@@ -38,4 +38,5 @@ export interface UserReportsListResponse {
   account_restricted: boolean
   asset_count: number
   active_project_count: number
+  last_updated: string
 }

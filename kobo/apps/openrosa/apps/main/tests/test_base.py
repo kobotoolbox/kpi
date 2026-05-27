@@ -23,6 +23,8 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
+from kpi.fields import KpiUidField
+from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_database_user
 
 
@@ -95,7 +97,30 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         with open(path, 'rb') as f:
             xls_file = ContentFile(f.read(), name=os.path.basename(path))
 
-        return publish_xls_form(xls_file, self.user)
+        xform = publish_xls_form(xls_file, self.user)
+        # Permissions are resolved through the KPI asset, so we need a saved asset
+        # with a simulated deployment to populate `_deployment_data`.
+        asset = xform.asset
+        asset.date_deployed = timezone.now()
+        asset.uid = KpiUidField.generate_unique_id('a')
+        asset._deployment_data = {
+            'active': True,
+            'backend': 'mock',
+            'version': KpiUidField.generate_unique_id('v'),
+            'backend_response': {
+                'hash': calculate_hash(path, prefix=True),
+                'uuid': xform.uuid,
+                'formid': xform.pk,
+                'id_string': xform.id_string,
+                'kpi_asset_uid': asset.uid,
+            },
+        }
+        asset.deployment.store_data(asset._deployment_data)
+        asset.save()
+        xform.kpi_asset_uid = asset.uid
+        # Bypass save() to avoid
+        XForm.objects.filter(pk=xform.pk).update(kpi_asset_uid=asset.uid)
+        return xform
 
     def _publish_xlsx_file(self):
         path = os.path.join(self.this_directory, 'fixtures', 'exp.xlsx')
@@ -111,9 +136,9 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         self.xform = XForm.objects.order_by('pk').reverse()[0]
         assert self.xform.pk == xform.pk
         # uid can be repeated, so we use the xform's pk
-        self.xform.asset.save()
-        self.xform.kpi_asset_uid = self.xform.asset.uid
-        self.xform.save()
+        # self.xform.asset.save()
+        # self.xform.kpi_asset_uid = self.xform.asset.uid
+        # self.xform.save()
 
     def _share_form_data(self, id_string='transportation_2011_07_25'):
         xform = XForm.objects.get(id_string=id_string)

@@ -9,7 +9,6 @@ import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import type { AnyRowTypeName, AssetTypeName } from '#/constants'
-import { QuestionTypeName } from '#/constants'
 import {
   ACCESS_TYPES,
   ASSET_TYPES,
@@ -17,6 +16,7 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   QUESTION_TYPES,
+  QuestionTypeName,
   RANK_LEVEL_TYPE,
   ROOT_URL,
   SCORE_ROW_TYPE,
@@ -24,7 +24,6 @@ import {
   XML_VALUES_OPTION_VALUE,
 } from '#/constants'
 import type {
-  AnalysisFormJsonField,
   AssetContent,
   AssetResponse,
   PermissionResponse,
@@ -37,7 +36,11 @@ import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
+import { ActionIdEnum } from './api/models/actionIdEnum'
 import type { Asset } from './api/models/asset'
+import type { AssetMinimalList } from './api/models/assetMinimalList'
+import type { BulkActionResponse } from './api/models/bulkActionResponse'
+import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -169,7 +172,9 @@ interface DisplayNameObj {
  * containing final name and all useful data. Most of the times you should use
  * `getAssetDisplayName(…).final`.
  */
-export function getAssetDisplayName(asset?: Asset | AssetResponse | ProjectViewAsset): DisplayNameObj {
+export function getAssetDisplayName(
+  asset?: Asset | AssetResponse | ProjectViewAsset | AssetMinimalList,
+): DisplayNameObj {
   const emptyName = t('untitled')
 
   const output: DisplayNameObj = {
@@ -485,12 +490,21 @@ export function renderQuestionTypeIcon(
 }
 
 /**
- * Injects supplemental details columns next to their respective source rows in
- * a given list of rows. Returns a new updated `rows` list.
+ * Injects supplemental details columns next to their respective source rows in a given list of rows.
+ * Returns a new updated `rows` list.
  *
  * Note: we omit injecting `qualNote` questions.
+ *
+ * @param asset
+ * @param rows - The list of base columns
+ * @param virtualSupplementalFields - Optional array of additional supplemental fields that are not present in
+ * the submission (yet) but we want them to appear in the UI (e.g. from ongoing unfinished bulk processing)
  */
-export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows: Set<string> | Array<string>) {
+export function injectSupplementalRowsIntoListOfRows(
+  asset: AssetResponse,
+  rows: Set<string> | Array<string>,
+  virtualSupplementalFields?: Array<{ source: string; dtpath: string; type: string }>,
+) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -504,16 +518,25 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
   // Step 3: use the list of additional columns (with data), that was generated
   // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || []
-  const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {}
-  additionalFields.forEach((field: AnalysisFormJsonField) => {
+
+  // Include the additional virtual fields, ensuring there are no duplicates
+  const existingDtpaths = new Set(additionalFields.map((f) => f.dtpath))
+  const uniqueVirtualFields = (virtualSupplementalFields || []).filter(
+    (virtualField) => !existingDtpaths.has(virtualField.dtpath),
+  )
+
+  const allSupplementalFields = [
     // Note questions make sense only in the context of writing responses to
     // Qualitative Analysis questions. They bear no data, so there is no point
     // displaying them outside of Single Processing route. As this function is
     // part of Data Table and Data Downloads, we need to hide the notes.
-    if (field.type === QUAL_NOTE_TYPE) {
-      return
-    }
+    // Merge real and virtual supplemental fields
+    ...additionalFields.filter((field) => field.type !== QUAL_NOTE_TYPE),
+    ...(uniqueVirtualFields || []),
+  ]
 
+  const extraColsBySource: Record<string, Array<{ source: string; dtpath: string; type: string }>> = {}
+  allSupplementalFields.forEach((field) => {
     const sourceName: string = field.source
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = []
@@ -527,6 +550,13 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
     outputWithCols.push(col)
     ;(extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
+
+      // Qual source and verified data are kept in a qual-id-based key, rather than in the source question key
+      ;(extraColsBySource[extraCol.dtpath] || []).forEach((qaCol) => {
+        if (qaCol.type === 'qualVerification') {
+          outputWithCols.push(`_supplementalDetails/${qaCol.dtpath}`)
+        }
+      })
     })
   })
 
@@ -645,6 +675,43 @@ export function removeInvalidChars(str: string) {
  */
 export function hasBackgroundAudioEnabled(surveyRow: SurveyRow[]) {
   return surveyRow.some((question) => question.type === QuestionTypeName['background-audio'])
+}
+
+/**
+ * Utility to build virtual supplemental fields for bulk processing columns.
+ * Always returns dtpath as a relative path (no prefix).
+ *
+ * @param bulkActions - Array of bulk action objects
+ * @returns Array of { dtpath, source, type }
+ */
+export function getVirtualSupplementalFieldsForBulkActions(
+  bulkActions?: BulkActionResponse[],
+): Array<{ dtpath: string; source: string; type: string }> {
+  if (!Array.isArray(bulkActions) || bulkActions.length === 0) return []
+
+  const result: Array<{ dtpath: string; source: string; type: string }> = []
+  for (const bulkAction of bulkActions) {
+    let key = getBulkProcessingColumnKey(bulkAction)
+    if (!key) continue
+    // Remove prefix if present
+    if (key.startsWith(`${SUPPLEMENTAL_DETAILS_PROP}/`)) {
+      key = key.slice(`${SUPPLEMENTAL_DETAILS_PROP}/`.length)
+    }
+    let type: string
+    if (bulkAction.action_id === ActionIdEnum.automatic_google_transcription) {
+      type = 'transcript'
+    } else if (bulkAction.action_id === ActionIdEnum.automatic_google_translation) {
+      type = 'translation'
+    } else {
+      type = 'processing'
+    }
+    result.push({
+      dtpath: key,
+      source: bulkAction.question_xpath,
+      type,
+    })
+  }
+  return result
 }
 
 export default {

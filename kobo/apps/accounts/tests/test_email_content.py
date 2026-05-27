@@ -144,15 +144,13 @@ class EmailContentModelTestCase(TestCase):
             'username': username,
         }
         default_subject = 'Activate your KoboToolbox Account'
-        default_greeting = 'Thanks for signing up with KoboToolbox!'
+        default_greeting = 'Welcome to KoboToolbox!'
         default_body = (
-            'Confirming your account will give you access to '
-            'KoboToolbox applications. Please visit the following '
-            'URL to finish activation of your new account.'
+            'To get started, please activate your account by clicking the link below:'
         )
         default_closing = (
-            'For help getting started, check out the KoboToolbox '
-            'user documentation: https://support.kobotoolbox.com'
+            'To get the most out of KoboToolbox, check out the following resources '
+            'and join the community:'
         )
         request = self.client.post(self.signup_url, data)
         user = get_user_model().objects.get(email=email)
@@ -164,4 +162,4 @@ class EmailContentModelTestCase(TestCase):
         assert default_greeting in mail.outbox[0].body
         assert default_body in mail.outbox[0].body
         assert default_closing in mail.outbox[0].body
-        assert 'Best,\nKoboToolbox' in mail.outbox[0].body
+        assert 'Thanks for signing up!\nThe KoboToolbox Team' in mail.outbox[0].body

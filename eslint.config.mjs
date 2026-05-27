@@ -181,6 +181,65 @@ const tsConfig = {
 
     // hmm why it was like this before? let's remove.
     'prefer-spread': 1,
+
+    // Enforce using Kobo wrappers instead of raw Mantine components
+    'no-restricted-imports': [
+      1,
+      {
+        paths: [
+          {
+            name: '@mantine/core',
+            importNames: ['ActionIcon'],
+            message: "Use ActionIcon from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Alert'],
+            message: "Use Alert from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Autocomplete'],
+            message: "Use Autocomplete from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Button'],
+            message: "Use ButtonNew from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Menu'],
+            message: "Use Menu from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Modal'],
+            message: "Use ModalNew from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Notification'],
+            message: "Use Notification from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Select'],
+            message: "Use Select from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['Textarea'],
+            message: "Use Textarea from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['TextInput'],
+            message: "Use TextInput from 'jsapp/js/components/common' instead.",
+          },
+        ],
+      },
+    ],
   },
 }
 
@@ -323,7 +382,6 @@ const biomeConfig = {
     'no-redeclare': 'off', // noRedeclare
     'no-regex-spaces': 'off', // noMultipleSpacesInRegularExpressionLiterals
     'no-restricted-globals': 'off', // noRestrictedGlobals
-    'no-restricted-imports': 'off', // noRestrictedImports
     'no-self-assign': 'off', // noSelfAssign
     'no-self-compare': 'off', // noSelfCompare
     'no-sequences': 'off', // noCommaOperator

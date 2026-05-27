@@ -14,7 +14,7 @@ interface ProjectBulkActionsProps {
 }
 
 function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
-  return assets.every((asset) => userCan('manage_asset', asset))
+  return assets.every((asset) => userCan('delete_asset', asset))
 }
 
 /**

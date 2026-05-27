@@ -1,5 +1,5 @@
 import os
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.core.exceptions import SuspiciousOperation
 from django.test import TestCase, override_settings
@@ -41,6 +41,26 @@ class LongRunningMigrationTestCase(TestCase):
         migration.execute()
         migration.refresh_from_db()
         self.assertEqual(migration.status, LongRunningMigrationStatus.FAILED)
+
+    def test_retry_errors_keep_status_in_progress(self):
+        retry_errors = [
+            'another command is already in progress',
+            'sending query failed',
+            "can't change 'autocommit' now",
+            'connection in transaction status ACTIVE',
+            "can't change 'autocommit' now: connection in transaction status ACTIVE",
+        ]
+        migration = LongRunningMigration.objects.create(name='sample_task')
+        for error_message in retry_errors:
+            with self.subTest(error_message=error_message):
+                migration.status = LongRunningMigrationStatus.CREATED
+                migration.save(update_fields=['status'])
+                mock_module = MagicMock()
+                mock_module.run.side_effect = Exception(error_message)
+                with patch.object(migration, '_load_module', return_value=mock_module):
+                    migration.execute()
+                migration.refresh_from_db()
+                assert migration.status == LongRunningMigrationStatus.IN_PROGRESS
 
     def test_not_updated_worker(self):
         # simulate not updated worker with a wrong name

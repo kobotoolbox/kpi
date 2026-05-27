@@ -8,7 +8,7 @@ import debounce from 'lodash.debounce'
 import last from 'lodash.last'
 import DocumentTitle from 'react-document-title'
 import Markdown from 'react-markdown'
-import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
+import { useBeforeUnload, useBlocker } from 'react-router-dom'
 import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
@@ -77,15 +77,9 @@ const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html'
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?')
-/** Use usePrompt directly instead for functional components */
-const Prompt = () => {
-  usePrompt({ when: true, message: UNSAVED_CHANGES_WARNING })
-  return <></>
-}
-
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside'
 const LOCKING_SUPPORT_URL = 'library_locking.html'
-const RECORDING_SUPPORT_URL = 'recording-interviews.html'
+const RECORDING_SUPPORT_URL = 'recording-interviews.html#recording-interviews-with-background-audio-recordings'
 
 interface LaunchAppData {
   name: string
@@ -259,6 +253,16 @@ export default function EditableForm(props: EditableFormProps) {
       state.preventNavigatingOut && currentLocation.pathname !== nextLocation.pathname,
   )
 
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      if (window.confirm(UNSAVED_CHANGES_WARNING)) {
+        blocker.proceed()
+      } else {
+        blocker.reset()
+      }
+    }
+  }, [blocker])
+
   function loadAsideSettings() {
     const asideSettings = sessionStorage.getItem(ASIDE_CACHE_NAME)
     if (asideSettings) {
@@ -379,8 +383,8 @@ export default function EditableForm(props: EditableFormProps) {
     }
 
     let surveyJSON = surveyToValidJson(app?.survey)
-    if (state.asset?.content) {
-      surveyJSON = unnullifyTranslations(surveyJSON, state.asset.content)
+    if (app?.survey._initialParams?.translations_0) {
+      surveyJSON = unnullifyTranslations(surveyJSON, app.survey._initialParams)
     }
     let params: KoboMatrixParserParams & { asset?: string } = { source: surveyJSON }
 
@@ -427,11 +431,12 @@ export default function EditableForm(props: EditableFormProps) {
     }
 
     let surveyJSON = surveyToValidJson(app.survey)
-    if (state.asset?.content) {
-      const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
-      if (surveyJSONWithMatrix) {
-        surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, state.asset.content)
-      }
+    const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
+    if (surveyJSONWithMatrix) {
+      surveyJSON = surveyJSONWithMatrix
+    }
+    if (app.survey._initialParams?.translations_0) {
+      surveyJSON = unnullifyTranslations(surveyJSON, app.survey._initialParams)
     }
     // We normally have `content` as an actual object, not a stringified representation, but since
     // `actions.resources.updateAsset` already works with JSON string, let's extend the types
@@ -615,7 +620,7 @@ export default function EditableForm(props: EditableFormProps) {
 
     try {
       if (assetContent) {
-        survey = dkobo_xlform.model.Survey.loadDict(assetContent)
+        survey = dkobo_xlform.model.Survey.loadDict(clonedeep(assetContent))
         if (newState.files && newState.files.length > 0) {
           survey.availableFiles = newState.files
         }
@@ -1207,13 +1212,6 @@ export default function EditableForm(props: EditableFormProps) {
   return (
     <DocumentTitle title={`${docTitle} | KoboToolbox`}>
       <>
-        {
-          /*
-            TODO: Try to fix quirks that arise from this <Prompt/> usage
-            Issue: https://github.com/kobotoolbox/kpi/issues/4154
-          */
-          state.preventNavigatingOut && <Prompt />
-        }
         <div className='form-builder-wrapper'>
           {renderAside()}
 

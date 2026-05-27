@@ -73,12 +73,26 @@ interface LoadAssetCompletedDefinition extends Function {
 interface DeleteAssetDefinition extends Function {
   (details: { uid: string; assetType: string }, params?: { onComplete?: Function; onFail?: function }): void
   completed: DeleteAssetCompletedDefinition
-  failed: GenericFailedDefinition
+  failed: DeleteAssetFailedDefinition
 }
 
 interface DeleteAssetCompletedDefinition extends Function {
   (response: { uid: string; assetType: AssetTypeName }): void
   listen: (callback: (response: { uid: string; assetType: AssetTypeName }) => void) => Function
+}
+
+interface DeleteAssetFailedDefinition extends Function {
+  (response: { uid: string; assetType: string }): void
+  listen: (callback: (response: { uid: string; assetType: string }) => void) => Function
+}
+
+interface DeployAssetFailedDefinition extends Function {
+  (response: FailResponse, redeployment: boolean): void
+  listen: (callback: (response: FailResponse, redeployment: boolean) => void) => Function
+}
+
+interface DeployAssetDefinition extends GenericDefinition {
+  failed: DeployAssetFailedDefinition
 }
 
 export interface UpdateAssetDefinitionParams {
@@ -202,6 +216,17 @@ interface SetAssetPublicFailedDefinition extends Function {
   listen: (callback: (assetUid: string) => void) => Function
 }
 
+interface CopyPermissionsFromCompletedDefinition extends Function {
+  (sourceUid: string, targetUid: string): void
+  listen: (callback: (sourceUid: string, targetUid: string) => void) => Function
+}
+
+interface CopyPermissionsFromDefinition extends Function {
+  (sourceUid: string, targetUid: string): void
+  completed: CopyPermissionsFromCompletedDefinition
+  failed: GenericFailedDefinition
+}
+
 interface RemoveAssetPermissionDefinition extends Function {
   (
     assetUid: string,
@@ -238,7 +263,7 @@ interface ReportsSetCustomDefinition extends Function {
 }
 
 interface ReportsSetCustomCompletedDefinition extends Function {
-  (response: AssetResponse): void
+  (response: AssetResponse, crid: string): void
   listen: (callback: (response: AssetResponse, crid: string) => void) => Function
 }
 
@@ -343,11 +368,10 @@ export declare const actions: {
   survey: {
     addExternalItemAtPosition: SurveyAddExternalItemDefinition
   }
-  search: object
   resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
-    deployAsset: GenericDefinition
+    deployAsset: DeployAssetDefinition
     /** This is "archive" and "unarchive" of asset */
     setDeploymentActive: GenericDefinition
     createSnapshot: GenericDefinition
@@ -386,7 +410,7 @@ export declare const actions: {
   }
   permissions: {
     getConfig: GenericDefinition
-    copyPermissionsFrom: GenericDefinition
+    copyPermissionsFrom: CopyPermissionsFromDefinition
     removeAssetPermission: RemoveAssetPermissionDefinition
     assignAssetPermission: GenericDefinition
     bulkSetAssetPermissions: GenericDefinition

@@ -4,7 +4,6 @@ import io
 import json
 import uuid
 from unittest.mock import patch
-from xml.etree import ElementTree as ET
 
 import responses
 from ddt import data, ddt, unpack
@@ -177,7 +176,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(logs.count(), 1)
         log = logs.first()
         # check the log has the expected fields and metadata
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
         self.assertEqual(log.action, expected_action)
         self._check_common_metadata(log.metadata, expected_subtype)
         return log.metadata
@@ -1014,7 +1013,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(log_query.count(), expected_logs_count)
         form_replace_log = log_query.filter(action=AuditAction.REPLACE_FORM).first()
-        self.assertEqual(form_replace_log.object_id, self.asset.id)
+        self.assertEqual(form_replace_log.object_id, str(self.asset.id))
         self._check_common_metadata(
             form_replace_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
         )
@@ -1101,7 +1100,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_query.count(), 1)
         log = log_query.first()
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
 
     @data(
         ('archive', AuditAction.ARCHIVE),
@@ -1703,7 +1702,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(logs.count(), 1)
         log = logs.first()
         # check the log has the expected fields and metadata
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
         self.assertEqual(log.action, AuditAction.MODIFY_SUBMISSION)
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         submitted_by = username if username is not None else 'AnonymousUser'
@@ -1852,7 +1851,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'formhub': {'uuid': self.asset.deployment.xform.uuid},
             '_uuid': str(uuid_),
         }
-        xml = ET.fromstring(
+        xml = fromstring_preserve_root_xmlns(
             dict2xform(submission_data, self.asset.deployment.xform.id_string)
         )
         xml.tag = self.asset.uid
@@ -1873,7 +1872,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             endpoint,
             kwargs=kwargs,
         )
-        data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
+        data = {
+            'xml_submission_file': SimpleUploadedFile(
+                'name.txt', xml_tostring(xml).encode()
+            )
+        }
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
 
@@ -1894,7 +1897,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(logs.count(), 1)
         log = logs.first()
 
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
         self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         username = (
@@ -2149,8 +2152,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
             llm_info = log_metadata['llm']
             self.assertEqual(llm_info['model'], OSS120.model_id)
-            self.assertEqual(llm_info['input_tokens'], 10)
-            self.assertEqual(llm_info['output_tokens'], 20)
+            self.assertEqual(llm_info['request_id'], '12345')
 
     def test_request_automatic_qa_data_bad_response(self):
         class MockErrorClient:
@@ -2209,17 +2211,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_request_automatic_qa_data_includes_backup_model_if_used(self):
         class MockErrorClient:
             def invoke_model(self, modelId, *args, **kwargs):
-                if modelId == OSS120.model_id:
+                if modelId == OSS120.model_arn:
                     return {'something': 'bad'}
                 else:
                     return {
+                        'ResponseMetadata': {'RequestId': '12345'},
                         'body': io.StringIO(
-                            json.dumps(
-                                get_mock_claude_response(
-                                    text='5', input_tokens=10, output_tokens=20
-                                )
-                            )
-                        )
+                            json.dumps(get_mock_claude_response(text='5'))
+                        ),
                     }
 
         instance, submission = self._add_submission('adminuser')
@@ -2268,8 +2267,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
             llm_info = log_metadata['llm']
             self.assertEqual(llm_info['model'], ClaudeSonnet.model_id)
-            self.assertEqual(llm_info['input_tokens'], 10)
-            self.assertEqual(llm_info['output_tokens'], 20)
+            self.assertEqual(llm_info['request_id'], '12345')
 
     @data(
         # verify? , automatic?, expected action

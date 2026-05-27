@@ -1,0 +1,324 @@
+import React from 'react'
+
+import clonedeep from 'lodash.clonedeep'
+import { when } from 'mobx'
+import autoBind from 'react-autobind'
+import { actions } from '#/actions'
+import { removeInvalidChars } from '#/assetUtils'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import KoboTagsInput from '#/components/common/koboTagsInput'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import TextBox from '#/components/common/textBox'
+import WrappedSelect from '#/components/common/wrappedSelect'
+import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
+import { ASSET_TYPES, type AssetTypeName } from '#/constants'
+import type { AssetResponse, AssetSettings, LabelValuePair } from '#/dataInterface'
+import envStore from '#/envStore'
+import pageState from '#/pageState.store'
+import { withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
+import { getRouteAssetUid, isAnyLibraryRoute } from '#/router/routerUtils'
+import sessionStore from '#/stores/session'
+import { notify } from '#/utils'
+import styles from './LibraryAssetForm.module.scss'
+import ModalBackButton from './ModalBackButton'
+
+interface LibraryAssetFormProps extends WithRouterProps {
+  asset?: AssetResponse
+  assetType?: AssetTypeName
+  onSetModalTitle?: (title: string) => void
+}
+
+interface FormFields {
+  name: string
+  organization: string
+  country: AssetSettings['country']
+  sector: AssetSettings['sector']
+  tags: string
+  description: string
+}
+
+type ExtraMetadataValues = Record<string, string | string[] | null>
+
+interface LibraryAssetFormState {
+  isSessionLoaded: boolean
+  fields: FormFields
+  extraMetadataFields: ExtraMetadataValues
+  isPending: boolean
+}
+
+/**
+ * Modal for creating or updating library asset (collection or template)
+ *
+ * NOTE: We have multiple components with similar form:
+ * - ProjectSettings
+ * - AccountSettingsRoute
+ * - LibraryAssetForm
+ */
+export class LibraryAssetFormComponent extends React.Component<LibraryAssetFormProps, LibraryAssetFormState> {
+  private unlisteners: Function[] = []
+
+  constructor(props: LibraryAssetFormProps) {
+    super(props)
+
+    const { asset } = props
+    const fields: FormFields = {
+      name: asset?.name || '',
+      organization: asset?.settings?.organization || '',
+      country: asset?.settings?.country || null,
+      sector: asset?.settings?.sector || null,
+      tags: asset?.tag_string || '',
+      description: asset?.settings?.description || '',
+    }
+
+    this.state = {
+      isSessionLoaded: !!sessionStore.isLoggedIn,
+      fields,
+      extraMetadataFields: {},
+      isPending: false,
+    }
+    autoBind(this)
+  }
+
+  componentDidMount() {
+    when(
+      () => sessionStore.isInitialLoadComplete,
+      () => {
+        this.setState({ isSessionLoaded: true })
+      },
+    )
+
+    // Load extra metadata field values from asset settings when editing
+    // or seed with null value when creating a new asset
+    const extraMetadataFields: ExtraMetadataValues = {}
+    for (const field of envStore.data.extra_project_metadata_fields) {
+      extraMetadataFields[field.name] = this.props.asset?.settings?.extra_metadata?.[field.name] ?? null
+    }
+    this.setState({ extraMetadataFields })
+
+    this.unlisteners.push(
+      actions.resources.createResource.completed.listen(this.onCreateResourceCompleted.bind(this)),
+      actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this)),
+      actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
+      actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
+    )
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
+  }
+
+  onCreateResourceCompleted(response: AssetResponse) {
+    this.setState({ isPending: false })
+    notify(
+      t('##type## ##name## created')
+        .replace('##type##', this.getFormAssetType() || 'asset')
+        .replace('##name##', response.name),
+    )
+    pageState.hideModal()
+    if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
+      this.props.router.navigate(`/library/asset/${response.uid}`)
+    } else if (this.getFormAssetType() === ASSET_TYPES.template.id) {
+      this.props.router.navigate(`/library/asset/${response.uid}/edit`)
+    }
+  }
+
+  onCreateResourceFailed() {
+    this.setState({ isPending: false })
+    notify(t('Failed to create ##type##').replace('##type##', this.getFormAssetType() || 'asset'), 'error')
+  }
+
+  onUpdateAssetCompleted() {
+    this.setState({ isPending: false })
+    pageState.hideModal()
+  }
+
+  onUpdateAssetFailed() {
+    this.setState({ isPending: false })
+    notify(t('Failed to update ##type##').replace('##type##', this.getFormAssetType() || 'asset'), 'error')
+  }
+
+  onSubmit(evt: React.FormEvent | React.MouseEvent) {
+    evt.preventDefault()
+    this.setState({ isPending: true })
+
+    const settings = JSON.stringify({
+      organization: this.state.fields.organization,
+      country: this.state.fields.country,
+      sector: this.state.fields.sector,
+      description: this.state.fields.description,
+      extra_metadata: this.state.extraMetadataFields,
+    })
+
+    if (this.props.asset) {
+      actions.resources.updateAsset(this.props.asset.uid, {
+        name: this.state.fields.name,
+        settings: settings,
+        tag_string: this.state.fields.tags,
+      })
+    } else {
+      const params: {
+        name: string
+        asset_type: AssetTypeName | undefined
+        settings: string
+        tag_string: string
+        parent?: string
+      } = {
+        name: this.state.fields.name,
+        asset_type: this.getFormAssetType(),
+        settings: settings,
+        tag_string: this.state.fields.tags,
+      }
+
+      const currentAssetUid = getRouteAssetUid()
+      if (currentAssetUid && isAnyLibraryRoute() && params.asset_type !== ASSET_TYPES.collection.id) {
+        const found = managedCollectionsStore.find(currentAssetUid)
+        if (found && found.asset_type === ASSET_TYPES.collection.id) {
+          // when creating from within a collection page, make the new asset
+          // a child of this collection
+          params.parent = found.url
+        }
+      }
+
+      actions.resources.createResource(params)
+    }
+  }
+
+  onAnyFieldChange<K extends keyof FormFields>(fieldName: K, newFieldValue: FormFields[K]) {
+    const fields = clonedeep(this.state.fields)
+    fields[fieldName] = newFieldValue
+    this.setState({ fields: fields })
+  }
+
+  onExtraFieldChange(fieldName: string, newFieldValue: string | string[] | null) {
+    this.setState((prevState) => {
+      return { extraMetadataFields: { ...prevState.extraMetadataFields, [fieldName]: newFieldValue } }
+    })
+  }
+
+  onNameChange(newValue: string) {
+    this.onAnyFieldChange('name', removeInvalidChars(newValue))
+  }
+
+  onDescriptionChange(newValue: string) {
+    this.onAnyFieldChange('description', removeInvalidChars(newValue))
+  }
+
+  /**
+   * @returns existing asset type or desired asset type
+   */
+  getFormAssetType(): AssetTypeName | undefined {
+    return this.props.asset ? this.props.asset.asset_type : this.props.assetType
+  }
+
+  isSubmitEnabled() {
+    return !this.state.isPending
+  }
+
+  getSubmitButtonLabel() {
+    if (this.props.asset) {
+      if (this.state.isPending) {
+        return t('Saving…')
+      } else {
+        return t('Save')
+      }
+    } else if (this.state.isPending) {
+      return t('Creating…')
+    } else {
+      return t('Create')
+    }
+  }
+
+  render() {
+    if (!this.state.isSessionLoaded || !envStore.isReady) {
+      return <LoadingSpinner />
+    }
+
+    const SECTORS: LabelValuePair[] = envStore.data.sector_choices
+    const COUNTRIES: LabelValuePair[] = envStore.data.country_choices
+
+    return (
+      <bem.FormModal__form className={`project-settings ${styles.form}`}>
+        <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
+          <bem.FormModal__item>
+            <TextBox
+              value={this.state.fields.name}
+              onChange={this.onNameChange.bind(this)}
+              label={t('Name')}
+              placeholder={t('Enter title of ##type## here').replace('##type##', this.getFormAssetType() ?? '')}
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item>
+            <TextBox
+              type='text-multiline'
+              value={this.state.fields.description}
+              onChange={this.onDescriptionChange.bind(this)}
+              label={t('Description')}
+              placeholder={t('Enter short description here')}
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item>
+            <TextBox
+              value={this.state.fields.organization}
+              onChange={this.onAnyFieldChange.bind(this, 'organization')}
+              label={t('Organization')}
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item>
+            <WrappedSelect
+              label={t('Primary Sector')}
+              value={this.state.fields.sector}
+              onChange={this.onAnyFieldChange.bind(this, 'sector')}
+              options={SECTORS}
+              isLimitedHeight
+              isClearable
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item>
+            <WrappedSelect
+              label={t('Country')}
+              isMulti
+              value={this.state.fields.country}
+              onChange={this.onAnyFieldChange.bind(this, 'country')}
+              options={COUNTRIES}
+              isLimitedHeight
+              isClearable
+            />
+          </bem.FormModal__item>
+
+          <ExtraProjectMetadataFields values={this.state.extraMetadataFields} onChange={this.onExtraFieldChange} />
+
+          <bem.FormModal__item>
+            <KoboTagsInput
+              tags={this.state.fields.tags}
+              onChange={this.onAnyFieldChange.bind(this, 'tags')}
+              label={t('Tags')}
+            />
+          </bem.FormModal__item>
+        </bem.FormModal__item>
+
+        <bem.Modal__footer>
+          <ModalBackButton isDisabled={this.state.isPending} />
+
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={!this.isSubmitEnabled()}
+            label={this.getSubmitButtonLabel()}
+          />
+        </bem.Modal__footer>
+      </bem.FormModal__form>
+    )
+  }
+}
+
+export const LibraryAssetForm = withRouter(LibraryAssetFormComponent)

@@ -1,0 +1,364 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Translators:
+# Translators:
+# Tselmeg Chuluunbaatar, 2022
+msgid ""
+msgstr ""
+"Project-Id-Version: KoboToolbox\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-11-23 01:27+0000\n"
+"PO-Revision-Date: 2016-03-14 19:56+0000\n"
+"Last-Translator: Tselmeg Chuluunbaatar, 2022\n"
+"Language-Team: Mongolian (Mongolia) (http://www.transifex.com/kobotoolbox/kobotoolbox/language/mn_MN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: mn_MN\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: kobo/apps/hook/tasks.py:148
+msgid "REST Services Failure Report"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:3
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:3
+msgid "Project name"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:4
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:4
+msgid "Hook"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:5
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:5
+msgid "Submission"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:6
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:6
+msgid "Status code"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:7
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:7
+msgid "Message"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:8
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:8
+msgid "Date"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:10
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:10
+msgid "Dear"
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:11
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:12
+msgid "Some submissions could not be sent to their external endpoints."
+msgstr ""
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:37
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:29
+#: kpi/templates/registration/activation_email.txt:12
+msgid "Best,"
+msgstr ""
+
+#: kobo/apps/languages/templates/admin/languages_change_list.html:8
+msgid "Import"
+msgstr ""
+
+#: kobo/apps/mfa/templates/mfa_token.html:21
+msgid "Please enter your verification token"
+msgstr ""
+
+#: kobo/apps/mfa/templates/mfa_token.html:25
+msgid ""
+"Please enter the verification token displayed by your authenticator app."
+msgstr ""
+
+#: kobo/apps/mfa/templates/mfa_token.html:32
+msgid "Problems with the token"
+msgstr ""
+
+#: kobo/apps/mfa/templates/mfa_token.html:37
+msgid "Continue"
+msgstr ""
+
+#: kobo/apps/mfa/templates/mfa_token.html:45
+msgid "Verification issues"
+msgstr ""
+
+#: kobo/apps/mfa/templates/mfa_token.html:53
+msgid "Back"
+msgstr ""
+
+#: kpi/mixins/mfa.py:24
+msgid "Multi-factor authentication is enabled for this account. "
+msgstr ""
+
+#: kpi/templates/base.html:34
+msgid "Terms and Conditions"
+msgstr ""
+
+#: kpi/templates/base.html:37
+msgid "Privacy Policy"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:3 kpi/templates/modern_browsers.html:5
+msgid "Modern Browsers"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:8
+msgid ""
+"Ouch! Sorry, you were probably sent here because your browser is outdated or"
+" perhaps it has its key features disabled by using \"private browsing\" "
+"mode."
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:12
+msgid ""
+"If you are using an outdated browser, we recommend upgrading to a recent "
+"version of one of the following excellent modern browsers:"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:17
+msgid "Firefox download page"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:18
+msgid "Firefox"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:22
+msgid "Chrome download page"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:23
+msgid "Chrome"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:27
+msgid "Edge download page"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:28
+msgid "Edge"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:32
+msgid "Opera download page"
+msgstr ""
+
+#: kpi/templates/modern_browsers.html:33
+msgid "Opera"
+msgstr ""
+
+#: kpi/templates/registration/activate.html:10
+msgid "Activation failed"
+msgstr ""
+
+#: kpi/templates/registration/activate.html:14
+msgid ""
+"Sorry, we couldn't activate your account. The link we sent you has expired."
+msgstr ""
+
+#: kpi/templates/registration/activate.html:18
+msgid "Click here to create a new account"
+msgstr ""
+
+#: kpi/templates/registration/activation_email.txt:2
+msgid "Thanks for signing up with KoboToolbox!"
+msgstr ""
+
+#: kpi/templates/registration/activation_email.txt:4
+msgid ""
+"Confirming your account will give you access to KoboToolbox applications. "
+"Please visit the following URL to finish activation of your new account."
+msgstr ""
+
+#: kpi/templates/registration/activation_email.txt:8
+#| msgid "Username"
+msgid "Your username is: "
+msgstr ""
+
+#: kpi/templates/registration/activation_email.txt:10
+msgid ""
+"Please visit https://community.kobotoolbox.org/ to find information on how "
+"to get started. There you can also post questions to the community "
+"(recommended) or to us directly."
+msgstr ""
+
+#: kpi/templates/registration/activation_email_subject.txt:2
+msgid "Activate your KoboToolbox Account"
+msgstr ""
+
+#: kpi/templates/registration/login.html:12
+msgid "Forgot?"
+msgstr ""
+
+#: kpi/templates/registration/login.html:20
+msgid "Login"
+msgstr ""
+
+#: kpi/templates/registration/login.html:27
+#: kpi/templates/registration/registration_form.html:58
+msgid "or"
+msgstr ""
+
+#: kpi/templates/registration/login.html:27
+msgid "create an account"
+msgstr ""
+
+#: kpi/templates/registration/password_reset_complete.html:11
+msgid "Password reset successfully"
+msgstr ""
+
+#: kpi/templates/registration/password_reset_complete.html:14
+msgid "Log in"
+msgstr ""
+
+#: kpi/templates/registration/password_reset_confirm.html:19
+msgid "Submit"
+msgstr ""
+
+#: kpi/templates/registration/password_reset_confirm.html:22
+msgid "Password reset failed"
+msgstr ""
+
+#: kpi/templates/registration/password_reset_done.html:12
+msgid ""
+"Your request has been received. If the email address you entered corresponds"
+" to an account on this service, a message has been sent with password reset "
+"instructions. If you do not receive an email, your account might be "
+"registered under a different address, or you might have entered your address"
+" incorrectly."
+msgstr ""
+
+#: kpi/templates/registration/password_reset_form.html:10
+msgid "Password Reset"
+msgstr ""
+
+#: kpi/templates/registration/password_reset_form.html:19
+msgid "Reset Password"
+msgstr ""
+
+#: kpi/templates/registration/registration_complete.html:8
+msgid "Account created!"
+msgstr ""
+
+#: kpi/templates/registration/registration_complete.html:11
+msgid "Thanks for creating a KoboToolbox account."
+msgstr ""
+
+#: kpi/templates/registration/registration_complete.html:14
+msgid "Please click the activation link in the email just sent to you."
+msgstr ""
+
+#: kpi/templates/registration/registration_form.html:28
+msgid "Create an account"
+msgstr ""
+
+#: kpi/templates/registration/registration_form.html:54
+msgid "Create Account"
+msgstr ""
+
+#: kpi/templates/registration/registration_form.html:58
+msgid "login"
+msgstr ""
+
+#~ msgid "Invalid scheme"
+#~ msgstr "Invalid token."
+
+#~ msgid "Public Administration"
+#~ msgstr "Public Administration"
+
+#~ msgid "Arts, Entertainment, and Recreation"
+#~ msgstr "Arts, Entertainment, and Recreation"
+
+#~ msgid "Educational Services / Higher Education"
+#~ msgstr "Educational Services / Higher Education"
+
+#~ msgid "Health Services / Public Health"
+#~ msgstr "Health Services / Public Health"
+
+#~ msgid "Finance and Insurance"
+#~ msgstr "Finance and Insurance"
+
+#~ msgid "Information / Media"
+#~ msgstr "Information / Media"
+
+#~ msgid "Economic/Social Development"
+#~ msgstr "Economic/Social Development"
+
+#~ msgid "Security / Police / Peacekeeping"
+#~ msgstr "Security / Police / Peacekeeping"
+
+#~ msgid "Disarmament & Demobilization"
+#~ msgstr "Disarmament & Demobilization"
+
+#~ msgid "Environment"
+#~ msgstr "Environment"
+
+#~ msgid "Private sector"
+#~ msgstr "Private sector"
+
+#~ msgid "Humanitarian - Coordination / Information Management"
+#~ msgstr "Humanitarian - Coordination / Information Management"
+
+#~ msgid "Humanitarian - Multiple Clusters"
+#~ msgstr "Humanitarian - Multiple Clusters"
+
+#~ msgid "Humanitarian - Camp Management & Coordination"
+#~ msgstr "Humanitarian - Camp Management & Coordination"
+
+#~ msgid "Humanitarian - Early Recovery"
+#~ msgstr "Humanitarian - Early Recovery"
+
+#~ msgid "Humanitarian - Education"
+#~ msgstr "Humanitarian - Education"
+
+#~ msgid "Humanitarian - Emergency Shelter"
+#~ msgstr "Humanitarian - Emergency Shelter"
+
+#~ msgid "Humanitarian - Emergency Telecoms"
+#~ msgstr "Humanitarian - Emergency Telecoms"
+
+#~ msgid "Humanitarian - Food Security"
+#~ msgstr "Humanitarian - Food Security"
+
+#~ msgid "Humanitarian - Health"
+#~ msgstr "Humanitarian - Health"
+
+#~ msgid "Humanitarian - Logistics"
+#~ msgstr "Humanitarian - Logistics"
+
+#~ msgid "Humanitarian - Nutrition"
+#~ msgstr "Humanitarian - Nutrition"
+
+#~ msgid "Humanitarian - Protection"
+#~ msgstr "Humanitarian - Protection"
+
+#~ msgid "Humanitarian - Sanitation, Water & Hygiene"
+#~ msgstr "Humanitarian - Sanitation, Water & Hygiene"
+
+#~ msgid "Other"
+#~ msgstr "Other"
+
+#~ msgid "Suriname"
+#~ msgstr "Username"
+
+#~ msgid "User"
+#~ msgstr "Username"
+
+#~ msgid "Username"
+#~ msgstr "Username"
+
+#~ msgid "Invalid token."
+#~ msgstr "Invalid token."

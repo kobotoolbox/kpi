@@ -96,6 +96,7 @@ class InviteAdmin(admin.ModelAdmin):
            linebreaks('\n'.join(self._asset_names_by_invite.get(obj.id, [])))
         )
 
+    @admin.display(description='Project')
     def get_transfers(self, obj):
         date_format = '%Y-%m-%d %H:%M:%S'
         html = '<ul>'
@@ -125,7 +126,6 @@ class InviteAdmin(admin.ModelAdmin):
         html += '</ul>'
         return mark_safe(html)
 
-    get_transfers.short_description = 'Project'
 
     def has_add_permission(self, request, obj=None):
         return False

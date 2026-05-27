@@ -1,17 +1,8 @@
-{% extends "rest_framework/base.html" %}
-
-{% load static %}
-{% load i18n %}
+{% extends "base_no_static.html" %}
 
 {% block title %}KoboToolbox API{% endblock %}
 
-{% block navbar %}
-{% endblock %}
-
-{% block breadcrumbs %}
-{% endblock %}
-
-{% block content %}
+{% block body %}
     <h1>KoboToolbox API</h1>
     <p>For a general introduction to the KoboToolbox API, please visit <a href="https://support.kobotoolbox.org/api.html">the KoboToolbox help center</a>.</p>
     <p>You can also <a href="{% url 'swagger-ui' %}?q={{ q_param }}">check the official API documentation</a> for a detailed documentation of all available endpoints.</p>

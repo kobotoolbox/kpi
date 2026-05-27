@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Group, Stack } from '@mantine/core'
+import { IconWorldFilled } from '@tabler/icons-react'
 import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
@@ -8,6 +9,7 @@ import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -18,12 +20,12 @@ import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import PopoverMenu from '#/popoverMenu'
+import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -81,11 +83,14 @@ class FormLanding extends React.Component {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetid: this.state.uid,
+      assetUrl: this.state.url,
     })
   }
   callUnarchiveAsset() {
-    this.unarchiveAsset()
+    // This component is using `mixins.dmix`, so the asset object is being stored in state
+    unarchiveAsset(this.state, () => {
+      actions.resources.loadAsset({ id: this.props.params.uid }, true)
+    })
   }
   renderFormInfo(userCanEdit) {
     var dvcount = this.state.deployed_versions.count
@@ -112,10 +117,26 @@ class FormLanding extends React.Component {
         </bem.FormView__cell>
         <bem.FormView__cell m='buttons'>
           {userCanEdit && this.state.deployment_status === 'deployed' && (
-            <Button type='primary' size='l' isUpperCase onClick={this.deployAsset.bind(this)} label={t('redeploy')} />
+            <Button
+              type='primary'
+              size='l'
+              isUpperCase
+              onClick={() => {
+                deployAsset(this.state)
+              }}
+              label={t('redeploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'draft' && (
-            <Button type='primary' size='l' isUpperCase onClick={this.deployAsset.bind(this)} label={t('deploy')} />
+            <Button
+              type='primary'
+              size='l'
+              isUpperCase
+              onClick={() => {
+                deployAsset(this.state)
+              }}
+              label={t('deploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'archived' && (
             <Button
@@ -161,19 +182,8 @@ class FormLanding extends React.Component {
   }
   showLanguagesModal(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: this.state,
-    })
+    openFormLanguagesModal(this.state)
   }
-  showEncryptionModal(evt) {
-    evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.ENCRYPT_FORM,
-      asset: this.state,
-    })
-  }
-
   renderHistory() {
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
@@ -427,6 +437,7 @@ class FormLanding extends React.Component {
           tooltip={t('Preview')}
           tooltipPosition='right'
           onClick={this.enketoPreviewModal.bind(this)}
+          isDisabled={!this.state.url}
         />
 
         {userCanEdit && (
@@ -477,27 +488,14 @@ class FormLanding extends React.Component {
 
           {isLoggedIn && (
             <bem.PopoverMenu__link
-              onClick={this.cloneAsTemplate}
-              data-asset-uid={this.state.uid}
-              data-asset-name={this.state.name}
+              onClick={() => {
+                cloneAssetAsTemplate(this.state.uid, this.state.name)
+              }}
             >
               <i className='k-icon k-icon-template' />
               {t('Create template')}
             </bem.PopoverMenu__link>
           )}
-
-          {userCanEdit && this.state.content.survey.length > 0 && (
-            <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
-              <i className='k-icon k-icon-language' />
-              {t('Manage translations')}
-            </bem.PopoverMenu__link>
-          )}
-          {/* temporarily disabled
-          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
-            <i className='k-icon k-icon-lock'/>
-            {t('Manage Encryption')}
-          </bem.PopoverMenu__link>
-          */}
         </PopoverMenu>
       </React.Fragment>
     )
@@ -522,7 +520,12 @@ class FormLanding extends React.Component {
 
         {canEdit && (
           <bem.FormView__cell>
-            <ButtonNew variant='outline' size='md' rightIcon='language' onClick={this.showLanguagesModal.bind(this)}>
+            <ButtonNew
+              variant='outline'
+              size='md'
+              rightIcon={IconWorldFilled}
+              onClick={this.showLanguagesModal.bind(this)}
+            >
               {t('Manage')}
             </ButtonNew>
           </bem.FormView__cell>
