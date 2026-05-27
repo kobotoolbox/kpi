@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { ActionIcon as ActionIconMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
 import type { ActionIconProps as ActionIconPropsMantine, TooltipProps } from '@mantine/core'
 import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
