@@ -3,7 +3,7 @@ import { when } from 'mobx'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { actions } from '#/actions'
-import { cleanupTags, removeInvalidChars } from '#/assetUtils'
+import { cleanupAndUniqueTags, removeInvalidChars } from '#/assetUtils'
 import bem from '#/bem'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
@@ -334,7 +334,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
 
           <TagsInput
             value={fields.tags}
-            onChange={(val) => setField('tags', Array.from(new Set(cleanupTags(val))))}
+            onChange={(val) => setField('tags', cleanupAndUniqueTags(val))}
             label={t('Tags')}
           />
         </Stack>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import { when } from 'mobx'
 import { actions } from '#/actions'
-import { cleanupTags } from '#/assetUtils'
+import { cleanupAndUniqueTags } from '#/assetUtils'
 import bem from '#/bem'
 import TagsInput from '#/components/common/TagsInput'
 import Button from '#/components/common/button'
@@ -51,7 +51,7 @@ export const AssetTagsForm = ({ asset }: AssetTagsFormProps) => {
   }
 
   const onTagsChange = (newValue: string[]) => {
-    setTags(Array.from(new Set(cleanupTags(newValue))))
+    setTags(cleanupAndUniqueTags(newValue))
   }
 
   if (!isSessionLoaded) {

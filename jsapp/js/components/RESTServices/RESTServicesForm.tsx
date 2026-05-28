@@ -2,7 +2,7 @@ import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
-import { cleanupTags } from '#/assetUtils'
+import { cleanupAndUniqueTags } from '#/assetUtils'
 import bem from '#/bem'
 import TagsInput from '#/components/common/TagsInput'
 import Button from '#/components/common/button'
@@ -418,7 +418,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    */
 
   onSubsetFieldsChange(newValue: string[]) {
-    this.setState({ subsetFields: Array.from(new Set(cleanupTags(newValue))) })
+    this.setState({ subsetFields: cleanupAndUniqueTags(newValue) })
   }
 
   renderFieldsSelector() {
