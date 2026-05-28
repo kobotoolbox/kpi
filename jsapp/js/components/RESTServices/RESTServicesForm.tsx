@@ -418,7 +418,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    */
 
   onSubsetFieldsChange(newValue: string[]) {
-    this.setState({ subsetFields: Array.from(new Set(cleanupTags(newValue))) })
+    this.setState({ subsetFields: cleanupTags(newValue) })
   }
 
   renderFieldsSelector() {

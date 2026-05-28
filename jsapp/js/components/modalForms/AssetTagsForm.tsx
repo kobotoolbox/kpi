@@ -51,7 +51,7 @@ export const AssetTagsForm = ({ asset }: AssetTagsFormProps) => {
   }
 
   const onTagsChange = (newValue: string[]) => {
-    setTags(Array.from(new Set(cleanupTags(newValue))))
+    setTags(cleanupTags(newValue))
   }
 
   if (!isSessionLoaded) {

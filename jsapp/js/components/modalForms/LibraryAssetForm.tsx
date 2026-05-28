@@ -334,7 +334,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
 
           <TagsInput
             value={fields.tags}
-            onChange={(val) => setField('tags', Array.from(new Set(cleanupTags(val))))}
+            onChange={(val) => setField('tags', cleanupTags(val))}
             label={t('Tags')}
           />
         </Stack>

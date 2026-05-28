@@ -43,11 +43,12 @@ import type { BulkActionResponse } from './api/models/bulkActionResponse'
 import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
 
 /**
- * Removes whitespace from tags. Returns list of cleaned up tags.
+ * Removes whitespace from tags and de-duplicates them.
+ * Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
  */
 export function cleanupTags(tags: string[]) {
-  return tags.map((tag) => tag.trim().replace(/ /g, '-'))
+  return Array.from(new Set(tags.map((tag) => tag.trim().replace(/ /g, '-'))))
 }
 
 /**
