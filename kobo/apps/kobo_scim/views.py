@@ -34,7 +34,10 @@ from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
     ScimErrorSerializer,
 )
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
-from kobo.apps.kobo_scim.utils import apply_scim_user_metadata
+from kobo.apps.kobo_scim.utils import (
+    apply_scim_user_metadata,
+    generate_unique_scim_username,
+)
 
 
 def normalize_scim_patch_operations(operations):
@@ -198,22 +201,21 @@ class ScimUserViewSet(
 
                 user = social_account.user if social_account else None
 
-                # Fallback to username/email matching if not linked yet
+                # Fallback to email matching if not linked yet
                 if not user:
-                    user_by_username = User.objects.filter(
-                        username__iexact=username
-                    ).first()
-                    user_by_email = (
+                    user = (
                         User.objects.filter(email__iexact=email).first()
                         if email
                         else None
                     )
-                    user = user_by_username or user_by_email
 
                 if not user:
                     # Create the user natively
+                    unique_username = generate_unique_scim_username(
+                        username, self.idp.slug
+                    )
                     user = User.objects.create_user(
-                        username=username,
+                        username=unique_username,
                         email=email,
                         first_name=first_name,
                         last_name=last_name,
