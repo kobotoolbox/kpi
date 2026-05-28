@@ -66,7 +66,13 @@ class LibraryNewItemForm extends React.Component {
 
   goToUpload() {
     pageState.hideModal()
-    openLibraryUploadModal()
+    openLibraryUploadModal({
+      onBack: () => {
+        pageState.showModal({
+          type: MODAL_TYPES.LIBRARY_NEW_ITEM,
+        })
+      },
+    })
   }
 
   render() {

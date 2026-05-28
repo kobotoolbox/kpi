@@ -20,6 +20,7 @@ export interface LibraryUploadModalParams {
   type: string
   file?: File
   filename?: string
+  onBack?: () => void
 }
 
 interface LibraryUploadModalProps {
@@ -105,6 +106,7 @@ export function openLibraryUploadModal(
           type: initialType,
           file: params.file,
           filename: params.filename,
+          onBack: params.onBack,
         }}
         onTitleChange={(title) => {
           modals.updateModal({
@@ -126,6 +128,8 @@ export function openLibraryUploadModal(
 }
 
 export default function LibraryUploadModal(props: LibraryUploadModalProps) {
+  const onBack = props.params.onBack
+
   const { onRequestClose } = props
   const [currentFile, setCurrentFile] = useState<File | null>(props.params.file || null)
   const [isUploadAsTemplateChecked, setIsUploadAsTemplateChecked] = useState(false)
@@ -289,6 +293,12 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
   const isBusy =
     uploadFlowState === 'uploadingFile' ||
     (uploadFlowState === 'processingImport' && Boolean(currentImportUid) && importDetailsQuery.isFetching)
+  const backButtonLabel = onBack ? t('Back') : t('Close')
+
+  function onBackClick() {
+    onRequestClose()
+    onBack?.()
+  }
 
   return (
     <Stack gap='md'>
@@ -352,8 +362,8 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
 
       {uploadFlowState === 'form' && (
         <Group justify='space-between'>
-          <ButtonNew size='lg' variant='light' onClick={onRequestClose}>
-            {t('Cancel')}
+          <ButtonNew size='lg' variant='light' onClick={onBackClick}>
+            {backButtonLabel}
           </ButtonNew>
 
           <ButtonNew
