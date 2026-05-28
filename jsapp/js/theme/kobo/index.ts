@@ -7,6 +7,7 @@ import { ButtonThemeKobo } from './Button'
 import { CheckboxThemeKobo } from './Checkbox'
 import { CloseButtonThemeKobo } from './CloseButton'
 import { DividerThemeKobo } from './Divider'
+import { DropzoneThemeKobo } from './Dropzone'
 import { InputBaseThemeKobo } from './InputBase'
 import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
@@ -157,6 +158,7 @@ export const themeKobo = createTheme({
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
     Divider: DividerThemeKobo,
+    Dropzone: DropzoneThemeKobo,
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
     NumberInput: NumberInputThemeKobo,

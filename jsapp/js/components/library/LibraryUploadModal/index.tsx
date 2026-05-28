@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Checkbox, Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
+import { IconFileTypeXls } from '@tabler/icons-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import cx from 'classnames'
-import Dropzone from 'react-dropzone'
 import orvalFetchWithAuth from '#/api/orval.mutator'
 import { importsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
+import DropzoneNew from '#/components/common/DropzoneNew'
+import KoboIcon from '#/components/common/KoboIcon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import myLibraryStore from '#/components/library/myLibraryStore'
 import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
@@ -295,32 +296,38 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
         <>
           <Text>{t('Import an XLSForm from your computer.')}</Text>
 
-          <Dropzone
+          <DropzoneNew
             onDrop={(files) => {
               if (files[0]) {
                 setCurrentFile(files[0])
               }
             }}
             multiple={false}
+            maxFiles={1}
             accept={validFileTypes()}
           >
-            {({ getRootProps, getInputProps, isDragActive, isDragReject }) => (
-              <div
-                {...getRootProps({
-                  className: cx('dropzone', {
-                    'dropzone-active': isDragActive,
-                    'dropzone-reject': isDragReject,
-                  }),
-                })}
-              >
-                <input {...getInputProps()} />
-                <i className='k-icon k-icon-file-xls' />
-                {currentFile?.name || t(' Drag and drop the XLSForm file here or click to browse')}
-              </div>
-            )}
-          </Dropzone>
+            <Stack gap='xs' align='center' style={{ pointerEvents: 'none' }}>
+              <KoboIcon icon={IconFileTypeXls} size={52} />
+              <Text ta='center' fw={500}>
+                {currentFile?.name || t('Drag and drop the XLSForm file here or click to browse')}
+              </Text>
+              <DropzoneNew.Accept>
+                <Text size='sm' c='blue.5'>
+                  {t('Drop file to select it')}
+                </Text>
+              </DropzoneNew.Accept>
+              <DropzoneNew.Reject>
+                <Text size='sm' c='red.6'>
+                  {t('Only .xls and .xlsx files are supported')}
+                </Text>
+              </DropzoneNew.Reject>
+              <DropzoneNew.Idle>
+                <Text size='sm'>{t('Only .xls and .xlsx files are supported')}</Text>
+              </DropzoneNew.Idle>
+            </Stack>
+          </DropzoneNew>
 
-          <Stack gap='xs'>
+          <Stack gap='xxs'>
             <Checkbox
               checked={isUploadAsTemplateChecked}
               onChange={(evt) => {
@@ -329,7 +336,7 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
               label={t('Upload as template')}
             />
 
-            <Text size='xs' c='dimmed'>
+            <Text size='sm'>
               {t('Note that this will be ignored when uploading a collection file.')}{' '}
               <a href={envStore.data.support_url + 'import_collection.html'} target='_blank' rel='noreferrer'>
                 {t('Learn more')}
@@ -345,11 +352,15 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
 
       {uploadFlowState === 'form' && (
         <Group justify='space-between'>
-          <ButtonNew variant='light' onClick={onRequestClose}>
+          <ButtonNew size='lg' variant='light' onClick={onRequestClose}>
             {t('Cancel')}
           </ButtonNew>
 
-          <ButtonNew onClick={onSubmit} disabled={!isSubmitEnabled || createImportMutation.isPending || isBusy}>
+          <ButtonNew
+            size='lg'
+            onClick={onSubmit}
+            disabled={!isSubmitEnabled || createImportMutation.isPending || isBusy}
+          >
             {t('Upload')}
           </ButtonNew>
         </Group>

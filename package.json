@@ -9,6 +9,7 @@
     "@fontsource/roboto": "^5.2.10",
     "@fontsource/roboto-mono": "^4.4.2",
     "@mantine/core": "^8.3.18",
+    "@mantine/dropzone": "^8.3.18",
     "@mantine/form": "^8.3.18",
     "@mantine/hooks": "^8.3.18",
     "@mantine/modals": "^8.3.18",
