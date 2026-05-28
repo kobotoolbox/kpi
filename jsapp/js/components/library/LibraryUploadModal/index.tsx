@@ -59,6 +59,11 @@ async function createImport(importParams: CreateImportRequest): Promise<ImportRe
     appendToFormData(formData, key, value)
   })
 
+  // We intentionally call the shared Orval mutator directly instead of
+  // `importsCreate(...)` because the generated endpoint model currently expects
+  // a different payload shape than this legacy upload flow (`base64Encoded`,
+  // `library`, `desired_type`). Using the mutator preserves shared auth,
+  // CSRF/multipart handling, error normalization, and Reflux bridge callbacks.
   const response = await orvalFetchWithAuth<LegacyImportFetchResponse>('/api/v2/imports/', {
     method: 'POST',
     body: formData,
@@ -288,7 +293,7 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
     <Stack gap='md'>
       {uploadFlowState === 'form' && (
         <>
-          <Text size='sm'>{t('Import an XLSForm from your computer.')}</Text>
+          <Text>{t('Import an XLSForm from your computer.')}</Text>
 
           <Dropzone
             onDrop={(files) => {
