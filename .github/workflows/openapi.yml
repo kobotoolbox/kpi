@@ -65,6 +65,11 @@ jobs:
       - name: Install Python dev dependencies
         run: uv pip sync --system dependencies/pip/dev_requirements.txt
 
+      - name: Run Django migrations
+        # Required so that constance (DatabaseBackend) and other apps queried
+        # during schema generation can read their tables.
+        run: python manage.py migrate --noinput
+
       - name: Generate OpenAPI with drf-spectacular
         # GitHub Actions run without a TTY device. This is a workaround to get one,
         # based on https://github.com/actions/runner/issues/241#issuecomment-2019042651
