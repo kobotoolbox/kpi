@@ -1,4 +1,4 @@
-# Endpoint removals as of release 2.026.__
+# Endpoint removals as of release 2.026.22
 
 ⚠️ As of 2026, the legacy `v1` API has been officially removed. To ensure your
 integrations continue to function, please follow our [migration guide](https://support.kobotoolbox.org/migrating_api.html)
