@@ -603,9 +603,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         reschedule.assert_not_called()
 
     @override_settings(BULK_ACTION_STUCK_THRESHOLD=60)
-    def test_resume_stuck_bulk_actions_requeues_polling(self):
+    def test_resume_stuck_bulk_actions_requeues_batch_tasks(self):
         """
-        Test that the watchdog restarts polling for stale in-progress batches
+        Test that the watchdog restarts item processing and polling for stale
+        in-progress batches
         """
         self.bulk_action.status = BulkActionStatus.IN_PROGRESS
         self.bulk_action.save(update_fields=['status'])
@@ -613,7 +614,12 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
             date_modified=timezone.now() - timedelta(minutes=5)
         )
 
-        with patch('kobo.apps.subsequences.tasks.update_batch_status.delay') as delay:
+        with patch(
+            'kobo.apps.subsequences.tasks.start_bulk_item_job.apply_async'
+        ) as enqueue_item_job, patch(
+            'kobo.apps.subsequences.tasks.update_batch_status.apply_async'
+        ) as enqueue_batch_poll:
             resume_stuck_bulk_actions()
 
-        delay.assert_called_once_with(self.bulk_action.pk)
+        self.assertEqual(enqueue_item_job.call_count, 2)
+        enqueue_batch_poll.assert_called_once()

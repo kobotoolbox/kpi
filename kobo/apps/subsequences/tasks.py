@@ -373,10 +373,10 @@ def update_batch_status(subsequence_bulk_action_id: str):
 @celery_app.task(queue='kpi_low_priority_queue')
 def resume_stuck_bulk_actions():
     """
-    Restart status polling for stale in-progress bulk actions
+    Restart scheduling for stale in-progress bulk actions
 
-    This watchdog protects batches from staying stale if a previous polling task
-    was lost or the worker restarted between scheduled polls.
+    This watchdog protects batches from staying stale if task scheduling failed,
+    a polling task was lost, or the worker restarted between scheduled polls.
     """
     from .models import BulkActionStatus
 
@@ -386,12 +386,12 @@ def resume_stuck_bulk_actions():
     )
     threshold_seconds = settings.BULK_ACTION_STUCK_THRESHOLD
     cutoff = timezone.now() - timedelta(seconds=threshold_seconds)
-    bulk_action_ids = SubsequenceBulkAction.objects.filter(
+    bulk_actions = SubsequenceBulkAction.objects.filter(
         status=BulkActionStatus.IN_PROGRESS,
         date_modified__lt=cutoff,
-    ).values_list('pk', flat=True)
-    for bulk_action_id in bulk_action_ids:
-        update_batch_status.delay(bulk_action_id)
+    )
+    for bulk_action in bulk_actions:
+        bulk_action._schedule_batch_tasks()
 
 
 def _get_bulk_action_request_data(action_data: dict) -> dict:

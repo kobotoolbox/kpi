@@ -527,19 +527,42 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
     def _schedule_batch_tasks(self) -> None:
         """
         Enqueue one execution task per child item plus parent status polling
+
+        Scheduling happens from transaction.on_commit() callbacks and watchdog
+        tasks. Broker failures must not raise back into the request after the
+        database transaction has already committed, stale in-progress batches
+        are retried by resume_stuck_bulk_actions().
         """
         from .tasks import start_bulk_item_job, update_batch_status
 
         delay_between_jobs = self._get_delay_between_jobs()
-        item_ids = list(self.items.values_list('pk', flat=True))
+        item_ids = list(
+            self.items.filter(status=BulkActionItemStatus.IN_PROGRESS)
+            .values_list('pk', flat=True)
+        )
+
         for index, item_id in enumerate(item_ids):
             countdown = (index * delay_between_jobs) if delay_between_jobs else 0
-            start_bulk_item_job.apply_async(args=(item_id,), countdown=countdown)
+            try:
+                start_bulk_item_job.apply_async(
+                    args=(item_id,),
+                    countdown=countdown,
+                )
+            except Exception:
+                logging.exception(
+                    'Failed to schedule bulk action item job for '
+                    f'{self.uid=}, {item_id=}'
+                )
 
-        update_batch_status.apply_async(
-            args=(self.pk,),
-            countdown=settings.BULK_ACTION_STATUS_POLL_INTERVAL,
-        )
+        try:
+            update_batch_status.apply_async(
+                args=(self.pk,),
+                countdown=settings.BULK_ACTION_STATUS_POLL_INTERVAL,
+            )
+        except Exception:
+            logging.exception(
+                f'Failed to schedule bulk action status polling for {self.uid=}'
+            )
 
     def _get_delay_between_jobs(self) -> float:
         """
