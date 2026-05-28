@@ -22,7 +22,6 @@ from kobo.apps.subsequences.tasks import (
     poll_run_external_process,
     resume_stuck_bulk_actions,
     start_bulk_item_job,
-    start_bulk_item_job_failure,
     update_batch_status,
 )
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
@@ -481,28 +480,6 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         item.refresh_from_db()
         self.assertEqual(item.status, BulkActionItemStatus.FAILED)
 
-    def test_start_bulk_item_job_failure_marks_active_item_failed(self):
-        """
-        Test that exhausted Celery retries mark the child item failed and
-        trigger parent status polling
-        """
-        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
-        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
-        self.bulk_action.save(update_fields=['status'])
-        item.status = BulkActionItemStatus.IN_PROGRESS
-        item.save(update_fields=['status'])
-
-        with patch('kobo.apps.subsequences.tasks.update_batch_status.delay') as delay:
-            start_bulk_item_job_failure(
-                args=(item.pk,),
-                kwargs={},
-                exception=SubsequenceTimeoutError('Maximum retries exceeded.'),
-            )
-
-        item.refresh_from_db()
-        self.assertEqual(item.status, BulkActionItemStatus.FAILED)
-        delay.assert_called_once_with(self.bulk_action.pk)
-
     @patch(
         'kobo.apps.subsequences.actions.base.'
         'BaseAutomaticNLPAction.run_external_process'
@@ -626,9 +603,10 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         reschedule.assert_not_called()
 
     @override_settings(BULK_ACTION_STUCK_THRESHOLD=60)
-    def test_resume_stuck_bulk_actions_requeues_polling(self):
+    def test_resume_stuck_bulk_actions_requeues_batch_tasks(self):
         """
-        Test that the watchdog restarts polling for stale in-progress batches
+        Test that the watchdog restarts item processing and polling for stale
+        in-progress batches
         """
         self.bulk_action.status = BulkActionStatus.IN_PROGRESS
         self.bulk_action.save(update_fields=['status'])
@@ -636,7 +614,12 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
             date_modified=timezone.now() - timedelta(minutes=5)
         )
 
-        with patch('kobo.apps.subsequences.tasks.update_batch_status.delay') as delay:
+        with patch(
+            'kobo.apps.subsequences.tasks.start_bulk_item_job.apply_async'
+        ) as enqueue_item_job, patch(
+            'kobo.apps.subsequences.tasks.update_batch_status.apply_async'
+        ) as enqueue_batch_poll:
             resume_stuck_bulk_actions()
 
-        delay.assert_called_once_with(self.bulk_action.pk)
+        self.assertEqual(enqueue_item_job.call_count, 2)
+        enqueue_batch_poll.assert_called_once()

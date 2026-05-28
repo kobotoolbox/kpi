@@ -345,6 +345,13 @@ class BulkActionCreateSerializer(serializers.Serializer):
         question_xpath: str,
         params: dict,
     ) -> None:
+        """
+        Ensure bulk execution can reuse the normal single-submission flow
+
+        SubmissionSupplement.revise_data() only runs actions that are enabled
+        as QuestionAdvancedFeature rows, so the bulk endpoint creates or updates
+        that configuration before scheduling item jobs.
+        """
         feature_params = self._get_question_advanced_feature_params(params)
         feature, created = QuestionAdvancedFeature.objects.get_or_create(
             asset=asset,
