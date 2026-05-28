@@ -6,8 +6,8 @@ import classes from './Modal.module.css'
 import { KOBO_Z_INDEX } from './zIndex'
 
 export const KOBO_MODAL_OVERLAY_PROPS = {
-  backgroundOpacity: 0.5,
-  color: 'var(--mantine-color-blue-9)',
+  backgroundOpacity: 0.2,
+  color: 'var(--mantine-color-black)',
   zIndex: KOBO_Z_INDEX.modalOverlay,
 } as const
 
