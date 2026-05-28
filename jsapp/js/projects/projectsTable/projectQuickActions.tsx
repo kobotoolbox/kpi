@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import { archiveAsset, deleteAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
+import { DeleteAssetPrompt, archiveAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
 import { getAssetDisplayName } from '#/assetUtils'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
@@ -23,6 +23,7 @@ interface ProjectQuickActionsProps {
  * instead.
  */
 const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
+  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
   const [organization] = useOrganizationAssumed()
 
   // The `userCan` method requires `permissions` property to be present in the
@@ -31,7 +32,8 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   // a lot of options available.
   const isChangingPossible = userCan('change_asset', asset)
   const isManagingPossible = userCan('manage_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
-  const isDeletingPossible = userCan('delete_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
+  const isDeletingPossible =
+    userCan('delete_asset', asset) || (organization.is_mmo && organization.request_user_role === MemberRoleEnum.admin)
   const isProjectViewAsset = !('permissions' in asset)
 
   return (
@@ -98,14 +100,23 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() =>
-          deleteAsset(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
-            customViewStore.handleAssetsDeleted([deletedAssetUid])
-          })
-        }
+        onClick={() => setIsDeletePromptOpen(true)}
         tooltip={isDeletingPossible ? t('Delete 1 project') : t('Delete project')}
         tooltipPosition='right'
       />
+
+      {isDeletePromptOpen && (
+        <DeleteAssetPrompt
+          asset={asset}
+          name={getAssetDisplayName(asset).final}
+          isOpen={isDeletePromptOpen}
+          onRequestClose={() => setIsDeletePromptOpen(false)}
+          onDeleted={(deletedAssetUid: string) => {
+            customViewStore.handleAssetsDeleted([deletedAssetUid])
+            setIsDeletePromptOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }
