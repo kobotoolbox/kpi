@@ -100,6 +100,8 @@ URL Pattern | View Class or Function | View Name | KPI `v2` Endpoint
 `/imports/<uid>/` | `kpi.views.v1.import_task.ImportTaskViewSet` | `importtask-detail` | `/api/v2/imports/<uid>/`
 `/permissions/` | `kpi.views.v1.object_permission.ObjectPermissionViewSet` | `objectpermission-list` | `/api/v2/assets/<parent_lookup_asset>/permission-assignments/`
 `/permissions/<uid>/` | `kpi.views.v1.object_permission.ObjectPermissionViewSet` | `objectpermission-detail` | `/api/v2/assets/<parent_lookup_asset>/permission-assignments/<uid>/`
+`/reports/` | `kobo.apps.reports.views.ReportsViewSet` | `reports-list` | N/A
+`/reports/<uid>/` | `kobo.apps.reports.views.ReportsViewSet` | `reports-detail` | `/api/v2/assets/<uid>/reports/`
 `/tags/` | `kpi.views.v1.tag.TagViewSet` | `tag-list` | `/api/v2/tags/`
 `/tags/<taguid__uid>/` | `kpi.views.v1.tag.TagViewSet` | `tag-detail` | `/api/v2/tags/<taguid__uid>/`
 `/users/` | `kpi.views.v1.user.UserViewSet` | `user-kpi-list` | `/api/v2/users/`
