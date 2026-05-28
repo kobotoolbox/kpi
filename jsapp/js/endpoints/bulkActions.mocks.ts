@@ -40,6 +40,7 @@ const defaultMockResponse: BulkActionListResponse = {
       params: {
         language: 'fr',
       },
+      progress: 25,
       created_by: {
         username: 'leszek',
       },
@@ -61,6 +62,7 @@ const defaultMockResponse: BulkActionListResponse = {
       params: {
         language: 'pl',
       },
+      progress: 50,
       created_by: {
         username: 'leszek',
       },
