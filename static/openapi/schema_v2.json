@@ -2899,7 +2899,7 @@
                                     "$ref": "#/components/schemas/BulkActionListResponse"
                                 },
                                 "examples": {
-                                    "BulkTranscriptionJobResponse": {
+                                    "BulkTranscriptionJobListResponse": {
                                         "value": {
                                             "count": 1,
                                             "next": null,
@@ -2909,7 +2909,7 @@
                                                     "uid": "ba123456789AbCdEfGhIjklm",
                                                     "status": "in_progress",
                                                     "action_id": "automatic_google_transcription",
-                                                    "question_xpath": "q1",
+                                                    "question_xpath": "q1_audio",
                                                     "submission_uuids": [
                                                         "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                                         "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -2938,9 +2938,9 @@
                                                 }
                                             ]
                                         },
-                                        "summary": "Bulk transcription job response"
+                                        "summary": "Bulk transcription job list response"
                                     },
-                                    "BulkTranslationJobResponse": {
+                                    "BulkTranslationJobListResponse": {
                                         "value": {
                                             "count": 1,
                                             "next": null,
@@ -2950,7 +2950,7 @@
                                                     "uid": "ba123456789AbCdEfGhIjklm",
                                                     "status": "in_progress",
                                                     "action_id": "automatic_google_translation",
-                                                    "question_xpath": "q1",
+                                                    "question_xpath": "q1_transcript",
                                                     "submission_uuids": [
                                                         "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                                         "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -2978,7 +2978,7 @@
                                                 }
                                             ]
                                         },
-                                        "summary": "Bulk translation job response"
+                                        "summary": "Bulk translation job list response"
                                     }
                                 }
                             }
@@ -3032,7 +3032,7 @@
                                 "BulkTranscriptionJob": {
                                     "value": {
                                         "action_id": "automatic_google_transcription",
-                                        "question_xpath": "q1",
+                                        "question_xpath": "q1_audio",
                                         "submission_uuids": [
                                             "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                             "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3048,7 +3048,7 @@
                                 "BulkTranslationJob": {
                                     "value": {
                                         "action_id": "automatic_google_translation",
-                                        "question_xpath": "q1",
+                                        "question_xpath": "q1_transcript",
                                         "submission_uuids": [
                                             "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                             "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3086,7 +3086,7 @@
                                             "uid": "ba123456789AbCdEfGhIjklm",
                                             "status": "in_progress",
                                             "action_id": "automatic_google_transcription",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_audio",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                                 "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3121,7 +3121,7 @@
                                             "uid": "ba123456789AbCdEfGhIjklm",
                                             "status": "in_progress",
                                             "action_id": "automatic_google_translation",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_transcript",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                                 "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3246,7 +3246,7 @@
                                             "uid": "ba123456789AbCdEfGhIjklm",
                                             "status": "in_progress",
                                             "action_id": "automatic_google_transcription",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_audio",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                                 "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3281,7 +3281,7 @@
                                             "uid": "ba123456789AbCdEfGhIjklm",
                                             "status": "in_progress",
                                             "action_id": "automatic_google_translation",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_transcript",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                                 "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3394,15 +3394,16 @@
                                     "$ref": "#/components/schemas/BulkActionResponse"
                                 },
                                 "examples": {
-                                    "BulkTranscriptionJobResponse": {
+                                    "CancelledBulkTranscriptionJobResponse": {
                                         "value": {
                                             "uid": "ba123456789AbCdEfGhIjklm",
-                                            "status": "in_progress",
+                                            "status": "cancelled",
                                             "action_id": "automatic_google_transcription",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_audio",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
                                             ],
                                             "submission_statuses": [
                                                 {
@@ -3411,33 +3412,40 @@
                                                 },
                                                 {
                                                     "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
-                                                    "status": "in_progress"
+                                                    "status": "cancelled"
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "cancelled"
                                                 }
                                             ],
                                             "params": {
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
-                                            "progress": 50,
+                                            "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"
                                             },
                                             "date_created": "2026-05-05T09:00:00Z",
                                             "date_modified": "2026-05-05T09:02:00Z",
-                                            "cancelled_by": null
+                                            "cancelled_by": {
+                                                "username": "someuser"
+                                            }
                                         },
-                                        "summary": "Bulk transcription job response",
-                                        "description": "Bulk transcription responses include the action params used to start the job. `locale` appears when it was supplied."
+                                        "summary": "Cancelled bulk transcription job response",
+                                        "description": "The cancelled response shows active child items moved to `cancelled`; terminal child items remain unchanged."
                                     },
-                                    "BulkTranslationJobResponse": {
+                                    "CancelledBulkTranslationJobResponse": {
                                         "value": {
                                             "uid": "ba123456789AbCdEfGhIjklm",
-                                            "status": "in_progress",
+                                            "status": "cancelled",
                                             "action_id": "automatic_google_translation",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_transcript",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
                                             ],
                                             "submission_statuses": [
                                                 {
@@ -3446,22 +3454,28 @@
                                                 },
                                                 {
                                                     "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
-                                                    "status": "in_progress"
+                                                    "status": "cancelled"
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "cancelled"
                                                 }
                                             ],
                                             "params": {
                                                 "language": "fr"
                                             },
-                                            "progress": 50,
+                                            "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"
                                             },
                                             "date_created": "2026-05-05T09:00:00Z",
                                             "date_modified": "2026-05-05T09:02:00Z",
-                                            "cancelled_by": null
+                                            "cancelled_by": {
+                                                "username": "someuser"
+                                            }
                                         },
-                                        "summary": "Bulk translation job response",
-                                        "description": "Bulk translation responses use the same job shape. `params.language` is the target translation language."
+                                        "summary": "Cancelled bulk translation job response",
+                                        "description": "The cancelled response includes the user who cancelled the job in `cancelled_by`."
                                     }
                                 }
                             }
