@@ -224,7 +224,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         ]
         versions_ids.sort()
         expected_hash = calculate_hash(''.join(versions_ids))
-        hash_url = reverse('asset-hash')
+        hash_url = reverse(self._get_endpoint('asset-hash'))
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get('hash'), expected_hash)
 
@@ -2838,9 +2838,10 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
 class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
     fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.url = reverse('asset-list')
+        self.url = reverse(self._get_endpoint('asset-list'))
         self.client.login(username='someuser', password='someuser')
         self.some_user = User.objects.get(username='someuser')
 
@@ -2882,6 +2883,8 @@ class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
 
 
 class TestAssetMetadataViewSet(BaseAssetTestCase):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
     # don't use test_data fixture here because we need control over how many assets
     # each user has and what they contain
     @classmethod
