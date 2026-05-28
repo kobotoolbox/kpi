@@ -7,7 +7,7 @@ from typing import Union
 from celery.signals import task_failure
 from django.apps import apps
 from django.conf import settings
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 
@@ -49,21 +49,36 @@ def poll_run_external_process(
         'subsequences', 'SubmissionSupplement'
     )  # noqa: N806
     request_action_data = _get_bulk_action_request_data(action_data)
-    incoming_data = {
-        '_version': SCHEMA_VERSIONS[0],
-        question_xpath: {action_id: request_action_data},
-    }
-    asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
-    supplement_data = SubmissionSupplement.revise_data(asset, submission, incoming_data)
-    if supplement_data is None:
-        supplement_data = _get_submission_supplement_data(
-            asset=asset,
-            submission=submission,
+    try:
+        incoming_data = {
+            '_version': SCHEMA_VERSIONS[0],
+            question_xpath: {action_id: request_action_data},
+        }
+        asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
+        supplement_data = SubmissionSupplement.revise_data(
+            asset,
+            submission,
+            incoming_data
         )
-    if not supplement_data:
-        logging.error(
-            f'Background polling found no supplement data for {action_id} '
-            f'on submission {submission.get(SUBMISSION_UUID_FIELD)}'
+        if supplement_data is None:
+            supplement_data = _get_submission_supplement_data(
+                asset=asset,
+                submission=submission,
+            )
+        if not supplement_data:
+            raise ValueError('Background polling found no supplement data')
+
+        advanced_feature = _get_advanced_feature(asset, question_xpath, action_id)
+        last_status = _extract_bulk_item_status(
+            asset=asset,
+            action_context=advanced_feature,
+            supplement_data=supplement_data,
+            action_data=request_action_data,
+        )
+    except Exception as e:
+        logging.exception(
+            f'Background polling failed for {action_id} on submission '
+            f'{submission.get(SUBMISSION_UUID_FIELD)}: {e}'
         )
         _update_bulk_action_item_status(
             submission=submission,
@@ -71,13 +86,7 @@ def poll_run_external_process(
             status='failed',
         )
         return
-    advanced_feature = _get_advanced_feature(asset, question_xpath, action_id)
-    last_status = _extract_bulk_item_status(
-        asset=asset,
-        action_context=advanced_feature,
-        supplement_data=supplement_data,
-        action_data=request_action_data,
-    )
+
     _update_bulk_action_item_status(
         submission=submission,
         action_data=request_action_data,
@@ -113,49 +122,56 @@ def poll_run_external_process_failure(sender=None, **kwargs):
         .get(id=asset_id)
     )
 
-    supplemental_data = SubmissionSupplement.retrieve_data(
-        asset, submission_root_uuid=submission[SUBMISSION_UUID_FIELD]
-    )
-    if 'is still in progress for submission' in error:
-        error = 'Maximum retries exceeded.'
-
-    feature = asset.advanced_features_set.get(
-        question_xpath=question_xpath, action=action_id
-    )
-    prefetched_dependencies = {
-        'question_supplemental_data': supplemental_data[question_xpath],
-    }
-    action = feature.to_action(prefetched_dependencies=prefetched_dependencies)
-
-    # FIXME: raises KeyError if action results are further nested (eg translations)
-    action_supplemental_data = supplemental_data[question_xpath][action_id]
-    failed_action_data = dict(action_data)
-    failed_action_data.update(
-        {
-            'error': error,
-            'status': 'failed',
-        }
-    )
-    # FIXME We assume that the last action is the one in progress but it could
-    #   be another one.
-    dependency_supplemental_data = action_supplemental_data['_versions'][0].get(
-        action.DEPENDENCY_FIELD
-    )
-
-    new_action_supplemental_data = action.get_new_action_supplemental_data(
-        action_supplemental_data, failed_action_data, dependency_supplemental_data
-    )
-
-    submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
-    SubmissionSupplement.objects.filter(
-        asset=asset, submission_uuid=submission_uuid
-    ).update(
-        content=UpdateJSONFieldAttributes(
-            'content',
-            path=f'{question_xpath}__{action_id}',
-            updates=new_action_supplemental_data,
+    try:
+        supplemental_data = SubmissionSupplement.retrieve_data(
+            asset, submission_root_uuid=submission[SUBMISSION_UUID_FIELD]
         )
-    )
+        if 'is still in progress for submission' in error:
+            error = 'Maximum retries exceeded.'
+
+        feature = asset.advanced_features_set.get(
+            question_xpath=question_xpath, action=action_id
+        )
+        prefetched_dependencies = {
+            'question_supplemental_data': supplemental_data[question_xpath],
+        }
+        action = feature.to_action(prefetched_dependencies=prefetched_dependencies)
+
+        # FIXME: raises KeyError if action results are further nested (eg translations)
+        action_supplemental_data = supplemental_data[question_xpath][action_id]
+        failed_action_data = dict(action_data)
+        failed_action_data.update(
+            {
+                'error': error,
+                'status': 'failed',
+            }
+        )
+        # FIXME We assume that the last action is the one in progress but it could
+        #   be another one.
+        dependency_supplemental_data = action_supplemental_data['_versions'][0].get(
+            action.DEPENDENCY_FIELD
+        )
+
+        new_action_supplemental_data = action.get_new_action_supplemental_data(
+            action_supplemental_data, failed_action_data, dependency_supplemental_data
+        )
+
+        submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
+        SubmissionSupplement.objects.filter(
+            asset=asset, submission_uuid=submission_uuid
+        ).update(
+            content=UpdateJSONFieldAttributes(
+                'content',
+                path=f'{question_xpath}__{action_id}',
+                updates=new_action_supplemental_data,
+            )
+        )
+    except Exception:
+        logging.exception(
+            'Failed to write failed supplement data for background polling '
+            f'{action_id} on submission {submission.get(SUBMISSION_UUID_FIELD)}'
+        )
+
     _update_bulk_action_item_status(
         submission=submission,
         action_data=action_data,
@@ -180,15 +196,22 @@ def start_bulk_item_job(bulk_action_item_id: str):
     )
 
     with transaction.atomic():
-        item = (
-            SubsequenceBulkActionItem.objects.select_related('parent', 'parent__asset')
-            .defer('parent__asset__content')
-            .select_for_update()
-            .get(pk=bulk_action_item_id)
-        )
+        try:
+            item = (
+                SubsequenceBulkActionItem.objects.select_related(
+                    'parent',
+                    'parent__asset',
+                )
+                .defer('parent__asset__content')
+                .select_for_update(nowait=True)
+                .get(pk=bulk_action_item_id)
+            )
+        except DatabaseError:
+            logging.info(
+                f'Bulk item {bulk_action_item_id} is already locked by another worker'
+            )
+            return
 
-        # Handle early dequeues and ignore terminal states. The row lock keeps
-        # duplicate worker deliveries from starting the same item concurrently.
         if item.status == BulkActionItemStatus.PENDING:
             if item.parent.status != BulkActionStatus.IN_PROGRESS:
                 return
