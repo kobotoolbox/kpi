@@ -473,9 +473,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'paired_data',
             'project_ownership',
             'owner_label',
-            'last_modified_by'
+            'last_modified_by',
+            'created_by',
         )
-        read_only_fields = ('last_modified_by', 'uid')
+        read_only_fields = ('last_modified_by', 'created_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
@@ -1156,6 +1157,7 @@ class AssetListSerializer(AssetSerializer):
             'data_sharing',
             'owner_label',
             'last_modified_by',
+            'created_by'
         )
 
     def get_permissions(self, asset):
@@ -1266,6 +1268,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'downloads',
             'owner_label',
             'last_modified_by',
+            'created_by',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
