@@ -8,7 +8,8 @@
 6. [ ] fill in the template below and delete template comments
 7. [ ] review thyself: read the diff and repro the preview as written
 8. [ ] open PR & confirm that CI passes & request reviewers, if needed
-9. [ ] delete this section before merging
+9. [ ] Act on any greptile review below a 5/5 score or leave comment explaining why you won't
+10. [ ] delete this checklist section from the final squash commit before merging
 
 ### 📣 Summary
 <!-- Delete this section if changes are internal only. -->
