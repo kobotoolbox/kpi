@@ -237,6 +237,10 @@ const tsConfig = {
             importNames: ['TextInput'],
             message: "Use TextInput from 'jsapp/js/components/common' instead.",
           },
+          {
+            name: 'react-dropzone',
+            message: "react-dropzone is deprecated. Use @mantine/dropzone via jsapp/js/components/common/DropzoneNew instead.",
+          },
         ],
       },
     ],
