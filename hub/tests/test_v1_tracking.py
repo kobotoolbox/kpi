@@ -1,12 +1,14 @@
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+import pytest
 from ddt import data, ddt, unpack
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import KpiTestCase
 from hub.models.v1_user_tracker import V1UserTracker
 
 
+@pytest.mark.skip('Deprecated - To be removed')
 @ddt
 class V1TrackingTests(KpiTestCase):
 

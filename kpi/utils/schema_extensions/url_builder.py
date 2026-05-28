@@ -43,7 +43,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'hook-list': '/api/v2/assets/{uid_asset}/hooks/',
         'asset-xls': '/api/v2/assets/{uid_asset}.xls',
         'asset-export-list': '/api/v2/assets/{uid_asset}/exports/',
-        'submission-list': '/api/v2/assets/{uid_asset}/submissions/',
+        'submission-list': '/api/v2/assets/{uid_asset}/data/',
         'paired-data-list': '/api/v2/assets/{uid_asset}/paired-data/',
         'attachment-detail': '/api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{pk}',  # noqa
         'attachment-thumb': '/api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{pk}/{suffix}/',  # noqa
