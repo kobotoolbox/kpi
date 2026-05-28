@@ -1,12 +1,11 @@
 import React from 'react'
 
 import type { FileRejection } from 'react-dropzone'
+import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
 import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
-import pageState from '#/pageState.store'
 import { router } from '#/router/legacy'
 import { escapeHtml, getExponentialDelayTime, join, log, notify } from '#/utils'
-import { MODAL_TYPES } from './constants'
 import envStore from './envStore'
 import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
@@ -274,8 +273,8 @@ function onImportOneAmongMany(
   const isLastFileInBatch = fileIndex + 1 === totalFilesInBatch
 
   // We open the modal that displays the message with total files count.
-  pageState.showModal({
-    type: MODAL_TYPES.UPLOADING_XLS,
+  const uploadProgressModal = openLibraryUploadModal({
+    type: 'uploading-xls',
     filename: t('## files').replace('##', String(totalFilesInBatch)),
   })
 
@@ -300,7 +299,7 @@ function onImportOneAmongMany(
       // the edges).
       if (isLastFileInBatch) {
         // After the last import is created, we hide the modal…
-        pageState.hideModal()
+        uploadProgressModal.close()
         // …and display a helpful toast
         notify.warning(
           t(
