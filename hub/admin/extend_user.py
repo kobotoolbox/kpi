@@ -6,9 +6,9 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import (
-    UserChangeForm as DjangoUserChangeForm,
     AdminUserCreationForm,
 )
+from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
@@ -82,6 +82,10 @@ class UserCreationForm(AdminUserCreationForm):
         validators=username_validators,
     )
 
+    def clean(self):
+        self.cleaned_data['usable_password'] = 'true'
+        super().clean()
+
 
 class OrgInline(admin.StackedInline):
     model = OrganizationUser
@@ -114,7 +118,6 @@ class OrgInline(admin.StackedInline):
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
-
 
 
 class InactiveUsersAsOfFilter(SimpleListFilter):
