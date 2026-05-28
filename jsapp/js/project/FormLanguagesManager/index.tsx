@@ -12,6 +12,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import type { AssetContent, AssetResponse } from '#/dataInterface'
+import { KOBO_MODAL_OVERLAY_PROPS } from '#/theme/kobo/Modal'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { type LangObject, getLangString, notify } from '#/utils'
 import LanguagesEditor from './LanguagesEditor'
@@ -55,6 +56,7 @@ export function openFormLanguagesModal(asset: AssetResponse) {
     closeOnEscape: false,
     closeOnClickOutside: false,
     overlayProps: {
+      ...KOBO_MODAL_OVERLAY_PROPS,
       onClick: () => requestModalClose(),
     },
     children: (
@@ -413,7 +415,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         withOverlay={true}
         closeOnEscape={false}
         zIndex={KOBO_Z_INDEX.nestedModal}
-        overlayProps={{ zIndex: KOBO_Z_INDEX.nestedModalOverlay }}
+        overlayProps={{
+          ...KOBO_MODAL_OVERLAY_PROPS,
+          zIndex: KOBO_Z_INDEX.nestedModalOverlay,
+        }}
       >
         <Text>{t('You will lose all unsaved changes.')}</Text>
 
@@ -458,7 +463,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         withOverlay={true}
         closeOnEscape={false}
         zIndex={KOBO_Z_INDEX.nestedModal}
-        overlayProps={{ zIndex: KOBO_Z_INDEX.nestedModalOverlay }}
+        overlayProps={{
+          ...KOBO_MODAL_OVERLAY_PROPS,
+          zIndex: KOBO_Z_INDEX.nestedModalOverlay,
+        }}
       >
         <Text>{t('Are you sure you want to delete this language? This action is not reversible.')}</Text>
 
@@ -489,7 +497,10 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         withOverlay={true}
         closeOnEscape={false}
         zIndex={KOBO_Z_INDEX.nestedModal}
-        overlayProps={{ zIndex: KOBO_Z_INDEX.nestedModalOverlay }}
+        overlayProps={{
+          ...KOBO_MODAL_OVERLAY_PROPS,
+          zIndex: KOBO_Z_INDEX.nestedModalOverlay,
+        }}
       >
         <Text>
           {t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
