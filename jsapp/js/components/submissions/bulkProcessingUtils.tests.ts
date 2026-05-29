@@ -3,7 +3,11 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import type { SubmissionResponse } from '#/dataInterface'
-import { getBulkProcessingColumnKey, isBulkProcessingCellInProgress } from './bulkProcessingUtils'
+import {
+  getBulkProcessingColumnKey,
+  getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  isBulkProcessingCellInProgress,
+} from './bulkProcessingUtils'
 
 describe('bulkProcessingUtils', () => {
   const submission = {
@@ -80,5 +84,75 @@ describe('bulkProcessingUtils', () => {
     )
 
     chai.expect(test).to.equal(false)
+  })
+
+  it('should return visible submission uuid when status transitions to complete', () => {
+    const prev = [
+      buildBulkAction({
+        uid: 'bulk-action-transition',
+        submission_statuses: [
+          {
+            uuid: submission._uuid,
+            status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+          },
+        ],
+      }),
+    ]
+    const next = [
+      buildBulkAction({
+        uid: 'bulk-action-transition',
+        submission_statuses: [
+          {
+            uuid: submission._uuid,
+            status: BulkActionSubmissionStatusResponseStatusEnum.complete,
+          },
+        ],
+      }),
+    ]
+
+    const test = getVisibleBulkProcessingSubmissionUuidsToRefresh(prev, next, [submission])
+
+    chai.expect(test).to.deep.equal([submission._uuid])
+  })
+
+  it('should return visible uuid when previously active action disappears', () => {
+    const prev = [
+      buildBulkAction({
+        uid: 'bulk-action-gone',
+        submission_statuses: [
+          {
+            uuid: submission._uuid,
+            status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+          },
+        ],
+      }),
+    ]
+
+    const test = getVisibleBulkProcessingSubmissionUuidsToRefresh(prev, [], [submission])
+
+    chai.expect(test).to.deep.equal([submission._uuid])
+  })
+
+  it('should return empty list when matching submission is not visible', () => {
+    const prev = [
+      buildBulkAction({
+        uid: 'bulk-action-hidden',
+        submission_statuses: [
+          {
+            uuid: submission._uuid,
+            status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+          },
+        ],
+      }),
+    ]
+
+    const notVisibleSubmission = {
+      _uuid: 'another-uuid',
+      'meta/rootUuid': 'uuid:another-uuid',
+    } as SubmissionResponse
+
+    const test = getVisibleBulkProcessingSubmissionUuidsToRefresh(prev, [], [notVisibleSubmission])
+
+    chai.expect(test).to.deep.equal([])
   })
 })

@@ -21,7 +21,10 @@ import { userCan, userCanPartially, userHasPermForSubmission } from '#/component
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
-import { isBulkProcessingCellInProgress } from '#/components/submissions/bulkProcessingUtils'
+import {
+  getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  isBulkProcessingCellInProgress,
+} from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import type {
   DataTableSelectedRows,
@@ -89,7 +92,7 @@ import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { recordKeys } from '#/utils'
+import { matchUuid, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 
@@ -189,6 +192,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
       actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
+      actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
       actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed.bind(this)),
       actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted.bind(this)),
@@ -238,10 +242,48 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions)
     } else if (!isEqual(prevActiveBulkActions, newActiveBulkActions)) {
+      // Keep `table.tsx` focused on orchestration: utility computes which rows
+      // need refresh, then this component dispatches one-row fetches.
+      const submissionUuidsToRefresh = getVisibleBulkProcessingSubmissionUuidsToRefresh(
+        prevActiveBulkActions || [],
+        newActiveBulkActions || [],
+        this.state.submissions,
+      )
+
+      submissionUuidsToRefresh.forEach((submissionUuid) => {
+        actions.submissions.getSubmissionByUuid(this.props.asset.uid, submissionUuid)
+      })
+
       // If bulk actions have changed, it means they might've just gotten loaded
       // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
+  }
+
+  onGetSubmissionByUuidCompleted(updatedSubmission?: SubmissionResponse) {
+    if (!updatedSubmission) {
+      return
+    }
+
+    const submissionIndex = this.state.submissions.findIndex(
+      (submission) =>
+        matchUuid(submission['meta/rootUuid'], updatedSubmission['meta/rootUuid']) ||
+        matchUuid(submission._uuid, updatedSubmission._uuid) ||
+        submission._id === updatedSubmission._id,
+    )
+
+    if (submissionIndex === -1) {
+      return
+    }
+
+    const submissions = [...this.state.submissions]
+    submissions[submissionIndex] = updatedSubmission
+
+    // Rebuild columns because new supplemental values can introduce/show
+    // dynamic transcript/translation columns.
+    this.setState({ submissions }, () => {
+      this._prepColumns(submissions)
+    })
   }
 
   /**
@@ -543,7 +585,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             )}
 
             {/*
-            TODO: the tooltips of these two buttons appear underneath them
+            TODO(table-tooltips): when we migrate or refactor tooltip rendering,
+            switch these actions to a portal-based tooltip so rows do not reserve
+            extra bottom space for tooltip containers.
             causing an unnecessary space under the last table row to happen.
             Let's try to fix this one day by introducing better tooltips.
             */}
@@ -681,9 +725,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
 
     const survey = this.props.asset.content?.survey
-    // TODO: write some code that will get the choices for `select_x_from_file`
-    // from the file. It needs to first load the file and then parse the content
-    // so it's quite the task :)
+    // TODO(select-from-file): when Data Table supports `select_x_from_file`
+    // filtering, load and parse the external choices file and feed those values
+    // into the dropdown filter options below.
     const choices: SurveyChoice[] = this.props.asset.content?.choices || []
     let flatPaths: SurveyFlatPaths = {}
     if (survey) {

@@ -26,6 +26,7 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
+import { getPollingUpdateStoryHandlers, pollingAsset } from './DataTableWrapperPollingStoriesUtils'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
@@ -292,5 +293,25 @@ export const ProcessingBannerOtherUser: Story = {
     },
   },
   decorators: [withBulkProcessingBannerSessionReset],
+  loaders: [loadAssetForStory],
+}
+
+export const PollingUpdatesCompletedCell: Story = {
+  args: {
+    asset: pollingAsset,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Starts with a Processing placeholder and updates that row after polling (about 8 seconds) when the mocked bulk action item transitions to complete.',
+      },
+    },
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(pollingAsset.uid),
+    msw: {
+      handlers: getPollingUpdateStoryHandlers(),
+    },
+  },
   loaders: [loadAssetForStory],
 }

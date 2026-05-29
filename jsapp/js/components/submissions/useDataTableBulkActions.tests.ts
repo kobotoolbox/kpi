@@ -1,11 +1,12 @@
 import { renderHook } from '@testing-library/react'
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { useAssetsAdvancedFeaturesBulkActionsList } from '#/api/react-query/survey-data'
 import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import { useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
-import { useDataTableBulkActions } from './useDataTableBulkActions'
+import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
 
 jest.mock('#/api/react-query/survey-data', () => {
   return {
@@ -132,5 +133,27 @@ describe('useDataTableBulkActions', () => {
 
     chai.expect(result.current.activeBulkActions).to.have.length(1)
     chai.expect(result.current.hasActiveBulkActionsCreatedByAnotherUser).to.equal(false)
+  })
+
+  it('returns false poll interval when there are no active bulk actions', () => {
+    chai.expect(getBulkActionsPollingIntervalMs([])).to.equal(false)
+  })
+
+  it('caps transcription polling interval to the maximum of 30 seconds', () => {
+    const action = buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'zefir', {
+      action_id: ActionIdEnum.automatic_google_transcription,
+      submission_uuids: ['s-1'],
+    })
+
+    chai.expect(getBulkActionsPollingIntervalMs([action])).to.equal(30000)
+  })
+
+  it('uses a bounded fixed interval for translation polling', () => {
+    const action = buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'zefir', {
+      action_id: ActionIdEnum.automatic_google_translation,
+      submission_uuids: ['s-1', 's-2', 's-3'],
+    })
+
+    chai.expect(getBulkActionsPollingIntervalMs([action])).to.equal(8000)
   })
 })
