@@ -313,8 +313,6 @@ export const assetWithImageSubmission: SubmissionResponse = {
   _status: 'submitted_via_web',
   _geolocation: [null, null],
   _submission_time: '2025-03-13T11:21:58',
-  _tags: [],
-  _notes: [],
   _validation_status: {},
   _submitted_by: null,
   _supplementalDetails: {},
