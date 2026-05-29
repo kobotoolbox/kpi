@@ -140,6 +140,9 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
   const [currentImportUid, setCurrentImportUid] = useState<string | null>(null)
   const terminalImportStatusRef = useRef<string | null>(null)
   const previousTypeRef = useRef(props.params.type)
+  const paramsType = props.params.type
+  const paramsFilename = props.params.filename
+  const paramsFile = props.params.file
 
   const createImportMutation = useMutation({
     mutationFn: createImport,
@@ -162,26 +165,26 @@ export default function LibraryUploadModal(props: LibraryUploadModalProps) {
   })
 
   useEffect(() => {
-    const incomingType = props.params.type
+    const incomingType = paramsType
     const previousType = previousTypeRef.current
 
     if (incomingType === MODAL_TYPES.UPLOADING_XLS) {
-      if (previousType !== incomingType || props.params.filename !== uploadFilename) {
+      if (previousType !== incomingType || paramsFilename !== uploadFilename) {
         setUploadFlowState('processingImport')
-        setUploadFilename(props.params.filename || '')
+        setUploadFilename(paramsFilename || '')
       }
     }
 
     if (incomingType === MODAL_TYPES.LIBRARY_UPLOAD && previousType !== incomingType) {
       setUploadFlowState('form')
-      setCurrentFile(props.params.file || null)
-      setUploadFilename(props.params.file?.name || '')
+      setCurrentFile(paramsFile || null)
+      setUploadFilename(paramsFile?.name || '')
       setCurrentImportUid(null)
       terminalImportStatusRef.current = null
     }
 
     previousTypeRef.current = incomingType
-  }, [props.params, uploadFilename])
+  }, [paramsType, paramsFilename, paramsFile, uploadFilename])
 
   useEffect(() => {
     if (!currentImportUid) {

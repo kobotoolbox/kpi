@@ -2,6 +2,7 @@ import React from 'react'
 
 import type { FileRejection } from 'react-dropzone'
 import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
+import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import { router } from '#/router/legacy'
@@ -274,7 +275,7 @@ function onImportOneAmongMany(
 
   // We open the modal that displays the message with total files count.
   const uploadProgressModal = openLibraryUploadModal({
-    type: 'uploading-xls',
+    type: MODAL_TYPES.UPLOADING_XLS,
     filename: t('## files').replace('##', String(totalFilesInBatch)),
   })
 
