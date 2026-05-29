@@ -18,6 +18,8 @@ interface LanguageSelectorProps {
   value?: LanguageCode | null
   disabled?: boolean
   required?: boolean
+  /** Set to true when used inside a modal to ensure dropdown renders above modal overlay */
+  withinPortal?: boolean
 }
 
 const MINIMUM_SEARCH_LENGTH = 2
@@ -128,6 +130,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       }}
       disabled={props.disabled}
       comboboxProps={{
+        withinPortal: props.withinPortal,
         resetSelectionOnOptionHover: true,
         position: 'bottom',
         middlewares: { flip: false, shift: false },

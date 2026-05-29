@@ -1,13 +1,44 @@
-import { Group, Text } from '@mantine/core'
+import { Group, Stack, Text } from '@mantine/core'
+import { useState } from 'react'
 import ModalNew from '#/components/common/ModalNew'
 import ButtonNew from '../common/ButtonNew'
+import LanguageSelector from '../languages/LanguageSelector'
+import RegionSelector from '../languages/RegionSelector'
+import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
 
 interface Props {
   opened: boolean
   onClose: () => void
 }
 
+const REQUIRED_ASTERISK_OFFSET = 6
+
 export default function BulkTranscriptionModal({ opened, onClose }: Props) {
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
+  const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
+  const [serviceCode] = useState<TransxServiceCode>('goog') // TODO: Get from user's settings or project configuration
+
+  const handleLanguageChange = (language: LanguageCode | null) => {
+    setSelectedLanguage(language)
+    // Reset region when language changes
+    setSelectedRegion(null)
+  }
+
+  const handleRegionChange = (region: LanguageCode | null) => {
+    setSelectedRegion(region)
+  }
+
+  const handleCancelLanguage = () => {
+    setSelectedLanguage(null)
+    setSelectedRegion(null)
+  }
+
+  const handleStartTranscription = () => {
+    // TODO: Implement transcription logic with selectedLanguage and selectedRegion
+    console.log('Starting transcription with:', { selectedLanguage, selectedRegion })
+    onClose()
+  }
+
   return (
     <ModalNew
       opened={opened}
@@ -16,22 +47,38 @@ export default function BulkTranscriptionModal({ opened, onClose }: Props) {
       size='md'
       centered
       withOverlay={true}
-      closeOnEscape={false}
     >
-      <Text size='sm' mb='sm'>
-        {t('Start transcribing audio')}
-      </Text>
+      <Stack gap='md'>
+        <Text size='sm'>
+          {t('Your 10 audio files is a total of 45 minutes. This should take less than 1 hour to complete.')}
+        </Text>
 
-      <Group>
-        <ButtonNew onClick={onClose}>{t('Cancel')}</ButtonNew>
-        <ButtonNew
-          onClick={() => {
-            onClose()
-          }}
-        >
-          {t('Start Transcription')}
-        </ButtonNew>
-      </Group>
+        <Group gap='sm' align='flex-start' wrap='nowrap'>
+          <LanguageSelector
+            onLanguageChange={handleLanguageChange}
+            value={selectedLanguage}
+            withinPortal
+            required
+          />
+          <RegionSelector
+            rootLanguage={selectedLanguage || ''}
+            serviceCode={serviceCode}
+            serviceType='transcription'
+            onRegionChange={handleRegionChange}
+            onCancel={handleCancelLanguage}
+            withinPortal
+            selectOnly
+            mt={REQUIRED_ASTERISK_OFFSET}
+          />
+        </Group>
+
+        <Group justify='flex-end' mt='md'>
+          <ButtonNew onClick={onClose} variant='light'>{t('Cancel')}</ButtonNew>
+          <ButtonNew onClick={handleStartTranscription} disabled={!selectedLanguage}>
+            {t('Start Transcription')}
+          </ButtonNew>
+        </Group>
+      </Stack>
     </ModalNew>
   )
 }

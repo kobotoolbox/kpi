@@ -1,9 +1,10 @@
 import type { FlexProps } from '@mantine/core'
-import { ActionIcon, Flex, Group, Loader, Select, Text, TextInput } from '@mantine/core'
+import { ActionIcon, Flex, Group, Loader, Text, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLanguagesRetrieve } from '#/api/react-query/other'
 import KoboIcon from '../common/KoboIcon'
+import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 
 interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
@@ -17,6 +18,11 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   onRegionChange: (selectedRegion: LanguageCode | null) => void
   /** Callback for clicking "x" next to the root language. */
   onCancel: () => void
+  /** Set to true when used inside a modal to ensure dropdown renders above modal overlay */
+  withinPortal?: boolean
+  /** The region selector in the single processing view has an additonal text box to the left of the Select */
+  selectOnly?: boolean
+  titleOverride?: string
 }
 
 const RegionSelector = (props: RegionSelectorProps) => {
@@ -91,40 +97,58 @@ const RegionSelector = (props: RegionSelectorProps) => {
   }
 
   return (
-    <Flex component='section' direction='row' align='center' justify='center' mb={props?.mb}>
-      <Group gap='xs'>
-        <TextInput
-          readOnly
-          value={language?.name || ''}
-          size='sm'
-          leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
-          w={220}
-          rightSection={
-            <ActionIcon
-              aria-label={t('Close')}
-              variant='transparent'
+    <>
+      {!props.selectOnly && (
+        <Flex component='section' direction='row' align='center' justify='center' mb={props?.mb}>
+          <Group gap='xs'>
+            <TextInput
+              readOnly
+              value={language?.name || ''}
               size='sm'
-              onClick={props.onCancel}
-              disabled={props.disabled}
-            >
-              <KoboIcon icon={IconX} size='xs' />
-            </ActionIcon>
-          }
-        />
+              leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
+              w={220}
+              rightSection={
+                <ActionIcon
+                  aria-label={t('Close')}
+                  variant='transparent'
+                  size='sm'
+                  onClick={props.onCancel}
+                  disabled={props.disabled}
+                >
+                  <KoboIcon icon={IconX} size='xs' />
+                </ActionIcon>
+              }
+            />
 
-        {regionOptions.length > 0 && (
-          <Select
-            w={220}
-            data={regionOptions}
-            value={selectedRegion}
-            size='sm'
-            onChange={handleRegionChange}
-            disabled={props.disabled}
-            placeholder={t('Select a region...')}
-          />
-        )}
-      </Group>
-    </Flex>
+            {regionOptions.length > 0 && (
+              <Select
+                w={220}
+                data={regionOptions}
+                value={selectedRegion}
+                size='sm'
+                onChange={handleRegionChange}
+                disabled={props.disabled}
+                placeholder={t('Select a region...')}
+                comboboxProps={{ withinPortal: props.withinPortal }}
+              />
+            )}
+          </Group>
+        </Flex>
+      )}
+
+      {props.selectOnly && (
+        <Select
+          label={props.titleOverride ?? t('Select a region')}
+          data={regionOptions}
+          value={selectedRegion}
+          onChange={handleRegionChange}
+          disabled={props.disabled}
+          placeholder={t('Select a region...')}
+          comboboxProps={{ withinPortal: props.withinPortal }}
+          mt={props?.mt}
+        />
+      )}
+    </>
   )
 }
 
