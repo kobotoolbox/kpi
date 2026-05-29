@@ -1,11 +1,10 @@
 import { Group, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
-import ModalNew from '#/components/common/ModalNew'
 import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
-import RegionSelector from '../languages/RegionSelector'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
 import {modals} from '@mantine/modals'
+import RegionSelectorField from '../languages/RegionSelectorField'
 
 interface BulkTranscriptionModalProps {
   fieldId: string
@@ -74,14 +73,13 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
             value={selectedLanguage}
             required
           />
-          <RegionSelector
+          <RegionSelectorField
             disabled={!selectedLanguage}
             rootLanguage={selectedLanguage || ''}
             serviceCode={serviceCode}
             serviceType='transcription'
             onRegionChange={handleRegionChange}
             onCancel={handleCancelLanguage}
-            selectOnly
             mt={REQUIRED_ASTERISK_OFFSET}
           />
         </Group>
