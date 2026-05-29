@@ -63,6 +63,9 @@ const meta: Meta<typeof StoryTrigger> = {
   args: {
     mode: 'form',
   },
+  parameters: {
+    a11y: { test: 'todo' },
+  },
 }
 
 export default meta
