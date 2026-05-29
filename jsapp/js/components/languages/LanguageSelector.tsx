@@ -5,6 +5,7 @@ import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
 import envStore from '#/envStore'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode } from '../languages/languagesStore'
@@ -18,8 +19,6 @@ interface LanguageSelectorProps {
   value?: LanguageCode | null
   disabled?: boolean
   required?: boolean
-  /** Set to true when used inside a modal to ensure dropdown renders above modal overlay */
-  withinPortal?: boolean
 }
 
 const MINIMUM_SEARCH_LENGTH = 2
@@ -130,7 +129,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       }}
       disabled={props.disabled}
       comboboxProps={{
-        withinPortal: props.withinPortal,
+        zIndex: KOBO_Z_INDEX.dropdown,
         resetSelectionOnOptionHover: true,
         position: 'bottom',
         middlewares: { flip: false, shift: false },

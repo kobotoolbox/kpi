@@ -11,7 +11,6 @@ import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'
 import type { AssetResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import BulkTranscriptionModal from './BulkTranscriptionModal'
 
 interface TableColumnSortDropdownProps {
   asset: AssetResponse
@@ -40,8 +39,6 @@ interface TableColumnSortDropdownProps {
  */
 export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
   const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
 
   const canTranscribeSelectedAudioFiles =
@@ -49,10 +46,6 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
   const canTranslateSelectedTranscriptions =
     isBulkProcessingFeatureEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
   const shouldRenderBulkProcessingButtons = canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions
-
-  function openModal() {
-    setIsModalOpen(true)
-  }
 
   function renderTrigger() {
     let sortIconName: 'sort-ascending' | 'sort-descending' | null = null
@@ -127,92 +120,74 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
   }
 
   return (
-    <>
-      <BulkTranscriptionModal opened={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    <div className='table-column-sort-dropdown'>
+      <Menu closeOnItemClick offset={0} onOpen={() => setIsMenuOpen(true)} onClose={() => setIsMenuOpen(false)}>
+        <Menu.Target>
+          <button type='button' className='table-column-sort-dropdown-trigger-button'>
+            {renderTrigger()}
+          </button>
+        </Menu.Target>
 
-      <div className='table-column-sort-dropdown'>
-        <Menu closeOnItemClick offset={0} onOpen={() => setIsMenuOpen(true)} onClose={() => setIsMenuOpen(false)}>
-          <Menu.Target>
-            <button type='button' className='table-column-sort-dropdown-trigger-button'>
-              {renderTrigger()}
-            </button>
-          </Menu.Target>
+        <Menu.Dropdown>
+          {renderSortButton(SortValues.ASCENDING)}
+          {renderSortButton(SortValues.DESCENDING)}
 
-          <Menu.Dropdown>
-            {renderSortButton(SortValues.ASCENDING)}
-            {renderSortButton(SortValues.DESCENDING)}
+          {shouldRenderBulkProcessingButtons && (
+            <>
+              <Menu.Divider />
 
-            {shouldRenderBulkProcessingButtons && (
-              <>
-                <Menu.Divider />
-
-                {canTranscribeSelectedAudioFiles && (
-                  <Menu.Item
-                    className='sort-dropdown-menu-button'
-                    disabled={props.isBulkProcessingDisabled}
-                    onClick={transcribeSelectedAudioFiles}
-                    leftSection={<Icon name='qt-audio' size='inherit' />}
-                  >
-                    {t('Transcribe selected audio files')}
-                  </Menu.Item>
-                )}
-
-                {canTranslateSelectedTranscriptions && (
-                  <Menu.Item
-                    className='sort-dropdown-menu-button'
-                    disabled={props.isBulkProcessingDisabled}
-                    onClick={translateSelectedTranscriptions}
-                    leftSection={<Icon name='transcripts' size='inherit' />}
-                  >
-                    {t('Translate selected transcriptions')}
-                  </Menu.Item>
-                )}
-              </>
-            )}
-
-            {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-              <>
-                <Menu.Divider />
-
+              {canTranscribeSelectedAudioFiles && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  onClick={openModal}
-                  leftSection={<Icon name='transcripts' size='inherit' />}
+                  disabled={props.isBulkProcessingDisabled}
+                  onClick={transcribeSelectedAudioFiles}
+                  leftSection={<Icon name='qt-audio' size='inherit' />}
                 >
                   {t('Transcribe selected audio files')}
                 </Menu.Item>
+              )}
 
-                <Menu.Divider />
-
+              {canTranslateSelectedTranscriptions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  onClick={hideField}
-                  leftSection={<Icon name='hide' size='inherit' />}
+                  disabled={props.isBulkProcessingDisabled}
+                  onClick={translateSelectedTranscriptions}
+                  leftSection={<Icon name='transcripts' size='inherit' />}
                 >
-                  {t('Hide field')}
+                  {t('Translate selected transcriptions')}
                 </Menu.Item>
+              )}
+            </>
+          )}
 
-                <Menu.Item
-                  className='sort-dropdown-menu-button'
-                  onClick={() => {
-                    changeFieldFrozen(!props.isFieldFrozen)
-                  }}
-                  leftSection={
-                    props.isFieldFrozen ? (
-                      <Icon name='unfreeze' size='inherit' />
-                    ) : (
-                      <Icon name='freeze' size='inherit' />
-                    )
-                  }
-                >
-                  {props.isFieldFrozen && t('Unfreeze field')}
-                  {!props.isFieldFrozen && t('Freeze field')}
-                </Menu.Item>
-              </>
-            )}
-          </Menu.Dropdown>
-        </Menu>
-      </div>
-    </>
+          {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
+            <>
+              <Menu.Divider />
+
+              <Menu.Item
+                className='sort-dropdown-menu-button'
+                onClick={hideField}
+                leftSection={<Icon name='hide' size='inherit' />}
+              >
+                {t('Hide field')}
+              </Menu.Item>
+
+              <Menu.Item
+                className='sort-dropdown-menu-button'
+                onClick={() => {
+                  changeFieldFrozen(!props.isFieldFrozen)
+                }}
+                leftSection={
+                  props.isFieldFrozen ? <Icon name='unfreeze' size='inherit' /> : <Icon name='freeze' size='inherit' />
+                }
+              >
+                {props.isFieldFrozen && t('Unfreeze field')}
+                {!props.isFieldFrozen && t('Freeze field')}
+              </Menu.Item>
+            </>
+          )}
+        </Menu.Dropdown>
+      </Menu>
+    </div>
   )
 }

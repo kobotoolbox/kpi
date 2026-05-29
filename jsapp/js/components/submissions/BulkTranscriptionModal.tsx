@@ -5,15 +5,38 @@ import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelector from '../languages/RegionSelector'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
+import {modals} from '@mantine/modals'
 
-interface Props {
-  opened: boolean
-  onClose: () => void
+interface BulkTranscriptionModalProps {
+  fieldId: string
+  selectedSubmissionIds: string[]
+  selectedRowsCount: number
+  selectedAllPages: boolean
+  onRequestClose: () => void
 }
 
-const REQUIRED_ASTERISK_OFFSET = 6
+type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
 
-export default function BulkTranscriptionModal({ opened, onClose }: Props) {
+const REQUIRED_ASTERISK_OFFSET = 5
+
+export function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
+  const modalId = modals.open({
+    title: (
+      t('Transcribe selected audio files')
+    ),
+    size: 'md',
+    children: (
+      <BulkTranscriptionModal
+        onRequestClose={() => {
+          modals.close(modalId)
+        }}
+        {...args}
+      />
+    ),
+  })
+}
+
+export default function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const [serviceCode] = useState<TransxServiceCode>('goog') // TODO: Get from user's settings or project configuration
@@ -36,18 +59,10 @@ export default function BulkTranscriptionModal({ opened, onClose }: Props) {
   const handleStartTranscription = () => {
     // TODO: Implement transcription logic with selectedLanguage and selectedRegion
     console.log('Starting transcription with:', { selectedLanguage, selectedRegion })
-    onClose()
+    props.onRequestClose()
   }
 
   return (
-    <ModalNew
-      opened={opened}
-      onClose={onClose}
-      title={t('Transcribe selected audio files')}
-      size='md'
-      centered
-      withOverlay={true}
-    >
       <Stack gap='md'>
         <Text size='sm'>
           {t('Your 10 audio files is a total of 45 minutes. This should take less than 1 hour to complete.')}
@@ -57,28 +72,26 @@ export default function BulkTranscriptionModal({ opened, onClose }: Props) {
           <LanguageSelector
             onLanguageChange={handleLanguageChange}
             value={selectedLanguage}
-            withinPortal
             required
           />
           <RegionSelector
+            disabled={!selectedLanguage}
             rootLanguage={selectedLanguage || ''}
             serviceCode={serviceCode}
             serviceType='transcription'
             onRegionChange={handleRegionChange}
             onCancel={handleCancelLanguage}
-            withinPortal
             selectOnly
             mt={REQUIRED_ASTERISK_OFFSET}
           />
         </Group>
 
         <Group justify='flex-end' mt='md'>
-          <ButtonNew onClick={onClose} variant='light'>{t('Cancel')}</ButtonNew>
+          <ButtonNew onClick={props.onRequestClose} variant='light'>{t('Cancel')}</ButtonNew>
           <ButtonNew onClick={handleStartTranscription} disabled={!selectedLanguage}>
             {t('Start Transcription')}
           </ButtonNew>
         </Group>
       </Stack>
-    </ModalNew>
   )
 }

@@ -1,11 +1,11 @@
 import type { FlexProps } from '@mantine/core'
 import { ActionIcon, Flex, Group, Loader, Text, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
-import { useEffect, useMemo, useState } from 'react'
-import { useLanguagesRetrieve } from '#/api/react-query/other'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
+import { useRegionOptions } from './useRegionOptions'
 
 interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   disabled?: boolean
@@ -18,73 +18,20 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   onRegionChange: (selectedRegion: LanguageCode | null) => void
   /** Callback for clicking "x" next to the root language. */
   onCancel: () => void
-  /** Set to true when used inside a modal to ensure dropdown renders above modal overlay */
-  withinPortal?: boolean
   /** The region selector in the single processing view has an additonal text box to the left of the Select */
   selectOnly?: boolean
   titleOverride?: string
 }
 
 const RegionSelector = (props: RegionSelectorProps) => {
-  const { data, isLoading, isError } = useLanguagesRetrieve(props.rootLanguage)
-  const language = data?.status === 200 ? data.data : undefined
-  const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
+  const { regionOptions, selectedRegion, handleRegionChange, isLoading, isError, language } = useRegionOptions(
+    props.rootLanguage,
+    props.serviceCode,
+    props.serviceType,
+    props.onRegionChange,
+  )
 
-  const regionOptions = useMemo(() => {
-    const outcome = []
-    let serviceRegions
-    if (props.serviceType === 'transcription') {
-      serviceRegions = language?.transcription_services[props.serviceCode]
-    } else if (props.serviceType === 'translation') {
-      serviceRegions = language?.translation_services[props.serviceCode]
-    }
-
-    if (serviceRegions) {
-      for (const ourLanguageCode in serviceRegions) {
-        const serviceLanguageCode = serviceRegions[ourLanguageCode]
-        const label = language?.regions.find((region) => region.code === ourLanguageCode)?.name
-
-        if (serviceLanguageCode && label) {
-          outcome.push({
-            label: label,
-            value: serviceLanguageCode,
-          })
-        }
-      }
-    }
-
-    // We return the options sorted by their labels.
-    return outcome.sort((a, b) => {
-      const labelA = a.label.toLowerCase() // ignore upper and lowercase
-      const labelB = b.label.toLowerCase() // ignore upper and lowercase
-      if (labelA < labelB) {
-        return -1
-      }
-      if (labelA > labelB) {
-        return 1
-      }
-      return 0 // happens when labels are equal (should not happen in real life)
-    })
-  }, [language, props.serviceCode, props.serviceType])
-
-  // Needed to populate the Select value after getting data
-  useEffect(() => {
-    if (regionOptions.length > 0) {
-      const initialOption = regionOptions[0].value
-      setSelectedRegion(initialOption)
-      props.onRegionChange?.(initialOption)
-    } else {
-      setSelectedRegion(null)
-      props.onRegionChange?.(null)
-    }
-  }, [regionOptions])
-
-  const handleRegionChange = (newRegion: string | null) => {
-    setSelectedRegion(newRegion)
-    props.onRegionChange(newRegion)
-  }
-
-  if (isLoading) {
+  if (isLoading && !props.selectOnly) {
     return <Loader size='xs' mb={props?.mb} />
   }
 
@@ -129,7 +76,7 @@ const RegionSelector = (props: RegionSelectorProps) => {
                 onChange={handleRegionChange}
                 disabled={props.disabled}
                 placeholder={t('Select a region...')}
-                comboboxProps={{ withinPortal: props.withinPortal }}
+                comboboxProps={{ zIndex: KOBO_Z_INDEX.dropdown }}
               />
             )}
           </Group>
@@ -144,8 +91,9 @@ const RegionSelector = (props: RegionSelectorProps) => {
           onChange={handleRegionChange}
           disabled={props.disabled}
           placeholder={t('Select a region...')}
-          comboboxProps={{ withinPortal: props.withinPortal }}
+          comboboxProps={{ zIndex: KOBO_Z_INDEX.dropdown }}
           mt={props?.mt}
+          rightSection={isLoading ? <Loader size='xs' /> : undefined}
         />
       )}
     </>

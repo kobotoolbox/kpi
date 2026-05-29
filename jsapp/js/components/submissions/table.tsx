@@ -92,6 +92,8 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import {openFormLanguagesModal} from '#/project/FormLanguagesManager'
+import {openBulkTranscriptModal} from './BulkTranscriptionModal'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -404,7 +406,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onTranscribeSelectedAudioFiles(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
-    console.log('Bulk processing - Transcribe selected audio files', {
+    openBulkTranscriptModal({
       fieldId,
       selectedSubmissionIds,
       selectedRowsCount: selectedSubmissionIds.length,
