@@ -1157,7 +1157,7 @@ class AssetListSerializer(AssetSerializer):
             'data_sharing',
             'owner_label',
             'last_modified_by',
-            'created_by'
+            'created_by',
         )
 
     def get_permissions(self, asset):
