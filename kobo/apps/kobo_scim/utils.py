@@ -139,21 +139,20 @@ def generate_unique_scim_username(base_username, idp_slug):
     If that is also taken, it appends an incremental number.
     """
     prefix = base_username.split('@')[0]
-    
+
     # Attempt 1: Base username
     if not User.objects.filter(username__iexact=base_username).exists():
         return base_username
-    
+
     # Attempt 2: {prefix}_{idp_slug}
-    base_with_suffix = f"{prefix}_{idp_slug}"
+    base_with_suffix = f'{prefix}_{idp_slug}'
     if not User.objects.filter(username__iexact=base_with_suffix).exists():
         return base_with_suffix
-        
+
     # Attempt 3+: {prefix}_{idp_slug}_{counter}
     counter = 1
     while True:
-        username = f"{base_with_suffix}_{counter}"
+        username = f'{base_with_suffix}_{counter}'
         if not User.objects.filter(username__iexact=username).exists():
             return username
         counter += 1
-

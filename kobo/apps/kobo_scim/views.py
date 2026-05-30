@@ -192,9 +192,9 @@ class ScimUserViewSet(
 
         try:
             with transaction.atomic():
-                # Lock the IdentityProvider row to prevent concurrent provisioning 
+                # Lock the IdentityProvider row to prevent concurrent provisioning
                 # race conditions for the same IdP
-                
+
                 IdentityProvider.objects.select_for_update().get(pk=self.idp.pk)
 
                 # First, check if user exists via SocialAccount linkage
