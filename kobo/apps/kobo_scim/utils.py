@@ -30,10 +30,9 @@ def apply_scim_user_metadata(user, scim_data):
     updated_profile_fields = set()
     matched_any = False
 
-    extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
-    metadata = extra_user_detail.data or {}
-
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    extra_user_detail = None
+    metadata = {}
+    profile = None
 
     for field_def in metadata_fields:
         field_name = field_def.get('name')
@@ -90,6 +89,13 @@ def apply_scim_user_metadata(user, scim_data):
             continue
 
         matched_any = True
+
+        if extra_user_detail is None:
+            extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
+            metadata = extra_user_detail.data or {}
+
+        if profile is None:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
 
         # Apply value mapping if defined
         value_mapping = field_def.get('scim_value_mapping')
