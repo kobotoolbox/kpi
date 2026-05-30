@@ -27,7 +27,7 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
     SCIM_SCHEMA_USER,
 )
-from kobo.apps.kobo_scim.models import ScimGroup
+from kobo.apps.kobo_scim.models import IdentityProvider, ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
@@ -192,6 +192,11 @@ class ScimUserViewSet(
 
         try:
             with transaction.atomic():
+                # Lock the IdentityProvider row to prevent concurrent provisioning 
+                # race conditions for the same IdP
+                
+                IdentityProvider.objects.select_for_update().get(pk=self.idp.pk)
+
                 # First, check if user exists via SocialAccount linkage
                 social_account = (
                     SocialAccount.objects.filter(provider=self.idp_provider_id, uid=uid)
