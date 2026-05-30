@@ -154,10 +154,11 @@ class ScimUsersAPITests(APITestCase):
     def test_create_user_unique_username_generator(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
-        # User 1 provisions with username 'johndoe'
+        # User 1 provisions with username 'johndoe' and externalId 'john1'
         payload1 = {
             'schemas': [SCIM_SCHEMA_USER],
             'userName': 'johndoe',
+            'externalId': 'john1',
             'emails': [{'primary': True, 'value': 'john1@example.com'}],
             'active': True,
         }
@@ -167,10 +168,12 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(resp1.status_code, status.HTTP_201_CREATED)
         self.assertEqual(resp1.json()['userName'], 'johndoe')
 
-        # User 2 (different email) provisions with the same username 'johndoe'
+        # User 2 (different email/externalId) provisions 
+        # with the same username 'johndoe'
         payload2 = {
             'schemas': [SCIM_SCHEMA_USER],
             'userName': 'johndoe',
+            'externalId': 'john2',
             'emails': [{'primary': True, 'value': 'john2@example.com'}],
             'active': True,
         }
@@ -182,10 +185,12 @@ class ScimUsersAPITests(APITestCase):
         # It should generate a unique username by appending the IdP slug
         self.assertEqual(resp2.json()['userName'], f'johndoe_{self.idp.slug}')
 
-        # User 3 (another different email) provisions with the same username 'johndoe'
+        # User 3 (another different email/externalId) provisions 
+        # with the same username 'johndoe'
         payload3 = {
             'schemas': [SCIM_SCHEMA_USER],
             'userName': 'johndoe',
+            'externalId': 'john3',
             'emails': [{'primary': True, 'value': 'john3@example.com'}],
             'active': True,
         }
@@ -284,7 +289,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertIsNotNone(social_account)
 
     def test_create_user_reactivates_existing_inactive_user(self):
-        # A previously de-provisioned user gets re-assigned to the Kobo App in Authentik
+        # A previously de-provisioned user gets re-assigned to the Kobo App
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         # User already exists and is deactivated
