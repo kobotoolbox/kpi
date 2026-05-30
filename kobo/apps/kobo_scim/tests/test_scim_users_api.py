@@ -168,7 +168,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(resp1.status_code, status.HTTP_201_CREATED)
         self.assertEqual(resp1.json()['userName'], 'johndoe')
 
-        # User 2 (different email/externalId) provisions 
+        # User 2 (different email/externalId) provisions
         # with the same username 'johndoe'
         payload2 = {
             'schemas': [SCIM_SCHEMA_USER],
@@ -185,7 +185,7 @@ class ScimUsersAPITests(APITestCase):
         # It should generate a unique username by appending the IdP slug
         self.assertEqual(resp2.json()['userName'], f'johndoe_{self.idp.slug}')
 
-        # User 3 (another different email/externalId) provisions 
+        # User 3 (another different email/externalId) provisions
         # with the same username 'johndoe'
         payload3 = {
             'schemas': [SCIM_SCHEMA_USER],
