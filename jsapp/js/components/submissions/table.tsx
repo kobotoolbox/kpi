@@ -88,15 +88,17 @@ import type {
   SurveyRow,
   ValidationStatusResponse,
 } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { matchUuid, recordKeys } from '#/utils'
+import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 
 const DEFAULT_PAGE_SIZE = 30
+const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
 
 interface DataTableProps {
   asset: AssetResponse
@@ -150,6 +152,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {}
 
+  private lastRowRefreshErrorNotifiedAt = 0
+
   private unlisteners: Function[] = []
 
   constructor(props: DataTableProps) {
@@ -192,7 +196,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
       actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
-      actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
       actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed.bind(this)),
       actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted.bind(this)),
@@ -250,9 +253,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         this.state.submissions,
       )
 
-      submissionUuidsToRefresh.forEach((submissionUuid) => {
-        actions.submissions.getSubmissionByUuid(this.props.asset.uid, submissionUuid)
-      })
+      this.refreshSubmissionsByUuids(submissionUuidsToRefresh)
 
       // If bulk actions have changed, it means they might've just gotten loaded
       // from API, and we might need to display more columns.
@@ -260,24 +261,81 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
   }
 
-  onGetSubmissionByUuidCompleted(updatedSubmission?: SubmissionResponse) {
-    if (!updatedSubmission) {
+  refreshSubmissionsByUuids(submissionUuids: string[]) {
+    if (submissionUuids.length === 0) {
       return
     }
 
-    const submissionIndex = this.state.submissions.findIndex(
-      (submission) =>
-        matchUuid(submission['meta/rootUuid'], updatedSubmission['meta/rootUuid']) ||
-        matchUuid(submission._uuid, updatedSubmission._uuid) ||
-        submission._id === updatedSubmission._id,
-    )
+    // TODO: When DataTable is migrated to a functional component, replace this
+    // `dataInterface.getSubmissions` bridge with the Orval/react-query path.
+    // Hooks are not available in this legacy class component.
 
-    if (submissionIndex === -1) {
+    const uniqueSubmissionUuids = [...new Set(submissionUuids)]
+    const query = {
+      $or: [
+        {
+          'meta/rootUuid': { $in: uniqueSubmissionUuids.map((submissionUuid) => addDefaultUuidPrefix(submissionUuid)) },
+        },
+        { _uuid: { $in: uniqueSubmissionUuids } },
+      ],
+    }
+
+    dataInterface
+      .getSubmissions(
+        this.props.asset.uid,
+        uniqueSubmissionUuids.length,
+        0,
+        [],
+        [],
+        `&query=${encodeURIComponent(JSON.stringify(query))}`,
+      )
+      .done((response: PaginatedResponse<SubmissionResponse>) => {
+        this.onBulkProcessingSubmissionsRefreshCompleted(response.results)
+      })
+      .fail((response: FailResponse) => {
+        this.notifyRowRefreshFailure(response)
+      })
+  }
+
+  notifyRowRefreshFailure(response?: FailResponse) {
+    // TODO: Move this failure reporting to the Orval query error handling layer
+    // once this component uses hook-based data fetching.
+    const now = Date.now()
+    if (now - this.lastRowRefreshErrorNotifiedAt < ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS) {
+      return
+    }
+
+    this.lastRowRefreshErrorNotifiedAt = now
+    notify.error(
+      t('Could not refresh some processing rows. Table data may be temporarily out of date.'),
+      { id: 'datatable-row-refresh-failed' },
+      response?.responseText || response?.statusText || t('Bulk processing row refresh failed.'),
+    )
+  }
+
+  onBulkProcessingSubmissionsRefreshCompleted(updatedSubmissions: SubmissionResponse[]) {
+    if (!updatedSubmissions.length) {
       return
     }
 
     const submissions = [...this.state.submissions]
-    submissions[submissionIndex] = updatedSubmission
+
+    updatedSubmissions.forEach((updatedSubmission) => {
+      const submissionIndex = submissions.findIndex(
+        (submission) =>
+          matchUuid(submission['meta/rootUuid'], updatedSubmission['meta/rootUuid']) ||
+          matchUuid(submission._uuid, updatedSubmission._uuid) ||
+          submission._id === updatedSubmission._id,
+      )
+
+      if (submissionIndex !== -1) {
+        submissions[submissionIndex] = updatedSubmission
+      }
+    })
+
+    if (isEqual(submissions, this.state.submissions)) {
+      return
+    }
 
     // Rebuild columns because new supplemental values can introduce/show
     // dynamic transcript/translation columns.
