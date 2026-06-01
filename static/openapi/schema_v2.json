@@ -10919,6 +10919,36 @@
                 }
             }
         },
+        "/api/v2/environment/": {
+            "get": {
+                "operationId": "api_v2_environment_retrieve",
+                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
+                "tags": [
+                    "Configuration"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EnvironmentResponse"
+                                }
+                            }
+                        },
+                        "description": null
+                    }
+                }
+            }
+        },
         "/api/v2/imports/": {
             "get": {
                 "operationId": "api_v2_imports_list",
@@ -16723,36 +16753,6 @@
                 }
             }
         },
-        "/environment/": {
-            "get": {
-                "operationId": "environment_retrieve",
-                "description": "Retrieve Kobo server environment configurations.\n\nThis endpoint provides a wide range of configuration details required by the frontend client, including:\n- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).\n- Frontend configuration (retry times, usage limit enforcement, etc).\n- Global static lists (sectors, countries, interface languages, operational purposes).\n- Metadata configuration (available project and user metadata fields).\n- Features configurations (MFA, password entropy meter, custom guidance text).\n- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).\n",
-                "tags": [
-                    "Configuration"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/EnvironmentResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    }
-                }
-            }
-        },
         "/me/": {
             "get": {
                 "operationId": "me_retrieve",
@@ -21089,7 +21089,7 @@
                     "data": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/data/",
                         "readOnly": true
                     },
                     "children": {
@@ -21139,6 +21139,11 @@
                         "type": "string",
                         "readOnly": true,
                         "nullable": true
+                    },
+                    "created_by": {
+                        "type": "string",
+                        "readOnly": true,
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -21147,6 +21152,7 @@
                     "asset_type",
                     "assignable_permissions",
                     "children",
+                    "created_by",
                     "data",
                     "deployed_version_id",
                     "deployed_versions",
@@ -23019,20 +23025,6 @@
                         "format": "date-time",
                         "title": " submission time"
                     },
-                    "_tags": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "title": " tags"
-                    },
-                    "_notes": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "title": " notes"
-                    },
                     "_validation_status": {
                         "oneOf": [
                             {
@@ -23080,11 +23072,9 @@
                     "_attachments",
                     "_geolocation",
                     "_id",
-                    "_notes",
                     "_status",
                     "_submission_time",
                     "_submitted_by",
-                    "_tags",
                     "_uuid",
                     "_validation_status",
                     "_xform_id_string",
@@ -23763,6 +23753,9 @@
                     "mfa_code_length": {
                         "type": "integer"
                     },
+                    "superuser_auth_enforcement": {
+                        "type": "boolean"
+                    },
                     "enable_password_entropy_meter": {
                         "type": "boolean"
                     },
@@ -23845,6 +23838,7 @@
                     "source_code_url",
                     "stripe_public_key",
                     "submission_placeholder",
+                    "superuser_auth_enforcement",
                     "support_email",
                     "support_url",
                     "terms_of_service__sitewidemessage__exists",

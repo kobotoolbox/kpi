@@ -564,7 +564,7 @@ class TestExportBuilder(TestBase):
             'geo/_geolocation_precision', 'tel/tel.office',
             'tel/tel.mobile', '_id', 'meta/instanceID', '_uuid',
             '_submission_time', '_index', '_parent_index',
-            '_parent_table_name', '_tags', '_notes']
+            '_parent_table_name']
         column_headers = [c[0].value for c in main_sheet.columns]
         self.assertEqual(sorted(column_headers),
                          sorted(expected_column_headers))
@@ -577,7 +577,7 @@ class TestExportBuilder(TestBase):
             'children/ice.creams/vanilla', 'children/ice.creams/strawberry',
             'children/ice.creams/chocolate', '_id', '_uuid',
             '_submission_time', '_index', '_parent_index',
-            '_parent_table_name', '_tags', '_notes']
+            '_parent_table_name']
         column_headers = [c[0].value for c in childrens_sheet.columns]
         self.assertEqual(sorted(column_headers),
                          sorted(expected_column_headers))
@@ -586,7 +586,7 @@ class TestExportBuilder(TestBase):
         expected_column_headers = [
             'children/cartoons/name', 'children/cartoons/why', '_id',
             '_uuid', '_submission_time', '_index', '_parent_index',
-            '_parent_table_name', '_tags', '_notes']
+            '_parent_table_name']
         column_headers = [c[0].value for c in cartoons_sheet.columns]
         self.assertEqual(sorted(column_headers),
                          sorted(expected_column_headers))
@@ -596,7 +596,7 @@ class TestExportBuilder(TestBase):
             'children/cartoons/characters/name',
             'children/cartoons/characters/good_or_evil', '_id', '_uuid',
             '_submission_time', '_index', '_parent_index',
-            '_parent_table_name', '_tags', '_notes']
+            '_parent_table_name']
         column_headers = [c[0].value for c in characters_sheet.columns]
         self.assertEqual(sorted(column_headers),
                          sorted(expected_column_headers))
@@ -622,7 +622,7 @@ class TestExportBuilder(TestBase):
             'geo._geolocation_precision', 'tel.tel.office',
             'tel.tel.mobile', '_id', 'meta.instanceID', '_uuid',
             '_submission_time', '_index', '_parent_index',
-            '_parent_table_name', '_tags', '_notes']
+            '_parent_table_name']
         column_headers = [c[0].value for c in main_sheet.columns]
         self.assertEqual(sorted(column_headers),
                          sorted(expected_column_headers))

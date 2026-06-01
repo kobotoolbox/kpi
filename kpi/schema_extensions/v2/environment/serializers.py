@@ -67,6 +67,7 @@ class EnvironmentResponseSerializer(serializers.Serializer):
     )
     mfa_enabled = serializers.BooleanField()
     mfa_code_length = serializers.IntegerField()
+    superuser_auth_enforcement = serializers.BooleanField()
 
     # Password
     enable_password_entropy_meter = serializers.BooleanField()

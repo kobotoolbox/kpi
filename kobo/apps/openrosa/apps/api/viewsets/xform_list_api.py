@@ -92,7 +92,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return {
             'Date': dt,
             'X-OpenRosa-Version': '1.0',
-            'X-OpenRosa-Accept-Content-Length': settings.OPENROSA_DEFAULT_CONTENT_LENGTH,
+            'X-OpenRosa-Accept-Content-Length': (
+                settings.OPENROSA_DEFAULT_CONTENT_LENGTH
+            ),
             'Content-Type': 'text/xml; charset=utf-8',
         }
 
@@ -176,7 +178,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return queryset
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/anonymous.md'),
+        description=read_md(
+            'openrosa', 'formlist/anonymous.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -212,12 +216,14 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         - form_list (anonymous)         → GET /api/v2/{username}/formList/
 
         Documentation:
-        - docs/api/v2/form_list/anonymous.md
+        - docs/api/openrosa/formlist/anonymous.md
         """
         return self.list(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/authenticated.md'),
+        description=read_md(
+            'openrosa', 'formlist/authenticated.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -250,12 +256,14 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         - form_list (authenticated)     → GET /api/v2/formList/
 
         Documentation:
-        - docs/api/v2/form_list/authenticated.md
+        - docs/api/openrosa/formlist/authenticated.md
         """
         return self.list(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/data_collector.md'),
+        description=read_md(
+            'openrosa', 'formlist/data_collector.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -282,7 +290,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         - form_list (data collector)         → GET /api/v2/collector/{token}/formList/
 
         Documentation:
-        - docs/api/v2/form_list/data_collector.md
+        - docs/api/openrosa/formlist/data_collector.md
         """
         return self.list(request, *args, **kwargs)
 
@@ -321,7 +329,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
 
     @extend_schema(
-        description=read_md('openrosa', 'manifest/anonymous.md'),
+        description=read_md(
+            'openrosa', 'manifest/anonymous.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             OpenRosaFormManifestResponse,
             media_type='application/xml',
@@ -341,7 +351,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return self.manifest(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'manifest/data_collector.md'),
+        description=read_md(
+            'openrosa', 'manifest/data_collector.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             OpenRosaFormManifestResponse,
             media_type='application/xml',
@@ -362,7 +374,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return self.manifest(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'manifest/authenticated.md'),
+        description=read_md(
+            'openrosa', 'manifest/authenticated.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             OpenRosaFormManifestResponse,
             media_type='application/xml',
@@ -390,7 +404,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         - xform_manifest (data collector)    → GET /collector/{token}/xformManifest/{id}
 
         Documentation:
-        - docs/api/v2/manifest/list.md
+        - docs/api/openrosa/manifest/authenticated.md
+        - docs/api/openrosa/manifest/anonymous.md
+        - docs/api/openrosa/manifest/data_collector.md
         """
         xform = self.get_object()
         media_files = {}
