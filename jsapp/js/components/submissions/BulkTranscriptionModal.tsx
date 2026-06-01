@@ -1,14 +1,17 @@
 import { Group, Stack, Text } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import { useState } from 'react'
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
+import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
 import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
-import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
-import {modals} from '@mantine/modals'
 import RegionSelectorField from '../languages/RegionSelectorField'
+import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
 
 interface BulkTranscriptionModalProps {
   fieldId: string
-  selectedSubmissionIds: string[]
+  assetUid: string
+  selectedSubmissionUuids: string[]
   selectedRowsCount: number
   selectedAllPages: boolean
   onRequestClose: () => void
@@ -16,13 +19,11 @@ interface BulkTranscriptionModalProps {
 
 type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
 
-const REQUIRED_ASTERISK_OFFSET = 5
+const REQUIRED_ASTERISK_OFFSET = 4
 
 export function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
   const modalId = modals.open({
-    title: (
-      t('Transcribe selected audio files')
-    ),
+    title: t('Transcribe selected audio files'),
     size: 'md',
     children: (
       <BulkTranscriptionModal
@@ -38,8 +39,8 @@ export function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
 export default function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
-  const [serviceCode] = useState<TransxServiceCode>('goog') // TODO: Get from user's settings or project configuration
-
+  const [serviceCode] = useState<TransxServiceCode>('goog')
+  const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
     // Reset region when language changes
@@ -56,40 +57,63 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
   }
 
   const handleStartTranscription = () => {
-    // TODO: Implement transcription logic with selectedLanguage and selectedRegion
-    console.log('Starting transcription with:', { selectedLanguage, selectedRegion })
+    createBulkTranscription(
+      {
+        uidAsset: props.assetUid, // You'll need to get this from props or context
+        data: {
+          action_id: ActionIdEnum.automatic_google_transcription,
+          question_xpath: props.fieldId,
+          submission_uuids: props.selectedSubmissionUuids,
+          params: {
+            language: selectedLanguage!,
+            locale: selectedRegion || undefined,
+          },
+        },
+      },
+      {
+        onSuccess: () => {
+          // Show success message
+          props.onRequestClose()
+        },
+        onError: (error) => {
+          // Handle error
+          console.error('Transcription failed:', error)
+        },
+      },
+    )
     props.onRequestClose()
   }
 
   return (
-      <Stack gap='md'>
-        <Text size='sm'>
-          {t('Your 10 audio files is a total of 45 minutes. This should take less than 1 hour to complete.')}
-        </Text>
+    <Stack gap='md'>
+      <Text size='sm'>
+        {t('##count## audio files selected for transcription. This may take some time to complete.').replace(
+          '##count##',
+          String(props.selectedRowsCount),
+        )}
+      </Text>
 
-        <Group gap='sm' align='flex-start' wrap='nowrap'>
-          <LanguageSelector
-            onLanguageChange={handleLanguageChange}
-            value={selectedLanguage}
-            required
-          />
-          <RegionSelectorField
-            disabled={!selectedLanguage}
-            rootLanguage={selectedLanguage || ''}
-            serviceCode={serviceCode}
-            serviceType='transcription'
-            onRegionChange={handleRegionChange}
-            onCancel={handleCancelLanguage}
-            mt={REQUIRED_ASTERISK_OFFSET}
-          />
-        </Group>
+      <Group gap='sm' align='flex-start' wrap='nowrap'>
+        <LanguageSelector onLanguageChange={handleLanguageChange} value={selectedLanguage} required />
+        <RegionSelectorField
+          disabled={!selectedLanguage}
+          rootLanguage={selectedLanguage || ''}
+          serviceCode={serviceCode}
+          serviceType='transcription'
+          onRegionChange={handleRegionChange}
+          onCancel={handleCancelLanguage}
+          mt={REQUIRED_ASTERISK_OFFSET}
+        />
+      </Group>
 
-        <Group justify='flex-end' mt='md'>
-          <ButtonNew onClick={props.onRequestClose} variant='light'>{t('Cancel')}</ButtonNew>
-          <ButtonNew onClick={handleStartTranscription} disabled={!selectedLanguage}>
-            {t('Start Transcription')}
-          </ButtonNew>
-        </Group>
-      </Stack>
+      <Group justify='flex-end' mt='md'>
+        <ButtonNew onClick={props.onRequestClose} variant='light'>
+          {t('Cancel')}
+        </ButtonNew>
+        <ButtonNew onClick={handleStartTranscription} disabled={!selectedLanguage}>
+          {t('Start Transcription')}
+        </ButtonNew>
+      </Group>
+    </Stack>
   )
 }

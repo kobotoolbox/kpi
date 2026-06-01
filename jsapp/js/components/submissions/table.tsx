@@ -406,9 +406,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onTranscribeSelectedAudioFiles(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
+    // Bulk actions needs submission uuids
+    const selectedSubmissionUuids = this.state.submissions
+      .filter(submission => selectedSubmissionIds.includes(String(submission._id)))
+      .map(submission => submission._uuid)
+
     openBulkTranscriptModal({
       fieldId,
-      selectedSubmissionIds,
+      assetUid: this.props.asset.uid,
+      selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
       selectedAllPages: this.state.selectAll,
     })
@@ -417,9 +423,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onTranslateSelectedTranscriptions(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
+    // Bulk actions needs submission uuids
+    const selectedSubmissionUuids = this.state.submissions
+      .filter(submission => selectedSubmissionIds.includes(String(submission._id)))
+      .map(submission => submission._uuid)
+
     console.log('Bulk processing - Translate selected transcriptions', {
       fieldId,
-      selectedSubmissionIds,
+      assetUid: this.props.asset.uid,
+      selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
       selectedAllPages: this.state.selectAll,
     })
