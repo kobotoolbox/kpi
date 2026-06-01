@@ -45,9 +45,18 @@ import { getBulkProcessingColumnKey } from './components/submissions/bulkProcess
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
+ * Keep this function normalization-only (no deduping) so it stays aligned
+ * with backend tag normalization semantics.
  */
 export function cleanupTags(tags: string[]) {
   return tags.map((tag) => tag.trim().replace(/ /g, '-'))
+}
+
+/**
+ * Cleans and deduplicates tags while preserving first occurrence order.
+ */
+export function cleanupAndUniqueTags(tags: string[]) {
+  return Array.from(new Set(cleanupTags(tags)))
 }
 
 /**

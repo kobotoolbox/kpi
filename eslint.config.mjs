@@ -219,6 +219,11 @@ const tsConfig = {
           },
           {
             name: '@mantine/core',
+            importNames: ['MultiSelect'],
+            message: "Use MultiSelect from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
             importNames: ['Notification'],
             message: "Use Notification from 'jsapp/js/components/common' instead.",
           },
@@ -226,6 +231,11 @@ const tsConfig = {
             name: '@mantine/core',
             importNames: ['Select'],
             message: "Use Select from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
+            importNames: ['TagsInput'],
+            message: "Use TagsInput from 'jsapp/js/components/common' instead.",
           },
           {
             name: '@mantine/core',
