@@ -54,6 +54,7 @@ syntax, see the documentation at the top of
 ## Admin reports
 
 There are several types of data reports available to superusers.
+
 * Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
 * Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`
 
@@ -73,8 +74,12 @@ See [browsers list config](./.browserslistrc)
 
 The OpenAPI documentation is available at:
 
-- **Swagger UI**: [`/api/v2/docs/`](https://kf.kobotoolbox.org/api/v2/docs/)
-- **Raw schema**: [`/api/v2/schema/`](https://kf.kobotoolbox.org/api/v2/schema/)
+* **Swagger UI**: [`/api/v2/docs/`](https://kf.kobotoolbox.org/api/v2/docs/)
+* **Raw schema**: [`/api/v2/schema/`](https://kf.kobotoolbox.org/api/v2/schema/)
 
 For details about how the API documentation is implemented in each Django app,
 see [`./docs/README`](./docs/README).
+
+***
+
+Hello Greptile! :wave:
