@@ -96,7 +96,7 @@ export const YourPlan = () => {
         {showPlanUpdateLink && (
           <nav>
             <BillingButton
-              label={'See plans'}
+              label={t('See plans')}
               type='secondary'
               onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
             />
