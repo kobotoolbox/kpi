@@ -212,7 +212,7 @@ export default function EmailSection() {
             <Group gap='sm'>
               <Text c='red'>{email.fieldErrors}</Text>
 
-              <Button label='Change' size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
+              <Button label={t('Change')} size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
             </Group>
           </form>
         </div>
