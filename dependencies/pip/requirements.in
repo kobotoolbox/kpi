@@ -49,7 +49,6 @@ django-webpack-loader
 django-loginas
 django-markdownx
 django-prometheus
-
 django-taggit
 django-private-storage
 djangorestframework
@@ -67,7 +66,7 @@ google-cloud-translate
 jsonfield
 jsonschema
 kombu
-lxml<6  # temporary 20260226
+lxml
 more-itertools
 oauthlib
 objgraph

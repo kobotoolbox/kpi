@@ -3,7 +3,6 @@ from django.test import TestCase
 from rest_framework.permissions import DjangoObjectPermissions
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.api.permissions import XFormPermissions
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
@@ -935,10 +934,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         ]
         snap_perm_class = AssetSnapshotPermission()
         assert snap_perm_class.perms_map['PATCH'] == ['kpi.change_asset']
-        xform_perm_class = XFormPermissions()
-        assert xform_perm_class.perms_map['PATCH'] == [
-            '%(app_label)s.change_%(model_name)s'
-        ]
         assert django_perm_class.perms_map['PATCH'] == [
             '%(app_label)s.change_%(model_name)s'
         ]

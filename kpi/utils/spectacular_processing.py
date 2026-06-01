@@ -60,9 +60,6 @@ class V2APIEndpointEnumerator(EndpointEnumerator):
         seen = []
 
         for path, path_regex, method, callback in endpoints:
-            # Remove all endpoints not in 'api/v2/'
-            if path.startswith('/api/v1/'):
-                continue
 
             if path in OPEN_ROSA_ENDPOINTS:
                 continue
