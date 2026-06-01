@@ -2,7 +2,10 @@ import { renderHook } from '@testing-library/react'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
-import { useAssetsAdvancedFeaturesBulkActionsList } from '#/api/react-query/survey-data'
+import {
+  getAssetsAdvancedFeaturesBulkActionsListQueryKey,
+  useAssetsAdvancedFeaturesBulkActionsList,
+} from '#/api/react-query/survey-data'
 import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import { useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
@@ -10,6 +13,9 @@ import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useD
 
 jest.mock('#/api/react-query/survey-data', () => {
   return {
+    getAssetsAdvancedFeaturesBulkActionsListQueryKey: jest.fn((uidAsset: string) =>
+      uidAsset ? [`/api/v2/assets/${uidAsset}/advanced_features/bulk_actions/`] : [],
+    ),
     useAssetsAdvancedFeaturesBulkActionsList: jest.fn(),
   }
 })
@@ -49,6 +55,9 @@ describe('useDataTableBulkActions', () => {
   const useBulkActionsListMock = useAssetsAdvancedFeaturesBulkActionsList as jest.MockedFunction<
     typeof useAssetsAdvancedFeaturesBulkActionsList
   >
+  const getBulkActionsListQueryKeyMock = getAssetsAdvancedFeaturesBulkActionsListQueryKey as jest.MockedFunction<
+    typeof getAssetsAdvancedFeaturesBulkActionsListQueryKey
+  >
 
   function mockSession(username: string | undefined, isPending = false) {
     // Hook only needs username and pending state; the remaining methods are stubbed.
@@ -76,6 +85,9 @@ describe('useDataTableBulkActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks()
+    getBulkActionsListQueryKeyMock.mockImplementation((uidAsset: string) =>
+      uidAsset ? [`/api/v2/assets/${uidAsset}/advanced_features/bulk_actions/`] : [],
+    )
   })
 
   it('returns no active actions and false when feature flag is disabled', () => {
