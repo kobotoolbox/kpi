@@ -14,6 +14,7 @@ import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.m
 import { getBulkActionsPollingIntervalMs } from './useDataTableBulkActions'
 
 let pollingBulkActionsCalls = 0
+let pollingSubmissionRefreshCalls = 0
 const POLLING_STORY_ASSERTION_GRACE_MS = 2000
 
 // Dedicated polling story data is kept in a separate file so the main stories
@@ -57,6 +58,19 @@ const pollingSubmissionInitial = assetDataFactory(11, {
 
 const pollingSubmissionUpdated = assetDataFactory(11, {
   Record_a_sound: 'test11.mp3',
+  // Keep the processing column after completion based on refreshed row data,
+  // without pre-seeding supplemental field metadata on the asset itself.
+  _supplementalDetails: {
+    Record_a_sound: {
+      translation: {
+        es: {
+          languageCode: 'es',
+          value: 'Hola, el procesamiento masivo ha finalizado correctamente.',
+        },
+      },
+    },
+  },
+  '_supplementalDetails/Record_a_sound/translation_es': 'Hola, el procesamiento masivo ha finalizado correctamente.',
   _attachments: [
     {
       download_url: './test11.mp3',
@@ -68,16 +82,6 @@ const pollingSubmissionUpdated = assetDataFactory(11, {
       question_xpath: 'Record_a_sound',
     },
   ],
-  _supplementalDetails: {
-    Record_a_sound: {
-      translation: {
-        es: {
-          languageCode: 'es',
-          value: 'Hola, el procesamiento masivo ha finalizado correctamente.',
-        },
-      },
-    },
-  },
 })
 
 const pollingBulkActionInProgress = bulkActionFactory(pollingSubmissionInitial['meta/rootUuid'], 'es', {
@@ -108,6 +112,14 @@ const pollingBulkActionComplete = bulkActionFactory(pollingSubmissionInitial['me
 
 export function resetPollingUpdateStoryHandlers() {
   pollingBulkActionsCalls = 0
+  pollingSubmissionRefreshCalls = 0
+}
+
+export function getPollingUpdateStoryState() {
+  return {
+    pollingBulkActionsCalls,
+    pollingSubmissionRefreshCalls,
+  }
 }
 
 export function getPollingUpdateStoryTimeoutMs() {
@@ -153,6 +165,9 @@ export function getPollingUpdateStoryHandlers() {
       // that single-row refresh path.
       const requestUrl = new URL(request.url)
       const hasUuidQuery = Boolean(requestUrl.searchParams.get('query'))
+      if (hasUuidQuery) {
+        pollingSubmissionRefreshCalls += 1
+      }
       const submissions = hasUuidQuery ? [pollingSubmissionUpdated] : [pollingSubmissionInitial]
 
       return HttpResponse.json({

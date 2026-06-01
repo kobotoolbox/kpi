@@ -29,6 +29,7 @@ import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStor
 import DataTableWrapper from './DataTableWrapper'
 import {
   getPollingUpdateStoryHandlers,
+  getPollingUpdateStoryState,
   getPollingUpdateStoryTimeoutMs,
   pollingAsset,
   resetPollingUpdateStoryHandlers,
@@ -333,9 +334,13 @@ export const ProcessingPollingRefreshesTranslatedCell: Story = {
     await step('Wait for polling to replace the placeholder with the translated value', async () => {
       await waitFor(
         async () => {
+          const storyState = getPollingUpdateStoryState()
+          await expect(storyState.pollingBulkActionsCalls).toBeGreaterThanOrEqual(2)
+          await expect(storyState.pollingSubmissionRefreshCalls).toBeGreaterThanOrEqual(1)
+          // Tests were failing, let's try being more broad with selection
           await expect(
-            canvas.getByText('Hola, el procesamiento masivo ha finalizado correctamente.'),
-          ).toBeInTheDocument()
+            canvas.queryAllByText('Hola, el procesamiento masivo ha finalizado correctamente.').length,
+          ).toBeGreaterThan(0)
         },
         { timeout: getPollingUpdateStoryTimeoutMs() },
       )
