@@ -16,6 +16,7 @@ from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
@@ -252,17 +253,24 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             if objects_count != len(asset_uids):
                 raise exceptions.PermissionDenied()
         else:
-            objects_count = Asset.objects.filter(
-                owner__in=user_filter,
-                uid__in=asset_uids,
-            ).count()
-            if objects_count == len(asset_uids):
+            user_filter_as_ids = [user.id for user in user_filter]
+            all_assets = Asset.objects.filter(uid__in=asset_uids).select_related(
+                'owner'
+            )
+
+            owned_assets = []
+            unowned_assets = []
+            for a in all_assets:
+                if a.owner.id in user_filter_as_ids:
+                    owned_assets.append(a)
+                else:
+                    unowned_assets.append(a)
+
+            if len(owned_assets) == len(asset_uids):
                 # all assets are owned by the user, so they can delete all of them
                 return
+            all_asset_uids = [a.uid for a in all_assets]
 
-            all_asset_uids = Asset.objects.filter(uid__in=asset_uids).values_list(
-                'uid', flat=True
-            )
             if sorted(all_asset_uids) != sorted(asset_uids):
                 # at least one of the asset uids doesn't exist.
                 # technically this should probably raise a 404 but since it raises a
@@ -274,23 +282,46 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             # 2. They still have manage_asset
             # 3. The asset has no submissions
 
-            # note: prefetch_related('permissions') doesn't help here because has_perm
-            # gets ObjectPermissions and then filters by asset rather than going
-            # through asset.permissions
+            # check 1: did the non-owning user create the assets?
+            if any(a.created_by != self.__user.username for a in unowned_assets):
+                raise exceptions.PermissionDenied()
 
-            for asset in (
-                Asset.objects.filter(uid__in=asset_uids)
-                .exclude(owner__in=user_filter)
-                .defer('content')
-            ):
-                has_submissions = (
-                    asset.has_deployment and asset.deployment.submission_count > 0
+            # check 2: does the user have manage_asset?
+            all_perms = [
+                o
+                for o in ObjectPermission.objects.filter(
+                    asset__uid__in=asset_uids, user__in=user_filter
                 )
-                if (
-                    asset.created_by != self.__user.username
-                    or not asset.has_perm(self.__user, PERM_MANAGE_ASSET)
-                    or has_submissions
-                ):
+                .select_related('permission')
+                .values(
+                    'asset_id',
+                    'permission_id',
+                    'permission__codename',
+                    'deny',
+                    'user_id',
+                )
+            ]
+
+            if any(
+                not asset.has_perm(
+                    self.__user,
+                    PERM_MANAGE_ASSET,
+                    precomputed_object_permissions=all_perms,
+                )
+                for asset in unowned_assets
+            ):
+                raise exceptions.PermissionDenied()
+
+            # check 3: are all unowned assets empty (no submissions)?
+            formids = [  # retrieve XForm.pks from backend response
+                a._deployment_data.get('backend_response', {}).get('formid')
+                for a in unowned_assets
+                if 'backend' in a._deployment_data
+            ]
+            if formids:
+                if XForm.all_objects.filter(
+                    pk__in=formids, num_of_submissions__gt=0
+                ).exists():
                     raise exceptions.PermissionDenied()
 
     def _toggle_trash(self, asset_uids: list[str], put_back_: bool):
