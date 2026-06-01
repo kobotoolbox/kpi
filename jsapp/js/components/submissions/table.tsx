@@ -585,9 +585,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             )}
 
             {/*
-            TODO(table-tooltips): when we migrate or refactor tooltip rendering,
-            switch these actions to a portal-based tooltip so rows do not reserve
-            extra bottom space for tooltip containers.
+            TODO: the tooltips of these two buttons appear underneath them
             causing an unnecessary space under the last table row to happen.
             Let's try to fix this one day by introducing better tooltips.
             */}
@@ -725,9 +723,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
 
     const survey = this.props.asset.content?.survey
-    // TODO(select-from-file): when Data Table supports `select_x_from_file`
-    // filtering, load and parse the external choices file and feed those values
-    // into the dropdown filter options below.
+    // TODO: write some code that will get the choices for `select_x_from_file`
+    // from the file. It needs to first load the file and then parse the content
+    // so it's quite the task :)
     const choices: SurveyChoice[] = this.props.asset.content?.choices || []
     let flatPaths: SurveyFlatPaths = {}
     if (survey) {
