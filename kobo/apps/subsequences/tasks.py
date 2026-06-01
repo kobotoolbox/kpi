@@ -95,13 +95,27 @@ def poll_run_external_process(
             submission=submission,
             action_data=request_action_data,
             status='failed',
+            error=str(e),
         )
         return
+
+    error = None
+    if last_status == 'failed':
+        try:
+            error = _extract_bulk_item_error(
+                asset=asset,
+                action_context=advanced_feature,
+                supplement_data=supplement_data,
+                action_data=request_action_data,
+            )
+        except Exception:
+            error = None
 
     _update_bulk_action_item_status(
         submission=submission,
         action_data=request_action_data,
         status=last_status,
+        error=error,
     )
 
     if last_status == 'in_progress':
@@ -187,6 +201,7 @@ def poll_run_external_process_failure(sender=None, **kwargs):
         submission=submission,
         action_data=action_data,
         status='failed',
+        error=error,
     )
 
 
@@ -240,7 +255,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
     try:
         submission = _get_submission_for_bulk_action_item(item)
         if submission is None:
-            _mark_bulk_item_failed(item)
+            _mark_bulk_item_failed(item, 'Submission not found')
             return
 
         request_action_data = deepcopy(bulk_action.params)
@@ -270,7 +285,10 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 'Bulk item execution produced no supplement data for '
                 f'{item.uid=}, {bulk_action.uid=}, {item.submission_root_uuid=}'
             )
-            _mark_bulk_item_failed(item)
+            _mark_bulk_item_failed(
+                item,
+                'Bulk item execution produced no supplement data',
+            )
             return
 
         extracted_status = _extract_bulk_item_status(
@@ -281,7 +299,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
         )
 
         item.status = extracted_status
-        item.save(update_fields=['status', 'date_modified'])
+        update_fields = ['status', 'date_modified']
         if extracted_status == BulkActionItemStatus.FAILED:
             try:
                 error = _extract_bulk_item_error(
@@ -292,12 +310,18 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 )
             except Exception:
                 error = None
+            item.failure_error = error or 'Bulk item execution failed'
+            update_fields.append('failure_error')
             logging.error(
                 'Bulk item execution finished with failed status for '
                 f'{item.uid=}, {bulk_action.uid=}, '
                 f'{item.submission_root_uuid=}, '
                 f'{bulk_action.action_id=}, error={error!r}'
             )
+        else:
+            item.failure_error = None
+            update_fields.append('failure_error')
+        item.save(update_fields=update_fields)
 
         if extracted_status == BulkActionItemStatus.IN_PROGRESS:
             poll_run_external_process.apply_async(
@@ -318,7 +342,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             f'Exception: {str(e)}'
         )
         logging.exception(error_msg)
-        _mark_bulk_item_failed(item)
+        _mark_bulk_item_failed(item, str(e))
         return
 
 
@@ -440,12 +464,16 @@ def _get_submission_for_bulk_action_item(item):
     return next(iter(submissions), None)
 
 
-def _mark_bulk_item_failed(item) -> None:
+def _mark_bulk_item_failed(item, error: str | None = None) -> None:
     """
     Move a child item to failed so the parent batch can reach a terminal state
     """
     item.status = 'failed'
-    item.save(update_fields=['status', 'date_modified'])
+    if error:
+        item.failure_error = error
+        item.save(update_fields=['status', 'failure_error', 'date_modified'])
+    else:
+        item.save(update_fields=['status', 'date_modified'])
 
 
 def _get_submission_supplement_data(asset, submission: dict) -> dict:
@@ -576,6 +604,7 @@ def _update_bulk_action_item_status(
     submission: dict,
     action_data: dict,
     status: str,
+    error: str | None = None,
 ) -> None:
     """
     Mirror an async supplement status back to the matching bulk child item
@@ -591,11 +620,17 @@ def _update_bulk_action_item_status(
         'SubsequenceBulkActionItem',
     )
     submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
+    updates = {
+        'status': status,
+        'date_modified': timezone.now(),
+    }
+    if error:
+        updates['failure_error'] = error
+    elif status != BulkActionItemStatus.FAILED:
+        updates['failure_error'] = None
+
     SubsequenceBulkActionItem.objects.filter(
         parent__uid=bulk_action_uid,
         submission_root_uuid=submission_uuid,
         status__in=[BulkActionItemStatus.PENDING, BulkActionItemStatus.IN_PROGRESS],
-    ).update(
-        status=status,
-        date_modified=timezone.now(),
-    )
+    ).update(**updates)

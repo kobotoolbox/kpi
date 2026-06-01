@@ -71,6 +71,7 @@ class BulkActionUserSerializer(serializers.Serializer):
 class BulkActionSubmissionStatusSerializer(serializers.Serializer):
     uuid = serializers.CharField(source='submission_root_uuid')
     status = serializers.CharField()
+    error = serializers.CharField(source='failure_error', allow_null=True)
 
 
 class BulkActionResponseSerializer(serializers.ModelSerializer):

@@ -600,6 +600,7 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
     )
     hash = models.CharField(max_length=64, db_index=True)
     service_id = models.CharField(max_length=2048, null=True, blank=True)
+    failure_error = models.TextField(null=True, blank=True)
 
     class Meta:
         constraints = [
