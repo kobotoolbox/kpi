@@ -11,6 +11,10 @@ import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.mocks'
+import { getBulkActionsPollingIntervalMs } from './useDataTableBulkActions'
+
+let pollingBulkActionsCalls = 0
+const POLLING_STORY_ASSERTION_GRACE_MS = 2000
 
 // Dedicated polling story data is kept in a separate file so the main stories
 // file remains easy to scan as more table scenarios get added.
@@ -69,7 +73,7 @@ const pollingSubmissionUpdated = assetDataFactory(11, {
       translation: {
         es: {
           languageCode: 'es',
-          value: 'Hola, este valor llega despues del polling.',
+          value: 'Hola, el procesamiento masivo ha finalizado correctamente.',
         },
       },
     },
@@ -102,11 +106,23 @@ const pollingBulkActionComplete = bulkActionFactory(pollingSubmissionInitial['me
   ],
 })
 
-export function getPollingUpdateStoryHandlers() {
-  // We deliberately make this stateful to mimic one poll cycle where the item
-  // is still in progress and the next cycle where it becomes complete.
-  let bulkActionsCalls = 0
+export function resetPollingUpdateStoryHandlers() {
+  pollingBulkActionsCalls = 0
+}
 
+export function getPollingUpdateStoryTimeoutMs() {
+  const pollingIntervalMs = getBulkActionsPollingIntervalMs([pollingBulkActionInProgress])
+
+  if (pollingIntervalMs === false) {
+    return POLLING_STORY_ASSERTION_GRACE_MS
+  }
+
+  // The UI change happens after one more poll and one row refresh request, so
+  // the test allows one computed interval plus a small render/network cushion.
+  return pollingIntervalMs + POLLING_STORY_ASSERTION_GRACE_MS
+}
+
+export function getPollingUpdateStoryHandlers() {
   return [
     meMock,
     assetMock(pollingAsset.uid, pollingAsset),
@@ -117,12 +133,14 @@ export function getPollingUpdateStoryHandlers() {
         return undefined
       }
 
-      bulkActionsCalls += 1
+      // The first poll keeps the cell in the Processing state. The second poll
+      // reports completion so the table can refresh just that row.
+      pollingBulkActionsCalls += 1
       return HttpResponse.json({
         count: 1,
         next: null,
         previous: null,
-        results: [bulkActionsCalls >= 2 ? pollingBulkActionComplete : pollingBulkActionInProgress],
+        results: [pollingBulkActionsCalls >= 2 ? pollingBulkActionComplete : pollingBulkActionInProgress],
       })
     }),
     http.get<PathParams<'uid'>, never>(endpoints.ASSET_DATA_URL, ({ params, request }) => {

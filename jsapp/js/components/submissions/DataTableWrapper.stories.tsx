@@ -10,6 +10,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import React from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, waitFor, within } from 'storybook/test'
 import { actions } from '#/actions'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
@@ -26,7 +27,12 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
-import { getPollingUpdateStoryHandlers, pollingAsset } from './DataTableWrapperPollingStoriesUtils'
+import {
+  getPollingUpdateStoryHandlers,
+  getPollingUpdateStoryTimeoutMs,
+  pollingAsset,
+  resetPollingUpdateStoryHandlers,
+} from './DataTableWrapperPollingStoriesUtils'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
@@ -201,6 +207,9 @@ const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/r
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
   component: DataTableWrapper,
+  async beforeEach() {
+    resetPollingUpdateStoryHandlers()
+  },
   args: {
     asset: minimalAsset,
   },
@@ -296,7 +305,7 @@ export const ProcessingBannerOtherUser: Story = {
   loaders: [loadAssetForStory],
 }
 
-export const PollingUpdatesCompletedCell: Story = {
+export const ProcessingPollingRefreshesTranslatedCell: Story = {
   args: {
     asset: pollingAsset,
   },
@@ -314,4 +323,24 @@ export const PollingUpdatesCompletedCell: Story = {
     },
   },
   loaders: [loadAssetForStory],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement)
+
+    await step('Verify the row starts in the Processing state', async () => {
+      await expect(await canvas.findByText('Processing')).toBeInTheDocument()
+    })
+
+    await step('Wait for polling to replace the placeholder with the translated value', async () => {
+      await waitFor(
+        async () => {
+          await expect(
+            canvas.getByText('Hola, el procesamiento masivo ha finalizado correctamente.'),
+          ).toBeInTheDocument()
+        },
+        { timeout: getPollingUpdateStoryTimeoutMs() },
+      )
+
+      await expect(canvas.queryByText('Processing')).not.toBeInTheDocument()
+    })
+  },
 }
