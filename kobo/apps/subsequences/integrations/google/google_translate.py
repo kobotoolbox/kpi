@@ -633,8 +633,14 @@ class GoogleTranslationService(GoogleService):
         """
         Fetch the persisted Google operation id from bulk storage or cache
         """
+        from ...models import PENDING_OPERATION_MARKER
+
         bulk_action_item = self._get_bulk_action_item(bulk_action_uid)
-        if bulk_action_item and bulk_action_item.service_id:
+        if (
+            bulk_action_item
+            and bulk_action_item.service_id
+            and bulk_action_item.service_id != PENDING_OPERATION_MARKER
+        ):
             return bulk_action_item.service_id
 
         cache_key = self._get_cache_key(xpath, source_lang, target_lang)

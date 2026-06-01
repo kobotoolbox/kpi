@@ -218,11 +218,20 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
     translation run through the same validation, supplement writing, and Google
     integration paths as single-submission processing.
     """
-    from .models import BulkActionItemStatus, BulkActionStatus
+    from .models import (
+        BulkActionItemStatus,
+        BulkActionStatus,
+        PENDING_OPERATION_MARKER,
+    )
 
     SubsequenceBulkActionItem = apps.get_model(  # noqa: N806
         'subsequences',
         'SubsequenceBulkActionItem',
+    )
+
+    resume_polling = False
+    stale_cutoff = timezone.now() - timedelta(
+        seconds=settings.BULK_ACTION_STUCK_THRESHOLD
     )
 
     with transaction.atomic():
@@ -242,16 +251,58 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             )
             return
 
+        if (
+            item.service_id == PENDING_OPERATION_MARKER
+            and item.date_modified > stale_cutoff
+        ):
+            logging.info(
+                'Bulk item operation submission is already reserved by another '
+                f'worker for {item.uid=}, {item.parent.uid=}'
+            )
+            return
+
         if item.status == BulkActionItemStatus.PENDING:
             if item.parent.status != BulkActionStatus.IN_PROGRESS:
                 return
             item.status = BulkActionItemStatus.IN_PROGRESS
-            item.save(update_fields=['status', 'date_modified'])
         elif item.status != BulkActionItemStatus.IN_PROGRESS:
             return
 
+        if item.service_id and item.service_id != PENDING_OPERATION_MARKER:
+            resume_polling = True
+            item.save(update_fields=['status', 'date_modified'])
+        else:
+            item.service_id = PENDING_OPERATION_MARKER
+            item.save(update_fields=['status', 'service_id', 'date_modified'])
+
     bulk_action = item.parent
     asset = bulk_action.asset
+
+    if resume_polling:
+        try:
+            submission = _get_submission_for_bulk_action_item(item)
+            if submission is None:
+                _mark_bulk_item_failed(item, 'Submission not found')
+                return
+
+            request_action_data = deepcopy(bulk_action.params)
+            request_action_data['bulk_action_uid'] = bulk_action.uid
+            poll_run_external_process.apply_async(
+                kwargs={
+                    'submission': submission,
+                    'action_data': request_action_data,
+                    'action_id': bulk_action.action_id,
+                    'asset_id': asset.pk,
+                    'question_xpath': bulk_action.question_xpath,
+                },
+                countdown=10,
+            )
+        except Exception:
+            logging.exception(
+                f'Failed to resume polling for {item.uid=}, {bulk_action.uid=}'
+            )
+        return
+
     try:
         submission = _get_submission_for_bulk_action_item(item)
         if submission is None:
@@ -272,6 +323,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 'subsequences', 'SubmissionSupplement'
             ).revise_data(asset, submission, incoming_data)
         except GoogleQuotaExceededError as err:
+            _clear_pending_operation_marker(item)
             raise self.retry(countdown=err.retry_after, exc=err)
 
         if supplement_data is None:
@@ -298,6 +350,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             action_data=request_action_data,
         )
 
+        current_service_id = _get_bulk_item_service_id(item)
         item.status = extracted_status
         update_fields = ['status', 'date_modified']
         if extracted_status == BulkActionItemStatus.FAILED:
@@ -312,6 +365,9 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 error = None
             item.failure_error = error or 'Bulk item execution failed'
             update_fields.append('failure_error')
+            if current_service_id == PENDING_OPERATION_MARKER:
+                item.service_id = ''
+                update_fields.append('service_id')
             logging.error(
                 'Bulk item execution finished with failed status for '
                 f'{item.uid=}, {bulk_action.uid=}, '
@@ -321,6 +377,9 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
         else:
             item.failure_error = None
             update_fields.append('failure_error')
+            if current_service_id == PENDING_OPERATION_MARKER:
+                item.service_id = ''
+                update_fields.append('service_id')
         item.save(update_fields=update_fields)
 
         if extracted_status == BulkActionItemStatus.IN_PROGRESS:
@@ -468,12 +527,43 @@ def _mark_bulk_item_failed(item, error: str | None = None) -> None:
     """
     Move a child item to failed so the parent batch can reach a terminal state
     """
+    from .models import PENDING_OPERATION_MARKER
+
     item.status = 'failed'
+    if item.service_id == PENDING_OPERATION_MARKER:
+        item.service_id = ''
     if error:
         item.failure_error = error
-        item.save(update_fields=['status', 'failure_error', 'date_modified'])
+        item.save(
+            update_fields=[
+                'status',
+                'service_id',
+                'failure_error',
+                'date_modified',
+            ]
+        )
     else:
-        item.save(update_fields=['status', 'date_modified'])
+        item.save(update_fields=['status', 'service_id', 'date_modified'])
+
+
+def _clear_pending_operation_marker(item) -> None:
+    """
+    Release a reservation marker when no Google operation was started.
+    """
+    from .models import PENDING_OPERATION_MARKER
+
+    if item.service_id != PENDING_OPERATION_MARKER:
+        return
+
+    item.service_id = ''
+    item.save(update_fields=['service_id', 'date_modified'])
+
+
+def _get_bulk_item_service_id(item) -> str | None:
+    """
+    Return the latest persisted service_id for this item
+    """
+    return type(item).objects.values_list('service_id', flat=True).get(pk=item.pk)
 
 
 def _get_submission_supplement_data(asset, submission: dict) -> dict:
