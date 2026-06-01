@@ -95,7 +95,7 @@ const pollingBulkActionInProgress = bulkActionFactory(pollingSubmissionInitial['
 
 const pollingBulkActionComplete = bulkActionFactory(pollingSubmissionInitial['meta/rootUuid'], 'es', {
   uid: 'polling-bulk-action',
-  status: BulkActionResponseStatusEnum.in_progress,
+  status: BulkActionResponseStatusEnum.complete,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   submission_statuses: [

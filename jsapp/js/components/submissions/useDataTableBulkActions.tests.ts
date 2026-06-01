@@ -13,8 +13,9 @@ import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useD
 
 jest.mock('#/api/react-query/survey-data', () => {
   return {
-    getAssetsAdvancedFeaturesBulkActionsListQueryKey: jest.fn((uidAsset: string) =>
-      uidAsset ? [`/api/v2/assets/${uidAsset}/advanced_features/bulk_actions/`] : [],
+    getAssetsAdvancedFeaturesBulkActionsListQueryKey: jest.fn(
+      (uidAsset: string, params?: unknown) =>
+        ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     ),
     useAssetsAdvancedFeaturesBulkActionsList: jest.fn(),
   }
@@ -85,8 +86,9 @@ describe('useDataTableBulkActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks()
-    getBulkActionsListQueryKeyMock.mockImplementation((uidAsset: string) =>
-      uidAsset ? [`/api/v2/assets/${uidAsset}/advanced_features/bulk_actions/`] : [],
+    getBulkActionsListQueryKeyMock.mockImplementation(
+      (uidAsset: string, params) =>
+        ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     )
   })
 
