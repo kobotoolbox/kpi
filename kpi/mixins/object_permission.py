@@ -165,7 +165,7 @@ class ObjectPermissionMixin:
         user=None,
         codename=None,
         include_calculated=True,
-        precomputed_object_permissions=None,
+        prefetched_boject_permissions=None,
     ):
         """ Reconcile all grant and deny permissions, and return an
         authoritative set of grant permissions (i.e. deny=False) for the
@@ -177,8 +177,8 @@ class ObjectPermissionMixin:
             kwargs['user'] = user
         if codename is not None:
             kwargs['codename'] = codename
-        if precomputed_object_permissions is not None:
-            kwargs['precomputed_object_permissions'] = precomputed_object_permissions
+        if prefetched_boject_permissions is not None:
+            kwargs['prefetched_object_permissions'] = prefetched_boject_permissions
 
         grant_perms = self.__get_object_permissions(deny=False, **kwargs)
 
@@ -606,7 +606,7 @@ class ObjectPermissionMixin:
             return User.objects.filter(pk__in=user_ids)
 
     def has_perm(
-        self, user_obj: User, perm: str, precomputed_object_permissions=None
+        self, user_obj: User, perm: str, prefetched_object_permissions=None
     ) -> bool:
         """
         Does `user_obj` have perm on this object? (True/False)
@@ -623,7 +623,7 @@ class ObjectPermissionMixin:
                 self._get_effective_perms(
                     user=user_obj,
                     codename=codename,
-                    precomputed_object_permissions=precomputed_object_permissions,
+                    prefetched_boject_permissions=prefetched_object_permissions,
                 )
             )
             == 1
@@ -766,7 +766,7 @@ class ObjectPermissionMixin:
 
     @staticmethod
     @cache_for_request
-    def __get_all_object_permissions(object_id, precomputed_object_permissions=None):
+    def __get_all_object_permissions(object_id, prefetched_object_permissions=None):
         """
         Retrieves all object permissions and builds an dict with user ids as keys.
         Useful to retrieve permissions for several users in a row without
@@ -798,14 +798,14 @@ class ObjectPermissionMixin:
                 ]
             }
         """
-        if not precomputed_object_permissions:
+        if prefetched_object_permissions is None:
             records = ObjectPermission.objects.filter(asset_id=object_id).values(
                 'user_id', 'permission_id', 'permission__codename', 'deny'
             )
         else:
             records = [
                 obj_perm
-                for obj_perm in precomputed_object_permissions
+                for obj_perm in prefetched_object_permissions
                 if obj_perm['asset_id'] == object_id
             ]
         object_permissions_per_user = defaultdict(list)
@@ -821,7 +821,7 @@ class ObjectPermissionMixin:
     @staticmethod
     @cache_for_request
     def __get_all_user_permissions(
-        user_id: int, asset_ids: list = None, precomputed_object_permissions=None
+        user_id: int, asset_ids: list = None, prefetched_object_permissions=None
     ) -> dict:
         """
         Retrieves all object permissions and builds a dict with object ids as keys.
@@ -860,20 +860,21 @@ class ObjectPermissionMixin:
         if asset_ids:
             filters['asset_id__in'] = asset_ids
 
-        if precomputed_object_permissions is not None:
+        if prefetched_object_permissions is None:
+            records = ObjectPermission.objects.filter(**filters).values(
+                'asset_id', 'permission_id', 'permission__codename', 'deny'
+            )
+        else:
             records = [
                 obj_perm
-                for obj_perm in precomputed_object_permissions
+                for obj_perm in prefetched_object_permissions
                 if obj_perm['user_id'] == user_id
             ]
             if asset_ids:
                 records = [
                     record for record in records if record['asset_id'] in asset_ids
                 ]
-        else:
-            records = ObjectPermission.objects.filter(**filters).values(
-                'asset_id', 'permission_id', 'permission__codename', 'deny'
-            )
+
         object_permissions_per_object = defaultdict(list)
         for record in records:
             object_permissions_per_object[record['asset_id']].append((
@@ -885,7 +886,7 @@ class ObjectPermissionMixin:
         return object_permissions_per_object
 
     def __get_object_permissions(
-        self, deny, user=None, codename=None, precomputed_object_permissions=None
+        self, deny, user=None, codename=None, prefetched_object_permissions=None
     ):
         """
         Returns a set of user ids and object permission ids related to
@@ -928,7 +929,7 @@ class ObjectPermissionMixin:
                 all_anon_object_permissions = self.__get_all_user_permissions(
                     user_id=settings.ANONYMOUS_USER_ID,
                     asset_ids=asset_ids_cache,
-                    precomputed_object_permissions=precomputed_object_permissions,
+                    prefetched_object_permissions=prefetched_object_permissions,
                 )
 
                 perms = build_dict(
@@ -941,7 +942,7 @@ class ObjectPermissionMixin:
 
                 all_object_permissions = self.__get_all_object_permissions(
                     object_id=self.pk,
-                    precomputed_object_permissions=precomputed_object_permissions,
+                    prefetched_object_permissions=prefetched_object_permissions,
                 )
                 all_anon_object_permissions = all_object_permissions.get(
                     settings.ANONYMOUS_USER_ID, {}
@@ -955,7 +956,7 @@ class ObjectPermissionMixin:
                 all_object_permissions = self.__get_all_user_permissions(
                     user_id=user.pk,
                     asset_ids=asset_ids_cache,
-                    precomputed_object_permissions=precomputed_object_permissions,
+                    prefetched_object_permissions=prefetched_object_permissions,
                 )
                 perms += build_dict(
                     user.pk, all_object_permissions.get(self.pk)

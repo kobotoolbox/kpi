@@ -267,7 +267,8 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                     unowned_assets.append(a)
 
             if len(owned_assets) == len(asset_uids):
-                # all assets are owned by the user, so they can delete all of them
+                # user has ownership permissions on all assets,
+                # so they can delete all of them
                 return
             all_asset_uids = [a.uid for a in all_assets]
             if sorted(all_asset_uids) != sorted(asset_uids):
@@ -305,7 +306,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 not asset.has_perm(
                     self.__user,
                     PERM_MANAGE_ASSET,
-                    precomputed_object_permissions=all_perms,
+                    prefetched_object_permissions=all_perms,
                 )
                 for asset in unowned_assets
             ):
