@@ -3,14 +3,14 @@ import { when } from 'mobx'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { actions } from '#/actions'
-import { removeInvalidChars } from '#/assetUtils'
+import { cleanupAndUniqueTags, removeInvalidChars } from '#/assetUtils'
 import bem from '#/bem'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
+import TagsInput from '#/components/common/TagsInput'
 import TextInput from '#/components/common/TextInput'
 import Textarea from '#/components/common/Textarea'
 import Button from '#/components/common/button'
-import KoboTagsInput from '#/components/common/koboTagsInput'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
@@ -34,7 +34,7 @@ type ExtraMetadataValues = Record<string, string | string[] | null>
 interface FormFields {
   name: string
   organization: string
-  tags: string
+  tags: string[]
   description: string
   sector: AssetSettings['sector']
   country: AssetSettings['country']
@@ -67,7 +67,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
     return {
       name: asset?.name ?? '',
       organization: asset?.settings?.organization ?? '',
-      tags: asset?.tag_string ?? '',
+      tags: asset?.tag_string ? asset.tag_string.split(',') : [],
       description: asset?.settings?.description ?? '',
       sector: asset?.settings?.sector ?? null,
       country: asset?.settings?.country ?? null,
@@ -212,7 +212,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
       actions.resources.updateAsset(asset.uid, {
         name: fields.name,
         settings,
-        tag_string: fields.tags,
+        tag_string: fields.tags.join(','),
       })
       return
     }
@@ -227,7 +227,7 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
       name: fields.name,
       asset_type: formAssetType,
       settings,
-      tag_string: fields.tags,
+      tag_string: fields.tags.join(','),
     }
 
     const currentAssetUid = getRouteAssetUid()
@@ -332,7 +332,11 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
 
           <ExtraProjectMetadataFields values={extraMetadataFields} onChange={onExtraFieldChange} />
 
-          <KoboTagsInput tags={fields.tags} onChange={(val) => setField('tags', val)} label={t('Tags')} />
+          <TagsInput
+            value={fields.tags}
+            onChange={(val) => setField('tags', cleanupAndUniqueTags(val))}
+            label={t('Tags')}
+          />
         </Stack>
       </bem.FormModal__item>
 
