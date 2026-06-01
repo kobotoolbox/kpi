@@ -1,12 +1,13 @@
 import React from 'react'
 
+import { Stack } from '@mantine/core'
+import MultiSelect from '#/components/common/MultiSelect'
+import Select from '#/components/common/Select'
 import TextBox from '#/components/common/textBox'
-import WrappedSelect from '#/components/common/wrappedSelect'
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
 import envStore, { type ExtraProjectMetadataField } from '#/envStore'
 import { addRequiredToLabel } from '#/textUtils'
 import { currentLang } from '#/utils'
-import styles from './extraProjectMetadataFields.module.scss'
 
 type FieldRawValue = string | string[] | null | undefined
 
@@ -22,7 +23,6 @@ interface ExtraProjectMetadataFieldProps {
   value: FieldRawValue
   onChange: FieldChangeHandler
   hasError?: boolean
-  fieldClassName?: string
 }
 
 /**
@@ -31,18 +31,11 @@ interface ExtraProjectMetadataFieldProps {
  * plain-text input.
  *
  * For select fields the component converts between the raw stored value (a
- * string key or array of string keys) and the option objects that
- * `WrappedSelect` expects, so callers can always work with plain primitives.
+ * string key or array of string keys) and the primitive value format expected
+ * by the shared `Select` and `MultiSelect` components.
  */
-const ExtraProjectMetadataField = ({
-  field,
-  value,
-  onChange,
-  hasError,
-  fieldClassName,
-}: ExtraProjectMetadataFieldProps) => {
+const ExtraProjectMetadataField = ({ field, value, onChange, hasError }: ExtraProjectMetadataFieldProps) => {
   const label = envStore.data.getExtraFieldLabel(field, currentLang())
-  const wrapperClass = fieldClassName ?? styles.field
 
   if (
     field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT ||
@@ -57,44 +50,44 @@ const ExtraProjectMetadataField = ({
 
     const isMulti = field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
     const multiValue = Array.isArray(value) ? value : []
-    const selectValue = isMulti
-      ? options.filter((opt) => multiValue.includes(opt.value))
-      : (options.find((opt) => opt.value === value) ?? null)
+    const multiSelectValue = multiValue
+    const singleSelectValue = options.find((opt) => opt.value === value)?.value ?? null
 
-    return (
-      <div className={wrapperClass}>
-        <WrappedSelect
+    if (isMulti) {
+      return (
+        <MultiSelect
           label={addRequiredToLabel(label, field.required)}
-          isMulti={isMulti}
-          value={selectValue}
-          onChange={(val: unknown) =>
-            onChange(
-              field.name,
-              isMulti
-                ? ((val as readonly SelectOption[] | null) ?? []).map((o) => o.value)
-                : ((val as SelectOption | null)?.value ?? null),
-            )
-          }
-          options={options}
-          isLimitedHeight
-          isClearable
-          menuPlacement='auto'
+          value={multiSelectValue}
+          onChange={(newValue) => onChange(field.name, newValue)}
+          data={options}
+          clearable
+          maxDropdownHeight={220}
           error={hasError ? t('Please select an option') : undefined}
         />
-      </div>
-    )
+      )
+    } else {
+      return (
+        <Select
+          label={addRequiredToLabel(label, field.required)}
+          value={singleSelectValue}
+          onChange={(newValue) => onChange(field.name, newValue)}
+          data={options}
+          clearable
+          maxDropdownHeight={220}
+          error={hasError ? t('Please select an option') : undefined}
+        />
+      )
+    }
   }
 
   return (
-    <div className={wrapperClass}>
-      <TextBox
-        value={typeof value === 'string' ? value : ''}
-        onChange={(val) => onChange(field.name, val)}
-        label={addRequiredToLabel(label, field.required)}
-        placeholder={label}
-        errors={hasError ? t('This field is required') : false}
-      />
-    </div>
+    <TextBox
+      value={typeof value === 'string' ? value : ''}
+      onChange={(val) => onChange(field.name, val)}
+      label={addRequiredToLabel(label, field.required)}
+      placeholder={label}
+      errors={hasError ? t('This field is required') : false}
+    />
   )
 }
 
@@ -120,16 +113,24 @@ const ExtraProjectMetadataFields = ({
   onChange,
   hasFieldError = () => false,
   fieldClassName,
-}: ExtraProjectMetadataFieldsProps) =>
-  envStore.data.extra_project_metadata_fields.map((field) => (
-    <ExtraProjectMetadataField
-      key={field.name}
-      field={field}
-      value={values[field.name]}
-      onChange={onChange}
-      hasError={hasFieldError(field.name)}
-      fieldClassName={fieldClassName}
-    />
-  ))
+}: ExtraProjectMetadataFieldsProps) => {
+  if (envStore.data.extra_project_metadata_fields.length === 0) {
+    return null
+  }
+
+  return (
+    <Stack gap={15} className={fieldClassName}>
+      {envStore.data.extra_project_metadata_fields.map((field) => (
+        <ExtraProjectMetadataField
+          key={field.name}
+          field={field}
+          value={values[field.name]}
+          onChange={onChange}
+          hasError={hasFieldError(field.name)}
+        />
+      ))}
+    </Stack>
+  )
+}
 
 export default ExtraProjectMetadataFields
