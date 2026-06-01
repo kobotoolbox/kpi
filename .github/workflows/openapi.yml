@@ -65,6 +65,11 @@ jobs:
       - name: Install Python dev dependencies
         run: uv pip sync --system dependencies/pip/dev_requirements.txt
 
+      - name: Run Django migrations
+        # Required so that constance (DatabaseBackend) and other apps queried
+        # during schema generation can read their tables.
+        run: python manage.py migrate --noinput
+
       - name: Generate OpenAPI with drf-spectacular
         # GitHub Actions run without a TTY device. This is a workaround to get one,
         # based on https://github.com/actions/runner/issues/241#issuecomment-2019042651
@@ -74,13 +79,15 @@ jobs:
         #   > FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting
         #   > in new releases of google.cloud.translate_v3 once it reaches its end of life (2026-10-04).
         run: |
-          if ./scripts/generate_api.sh --skip-orval 2>&1 | tee /dev/tty | grep -qP "(?<!\bFuture)Warning"; then
+          # run the script on its own line so if it crashes, bash will instantly kill the step with exit 1.
+          OUTPUT=$(./scripts/generate_api.sh --skip-orval 2>&1 | tee /dev/tty)
+
+          if echo "$OUTPUT" | grep -qP "(?<!\bFuture)Warning"; then
             echo ""
             echo "A warning found, aborted! Please treat drf-spectacular warnings as errors and resolve them."
             echo "P.S. This is only the first warning. You may want to run the script locally to see all warnings at once."
             exit 2
           fi
-
       - name: Fail on uncommitted OpenAPI changes
         run: |
           git diff

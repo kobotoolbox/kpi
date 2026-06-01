@@ -71,7 +71,7 @@ class ConflictingVersionsMockDataExports(TestCase):
         export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
-            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'source': reverse('api_v2:asset-detail', args=[self.asset.uid]),
             'type': 'csv',
             'lang': '_xml'
         }

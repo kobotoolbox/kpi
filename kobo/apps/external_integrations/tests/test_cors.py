@@ -13,7 +13,7 @@ class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
         cls.create_stripe_api_key()
 
     def setUp(self):
-        self.innocuous_url = reverse('environment')
+        self.innocuous_url = reverse('api_v2:environment')
         self.cors_response_header_name = 'Access-Control-Allow-Origin'
 
     def test_no_cors_response_without_origin(self):

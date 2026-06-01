@@ -45,6 +45,7 @@ export interface EnvironmentResponse {
   mfa_localized_help_text: string
   mfa_enabled: boolean
   mfa_code_length: number
+  superuser_auth_enforcement: boolean
   enable_password_entropy_meter: boolean
   enable_custom_password_guidance_text: boolean
   /** Markdown string for custom password help text */
