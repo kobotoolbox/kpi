@@ -172,7 +172,7 @@ export default function Usage() {
           oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
           period={billingPeriod}
           type={USAGE_TYPE.SUBMISSIONS}
-          title={'Submissions'}
+          title={t('Submissions')}
           dateRange={dateRange}
         />
         <UsageContainer
@@ -184,7 +184,7 @@ export default function Usage() {
           label={t('Total')}
           type={USAGE_TYPE.STORAGE}
           title={t('File storage')}
-          dateRange={'per account'}
+          dateRange={t('per account')}
         />
         <UsageContainer
           usage={usageQuery.data.data.transcriptionMinutes}
