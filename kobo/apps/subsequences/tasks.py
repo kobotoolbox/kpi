@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import timedelta
 from typing import Union
 
+from celery.exceptions import Retry
 from celery.signals import task_failure
 from django.apps import apps
 from django.conf import settings
@@ -13,7 +14,10 @@ from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
+from kobo.apps.subsequences.exceptions import (
+    GoogleQuotaExceededError,
+    SubsequenceTimeoutError,
+)
 from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
@@ -30,6 +34,7 @@ from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 #   => max_retries = 4 (before cap) + 478 = 482
 # So set max_retries to 482 or less to stay within the 8-hour limit.
 @celery_app.task(
+    bind=True,
     autoretry_for=(SubsequenceTimeoutError,),
     retry_backoff=5,
     retry_backoff_max=60,
@@ -38,6 +43,7 @@ from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
     queue='kpi_low_priority_queue',
 )
 def poll_run_external_process(
+    self,
     asset_id: int,
     submission: dict,
     question_xpath: str,
@@ -55,11 +61,14 @@ def poll_run_external_process(
             question_xpath: {action_id: request_action_data},
         }
         asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
-        supplement_data = SubmissionSupplement.revise_data(
-            asset,
-            submission,
-            incoming_data
-        )
+        try:
+            supplement_data = SubmissionSupplement.revise_data(
+                asset,
+                submission,
+                incoming_data
+            )
+        except GoogleQuotaExceededError as err:
+            raise self.retry(countdown=err.retry_after, exc=err)
         if supplement_data is None:
             supplement_data = _get_submission_supplement_data(
                 asset=asset,
@@ -75,6 +84,8 @@ def poll_run_external_process(
             supplement_data=supplement_data,
             action_data=request_action_data,
         )
+    except Retry:
+        raise
     except Exception as e:
         logging.exception(
             f'Background polling failed for {action_id} on submission '
@@ -179,8 +190,12 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     )
 
 
-@celery_app.task(queue='kpi_low_priority_queue')
-def start_bulk_item_job(bulk_action_item_id: str):
+@celery_app.task(
+    bind=True,
+    max_retries=482,
+    queue='kpi_low_priority_queue',
+)
+def start_bulk_item_job(self, bulk_action_item_id: str):
     """
     Start one child item in a bulk action
 
@@ -237,9 +252,12 @@ def start_bulk_item_job(bulk_action_item_id: str):
             },
         }
 
-        supplement_data = apps.get_model(
-            'subsequences', 'SubmissionSupplement'
-        ).revise_data(asset, submission, incoming_data)
+        try:
+            supplement_data = apps.get_model(
+                'subsequences', 'SubmissionSupplement'
+            ).revise_data(asset, submission, incoming_data)
+        except GoogleQuotaExceededError as err:
+            raise self.retry(countdown=err.retry_after, exc=err)
 
         if supplement_data is None:
             supplement_data = _get_submission_supplement_data(
@@ -292,6 +310,8 @@ def start_bulk_item_job(bulk_action_item_id: str):
                 },
                 countdown=10,
             )
+    except Retry:
+        raise
     except Exception as e:
         error_msg = (
             f'Bulk item execution failed for {item.uid=}, {bulk_action.uid=}. '
