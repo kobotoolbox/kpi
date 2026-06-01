@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
+// eslint-disable-next-line no-restricted-imports -- Theme extensions must import Mantine primitives.
 import { Select } from '@mantine/core'
 import classes from './Select.module.css'
 import baseClasses from './SelectBase.module.css'
