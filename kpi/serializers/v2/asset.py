@@ -270,7 +270,6 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 # all assets are owned by the user, so they can delete all of them
                 return
             all_asset_uids = [a.uid for a in all_assets]
-
             if sorted(all_asset_uids) != sorted(asset_uids):
                 # at least one of the asset uids doesn't exist.
                 # technically this should probably raise a 404 but since it raises a

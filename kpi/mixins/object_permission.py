@@ -26,7 +26,6 @@ from kpi.deployment_backends.kc_access.utils import (
     set_kc_anonymous_permissions_xform_flags,
 )
 from kpi.models.object_permission import ObjectPermission
-from kpi.utils.log import logging
 from kpi.utils.object_permission import (
     get_database_user,
     perm_parse,
@@ -181,9 +180,7 @@ class ObjectPermissionMixin:
         if precomputed_object_permissions is not None:
             kwargs['precomputed_object_permissions'] = precomputed_object_permissions
 
-        logging.info(f'Pre get_object_permissions (first)')
         grant_perms = self.__get_object_permissions(deny=False, **kwargs)
-        logging.info(f'Pre get_object_permissions (second)')
 
         deny_perms = self.__get_object_permissions(deny=True, **kwargs)
 
@@ -621,7 +618,6 @@ class ObjectPermissionMixin:
         if user_obj.is_active and user_obj.is_superuser:
             return True
         # Look for matching permissions
-        logging.info(f'Pre get_effective_perms')
         result = (
             len(
                 self._get_effective_perms(
@@ -929,7 +925,6 @@ class ObjectPermissionMixin:
             # which contains the list of asset ids fetched in this context.
             asset_ids_cache = getattr(self, 'asset_ids_cache', [])
             if asset_ids_cache:
-                logging.info(f'Pre get_all_user_permissions (anonymous)')
                 all_anon_object_permissions = self.__get_all_user_permissions(
                     user_id=settings.ANONYMOUS_USER_ID,
                     asset_ids=asset_ids_cache,
@@ -943,7 +938,6 @@ class ObjectPermissionMixin:
             else:
                 # Otherwise, fetch only the permissions for this particular
                 # object.
-                logging.info(f'Pre get_all_object_permissions (anonymous)')
 
                 all_object_permissions = self.__get_all_object_permissions(
                     object_id=self.pk,
@@ -957,7 +951,6 @@ class ObjectPermissionMixin:
                 )
 
             if not is_user_anonymous(user):
-                logging.info(f'Pre get_all_user_permissions (anonymous)')
 
                 all_object_permissions = self.__get_all_user_permissions(
                     user_id=user.pk,

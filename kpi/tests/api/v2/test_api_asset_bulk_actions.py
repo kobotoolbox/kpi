@@ -1,4 +1,7 @@
 from ddt import data, ddt, unpack
+from django.db import connection
+from django.test import RequestFactory
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,6 +14,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
 )
 from kpi.models.asset import Asset, AssetDeploymentStatus
+from kpi.serializers.v2.asset import AssetBulkActionsSerializer
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
@@ -509,11 +513,11 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         a0.refresh_from_db()
         a1.refresh_from_db()
         if can_delete:
-            assert response.status_code == 200
+            assert response.status_code == status.HTTP_200_OK
             assert a0.pending_delete
             assert a1.pending_delete
         else:
-            assert response.status_code == 403
+            assert response.status_code == status.HTTP_403_FORBIDDEN
             assert not a0.pending_delete
             assert not a1.pending_delete
 
@@ -537,3 +541,54 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert created_asset.pending_delete
         assert owned_asset.pending_delete
+
+    def test_bulk_delete_permissions_check_uses_constant_queries(self):
+        someuser = User.objects.get(username='someuser')
+
+        owned_asset = self._add_one_asset_for_someuser()
+        owned_asset.deployment.mock_submissions([{}])
+        org_owner = User.objects.create_user(username='orgowner', password='')
+        org = org_owner.organization
+        org.mmo_override = True
+        org.save()
+
+        org.add_user(someuser)
+        created_asset = self._add_one_asset_for_user_via_api('someuser')
+
+        mock_request = RequestFactory().get('/')
+        mock_request.user = someuser
+
+        with CaptureQueriesContext(connection) as context:
+            serializer = AssetBulkActionsSerializer(
+                data={
+                    'payload': {
+                        'action': 'delete',
+                        'asset_uids': [owned_asset.uid, created_asset.uid],
+                    }
+                },
+                context={'request': mock_request},
+            )
+            serializer.is_valid(raise_exception=True)
+
+        count = context.final_queries - context.initial_queries
+        another_owned_asset = self._add_one_asset_for_someuser()
+        another_created_asset = self._add_one_asset_for_user_via_api('someuser')
+        third_owned_asset = self._add_one_asset_for_someuser()
+        third_created_asset = self._add_one_asset_for_user_via_api('someuser')
+
+        with self.assertNumQueries(count):
+            serializer = AssetBulkActionsSerializer(
+                data={
+                    'payload': {
+                        'action': 'delete',
+                        'asset_uids': [
+                            another_owned_asset.uid,
+                            third_owned_asset.uid,
+                            another_created_asset.uid,
+                            third_created_asset.uid,
+                        ],
+                    }
+                },
+                context={'request': mock_request},
+            )
+            serializer.is_valid(raise_exception=True)
