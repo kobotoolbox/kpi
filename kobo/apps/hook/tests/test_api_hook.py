@@ -33,7 +33,8 @@ class ApiHookTestCase(BaseHookTestCase):
         self.client.logout()
 
         list_url = reverse(
-            self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid}
+            self._get_endpoint('hook-list'),
+            kwargs={'uid_asset': self.asset.uid}
         )
 
         response = self.client.get(list_url)
@@ -72,7 +73,7 @@ class ApiHookTestCase(BaseHookTestCase):
 
         list_url = reverse(
             self._get_endpoint('hook-list'),
-            kwargs={'uid_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid}
         )
 
         response = self.client.get(list_url)
@@ -135,7 +136,8 @@ class ApiHookTestCase(BaseHookTestCase):
         self.client.login(username='anotheruser', password='anotheruser')
 
         list_url = reverse(
-            self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid}
+            self._get_endpoint('hook-list'),
+            kwargs={'uid_asset': self.asset.uid}
         )
 
         response = self.client.get(list_url)
@@ -306,7 +308,7 @@ class ApiHookTestCase(BaseHookTestCase):
         # Retrieve the corresponding log
         url = reverse(
             self._get_endpoint('hook-log-list'),
-            kwargs={'uid_asset': hook.asset.uid, 'uid_hook': hook.uid},
+            kwargs={'uid_asset': hook.asset.uid, 'uid_hook': hook.uid}
         )
 
         response = self.client.get(url)
@@ -387,7 +389,7 @@ class ApiHookTestCase(BaseHookTestCase):
 
         # Get log for the success hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -436,7 +438,7 @@ class ApiHookTestCase(BaseHookTestCase):
 
         # Get log for the failing hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -465,7 +467,7 @@ class ApiHookTestCase(BaseHookTestCase):
 
         # Get log for the success hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -504,7 +506,7 @@ class ApiHookTestCase(BaseHookTestCase):
 
         # Get log for the failing hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -552,7 +554,7 @@ class ApiHookTestCase(BaseHookTestCase):
 
         # Get log for the success hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,

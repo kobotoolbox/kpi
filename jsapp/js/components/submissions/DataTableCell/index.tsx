@@ -40,7 +40,7 @@ export default function DataTableCell(props: DataTableCellProps) {
     props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
   ) {
     return (
-      <Text truncate='end' fs='italic' c='gray.3' span>
+      <Text truncate='end' fs='italic' c='gray.3' span h='100%' style={{ display: 'flex', alignItems: 'center' }}>
         {t('Processing')}
       </Text>
     )

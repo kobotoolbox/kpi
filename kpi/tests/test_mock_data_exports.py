@@ -411,8 +411,8 @@ class MockDataExports(MockDataExportsBase):
         asset = self.asset if asset is None else asset
         export_task.user = self.user if user is None else user
         export_task.data = {
-            'source': reverse('asset-detail', args=[asset.uid]),
-            'type': 'csv',
+            'source': reverse('api_v2:asset-detail', args=[asset.uid]),
+            'type': 'csv'
         }
         if export_options:
             export_task.data.update(export_options)
@@ -448,7 +448,7 @@ class MockDataExports(MockDataExportsBase):
         export_task = SubmissionExportTask()
         export_task.user = self.user if user is None else user
         export_task.data = {
-            'source': reverse('asset-detail', args=[asset.uid]),
+            'source': reverse('api_v2:asset-detail', args=[asset.uid]),
             'type': 'xls',
         }
         if export_options:
@@ -1405,7 +1405,7 @@ class MockDataExports(MockDataExportsBase):
         export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
-            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'source': reverse('api_v2:asset-detail', args=[self.asset.uid]),
             'type': 'spss_labels',
         }
         messages = defaultdict(list)
@@ -1497,7 +1497,7 @@ class MockDataExports(MockDataExportsBase):
 
     def test_remove_excess_exports(self):
         task_data = {
-            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'source': reverse('api_v2:asset-detail', args=[self.asset.uid]),
             'type': 'csv',
         }
         # Create and run one export, so we can verify that it's `result` file
@@ -1543,7 +1543,7 @@ class MockDataExports(MockDataExportsBase):
 
     def test_log_and_mark_stuck_exports_as_errored(self):
         task_data = {
-            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'source': reverse('api_v2:asset-detail', args=[self.asset.uid]),
             'type': 'csv',
         }
         self.assertEqual(
@@ -1603,7 +1603,7 @@ class MockDataExports(MockDataExportsBase):
         self.asset.name = what_a_title
         self.asset.save()
         task_data = {
-            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'source': reverse('api_v2:asset-detail', args=[self.asset.uid]),
             'type': 'csv',
         }
         export_task = SubmissionExportTask()
@@ -1671,8 +1671,8 @@ class MockDataExports(MockDataExportsBase):
         export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
-            'source': reverse('asset-detail', args=[asset.uid]),
-            'type': 'csv',
+            'source': reverse('api_v2:asset-detail', args=[asset.uid]),
+            'type': 'csv'
         }
         messages = defaultdict(list)
         export_task._run_task(messages)

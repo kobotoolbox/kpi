@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react'
 
 import classnames from 'classnames'
-import TextareaAutosize from 'react-textarea-autosize'
 import type { ButtonSize } from '#/components/common/button'
 import { ButtonToIconMap } from '#/components/common/button'
 import type { IconName } from '#/k-icons'
+import Textarea from './Textarea'
 import Icon from './icon'
 import styles from './textBox.module.scss'
 
@@ -149,7 +149,7 @@ export default function TextBox(props: TextBoxProps) {
     type = props.type
   }
 
-  // Shared props for both `<TextareaAutosize>` and `<input>`. The reason we
+  // Shared props for both multiline `<Textarea>` and `<input>`. The reason we
   // need this is because for `text-multiline` type we use special component,
   // and for all the other types we use the `<input>` HTML tag.
   const inputProps = {
@@ -190,8 +190,10 @@ export default function TextBox(props: TextBoxProps) {
         {props.disableAutocomplete && <input type='password' hidden={true} />}
         {/* We use two different components based on the type of the TextBox */}
         {props.type === 'text-multiline' && (
-          <TextareaAutosize
-            className={styles.input}
+          <Textarea
+            autosize
+            w='100%'
+            classNames={{ input: styles.input }}
             aria-required={props.required}
             ref={textareaReference}
             onChange={(evt: React.FormEvent<HTMLTextAreaElement>) => {

@@ -143,7 +143,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
-    'kobo.apps.openrosa.apps.api',
     'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
@@ -806,7 +805,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
 
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
-CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'constance'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
@@ -2022,6 +2021,12 @@ CACHES = {
     'enketo_redis_main': env.cache_url(
         'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
     ),
+    # Isolated backend for Constance with a versioned key prefix to prevent
+    # cache format collisions between old and new workers during rolling deploys.
+    'constance': {
+        **env.cache_url(default='redis://change-me.invalid:6380/3'),
+        'KEY_PREFIX': 'constance_4x',
+    },
 }
 
 # How long to retain cached responses for kpi endpoints
