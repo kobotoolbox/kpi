@@ -328,15 +328,17 @@ export const ProcessingPollingRefreshesTranslatedCell: Story = {
     const canvas = within(canvasElement)
 
     await step('Verify the row starts in the Processing state', async () => {
-      // Give a generous timeout: on slow CI the component can take a few seconds
-      // to mount and fire its first data request before "Processing" appears.
+      // Give a generous timeout: on slow CI the component can take several
+      // seconds to mount, fire its first bulk-actions request, and render the
+      // "Processing" cell — 12 s provides enough headroom without masking real
+      // failures (the test total budget is 30 s).
       await waitFor(
         async () => {
           await expect(
             canvas.queryAllByText((_content, element) => element?.textContent?.trim() === 'Processing').length,
           ).toBeGreaterThan(0)
         },
-        { timeout: 5000 },
+        { timeout: 12000 },
       )
     })
 

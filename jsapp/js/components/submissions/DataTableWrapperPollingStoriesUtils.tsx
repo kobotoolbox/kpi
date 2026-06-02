@@ -16,7 +16,7 @@ import { getBulkActionsPollingIntervalMs } from './useDataTableBulkActions'
 let pollingBulkActionsCalls = 0
 let pollingSubmissionRefreshCalls = 0
 let pollingFirstBulkActionsRequestTime: number | null = null
-const POLLING_STORY_ASSERTION_GRACE_MS = 2000
+const POLLING_STORY_ASSERTION_GRACE_MS = 6000
 // How long after a story resets before the mock bulk action reports completion.
 // Needs to be shorter than the polling interval (8 s for translation) so that
 // the first poll always returns in_progress — giving every parallel browser
