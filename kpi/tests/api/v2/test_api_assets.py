@@ -737,13 +737,13 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         )
         asset.refresh_from_db()
         if can_delete:
-            assert response.status_code == 204
+            assert response.status_code == status.HTTP_204_NO_CONTENT
             assert asset.pending_delete
         elif is_creator:
-            assert response.status_code == 403
+            assert response.status_code == status.HTTP_403_FORBIDDEN
             assert not asset.pending_delete
         else:
-            assert response.status_code == 404
+            assert response.status_code == status.HTTP_404_NOT_FOUND
             assert not asset.pending_delete
 
     def _setup_current_user_permissions_only(self):

@@ -254,8 +254,10 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 raise exceptions.PermissionDenied()
         else:
             user_filter_as_ids = [user.id for user in user_filter]
-            all_assets = Asset.objects.filter(uid__in=asset_uids).select_related(
-                'owner'
+            all_assets = (
+                Asset.objects.filter(uid__in=asset_uids)
+                .only('uid', 'created_by', '_deployment_data', 'asset_type', 'owner')
+                .select_related('owner') # useful for has_perm
             )
 
             owned_assets = []
@@ -292,7 +294,6 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 for o in ObjectPermission.objects.filter(
                     asset__uid__in=asset_uids, user__in=user_filter
                 )
-                .select_related('permission')
                 .values(
                     'asset_id',
                     'permission_id',
