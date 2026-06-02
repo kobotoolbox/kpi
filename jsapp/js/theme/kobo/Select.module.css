@@ -4,3 +4,12 @@
     opacity: 1;
   }
 }
+
+.input[data-disabled] {
+  background-color: var(--mantine-color-gray-8);
+}
+
+.required {
+  line-height: 0;
+  color: var(--mantine-color-red-7)
+}

@@ -92,8 +92,7 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
-import {openFormLanguagesModal} from '#/project/FormLanguagesManager'
-import {openBulkTranscriptModal} from './BulkTranscriptionModal'
+import { openBulkTranscriptModal } from './BulkTranscriptionModal'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -405,11 +404,27 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onTranscribeSelectedAudioFiles(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+    const selectedSubmissions = this.state.submissions.filter((submission) =>
+      selectedSubmissionIds.includes(String(submission._id)),
+    )
 
-    // Bulk actions needs submission uuids
-    const selectedSubmissionUuids = this.state.submissions
-      .filter(submission => selectedSubmissionIds.includes(String(submission._id)))
-      .map(submission => submission._uuid)
+    const submissionsWithTranscripts = selectedSubmissions.filter((submission) => {
+      // Check if supplemental details exist
+      if (!submission._supplementalDetails) {
+        return false
+      }
+
+      // Check if this specific field has a transcript
+      const fieldData = submission._supplementalDetails[fieldId]
+      if (!fieldData?.transcript) {
+        return false
+      }
+      // Check if transcript has a value (not null/empty)
+      return fieldData.transcript.value !== null && fieldData.transcript.value !== ''
+    })
+
+    // Get UUIDs for API
+    const selectedSubmissionUuids = selectedSubmissions.map((submission) => submission._uuid)
 
     openBulkTranscriptModal({
       fieldId,
@@ -417,6 +432,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
       selectedAllPages: this.state.selectAll,
+      hasExistingTranscriptions: submissionsWithTranscripts.length > 0,
     })
   }
 
@@ -425,8 +441,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     // Bulk actions needs submission uuids
     const selectedSubmissionUuids = this.state.submissions
-      .filter(submission => selectedSubmissionIds.includes(String(submission._id)))
-      .map(submission => submission._uuid)
+      .filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
+      .map((submission) => submission._uuid)
 
     console.log('Bulk processing - Translate selected transcriptions', {
       fieldId,

@@ -1,4 +1,4 @@
-import { Group, Stack, Text } from '@mantine/core'
+import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useState } from 'react'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
@@ -17,14 +17,45 @@ interface BulkTranscriptionModalProps {
   onRequestClose: () => void
 }
 
-type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
-
-const REQUIRED_ASTERISK_OFFSET = 4
+type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'> & {
+  hasExistingTranscriptions: boolean
+}
 
 export function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
+  // If there are existing transcripts, show warning modal first
+  if (args.hasExistingTranscriptions) {
+    const warningModalId = modals.openConfirmModal({
+      title: t('Some audio files already transcribed'),
+      children: (
+        <Stack gap='sm'>
+          <Text size='sm'>
+            {t(
+              'You’ve selected audio files that already have transcripts. Those files will be skipped. Transcripts will only be generated for files without existing transcripts.',
+            )}
+          </Text>
+        </Stack>
+      ),
+      labels: {
+        confirm: t('Continue'),
+        cancel: t('Cancel'),
+      },
+      confirmProps: { color: 'orange' },
+      onConfirm: () => {
+        modals.close(warningModalId)
+        openBulkTranscriptModalInternal(args)
+      },
+    })
+    return
+  }
+
+  openBulkTranscriptModalInternal(args)
+}
+
+// Internal function that opens the actual transcription modal
+function openBulkTranscriptModalInternal(args: BulkTranscriptionModalArgs) {
   const modalId = modals.open({
     title: t('Transcribe selected audio files'),
-    size: 'md',
+    size: 'lg',
     children: (
       <BulkTranscriptionModal
         onRequestClose={() => {
@@ -72,11 +103,9 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
       },
       {
         onSuccess: () => {
-          // Show success message
           props.onRequestClose()
         },
         onError: (error) => {
-          // Handle error
           console.error('Transcription failed:', error)
         },
       },
@@ -93,7 +122,7 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
         )}
       </Text>
 
-      <Group gap='sm' align='flex-start' wrap='nowrap'>
+      <Group gap='sm' align='flex-start' wrap='nowrap' pb={'sm'} grow>
         <LanguageSelector onLanguageChange={handleLanguageChange} value={selectedLanguage} required />
         <RegionSelectorField
           disabled={!selectedLanguage}
@@ -105,6 +134,14 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
           mt={REQUIRED_ASTERISK_OFFSET}
         />
       </Group>
+
+      <Text size='xs'>
+        {t('Automatic transcription is provided by Google Cloud Platform.')}
+        &nbsp;
+        <Anchor href={'#'} underline='always'>
+          {t('Learn more')}
+        </Anchor>
+      </Text>
 
       <Group justify='flex-end' mt='md'>
         <ButtonNew onClick={props.onRequestClose} variant='light'>
