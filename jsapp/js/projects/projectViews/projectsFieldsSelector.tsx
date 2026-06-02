@@ -85,7 +85,7 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
 
       <KoboModal isOpen={isModalOpen} onRequestClose={toggleModal} size='medium'>
         <KoboModalHeader icon='spreadsheet' iconColor='storm' onRequestCloseByX={toggleModal}>
-          {'Select fields to display'}
+          {t('Select fields to display')}
         </KoboModalHeader>
 
         <KoboModalContent>
