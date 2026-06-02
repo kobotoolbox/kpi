@@ -1,8 +1,12 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
+import { useServiceUsageList } from '#/api/react-query/user-team-organization-usage'
+import Alert from '#/components/common/alert'
 import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelectorField from '../languages/RegionSelectorField'
@@ -21,11 +25,12 @@ type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestCl
   hasExistingTranscriptions: boolean
 }
 
-export function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
+export default function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
   // If there are existing transcripts, show warning modal first
   if (args.hasExistingTranscriptions) {
     const warningModalId = modals.openConfirmModal({
       title: t('Some audio files already transcribed'),
+      size: 'lg',
       children: (
         <Stack gap='sm'>
           <Text size='sm'>
@@ -33,13 +38,22 @@ export function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
               'You’ve selected audio files that already have transcripts. Those files will be skipped. Transcripts will only be generated for files without existing transcripts.',
             )}
           </Text>
+
+          <Alert type='warning' iconName='information' p='md'>
+            {t('If you continue, existing transcripts will remain unchanged.')}
+          </Alert>
         </Stack>
       ),
       labels: {
         confirm: t('Continue'),
         cancel: t('Cancel'),
       },
-      confirmProps: { color: 'orange' },
+      confirmProps: {
+        variant: 'filled',
+      },
+      cancelProps: {
+        variant: 'light',
+      },
       onConfirm: () => {
         modals.close(warningModalId)
         openBulkTranscriptModalInternal(args)
@@ -67,14 +81,23 @@ function openBulkTranscriptModalInternal(args: BulkTranscriptionModalArgs) {
   })
 }
 
-export default function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
+function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const [serviceCode] = useState<TransxServiceCode>('goog')
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
+  const { data, isLoading: isLoadingUsage } = useServiceUsageList()
+
+  const navigate = useNavigate()
+
+  // TODO: API returns a single object, but orval types say it's an array, fix this when DEV-2208 is done
+  const serviceUsageData = data?.status === 200 ? (data.data as any) : null
+  const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
+
+  const hasExceededLimit = userAsrBalance?.exceeded ?? false
+
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
-    // Reset region when language changes
     setSelectedRegion(null)
   }
 
@@ -113,6 +136,11 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
     props.onRequestClose()
   }
 
+  const handlePurchaseAddOn = () => {
+    navigate(ACCOUNT_ROUTES.ADD_ONS)
+    props.onRequestClose()
+  }
+
   return (
     <Stack gap='md'>
       <Text size='sm'>
@@ -122,18 +150,28 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
         )}
       </Text>
 
-      <Group gap='sm' align='flex-start' wrap='nowrap' pb={'sm'} grow>
-        <LanguageSelector onLanguageChange={handleLanguageChange} value={selectedLanguage} required />
+      <Group gap='sm' align='flex-start' wrap='nowrap' grow>
+        <LanguageSelector
+          disabled={hasExceededLimit}
+          onLanguageChange={handleLanguageChange}
+          value={selectedLanguage}
+          required
+        />
         <RegionSelectorField
-          disabled={!selectedLanguage}
+          disabled={!selectedLanguage || hasExceededLimit}
           rootLanguage={selectedLanguage || ''}
           serviceCode={serviceCode}
           serviceType='transcription'
           onRegionChange={handleRegionChange}
           onCancel={handleCancelLanguage}
-          mt={REQUIRED_ASTERISK_OFFSET}
         />
       </Group>
+
+      {hasExceededLimit && (
+        <Alert type='warning' iconName='information' mt={12} mb={12}>
+          {t('You’ve reached your automatic transcription limit. Please purchase an add‑on to continue.')}
+        </Alert>
+      )}
 
       <Text size='xs'>
         {t('Automatic transcription is provided by Google Cloud Platform.')}
@@ -147,9 +185,16 @@ export default function BulkTranscriptionModal(props: BulkTranscriptionModalProp
         <ButtonNew onClick={props.onRequestClose} variant='light'>
           {t('Cancel')}
         </ButtonNew>
-        <ButtonNew onClick={handleStartTranscription} disabled={!selectedLanguage}>
-          {t('Start Transcription')}
-        </ButtonNew>
+        {!hasExceededLimit && (
+          <ButtonNew onClick={handleStartTranscription} disabled={!selectedLanguage}>
+            {t('Start Transcription')}
+          </ButtonNew>
+        )}
+        {hasExceededLimit && (
+          <ButtonNew type='button' onClick={handlePurchaseAddOn} variant='light'>
+            {t('Purchase add-on')}
+          </ButtonNew>
+        )}
       </Group>
     </Stack>
   )

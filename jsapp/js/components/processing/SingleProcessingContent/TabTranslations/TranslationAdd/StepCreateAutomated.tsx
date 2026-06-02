@@ -13,13 +13,13 @@ import {
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import RegionSelectorInline from '#/components/languages/RegionSelectorInline'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import RegionSelectorInline from '#/components/languages/RegionSelectorInline'
 
 interface Props {
   asset: AssetResponse

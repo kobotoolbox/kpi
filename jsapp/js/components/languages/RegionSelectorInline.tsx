@@ -62,7 +62,7 @@ const RegionSelectorInline = (props: RegionSelectorProps) => {
             </ActionIcon>
           }
         />
-  
+
         {regionOptions.length > 0 && (
           <Select
             w={220}
@@ -76,7 +76,7 @@ const RegionSelectorInline = (props: RegionSelectorProps) => {
         )}
       </Group>
     </Flex>
-    )
+  )
 }
 
 export default RegionSelectorInline
