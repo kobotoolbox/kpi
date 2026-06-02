@@ -5,13 +5,17 @@ import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
-import { useServiceUsageList } from '#/api/react-query/user-team-organization-usage'
+import {
+  getOrganizationsServiceUsageRetrieveQueryKey,
+  useOrganizationsServiceUsageRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
+import envStore from '#/envStore'
+import { useSession } from '#/stores/useSession'
 import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelectorField from '../languages/RegionSelectorField'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
-import envStore from '#/envStore'
 
 const TRANSX_GOOG_SUPPORT_URL = 'transcription-translation.html#language-list'
 
@@ -89,12 +93,21 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const [serviceCode] = useState<TransxServiceCode>('goog')
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
-  const { data, isLoading: isLoadingUsage } = useServiceUsageList()
+
+  // Get organization ID from session
+  const session = useSession()
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const { data, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
+    query: {
+      queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!),
+      enabled: !!organizationId,
+    },
+  })
 
   const navigate = useNavigate()
 
   // TODO: API returns a single object, but orval types say it's an array, fix this when DEV-2208 is done
-  const serviceUsageData = data?.status === 200 ? (data.data as any) : null
+  const serviceUsageData = data?.status === 200 ? data.data : null
   const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
 
   const hasExceededLimit = userAsrBalance?.exceeded ?? false
@@ -124,11 +137,11 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       },
       {
         onSuccess: () => {
-          // TODO: notifications
+          // TODO: implement @mantine/notifications system, see DEV-2211
           props.onRequestClose()
         },
         onError: (error) => {
-          // TODO: notifications
+          // TODO: implement @mantine/notifications system, see DEV-2211
           console.error('Transcription failed:', error)
         },
       },
