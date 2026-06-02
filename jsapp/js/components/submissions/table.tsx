@@ -420,14 +420,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       return fieldData.transcript.value !== null && fieldData.transcript.value !== ''
     })
 
-    const selectedSubmissionUuids = selectedSubmissions.map((submission) => submission._uuid)
-
     openBulkTranscriptModal({
       fieldId,
       assetUid: this.props.asset.uid,
-      selectedSubmissionUuids,
-      selectedRowsCount: selectedSubmissionIds.length,
+      selectedSubmissions,
+      selectedRowsCount: this.state.selectAll ? this.state.resultsTotal : selectedSubmissionIds.length,
       hasExistingTranscriptions: submissionsWithTranscripts.length > 0,
+      selectedAllPages: this.state.selectAll,
+      totalRowsCount: this.state.resultsTotal,
     })
   }
 
@@ -443,6 +443,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       assetUid: this.props.asset.uid,
       selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
+      selectedAllPages: this.state.selectAll,
     })
   }
 

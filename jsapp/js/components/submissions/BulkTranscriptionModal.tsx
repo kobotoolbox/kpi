@@ -1,18 +1,24 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
-import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
+import {
+  getAssetsDataListQueryKey,
+  useAssetsAdvancedFeaturesBulkActionsCreate,
+  useAssetsDataList,
+} from '#/api/react-query/survey-data'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
+import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import ButtonNew from '../common/ButtonNew'
+import LoadingSpinner from '../common/loadingSpinner'
 import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelectorField from '../languages/RegionSelectorField'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
@@ -22,8 +28,10 @@ const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.htm
 interface BulkTranscriptionModalProps {
   fieldId: string
   assetUid: string
-  selectedSubmissionUuids: string[]
+  selectedSubmissions: SubmissionResponse[]
   selectedRowsCount: number
+  selectedAllPages: boolean
+  totalRowsCount: number
   onRequestClose: () => void
 }
 
@@ -105,6 +113,35 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
   const navigate = useNavigate()
 
+  // Only fetch all submissions if we selected all pages AND there are more rows than currently selected
+  const needsToFetchAll = props.selectedAllPages && props.totalRowsCount > props.selectedSubmissions.length
+
+  const { data: allSubmissionsData, isLoading: isLoadingAllSubmissions } = useAssetsDataList(
+    props.assetUid,
+    {
+      fields: '["_uuid"]',
+      limit: 30000,
+    },
+    {
+      query: {
+        queryKey: getAssetsDataListQueryKey(props.assetUid, { fields: '["_uuid"]', limit: 30000 }),
+        enabled: needsToFetchAll,
+        retry: false,
+      },
+    },
+  )
+
+  // Get the submission UUIDs based on whether we need to fetch all
+  const submissionUuids = useMemo(() => {
+    if (needsToFetchAll) {
+      if (allSubmissionsData?.status === 200) {
+        return allSubmissionsData.data.results.map((submission) => submission._uuid)
+      }
+      return []
+    }
+    return props.selectedSubmissions.map((submission) => submission._uuid)
+  }, [needsToFetchAll, props.selectedSubmissions, allSubmissionsData])
+
   const serviceUsageData = data?.status === 200 ? data.data : null
   const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
 
@@ -126,7 +163,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         data: {
           action_id: ActionIdEnum.automatic_google_transcription,
           question_xpath: props.fieldId,
-          submission_uuids: props.selectedSubmissionUuids,
+          submission_uuids: submissionUuids,
           params: {
             language: selectedLanguage!,
             locale: selectedRegion || undefined,
@@ -138,9 +175,8 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           // TODO: implement @mantine/notifications system, see DEV-2211
           props.onRequestClose()
         },
-        onError: (error) => {
+        onError: () => {
           // TODO: implement @mantine/notifications system, see DEV-2211
-          console.error('Transcription failed:', error)
         },
       },
     )
@@ -149,6 +185,16 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const handlePurchaseAddOn = () => {
     navigate(ACCOUNT_ROUTES.ADD_ONS)
     props.onRequestClose()
+  }
+
+  // Show loading spinner while fetching all submissions (only when we actually need to fetch)
+  if (needsToFetchAll && isLoadingAllSubmissions) {
+    return (
+      <Stack gap='md' align='center' py='xl'>
+        <LoadingSpinner />
+        <Text size='sm'>{t('Loading submissions...')}</Text>
+      </Stack>
+    )
   }
 
   return (
