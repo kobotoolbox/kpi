@@ -285,6 +285,8 @@ class ScimUserViewSet(
                 # Ensure the SocialAccount link exists so SSO works flawlessly.
                 # We catch IntegrityError here just in case another IdP already
                 # has this exact uid linked.
+                social_account_existed = social_account is not None
+
                 SocialAccount.objects.get_or_create(
                     user=user, provider=self.idp_provider_id, uid=uid
                 )
@@ -301,12 +303,12 @@ class ScimUserViewSet(
 
                     audit_action = (
                         AuditAction.REPROVISIONING
-                        if social_account
+                        if social_account_existed
                         else AuditAction.PROVISIONING
                     )
                     audit_reason = (
                         'Automated account re-provisioning via Identity Provider'
-                        if social_account
+                        if social_account_existed
                         else 'Automated account provisioning via Identity Provider'
                     )
 
@@ -339,7 +341,7 @@ class ScimUserViewSet(
                                 'Provider'
                             ),
                         )
-                elif social_account:
+                elif social_account_existed:
                     self._create_provisioning_audit_log(
                         user=user,
                         action=AuditAction.REPROVISIONING,

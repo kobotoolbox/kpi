@@ -329,3 +329,77 @@ class ScimAuditLogTests(APITestCase):
         self.assertEqual(log.metadata['idp_slug'], 'test-idp')
         self.assertEqual(log.metadata['status_code'], 201)
         self.assertIn('re-provisioning', log.metadata['reason'].lower())
+
+    def test_post_create_inactive_user_logs_provisioning_and_deactivation(self):
+        payload = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'inactive_user',
+            'emails': [{'primary': True, 'value': 'inactive@example.com'}],
+            'active': False,
+        }
+
+        response = self.client.post(
+            self.url_base,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, 201)
+
+        user = User.objects.get(username='inactive_user')
+        self.assertFalse(user.is_active)
+
+        provisioning_logs = AuditLog.objects.filter(
+            action=AuditAction.PROVISIONING,
+            object_id=user.id,
+        )
+        self.assertEqual(provisioning_logs.count(), 1)
+
+        deactivation_logs = AuditLog.objects.filter(
+            action=AuditAction.DEACTIVATION,
+            object_id=user.id,
+        )
+        self.assertEqual(deactivation_logs.count(), 1)
+
+    def test_post_existing_linked_inactive_user_logs_reprovisioning_and_deactivation(
+        self,
+    ):
+        self.user1.is_active = True
+        self.user1.save()
+
+        AuditLog.objects.filter(object_id=self.user1.id).delete()
+
+        payload = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'jdoe',
+            'externalId': 'jdoe-uid',
+            'emails': [{'primary': True, 'value': 'jdoe@example.com'}],
+            'active': False,
+        }
+
+        response = self.client.post(
+            self.url_base,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, 201)
+
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        self.assertEqual(
+            AuditLog.objects.filter(
+                action=AuditAction.REPROVISIONING,
+                object_id=self.user1.id,
+            ).count(),
+            1,
+        )
+
+        self.assertEqual(
+            AuditLog.objects.filter(
+                action=AuditAction.DEACTIVATION,
+                object_id=self.user1.id,
+            ).count(),
+            1,
+        )
