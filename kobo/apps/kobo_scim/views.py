@@ -291,13 +291,18 @@ class ScimUserViewSet(
 
                 reactivated_users = []
                 if active:
-                    reactivated_users = (
-                        self._reactivate_sso_linked_accounts(user.email, user)
+                    reactivated_users = self._reactivate_sso_linked_accounts(
+                        user.email, user
                     )
                 else:
                     # If the IdP provisions the user as deactivated, or links to an
                     # existing user but specifies active=False, deactivate them.
                     self.perform_destroy(user)
+
+                    apply_scim_user_metadata(user, data)
+
+                    serializer = self.get_serializer(user)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
                 apply_scim_user_metadata(user, data)
 
@@ -321,9 +326,7 @@ class ScimUserViewSet(
                         email=email,
                         username=user.username,
                         status_code=status.HTTP_201_CREATED,
-                        reason=(
-                            'Automated account re-provisioning via Identity Provider'
-                        ),
+                        reason='Automated account re-provisioning via Identity Provider',
                     )
                 else:
                     self._create_provisioning_audit_log(
