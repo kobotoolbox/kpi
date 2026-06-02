@@ -93,6 +93,14 @@ export const BRIDGE_SUCCESS_HANDLERS: ReadonlyArray<BridgeSuccessHandler> = [
     },
   },
   {
+    endpoint: 'POST /api/v2/imports/',
+    refluxAction: 'actions.resources.createImport.completed',
+    matches: ({ pathname, responseData }) => pathname === '/api/v2/imports/' && isRecord(responseData),
+    run: ({ responseData }) => {
+      actions.resources.createImport.completed(responseData)
+    },
+  },
+  {
     endpoint: `POST ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.deployAsset.completed',
     matches: ({ deploymentAssetUid, responseData }) =>
