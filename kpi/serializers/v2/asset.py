@@ -257,7 +257,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             all_assets = (
                 Asset.objects.filter(uid__in=asset_uids)
                 .only('uid', 'created_by', '_deployment_data', 'asset_type', 'owner')
-                .select_related('owner') # useful for has_perm
+                .select_related('owner')  # useful for has_perm
             )
 
             owned_assets = []
