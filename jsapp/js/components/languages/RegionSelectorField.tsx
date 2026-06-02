@@ -1,11 +1,11 @@
 import type { FlexProps } from '@mantine/core'
 import { Box, Group, Loader, Text } from '@mantine/core'
+import { IconInfoCircleFilled } from '@tabler/icons-react'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
+import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 import { useRegionOptions } from './useRegionOptions'
-import KoboIcon from '../common/KoboIcon'
-import {IconInfoCircleFilled} from '@tabler/icons-react'
 
 interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   disabled?: boolean

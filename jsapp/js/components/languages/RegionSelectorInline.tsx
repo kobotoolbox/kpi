@@ -1,6 +1,6 @@
 import type { FlexProps } from '@mantine/core'
 import { ActionIcon, Flex, Group, Loader, Text, TextInput } from '@mantine/core'
-import { IconInfoCircleFilled, IconLanguage, IconX } from '@tabler/icons-react'
+import { IconLanguage, IconX } from '@tabler/icons-react'
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
