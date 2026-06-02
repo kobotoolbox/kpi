@@ -297,9 +297,18 @@ class ScimUserViewSet(
                 else:
                     # If the IdP provisions the user as deactivated, or links to an
                     # existing user but specifies active=False, deactivate them.
-                    self.perform_destroy(user)
-
                     apply_scim_user_metadata(user, data)
+
+                    self._create_provisioning_audit_log(
+                        user=user,
+                        action=AuditAction.PROVISIONING,
+                        email=email,
+                        username=user.username,
+                        status_code=status.HTTP_201_CREATED,
+                        reason='Automated account provisioning via Identity Provider',
+                    )
+
+                    self.perform_destroy(user)
 
                     serializer = self.get_serializer(user)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
