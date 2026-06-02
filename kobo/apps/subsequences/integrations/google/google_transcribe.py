@@ -557,26 +557,11 @@ class GoogleTranscriptionService(GoogleService):
 
     def _get_bulk_action_item(self, bulk_action_uid: str | None):
         """
-        Note: This method is designed to support future bulk transcription feature.
+        Retrieve the `SubsequenceBulkActionItem` associated with this submission
 
-        Retrieve the SubsequenceBulkActionItem associated with this submission
-
-        Current behavior:
-        The `SubsequenceBulkActionItem` model is not yet implemented. When the
-        model is unavailable, this method returns `None` and the system falls
-        back to cache-based operation tracking.
-
-        Future behavior:
-        Once the model is implemented, this method will:
-
-        1. Look up the bulk action item using:
-           - parent UID (bulk_action_uid)
-           - submission_root_uuid
-        2. Return the matching database record if found.
-        3. Return None if the item does not exist.
-
-        This allows bulk transcription operations to store their Google
-        operation identifiers in the database rather than cache.
+        Returns the matching database record using the parent bulk action UID
+        and the submission root UUID. This allows bulk transcriptions to track
+        their Google operations in the database rather than falling back to cache.
         """
         if not bulk_action_uid:
             return None
@@ -588,8 +573,8 @@ class GoogleTranscriptionService(GoogleService):
             )
         except LookupError:
             logging.info(
-                'bulk_action_uid was provided but SubsequenceBulkActionItem '
-                'is not available yet; using cache fallback'
+                'bulk_action_uid was provided but the SubsequenceBulkActionItem '
+                'model could not be loaded, using cache fallback'
             )
             return None
 

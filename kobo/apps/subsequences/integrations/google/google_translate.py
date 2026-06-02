@@ -591,10 +591,11 @@ class GoogleTranslationService(GoogleService):
 
     def _get_bulk_action_item(self, bulk_action_uid: str | None):
         """
-        Retrieve the SubsequenceBulkActionItem for this submission
+        Retrieve the `SubsequenceBulkActionItem` for this submission
 
-        NOTE: The model is not available yet, so this returns `None` today and lets
-        the service keep using cache-based operation tracking.
+        Returns the matching database record using the parent bulk action UID
+        and the submission root UUID. This allows bulk translations to track
+        their Google operations in the database rather than falling back to cache.
         """
         if not bulk_action_uid:
             return None
@@ -606,8 +607,8 @@ class GoogleTranslationService(GoogleService):
             )
         except LookupError:
             logging.info(
-                'bulk_action_uid was provided but SubsequenceBulkActionItem '
-                'is not available yet; using cache fallback'
+                'bulk_action_uid was provided but the SubsequenceBulkActionItem '
+                'model could not be loaded, using cache fallback'
             )
             return None
 
