@@ -23,7 +23,7 @@ module.exports = do ->
 
   class viewRowDetailValidationLogic.ValidationLogicQuestionPicker extends $viewWidgets.Label
     constructor: () ->
-      super("This question's response has to be")
+      super(t("This question's response has to be"))
     attach_to: (target) ->
       target.find('.skiplogic__rowselect').remove()
       super(target)

@@ -1,6 +1,7 @@
 import React from 'react'
 
-import { Radio, TagsInput } from '@mantine/core'
+import { Radio } from '@mantine/core'
+import TagsInput from '#/components/common/TagsInput'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import styles from '../../../common/styles.module.scss'
 
