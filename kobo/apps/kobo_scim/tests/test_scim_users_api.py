@@ -225,7 +225,6 @@ class ScimUsersAPITests(APITestCase):
         deactivated_user.refresh_from_db()
         self.assertTrue(deactivated_user.is_active)
 
-
     def test_get_user_by_id(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         response = self.client.get(
