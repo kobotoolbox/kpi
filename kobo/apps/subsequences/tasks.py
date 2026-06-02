@@ -256,7 +256,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             logging.info(
                 f'Bulk item {bulk_action_item_id} is already locked by another worker'
             )
-            return
+            raise self.retry(countdown=15)
 
         # Check if another worker recently reserved this item but hasn't received
         # the Google operation ID yet. If so, safely abort to prevent duplication
@@ -310,10 +310,11 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 },
                 countdown=10,
             )
-        except Exception:
+        except Exception as e:
             logging.exception(
                 f'Failed to resume polling for {item.uid=}, {bulk_action.uid=}'
             )
+            _mark_bulk_item_failed(item, str(e))
         return
 
     try:

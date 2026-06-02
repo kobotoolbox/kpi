@@ -556,9 +556,10 @@ def test_async_translation_timeout_is_saved_as_failed():
             )
 
         task_mock.apply_async.assert_not_called()
-        assert result['fr']['_versions'][0]['_data']['status'] == 'failed'
-        assert result['fr']['_versions'][0]['_data']['language'] == 'fr'
-        assert 'Try again in 5 minutes.' in result['fr']['_versions'][0]['_data']['error']
+        data = result['fr']['_versions'][0]['_data']
+        assert data['status'] == 'failed'
+        assert data['language'] == 'fr'
+        assert 'Try again in 5 minutes.' in data['error']
 
 
 def test_google_quota_error_is_saved_as_failed_for_non_async_translation():
