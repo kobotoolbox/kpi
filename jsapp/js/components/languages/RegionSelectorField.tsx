@@ -1,9 +1,11 @@
 import type { FlexProps } from '@mantine/core'
-import { Loader, Text } from '@mantine/core'
+import { Box, Group, Loader, Text } from '@mantine/core'
 import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 import { useRegionOptions } from './useRegionOptions'
+import KoboIcon from '../common/KoboIcon'
+import {IconInfoCircleFilled} from '@tabler/icons-react'
 
 interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   disabled?: boolean
@@ -14,13 +16,12 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   serviceType: 'transcription' | 'translation'
   /** Callback for a region is being selected. */
   onRegionChange: (selectedRegion: LanguageCode | null) => void
-  /** Callback for clicking "x" next to the root language. */
-  onCancel: () => void
   /** The region selector in the single processing view has an additonal text box to the left of the Select */
   titleOverride?: string
 }
 
 const RegionSelectorField = (props: RegionSelectorProps) => {
+  const { rootLanguage, serviceCode, serviceType, onRegionChange, titleOverride, disabled, ...flexProps } = props
   const { regionOptions, selectedRegion, handleRegionChange, isLoading, isError } = useRegionOptions(
     props.rootLanguage,
     props.serviceCode,
@@ -37,17 +38,29 @@ const RegionSelectorField = (props: RegionSelectorProps) => {
   }
 
   return (
-    <Select
-      label={props.titleOverride ?? t('Select a region')}
-      data={regionOptions}
-      value={selectedRegion}
-      onChange={handleRegionChange}
-      disabled={props.disabled}
-      placeholder={t('Select a region...')}
-      comboboxProps={{ zIndex: KOBO_Z_INDEX.dropdown }}
-      mt={props?.mt}
-      rightSection={isLoading ? <Loader size='xs' /> : undefined}
-    />
+    <Box {...flexProps}>
+      <Select
+        label={props.titleOverride ?? t('Select a region')}
+        data={regionOptions}
+        value={selectedRegion}
+        onChange={handleRegionChange}
+        disabled={props.disabled}
+        placeholder={t('Select a region...')}
+        comboboxProps={{ zIndex: KOBO_Z_INDEX.dropdown }}
+        // Select is incompatible with many FlexProps, so we can add props here on a use by basis, instead of making the
+        // component crowded with MantineSpacing props
+        mt={props?.mt}
+        rightSection={isLoading ? <Loader size='xs' /> : undefined}
+        nothingFoundMessage={
+          isLoading ? undefined : (
+            <Group gap={'xs'} align='center' style={{ cursor: 'pointer' }} c='var(--mantine-color-blue-5)'>
+              <KoboIcon icon={IconInfoCircleFilled} size='sm' />
+              <Text>{t('No language regions available')}</Text>
+            </Group>
+          )
+        }
+      />
+    </Box>
   )
 }
 

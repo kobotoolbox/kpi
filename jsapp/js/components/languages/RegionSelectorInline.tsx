@@ -1,6 +1,6 @@
 import type { FlexProps } from '@mantine/core'
 import { ActionIcon, Flex, Group, Loader, Text, TextInput } from '@mantine/core'
-import { IconLanguage, IconX } from '@tabler/icons-react'
+import { IconInfoCircleFilled, IconLanguage, IconX } from '@tabler/icons-react'
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
@@ -17,11 +17,10 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   onRegionChange: (selectedRegion: LanguageCode | null) => void
   /** Callback for clicking "x" next to the root language. */
   onCancel: () => void
-  /** The region selector in the single processing view has an additonal text box to the left of the Select */
-  titleOverride?: string
 }
 
 const RegionSelectorInline = (props: RegionSelectorProps) => {
+  const { rootLanguage, serviceCode, serviceType, onRegionChange, onCancel, disabled, ...flexProps } = props
   const { regionOptions, selectedRegion, handleRegionChange, isLoading, isError, language } = useRegionOptions(
     props.rootLanguage,
     props.serviceCode,
@@ -42,7 +41,7 @@ const RegionSelectorInline = (props: RegionSelectorProps) => {
   }
 
   return (
-    <Flex component='section' direction='row' align='center' justify='center' mb={props?.mb}>
+    <Flex component='section' direction='row' align='center' justify='center' {...flexProps}>
       <Group gap='xs'>
         <TextInput
           readOnly

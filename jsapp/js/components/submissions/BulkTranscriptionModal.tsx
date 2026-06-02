@@ -11,6 +11,9 @@ import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelectorField from '../languages/RegionSelectorField'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
+import envStore from '#/envStore'
+
+const TRANSX_GOOG_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 interface BulkTranscriptionModalProps {
   fieldId: string
@@ -105,15 +108,10 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     setSelectedRegion(region)
   }
 
-  const handleCancelLanguage = () => {
-    setSelectedLanguage(null)
-    setSelectedRegion(null)
-  }
-
   const handleStartTranscription = () => {
     createBulkTranscription(
       {
-        uidAsset: props.assetUid, // You'll need to get this from props or context
+        uidAsset: props.assetUid,
         data: {
           action_id: ActionIdEnum.automatic_google_transcription,
           question_xpath: props.fieldId,
@@ -126,14 +124,15 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       },
       {
         onSuccess: () => {
+          // TODO: notifications
           props.onRequestClose()
         },
         onError: (error) => {
+          // TODO: notifications
           console.error('Transcription failed:', error)
         },
       },
     )
-    props.onRequestClose()
   }
 
   const handlePurchaseAddOn = () => {
@@ -156,6 +155,8 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           onLanguageChange={handleLanguageChange}
           value={selectedLanguage}
           required
+          // Smaller message to fit in the modal
+          nothingFoundMessage={t('I cannot find my language')}
         />
         <RegionSelectorField
           disabled={!selectedLanguage || hasExceededLimit}
@@ -163,7 +164,6 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           serviceCode={serviceCode}
           serviceType='transcription'
           onRegionChange={handleRegionChange}
-          onCancel={handleCancelLanguage}
         />
       </Group>
 
@@ -176,7 +176,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       <Text size='xs'>
         {t('Automatic transcription is provided by Google Cloud Platform.')}
         &nbsp;
-        <Anchor href={'#'} underline='always'>
+        <Anchor href={envStore.data.support_url + TRANSX_GOOG_SUPPORT_URL} underline='always'>
           {t('Learn more')}
         </Anchor>
       </Text>
@@ -186,12 +186,12 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNew onClick={handleStartTranscription} disabled={!selectedLanguage}>
+          <ButtonNew loading={isPending} onClick={handleStartTranscription} disabled={!selectedLanguage}>
             {t('Start Transcription')}
           </ButtonNew>
         )}
         {hasExceededLimit && (
-          <ButtonNew type='button' onClick={handlePurchaseAddOn} variant='light'>
+          <ButtonNew loading={isLoadingUsage} type='button' onClick={handlePurchaseAddOn} variant='light'>
             {t('Purchase add-on')}
           </ButtonNew>
         )}

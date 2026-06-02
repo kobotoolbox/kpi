@@ -15,7 +15,7 @@ export function useRegionOptions(
   const onRegionChangeRef = useRef(onRegionChange)
   useEffect(() => {
     onRegionChangeRef.current = onRegionChange
-  })
+  }, [onRegionChange])
 
   const regionOptions = useMemo(() => {
     const outcome = []

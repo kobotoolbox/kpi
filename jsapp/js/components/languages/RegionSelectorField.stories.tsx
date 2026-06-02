@@ -38,7 +38,6 @@ export const Primary: Story = {
     onRegionChange: (selectedRegion) => {
       console.log('Region changed:', selectedRegion)
     },
-    onCancel: () => {},
   },
 }
 // Tests RegionSelectorField: loading, region selection, sorting, and callbacks
@@ -49,7 +48,6 @@ export const InteractionTest: Story = {
     serviceCode: 'goog',
     serviceType: 'transcription',
     onRegionChange: fn(),
-    onCancel: () => {},
   },
   play: async ({ canvasElement, args, step }) => {
     const canvas = within(canvasElement)
