@@ -211,7 +211,6 @@ class ScimUserViewSet(
                 )
 
                 user = social_account.user if social_account else None
-                was_active = user.is_active if user else None
 
                 # Fallback to username/email matching if not linked yet
                 if not user:
@@ -292,7 +291,9 @@ class ScimUserViewSet(
 
                 reactivated_users = []
                 if active:
-                    reactivated_users = self._reactivate_sso_linked_accounts(user.email, user)
+                    reactivated_users = (
+                        self._reactivate_sso_linked_accounts(user.email, user)
+                    )
                 else:
                     # If the IdP provisions the user as deactivated, or links to an
                     # existing user but specifies active=False, deactivate them.
@@ -313,6 +314,17 @@ class ScimUserViewSet(
                                 'Provider'
                             ),
                         )
+                elif social_account:
+                    self._create_provisioning_audit_log(
+                        user=user,
+                        action=AuditAction.REPROVISIONING,
+                        email=email,
+                        username=user.username,
+                        status_code=status.HTTP_201_CREATED,
+                        reason=(
+                            'Automated account re-provisioning via Identity Provider'
+                        ),
+                    )
                 else:
                     self._create_provisioning_audit_log(
                         user=user,
@@ -401,7 +413,22 @@ class ScimUserViewSet(
             if was_active and not instance.is_active:
                 self.perform_destroy(instance)
             elif not was_active and instance.is_active:
-                self._reactivate_sso_linked_accounts(instance.email, instance)
+                reactivated_users = self._reactivate_sso_linked_accounts(
+                    instance.email, instance
+                )
+
+                for user in reactivated_users:
+                    self._create_provisioning_audit_log(
+                        user=user,
+                        action=AuditAction.REPROVISIONING,
+                        email=user.email,
+                        username=user.username,
+                        status_code=status.HTTP_200_OK,
+                        reason=(
+                            'Automated account re-provisioning via SCIM PUT '
+                            'request from Identity Provider.'
+                        ),
+                    )
 
             apply_scim_user_metadata(instance, self.request.data)
 
