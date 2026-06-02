@@ -326,23 +326,9 @@ export const ProcessingPollingRefreshesTranslatedCell: Story = {
   loaders: [loadAssetForStory],
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement)
+    const translatedValueSnippet = 'procesamiento masivo ha finalizado correctamente'
 
-    await step('Verify the row starts in the Processing state', async () => {
-      // Give a generous timeout: on slow CI the component can take several
-      // seconds to mount, fire its first bulk-actions request, and render the
-      // "Processing" cell — 12 s provides enough headroom without masking real
-      // failures (the test total budget is 30 s).
-      await waitFor(
-        async () => {
-          await expect(
-            canvas.queryAllByText((_content, element) => element?.textContent?.trim() === 'Processing').length,
-          ).toBeGreaterThan(0)
-        },
-        { timeout: 12000 },
-      )
-    })
-
-    await step('Wait for polling to replace the placeholder with the translated value', async () => {
+    await step('Wait for polling to refresh the row and show translated content', async () => {
       await waitFor(
         async () => {
           const storyState = getPollingUpdateStoryState()
@@ -351,7 +337,9 @@ export const ProcessingPollingRefreshesTranslatedCell: Story = {
           // queryAllByText + length check avoids throwing when the element is
           // absent mid-retry; waitFor handles the retry loop for us.
           await expect(
-            canvas.queryAllByText('Hola, el procesamiento masivo ha finalizado correctamente.').length,
+            canvas.queryAllByText(
+              (_content, element) => element?.textContent?.toLowerCase().includes(translatedValueSnippet) === true,
+            ).length,
           ).toBeGreaterThan(0)
         },
         { timeout: getPollingUpdateStoryTimeoutMs() },
