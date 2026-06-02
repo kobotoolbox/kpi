@@ -330,7 +330,14 @@ export const ProcessingPollingRefreshesTranslatedCell: Story = {
     await step('Verify the row starts in the Processing state', async () => {
       // Give a generous timeout: on slow CI the component can take a few seconds
       // to mount and fire its first data request before "Processing" appears.
-      await expect(await canvas.findByText('Processing', {}, { timeout: 5000 })).toBeInTheDocument()
+      await waitFor(
+        async () => {
+          await expect(
+            canvas.queryAllByText((_content, element) => element?.textContent?.trim() === 'Processing').length,
+          ).toBeGreaterThan(0)
+        },
+        { timeout: 5000 },
+      )
     })
 
     await step('Wait for polling to replace the placeholder with the translated value', async () => {

@@ -15,7 +15,7 @@ import { getBulkActionsPollingIntervalMs } from './useDataTableBulkActions'
 
 let pollingBulkActionsCalls = 0
 let pollingSubmissionRefreshCalls = 0
-let pollingStartTime = 0
+let pollingFirstBulkActionsRequestTime: number | null = null
 const POLLING_STORY_ASSERTION_GRACE_MS = 2000
 // How long after a story resets before the mock bulk action reports completion.
 // Needs to be shorter than the polling interval (8 s for translation) so that
@@ -133,7 +133,7 @@ const pollingBulkActionComplete = bulkActionFactory(pollingSubmissionInitial['me
 export function resetPollingUpdateStoryHandlers() {
   pollingBulkActionsCalls = 0
   pollingSubmissionRefreshCalls = 0
-  pollingStartTime = Date.now()
+  pollingFirstBulkActionsRequestTime = null
 }
 
 export function getPollingUpdateStoryState() {
@@ -172,7 +172,10 @@ export function getPollingUpdateStoryHandlers() {
       // so the count can cross the threshold before any single browser has had
       // a chance to render the "Processing" cell.
       pollingBulkActionsCalls += 1
-      const isComplete = Date.now() - pollingStartTime >= POLLING_COMPLETE_AFTER_MS
+      if (pollingFirstBulkActionsRequestTime === null) {
+        pollingFirstBulkActionsRequestTime = Date.now()
+      }
+      const isComplete = Date.now() - pollingFirstBulkActionsRequestTime >= POLLING_COMPLETE_AFTER_MS
       return HttpResponse.json({
         count: 1,
         next: null,
