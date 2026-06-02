@@ -299,13 +299,24 @@ class ScimUserViewSet(
                     # existing user but specifies active=False, deactivate them.
                     apply_scim_user_metadata(user, data)
 
+                    audit_action = (
+                        AuditAction.REPROVISIONING
+                        if social_account
+                        else AuditAction.PROVISIONING
+                    )
+                    audit_reason = (
+                        'Automated account re-provisioning via Identity Provider'
+                        if social_account
+                        else 'Automated account provisioning via Identity Provider'
+                    )
+
                     self._create_provisioning_audit_log(
                         user=user,
-                        action=AuditAction.PROVISIONING,
+                        action=audit_action,
                         email=email,
                         username=user.username,
                         status_code=status.HTTP_201_CREATED,
-                        reason='Automated account provisioning via Identity Provider',
+                        reason=audit_reason,
                     )
 
                     self.perform_destroy(user)
