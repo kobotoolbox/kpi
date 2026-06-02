@@ -5,8 +5,10 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import (
+    AdminUserCreationForm,
+)
 from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
-from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
@@ -71,7 +73,7 @@ class UserChangeForm(DjangoUserChangeForm):
         return cleaned_data
 
 
-class UserCreationForm(DjangoUserCreationForm):
+class UserCreationForm(AdminUserCreationForm):
 
     username = CharField(
         label='username',
@@ -79,6 +81,10 @@ class UserCreationForm(DjangoUserCreationForm):
         help_text=USERNAME_INVALID_MESSAGE,
         validators=username_validators,
     )
+
+    def clean(self):
+        self.cleaned_data['usable_password'] = 'true'
+        super().clean()
 
 
 class OrgInline(admin.StackedInline):
@@ -112,7 +118,6 @@ class OrgInline(admin.StackedInline):
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
-
 
 
 class InactiveUsersAsOfFilter(SimpleListFilter):
@@ -190,6 +195,18 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     readonly_fields = UserAdmin.readonly_fields + (
         'deployed_forms_count',
         'monthly_submission_count',
+    )
+    # same add_fieldsets as UserAdmin but without the 'usable_password' field, which
+    # we don't want. Admins should not be able to enable/disable password access on
+    # a per-user basis
+    add_fieldsets = (
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': ('username', 'password1', 'password2'),
+            },
+        ),
     )
     fieldsets = UserAdmin.fieldsets + (
         (
