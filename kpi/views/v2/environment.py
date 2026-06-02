@@ -181,7 +181,7 @@ class EnvironmentView(APIView):
 
         for key in EnvironmentView.OTHER_CONFIGS:
             result = getattr(constance.config, key, None)
-            if not result:
+            if result is None:
                 result = getattr(settings, key)
             data[key.lower()] = result
 
