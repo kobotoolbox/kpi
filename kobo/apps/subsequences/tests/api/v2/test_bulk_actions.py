@@ -168,6 +168,36 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             (self.second_submission_uuid, BulkActionItemStatus.PENDING),
         }
 
+    def test_retrieve_bulk_action_includes_item_failure_errors(self):
+        """
+        Test that the Bulk Action API correctly serializes and exposes the
+        'failure_error' field for child items so the frontend can display
+        specific failure reasons to the user
+        """
+        action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+        )
+        item = action.items.get(submission_root_uuid=self.submission_uuid)
+        item.status = BulkActionItemStatus.FAILED
+        item.failure_error = 'Google quota exceeded'
+        item.save(update_fields=['status', 'failure_error'])
+
+        response = self.client.get(self._get_detail_url(action.uid))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['submission_statuses'] == [
+            {
+                'uuid': self.submission_uuid,
+                'status': BulkActionItemStatus.FAILED,
+                'error': 'Google quota exceeded',
+            }
+        ]
+
     def test_cancel_bulk_action(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,

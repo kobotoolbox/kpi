@@ -14,7 +14,7 @@ from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
-from ..exceptions import TranscriptionNotFound
+from ..exceptions import GoogleQuotaExceededError, TranscriptionNotFound
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -558,8 +558,33 @@ def test_async_translation_timeout_is_saved_as_failed():
         task_mock.apply_async.assert_not_called()
         assert result['fr']['_versions'][0]['_data']['status'] == 'failed'
         assert result['fr']['_versions'][0]['_data']['language'] == 'fr'
-        error = result['fr']['_versions'][0]['_data']['error']
-        assert 'Try again in 5 minutes.' in error
+        assert 'Try again in 5 minutes.' in result['fr']['_versions'][0]['_data']['error']
+
+
+def test_google_quota_error_is_saved_as_failed_for_non_async_translation():
+    action = _get_action()
+    mock_service = MagicMock()
+    submission = {'meta/rootUuid': '123-abdc'}
+
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        return_value=mock_service,
+    ):
+        mock_service.process_data.side_effect = GoogleQuotaExceededError(
+            retry_after=123
+        )
+        with patch(
+            'kobo.apps.subsequences.actions.base.poll_run_external_process'
+        ) as task_mock:
+            result = action.revise_data(
+                submission,
+                EMPTY_SUPPLEMENT,
+                {'language': 'fr'},
+            )
+
+    task_mock.apply_async.assert_not_called()
+    assert result['fr']['_versions'][0]['_data']['status'] == 'failed'
+    assert 'Retry after 123 seconds.' in result['fr']['_versions'][0]['_data']['error']
 
 
 def test_transform_data_for_output():

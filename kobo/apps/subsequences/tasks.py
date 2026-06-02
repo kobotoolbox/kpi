@@ -217,6 +217,13 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
     The task reuses SubmissionSupplement.revise_data() so bulk transcription and
     translation run through the same validation, supplement writing, and Google
     integration paths as single-submission processing.
+
+    This task also implements a reservation system to prevent multiple background
+    workers from processing the same file at the same time. Before reaching out to
+    Google, the worker leaves a temporary 'pending' mark (`PENDING_OPERATION_MARKER`)
+    on the item in the database. This acts as a 'Do Not Disturb' sign, stopping
+    impatient watchdog tasks from spawning duplicate requests while we wait for
+    Google to reply.
     """
     from .models import (
         BulkActionItemStatus,
@@ -251,6 +258,8 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             )
             return
 
+        # Check if another worker recently reserved this item but hasn't received
+        # the Google operation ID yet. If so, safely abort to prevent duplication
         if (
             item.service_id == PENDING_OPERATION_MARKER
             and item.date_modified > stale_cutoff
@@ -268,6 +277,10 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
         elif item.status != BulkActionItemStatus.IN_PROGRESS:
             return
 
+        # If a real Google operation is already in flight, skip `revise_data` and
+        # just resume polling. Otherwise, reserve the slot so concurrent workers
+        # cannot start a duplicate Google operation in the race window between
+        # `begin_google_operation()` and `_save_operation_reference()`
         if item.service_id and item.service_id != PENDING_OPERATION_MARKER:
             resume_polling = True
             item.save(update_fields=['status', 'date_modified'])
@@ -375,6 +388,8 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 f'{bulk_action.action_id=}, error={error!r}'
             )
         else:
+            # Clear any transient error messages (e.g. from previous retries)
+            # now that the task is healthy
             item.failure_error = None
             update_fields.append('failure_error')
             if current_service_id == PENDING_OPERATION_MARKER:
