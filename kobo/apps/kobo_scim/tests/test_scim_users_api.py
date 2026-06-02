@@ -6,6 +6,11 @@ from rest_framework.test import APITestCase
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_LIST_RESPONSE,
+    SCIM_SCHEMA_PATCH_OP,
+    SCIM_SCHEMA_USER,
+)
 from kobo.apps.kobo_scim.models import IdentityProvider
 
 
@@ -89,9 +94,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
 
-        self.assertIn(
-            'urn:ietf:params:scim:api:messages:2.0:ListResponse', data['schemas']
-        )
+        self.assertIn(SCIM_SCHEMA_LIST_RESPONSE, data['schemas'])
         self.assertEqual(data['totalResults'], 2)
         self.assertEqual(data['itemsPerPage'], 2)
         self.assertEqual(data['startIndex'], 1)
@@ -111,7 +114,7 @@ class ScimUsersAPITests(APITestCase):
     def test_create_user_success(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'schemas': [SCIM_SCHEMA_USER],
             'userName': 'newscimuser',
             'name': {'givenName': 'New', 'familyName': 'Scim'},
             'emails': [
@@ -156,7 +159,7 @@ class ScimUsersAPITests(APITestCase):
         # Note: Not linked to SocialAccount yet!
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'schemas': [SCIM_SCHEMA_USER],
             'userName': 'idp_username',
             'emails': [{'primary': True, 'value': 'existing_match@example.com'}],
             'active': True,
@@ -189,7 +192,7 @@ class ScimUsersAPITests(APITestCase):
         )
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'schemas': [SCIM_SCHEMA_USER],
             'userName': 'rejoined_user',
             'emails': [{'primary': True, 'value': 'rejoined@example.com'}],
             'active': True,
@@ -227,7 +230,7 @@ class ScimUsersAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
-        self.assertIn('urn:ietf:params:scim:schemas:core:2.0:User', data['schemas'])
+        self.assertIn(SCIM_SCHEMA_USER, data['schemas'])
         self.assertEqual(data['userName'], 'jdoe')
         self.assertEqual(data['active'], True)
 
@@ -387,7 +390,7 @@ class ScimUsersAPITests(APITestCase):
         )
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [{'op': 'replace', 'path': 'active', 'value': False}],
         }
 
@@ -412,7 +415,7 @@ class ScimUsersAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [
                 {'op': 'replace', 'path': 'name.familyName', 'value': 'Smith'}
             ],
@@ -514,3 +517,144 @@ class ScimUsersAPITests(APITestCase):
 
         self.user1.refresh_from_db()
         self.assertFalse(self.user1.is_active)
+
+    def test_reactivation_only_enables_sso_linked_accounts(self):
+        """
+        Verify that when a user is reactivated via SCIM, only the accounts linked to
+        an SSO provider are reactivated. Password-auth accounts with the same email
+        remain disabled.
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # Setup: james01 (SSO linked), james02 (password auth), james03 (password auth)
+        james01 = User.objects.create_user(
+            username='james01', email='james@test.org', is_active=True
+        )
+        SocialAccount.objects.create(
+            user=james01, provider=self.social_app.provider_id, uid='james-sso-uid'
+        )
+
+        james02 = User.objects.create_user(
+            username='james02', email='james@test.org', is_active=True
+        )
+        james03 = User.objects.create_user(
+            username='james03', email='james@test.org', is_active=True
+        )
+        james04 = User.objects.create_user(
+            username='james04', email='james@test.org', is_active=True
+        )
+        SocialAccount.objects.create(
+            user=james04, provider='other-provider-id', uid='james-other-uid'
+        )
+
+        # Should deactivate all 3
+        response = self.client.delete(
+            f'{self.url}/{james01.id}', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        james01.refresh_from_db()
+        james02.refresh_from_db()
+        james03.refresh_from_db()
+        james04.refresh_from_db()
+        self.assertFalse(james01.is_active)
+        self.assertFalse(james02.is_active)
+        self.assertFalse(james03.is_active)
+        self.assertFalse(james04.is_active)
+
+        # Reactivate via PATCH
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [{'op': 'replace', 'path': 'active', 'value': True}],
+        }
+        response = self.client.patch(
+            f'{self.url}/{james01.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        james01.refresh_from_db()
+        james02.refresh_from_db()
+        james03.refresh_from_db()
+        james04.refresh_from_db()
+
+        self.assertTrue(james01.is_active)
+        self.assertFalse(james02.is_active)
+        self.assertFalse(james03.is_active)
+        self.assertFalse(james04.is_active)
+
+    def test_reprovisioning_reactivates_sso_linked_accounts_only(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        james01 = User.objects.create_user(
+            username='james01', email='james@test.org', is_active=False
+        )
+        SocialAccount.objects.create(
+            user=james01, provider=self.social_app.provider_id, uid='james-sso-uid-post'
+        )
+
+        james02 = User.objects.create_user(
+            username='james02', email='james@test.org', is_active=False
+        )
+        james03 = User.objects.create_user(
+            username='james03', email='james@test.org', is_active=False
+        )
+        james04 = User.objects.create_user(
+            username='james04', email='james@test.org', is_active=False
+        )
+        SocialAccount.objects.create(
+            user=james04, provider='other-provider-post', uid='james-other-uid-post'
+        )
+
+        # Reprovision via POST
+        payload = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'james01',
+            'emails': [{'primary': True, 'value': 'james@test.org'}],
+            'active': True,
+            'externalId': 'james-sso-uid-post',
+        }
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        james01.refresh_from_db()
+        james02.refresh_from_db()
+        james03.refresh_from_db()
+        james04.refresh_from_db()
+
+        self.assertTrue(james01.is_active)
+        self.assertFalse(james02.is_active)
+        self.assertFalse(james03.is_active)
+        self.assertFalse(james04.is_active)
+
+    def test_reactivation_of_user_without_email_works(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        no_email_user = User.objects.create_user(
+            username='noemailuser', email='', is_active=False
+        )
+        SocialAccount.objects.create(
+            user=no_email_user, provider=self.social_app.provider_id, uid='no-email-uid'
+        )
+
+        # Reactivate via PATCH
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [{'op': 'replace', 'path': 'active', 'value': True}],
+        }
+        response = self.client.patch(
+            f'{self.url}/{no_email_user.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        no_email_user.refresh_from_db()
+        self.assertTrue(no_email_user.is_active)

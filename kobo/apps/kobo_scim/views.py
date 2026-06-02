@@ -1,9 +1,10 @@
-import re
 import json
+import re
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.utils.functional import cached_property
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
@@ -17,6 +18,15 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
+from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_ERROR,
+    SCIM_SCHEMA_GROUP,
+    SCIM_SCHEMA_LIST_RESPONSE,
+    SCIM_SCHEMA_RESOURCE_TYPE,
+    SCIM_SCHEMA_SCHEMA,
+    SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
+    SCIM_SCHEMA_USER,
+)
 from kobo.apps.kobo_scim.models import ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
@@ -118,6 +128,16 @@ class ScimUserViewSet(
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
+    @cached_property
+    def idp(self):
+        return getattr(self.request, 'auth', None)
+
+    @cached_property
+    def idp_provider_id(self):
+        if self.idp and self.idp.social_app:
+            return self.idp.social_app.provider_id
+        return None
+
     @extend_schema(
         responses=scim_responses(
             {
@@ -131,8 +151,7 @@ class ScimUserViewSet(
         """
         Handle POST requests (user provisioning from IdP).
         """
-        idp = request.auth
-        if not idp or not idp.social_app:
+        if not self.idp or not self.idp.social_app:
             return Response(
                 {'detail': 'IdP not configured for user provisioning'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -171,9 +190,7 @@ class ScimUserViewSet(
             with transaction.atomic():
                 # First, check if user exists via SocialAccount linkage
                 social_account = (
-                    SocialAccount.objects.filter(
-                        provider=idp.social_app.provider_id, uid=uid
-                    )
+                    SocialAccount.objects.filter(provider=self.idp_provider_id, uid=uid)
                     .select_related('user')
                     .first()
                 )
@@ -201,20 +218,16 @@ class ScimUserViewSet(
                         last_name=last_name,
                         is_active=data.get('active', True),
                     )
-                else:
-                    # If they exist, optionally reactivate them if the IdP sends
-                    # active=True. (A deprovisioned user in Kobo is not deleted
-                    # but deactivated).
-                    if not user.is_active and data.get('active', True):
-                        user.is_active = True
-                        user.save(update_fields=['is_active'])
 
                 # Ensure the SocialAccount link exists so SSO works flawlessly.
                 # We catch IntegrityError here just in case another IdP already
                 # has this exact uid linked.
                 SocialAccount.objects.get_or_create(
-                    user=user, provider=idp.social_app.provider_id, uid=uid
+                    user=user, provider=self.idp_provider_id, uid=uid
                 )
+
+                if data.get('active', True):
+                    self._reactivate_sso_linked_accounts(user.email, user)
 
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -223,7 +236,7 @@ class ScimUserViewSet(
             # This is a safe fallback for edge cases like duplicate SocialAccount UIDs
             return Response(
                 {
-                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
+                    'schemas': [SCIM_SCHEMA_ERROR],
                     'detail': 'One or more attributes in the resource already exists.',
                     'status': '409',
                 },
@@ -253,17 +266,44 @@ class ScimUserViewSet(
             # return SCIM 409 format.
             return Response(
                 {
-                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
+                    'schemas': [SCIM_SCHEMA_ERROR],
                     'detail': 'One or more attributes in the resource already exists.',
                     'status': '409',
                 },
                 status=status.HTTP_409_CONFLICT,
             )
 
+    def perform_update(self, serializer):
+        was_active = serializer.instance.is_active
+        instance = serializer.save()
+        if not was_active and instance.is_active:
+            self._reactivate_sso_linked_accounts(instance.email, instance)
+
+    def _reactivate_sso_linked_accounts(self, email, current_user=None):
+        # Handle users with the same email:
+        if email:
+            targets = User.objects.filter(
+                email__iexact=email,
+                is_active=False,
+                socialaccount__provider=self.idp_provider_id
+            )
+
+            for target in targets:
+                target.is_active = True
+                target.save(update_fields=['is_active'])
+
+                # Update in-memory instance to prevent the fallback block below
+                # from firing an extra, redundant save() call.
+                if current_user and current_user.pk == target.pk:
+                    current_user.is_active = True
+
+        if current_user and not current_user.is_active:
+            current_user.is_active = True
+            current_user.save(update_fields=['is_active'])
+
     def get_queryset(self):
         # The idp_slug in the URL MUST match the authenticated IdP
-        idp = self.request.auth
-        if not idp or idp.slug != self.kwargs.get('idp_slug'):
+        if not self.idp or self.idp.slug != self.kwargs.get('idp_slug'):
             # Return empty if cross-tenant or missing
             return User.objects.none()
 
@@ -271,10 +311,8 @@ class ScimUserViewSet(
         queryset = super().get_queryset().exclude(id=settings.ANONYMOUS_USER_ID)
 
         # Only include users that are linked to this IdP's SocialApp.
-        if idp.social_app:
-            queryset = queryset.filter(
-                socialaccount__provider=idp.social_app.provider_id
-            )
+        if self.idp.social_app:
+            queryset = queryset.filter(socialaccount__provider=self.idp_provider_id)
         else:
             # If the IdP doesn't have a SocialApp, it can't be mapped to any users
             return User.objects.none()
@@ -366,8 +404,7 @@ class ScimUserViewSet(
                 self.perform_destroy(instance)
             else:
                 # Re-enabling the user
-                instance.is_active = True
-                instance.save(update_fields=['is_active'])
+                self._reactivate_sso_linked_accounts(instance.email, instance)
 
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
@@ -402,7 +439,7 @@ class ScimServiceProviderConfigView(APIView):
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig'],
+            'schemas': [SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG],
             'patch': {'supported': True},
             'bulk': {'supported': False},
             'filter': {'supported': True, 'maxResults': 100},
@@ -450,21 +487,19 @@ class ScimSchemasView(APIView):
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
             'totalResults': 2,
             'itemsPerPage': 2,
             'startIndex': 1,
             'Resources': [
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
-                    'id': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schemas': [SCIM_SCHEMA_SCHEMA],
+                    'id': SCIM_SCHEMA_USER,
                     'name': 'User',
                     'description': 'User Account',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:User'
-                        ),
+                        'location': (f'{location}/{SCIM_SCHEMA_USER}'),
                     },
                     'attributes': [
                         {
@@ -570,15 +605,13 @@ class ScimSchemasView(APIView):
                     ],
                 },
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
-                    'id': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schemas': [SCIM_SCHEMA_SCHEMA],
+                    'id': SCIM_SCHEMA_GROUP,
                     'name': 'Group',
                     'description': 'Group',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group'
-                        ),
+                        'location': (f'{location}/{SCIM_SCHEMA_GROUP}'),
                     },
                     'attributes': [
                         {
@@ -670,18 +703,18 @@ class ScimResourceTypesView(APIView):
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
             'totalResults': 2,
             'itemsPerPage': 2,
             'startIndex': 1,
             'Resources': [
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'schemas': [SCIM_SCHEMA_RESOURCE_TYPE],
                     'id': 'User',
                     'name': 'User',
                     'endpoint': '/Users',
                     'description': 'User Account',
-                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schema': SCIM_SCHEMA_USER,
                     'schemaExtensions': [],
                     'meta': {
                         'resourceType': 'ResourceType',
@@ -689,12 +722,12 @@ class ScimResourceTypesView(APIView):
                     },
                 },
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'schemas': [SCIM_SCHEMA_RESOURCE_TYPE],
                     'id': 'Group',
                     'name': 'Group',
                     'endpoint': '/Groups',
                     'description': 'Group',
-                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schema': SCIM_SCHEMA_GROUP,
                     'schemaExtensions': [],
                     'meta': {
                         'resourceType': 'ResourceType',
