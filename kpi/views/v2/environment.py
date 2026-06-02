@@ -4,8 +4,8 @@ from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
-from markdown import markdown
 from drf_spectacular.utils import extend_schema
+from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -180,7 +180,10 @@ class EnvironmentView(APIView):
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
 
         for key in EnvironmentView.OTHER_CONFIGS:
-            data[key.lower()] = getattr(constance.config, key)
+            result = getattr(constance.config, key, None)
+            if not result:
+                result = getattr(settings, key)
+            data[key.lower()] = result
 
         if settings.STRIPE_ENABLED:
             from djstripe.models import APIKey
