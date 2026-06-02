@@ -328,7 +328,9 @@ export const ProcessingPollingRefreshesTranslatedCell: Story = {
     const canvas = within(canvasElement)
 
     await step('Verify the row starts in the Processing state', async () => {
-      await expect(await canvas.findByText('Processing')).toBeInTheDocument()
+      // Give a generous timeout: on slow CI the component can take a few seconds
+      // to mount and fire its first data request before "Processing" appears.
+      await expect(await canvas.findByText('Processing', {}, { timeout: 5000 })).toBeInTheDocument()
     })
 
     await step('Wait for polling to replace the placeholder with the translated value', async () => {
@@ -337,7 +339,8 @@ export const ProcessingPollingRefreshesTranslatedCell: Story = {
           const storyState = getPollingUpdateStoryState()
           await expect(storyState.pollingBulkActionsCalls).toBeGreaterThanOrEqual(2)
           await expect(storyState.pollingSubmissionRefreshCalls).toBeGreaterThanOrEqual(1)
-          // Tests were failing, let's try being more broad with selection
+          // queryAllByText + length check avoids throwing when the element is
+          // absent mid-retry; waitFor handles the retry loop for us.
           await expect(
             canvas.queryAllByText('Hola, el procesamiento masivo ha finalizado correctamente.').length,
           ).toBeGreaterThan(0)

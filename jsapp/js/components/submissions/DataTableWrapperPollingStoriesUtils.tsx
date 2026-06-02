@@ -15,13 +15,36 @@ import { getBulkActionsPollingIntervalMs } from './useDataTableBulkActions'
 
 let pollingBulkActionsCalls = 0
 let pollingSubmissionRefreshCalls = 0
+let pollingStartTime = 0
 const POLLING_STORY_ASSERTION_GRACE_MS = 2000
+// How long after a story resets before the mock bulk action reports completion.
+// Needs to be shorter than the polling interval (8 s for translation) so that
+// the first poll always returns in_progress — giving every parallel browser
+// enough time to actually render the "Processing" cell before completion fires.
+const POLLING_COMPLETE_AFTER_MS = 2000
 
 // Dedicated polling story data is kept in a separate file so the main stories
 // file remains easy to scan as more table scenarios get added.
 export const pollingAsset = assetFactory({
   uid: 'audio-asset-uid-polling',
   name: 'Audio form with polling update',
+  // The backend writes analysis_form_json when a bulk action is created, so
+  // this entry is present from the moment the story starts — not only after
+  // polling finishes. Having it here is what keeps the supplemental column in
+  // its correct position (immediately after the source question) throughout the
+  // whole lifecycle. The virtual fields from active bulk actions handle the
+  // "Processing" cell state while the action is still running.
+  analysis_form_json: {
+    additional_fields: [
+      {
+        language: 'es',
+        source: 'Record_a_sound',
+        type: 'translation',
+        name: 'translation_es',
+        dtpath: 'Record_a_sound/translation_es',
+      },
+    ],
+  },
   content: {
     schema: '1',
     survey: [
@@ -58,8 +81,6 @@ const pollingSubmissionInitial = assetDataFactory(11, {
 
 const pollingSubmissionUpdated = assetDataFactory(11, {
   Record_a_sound: 'test11.mp3',
-  // Keep the processing column after completion based on refreshed row data,
-  // without pre-seeding supplemental field metadata on the asset itself.
   _supplementalDetails: {
     Record_a_sound: {
       translation: {
@@ -70,7 +91,6 @@ const pollingSubmissionUpdated = assetDataFactory(11, {
       },
     },
   },
-  '_supplementalDetails/Record_a_sound/translation_es': 'Hola, el procesamiento masivo ha finalizado correctamente.',
   _attachments: [
     {
       download_url: './test11.mp3',
@@ -113,6 +133,7 @@ const pollingBulkActionComplete = bulkActionFactory(pollingSubmissionInitial['me
 export function resetPollingUpdateStoryHandlers() {
   pollingBulkActionsCalls = 0
   pollingSubmissionRefreshCalls = 0
+  pollingStartTime = Date.now()
 }
 
 export function getPollingUpdateStoryState() {
@@ -145,14 +166,18 @@ export function getPollingUpdateStoryHandlers() {
         return undefined
       }
 
-      // The first poll keeps the cell in the Processing state. The second poll
-      // reports completion so the table can refresh just that row.
+      // Use wall-clock time rather than call count to decide when to switch to
+      // complete. A call-count threshold is unreliable when multiple browsers
+      // run the same story in parallel — their polls all share the same counter,
+      // so the count can cross the threshold before any single browser has had
+      // a chance to render the "Processing" cell.
       pollingBulkActionsCalls += 1
+      const isComplete = Date.now() - pollingStartTime >= POLLING_COMPLETE_AFTER_MS
       return HttpResponse.json({
         count: 1,
         next: null,
         previous: null,
-        results: [pollingBulkActionsCalls >= 2 ? pollingBulkActionComplete : pollingBulkActionInProgress],
+        results: [isComplete ? pollingBulkActionComplete : pollingBulkActionInProgress],
       })
     }),
     http.get<PathParams<'uid'>, never>(endpoints.ASSET_DATA_URL, ({ params, request }) => {
