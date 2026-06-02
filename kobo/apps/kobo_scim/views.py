@@ -326,7 +326,9 @@ class ScimUserViewSet(
                         email=email,
                         username=user.username,
                         status_code=status.HTTP_201_CREATED,
-                        reason='Automated account re-provisioning via Identity Provider',
+                        reason=(
+                            'Automated account re-provisioning via Identity Provider'
+                        ),
                     )
                 else:
                     self._create_provisioning_audit_log(
