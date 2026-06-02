@@ -116,7 +116,11 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   // Only fetch all submissions if we selected all pages AND there are more rows than currently selected
   const needsToFetchAll = props.selectedAllPages && props.totalRowsCount > props.selectedSubmissions.length
 
-  const { data: allSubmissionsData, isLoading: isLoadingAllSubmissions } = useAssetsDataList(
+  const {
+    data: allSubmissionsData,
+    isLoading: isLoadingAllSubmissions,
+    isError: isErrorAllSubmissions,
+  } = useAssetsDataList(
     props.assetUid,
     {
       fields: '["_uuid"]',
@@ -229,6 +233,12 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('You’ve reached your automatic transcription limit. Please purchase an add‑on to continue.')}
         </Alert>
       )}
+      {isErrorAllSubmissions && (
+        <Alert type='error' iconName='alert' mt={12} mb={12}>
+          {t('Failed to load all submissions. Please try again or select submissions from the current page only.')}
+        </Alert>
+      )}
+
 
       <Text size='xs'>
         {t('Automatic transcription is provided by Google Cloud Platform.')}
@@ -243,7 +253,11 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNew loading={isPending} onClick={handleStartTranscription} disabled={!selectedLanguage}>
+          <ButtonNew
+            loading={isPending}
+            onClick={handleStartTranscription}
+            disabled={!selectedLanguage || isErrorAllSubmissions}
+          >
             {t('Start Transcription')}
           </ButtonNew>
         )}
