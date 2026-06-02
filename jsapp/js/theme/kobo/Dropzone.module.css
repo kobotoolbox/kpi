@@ -1,0 +1,24 @@
+.root {
+  border: 2px dashed var(--mantine-color-gray-5);
+  background-color: var(--mantine-color-gray-8);
+  border-radius: var(--mantine-radius-md);
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--mantine-color-gray-1);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    transform 120ms ease;
+}
+
+.root:hover,
+.root[data-accept] {
+  border-color: var(--mantine-color-blue-5);
+  background-color: var(--mantine-color-blue-9);
+}
+
+.root[data-reject] {
+  border-color: var(--mantine-color-red-6);
+  background-color: var(--mantine-color-red-9);
+}

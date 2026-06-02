@@ -161,7 +161,6 @@ export default function SidebarDisplaySettings({
         size='lg'
         centered
         padding='xl'
-        overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
       >
         <Stack gap='lg' pt='md'>
           <Text size='md'>
