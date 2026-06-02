@@ -262,7 +262,7 @@ export default function Plan() {
 
   const isSubscribedProduct = useCallback(
     (product: SinglePricedProduct) => {
-      if (!product.price?.unit_amount && !hasActiveSubscription) {
+      if (product.metadata?.default_free_plan === 'true' && !hasActiveSubscription) {
         return true
       }
 

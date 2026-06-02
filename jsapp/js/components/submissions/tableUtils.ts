@@ -1,5 +1,11 @@
 import type { Filter } from 'react-table'
-import { getRowName, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
+import {
+  getRowName,
+  getSurveyFlatPaths,
+  getVirtualSupplementalFieldsForBulkActions,
+  injectSupplementalRowsIntoListOfRows,
+} from '#/assetUtils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import {
   DROPDOWN_FILTER_QUESTION_TYPES,
@@ -169,7 +175,11 @@ export function getBackgroundAudioQuestionName(asset: AssetResponse): string | n
  *
  * NOTE: includes supplemental details columns (AKA processing columns).
  */
-export function getAllDataColumns(asset: AssetResponse, submissions?: SubmissionResponse[]) {
+export function getAllDataColumns(
+  asset: AssetResponse,
+  submissions?: SubmissionResponse[],
+  bulkActions?: BulkActionResponse[],
+) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -258,9 +268,8 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
   })
   output = output.filter((key) => excludedGroups.includes(key) === false)
 
-  // Handle supplemental details
-  output = injectSupplementalRowsIntoListOfRows(asset, output)
-
+  const virtualSupplementalFields = getVirtualSupplementalFieldsForBulkActions(bulkActions)
+  output = injectSupplementalRowsIntoListOfRows(asset, output, virtualSupplementalFields)
   return output
 }
 

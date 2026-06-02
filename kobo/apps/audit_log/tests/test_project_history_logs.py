@@ -142,11 +142,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         url_name,
         request_data,
         expected_action,
-        use_v2=True,
     ):
-        url_name_prefix = 'api_v2:' if use_v2 else ''
         url = reverse(
-            f'{url_name_prefix}{url_name}', kwargs={'uid_asset': self.asset.uid}
+            f'api_v2:{url_name}', kwargs={'uid_asset': self.asset.uid}
         )
         method = self.client.patch if patch else self.client.post
         log_metadata = self._base_project_history_log_test(
@@ -303,8 +301,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # no logs should be created
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    @data(True, False)
-    def test_change_project_name_creates_log(self, use_v2):
+    def test_change_project_name_creates_log(self):
         old_name = self.asset.name
 
         log_metadata = self._base_asset_detail_endpoint_test(
@@ -312,7 +309,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data={'name': 'new_name'},
             expected_action=AuditAction.UPDATE_NAME,
-            use_v2=use_v2,
         )
 
         self.assertEqual(
@@ -322,8 +318,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log_metadata['name'][PROJECT_HISTORY_LOG_METADATA_FIELD_OLD], old_name
         )
 
-    @data(True, False)
-    def test_change_standard_project_settings_creates_log(self, use_v2):
+    def test_change_standard_project_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
         # both country and description are in Asset.STANDARDIZED_SETTINGS
         patch_data = {
@@ -338,7 +333,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data=patch_data,
             expected_action=AuditAction.UPDATE_SETTINGS,
-            use_v2=use_v2,
         )
 
         # check non-list settings just store old and new information
@@ -366,8 +360,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             if setting not in ['country', 'settings', 'country_codes']:
                 self.assertNotIn(setting, log_metadata)
 
-    @data(True, False)
-    def test_unchanged_settings_not_recorded_on_log(self, use_v2):
+    def test_unchanged_settings_not_recorded_on_log(self):
         """
         Check settings not included on log if in the request but did not change
         """
@@ -384,7 +377,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data=patch_data,
             expected_action=AuditAction.UPDATE_SETTINGS,
-            use_v2=use_v2,
         )
 
         self.assertNotIn('sector', log_metadata)
@@ -392,8 +384,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertNotIn('operational_purpose', log_metadata)
         self.assertNotIn('collects_pii', log_metadata)
 
-    @data(True, False)
-    def test_no_log_if_settings_unchanged(self, use_v2):
+    def test_no_log_if_settings_unchanged(self):
         # fill request with only existing values
         patch_data = {
             'settings': {
@@ -402,11 +393,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'description': self.asset.settings['description'],
             }
         }
-        url_name_prefix = 'api_v2:' if use_v2 else ''
 
         self.client.patch(
             reverse(
-                f'{url_name_prefix}asset-detail', kwargs={'uid_asset': self.asset.uid}
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
             ),
             data=patch_data,
             format='json',
@@ -414,8 +404,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    @data(True, False)
-    def test_nullify_settings_creates_log(self, use_v2):
+    def test_nullify_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
 
         log_metadata = self._base_asset_detail_endpoint_test(
@@ -423,7 +412,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data={'settings': {}},
             expected_action=AuditAction.UPDATE_SETTINGS,
-            use_v2=use_v2,
         )
         for setting, old_value in old_settings.items():
             if setting in Asset.STANDARDIZED_SETTINGS:
@@ -467,15 +455,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     old_value,
                 )
 
-    @data(True, False)
-    def test_add_new_settings_creates_log(self, use_v2):
+    def test_add_new_settings_creates_log(self):
         log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             # set a setting not in Asset.STANDARDIZED_SETTINGS
             request_data={'settings': {'new_setting': 'new_value'}},
             expected_action=AuditAction.UPDATE_SETTINGS,
-            use_v2=use_v2,
         )
 
         self.assertEqual(
@@ -578,14 +564,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             ['settings_fixture_q1'],
         )
 
-    @data(True, False)
-    def test_update_content_creates_log(self, use_v2):
+    def test_update_content_creates_log(self):
         self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'content': {'some': 'thing'}},
             expected_action=AuditAction.UPDATE_CONTENT,
-            use_v2=use_v2,
         )
 
     def test_update_qa_creates_log(self):
@@ -711,8 +695,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    @data(True, False)
-    def test_register_service_creates_log(self, use_v2):
+    def test_register_service_creates_log(self):
         request_data = {
             'name': 'test',
             'endpoint': 'http://www.google.com',
@@ -724,8 +707,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'settings': {'custom_headers': {}},
             'payload_template': '',
         }
-        url_prefix = 'api_v2:' if use_v2 else ''
-        url = reverse(f'{url_prefix}hook-list', args=(self.asset.uid,))
+        url = reverse('api_v2:hook-list', args=(self.asset.uid,))
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=url,
@@ -738,8 +720,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['hook']['active'], True)
         self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.google.com')
 
-    @data(True, False)
-    def test_modify_service_creates_log(self, use_v2):
+    def test_modify_service_creates_log(self):
         new_hook = Hook.objects.create(
             name='test',
             endpoint='http://www.example.com',
@@ -749,11 +730,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         request_data = {
             'active': False,
         }
-        url_prefix = 'api_v2:' if use_v2 else ''
         log_metadata = self._base_project_history_log_test(
             method=self.client.patch,
             url=reverse(
-                f'{url_prefix}hook-detail',
+                'api_v2:hook-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
                     'uid_hook': new_hook.uid,
@@ -767,8 +747,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['hook']['active'], False)
         self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.example.com')
 
-    @data(True, False)
-    def test_delete_service_creates_log(self, use_v2):
+    def test_delete_service_creates_log(self):
         new_hook = Hook.objects.create(
             name='test',
             endpoint='http://www.example.com',
@@ -776,12 +755,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         new_hook.save()
         request_data = {}
-        url_prefix = 'api_v2:' if use_v2 else ''
 
         log_metadata = self._base_project_history_log_test(
             method=self.client.delete,
             url=reverse(
-                f'{url_prefix}hook-detail',
+                'api_v2:hook-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
                     'uid_hook': new_hook.uid,
@@ -891,8 +869,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
         self.assertEqual(log_metadata['paired-data']['fields'], ['q2'])
 
-    @data(True, False)
-    def test_add_media_creates_log(self, use_v2):
+    def test_add_media_creates_log(self):
         crab_png_b64 = (
             'iVBORw0KGgoAAAANSUhEUgAAABIAAAAPAgMAAACU6HeBAAAADFBMVEU7PTqv'
             'OD/m6OX////GxYKhAAAAR0lEQVQI1y2MMQrAMAwD9Ul5yJQ1+Y8zm0Ig9iur'
@@ -906,8 +883,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'base64Encoded': 'data:image/png;base64,' + crab_png_b64,
             'metadata': json.dumps({'filename': 'crab.png'}),
         }
-        url_prefix = 'api_v2:' if use_v2 else ''
-        url = reverse(f'{url_prefix}asset-file-list', args=(self.asset.uid,))
+        url = reverse('api_v2:asset-file-list', args=(self.asset.uid,))
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=url,
@@ -921,8 +897,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['asset-file']['download_url'], file.download_url)
         self.assertEqual(log_metadata['asset-file']['md5_hash'], file.md5_hash)
 
-    @data(True, False)
-    def test_delete_media_creates_log(self, use_v2):
+    def test_delete_media_creates_log(self):
         media = AssetFile.objects.create(
             asset=self.asset,
             user=self.user,
@@ -930,11 +905,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             description='A file',
             metadata={'filename': 'fish.txt'},
         )
-        url_prefix = 'api_v2:' if use_v2 else ''
         log_metadata = self._base_project_history_log_test(
             method=self.client.delete,
             url=reverse(
-                f'{url_prefix}asset-file-detail',
+                'api_v2:asset-file-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
                     'uid_file': media.uid,
@@ -951,18 +925,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     @responses.activate
     @data(
-        # File or url, change asset name?, use v2?
-        ('file', True, True),
-        ('file', False, True),
-        ('url', True, True),
-        ('url', False, True),
-        ('file', True, False),
-        ('file', False, False),
-        ('url', True, False),
-        ('url', False, False),
+        # File or url, change asset name?
+        ('file', True),
+        ('file', False),
+        ('url', True),
+        ('url', False),
     )
     @unpack
-    def test_create_from_import_task(self, file_or_url, change_name, use_v2):
+    def test_create_from_import_task(self, file_or_url, change_name):
         task_data = {
             'destination': reverse(
                 'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
@@ -999,16 +969,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         # hit the endpoint that creates and runs the ImportTask
         # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
-        version = 'v2' if use_v2 else 'v1'
-        url_prefix = 'api_v2:' if use_v2 else ''
         with patch(
-            f'kpi.views.{version}.import_task.get_client_ip', return_value='127.0.0.1'
+            'kpi.views.v2.import_task.get_client_ip', return_value='127.0.0.1'
         ):
             with patch(
-                f'kpi.views.{version}.import_task.get_human_readable_client_user_agent',
+                'kpi.views.v2.import_task.get_human_readable_client_user_agent',
                 return_value='source',
             ):
-                self.client.post(reverse(f'{url_prefix}importtask-list'), task_data)
+                self.client.post(reverse('api_v2:importtask-list'), task_data)
         expected_logs_count = 2 if change_name else 1
         log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(log_query.count(), expected_logs_count)
@@ -1070,37 +1038,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.EXPORT,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
-
-    def test_export_v1_creates_log(self):
-        self.asset.deploy(backend='mock', active=True)
-        request_data = {
-            'fields_from_all_versions': True,
-            'fields': [],
-            'group_sep': '/',
-            'hierarchy_in_labels': False,
-            'lang': '_default',
-            'multiple_select': 'both',
-            'type': 'xls',
-            'xls_types_as_text': False,
-            'include_media_url': True,
-            'source': reverse(
-                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
-            ),
-        }
-        # can't use _base_project_history_log_test because
-        # the old endpoint doesn't like format=json
-        self.client.post(
-            path=reverse('submissionexporttask-list'),
-            data=request_data,
-        )
-
-        log_query = ProjectHistoryLog.objects.filter(
-            metadata__asset_uid=self.asset.uid, action=AuditAction.EXPORT
-        )
-        self.assertEqual(log_query.count(), 1)
-        log = log_query.first()
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        self.assertEqual(log.object_id, str(self.asset.id))
 
     @data(
         ('archive', AuditAction.ARCHIVE),
@@ -1832,15 +1769,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log3.metadata, 'AnonymousUser', instance3.root_uuid
         )
 
-    @data(
-        # user_type, use v1 endpoint?
-        ('anon', False),
-        ('user', True),
-        ('user', False),
-        ('dc', False),
-    )
-    @unpack
-    def test_add_submission(self, user_type, v1):
+    @data('anon', 'user', 'dc')
+    def test_add_submission(self, user_type):
         # prepare submission data
         uuid_ = uuid.uuid4()
         self.asset.deploy(backend='mock')
@@ -1859,15 +1789,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'id': self.asset.uid,
             'version': self.asset.latest_version.uid,
         }
-        endpoint = 'submissions-list' if v1 else 'submissions'
+        endpoint = 'submissions'
         data_collector = None
         if user_type == 'dc':
             dcg = DataCollectorGroup.objects.create(name='DCG', owner=self.asset.owner)
             data_collector = DataCollector.objects.create(name='DC', group=dcg)
             dcg.assets.add(self.asset)
             kwargs = {'token': data_collector.token}
-        else:
-            kwargs = {'username': self.user.username} if not v1 else {}
+        elif user_type == 'anon':
+            kwargs = {'username': self.user.username}
+        else:  # user
+            kwargs = {}
         url = reverse(
             endpoint,
             kwargs=kwargs,

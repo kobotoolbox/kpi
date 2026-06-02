@@ -66,6 +66,21 @@ module.exports = {
         },
       },
     })
+
+    // Add coffee-loader for .coffee files to support CoffeeScript in Storybook
+    config.module.rules.push({
+      test: /\.coffee$/,
+      use: [
+        {
+          loader: 'coffee-loader',
+          options: {
+            transpile: {
+              presets: ['@babel/preset-env'],
+            },
+          },
+        },
+      ],
+    })
     config.module.rules.push(
       {
         test: /\.scss$/,

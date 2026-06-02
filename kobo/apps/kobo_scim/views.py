@@ -34,6 +34,7 @@ from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
     ScimErrorSerializer,
 )
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
+from kobo.apps.kobo_scim.utils import apply_scim_user_metadata
 
 
 def normalize_scim_patch_operations(operations):
@@ -226,6 +227,16 @@ class ScimUserViewSet(
                     user=user, provider=self.idp_provider_id, uid=uid
                 )
 
+                active_status = data.get('active', True)
+                if active_status:
+                    self._reactivate_sso_linked_accounts(user.email, user)
+                else:
+                    # If the IdP provisions the user as deactivated, or links to an
+                    # existing user but specifies active=False, deactivate them.
+                    self.perform_destroy(user)
+
+                apply_scim_user_metadata(user, data)
+
                 if data.get('active', True):
                     self._reactivate_sso_linked_accounts(user.email, user)
 
@@ -274,10 +285,16 @@ class ScimUserViewSet(
             )
 
     def perform_update(self, serializer):
-        was_active = serializer.instance.is_active
-        instance = serializer.save()
-        if not was_active and instance.is_active:
-            self._reactivate_sso_linked_accounts(instance.email, instance)
+        with transaction.atomic():
+            was_active = serializer.instance.is_active
+            instance = serializer.save()
+
+            if was_active and not instance.is_active:
+                self.perform_destroy(instance)
+            elif not was_active and instance.is_active:
+                self._reactivate_sso_linked_accounts(instance.email, instance)
+
+            apply_scim_user_metadata(instance, self.request.data)
 
     def _reactivate_sso_linked_accounts(self, email, current_user=None):
         # Handle users with the same email:
@@ -285,7 +302,7 @@ class ScimUserViewSet(
             targets = User.objects.filter(
                 email__iexact=email,
                 is_active=False,
-                socialaccount__provider=self.idp_provider_id
+                socialaccount__provider=self.idp_provider_id,
             )
 
             for target in targets:
@@ -335,58 +352,60 @@ class ScimUserViewSet(
         return queryset
 
     def perform_destroy(self, instance):
-        # Kobo should automatically disable all accounts linked
-        # to the same email address
-        email_target = instance.email
-        if email_target:
-            targets = User.objects.filter(email__iexact=email_target)
-        else:
-            targets = User.objects.filter(pk=instance.pk)
-        users = list(targets.select_related('extra_details'))
+        with transaction.atomic():
+            # Kobo should automatically disable all accounts linked
+            # to the same email address
+            email_target = instance.email
+            if email_target:
+                targets = User.objects.filter(email__iexact=email_target)
+            else:
+                targets = User.objects.filter(pk=instance.pk)
+            users = list(targets.select_related('extra_details'))
 
-        targets.update(is_active=False)
+            targets.update(is_active=False)
 
-        # Create audit logs as System-initiated events
-        idp_slug = self.kwargs.get('idp_slug')
-        audit_logs = []
+            # Create audit logs as System-initiated events
+            idp_slug = self.kwargs.get('idp_slug')
+            audit_logs = []
 
-        for user in users:
-            metadata = {
-                'idp_slug': idp_slug,
-                'deactivated_email': email_target,
-                'username': user.username,
-                'initiated_via': 'SCIM_API',
-                'info': 'Automated deactivation via Identity Provider',
-            }
+            for user in users:
+                metadata = {
+                    'idp_slug': idp_slug,
+                    'deactivated_email': email_target,
+                    'username': user.username,
+                    'initiated_via': 'SCIM_API',
+                    'info': 'Automated deactivation via Identity Provider',
+                }
 
-            user_uid = getattr(
-                getattr(user, 'extra_details', None), 'uid', None
-            ) or str(user.id)
+                user_uid = getattr(
+                    getattr(user, 'extra_details', None), 'uid', None
+                ) or str(user.id)
 
-            log = AuditLog(
-                user=user,
-                user_uid=user_uid,
-                app_label=user._meta.app_label,
-                model_name=user._meta.model_name,
-                object_id=user.id,
-                action=AuditAction.DEACTIVATION,
-                log_type=AuditType.USER_MANAGEMENT,
-                metadata=metadata,
-            )
-            audit_logs.append(log)
+                log = AuditLog(
+                    user=user,
+                    user_uid=user_uid,
+                    app_label=user._meta.app_label,
+                    model_name=user._meta.model_name,
+                    object_id=user.id,
+                    action=AuditAction.DEACTIVATION,
+                    log_type=AuditType.USER_MANAGEMENT,
+                    metadata=metadata,
+                )
+                audit_logs.append(log)
 
-        if audit_logs:
-            # bulk_create bypasses save(), so we must set user_uid
-            # explicitly (done above)
-            AuditLog.objects.bulk_create(audit_logs)
+            if audit_logs:
+                # bulk_create bypasses save(), so we must set user_uid
+                # explicitly (done above)
+                AuditLog.objects.bulk_create(audit_logs)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         operations = normalize_scim_patch_operations(request.data.get('Operations', []))
 
         active_status = None
+        scim_patch_data = {}
         for op in operations:
-            if op.get('op', '').lower() == 'replace':
+            if op.get('op', '').lower() in ('replace', 'add'):
                 path = op.get('path')
                 value = op.get('value')
 
@@ -395,17 +414,38 @@ class ScimUserViewSet(
                     active_status = str(value).lower() == 'true'
 
                 # Case 2: path is omitted, value is an object (or stringified object)
-                elif not path and isinstance(value, dict) and 'active' in value:
-                    active_status = str(value['active']).lower() == 'true'
+                elif not path and isinstance(value, dict):
+                    if 'active' in value:
+                        active_status = str(value['active']).lower() == 'true'
+                    # Merge for metadata mapping
+                    for k, v in value.items():
+                        if (
+                            isinstance(v, dict)
+                            and k in scim_patch_data
+                            and isinstance(scim_patch_data[k], dict)
+                        ):
+                            scim_patch_data[k].update(v)
+                        else:
+                            scim_patch_data[k] = v
 
-        if active_status is not None:
-            if active_status is False:
-                # Disabling the user
-                self.perform_destroy(instance)
-            else:
-                # Re-enabling the user
-                self._reactivate_sso_linked_accounts(instance.email, instance)
+                # Case 3: other path
+                elif path:
+                    scim_patch_data[path] = value
 
+        metadata_processed = False
+        with transaction.atomic():
+            if active_status is not None:
+                if active_status is False:
+                    # Disabling the user
+                    self.perform_destroy(instance)
+                else:
+                    # Re-enabling the user
+                    self._reactivate_sso_linked_accounts(instance.email, instance)
+
+            if scim_patch_data:
+                metadata_processed = apply_scim_user_metadata(instance, scim_patch_data)
+
+        if metadata_processed or active_status is not None:
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
             serializer = self.get_serializer(instance)

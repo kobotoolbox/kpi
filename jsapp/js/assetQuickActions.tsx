@@ -22,6 +22,7 @@ import myLibraryStore from './components/library/myLibraryStore'
 import { userCan } from './components/permissions/utils'
 import { ASSET_TYPES, MODAL_TYPES } from './constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from './dataInterface'
+import { openFormLanguagesModal } from './project/FormLanguagesManager'
 import { router } from './router/legacy'
 import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
@@ -457,10 +458,7 @@ export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
  * up front via `asset` parameter.
  */
 export function manageAssetLanguages(asset: AssetResponse) {
-  pageState.showModal({
-    type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset,
-  })
+  openFormLanguagesModal(asset)
 }
 
 /** Opens a modal for modifying asset tags (also editable in Details Modal). */

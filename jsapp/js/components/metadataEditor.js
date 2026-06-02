@@ -23,9 +23,9 @@ const AUDIT_SUPPORT_URL = 'form_meta.html#audit-metadata-question'
 const SUPPORT_ENABLE_BG_AUDIO_URL = 'form_meta.html#enabling-background-audio-recording'
 
 const AUDIO_QUALITY_OPTIONS = [
-  { value: 'quality=low', label: 'Low' },
-  { value: 'quality=normal', label: 'Normal' },
-  { value: 'quality=voice-only', label: 'Voice only' },
+  { value: 'quality=low', label: t('Low') },
+  { value: 'quality=normal', label: t('Normal') },
+  { value: 'quality=voice-only', label: t('Voice only') },
 ]
 const ODK_DEFAULT_AUDIO_QUALITY = AUDIO_QUALITY_OPTIONS[2]
 

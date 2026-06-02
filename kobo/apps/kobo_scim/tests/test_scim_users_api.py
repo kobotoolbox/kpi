@@ -1,17 +1,21 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from constance.test import override_config
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER,
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_PATCH_OP,
     SCIM_SCHEMA_USER,
 )
 from kobo.apps.kobo_scim.models import IdentityProvider
+from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
 class ScimUsersAPITests(APITestCase):
@@ -634,6 +638,150 @@ class ScimUsersAPITests(APITestCase):
         self.assertFalse(james03.is_active)
         self.assertFalse(james04.is_active)
 
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'country',
+                'required': False,
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                'scim_value_mapping': {'United States': 'US'},
+            },
+            {
+                'name': 'bio',
+                'required': False,
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.bio',
+            },
+            {
+                'name': 'organization',
+                'required': False,
+                'scim_mapping': 'org',
+            },
+        ]
+    )
+    def test_custom_metadata_mapping(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        payload = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'metadata_user',
+            'emails': [{'primary': True, 'value': 'meta@example.com'}],
+            'active': True,
+            'org': 'Acme Corp',
+            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
+                'country': 'United States',
+                'bio': 'Test bio',
+            },
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        user = User.objects.get(username='metadata_user')
+
+        # Check ExtraUserDetail
+        extra, _ = ExtraUserDetail.objects.get_or_create(user=user)
+        self.assertEqual(extra.data.get('country'), 'US')
+        self.assertEqual(extra.data.get('bio'), 'Test bio')
+        self.assertEqual(extra.data.get('organization'), 'Acme Corp')
+
+        # Check UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        self.assertEqual(profile.country, 'US')
+        self.assertEqual(profile.description, 'Test bio')  # bio maps to description
+        self.assertEqual(profile.organization, 'Acme Corp')
+
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'country',
+                'required': False,
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+            }
+        ]
+    )
+    def test_patch_metadata_mapping(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # We test both styles of PATCH (path vs value)
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {
+                    'op': 'replace',
+                    'path': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                    'value': 'CA',
+                }
+            ],
+        }
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        profile, _ = UserProfile.objects.get_or_create(user=self.user1)
+        self.assertEqual(profile.country, 'CA')
+
+        # Test value-based update
+        payload2 = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {
+                    'op': 'replace',
+                    'value': {SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {'country': 'UK'}},
+                }
+            ],
+        }
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload2,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.country, 'UK')
+
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'country',
+                'required': False,
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+            }
+        ]
+    )
+    def test_patch_add_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {
+                    'op': 'add',
+                    'path': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                    'value': 'CA',
+                }
+            ],
+        }
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        profile, _ = UserProfile.objects.get_or_create(user=self.user1)
+        self.assertEqual(profile.country, 'CA')
+
     def test_reactivation_of_user_without_email_works(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         no_email_user = User.objects.create_user(
@@ -655,6 +803,5 @@ class ScimUsersAPITests(APITestCase):
             HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         no_email_user.refresh_from_db()
         self.assertTrue(no_email_user.is_active)
