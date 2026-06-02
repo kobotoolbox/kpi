@@ -17,14 +17,13 @@ import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelectorField from '../languages/RegionSelectorField'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
 
-const TRANSX_GOOG_SUPPORT_URL = 'transcription-translation.html#language-list'
+const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 interface BulkTranscriptionModalProps {
   fieldId: string
   assetUid: string
   selectedSubmissionUuids: string[]
   selectedRowsCount: number
-  selectedAllPages: boolean
   onRequestClose: () => void
 }
 
@@ -106,7 +105,6 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
   const navigate = useNavigate()
 
-  // TODO: API returns a single object, but orval types say it's an array, fix this when DEV-2208 is done
   const serviceUsageData = data?.status === 200 ? data.data : null
   const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
 
@@ -189,7 +187,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       <Text size='xs'>
         {t('Automatic transcription is provided by Google Cloud Platform.')}
         &nbsp;
-        <Anchor href={envStore.data.support_url + TRANSX_GOOG_SUPPORT_URL} underline='always'>
+        <Anchor href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL} underline='always'>
           {t('Learn more')}
         </Anchor>
       </Text>

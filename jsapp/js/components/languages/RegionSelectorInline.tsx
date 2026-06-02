@@ -19,6 +19,7 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   onCancel: () => void
 }
 
+/** Dropdown + language display region selector for automated transcriptions */
 const RegionSelectorInline = (props: RegionSelectorProps) => {
   const { rootLanguage, serviceCode, serviceType, onRegionChange, onCancel, disabled, ...flexProps } = props
   const { regionOptions, selectedRegion, handleRegionChange, isLoading, isError, language } = useRegionOptions(

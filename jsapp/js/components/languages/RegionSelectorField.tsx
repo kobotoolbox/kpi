@@ -16,10 +16,10 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
   serviceType: 'transcription' | 'translation'
   /** Callback for a region is being selected. */
   onRegionChange: (selectedRegion: LanguageCode | null) => void
-  /** The region selector in the single processing view has an additonal text box to the left of the Select */
   titleOverride?: string
 }
 
+/** Dropdown only region selector for automated transcriptions */
 const RegionSelectorField = (props: RegionSelectorProps) => {
   const { rootLanguage, serviceCode, serviceType, onRegionChange, titleOverride, disabled, ...flexProps } = props
   const { regionOptions, selectedRegion, handleRegionChange, isLoading, isError } = useRegionOptions(
@@ -46,10 +46,8 @@ const RegionSelectorField = (props: RegionSelectorProps) => {
         onChange={handleRegionChange}
         disabled={props.disabled}
         placeholder={t('Select a region...')}
+        // Needed so the dropdown doesn't appear behind mantine modals
         comboboxProps={{ zIndex: KOBO_Z_INDEX.dropdown }}
-        // Select is incompatible with many FlexProps, so we can add props here on a use by basis, instead of making the
-        // component crowded with MantineSpacing props
-        mt={props?.mt}
         rightSection={isLoading ? <Loader size='xs' /> : undefined}
         nothingFoundMessage={
           isLoading ? undefined : (

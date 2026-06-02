@@ -42,8 +42,8 @@ export function useRegionOptions(
 
     // We return the options sorted by their labels.
     return outcome.sort((a, b) => {
-      const labelA = a.label.toLowerCase() // ignore upper and lowercase
-      const labelB = b.label.toLowerCase() // ignore upper and lowercase
+      const labelA = a.label.toLowerCase()
+      const labelB = b.label.toLowerCase()
       if (labelA < labelB) {
         return -1
       }

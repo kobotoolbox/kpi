@@ -404,26 +404,22 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onTranscribeSelectedAudioFiles(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+
     const selectedSubmissions = this.state.submissions.filter((submission) =>
       selectedSubmissionIds.includes(String(submission._id)),
     )
 
     const submissionsWithTranscripts = selectedSubmissions.filter((submission) => {
-      // Check if supplemental details exist
       if (!submission._supplementalDetails) {
         return false
       }
-
-      // Check if this specific field has a transcript
       const fieldData = submission._supplementalDetails[fieldId]
       if (!fieldData?.transcript) {
         return false
       }
-      // Check if transcript has a value (not null/empty)
       return fieldData.transcript.value !== null && fieldData.transcript.value !== ''
     })
 
-    // Get UUIDs for API
     const selectedSubmissionUuids = selectedSubmissions.map((submission) => submission._uuid)
 
     openBulkTranscriptModal({
@@ -431,7 +427,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       assetUid: this.props.asset.uid,
       selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
       hasExistingTranscriptions: submissionsWithTranscripts.length > 0,
     })
   }
@@ -439,7 +434,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onTranslateSelectedTranscriptions(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
-    // Bulk actions needs submission uuids
     const selectedSubmissionUuids = this.state.submissions
       .filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
       .map((submission) => submission._uuid)
@@ -449,7 +443,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       assetUid: this.props.asset.uid,
       selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
     })
   }
 
