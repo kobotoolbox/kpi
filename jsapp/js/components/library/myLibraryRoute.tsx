@@ -72,7 +72,7 @@ export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreDa
         file: acceptedFiles[0],
       })
     } else {
-      dropImportXLSForms(acceptedFiles, rejectedFiles)
+      dropImportXLSForms(acceptedFiles, rejectedFiles, { feedbackMode: 'toast' })
     }
   }
 
