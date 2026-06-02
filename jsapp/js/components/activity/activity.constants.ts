@@ -1,3 +1,5 @@
+import type { ProjectHistoryLogResponse } from '#/api/models/projectHistoryLogResponse'
+import type { ProjectHistoryLogResponseMetadata } from '#/api/models/projectHistoryLogResponseMetadata'
 import type { PartialPermission } from '#/dataInterface'
 import type { PermissionCodename } from '../permissions/permConstants'
 
@@ -276,51 +278,46 @@ export const FALLBACK_MESSAGE = '##username## did action ##action##'
 
 export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']]
 
-export enum AuditSubTypes {
-  project = 'project',
-  permission = 'permission',
+interface ActivityBulkProcessingMetadata {
+  action_id?: string
+  succeeded_submissions?: number
+  succeeded_submissions_count?: number
+  succeeded?: number
+  complete?: number
+  errored_submissions?: number
+  errored_submissions_count?: number
+  failed_submissions?: number
+  failed_submissions_count?: number
+  errored?: number
+  failed?: number
+  skipped_submissions?: number
+  skipped_submissions_count?: number
+  skipped?: number
+  cancelled?: number
+  cancelled_by?: string | { username?: string }
 }
 
-export interface ActivityLogsItem {
-  /** User url. E.g. "https://kf.beta.kbtdev.org/api/v2/users/<username>/" */
-  user: string
-  user_uid: string
-  username: string
-  /** Date string in ISO 8601. E.g. "2024-10-04T14:04:18Z" */
-  date_created: string
-  action: AuditActions
-  metadata: {
-    /** E.g. "Firefox (Ubuntu)" */
-    source: string
-    asset_uid: string
-    /** E.g. "71.235.120.86" */
-    ip_address: string
-    log_subtype: AuditSubTypes
-    // All props below are optional and depends on the action
-    old_name?: string
-    new_name?: string
-    version_uid?: string
-    latest_version_uid?: string
-    latest_deployed_version_uid?: string
-    username?: string
-    permissions?: {
-      username: string
-      added?: Array<PermissionCodename | AuditPartialPermission>
-      removed?: Array<PermissionCodename | AuditPartialPermission>
-    }
-    submission?: {
-      root_uuid: string
-      submitted_by: string
-    }
-    /** Username */
-    project_owner?: string
-    'asset-file'?: {
-      uid: string
-      filename: string
-      md5_hash: string
-      download_url: string
-    }
+interface ActivityLogsMetadata extends Omit<ProjectHistoryLogResponseMetadata, 'permissions'> {
+  // TODO(DEV-1416): Remove this override once OpenAPI documents the permission payload shape returned by the history endpoint.
+  permissions?: {
+    username: string
+    added?: Array<PermissionCodename | AuditPartialPermission>
+    removed?: Array<PermissionCodename | AuditPartialPermission>
   }
+  // TODO(DEV-1416): Remove this extension once OpenAPI includes asset file metadata on history entries.
+  'asset-file'?: {
+    uid: string
+    filename: string
+    md5_hash: string
+    download_url: string
+  }
+  // TODO(DEV-1416): Remove this extension once OpenAPI includes bulk processing metadata on history entries.
+  bulk_processing?: ActivityBulkProcessingMetadata
+}
+
+export interface ActivityLogsItem extends Omit<ProjectHistoryLogResponse, 'action' | 'metadata'> {
+  action: AuditActions | string
+  metadata: ActivityLogsMetadata
 }
 
 /**
@@ -331,6 +328,8 @@ export interface AuditPartialPermission extends Omit<PartialPermission, 'url'> {
   code: PermissionCodename
 }
 
+export type AssetHistoryAction = keyof typeof AuditActions | (string & {})
+
 export interface AssetHistoryActionsResponse {
-  actions: Array<keyof typeof AuditActions>
+  actions: AssetHistoryAction[]
 }

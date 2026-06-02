@@ -8,7 +8,14 @@ import styles from './activityMessage.module.scss'
  * by short text describing what username did.
  */
 export function ActivityMessage(props: { data: ActivityLogsItem }) {
-  let message = AUDIT_ACTION_TYPES[props.data.action]?.message || FALLBACK_MESSAGE
+  let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
+
+  const bulkActionId = props.data.metadata.bulk_processing?.action_id
+  if (bulkActionId === 'automatic_google_transcription') {
+    message = t('##username## bulk transcribed audio files')
+  } else if (bulkActionId === 'automatic_google_translation') {
+    message = t('##username## bulk translated transcriptions')
+  }
 
   // Here we reaplace all possible placeholders with appropriate data. This way
   // we don't really need to know which message (out of around 30) are we

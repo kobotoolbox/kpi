@@ -20,6 +20,7 @@ const assetHistoryActionsResponse: AssetHistoryActionsResponse = {
     'add-submission',
     'allow-anonymous-submissions',
     'modify-user-permissions',
+    'modify-qa-data',
     'update-content',
     'deploy',
     'delete-submission',
