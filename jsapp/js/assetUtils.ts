@@ -38,6 +38,7 @@ import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
 import type { Asset } from './api/models/asset'
+import type { AssetMinimalList } from './api/models/assetMinimalList'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -169,7 +170,9 @@ interface DisplayNameObj {
  * containing final name and all useful data. Most of the times you should use
  * `getAssetDisplayName(…).final`.
  */
-export function getAssetDisplayName(asset?: Asset | AssetResponse | ProjectViewAsset): DisplayNameObj {
+export function getAssetDisplayName(
+  asset?: Asset | AssetResponse | ProjectViewAsset | AssetMinimalList,
+): DisplayNameObj {
   const emptyName = t('untitled')
 
   const output: DisplayNameObj = {
@@ -504,6 +507,7 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
   // Step 3: use the list of additional columns (with data), that was generated
   // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || []
+
   const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {}
   additionalFields.forEach((field: AnalysisFormJsonField) => {
     // Note questions make sense only in the context of writing responses to
@@ -527,6 +531,13 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
     outputWithCols.push(col)
     ;(extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
+
+      // Qual source and verified data are kept in a qual-id-based key, rather than in the source question key
+      ;(extraColsBySource[extraCol.dtpath] || []).forEach((qaCol) => {
+        if (qaCol.type === 'qualVerification') {
+          outputWithCols.push(`_supplementalDetails/${qaCol.dtpath}`)
+        }
+      })
     })
   })
 

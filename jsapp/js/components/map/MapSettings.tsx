@@ -2,7 +2,7 @@ import alertify from 'alertifyjs'
 import cx from 'classnames'
 // Libraries
 import React from 'react'
-import Dropzone, { type FileWithPreview } from 'react-dropzone'
+import Dropzone, { type Accept, type FileRejection } from 'react-dropzone'
 
 // Partial components
 import bem from '../../../js/bem'
@@ -42,7 +42,16 @@ interface MapSettingsTabDefinition {
 }
 
 const QUERY_LIMIT_MINIMUM = 1000
-const QUERY_LIMIT_MAXIMUM = 30000
+const MAP_LAYER_DROPZONE_ACCEPT: Accept = {
+  'text/csv': ['.csv'],
+  'application/vnd.google-earth.kml+xml': ['.kml'],
+  'application/vnd.google-earth.kmz': ['.kmz'],
+  'application/json': ['.geojson', '.json'],
+  'application/geo+json': ['.geojson'],
+  'text/plain': ['.wkt'],
+  'application/wkt': ['.wkt'],
+}
+
 const TABS = new Map<MapSettingsTabNames, MapSettingsTabDefinition>([
   [MapSettingsTabNames.colors, { id: MapSettingsTabNames.colors, label: t('Marker Colors') }],
   [MapSettingsTabNames.querylimit, { id: MapSettingsTabNames.querylimit, label: t('Query Limit') }],
@@ -55,6 +64,7 @@ interface MapSettingsProps {
   toggleMapSettings: () => void
   overrideStyles: (mapStyles: AssetMapStyles) => void
   overridenStyles?: AssetMapStyles
+  queryLimit: number
 }
 
 interface MapSettingsState {
@@ -186,7 +196,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     }
   }
 
-  dropFiles(files: FileWithPreview[], rejectedFiles: FileWithPreview[]) {
+  dropFiles(files: File[], rejectedFiles: FileRejection[]) {
     const description = this.state.layerName
 
     if (!description) {
@@ -250,7 +260,12 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
   }
 
   render() {
-    const queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT
+    let queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT
+
+    // This case can only happen if somehow the queryLimit in map_styles is using the old slider values
+    if (Number(queryLimit) > this.props.queryLimit) {
+      queryLimit = this.props.queryLimit.toString()
+    }
 
     const tabsToDisplay = [MapSettingsTabNames.colors]
     if (userCan('change_asset', this.props.asset)) {
@@ -332,13 +347,13 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                     value={this.state.layerName}
                     onChange={this.onLayerNameChange.bind(this)}
                   />
-                  <Dropzone
-                    onDrop={this.dropFiles.bind(this)}
-                    multiple={false}
-                    className='dropzone'
-                    accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
-                  >
-                    <Button type='primary' size='l' label={t('Upload')} isFullWidth />
+                  <Dropzone onDrop={this.dropFiles.bind(this)} multiple={false} accept={MAP_LAYER_DROPZONE_ACCEPT}>
+                    {({ getRootProps, getInputProps }) => (
+                      <div {...getRootProps({ className: 'dropzone' })}>
+                        <input {...getInputProps()} />
+                        <Button type='primary' size='l' label={t('Upload')} isFullWidth />
+                      </div>
+                    )}
                   </Dropzone>
                 </bem.FormModal__item>
               </div>
@@ -358,7 +373,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                     'By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.',
                   ).replace('##QUERY_LIMIT_DEFAULT##', String(QUERY_LIMIT_DEFAULT))}
                   <p className='change-limit-warning'>
-                    Warning: Displaying a large number of points requires a lot of memory.
+                    {t('Warning: Displaying a large number of points can take a long time to load')}
                   </p>
                   <form className='change-limit-form'>
                     <input
@@ -367,7 +382,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                       type='range'
                       step={QUERY_LIMIT_MINIMUM}
                       min={QUERY_LIMIT_MINIMUM}
-                      max={QUERY_LIMIT_MAXIMUM}
+                      max={this.props.queryLimit}
                       value={queryLimit}
                       onChange={this.onQueryLimitChange.bind(this)}
                     />

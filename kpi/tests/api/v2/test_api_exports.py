@@ -316,6 +316,55 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.post(list_url, data=data)
         assert response.status_code == status.HTTP_201_CREATED
 
+    def test_create_export_task_already_running(self):
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'csv',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'false',
+            'fields_from_all_versions': 'false',
+            'multiple_select': 'both',
+        }
+        response = self.client.post(list_url, data=data)
+        assert response.status_code == status.HTTP_201_CREATED
+        first_uid = response.json()['uid']
+
+        # Send an identical POST request while the first task is still in CREATED state
+        response1b = self.client.post(list_url, data=data)
+        assert response1b.status_code == status.HTTP_200_OK
+        created_state_uid = response1b.json()['uid']
+        assert first_uid == created_state_uid
+        assert SubmissionExportTask.objects.count() == 1
+
+        # Update the task status to processing to simulate it being worked on
+        task = SubmissionExportTask.objects.get(uid=first_uid)
+        task.status = ImportExportStatusChoices.PROCESSING
+        task.save()
+
+        # Send an identical POST request while the task is in PROCESSING state
+        response2 = self.client.post(list_url, data=data)
+        assert response2.status_code == status.HTTP_200_OK
+        second_uid = response2.json()['uid']
+
+        # Should return the exact same task
+        assert first_uid == second_uid
+        assert SubmissionExportTask.objects.count() == 1
+
+        # Send a different POST request (different type)
+        data['type'] = 'xls'
+        response3 = self.client.post(list_url, data=data)
+        assert response3.status_code == status.HTTP_201_CREATED
+        third_uid = response3.json()['uid']
+
+        # Should create a new task
+        assert first_uid != third_uid
+        assert SubmissionExportTask.objects.count() == 2
+
     def test_create_export_task_extended(self):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
@@ -491,7 +540,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         assert exports_list_response.status_code == status.HTTP_201_CREATED
 
         exports_detail_response = self.client.get(
-            exports_list_response.data['url'], HTTP_ACCEPT='application/json'
+            exports_list_response.data['url'], headers={'accept': 'application/json'}
         )
         assert exports_detail_response.status_code == status.HTTP_200_OK
 
@@ -594,7 +643,9 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         )
         synchronous_export_response = self.client.get(
             synchronous_exports_url,
-            HTTP_USER_AGENT='Microsoft.Data.Mashup (https://go.microsoft.com/fwlink/?LinkID=304225)'
+            headers={
+                'user-agent': 'Microsoft.Data.Mashup (https://go.microsoft.com/fwlink/?LinkID=304225)'  # noqa E501
+            },
         )
         assert synchronous_export_response.status_code == status.HTTP_200_OK
         first_line = next(synchronous_export_response.streaming_content)

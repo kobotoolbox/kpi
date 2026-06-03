@@ -37,7 +37,7 @@ interface AnalysisQuestionChoice {
 export interface AnalysisQuestionBase {
   type: ResponseManualQualActionParams['type']
   labels: AnalysisLabels
-  uuid: string
+  uuid?: string
   options?: AnalysisQuestionOptions
   /** The survey question that this analysis questions is for. */
   xpath: string
@@ -58,7 +58,7 @@ export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
 interface AnalysisResponseSelectXValue {
   labels: AnalysisLabels
   /** The `uuid` of selected `AnalysisQuestionChoice`. */
-  val: string
+  uuid: string
 } /**
  * A lot of options, because:
  * - `qualTags` returns `string[]` (`[]` for empty)
@@ -79,13 +79,13 @@ type AnalysisResponseValue =
  * This is the object that is returned from interacting with the data endpoint
  * (`/api/v2/assets/:uid/data`), it will be inside the `_supplementalDetails`
  * object for each appropiate submission. It's similar to `AnalysisResponse`,
- * but with more detailed `val` for `qualSelectOne` and `qualSelectMultiple`
+ * but with more detailed value for `qualSelectOne` and `qualSelectMultiple`
  * - containing both `uuid` and `labels` object.
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
   value: AnalysisResponseValue
-  // There can be a `scope` property here, but we have no use of it on FE
-  scope?: 'by_question#survey'
+  verified: boolean
+  source: string
 }
 
 /**

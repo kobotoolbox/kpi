@@ -6,9 +6,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
-from django.db.models.functions import Cast, Concat, Trunc
+from django.db.models.functions import Cast, Coalesce, Concat, Trunc
 from django.utils import timezone
 
+from hub.models import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
@@ -79,7 +80,16 @@ class AuditLog(models.Model):
     # Shadow models do not have content types related to this db.
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
-    object_id = models.CharField(max_length=255)
+    # Backed by the `object_id_char` column added in migration 0019 to avoid a
+    # full table rewrite (the original `object_id` bigint column still exists).
+    # Historical rows have NULL here; use Coalesce('object_id', Cast(
+    # 'object_id_legacy', CharField())) when querying across old and new rows.
+    object_id = models.CharField(max_length=255, null=True, db_column='object_id_char')
+    # Read-only pointer to the original bigint column retained for historical
+    # rows written before migration 0019. Never write to this field directly.
+    object_id_legacy = models.BigIntegerField(
+        db_column='object_id', null=True, editable=False
+    )
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
@@ -91,7 +101,7 @@ class AuditLog(models.Model):
     user_uid = models.CharField(
         db_index=True, max_length=UUID_LENGTH + 1
     )  # 1 is prefix length
-    log_type = models.CharField(choices=AuditType.choices, db_index=True)
+    log_type = models.CharField(choices=AuditType, db_index=True)
 
     class Meta:
         indexes = [
@@ -115,7 +125,17 @@ class AuditLog(models.Model):
         update_fields=None,
     ):
         if not self.user_uid:
-            self.user_uid = self.user.extra_details.uid
+            if self.user_id:
+                # Try to get `extra_details` from memory to avoid an extra query
+                if not (extra_details := getattr(self.user, 'extra_details', None)):
+                    # In rare cases, a user may be missing their `extra_details`
+                    # profile so to avoid crashes, create it if it does not exist
+                    extra_details, _ = ExtraUserDetail.objects.get_or_create(
+                        user_id=self.user_id
+                    )
+                self.user_uid = extra_details.uid
+            else:
+                self.user_uid = ''
 
         super().save(
             force_insert=force_insert,
@@ -201,7 +221,19 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
             # adding 'group_key' in the values lets us group submissions
             # for performance and clarity, ignore things like action and log_type,
             # which are the same for all audit logs
-            .values('user__username', 'object_id', 'user_uid', 'group_key')
+            .annotate(
+                # Migration 0019 moved object_id from a bigint column to a new
+                # varchar column (object_id_char) to avoid a blocking table
+                # rewrite. Historical rows have NULL in object_id_char and their
+                # original integer value in the legacy object_id bigint column.
+                # Coalesce ensures GROUP BY works correctly across both.
+                # TODO remove Coalesce, see https://linear.app/kobotoolbox/issue/DEV-2013/remove-object-id-legacy-from-auditlog-model-added-by-dev-2012  # noqa
+                effective_object_id=Coalesce(
+                    'object_id',
+                    Cast('object_id_legacy', output_field=models.CharField()),
+                ),
+            )
+            .values('user__username', 'effective_object_id', 'user_uid', 'group_key')
             .annotate(
                 # include the number of submissions per group
                 # will be '1' for everything else
@@ -730,12 +762,7 @@ class ProjectHistoryLog(AuditLog):
                     if 'error' in llm_info:
                         metadata['llm'] = {'error': llm_info['error']}
                     else:
-                        model = llm_info['model']
-                        metadata['llm'] = {
-                            'model': model.model_id,
-                            'input_tokens': model.get_input_tokens(llm_info['body']),
-                            'output_tokens': model.get_output_tokens(llm_info['body']),
-                        }
+                        metadata['llm'] = {**llm_info}
                 ProjectHistoryLog.objects.create(
                     user=request.user,
                     object_id=request.asset.id,

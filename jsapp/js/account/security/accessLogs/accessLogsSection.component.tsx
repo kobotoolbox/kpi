@@ -19,7 +19,7 @@ import { formatTime } from '#/utils'
 export default function AccessLogsSection() {
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
-    offset: 0,
+    start: 0,
   })
   const queryResult = useAccessLogsMeList(pagination, {
     query: {

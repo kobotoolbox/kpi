@@ -4,6 +4,7 @@ import React, { useMemo, useEffect } from 'react'
 import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
 import { actions } from '#/actions'
 import type { VersionListResponse } from '#/api/models/versionListResponse'
+import { INFINITE_QUERY_KEY_MARKER } from '#/api/mutation-defaults/common'
 import { queryClient } from '#/api/queryClient'
 import {
   assetsVersionsList,
@@ -70,7 +71,9 @@ export default function FormHistory(props: FormHistoryProps) {
     const unlisteners = [
       // Whenever new version is deployed, we need to refresh
       actions.resources.deployAsset.completed.listen(() =>
-        queryClient.invalidateQueries({ queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'] }),
+        queryClient.invalidateQueries({
+          queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), INFINITE_QUERY_KEY_MARKER],
+        }),
       ),
     ]
     return () => {
@@ -80,8 +83,8 @@ export default function FormHistory(props: FormHistoryProps) {
 
   // Wrap Orval's raw fetching function in TanStack's useInfiniteQuery
   const historyInfiniteQuery = useInfiniteQuery({
-    // Attach 'infinite' to the generated key to prevent cache collisions with standard query calls
-    queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'],
+    // Attach INFINITE_QUERY_KEY_MARKER to the generated key to prevent cache collisions with standard query calls
+    queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), INFINITE_QUERY_KEY_MARKER],
     // `pageParam` is the result of `getNextPageParam`
     queryFn: ({ pageParam, signal }) =>
       // TODO: for now this returns all versions, and we need to display only the deployed ones

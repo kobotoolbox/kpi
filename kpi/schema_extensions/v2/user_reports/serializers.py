@@ -19,7 +19,6 @@ ServiceUsageResponse = inline_serializer_class(
         'balances': BalancesField(),
         'current_period_start': serializers.DateTimeField(),
         'current_period_end': serializers.DateTimeField(),
-        'last_updated': serializers.DateTimeField(),
     },
 )
 
@@ -48,5 +47,6 @@ UserReportsListResponse = inline_serializer_class(
         'account_restricted': serializers.BooleanField(),
         'asset_count': serializers.IntegerField(),
         'active_project_count': serializers.IntegerField(),
+        'last_updated': serializers.DateTimeField(),
     },
 )

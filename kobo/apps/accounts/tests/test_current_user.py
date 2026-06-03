@@ -11,7 +11,6 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
-from kpi.utils.json import LazyJSONSerializable
 
 
 class CurrentUserAPITestCase(APITestCase):
@@ -51,11 +50,7 @@ class CurrentUserAPITestCase(APITestCase):
         # …and what we didn't touch should still be there as well
         assert response_extra_details['name'] == 'SpongeBob'
 
-    @override_config(
-        USER_METADATA_FIELDS=LazyJSONSerializable(
-            [{'name': 'organization', 'required': True}]
-        )
-    )
+    @override_config(USER_METADATA_FIELDS=[{'name': 'organization', 'required': True}])
     def test_validate_extra_detail(self):
         # Setting an unrelated field should not be subject to validation
         patch_data = {'extra_details': {'name': 'SpongeBob'}}
@@ -154,13 +149,11 @@ class CurrentUserAPITestCase(APITestCase):
         assert response.data['accepted_tos'] == True
 
     @override_config(
-        USER_METADATA_FIELDS=LazyJSONSerializable(
-            [
-                {'name': 'organization', 'required': True},
-                {'name': 'organization_type', 'required': True},
-                {'name': 'organization_website', 'required': True},
-            ]
-        )
+        USER_METADATA_FIELDS=[
+            {'name': 'organization', 'required': True},
+            {'name': 'organization_type', 'required': True},
+            {'name': 'organization_website', 'required': True},
+        ]
     )
     def test_validate_extra_detail_organization_type(self):
         # Validate that a user can submit empty strings for `organization`
@@ -198,12 +191,10 @@ class CurrentUserAPITestCase(APITestCase):
         }
 
     @override_config(
-        USER_METADATA_FIELDS=LazyJSONSerializable(
-            [
-                {'name': 'organization', 'required': True},
-                {'name': 'organization_website', 'required': True},
-            ]
-        )
+        USER_METADATA_FIELDS=[
+            {'name': 'organization', 'required': True},
+            {'name': 'organization_website', 'required': True},
+        ]
     )
     def test_validate_extra_detail_no_organization_type(self):
         # Ensure `organization` and `organization_website` fields behave normally

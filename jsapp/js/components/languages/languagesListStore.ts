@@ -1,3 +1,4 @@
+import $ from 'jquery'
 import { makeAutoObservable } from 'mobx'
 import { handleApiFail } from '#/api'
 import { endpoints } from '#/api.endpoints'

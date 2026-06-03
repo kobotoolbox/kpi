@@ -143,7 +143,8 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
     // Qualitative Analysis questions. They bear no data, so there is no point
     // displaying them outside of Single Processing route. As this function is
     // part of Single Submission modal, we need to hide the notes.
-    if (field.type === QUAL_NOTE_TYPE) {
+    // We also hide `qualSource` as they are not meant to be displayed to user.
+    if (field.type === QUAL_NOTE_TYPE || field.type === 'qualSource') {
       return
     }
 
@@ -339,18 +340,39 @@ export function getSubmissionDisplayData(
         parentGroup.children.push(rowObj)
 
         const rowxpath = flatPaths[rowName]
-        supplementalDetailKeys[rowxpath]?.forEach((sdKey: string) => {
-          parentGroup.children.push(
-            new DisplayResponse(
-              null,
-              getColumnLabel(asset, sdKey, false),
-              sdKey,
-              flatPaths[rowName],
-              undefined,
-              getSupplementalDetailsContent(submissionData, sdKey),
-            ),
-          )
-        })
+
+        /**
+         * Recursively add qual related rows to output. Looks for the source key in the list of all possible keys.
+         */
+        const addSupplementalDetails = (sourceKey: string) => {
+          supplementalDetailKeys[sourceKey]?.forEach((sdKey: string) => {
+            // Create a unique xpath for the analysis/verification question
+            const specificXpath = sdKey.replace('_supplementalDetails/', '')
+
+            parentGroup.children.push(
+              new DisplayResponse(
+                // type
+                // TODO: should we aim at this being analysis question type name?
+                null,
+                // label
+                getColumnLabel(asset, sdKey, false),
+                // name
+                sdKey,
+                // xpath
+                specificXpath,
+                // listName
+                undefined,
+                // data
+                getSupplementalDetailsContent(submissionData, sdKey),
+              ),
+            )
+
+            // Check for nested supplemental details (e.g. qualVerification for a qual question)
+            addSupplementalDetails(specificXpath)
+          })
+        }
+
+        addSupplementalDetails(rowxpath)
       }
     }
   }
@@ -690,7 +712,8 @@ export function getSupplementalDetailsContent(
   if (pathParts.type === 'qual') {
     // The last element is some random uuid, but we look for `qual`.
     pathArray.push('qual')
-    pathArray.push(pathParts.analysisQuestionUuid || '')
+    // It is `qual`, so `analysisQuestionUuid` must be there
+    pathArray.push(pathParts.analysisQuestionUuid!)
     const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
 
     if (foundResponse) {
@@ -724,6 +747,16 @@ export function getSupplementalDetailsContent(
       }
 
       return null
+    }
+  }
+
+  if (pathParts.type === 'qualVerification') {
+    // It is `qualVerification`, so `analysisQuestionUuid` must be there
+    pathArray.push(...['qual', pathParts.analysisQuestionUuid!])
+
+    const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
+    if (typeof foundResponse.verified === 'boolean') {
+      return foundResponse.verified === true ? t('Yes') : t('No')
     }
   }
 

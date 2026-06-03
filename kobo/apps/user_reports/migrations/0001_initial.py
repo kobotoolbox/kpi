@@ -8,7 +8,9 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = []
+    dependencies = [
+        ('organizations', '0001_squashed_0004_remove_organization_uid'),
+    ]
 
     operations = [
         migrations.CreateModel(

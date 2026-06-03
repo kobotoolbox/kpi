@@ -1,7 +1,8 @@
 # coding: utf-8
 from collections import defaultdict
 
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
@@ -16,6 +17,15 @@ from .base import BaseViewSet
 @extend_schema_view(
     list=extend_schema(
         description=read_md('languages', 'languages/list.md'),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Search languages by name or code',
+            ),
+        ],
         responses=open_api_200_ok_response(
             LanguageListSerializer,
             raise_not_found=False,

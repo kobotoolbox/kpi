@@ -46,7 +46,15 @@ def enqueue_mass_email_records(email_config):
     """
     job = MassEmailJob.objects.create(email_config=email_config)
     users = get_users_for_config(email_config)
-
+    # edge case: if a one-off email has no recipients, store a warning and turn
+    # it off
+    if len(users) == 0 and email_config.type == EmailType.ONE_TIME:
+        logging.warning(
+            f'No recipients found for one-time email config'
+            f' {email_config.uid}: {email_config.name}. Turning it off.'
+        )
+        email_config.live = False
+        email_config.save()
     records = [
         MassEmailRecord(user=user, email_job=job, status=EmailStatus.ENQUEUED)
         for user in users
@@ -104,6 +112,9 @@ class MassEmailSender:
                 filter=Q(jobs__records__status=EmailStatus.ENQUEUED),
             )
         ).filter(enqueued_records_count__gt=0)
+        # store separately so we know which config ids we looked at even though the
+        # self.configs will mutate after the fact as emails are sent
+        self.config_ids = list(self.configs.values_list('id', flat=True))
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
 
@@ -318,7 +329,9 @@ def send_emails():
     sender = MassEmailSender()
     sender.send_day_emails()
     finished_one_offs = (
-        MassEmailConfig.objects.filter(frequency=-1, live=True)
+        MassEmailConfig.objects.filter(
+            pk__in=sender.config_ids, frequency=-1, live=True
+        )
         .values('id')
         .annotate(
             enqueued_count=Count(

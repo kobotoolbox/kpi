@@ -85,11 +85,17 @@ def stream_with_supplements(
     # only available in the page (`page` as in pagination). No need to retrieve data for
     # all submissions if we are only injecting supplement data for a portion of
     # them. Question? How we do that without consuming the mongo cursor twice?
-    extras = dict(
-        SubmissionSupplement.objects.filter(asset=asset).values_list(
-            'submission_uuid', 'content'
-        )
-    )
+
+    # Old-format supplements (no '_version') are skipped by passing {} so that
+    # retrieve_data returns {} and the table view shows the row without NLP data
+    # rather than crashing. Exports block earlier with SupplementMigrationInProgress
+    # (see import_export_task.py).
+    extras = {
+        uuid: (content if content.get('_version') else {})
+        for uuid, content in SubmissionSupplement.objects.filter(
+            asset=asset
+        ).values_list('submission_uuid', 'content')
+    }
 
     for submission in submission_stream:
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])

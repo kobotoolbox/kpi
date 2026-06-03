@@ -19,6 +19,8 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
+import type { AssetListCount } from '../models/assetListCount'
+
 import type { AssetUsageListParams } from '../models/assetUsageListParams'
 
 import type { EmailAddress } from '../models/emailAddress'
@@ -49,6 +51,8 @@ import type { OrganizationServiceUsageResponse } from '../models/organizationSer
 
 import type { OrganizationsAssetUsageListParams } from '../models/organizationsAssetUsageListParams'
 
+import type { OrganizationsAssetsMinimalListRetrieveParams } from '../models/organizationsAssetsMinimalListRetrieveParams'
+
 import type { OrganizationsInvitesListParams } from '../models/organizationsInvitesListParams'
 
 import type { OrganizationsListParams } from '../models/organizationsListParams'
@@ -56,6 +60,8 @@ import type { OrganizationsListParams } from '../models/organizationsListParams'
 import type { OrganizationsMembersListParams } from '../models/organizationsMembersListParams'
 
 import type { PaginatedAssetList } from '../models/paginatedAssetList'
+
+import type { PaginatedAssetMinimalListList } from '../models/paginatedAssetMinimalListList'
 
 import type { PaginatedAssetUsageResponseList } from '../models/paginatedAssetUsageResponseList'
 
@@ -92,6 +98,8 @@ import type { ProjectViewExportCreateResponse } from '../models/projectViewExpor
 import type { ProjectViewExportResponse } from '../models/projectViewExportResponse'
 
 import type { ProjectViewListResponse } from '../models/projectViewListResponse'
+
+import type { ProjectViewsAssetsMinimalListRetrieveParams } from '../models/projectViewsAssetsMinimalListRetrieveParams'
 
 import type { ProjectViewsAssetsRetrieveParams } from '../models/projectViewsAssetsRetrieveParams'
 
@@ -694,6 +702,215 @@ export function useOrganizationsAssetsRetrieve<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsAssetsRetrieveQueryOptions(uidOrganization, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return counts of deployed, archived, and draft assets owned by the organization
+
+ */
+export type organizationsAssetsCountsRetrieveResponse200 = {
+  data: AssetListCount
+  status: 200
+}
+
+export type organizationsAssetsCountsRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type organizationsAssetsCountsRetrieveResponseComposite =
+  | organizationsAssetsCountsRetrieveResponse200
+  | organizationsAssetsCountsRetrieveResponse404
+
+export type organizationsAssetsCountsRetrieveResponse = organizationsAssetsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getOrganizationsAssetsCountsRetrieveUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/assets/counts/`
+}
+
+export const organizationsAssetsCountsRetrieve = async (
+  uidOrganization: string,
+  options?: RequestInit,
+): Promise<organizationsAssetsCountsRetrieveResponse> => {
+  return fetchWithAuth<organizationsAssetsCountsRetrieveResponse>(
+    getOrganizationsAssetsCountsRetrieveUrl(uidOrganization),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getOrganizationsAssetsCountsRetrieveQueryKey = (uidOrganization: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'assets', 'counts'] as const
+}
+
+export const getOrganizationsAssetsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetsCountsRetrieveQueryKey(uidOrganization)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>> = ({ signal }) =>
+    organizationsAssetsCountsRetrieve(uidOrganization, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type OrganizationsAssetsCountsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>
+>
+export type OrganizationsAssetsCountsRetrieveQueryError = ErrorDetail
+
+export function useOrganizationsAssetsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getOrganizationsAssetsCountsRetrieveQueryOptions(uidOrganization, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return a minimal listing of assets in an organization
+
+Returns a paginated list of assets owned by the organization, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+
+ */
+export type organizationsAssetsMinimalListRetrieveResponse200 = {
+  data: PaginatedAssetMinimalListList
+  status: 200
+}
+
+export type organizationsAssetsMinimalListRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type organizationsAssetsMinimalListRetrieveResponseComposite =
+  | organizationsAssetsMinimalListRetrieveResponse200
+  | organizationsAssetsMinimalListRetrieveResponse404
+
+export type organizationsAssetsMinimalListRetrieveResponse = organizationsAssetsMinimalListRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getOrganizationsAssetsMinimalListRetrieveUrl = (
+  uidOrganization: string,
+  params?: OrganizationsAssetsMinimalListRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/organizations/${uidOrganization}/assets/minimal-list/?${stringifiedParams}`
+    : `/api/v2/organizations/${uidOrganization}/assets/minimal-list/`
+}
+
+export const organizationsAssetsMinimalListRetrieve = async (
+  uidOrganization: string,
+  params?: OrganizationsAssetsMinimalListRetrieveParams,
+  options?: RequestInit,
+): Promise<organizationsAssetsMinimalListRetrieveResponse> => {
+  return fetchWithAuth<organizationsAssetsMinimalListRetrieveResponse>(
+    getOrganizationsAssetsMinimalListRetrieveUrl(uidOrganization, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getOrganizationsAssetsMinimalListRetrieveQueryKey = (
+  uidOrganization: string,
+  params?: OrganizationsAssetsMinimalListRetrieveParams,
+) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'assets', 'minimal-list', ...(params ? [params] : [])] as const
+}
+
+export const getOrganizationsAssetsMinimalListRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof organizationsAssetsMinimalListRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidOrganization: string,
+  params?: OrganizationsAssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetsMinimalListRetrieveQueryKey(uidOrganization, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetsMinimalListRetrieve>>> = ({ signal }) =>
+    organizationsAssetsMinimalListRetrieve(uidOrganization, params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof organizationsAssetsMinimalListRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type OrganizationsAssetsMinimalListRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof organizationsAssetsMinimalListRetrieve>>
+>
+export type OrganizationsAssetsMinimalListRetrieveQueryError = ErrorDetail
+
+export function useOrganizationsAssetsMinimalListRetrieve<
+  TData = Awaited<ReturnType<typeof organizationsAssetsMinimalListRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidOrganization: string,
+  params?: OrganizationsAssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getOrganizationsAssetsMinimalListRetrieveQueryOptions(uidOrganization, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -2178,6 +2395,215 @@ export function useProjectViewsAssetsRetrieve<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uidProjectView, params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return counts of deployed, archived, and draft assets in the project view
+
+ */
+export type projectViewsAssetsCountsRetrieveResponse200 = {
+  data: AssetListCount
+  status: 200
+}
+
+export type projectViewsAssetsCountsRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type projectViewsAssetsCountsRetrieveResponseComposite =
+  | projectViewsAssetsCountsRetrieveResponse200
+  | projectViewsAssetsCountsRetrieveResponse404
+
+export type projectViewsAssetsCountsRetrieveResponse = projectViewsAssetsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getProjectViewsAssetsCountsRetrieveUrl = (uidProjectView: string) => {
+  return `/api/v2/project-views/${uidProjectView}/assets/counts/`
+}
+
+export const projectViewsAssetsCountsRetrieve = async (
+  uidProjectView: string,
+  options?: RequestInit,
+): Promise<projectViewsAssetsCountsRetrieveResponse> => {
+  return fetchWithAuth<projectViewsAssetsCountsRetrieveResponse>(
+    getProjectViewsAssetsCountsRetrieveUrl(uidProjectView),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getProjectViewsAssetsCountsRetrieveQueryKey = (uidProjectView: string) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'assets', 'counts'] as const
+}
+
+export const getProjectViewsAssetsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsCountsRetrieveQueryKey(uidProjectView)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>> = ({ signal }) =>
+    projectViewsAssetsCountsRetrieve(uidProjectView, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ProjectViewsAssetsCountsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>
+>
+export type ProjectViewsAssetsCountsRetrieveQueryError = ErrorDetail
+
+export function useProjectViewsAssetsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getProjectViewsAssetsCountsRetrieveQueryOptions(uidProjectView, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return a minimal listing of assets in a project view
+
+Returns a paginated list of assets visible within the project view, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+
+ */
+export type projectViewsAssetsMinimalListRetrieveResponse200 = {
+  data: PaginatedAssetMinimalListList
+  status: 200
+}
+
+export type projectViewsAssetsMinimalListRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type projectViewsAssetsMinimalListRetrieveResponseComposite =
+  | projectViewsAssetsMinimalListRetrieveResponse200
+  | projectViewsAssetsMinimalListRetrieveResponse404
+
+export type projectViewsAssetsMinimalListRetrieveResponse = projectViewsAssetsMinimalListRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getProjectViewsAssetsMinimalListRetrieveUrl = (
+  uidProjectView: string,
+  params?: ProjectViewsAssetsMinimalListRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/project-views/${uidProjectView}/assets/minimal-list/?${stringifiedParams}`
+    : `/api/v2/project-views/${uidProjectView}/assets/minimal-list/`
+}
+
+export const projectViewsAssetsMinimalListRetrieve = async (
+  uidProjectView: string,
+  params?: ProjectViewsAssetsMinimalListRetrieveParams,
+  options?: RequestInit,
+): Promise<projectViewsAssetsMinimalListRetrieveResponse> => {
+  return fetchWithAuth<projectViewsAssetsMinimalListRetrieveResponse>(
+    getProjectViewsAssetsMinimalListRetrieveUrl(uidProjectView, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getProjectViewsAssetsMinimalListRetrieveQueryKey = (
+  uidProjectView: string,
+  params?: ProjectViewsAssetsMinimalListRetrieveParams,
+) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'assets', 'minimal-list', ...(params ? [params] : [])] as const
+}
+
+export const getProjectViewsAssetsMinimalListRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof projectViewsAssetsMinimalListRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  params?: ProjectViewsAssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsMinimalListRetrieveQueryKey(uidProjectView, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsAssetsMinimalListRetrieve>>> = ({ signal }) =>
+    projectViewsAssetsMinimalListRetrieve(uidProjectView, params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof projectViewsAssetsMinimalListRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ProjectViewsAssetsMinimalListRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof projectViewsAssetsMinimalListRetrieve>>
+>
+export type ProjectViewsAssetsMinimalListRetrieveQueryError = ErrorDetail
+
+export function useProjectViewsAssetsMinimalListRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsAssetsMinimalListRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  params?: ProjectViewsAssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getProjectViewsAssetsMinimalListRetrieveQueryOptions(uidProjectView, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 

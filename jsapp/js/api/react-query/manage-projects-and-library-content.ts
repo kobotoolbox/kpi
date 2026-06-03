@@ -27,11 +27,15 @@ import type { AssetBulkResponse } from '../models/assetBulkResponse'
 
 import type { AssetCreateRequest } from '../models/assetCreateRequest'
 
+import type { AssetListCount } from '../models/assetListCount'
+
 import type { AssetMetadataResponse } from '../models/assetMetadataResponse'
 
 import type { AssetsCountsListParams } from '../models/assetsCountsListParams'
 
 import type { AssetsListParams } from '../models/assetsListParams'
+
+import type { AssetsMinimalListRetrieveParams } from '../models/assetsMinimalListRetrieveParams'
 
 import type { AssetsRetrieveParams } from '../models/assetsRetrieveParams'
 
@@ -58,6 +62,8 @@ import type { ImportsListParams } from '../models/importsListParams'
 import type { PaginatedAssetCountResponseList } from '../models/paginatedAssetCountResponseList'
 
 import type { PaginatedAssetList } from '../models/paginatedAssetList'
+
+import type { PaginatedAssetMinimalListList } from '../models/paginatedAssetMinimalListList'
 
 import type { PaginatedImportResponseList } from '../models/paginatedImportResponseList'
 
@@ -575,7 +581,7 @@ export const useAssetsDestroy = <TError = ErrorDetail, TContext = unknown>(optio
   return useMutation(mutationOptions)
 }
 /**
- * ## Count the daily amount of submission
+ * ## Count the daily amount of submissions
 
 Returns up to the last 31 days of daily counts and total counts of submissions to a survey.
 
@@ -1329,6 +1335,76 @@ export const useAssetsBulkCreate = <TError = ErrorDetail, TContext = unknown>(op
   return useMutation(mutationOptions)
 }
 /**
+ * ## Return counts of deployed, archived, and draft assets
+
+ */
+export type assetsCountsRetrieveResponse200 = {
+  data: AssetListCount
+  status: 200
+}
+
+export type assetsCountsRetrieveResponseComposite = assetsCountsRetrieveResponse200
+
+export type assetsCountsRetrieveResponse = assetsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsCountsRetrieveUrl = () => {
+  return `/api/v2/assets/counts/`
+}
+
+export const assetsCountsRetrieve = async (options?: RequestInit): Promise<assetsCountsRetrieveResponse> => {
+  return fetchWithAuth<assetsCountsRetrieveResponse>(getAssetsCountsRetrieveUrl(), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsCountsRetrieveQueryKey = () => {
+  return ['api', 'v2', 'assets', 'counts'] as const
+}
+
+export const getAssetsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsCountsRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsCountsRetrieveQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsCountsRetrieve>>> = ({ signal }) =>
+    assetsCountsRetrieve({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsCountsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsCountsRetrieve>>>
+export type AssetsCountsRetrieveQueryError = unknown
+
+export function useAssetsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsCountsRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsCountsRetrieveQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
  * ## Get a hash of all `version_id`s of all accessible assets by the current user.
 
 Useful to detect any changes in assets with only one call to `API`
@@ -1467,6 +1543,103 @@ export function useAssetsMetadataRetrieve<
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsMetadataRetrieveQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return a minimal listing of assets with their deployment status
+
+Returns a paginated list of assets visible to the current user, including only `uid`, `name`, and `deployment_status` (`draft`, `deployed`, or `archived`).
+
+Use the `q` query parameter to filter by asset type (e.g. `?q=asset_type:survey`).
+
+Responses do not include a `count` field. Use the `next` and `previous` links to paginate through results.
+
+ */
+export type assetsMinimalListRetrieveResponse200 = {
+  data: PaginatedAssetMinimalListList
+  status: 200
+}
+
+export type assetsMinimalListRetrieveResponseComposite = assetsMinimalListRetrieveResponse200
+
+export type assetsMinimalListRetrieveResponse = assetsMinimalListRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsMinimalListRetrieveUrl = (params?: AssetsMinimalListRetrieveParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/minimal-list/?${stringifiedParams}`
+    : `/api/v2/assets/minimal-list/`
+}
+
+export const assetsMinimalListRetrieve = async (
+  params?: AssetsMinimalListRetrieveParams,
+  options?: RequestInit,
+): Promise<assetsMinimalListRetrieveResponse> => {
+  return fetchWithAuth<assetsMinimalListRetrieveResponse>(getAssetsMinimalListRetrieveUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsMinimalListRetrieveQueryKey = (params?: AssetsMinimalListRetrieveParams) => {
+  return ['api', 'v2', 'assets', 'minimal-list', ...(params ? [params] : [])] as const
+}
+
+export const getAssetsMinimalListRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsMinimalListRetrieve>>,
+  TError = unknown,
+>(
+  params?: AssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsMinimalListRetrieveQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>> = ({ signal }) =>
+    assetsMinimalListRetrieve(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsMinimalListRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsMinimalListRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>>
+export type AssetsMinimalListRetrieveQueryError = unknown
+
+export function useAssetsMinimalListRetrieve<
+  TData = Awaited<ReturnType<typeof assetsMinimalListRetrieve>>,
+  TError = unknown,
+>(
+  params?: AssetsMinimalListRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsMinimalListRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsMinimalListRetrieveQueryOptions(params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 

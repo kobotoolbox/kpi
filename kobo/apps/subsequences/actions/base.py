@@ -214,7 +214,7 @@ class BaseAction:
     def attach_action_dependency(self, action_data: dict):
         pass
 
-    def check_limits(self, user: User):
+    def check_limits(self, user: User, action_data: dict):
 
         if (
             not settings.STRIPE_ENABLED
@@ -747,6 +747,14 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
     their own structure with additional system-generated fields.
     """
 
+    def check_limits(self, user: User, action_data: dict):
+        accepted = action_data.get('accepted', None)
+        if accepted is not None:
+            return
+        if 'value' in action_data and action_data['value'] is None:
+            return
+        super().check_limits(user, action_data)
+
     @property
     def external_data_schema(self) -> dict:
         """
@@ -772,6 +780,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'value': {'$ref': '#/$defs/value'},
                 'error': {'$ref': '#/$defs/error'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language', 'status'],
             'allOf': [
@@ -850,6 +859,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                     'then': {},  # optional
                     'else': {'not': {'required': ['accepted']}},
                 },
+                'bulk_action_uid': {'type': 'string'},
             },
         }
 
@@ -862,11 +872,12 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         - `value` is optional but, if present, it MUST be `null`
            (no other type allowed).
         - `accepted` is optional.
+        - `bulk_action_uid` is optional and identifies a SubsequenceBulkAction.
         - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
           * If `value` is present (and thus equals null), `accepted` must be absent.
           * If `accepted` is present, `value` must be absent.
         - No additional properties are allowed beyond:
-          `language`, `locale`, `value`, `accepted`.
+          `language`, `locale`, `value`, `accepted`, `bulk_action_uid`.
         """
 
         return {
@@ -878,6 +889,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'locale': {'$ref': '#/$defs/locale'},
                 'value': {'$ref': '#/$defs/value_null_only'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language'],
             'allOf': [
@@ -890,6 +902,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'accepted': {'const': True},
                 # Only null is permitted for `value`
                 'value_null_only': {'type': 'null'},
+                'bulk_action_uid': {'type': 'string'},
             },
         }
 
@@ -940,13 +953,19 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             }
 
         # Otherwise, trigger the external service.
+        bulk_action_uid = action_data.get('bulk_action_uid')
+
         NLPService = self.get_nlp_service_class()  # noqa
         try:
             service = NLPService(submission, asset=self.asset)
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
 
-        service_data = service.process_data(self.source_question_xpath, action_data)
+        service_data = service.process_data(
+            self.source_question_xpath,
+            action_data,
+            bulk_action_uid=bulk_action_uid,
+        )
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.

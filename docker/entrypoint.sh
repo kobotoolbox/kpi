@@ -72,7 +72,7 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
 
         echo "Syncing \`npm\` packages…"
         if ( ! check-dependencies ); then
-            npm install --quiet > /dev/null 2>&1
+            npm ci --quiet > /dev/null 2>&1
         else
             npm run postinstall > /dev/null 2>&1
         fi
@@ -88,13 +88,6 @@ fi
 
 echo "Copying static files to nginx volume…"
 rsync -aq --delete --delete-excluded --exclude="rest_framework" --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
-
-if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" ]]; then
-    echo "Fetching translations…"
-    git submodule init && \
-    git submodule update --remote && \
-    python manage.py compilemessages
-fi
 
 echo 'KPI initialization completed.'
 

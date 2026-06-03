@@ -19,7 +19,7 @@ from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.transaction import immediate_on_commit
-from kpi.utils.xml import check_lxml_fromstring
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
@@ -146,6 +146,15 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']
 
+    @staticmethod
+    def _findall_with_xhtml_namespace(xml, path):
+        """
+        Convenience wrapper for searching for things like `h:head`
+        """
+        return xml.findall(
+            path, namespaces={'h': 'http://www.w3.org/1999/xhtml'}
+        )
+
     def test_xml_export_title_retained(self):
         asset_title = 'XML Export Test Asset Title'
         content = {'settings': [{'id_string': 'titled_asset'}],
@@ -156,8 +165,8 @@ class AssetsXmlExportApiTests(KpiTestCase):
             reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = check_lxml_fromstring(response.content)
-        title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        xml = fromstring_preserve_root_xmlns(response.content)
+        title_elts = self._findall_with_xhtml_namespace(xml, './h:head/h:title')
         self.assertEqual(len(title_elts), 1)
         self.assertEqual(title_elts[0].text, asset_title)
 
@@ -171,8 +180,8 @@ class AssetsXmlExportApiTests(KpiTestCase):
             reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = check_lxml_fromstring(response.content)
-        title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        xml = fromstring_preserve_root_xmlns(response.content)
+        title_elts = self._findall_with_xhtml_namespace(xml, './h:head/h:title')
         self.assertEqual(len(title_elts), 1)
         self.assertEqual(title_elts[0].text, asset_name)
 
@@ -185,8 +194,8 @@ class AssetsXmlExportApiTests(KpiTestCase):
             reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = check_lxml_fromstring(response.content)
-        title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        xml = fromstring_preserve_root_xmlns(response.content)
+        title_elts = self._findall_with_xhtml_namespace(xml, './h:head/h:title')
         self.assertEqual(len(title_elts), 1)
         self.assertNotEqual(title_elts[0].text, '')
 
@@ -214,8 +223,8 @@ class AssetsXmlExportApiTests(KpiTestCase):
             reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml = check_lxml_fromstring(response.content)
-        group_elts = xml.xpath('./*[local-name()="body"]/*[local-name()="group"]')
+        xml = fromstring_preserve_root_xmlns(response.content)
+        group_elts = self._findall_with_xhtml_namespace(xml, './h:body/group')
         self.assertEqual(len(group_elts), 1)
         self.assertNotIn('relevant', group_elts[0].attrib)
 

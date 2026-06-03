@@ -10,7 +10,7 @@ import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
  * Note that default response contains only 2 results.
  */
 const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) =>
-  http.get<PathParams<'limit' | 'offset' | 'q'>, never, PaginatedResponse<AssetResponse>>(
+  http.get<PathParams<'limit' | 'start' | 'q'>, never, PaginatedResponse<AssetResponse>>(
     endpoints.ASSETS_URL,
     (info) => {
       const searchParams = new URL(info.request.url).searchParams
@@ -79,7 +79,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
       report_styles: { default: {}, specified: { wb1gg11: {} }, kuid_names: { wb1gg11: 'wb1gg11' } },
       report_custom: {},
       advanced_features: {},
-      analysis_form_json: { engines: {}, additional_fields: [] },
+      analysis_form_json: { additional_fields: [] },
       map_styles: {},
       map_custom: {},
       content: {
@@ -256,7 +256,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
       report_styles: { default: {}, specified: { wb1gg11: {} }, kuid_names: { wb1gg11: 'wb1gg11' } },
       report_custom: {},
       advanced_features: {},
-      analysis_form_json: { engines: {}, additional_fields: [] },
+      analysis_form_json: { additional_fields: [] },
       map_styles: {},
       map_custom: {},
       content: {
