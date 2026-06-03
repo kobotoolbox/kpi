@@ -278,25 +278,6 @@ export const FALLBACK_MESSAGE = '##username## did action ##action##'
 
 export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']]
 
-interface ActivityBulkProcessingMetadata {
-  action_id?: string
-  succeeded_submissions?: number
-  succeeded_submissions_count?: number
-  succeeded?: number
-  complete?: number
-  errored_submissions?: number
-  errored_submissions_count?: number
-  failed_submissions?: number
-  failed_submissions_count?: number
-  errored?: number
-  failed?: number
-  skipped_submissions?: number
-  skipped_submissions_count?: number
-  skipped?: number
-  cancelled?: number
-  cancelled_by?: string | { username?: string }
-}
-
 interface ActivityLogsMetadata extends Omit<ProjectHistoryLogResponseMetadata, 'permissions'> {
   // TODO(DEV-1416): Remove this override once OpenAPI documents the permission payload shape returned by the history endpoint.
   permissions?: {
@@ -311,8 +292,6 @@ interface ActivityLogsMetadata extends Omit<ProjectHistoryLogResponseMetadata, '
     md5_hash: string
     download_url: string
   }
-  // TODO(DEV-1416): Remove this extension once OpenAPI includes bulk processing metadata on history entries.
-  bulk_processing?: ActivityBulkProcessingMetadata
 }
 
 export interface ActivityLogsItem extends Omit<ProjectHistoryLogResponse, 'action' | 'metadata'> {

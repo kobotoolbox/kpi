@@ -3,6 +3,18 @@ import Avatar from '../common/avatar'
 import { AUDIT_ACTION_TYPES, type ActivityLogsItem, FALLBACK_MESSAGE } from './activity.constants'
 import styles from './activityMessage.module.scss'
 
+interface ActivityBulkProcessingMetadata {
+  action_id?: string
+}
+
+function getBulkProcessingMetadata(data: ActivityLogsItem): ActivityBulkProcessingMetadata | undefined {
+  const metadata = data.metadata as ActivityLogsItem['metadata'] & {
+    bulk_processing?: ActivityBulkProcessingMetadata
+  }
+
+  return metadata.bulk_processing
+}
+
 /**
  * An inline message that starts with avatar and username, and then is followed
  * by short text describing what username did.
@@ -10,11 +22,11 @@ import styles from './activityMessage.module.scss'
 export function ActivityMessage(props: { data: ActivityLogsItem }) {
   let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
 
-  const bulkActionId = props.data.metadata.bulk_processing?.action_id
+  const bulkActionId = getBulkProcessingMetadata(props.data)?.action_id
   if (bulkActionId === 'automatic_google_transcription') {
     message = t('##username## bulk transcribed audio files')
   } else if (bulkActionId === 'automatic_google_translation') {
-    message = t('##username## bulk translated transcriptions')
+    message = t('##username## bulk translated transcripts')
   }
 
   // Here we reaplace all possible placeholders with appropriate data. This way

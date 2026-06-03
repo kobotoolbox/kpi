@@ -8,6 +8,17 @@ export const mockAssetUid = defaultAssetHistoryAssetUid
 
 type AssetHistoryLogOverrides = Parameters<typeof assetHistoryLogFactory>[0]
 type ActivityPermissions = NonNullable<ActivityLogsItem['metadata']['permissions']>
+interface ActivityBulkProcessingMetadata {
+  action_id?: string
+  succeeded_submissions_count?: number
+  errored_submissions_count?: number
+  skipped_submissions_count?: number
+  cancelled_by?: string | { username?: string }
+}
+
+type AssetHistoryMetadataWithBulkProcessing = ActivityLogsItem['metadata'] & {
+  bulk_processing?: ActivityBulkProcessingMetadata
+}
 const johnLog = (overrides: AssetHistoryLogOverrides) =>
   assetHistoryLogFactory({
     user: '/api/v2/users/john/',
@@ -71,7 +82,7 @@ const bulkTranslatedTranscriptionsLog = karinaLog({
         username: 'john',
       },
     },
-  },
+  } as AssetHistoryMetadataWithBulkProcessing,
   date_created: '2026-05-30T13:43:20Z',
 })
 
@@ -87,7 +98,7 @@ const bulkTranscribedAudioFilesLog = karinaLog({
         username: 'john',
       },
     },
-  },
+  } as AssetHistoryMetadataWithBulkProcessing,
   date_created: '2026-05-30T13:41:20Z',
 })
 
