@@ -253,16 +253,13 @@ class ScimUsersAPITests(APITestCase):
         # It should generate a unique username by appending the second IdP slug
         self.assertEqual(resp2.json()['userName'], f'jane_{idp_2.slug}')
 
-    def test_create_user_existing_email_links_successfully(self):
-        # If an IdP sends a user that already exists locally,
-        # we should link them gracefully
+    def test_create_user_existing_email_aborts_with_conflict(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
-        existing_user = User.objects.create_user(
+        User.objects.create_user(
             username='existing_local',
             email='existing_match@example.com',
         )
-        # Note: Not linked to SocialAccount yet!
 
         payload = {
             'schemas': [SCIM_SCHEMA_USER],
@@ -279,14 +276,15 @@ class ScimUsersAPITests(APITestCase):
         )
 
         self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
+            response.status_code, status.HTTP_409_CONFLICT, response.content
         )
 
-        # Verify it didn't create a new user but found the existing one by email
-        social_account = SocialAccount.objects.get(
-            user=existing_user, provider=self.idp.social_app.provider_id
+        self.assertFalse(
+            SocialAccount.objects.filter(
+                provider=self.idp.social_app.provider_id,
+                uid='idp_username',
+            ).exists()
         )
-        self.assertIsNotNone(social_account)
 
     def test_create_user_reactivates_existing_inactive_user(self):
         # A previously de-provisioned user gets re-assigned to the Kobo App
@@ -294,7 +292,14 @@ class ScimUsersAPITests(APITestCase):
 
         # User already exists and is deactivated
         deactivated_user = User.objects.create_user(
-            username='rejoined_user', email='rejoined@example.com', is_active=False
+            username='rejoined_user',
+            email='rejoined@example.com',
+            is_active=False,
+        )
+        SocialAccount.objects.create(
+            user=deactivated_user,
+            provider=self.social_app.provider_id,
+            uid='rejoined_user',
         )
 
         payload = {
@@ -321,12 +326,6 @@ class ScimUsersAPITests(APITestCase):
         # Verify the user was reactivated
         deactivated_user.refresh_from_db()
         self.assertTrue(deactivated_user.is_active)
-
-        # Verify linkage
-        social_account = SocialAccount.objects.get(
-            user=deactivated_user, provider=self.idp.social_app.provider_id
-        )
-        self.assertIsNotNone(social_account)
 
     def test_get_user_by_id(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
