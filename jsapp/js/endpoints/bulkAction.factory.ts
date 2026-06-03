@@ -24,6 +24,7 @@ export default function bulkActionFactory(
     params: {
       language: languageCode,
     },
+    progress: 0,
     created_by: {
       username: 'zefir',
     },
