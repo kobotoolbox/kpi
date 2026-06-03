@@ -67,7 +67,11 @@ function BulkTranscriptionModalWrapper(props: BulkTranscriptionModalProps) {
   // Only fetch all submissions if we selected all pages AND there are more rows than currently selected
   const needsToFetchAll = props.selectedAllPages && props.totalRowsCount > props.selectedSubmissions.length
 
-  const { data: allSubmissionsData, isLoading: isLoadingAllSubmissions, isError: isErrorAllSubmissions } = useAssetsDataList(
+  const {
+    data: allSubmissionsData,
+    isLoading: isLoadingAllSubmissions,
+    isError: isErrorAllSubmissions,
+  } = useAssetsDataList(
     props.assetUid,
     {
       fields: '["_uuid", "_supplementalDetails"]',
@@ -153,7 +157,7 @@ function BulkTranscriptionModalWrapper(props: BulkTranscriptionModalProps) {
       <Stack gap='md'>
         <Text size='sm'>
           {t(
-          "You've selected audio files that already have transcripts. Those files will be skipped. Transcripts will only be generated for files without existing transcripts."
+            "You've selected audio files that already have transcripts. Those files will be skipped. Transcripts will only be generated for files without existing transcripts.",
           )}
         </Text>
 
@@ -278,7 +282,6 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
         </Alert>
       )}
-
 
       <Text size='xs'>
         {t('Automatic transcription is provided by Google Cloud Platform.')}
