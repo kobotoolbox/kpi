@@ -9,6 +9,9 @@ from google.api_core.exceptions import InvalidArgument
 from kobo.apps.subsequences.integrations.google.google_translate import (
     GoogleTranslationService,
 )
+from kobo.apps.subsequences.integrations.google.rate_limit import (
+    GoogleServiceRateLimitExceeded,
+)
 from kpi.models import Asset
 
 
@@ -273,3 +276,73 @@ class TestGoogleTranslate(TestCase):
             ),
         }
         assert cache.get(cache_key) == 'operations/translate-2'
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+    )
+    def test_async_translation_raises_quota_error_when_start_quota_is_exhausted(self):
+        """
+        Verify that asynchronous bulk translations respect the global token bucket
+        and abort before hitting the Google batch_translate API when limits are reached
+        """
+        service = self._build_service()
+
+        with patch.object(service, '_get_source_language_code', return_value='en-US'):
+            with patch.object(service, '_get_target_language_code', return_value='fr'):
+                with patch.object(
+                    service,
+                    'begin_google_operation',
+                    side_effect=GoogleServiceRateLimitExceeded(
+                        'translate_v3_batch_translate_text',
+                        retry_after=1,
+                    ),
+                ):
+                    with self.assertRaises(GoogleServiceRateLimitExceeded):
+                        service.process_data(
+                            'mock_xpath',
+                            {
+                                'language': 'fr',
+                                '_dependency': {
+                                    'language': 'en',
+                                    'value': 'Hello ' * 10000,
+                                },
+                            },
+                        )
+
+        cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
+        assert cache.get(cache_key) is None
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+    )
+    def test_sync_translation_raises_quota_error_when_quota_is_exhausted(self):
+        """
+        Verify that synchronous, real-time UI translations respect the global token
+        bucket and abort before hitting the Google translate API when limits are reached
+        """
+        service = self._build_service()
+
+        with patch.object(service, '_get_source_language_code', return_value='en-US'):
+            with patch.object(service, '_get_target_language_code', return_value='fr'):
+                with patch(
+                    'kobo.apps.subsequences.integrations.google.google_translate.require_google_service_quota',  # noqa
+                    side_effect=GoogleServiceRateLimitExceeded(
+                        'translate_v3_translate_text',
+                        retry_after=1,
+                    ),
+                ):
+                    with self.assertRaises(GoogleServiceRateLimitExceeded):
+                        service.process_data(
+                            'mock_xpath',
+                            {
+                                'language': 'fr',
+                                '_dependency': {
+                                    'language': 'en',
+                                    'value': 'Hello',
+                                },
+                            },
+                        )
+
+        service.translate_client.translate_text.assert_not_called()

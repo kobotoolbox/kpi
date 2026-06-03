@@ -23,9 +23,9 @@ const usageTopTabs: React.FC<UsageTopTabsProps> = ({ activeRoute }) => {
     <div>
       <Tabs
         tabs={[
-          { label: 'Account Total', route: ACCOUNT_ROUTES.USAGE },
+          { label: t('Account Total'), route: ACCOUNT_ROUTES.USAGE },
           {
-            label: 'Per Project Total',
+            label: t('Per Project Total'),
             route: ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN,
           },
         ]}

@@ -12,7 +12,6 @@ import { AssetTagsForm } from '#/components/modalForms/AssetTagsForm'
 import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
-import LibraryUploadForm from '#/components/modalForms/libraryUploadForm'
 import ProjectSettings from '#/components/modalForms/projectSettings'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
@@ -85,14 +84,6 @@ class BigModal extends React.Component {
         this.setModalTitle(t('Sharing Permissions'))
         break
 
-      case MODAL_TYPES.UPLOADING_XLS:
-        var filename = this.props.params.filename || ''
-        this.setState({
-          title: t('Uploading XLS file'),
-          message: t('Uploading: ') + filename,
-        })
-        break
-
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
         break
@@ -111,10 +102,6 @@ class BigModal extends React.Component {
 
       case MODAL_TYPES.ASSET_TAGS:
         this.setModalTitle(t('Edit tags'))
-        break
-
-      case MODAL_TYPES.LIBRARY_UPLOAD:
-        this.setModalTitle(t('Upload file'))
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
@@ -223,12 +210,6 @@ class BigModal extends React.Component {
         newState.sid = false
       }
 
-      if (state.prevType !== props.params.type && props.params.type === MODAL_TYPES.UPLOADING_XLS) {
-        var filename = props.params.filename || ''
-        newState.title = t('Uploading XLS file')
-        newState.message = t('Uploading: ') + filename
-      }
-
       // store for later
       newState.prevType = props.params.type
       return newState
@@ -277,9 +258,6 @@ class BigModal extends React.Component {
             />
           )}
           {this.props.params.type === MODAL_TYPES.ASSET_TAGS && <AssetTagsForm asset={this.props.params.asset} />}
-          {this.props.params.type === MODAL_TYPES.LIBRARY_UPLOAD && (
-            <LibraryUploadForm onSetModalTitle={this.setModalTitle} file={this.props.params.file} />
-          )}
           {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
@@ -294,11 +272,6 @@ class BigModal extends React.Component {
           )}
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink && <LoadingSpinner />}
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.error && <div>{this.state.message}</div>}
-          {this.props.params.type === MODAL_TYPES.UPLOADING_XLS && (
-            <div>
-              <LoadingSpinner message={this.state.message} />
-            </div>
-          )}
           {this.props.params.type === MODAL_TYPES.SUBMISSION && this.state.sid && (
             <SubmissionModal
               sid={this.state.sid}

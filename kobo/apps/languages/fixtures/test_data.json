@@ -172,7 +172,7 @@
       "service_id": 2,
       "region_id": 1,
       "location_code": "europe-west4",
-      "model_code": "latest_long"
+      "model_code": "chirp"
     },
     "model": "languages.transcriptionservicelanguagem2m",
     "pk": 3
@@ -183,7 +183,7 @@
       "service_id": 2,
       "region_id": 2,
       "location_code": "europe-west4",
-      "model_code": "latest_long"
+      "model_code": "chirp"
     },
     "model": "languages.transcriptionservicelanguagem2m",
     "pk": 4
@@ -194,7 +194,7 @@
       "service_id": 2,
       "region_id": 3,
       "location_code": "us-central1",
-      "model_code": "latest_long"
+      "model_code": "chirp"
     },
     "model": "languages.transcriptionservicelanguagem2m",
     "pk": 5
@@ -205,7 +205,7 @@
       "service_id": 2,
       "region_id": 4,
       "location_code": "us-central1",
-      "model_code": "latest_long"
+      "model_code": "chirp"
     },
     "model": "languages.transcriptionservicelanguagem2m",
     "pk": 6
@@ -216,8 +216,8 @@
       "service_id": 2,
       "region_id": 5,
       "mapping_code": "iw-IL",
-      "location_code": "me-west1",
-      "model_code": "latest_long"
+      "location_code": "asia-southeast1",
+      "model_code": "chirp"
     },
     "model": "languages.transcriptionservicelanguagem2m",
     "pk": 7

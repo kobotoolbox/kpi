@@ -1,12 +1,12 @@
 import React from 'react'
 
 import type { FileRejection } from 'react-dropzone'
+import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
+import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
-import pageState from '#/pageState.store'
 import { router } from '#/router/legacy'
 import { escapeHtml, getExponentialDelayTime, join, log, notify } from '#/utils'
-import { MODAL_TYPES } from './constants'
 import envStore from './envStore'
 import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
@@ -27,6 +27,8 @@ interface PollImportUntilDoneOptions {
   onPoll?: (importData: ImportResponse, attempt: number) => void
   waitBeforeFirstCheck?: boolean
 }
+
+type MultiFileUploadFeedbackMode = 'modal' | 'toast' | 'none'
 
 /**
  * Polls import status until backend reports either `complete` or `error`.
@@ -269,15 +271,19 @@ function onImportOneAmongMany(
   base64Encoded: string | ArrayBuffer | null,
   fileIndex: number,
   totalFilesInBatch: number,
+  feedbackMode: MultiFileUploadFeedbackMode,
 ) {
   const isLibrary = isAnyLibraryRoute()
   const isLastFileInBatch = fileIndex + 1 === totalFilesInBatch
 
-  // We open the modal that displays the message with total files count.
-  pageState.showModal({
-    type: MODAL_TYPES.UPLOADING_XLS,
-    filename: t('## files').replace('##', String(totalFilesInBatch)),
-  })
+  // Feedback for multi-file uploads is intentionally mutually exclusive.
+  const uploadProgressModal =
+    feedbackMode === 'modal'
+      ? openLibraryUploadModal({
+          type: MODAL_TYPES.UPLOADING_XLS,
+          filename: t('## files').replace('##', String(totalFilesInBatch)),
+        })
+      : null
 
   const params: CreateImportRequest = {
     name: name,
@@ -299,14 +305,15 @@ function onImportOneAmongMany(
       // run asynchronously. It's not perfect, but we don't care (rough around
       // the edges).
       if (isLastFileInBatch) {
-        // After the last import is created, we hide the modal…
-        pageState.hideModal()
-        // …and display a helpful toast
-        notify.warning(
-          t(
-            'Your uploads are being processed. This may take a few moments. You will need to refresh the page to see them on the list.',
-          ),
-        )
+        // After the last import is created, hide modal or show toast based on selected feedback mode.
+        uploadProgressModal?.close()
+        if (feedbackMode === 'toast') {
+          notify.warning(
+            t(
+              'Your uploads are being processed. This may take a few moments. You will need to refresh the page to see them on the list.',
+            ),
+          )
+        }
       }
     })
 }
@@ -318,14 +325,20 @@ function onImportOneAmongMany(
  * Note: this implementation supports multi-file XLSForm uploads, but it is
  * intended for advanced use and remains somewhat rough around the edges.
  */
-export function dropImportXLSForms(accepted: File[], rejected: FileRejection[]) {
+export function dropImportXLSForms(
+  accepted: File[],
+  rejected: FileRejection[],
+  options: { feedbackMode?: MultiFileUploadFeedbackMode } = {},
+) {
+  const { feedbackMode = 'toast' } = options
+
   accepted.map((file, index) => {
     const reader = new FileReader()
     reader.onload = () => {
       if (accepted.length === 1) {
         onImportSingleXLSFormFile(file.name, reader.result)
       } else {
-        onImportOneAmongMany(file.name, reader.result, index, accepted.length)
+        onImportOneAmongMany(file.name, reader.result, index, accepted.length, feedbackMode)
       }
     }
     reader.readAsDataURL(file)
