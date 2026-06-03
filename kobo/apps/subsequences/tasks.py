@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import timedelta
 from typing import Union
 
+from celery.exceptions import Retry
 from celery.signals import task_failure
 from django.apps import apps
 from django.conf import settings
@@ -13,7 +14,10 @@ from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
+from kobo.apps.subsequences.exceptions import (
+    GoogleQuotaExceededError,
+    SubsequenceTimeoutError,
+)
 from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
@@ -30,6 +34,7 @@ from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 #   => max_retries = 4 (before cap) + 478 = 482
 # So set max_retries to 482 or less to stay within the 8-hour limit.
 @celery_app.task(
+    bind=True,
     autoretry_for=(SubsequenceTimeoutError,),
     retry_backoff=5,
     retry_backoff_max=60,
@@ -38,6 +43,7 @@ from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
     queue='kpi_low_priority_queue',
 )
 def poll_run_external_process(
+    self,
     asset_id: int,
     submission: dict,
     question_xpath: str,
@@ -55,11 +61,14 @@ def poll_run_external_process(
             question_xpath: {action_id: request_action_data},
         }
         asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
-        supplement_data = SubmissionSupplement.revise_data(
-            asset,
-            submission,
-            incoming_data
-        )
+        try:
+            supplement_data = SubmissionSupplement.revise_data(
+                asset,
+                submission,
+                incoming_data
+            )
+        except GoogleQuotaExceededError as err:
+            raise self.retry(countdown=err.retry_after, exc=err)
         if supplement_data is None:
             supplement_data = _get_submission_supplement_data(
                 asset=asset,
@@ -75,6 +84,8 @@ def poll_run_external_process(
             supplement_data=supplement_data,
             action_data=request_action_data,
         )
+    except Retry:
+        raise
     except Exception as e:
         logging.exception(
             f'Background polling failed for {action_id} on submission '
@@ -84,13 +95,27 @@ def poll_run_external_process(
             submission=submission,
             action_data=request_action_data,
             status='failed',
+            error=str(e),
         )
         return
+
+    error = None
+    if last_status == 'failed':
+        try:
+            error = _extract_bulk_item_error(
+                asset=asset,
+                action_context=advanced_feature,
+                supplement_data=supplement_data,
+                action_data=request_action_data,
+            )
+        except Exception:
+            error = None
 
     _update_bulk_action_item_status(
         submission=submission,
         action_data=request_action_data,
         status=last_status,
+        error=error,
     )
 
     if last_status == 'in_progress':
@@ -176,23 +201,44 @@ def poll_run_external_process_failure(sender=None, **kwargs):
         submission=submission,
         action_data=action_data,
         status='failed',
+        error=error,
     )
 
 
-@celery_app.task(queue='kpi_low_priority_queue')
-def start_bulk_item_job(bulk_action_item_id: str):
+@celery_app.task(
+    bind=True,
+    max_retries=482,
+    queue='kpi_low_priority_queue',
+)
+def start_bulk_item_job(self, bulk_action_item_id: str):
     """
     Start one child item in a bulk action
 
     The task reuses SubmissionSupplement.revise_data() so bulk transcription and
     translation run through the same validation, supplement writing, and Google
     integration paths as single-submission processing.
+
+    This task also implements a reservation system to prevent multiple background
+    workers from processing the same file at the same time. Before reaching out to
+    Google, the worker leaves a temporary 'pending' mark (`PENDING_OPERATION_MARKER`)
+    on the item in the database. This acts as a 'Do Not Disturb' sign, stopping
+    impatient watchdog tasks from spawning duplicate requests while we wait for
+    Google to reply.
     """
-    from .models import BulkActionItemStatus, BulkActionStatus
+    from .models import (
+        BulkActionItemStatus,
+        BulkActionStatus,
+        PENDING_OPERATION_MARKER,
+    )
 
     SubsequenceBulkActionItem = apps.get_model(  # noqa: N806
         'subsequences',
         'SubsequenceBulkActionItem',
+    )
+
+    resume_polling = False
+    stale_cutoff = timezone.now() - timedelta(
+        seconds=settings.BULK_ACTION_STUCK_THRESHOLD
     )
 
     with transaction.atomic():
@@ -210,22 +256,71 @@ def start_bulk_item_job(bulk_action_item_id: str):
             logging.info(
                 f'Bulk item {bulk_action_item_id} is already locked by another worker'
             )
+            raise self.retry(countdown=15)
+
+        # Check if another worker recently reserved this item but hasn't received
+        # the Google operation ID yet. If so, safely abort to prevent duplication
+        if (
+            item.service_id == PENDING_OPERATION_MARKER
+            and item.date_modified > stale_cutoff
+        ):
+            logging.info(
+                'Bulk item operation submission is already reserved by another '
+                f'worker for {item.uid=}, {item.parent.uid=}'
+            )
             return
 
         if item.status == BulkActionItemStatus.PENDING:
             if item.parent.status != BulkActionStatus.IN_PROGRESS:
                 return
             item.status = BulkActionItemStatus.IN_PROGRESS
-            item.save(update_fields=['status', 'date_modified'])
         elif item.status != BulkActionItemStatus.IN_PROGRESS:
             return
 
+        # If a real Google operation is already in flight, skip `revise_data` and
+        # just resume polling. Otherwise, reserve the slot so concurrent workers
+        # cannot start a duplicate Google operation in the race window between
+        # `begin_google_operation()` and `_save_operation_reference()`
+        if item.service_id and item.service_id != PENDING_OPERATION_MARKER:
+            resume_polling = True
+            item.save(update_fields=['status', 'date_modified'])
+        else:
+            item.service_id = PENDING_OPERATION_MARKER
+            item.save(update_fields=['status', 'service_id', 'date_modified'])
+
     bulk_action = item.parent
     asset = bulk_action.asset
+
+    if resume_polling:
+        try:
+            submission = _get_submission_for_bulk_action_item(item)
+            if submission is None:
+                _mark_bulk_item_failed(item, 'Submission not found')
+                return
+
+            request_action_data = deepcopy(bulk_action.params)
+            request_action_data['bulk_action_uid'] = bulk_action.uid
+            poll_run_external_process.apply_async(
+                kwargs={
+                    'submission': submission,
+                    'action_data': request_action_data,
+                    'action_id': bulk_action.action_id,
+                    'asset_id': asset.pk,
+                    'question_xpath': bulk_action.question_xpath,
+                },
+                countdown=10,
+            )
+        except Exception as e:
+            logging.exception(
+                f'Failed to resume polling for {item.uid=}, {bulk_action.uid=}'
+            )
+            _mark_bulk_item_failed(item, str(e))
+        return
+
     try:
         submission = _get_submission_for_bulk_action_item(item)
         if submission is None:
-            _mark_bulk_item_failed(item)
+            _mark_bulk_item_failed(item, 'Submission not found')
             return
 
         request_action_data = deepcopy(bulk_action.params)
@@ -237,9 +332,13 @@ def start_bulk_item_job(bulk_action_item_id: str):
             },
         }
 
-        supplement_data = apps.get_model(
-            'subsequences', 'SubmissionSupplement'
-        ).revise_data(asset, submission, incoming_data)
+        try:
+            supplement_data = apps.get_model(
+                'subsequences', 'SubmissionSupplement'
+            ).revise_data(asset, submission, incoming_data)
+        except GoogleQuotaExceededError as err:
+            _clear_pending_operation_marker(item)
+            raise self.retry(countdown=err.retry_after, exc=err)
 
         if supplement_data is None:
             supplement_data = _get_submission_supplement_data(
@@ -252,7 +351,10 @@ def start_bulk_item_job(bulk_action_item_id: str):
                 'Bulk item execution produced no supplement data for '
                 f'{item.uid=}, {bulk_action.uid=}, {item.submission_root_uuid=}'
             )
-            _mark_bulk_item_failed(item)
+            _mark_bulk_item_failed(
+                item,
+                'Bulk item execution produced no supplement data',
+            )
             return
 
         extracted_status = _extract_bulk_item_status(
@@ -262,8 +364,9 @@ def start_bulk_item_job(bulk_action_item_id: str):
             action_data=request_action_data,
         )
 
+        current_service_id = _get_bulk_item_service_id(item)
         item.status = extracted_status
-        item.save(update_fields=['status', 'date_modified'])
+        update_fields = ['status', 'date_modified']
         if extracted_status == BulkActionItemStatus.FAILED:
             try:
                 error = _extract_bulk_item_error(
@@ -274,12 +377,26 @@ def start_bulk_item_job(bulk_action_item_id: str):
                 )
             except Exception:
                 error = None
+            item.failure_error = error or 'Bulk item execution failed'
+            update_fields.append('failure_error')
+            if current_service_id == PENDING_OPERATION_MARKER:
+                item.service_id = ''
+                update_fields.append('service_id')
             logging.error(
                 'Bulk item execution finished with failed status for '
                 f'{item.uid=}, {bulk_action.uid=}, '
                 f'{item.submission_root_uuid=}, '
                 f'{bulk_action.action_id=}, error={error!r}'
             )
+        else:
+            # Clear any transient error messages (e.g. from previous retries)
+            # now that the task is healthy
+            item.failure_error = None
+            update_fields.append('failure_error')
+            if current_service_id == PENDING_OPERATION_MARKER:
+                item.service_id = ''
+                update_fields.append('service_id')
+        item.save(update_fields=update_fields)
 
         if extracted_status == BulkActionItemStatus.IN_PROGRESS:
             poll_run_external_process.apply_async(
@@ -292,13 +409,15 @@ def start_bulk_item_job(bulk_action_item_id: str):
                 },
                 countdown=10,
             )
+    except Retry:
+        raise
     except Exception as e:
         error_msg = (
             f'Bulk item execution failed for {item.uid=}, {bulk_action.uid=}. '
             f'Exception: {str(e)}'
         )
         logging.exception(error_msg)
-        _mark_bulk_item_failed(item)
+        _mark_bulk_item_failed(item, str(e))
         return
 
 
@@ -420,12 +539,47 @@ def _get_submission_for_bulk_action_item(item):
     return next(iter(submissions), None)
 
 
-def _mark_bulk_item_failed(item) -> None:
+def _mark_bulk_item_failed(item, error: str | None = None) -> None:
     """
     Move a child item to failed so the parent batch can reach a terminal state
     """
+    from .models import PENDING_OPERATION_MARKER
+
     item.status = 'failed'
-    item.save(update_fields=['status', 'date_modified'])
+    if item.service_id == PENDING_OPERATION_MARKER:
+        item.service_id = ''
+    if error:
+        item.failure_error = error
+        item.save(
+            update_fields=[
+                'status',
+                'service_id',
+                'failure_error',
+                'date_modified',
+            ]
+        )
+    else:
+        item.save(update_fields=['status', 'service_id', 'date_modified'])
+
+
+def _clear_pending_operation_marker(item) -> None:
+    """
+    Release a reservation marker when no Google operation was started.
+    """
+    from .models import PENDING_OPERATION_MARKER
+
+    if item.service_id != PENDING_OPERATION_MARKER:
+        return
+
+    item.service_id = ''
+    item.save(update_fields=['service_id', 'date_modified'])
+
+
+def _get_bulk_item_service_id(item) -> str | None:
+    """
+    Return the latest persisted service_id for this item
+    """
+    return type(item).objects.values_list('service_id', flat=True).get(pk=item.pk)
 
 
 def _get_submission_supplement_data(asset, submission: dict) -> dict:
@@ -556,6 +710,7 @@ def _update_bulk_action_item_status(
     submission: dict,
     action_data: dict,
     status: str,
+    error: str | None = None,
 ) -> None:
     """
     Mirror an async supplement status back to the matching bulk child item
@@ -571,11 +726,17 @@ def _update_bulk_action_item_status(
         'SubsequenceBulkActionItem',
     )
     submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
+    updates = {
+        'status': status,
+        'date_modified': timezone.now(),
+    }
+    if error:
+        updates['failure_error'] = error
+    elif status != BulkActionItemStatus.FAILED:
+        updates['failure_error'] = None
+
     SubsequenceBulkActionItem.objects.filter(
         parent__uid=bulk_action_uid,
         submission_root_uuid=submission_uuid,
         status__in=[BulkActionItemStatus.PENDING, BulkActionItemStatus.IN_PROGRESS],
-    ).update(
-        status=status,
-        date_modified=timezone.now(),
-    )
+    ).update(**updates)

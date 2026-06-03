@@ -10,6 +10,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
+    PENDING_OPERATION_MARKER,
     QuestionAdvancedFeature,
     SubmissionSupplement,
     SubsequenceBulkAction,
@@ -406,6 +407,114 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         self.assertEqual(item.status, BulkActionItemStatus.IN_PROGRESS)
         delay.assert_not_called()
         enqueue_poll.assert_called_once()
+
+    @override_settings(BULK_ACTION_STUCK_THRESHOLD=60)
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_skips_recent_pending_operation_marker(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        Test that if an item is marked as 'pending' with a recent timestamp, a
+        concurrent worker will recognize another worker is currently waiting for
+        Google to reply, and will safely abort without duplicating requests
+        """
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        item.status = BulkActionItemStatus.IN_PROGRESS
+        item.service_id = PENDING_OPERATION_MARKER
+        item.save(update_fields=['status', 'service_id'])
+
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ) as enqueue_poll:
+            start_bulk_item_job(item.pk)
+
+        mock_run_external_process.assert_not_called()
+        enqueue_poll.assert_not_called()
+        item.refresh_from_db()
+        self.assertEqual(item.service_id, PENDING_OPERATION_MARKER)
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_resumes_polling_for_existing_operation(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        Test that if a worker crashes after sending a file to Google but before
+        polling finishes, a rescuing worker will see the existing Operation ID
+        and resume polling, rather than starting a duplicate transcription request
+        """
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        item.status = BulkActionItemStatus.IN_PROGRESS
+        item.service_id = 'operations/google-op-1'
+        item.save(update_fields=['status', 'service_id'])
+
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ) as enqueue_poll:
+            start_bulk_item_job(item.pk)
+
+        mock_run_external_process.assert_not_called()
+        enqueue_poll.assert_called_once()
+        item.refresh_from_db()
+        self.assertEqual(item.service_id, 'operations/google-op-1')
+
+    @patch(
+        'kobo.apps.subsequences.models.SubmissionSupplement.revise_data'
+    )
+    def test_start_bulk_item_job_preserves_operation_saved_by_service(
+        self,
+        mock_revise_data,
+    ):
+        """
+        Test that the Celery task does not accidentally overwrite the real Google
+        Operation ID in the database with a blank string after a successful external
+        API call
+        """
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+
+        def revise_data(*args, **kwargs):
+            type(item).objects.filter(pk=item.pk).update(
+                service_id='operations/google-op-1'
+            )
+            return {
+                '_version': '20250820',
+                self.question_xpath: {
+                    self.action_id: {
+                        '_versions': [
+                            {
+                                '_data': {
+                                    'status': 'in_progress',
+                                    'language': 'en',
+                                }
+                            }
+                        ]
+                    }
+                },
+            }
+
+        mock_revise_data.side_effect = revise_data
+
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ):
+            start_bulk_item_job(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.IN_PROGRESS)
+        self.assertEqual(item.service_id, 'operations/google-op-1')
 
     @patch(
         'kobo.apps.subsequences.actions.base.'

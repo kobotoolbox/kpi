@@ -1274,6 +1274,38 @@ BULK_ACTION_RATE_LIMITS = {
     },
 }
 
+# These limits restrict the maximum number of Google Cloud requests per minute
+# across the entire platform. They are intentionally set lower than Google
+# project quotas to leave headroom for window skew, manual retries, and services
+# that share the same Google project outside this process.
+GOOGLE_SERVICE_RATE_LIMITS = {
+    'speech_v2_batch_recognize': {
+        'max_requests': env.int(
+            'GOOGLE_SPEECH_V2_BATCH_RECOGNIZE_MAX_REQUESTS_PER_MINUTE',
+            140,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            2000,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_batch_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_BATCH_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            3000,
+        ),
+        'period_seconds': 60,
+    },
+}
+GOOGLE_SERVICE_QUOTA_RETRY_AFTER = env.int(
+    'GOOGLE_SERVICE_QUOTA_RETRY_AFTER',
+    100,
+)
+
 BULK_ACTION_STATUS_POLL_INTERVAL = env.int(
     'BULK_ACTION_STATUS_POLL_INTERVAL',
     30,

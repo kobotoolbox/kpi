@@ -310,6 +310,9 @@ class BulkActionItemStatus(models.TextChoices):
     CANCELLED = 'cancelled'
 
 
+PENDING_OPERATION_MARKER = 'pending'
+
+
 class SubsequenceBulkAction(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='sba', primary_key=True)
     asset = models.ForeignKey(
@@ -502,6 +505,8 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                     service_id__isnull=True,
                 ).exclude(
                     service_id='',
+                ).exclude(
+                    service_id=PENDING_OPERATION_MARKER,
                 )
             )
 
@@ -600,6 +605,7 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
     )
     hash = models.CharField(max_length=64, db_index=True)
     service_id = models.CharField(max_length=2048, null=True, blank=True)
+    failure_error = models.TextField(null=True, blank=True)
 
     class Meta:
         constraints = [
