@@ -1,13 +1,14 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import { DeleteAssetPrompt, archiveAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
+import { archiveAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
 import { getAssetDisplayName } from '#/assetUtils'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from '#/dataInterface'
+import { useDeleteAssetPrompt } from '#/hooks/useDeleteAssetPrompt.hook'
 import customViewStore from '#/projects/customViewStore'
 import styles from './projectActions.module.scss'
 
@@ -23,8 +24,8 @@ interface ProjectQuickActionsProps {
  * instead.
  */
 const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
-  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
   const [organization] = useOrganizationAssumed()
+  const { openDeleteAssetPrompt, deleteAssetPrompt } = useDeleteAssetPrompt()
 
   // The `userCan` method requires `permissions` property to be present in the
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
@@ -100,23 +101,16 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() => setIsDeletePromptOpen(true)}
+        onClick={() =>
+          openDeleteAssetPrompt(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
+            customViewStore.handleAssetsDeleted([deletedAssetUid])
+          })
+        }
         tooltip={isDeletingPossible ? t('Delete 1 project') : t('Delete project')}
         tooltipPosition='right'
       />
 
-      {isDeletePromptOpen && (
-        <DeleteAssetPrompt
-          asset={asset}
-          name={getAssetDisplayName(asset).final}
-          isOpen={isDeletePromptOpen}
-          onRequestClose={() => setIsDeletePromptOpen(false)}
-          onDeleted={(deletedAssetUid: string) => {
-            customViewStore.handleAssetsDeleted([deletedAssetUid])
-            setIsDeletePromptOpen(false)
-          }}
-        />
-      )}
+      {deleteAssetPrompt}
     </div>
   )
 }

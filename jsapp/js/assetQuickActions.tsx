@@ -7,13 +7,11 @@
  * quarter of 2024 AKA The Far Future With Flying Cars :fingers_crossed:).
  */
 
-import React, { useState } from 'react'
+import React from 'react'
 
 import alertify from 'alertifyjs'
 import escape from 'lodash.escape'
 import toast from 'react-hot-toast'
-import Checkbox from '#/components/common/checkbox'
-import KoboPrompt from '#/components/modals/koboPrompt'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import pageState from '#/pageState.store'
 import sessionStore from '#/stores/session'
@@ -28,7 +26,7 @@ import { openFormLanguagesModal } from './project/FormLanguagesManager'
 import { router } from './router/legacy'
 import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
-import { notify, renderCheckbox } from './utils'
+import { notify } from './utils'
 
 export function openInFormBuilder(uid: string) {
   if (isAnyLibraryRoute()) {
@@ -40,184 +38,25 @@ export function openInFormBuilder(uid: string) {
 
 export function deleteAsset(
   asset: AssetResponse | ProjectViewAsset,
-  name: string,
+  _name: string,
   callback?: (deletedAssetUid: string) => void,
+  onFail?: () => void,
 ) {
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
 
-  const safeName = escape(name)
-
-  const dialog = alertify.dialog('confirm')
-  const deployed = asset.has_deployment
-  let msg
-  let onshow
-  const onok = () => {
-    actions.resources.deleteAsset(
-      { uid: asset.uid, assetType: asset.asset_type },
-      {
-        onComplete: () => {
-          notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
-          if (typeof callback === 'function') {
-            callback(asset.uid)
-          }
-        },
+  actions.resources.deleteAsset(
+    { uid: asset.uid, assetType: asset.asset_type },
+    {
+      onComplete: () => {
+        notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
+        if (typeof callback === 'function') {
+          callback(asset.uid)
+        }
       },
-    )
-  }
-
-  if (deployed) {
-    msg = `${t('You are about to permanently delete this form.')}`
-    if (asset.deployment__submission_count !== 0) {
-      msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`
-    }
-    msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}`
-    msg += `${renderCheckbox(
-      'dt3',
-      t('I understand that if I delete this project I will not be able to recover it.'),
-      true,
-    )}`
-
-    onshow = () => {
-      const okBtn = dialog.elements.buttons.primary.firstChild as HTMLElement
-      const $els = $('.alertify-toggle input')
-
-      okBtn.setAttribute('disabled', 'true')
-      $els.each(function () {
-        $(this).prop('checked', false)
-      })
-
-      $els.change(() => {
-        okBtn.removeAttribute('disabled')
-        $els.each(function () {
-          if (!$(this).prop('checked')) {
-            okBtn.setAttribute('disabled', 'true')
-          }
-        })
-      })
-    }
-  } else if (asset.asset_type !== ASSET_TYPES.survey.id) {
-    msg = t('You are about to permanently delete this item from your library.')
-  } else {
-    msg = t('You are about to permanently delete this draft.')
-  }
-  const opts = {
-    title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
-    message: msg,
-    labels: {
-      ok: t('Delete'),
-      cancel: t('Cancel'),
-    },
-    onshow: onshow,
-    onok: onok,
-    oncancel: () => {
-      dialog.destroy()
-      $('.alertify-toggle input').prop('checked', false)
-    },
-  }
-  dialog.set(opts).show()
-}
-
-interface DeleteAssetPromptProps {
-  asset: AssetResponse | ProjectViewAsset
-  name: string
-  isOpen: boolean
-  onRequestClose: () => void
-  onDeleted?: (deletedAssetUid: string) => void
-}
-
-export function DeleteAssetPrompt(props: DeleteAssetPromptProps) {
-  const assetTypeLabel = ASSET_TYPES[props.asset.asset_type].label
-  const [isDataChecked, setIsDataChecked] = useState(false)
-  const [isFormChecked, setIsFormChecked] = useState(false)
-  const [isRecoverChecked, setIsRecoverChecked] = useState(false)
-  const [isConfirmDeletePending, setIsConfirmDeletePending] = useState(false)
-
-  function onConfirmDelete() {
-    setIsConfirmDeletePending(true)
-
-    actions.resources.deleteAsset(
-      { uid: props.asset.uid, assetType: props.asset.asset_type },
-      {
-        onComplete: () => {
-          notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
-          if (typeof props.onDeleted === 'function') {
-            props.onDeleted(props.asset.uid)
-          }
-        },
+      onFail: () => {
+        onFail?.()
       },
-    )
-  }
-
-  const isDeployed = props.asset.has_deployment
-  const shouldConfirmDataDeletion = isDeployed && props.asset.deployment__submission_count !== 0
-  const shouldRequireConfirmation = isDeployed
-  const isConfirmDisabled =
-    shouldRequireConfirmation && ((shouldConfirmDataDeletion && !isDataChecked) || !isFormChecked || !isRecoverChecked)
-
-  let promptContent: React.ReactNode
-
-  if (isDeployed) {
-    promptContent = (
-      <>
-        <p>{t('You are about to permanently delete this form.')}</p>
-
-        {shouldConfirmDataDeletion && (
-          <Checkbox
-            checked={isDataChecked}
-            onChange={setIsDataChecked}
-            label={t('All data gathered for this form will be deleted.')}
-          />
-        )}
-
-        <Checkbox
-          checked={isFormChecked}
-          onChange={setIsFormChecked}
-          label={t('The form associated with this project will be deleted.')}
-        />
-
-        <strong>
-          <Checkbox
-            checked={isRecoverChecked}
-            onChange={setIsRecoverChecked}
-            label={t('I understand that if I delete this project I will not be able to recover it.')}
-          />
-        </strong>
-      </>
-    )
-  } else if (props.asset.asset_type !== ASSET_TYPES.survey.id) {
-    promptContent = <p>{t('You are about to permanently delete this item from your library.')}</p>
-  } else {
-    promptContent = <p>{t('You are about to permanently delete this draft.')}</p>
-  }
-
-  return (
-    <KoboPrompt
-      isOpen={props.isOpen}
-      onRequestClose={props.onRequestClose}
-      isDismissableByDefaultMeans={!isConfirmDeletePending}
-      title={t('Delete ##ASSET_TYPE## "##NAME##"')
-        .replace('##ASSET_TYPE##', assetTypeLabel)
-        .replace('##NAME##', props.name)}
-      titleIcon='trash'
-      titleIconColor='mid-red'
-      buttons={[
-        {
-          type: 'secondary',
-          label: t('Cancel'),
-          onClick: props.onRequestClose,
-          isDisabled: isConfirmDeletePending,
-        },
-        {
-          type: 'danger',
-          label: t('Delete'),
-          onClick: onConfirmDelete,
-          isDisabled: isConfirmDisabled,
-          isPending: isConfirmDeletePending,
-        },
-      ]}
-    >
-      {promptContent}
-    </KoboPrompt>
+    },
   )
 }
 

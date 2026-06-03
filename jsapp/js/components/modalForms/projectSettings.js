@@ -9,7 +9,7 @@ import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
-import { archiveAsset, deleteAsset, unarchiveAsset } from '#/assetQuickActions'
+import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -26,6 +26,7 @@ import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH, PROJECT_SETTINGS_C
 import { dataInterface } from '#/dataInterface'
 import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import envStore from '#/envStore'
+import { DeleteAssetPromptHookBridge } from '#/hooks/useDeleteAssetPrompt.hook'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { router, withRouter } from '#/router/legacy'
@@ -299,7 +300,11 @@ class ProjectSettings extends React.Component {
   deleteProject(evt) {
     evt.preventDefault()
 
-    deleteAsset(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
+    this.openDeleteAssetPrompt?.(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
+  }
+
+  onDeleteAssetPromptReady(openDeleteAssetPrompt) {
+    this.openDeleteAssetPrompt = openDeleteAssetPrompt
   }
 
   // archive flow
@@ -1138,20 +1143,33 @@ class ProjectSettings extends React.Component {
       )
     }
 
+    let content
     switch (this.state.currentStep) {
       case this.STEPS.FORM_SOURCE:
-        return this.renderStepFormSource()
+        content = this.renderStepFormSource()
+        break
       case this.STEPS.CHOOSE_TEMPLATE:
-        return this.renderStepChooseTemplate()
+        content = this.renderStepChooseTemplate()
+        break
       case this.STEPS.UPLOAD_FILE:
-        return this.renderStepUploadFile()
+        content = this.renderStepUploadFile()
+        break
       case this.STEPS.IMPORT_URL:
-        return this.renderStepImportUrl()
+        content = this.renderStepImportUrl()
+        break
       case this.STEPS.PROJECT_DETAILS:
-        return this.renderStepProjectDetails()
+        content = this.renderStepProjectDetails()
+        break
       default:
         throw new Error(`Unknown step: ${this.state.currentStep}!`)
     }
+
+    return (
+      <>
+        {content}
+        <DeleteAssetPromptHookBridge onReady={this.onDeleteAssetPromptReady} />
+      </>
+    )
   }
 }
 
