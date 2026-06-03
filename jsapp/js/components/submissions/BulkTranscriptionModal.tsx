@@ -124,7 +124,7 @@ function BulkTranscriptionModalWrapper(props: BulkTranscriptionModalProps) {
         modalId: props.modalId,
         title: t('Some audio files already transcribed'),
       })
-    } else if (!hasExistingTranscriptions && props.modalId) {
+    } else if (props.modalId) {
       modals.updateModal({
         modalId: props.modalId,
         title: t('Transcribe selected audio files'),
