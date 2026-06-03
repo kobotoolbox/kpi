@@ -40,7 +40,6 @@ interface BulkTranscriptionModalProps {
 type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
 
 export default function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
-  // We need a modalId in order to update the title later
   const modalId = 'bulk-transcription'
 
   modals.open({
