@@ -520,6 +520,15 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 update_fields.append('cancelled_by')
             locked.save(update_fields=update_fields)
 
+            # Schedule the history log sync inside the atomic block so
+            # that transaction.on_commit() defers it until after the DB
+            # commit. Outside the block there is no open transaction,
+            # causing on_commit to fire synchronously and add latency to
+            # the cancel response.
+            from .audit import sync_bulk_action_history_log
+
+            sync_bulk_action_history_log(locked)
+
         for item in in_progress_items:
             try:
                 item.cancel_external_operation()
@@ -530,10 +539,6 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 )
 
         self.refresh_from_db()
-
-        from .audit import sync_bulk_action_history_log
-
-        sync_bulk_action_history_log(self)
         return self
 
     def _schedule_batch_tasks(self) -> None:

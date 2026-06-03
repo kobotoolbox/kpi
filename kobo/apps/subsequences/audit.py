@@ -53,7 +53,6 @@ def _sync_bulk_action_history_log(bulk_action_uid: str) -> None:
     try:
         bulk_action = (
             SubsequenceBulkAction.objects.select_related('asset', 'asset__owner')
-            .prefetch_related('items')
             .get(pk=bulk_action_uid)
         )
         history_log = (
