@@ -151,6 +151,108 @@ class ScimUsersAPITests(APITestCase):
         )
         self.assertIsNotNone(social_account)
 
+    def test_create_user_unique_username_generator(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # User 1 provisions with username 'johndoe' and externalId 'john1'
+        payload1 = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'johndoe',
+            'externalId': 'john1',
+            'emails': [{'primary': True, 'value': 'john1@example.com'}],
+            'active': True,
+        }
+        resp1 = self.client.post(
+            self.url, payload1, format='json', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(resp1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp1.json()['userName'], 'johndoe')
+
+        # User 2 (different email/externalId) provisions
+        # with the same username 'johndoe'
+        payload2 = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'johndoe',
+            'externalId': 'john2',
+            'emails': [{'primary': True, 'value': 'john2@example.com'}],
+            'active': True,
+        }
+        resp2 = self.client.post(
+            self.url, payload2, format='json', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(resp2.status_code, status.HTTP_201_CREATED)
+
+        # It should generate a unique username by appending the IdP slug
+        self.assertEqual(resp2.json()['userName'], f'johndoe_{self.idp.slug}')
+
+        # User 3 (another different email/externalId) provisions
+        # with the same username 'johndoe'
+        payload3 = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'johndoe',
+            'externalId': 'john3',
+            'emails': [{'primary': True, 'value': 'john3@example.com'}],
+            'active': True,
+        }
+        resp3 = self.client.post(
+            self.url, payload3, format='json', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(resp3.status_code, status.HTTP_201_CREATED)
+
+        # It should append a number since the {username}_{idp_slug} is also taken
+        self.assertEqual(resp3.json()['userName'], f'johndoe_{self.idp.slug}_1')
+
+    def test_create_user_unique_username_different_idps(self):
+        # Create a second IdP
+        social_app_2 = SocialApp.objects.create(
+            provider='other_provider',
+            provider_id='other-provider-id',
+            name='Other Provider',
+            client_id='other-client-id',
+        )
+
+        idp_2 = IdentityProvider.objects.create(
+            name='Other IdP',
+            slug='other-idp',
+            scim_api_key='other-secret-token',
+            is_active=True,
+            social_app=social_app_2,
+        )
+        url_2 = reverse(
+            'api_v2:kobo_scim:scim-users-list',
+            kwargs={'idp_slug': idp_2.slug},
+        )
+
+        # Provision from IdP 1
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        payload1 = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'jane',
+            'emails': [{'primary': True, 'value': 'jane1@example.com'}],
+            'active': True,
+        }
+        resp1 = self.client.post(
+            self.url, payload1, format='json', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(resp1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp1.json()['userName'], 'jane')
+
+        # Provision from IdP 2 with the same username
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {idp_2.scim_api_key}')
+        payload2 = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'jane',
+            'emails': [{'primary': True, 'value': 'jane2@example.com'}],
+            'active': True,
+        }
+        resp2 = self.client.post(
+            url_2, payload2, format='json', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(resp2.status_code, status.HTTP_201_CREATED)
+
+        # It should generate a unique username by appending the second IdP slug
+        self.assertEqual(resp2.json()['userName'], f'jane_{idp_2.slug}')
+
     def test_create_user_existing_email_aborts_with_conflict(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
@@ -185,7 +287,7 @@ class ScimUsersAPITests(APITestCase):
         )
 
     def test_create_user_reactivates_existing_inactive_user(self):
-        # A previously de-provisioned user gets re-assigned to the Kobo App in Authentik
+        # A previously de-provisioned user gets re-assigned to the Kobo App
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         # User already exists and is deactivated

@@ -2,6 +2,7 @@ from constance import config
 from django.db import transaction
 
 from hub.models.extra_user_detail import ExtraUserDetail
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
@@ -29,10 +30,9 @@ def apply_scim_user_metadata(user, scim_data):
     updated_profile_fields = set()
     matched_any = False
 
-    extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
-    metadata = extra_user_detail.data or {}
-
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    extra_user_detail = None
+    metadata = {}
+    profile = None
 
     for field_def in metadata_fields:
         field_name = field_def.get('name')
@@ -90,6 +90,13 @@ def apply_scim_user_metadata(user, scim_data):
 
         matched_any = True
 
+        if extra_user_detail is None:
+            extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
+            metadata = extra_user_detail.data or {}
+
+        if profile is None:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+
         # Apply value mapping if defined
         value_mapping = field_def.get('scim_value_mapping')
         if isinstance(value_mapping, dict) and str(value) in value_mapping:
@@ -123,3 +130,29 @@ def apply_scim_user_metadata(user, scim_data):
                 profile.save(update_fields=list(updated_profile_fields))
 
     return matched_any
+
+
+def generate_unique_scim_username(base_username, idp_slug):
+    """
+    Generates a unique username for SCIM provisioning.
+    If the base_username is taken by another user, it appends the IdP slug.
+    If that is also taken, it appends an incremental number.
+    """
+    prefix = base_username.split('@')[0]
+
+    # Attempt 1: Base username
+    if not User.objects.filter(username__iexact=base_username).exists():
+        return base_username
+
+    # Attempt 2: {prefix}_{idp_slug}
+    base_with_suffix = f'{prefix}_{idp_slug}'
+    if not User.objects.filter(username__iexact=base_with_suffix).exists():
+        return base_with_suffix
+
+    # Attempt 3+: {prefix}_{idp_slug}_{counter}
+    counter = 1
+    while True:
+        username = f'{base_with_suffix}_{counter}'
+        if not User.objects.filter(username__iexact=username).exists():
+            return username
+        counter += 1

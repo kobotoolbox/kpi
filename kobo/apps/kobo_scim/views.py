@@ -27,14 +27,17 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
     SCIM_SCHEMA_USER,
 )
-from kobo.apps.kobo_scim.models import ScimGroup
+from kobo.apps.kobo_scim.models import IdentityProvider, ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
     ScimErrorSerializer,
 )
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
-from kobo.apps.kobo_scim.utils import apply_scim_user_metadata
+from kobo.apps.kobo_scim.utils import (
+    apply_scim_user_metadata,
+    generate_unique_scim_username,
+)
 
 
 def normalize_scim_patch_operations(operations):
@@ -203,6 +206,11 @@ class ScimUserViewSet(
 
         try:
             with transaction.atomic():
+                # Lock the IdentityProvider row to prevent concurrent provisioning
+                # race conditions for the same IdP
+
+                IdentityProvider.objects.select_for_update().get(pk=self.idp.pk)
+
                 # First, check if user exists via SocialAccount linkage
                 social_account = (
                     SocialAccount.objects.filter(provider=self.idp_provider_id, uid=uid)
@@ -212,7 +220,7 @@ class ScimUserViewSet(
 
                 user = social_account.user if social_account else None
 
-                # Fallback to username/email matching if not linked yet
+                # Fallback to email matching if not linked yet
                 if not user:
                     # The provisioning requirement is to abort if the incoming email
                     # already belongs to any Kobo account, unless the account is already
@@ -247,35 +255,12 @@ class ScimUserViewSet(
                             status=status.HTTP_409_CONFLICT,
                         )
 
-                    existing_username_user = User.objects.filter(
-                        username__iexact=username
-                    ).first()
-                    if existing_username_user:
-                        self._create_provisioning_audit_log(
-                            action=AuditAction.PROVISIONING_ERROR,
-                            email=email,
-                            username=username,
-                            status_code=status.HTTP_409_CONFLICT,
-                            error='username_already_exists',
-                            reason=(
-                                'SCIM provisioning aborted because the username '
-                                'already exists on a Kobo account'
-                            ),
-                        )
-                        return Response(
-                            {
-                                'schemas': [SCIM_SCHEMA_ERROR],
-                                'detail': (
-                                    'Username already exists on a Kobo account.'
-                                ),
-                                'status': '409',
-                            },
-                            status=status.HTTP_409_CONFLICT,
-                        )
-
                     # Create the user natively
+                    unique_username = generate_unique_scim_username(
+                        username, self.idp.slug
+                    )
                     user = User.objects.create_user(
-                        username=username,
+                        username=unique_username,
                         email=email,
                         first_name=first_name,
                         last_name=last_name,
