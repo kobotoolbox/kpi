@@ -255,32 +255,6 @@ class ScimUserViewSet(
                             status=status.HTTP_409_CONFLICT,
                         )
 
-                    existing_username_user = User.objects.filter(
-                        username__iexact=username
-                    ).first()
-                    if existing_username_user:
-                        self._create_provisioning_audit_log(
-                            action=AuditAction.PROVISIONING_ERROR,
-                            email=email,
-                            username=username,
-                            status_code=status.HTTP_409_CONFLICT,
-                            error='username_already_exists',
-                            reason=(
-                                'SCIM provisioning aborted because the username '
-                                'already exists on a Kobo account'
-                            ),
-                        )
-                        return Response(
-                            {
-                                'schemas': [SCIM_SCHEMA_ERROR],
-                                'detail': (
-                                    'Username already exists on a Kobo account.'
-                                ),
-                                'status': '409',
-                            },
-                            status=status.HTTP_409_CONFLICT,
-                        )
-
                     # Create the user natively
                     unique_username = generate_unique_scim_username(
                         username, self.idp.slug
