@@ -90,6 +90,7 @@ BulkActionSubmissionStatusResponse = inline_serializer_class(
     fields={
         'uuid': serializers.CharField(),
         'status': BulkActionSubmissionStatusField(),
+        'error': serializers.CharField(allow_null=True),
     },
 )
 

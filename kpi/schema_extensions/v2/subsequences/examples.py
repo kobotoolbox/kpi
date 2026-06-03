@@ -545,38 +545,48 @@ def _bulk_action_response_value(
     submission_uuids = [
         '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
         '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+        '5d4958d6-b2e8-4d4b-a51f-63f91b459e26',
     ]
     submission_statuses = [
         {
             'uuid': '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
             'status': 'complete',
+            'error': None,
         },
         {
             'uuid': '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
             'status': 'in_progress',
+            'error': None,
+        },
+        {
+            'uuid': '5d4958d6-b2e8-4d4b-a51f-63f91b459e26',
+            'status': 'failed',
+            'error': 'Google quota exceeded',
         },
     ]
     status = 'in_progress'
-    progress = 50
+    progress = 66
     cancelled_by = None
 
     if cancelled:
         status = 'cancelled'
         progress = 100
         cancelled_by = {'username': 'someuser'}
-        submission_uuids.append('5d4958d6-b2e8-4d4b-a51f-63f91b459e26')
         submission_statuses = [
             {
                 'uuid': '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
                 'status': 'complete',
+                'error': None,
             },
             {
                 'uuid': '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
                 'status': 'cancelled',
+                'error': None,
             },
             {
                 'uuid': '5d4958d6-b2e8-4d4b-a51f-63f91b459e26',
-                'status': 'cancelled',
+                'status': 'failed',
+                'error': 'Google quota exceeded',
             },
         ]
 
