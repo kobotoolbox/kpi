@@ -10,6 +10,7 @@ class AuditAction(models.TextChoices):
     ALLOW_ANONYMOUS_SUBMISSIONS = 'allow-anonymous-submissions'
     ARCHIVE = 'archive'
     AUTH = 'auth'
+    BULK_PROCESSING = 'bulk-processing'
     CLONE_PERMISSIONS = 'clone-permissions'
     CONNECT_PROJECT = 'connect-project'
     CREATE = 'create'

@@ -3,7 +3,7 @@ import json
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 from kpi.utils.log import logging
 
@@ -312,6 +312,9 @@ class BulkActionItemStatus(models.TextChoices):
 
 PENDING_OPERATION_MARKER = 'pending'
 
+BULK_ACTION_TYPE_TRANSCRIPTION = 'transcription'
+BULK_ACTION_TYPE_TRANSLATION = 'translation'
+
 
 class SubsequenceBulkAction(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='sba', primary_key=True)
@@ -527,6 +530,10 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 )
 
         self.refresh_from_db()
+
+        from .audit import sync_bulk_action_history_log
+
+        sync_bulk_action_history_log(self)
         return self
 
     def _schedule_batch_tasks(self) -> None:
@@ -581,6 +588,70 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         if not max_jobs_per_minute:
             return 0
         return 60 / max_jobs_per_minute
+
+    def get_item_status_counts(self) -> dict[str, int]:
+        """
+        Return item counts grouped for bulk-processing activity log metadata
+        """
+        counts = self.items.aggregate(
+            total=Count('pk'),
+            pending=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.PENDING),
+            ),
+            in_progress=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.IN_PROGRESS),
+            ),
+            completed=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.COMPLETE),
+            ),
+            failed=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.FAILED),
+            ),
+            cancelled=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.CANCELLED),
+            ),
+        )
+        return {key: value or 0 for key, value in counts.items()}
+
+    def get_bulk_action_type(self) -> str:
+        if self.action_id == Action.AUTOMATIC_GOOGLE_TRANSCRIPTION:
+            return BULK_ACTION_TYPE_TRANSCRIPTION
+        if self.action_id == Action.AUTOMATIC_GOOGLE_TRANSLATION:
+            return BULK_ACTION_TYPE_TRANSLATION
+        return self.action_id
+
+    def get_history_log_metadata(self) -> dict:
+        """
+        Build the bulk-specific metadata embedded in project history logs
+
+        `processed_count` follows the product requirement: successful, failed,
+        and cancelled submissions are no longer active.
+        """
+        counts = self.get_item_status_counts()
+        processed_count = (
+            counts['completed'] + counts['failed'] + counts['cancelled']
+        )
+        bulk_action_type = self.get_bulk_action_type()
+        return {
+            'uid': self.uid,
+            'action_id': self.action_id,
+            'type': bulk_action_type,
+            'status': self.status,
+            'question_xpath': self.question_xpath,
+            'params': self.params,
+            'created_by': self.created_by,
+            'cancelled_by': self.cancelled_by,
+            'total_count': counts['total'],
+            'processed_count': processed_count,
+            'completed_count': counts['completed'],
+            'failed_count': counts['failed'],
+            'cancelled_count': counts['cancelled'],
+        }
 
 
 class SubsequenceBulkActionItem(AbstractTimeStampedModel):

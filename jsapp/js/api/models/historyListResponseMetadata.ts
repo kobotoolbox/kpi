@@ -1,4 +1,5 @@
 import type { HistoryListResponseMetadataAssetFiles } from './historyListResponseMetadataAssetFiles'
+import type { HistoryListResponseMetadataBulkAction } from './historyListResponseMetadataBulkAction'
 import type { HistoryListResponseMetadataHook } from './historyListResponseMetadataHook'
 import type { HistoryListResponseMetadataName } from './historyListResponseMetadataName'
 import type { HistoryListResponseMetadataPermissions } from './historyListResponseMetadataPermissions'
@@ -30,6 +31,7 @@ export type HistoryListResponseMetadata = {
   latest_deployed_version_uid?: string
   submission?: HistoryListResponseMetadataSubmission
   hook?: HistoryListResponseMetadataHook
+  bulk_action?: HistoryListResponseMetadataBulkAction
   name?: HistoryListResponseMetadataName
   shared_fields?: HistoryListResponseMetadataSharedFields
 }
