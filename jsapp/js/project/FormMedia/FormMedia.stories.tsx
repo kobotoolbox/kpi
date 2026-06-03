@@ -62,9 +62,11 @@ export const BasicFlow: Story = {
       await userEvent.click(canvas.getByRole('button', { name: 'Add' }))
 
       await waitFor(async () => {
-        // One seeded link + one newly created link.
-        const fileLinks = canvas.getAllByRole('link')
-        await expect(fileLinks.length).toBe(2)
+        // Count media rows via their delete buttons to avoid matching unrelated
+        // links (for example helper links rendered elsewhere in the component).
+        // One seeded item + one newly added item = 2 delete buttons.
+        const deleteButtons = canvas.getAllByRole('button', { name: 'Delete file' })
+        await expect(deleteButtons.length).toBe(2)
       })
     })
 
