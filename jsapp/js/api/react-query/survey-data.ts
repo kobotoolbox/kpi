@@ -558,8 +558,28 @@ export const useAssetsAdvancedFeaturesPartialUpdate = <
 /**
  * ## List bulk processing jobs on an asset
 
-Returns all bulk processing jobs associated with the specified asset. Each job
-is organized around one question and many submissions.
+Returns paginated bulk processing jobs associated with the specified asset. Each
+job is organized around one action, one question, and many submissions.
+
+Use this endpoint to monitor recently-created bulk transcription and translation
+jobs. Each result includes the parent job status, per-submission statuses, the
+original deterministic params, the user who created the job, cancellation
+metadata, and integer `progress` from `0` to `100`.
+
+Job statuses:
+
+* `pending`: the job exists but has not started.
+* `in_progress`: one or more child submissions are still active.
+* `complete`: every child submission has reached a terminal state.
+* `cancelled`: the job was cancelled.
+
+Child submission statuses:
+
+* `pending`
+* `in_progress`
+* `complete`
+* `failed`
+* `cancelled`
 
  */
 export type assetsAdvancedFeaturesBulkActionsListResponse200 = {
@@ -673,8 +693,25 @@ export function useAssetsAdvancedFeaturesBulkActionsList<
 /**
  * ## Create a bulk processing job
 
-Creates a placeholder bulk transcription or bulk translation job for a single
-question across multiple submissions.
+Creates and starts a bulk processing job for one question across multiple
+submissions.
+
+Supported actions:
+
+* `automatic_google_transcription`
+* `automatic_google_translation`
+
+The request must include the target `question_xpath`, the submission root UUIDs
+to process, and deterministic `params`. `params.language` is required. For
+transcription, `params.locale` may also be supplied when a more specific Google
+Speech locale is needed.
+
+Creation is atomic. If any selected submission is unknown, already has matching
+results, or already has an active matching bulk action, no job or child items are
+created.
+
+The response is the created job. Its initial status is `in_progress` because
+creation immediately starts background processing.
 
  */
 export type assetsAdvancedFeaturesBulkActionsCreateResponse201 = {
@@ -784,10 +821,11 @@ export const useAssetsAdvancedFeaturesBulkActionsCreate = <
  * ## Retrieve a bulk processing job
 
 Returns detailed information about a single bulk processing job, including its
-current status and processing metadata.
+current status, per-submission status, processing params, creator, cancellation
+metadata, timestamps, and integer `progress` from `0` to `100`.
 
 The response shape is identical to the item returned by the bulk job creation
-endpoint.
+endpoint and to each item in the paginated list response.
 
  */
 export type assetsAdvancedFeaturesBulkActionsRetrieveResponse200 = {
@@ -884,11 +922,23 @@ export function useAssetsAdvancedFeaturesBulkActionsRetrieve<
 /**
  * ## Update a bulk processing job
 
-Cancels a single bulk processing job for an asset.
+Cancels a single bulk processing job for an asset. This endpoint currently only
+supports cancellation.
 
-The `PATCH` endpoint is used for bulk action cancellation.
+Request body:
 
-The request body sets the job status to `cancelled`.
+```json
+{
+  "status": "cancelled"
+}
+```
+
+Cancellation is idempotent. Cancelling an already-cancelled job returns the
+current cancelled job. Completed jobs cannot be cancelled.
+
+When a job is cancelled, pending and in-progress child items are marked
+`cancelled`; terminal child items are not modified. The response is the updated
+job, including `cancelled_by`.
 
  */
 export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse200 = {
