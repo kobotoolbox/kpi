@@ -22,21 +22,21 @@ class TranscriptionServiceTestCase(BaseTestCase):
 
         self.assertEqual(config.language_code, 'en-US')
         self.assertEqual(config.location_code, 'us-central1')
-        self.assertEqual(config.model_code, 'latest_long')
+        self.assertEqual(config.model_code, 'chirp')
 
     def test_get_configuration_from_language_code_uses_default_locale(self):
         config = self.asr_service.get_configuration('en')
 
         self.assertEqual(config.language_code, 'en-US')
         self.assertEqual(config.location_code, 'us-central1')
-        self.assertEqual(config.model_code, 'latest_long')
+        self.assertEqual(config.model_code, 'chirp')
 
     def test_get_configuration_with_mapping_code(self):
         config = self.asr_service.get_configuration('he-IL')
 
         self.assertEqual(config.language_code, 'iw-IL')
-        self.assertEqual(config.location_code, 'me-west1')
-        self.assertEqual(config.model_code, 'latest_long')
+        self.assertEqual(config.location_code, 'asia-southeast1')
+        self.assertEqual(config.model_code, 'chirp')
 
     def test_get_configuration_not_supported_language(self):
         with pytest.raises(LanguageNotSupported):
