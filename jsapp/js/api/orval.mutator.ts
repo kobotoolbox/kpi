@@ -29,6 +29,9 @@ interface FetchWithAuthConfig extends RequestInit {
 export const fetchWithAuth = async <T>(url: string, config: FetchWithAuthConfig): Promise<T> => {
   // Need to support old token (64 characters - prior to Django 4.1) and new token (32 characters).
   const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/)
+  // For multipart requests, browser must set Content-Type (including boundary) automatically.
+  // If we force application/json here, uploads like /api/v2/imports/ break.
+  const hasFormDataBody = typeof FormData !== 'undefined' && config.body instanceof FormData
 
   // Request-time legacy lifecycle callbacks such as `started` must fire before
   // the fetch so they remain distinct from response-time `completed` callbacks.
@@ -40,7 +43,7 @@ export const fetchWithAuth = async <T>(url: string, config: FetchWithAuthConfig)
       ...config.headers,
       Accept: 'application/json',
       // Pass authentication data only when it's required.
-      ...(config.method !== 'GET' ? { 'Content-Type': 'application/json' } : null),
+      ...(config.method !== 'GET' && !hasFormDataBody ? { 'Content-Type': 'application/json' } : null),
       ...(config.method !== 'GET' && csrfCookie ? { 'X-CSRFToken': csrfCookie[1] } : null),
     },
   })

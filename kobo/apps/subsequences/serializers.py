@@ -1,5 +1,5 @@
 import jsonschema.exceptions
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
@@ -71,6 +71,7 @@ class BulkActionUserSerializer(serializers.Serializer):
 class BulkActionSubmissionStatusSerializer(serializers.Serializer):
     uuid = serializers.CharField(source='submission_root_uuid')
     status = serializers.CharField()
+    error = serializers.CharField(source='failure_error', allow_null=True)
 
 
 class BulkActionResponseSerializer(serializers.ModelSerializer):
@@ -89,6 +90,7 @@ class BulkActionResponseSerializer(serializers.ModelSerializer):
             'submission_uuids',
             'submission_statuses',
             'params',
+            'progress',
             'created_by',
             'date_created',
             'date_modified',
@@ -314,18 +316,64 @@ class BulkActionCreateSerializer(serializers.Serializer):
         asset = self.context['asset']
         request = self.context['request']
         try:
-            return SubsequenceBulkAction.create_with_items(
-                asset=asset,
-                action_id=validated_data['action_id'],
-                question_xpath=validated_data['question_xpath'],
-                params=validated_data['params'],
-                created_by=request.user.username,
-                submission_root_uuids=validated_data['submission_uuids'],
-            )
+            with transaction.atomic():
+                self._ensure_question_advanced_feature(
+                    asset=asset,
+                    action_id=validated_data['action_id'],
+                    question_xpath=validated_data['question_xpath'],
+                    params=validated_data['params'],
+                )
+                bulk_action = SubsequenceBulkAction.create_with_items(
+                    asset=asset,
+                    action_id=validated_data['action_id'],
+                    question_xpath=validated_data['question_xpath'],
+                    params=validated_data['params'],
+                    created_by=request.user.username,
+                    submission_root_uuids=validated_data['submission_uuids'],
+                )
+                bulk_action.start_batch()
+            return bulk_action
         except IntegrityError as err:
             raise serializers.ValidationError(
                 'One or more submissions already have an active matching bulk action.'
             ) from err
+
+    def _ensure_question_advanced_feature(
+        self,
+        *,
+        asset,
+        action_id: str,
+        question_xpath: str,
+        params: dict,
+    ) -> None:
+        """
+        Ensure bulk execution can reuse the normal single-submission flow
+
+        SubmissionSupplement.revise_data() only runs actions that are enabled
+        as QuestionAdvancedFeature rows, so the bulk endpoint creates or updates
+        that configuration before scheduling item jobs.
+        """
+        feature_params = self._get_question_advanced_feature_params(params)
+        feature, created = QuestionAdvancedFeature.objects.get_or_create(
+            asset=asset,
+            question_xpath=question_xpath,
+            action=action_id,
+            defaults={'params': feature_params},
+        )
+        if created:
+            return
+
+        action = feature.to_action()
+        action.update_params(feature_params)
+        if action.params != feature.params:
+            feature.params = action.params
+            feature.save(update_fields=['params'])
+
+    def _get_question_advanced_feature_params(self, params: dict) -> list[dict]:
+        language = params.get('language')
+        if not language:
+            return []
+        return [{'language': language}]
 
 
 class BulkActionCancelSerializer(serializers.ModelSerializer):
