@@ -3,7 +3,11 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from ..models.language import Language, LanguageRegion
-from ..schema_extensions.v2.languages.fields import LanguageUrlField, ServicesField
+from ..schema_extensions.v2.languages.fields import (
+    LanguageUrlField,
+    ServicesDetailField,
+    ServicesField
+)
 from .transcription import (
     TranscriptionServiceLanguageM2MSerializer,
     TranscriptionServiceSerializer,
@@ -46,7 +50,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             'regions',
         )
 
-    @extend_schema_field(ServicesField)
+    @extend_schema_field(ServicesDetailField)
     def get_transcription_services(self, language):
         return TranscriptionServiceLanguageM2MSerializer(
             language.transcription_services.through.objects.select_related(
@@ -55,7 +59,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             many=True,
         ).data
 
-    @extend_schema_field(ServicesField)
+    @extend_schema_field(ServicesDetailField)
     def get_translation_services(self, language):
         return TranslationServiceLanguageM2MSerializer(
             language.translation_services.through.objects.select_related(

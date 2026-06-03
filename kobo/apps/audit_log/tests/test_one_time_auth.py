@@ -13,6 +13,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models import AuthorizedApplication
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
 @ddt
@@ -20,6 +21,7 @@ class TestOneTimeAuthentication(BaseTestCase):
     """
     Tests for creating AuditLogs for one-time authentication methods
     """
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     @classmethod
     def setUpClass(cls):

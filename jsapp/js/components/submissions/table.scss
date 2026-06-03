@@ -24,12 +24,6 @@ $s-data-table-font: 13px;
   display: flex;
   flex-direction: column;
 
-  .form-view__item--banner-container :first-child {
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-
   .form-view__group--table-header {
     padding: 15px 0 5px;
     display: flex;
@@ -139,22 +133,6 @@ $s-data-table-font: 13px;
         white-space: initial;
         text-overflow: initial;
         overflow: initial;
-      }
-
-      .table-filter-input {
-        width: 100%;
-        border: 0;
-        background: colors.$kobo-white;
-        border-radius: 3px;
-        height: 28px;
-        min-height: 28px;
-        vertical-align: top;
-        display: inline-block;
-        font-size: 12px;
-
-        &::placeholder {
-          color: colors.$kobo-gray-600;
-        }
       }
 
       select {

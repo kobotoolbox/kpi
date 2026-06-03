@@ -51,6 +51,19 @@ def test_valid_user_data_passes_validation():
         action.validate_data(data)
 
 
+def test_valid_user_data_accepts_bulk_action_uid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomaticGoogleTranslationAction(xpath, params)
+
+    action.validate_data(
+        {
+            'language': 'fr',
+            'bulk_action_uid': 'bulk-action-uid',
+        }
+    )
+
+
 def test_valid_automatic_translation_data_passes_validation():
     action = _get_action()
 
@@ -81,6 +94,21 @@ def test_valid_automatic_translation_data_passes_validation():
 
     for data in allowed_data:
         action.validate_external_data(data)
+
+
+def test_valid_automatic_translation_data_accepts_bulk_action_uid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomaticGoogleTranslationAction(xpath, params)
+
+    action.validate_external_data(
+        {
+            'language': 'fr',
+            'status': 'complete',
+            'value': 'Bonjour',
+            'bulk_action_uid': 'bulk-action-uid',
+        }
+    )
 
 
 def test_invalid_user_data_fails_validation():
@@ -180,6 +208,107 @@ def test_valid_result_passes_validation():
     assert mock_sup_det['fr']['_versions'][0]['_data']['status'] == 'deleted'
     assert mock_sup_det['es']['_versions'][1]['_data']['status'] == 'complete'
     assert mock_sup_det['fr']['_versions'][-1]['_data']['status'] == 'complete'
+
+
+def test_result_schema_accepts_bulk_action_uid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+
+    dependencies = {
+        'question_supplemental_data': {
+            'automatic_google_transcription': {
+                '_versions': [
+                    {
+                        '_data': {
+                            'value': 'Hello world',
+                            'language': 'en',
+                            'status': 'complete',
+                        },
+                        '_dateAccepted': '2026-01-01T00:00:00Z',
+                        '_uuid': '12345678-1234-5678-1234-567812345678',
+                    }
+                ]
+            }
+        }
+    }
+
+    action = AutomaticGoogleTranslationAction(
+        xpath,
+        params,
+        prefetched_dependencies=dependencies,
+    )
+
+    mock_service = MagicMock()
+
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_translation'
+        '.GoogleTranslationService'
+    )
+
+    with patch(service_path, return_value=mock_service):
+        mock_service.process_data.return_value = {
+            'value': 'Bonjour',
+            'status': 'complete',
+        }
+
+        mock_sup_det = action.revise_data(
+            EMPTY_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {
+                'language': 'fr',
+                'bulk_action_uid': 'bulk-action-uid',
+            },
+        )
+
+    action.validate_result(mock_sup_det)
+
+    latest_version_data = mock_sup_det['fr']['_versions'][0]['_data']
+
+    assert latest_version_data['bulk_action_uid'] == 'bulk-action-uid'
+
+
+def test_run_external_process_passes_bulk_action_uid_to_service():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomaticGoogleTranslationAction(xpath, params)
+
+    mock_service = MagicMock()
+    mock_service.process_data.return_value = {
+        'value': 'Bonjour',
+        'status': 'complete',
+    }
+
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_translation'
+        '.GoogleTranslationService'
+    )
+    action_data = {
+        'language': 'fr',
+        'bulk_action_uid': 'bulk-action-uid',
+        action.DEPENDENCY_FIELD: {
+            'value': 'Hello',
+            'language': 'en',
+            action.UUID_FIELD: '12345678-1234-5678-1234-567812345678',
+            action.ACTION_ID_FIELD: 'automatic_google_transcription',
+        },
+    }
+
+    with patch(service_path, return_value=mock_service):
+        result = action.run_external_process(
+            EMPTY_SUBMISSION,
+            {},
+            action_data,
+        )
+
+    mock_service.process_data.assert_called_once_with(
+        xpath,
+        action_data,
+        bulk_action_uid='bulk-action-uid',
+    )
+    assert result == {
+        'value': 'Bonjour',
+        'status': 'complete',
+    }
 
 
 def test_acceptance_does_not_produce_versions():

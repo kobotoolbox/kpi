@@ -18,6 +18,7 @@ import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
+import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
 import styles from '#/components/modalForms/projectSettings.module.scss'
 import { userCan } from '#/components/permissions/utils'
 import TemplatesList from '#/components/templatesList'
@@ -31,73 +32,9 @@ import { router, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
-import { currentLang, escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
-
-/**
- * Renders the appropriate input for a single extra metadata field based on its
- * type. Supported types are `single_select`, `multi_select`, and the default
- * plain-text input.
- */
-const ExtraMetadataField = ({ field, value, onChange, hasError }) => {
-  const label = envStore.data.getExtraFieldLabel(field, currentLang())
-
-  if (
-    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT ||
-    field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
-  ) {
-    const options = (field.options ?? []).map((opt) => ({
-      value: opt.name,
-      label: envStore.data.getExtraFieldLabel(opt, currentLang()),
-    }))
-
-    const isMulti = field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
-    const selectValue = isMulti
-      ? options.filter((opt) => (value ?? []).includes(opt.value))
-      : (options.find((opt) => opt.value === value) ?? null)
-
-    return (
-      <div className={styles.input}>
-        <WrappedSelect
-          label={addRequiredToLabel(label, field.required)}
-          isMulti={isMulti}
-          value={selectValue}
-          onChange={(val) => onChange(field.name, isMulti ? (val ?? []).map((o) => o.value) : (val?.value ?? null))}
-          options={options}
-          isLimitedHeight
-          isClearable
-          menuPlacement='auto'
-          error={hasError ? t('Please select an option') : false}
-        />
-      </div>
-    )
-  }
-
-  return (
-    <div className={styles.input}>
-      <TextBox
-        value={value}
-        onChange={(val) => onChange(field.name, val)}
-        label={addRequiredToLabel(label, field.required)}
-        placeholder={label}
-        errors={hasError ? t('This field is required') : false}
-      />
-    </div>
-  )
-}
-
-/** Renders all extra metadata fields configured in the environment store. */
-const ExtraMetadataFields = ({ values, onChange, hasFieldError }) =>
-  envStore.data.extra_project_metadata_fields.map((field) => (
-    <ExtraMetadataField
-      key={field.name}
-      field={field}
-      value={values[field.name]}
-      onChange={onChange}
-      hasError={hasFieldError(field.name)}
-    />
-  ))
 
 /**
  * This is used for multiple different purposes:
@@ -1085,10 +1022,11 @@ class ProjectSettings extends React.Component {
           )}
 
           {/* Extra Project Metadata */}
-          <ExtraMetadataFields
+          <ExtraProjectMetadataFields
             values={this.state.fields.extra_metadata_fields}
             onChange={this.onAnyFieldChange}
             hasFieldError={this.hasFieldError}
+            fieldClassName={styles.input}
           />
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||

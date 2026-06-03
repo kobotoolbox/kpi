@@ -1,6 +1,9 @@
+import '@mantine/core/styles.css'
+import '@mantine/dropzone/styles.css'
+import '../jsapp/js/fonts'
 import '../jsapp/scss/main.scss'
 import '#/bemComponents'
-import '@mantine/core/styles.css'
+import { FeatureFlag } from '../jsapp/js/featureFlags'
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
 import type { Preview } from '@storybook/react'
 import * as mswAddon from 'msw-storybook-addon'
@@ -18,6 +21,13 @@ const channel = addons.getChannel()
 
 // To make it possible for the code to know if running in the context of Storybook
 window.isStorybook = true
+
+// Patch sessionStorage for Storybook to always enable all feature flags
+const allFlags = Object.values(FeatureFlag).reduce((acc, flag) => {
+  acc[flag] = true
+  return acc
+}, {} as Record<string, boolean>)
+window.sessionStorage.setItem('feature_flags', JSON.stringify(allFlags))
 
 function ColorSchemeWrapper({ children }: { children: JSX.Element }) {
   const { setColorScheme } = useMantineColorScheme()

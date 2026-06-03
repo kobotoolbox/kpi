@@ -33,8 +33,20 @@ export interface UniversalTableColumn<DataItem> {
   /**
    * This is override for the default width of a column. Use it if you need more
    * space for your data, or if you display something very short.
+   *
+   * When `grow` is true, this acts as the column's minimum width and any spare
+   * horizontal space in the container is added on top of it.
    */
   size?: number
+  /**
+   * When `true`, the column expands to fill any spare horizontal space left in
+   * the table container. If multiple columns set `grow`, the extra space is
+   * shared between them equally. Pinned columns ignore this flag.
+   *
+   * The user can still resize a grow column with the column resizer; doing so
+   * sets a new base width and the column will keep flexing on top of it.
+   */
+  grow?: boolean
   /**
    * This is an optional formatter function that will be used when rendering
    * the cell value. Without it a literal text value will be rendered. For more
@@ -105,6 +117,9 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
   // We need table height for the resizers
   const [tableHeight, setTableHeight] = useState(0)
   const [hasHorizontalScrollbar, setHasHorizontalScrollbar] = useState(false)
+  // Width of the scrollable table container, used to flex `grow` columns into
+  // any spare horizontal space.
+  const [containerWidth, setContainerWidth] = useState(0)
   const tableRef = useRef<HTMLTableElement>(null)
   const tableContainerRef = useRef<HTMLTableElement>(null)
   const { width, height } = useViewportSize()
@@ -135,12 +150,21 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
     })
   }
 
+  function getEffectiveSize(column: Column<DataItem>): number {
+    const baseSize = column.getSize()
+    // Pinned columns keep their explicit width so left/right offsets stay sane.
+    if (column.getIsPinned()) return baseSize
+    const meta = growMetaByKey.get(column.id)
+    if (!meta?.grow || flexBonus <= 0) return baseSize
+    return baseSize + flexBonus
+  }
+
   function getCommonColumnStyles(column: Column<DataItem>): CSSProperties {
     const isPinned = column.getIsPinned()
     return {
       left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
       right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
-      width: `${column.getSize()}px`,
+      width: `${getEffectiveSize(column)}px`,
     }
   }
 
@@ -158,6 +182,10 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
       size: columnDef.size || DEFAULT_COLUMN_SIZE.size,
     }
   })
+
+  // Lookup of which columns flex, keyed by column id (i.e. the user-facing
+  // `key` we pass through as `accessorKey`).
+  const growMetaByKey = new Map(props.columns.map((columnDef) => [columnDef.key, { grow: Boolean(columnDef.grow) }]))
 
   // We define options as separate object to make the optional pagination truly
   // optional.
@@ -226,16 +254,38 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
   const currentPageString = String(table.getState().pagination.pageIndex + 1)
   const totalPagesString = String(table.getPageCount())
 
+  // Track container width with a ResizeObserver so flex columns react to
+  // wrapping/modal/sidebar changes, not just viewport resizes.
+  useEffect(() => {
+    const node = tableContainerRef.current
+    if (!node) return
+    setContainerWidth(node.offsetWidth)
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) setContainerWidth(entry.contentRect.width)
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  // How many non-pinned grow columns are eligible to share spare width.
+  const growCount = props.columns.filter((col) => col.grow && !col.isPinned).length
+  const totalColumnsSize = table.getTotalSize()
+  const flexBonus =
+    growCount > 0 && containerWidth > totalColumnsSize ? Math.floor((containerWidth - totalColumnsSize) / growCount) : 0
+  const tableWidth = totalColumnsSize + flexBonus * growCount
+
   // Calculate the total width of all columns and the width of container, to
   // guess if there is a horizontal scrollbar
   useEffect(() => {
     const columnsWidth = table.getTotalSize()
-    let containerWidth = Number.POSITIVE_INFINITY
+    let measuredContainerWidth = Number.POSITIVE_INFINITY
     if (tableContainerRef.current) {
-      containerWidth = tableContainerRef.current.offsetWidth
+      measuredContainerWidth = tableContainerRef.current.offsetWidth
     }
 
-    setHasHorizontalScrollbar(columnsWidth > containerWidth)
+    setHasHorizontalScrollbar(columnsWidth > measuredContainerWidth)
   }, [props, table, width, height])
 
   return (
@@ -259,7 +309,7 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
           </div>
         )}
 
-        <table className={styles.table} style={{ width: table.getTotalSize() }} ref={tableRef}>
+        <table className={styles.table} style={{ width: tableWidth }} ref={tableRef}>
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>

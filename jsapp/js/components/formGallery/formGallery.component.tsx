@@ -1,6 +1,6 @@
 import './formGallery.component.scss'
 
-import { Box, Center, Flex, Image, Modal } from '@mantine/core'
+import { Box, Center, Flex, Image } from '@mantine/core'
 import React, { useEffect, useMemo, useReducer } from 'react'
 import ReactSelect from 'react-select'
 import { fetchGet, fetchGetUrl } from '#/api'
@@ -10,6 +10,7 @@ import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import ModalNew from '../common/ModalNew'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 
@@ -210,13 +211,12 @@ export default function FormGallery(props: FormGalleryProps) {
         )}
       </bem.Gallery__wrapper>
       {currentAttachment && (
-        <Modal
+        <ModalNew
           opened={isModalOpen}
           onClose={closeModal}
           title={`Image ${currentModalImageIndex + 1} of ${totalSubmissions}`}
           size='lg'
           centered
-          overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
         >
           <Flex align='center' gap='md' p='sm'>
             {/* Previous button */}
@@ -253,7 +253,7 @@ export default function FormGallery(props: FormGalleryProps) {
               loading={isNextButtonLoading}
             />
           </Flex>
-        </Modal>
+        </ModalNew>
       )}
     </bem.Gallery>
   )

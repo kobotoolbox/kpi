@@ -143,7 +143,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
-    'kobo.apps.openrosa.apps.api',
     'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
@@ -805,7 +804,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
 
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
-CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'constance'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
@@ -1736,19 +1735,22 @@ if MASS_EMAILS_CONDENSE_SEND:
     }
 
 """ AWS configuration (email and storage) """
+# Only set explicit credentials if provided via environment variables.
+# boto3 will otherwise fall back to ~/.aws/credentials, instance profiles, etc.
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
-    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
-    AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
-    AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
-    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
-    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
-    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
-    # Only set the region if it is present in environment.
-    if region := env.str('AWS_S3_REGION_NAME', False):
-        AWS_S3_REGION_NAME = region
+AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
+AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
+AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
+AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
+
+AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+# Only set the region if it is present in the environment.
+if region := env.str('AWS_S3_REGION_NAME', False):
+    AWS_S3_REGION_NAME = region
 
 AWS_SES_CONFIGURATION_SET = env.str('AWS_SES_CONFIGURATION_SET', None)
 
@@ -2018,6 +2020,12 @@ CACHES = {
     'enketo_redis_main': env.cache_url(
         'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
     ),
+    # Isolated backend for Constance with a versioned key prefix to prevent
+    # cache format collisions between old and new workers during rolling deploys.
+    'constance': {
+        **env.cache_url(default='redis://change-me.invalid:6380/3'),
+        'KEY_PREFIX': 'constance_4x',
+    },
 }
 
 # How long to retain cached responses for kpi endpoints

@@ -95,6 +95,11 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert response.data['last_modified_by'] == response.data['owner__username']
         assert response.data['last_modified_by'] != 'anotheruser'
 
+    def test_created_by_field_not_assigned(self):
+        extra_data = {'created_by': 'anotheruser'}
+        response = self.create_asset(**extra_data)
+        assert response.data['created_by'] == 'someuser'
+
     def test_delete_asset(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
@@ -2007,6 +2012,16 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         assert response.data['last_modified_by'] == anotheruser.username
         assert self.asset.last_modified_by == anotheruser.username
 
+    def test_cannot_modify_created_by(self):
+        assert self.asset.created_by == self.asset.owner.username
+        payload = {'created_by': 'bob'}
+        self.client.force_login(self.asset.owner)
+        response = self.client.patch(self.asset_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert response.data['created_by'] == self.asset.owner.username
+        assert self.asset.created_by == self.asset.owner.username
+
     def test_analysis_form_json_with_nlp_actions(self):
         for action in [
             Action.MANUAL_TRANSLATION,
@@ -2868,6 +2883,8 @@ class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
 
 
 class TestAssetMetadataViewSet(BaseAssetTestCase):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
     # don't use test_data fixture here because we need control over how many assets
     # each user has and what they contain
     @classmethod

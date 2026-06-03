@@ -228,12 +228,12 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         download_submission_path = os.path.join(
             self.main_directory, 'fixtures', 'transportation',
             'view', 'downloadSubmission.xml')
+        attachment = instance.attachments.first()
         with open(download_submission_path, mode='r') as f:
             text = f.read()
             text = text.replace('{{submissionDate}}',
                                 instance.date_created.isoformat())
-            text = text.replace('{{xform_uuid}}',
-                                self.xform.uuid)
+            text = text.replace('{{attachment_uid}}', attachment.uid)
             self.assertContains(response, instance_id, status_code=200)
             self.assertMultiLineEqual(response.content.decode('utf-8'), text)
 

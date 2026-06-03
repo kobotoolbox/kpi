@@ -20,12 +20,12 @@ import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import PopoverMenu from '#/popoverMenu'
+import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -182,10 +182,7 @@ class FormLanding extends React.Component {
   }
   showLanguagesModal(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: this.state,
-    })
+    openFormLanguagesModal(this.state)
   }
   renderHistory() {
     return (

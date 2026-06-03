@@ -1,4 +1,4 @@
-# Endpoint removals as of release 2.026.__
+# Endpoint removals as of release 2.026.22
 
 ⚠️ As of 2026, the legacy `v1` API has been officially removed. To ensure your
 integrations continue to function, please follow our [migration guide](https://support.kobotoolbox.org/migrating_api.html)
@@ -93,12 +93,15 @@ URL Pattern | View Class or Function | View Name | KPI `v2` Endpoint
 `/assets/metadata/` | `kpi.views.v1.asset.AssetViewSet` | `asset-metadata` | `/api/v2/assets/metadata/`
 `/authorized_application/authenticate_user/` | `kpi.views.authorized_application_authenticate_user` | `authenticate_user` | `/api/v2/authorized_application/authenticate_user/`
 `/authorized_application/users/` | `kpi.views.v1.authorized_application_user.AuthorizedApplicationUserViewSet` | `authorized_applications-list` | `/api/v2/authorized_application/users/`
+`/environment/` | `kpi.views.environment.EnvironmentView` | `environment` | `/api/v2/environment/`
 `/exports/` | `kpi.views.v1.export_task.ExportTaskViewSet` | `submissionexporttask-list` | `/api/v2/assets/<parent_lookup_asset>/exports/`
 `/exports/<uid>/` | `kpi.views.v1.export_task.ExportTaskViewSet` | `submissionexporttask-detail` | `/api/v2/assets/<parent_lookup_asset>/exports/<uid>/`
 `/imports/` | `kpi.views.v1.import_task.ImportTaskViewSet` | `importtask-list` | `/api/v2/imports/`
 `/imports/<uid>/` | `kpi.views.v1.import_task.ImportTaskViewSet` | `importtask-detail` | `/api/v2/imports/<uid>/`
 `/permissions/` | `kpi.views.v1.object_permission.ObjectPermissionViewSet` | `objectpermission-list` | `/api/v2/assets/<parent_lookup_asset>/permission-assignments/`
 `/permissions/<uid>/` | `kpi.views.v1.object_permission.ObjectPermissionViewSet` | `objectpermission-detail` | `/api/v2/assets/<parent_lookup_asset>/permission-assignments/<uid>/`
+`/reports/` | `kobo.apps.reports.views.ReportsViewSet` | `reports-list` | N/A
+`/reports/<uid>/` | `kobo.apps.reports.views.ReportsViewSet` | `reports-detail` | `/api/v2/assets/<uid>/reports/`
 `/tags/` | `kpi.views.v1.tag.TagViewSet` | `tag-list` | `/api/v2/tags/`
 `/tags/<taguid__uid>/` | `kpi.views.v1.tag.TagViewSet` | `tag-detail` | `/api/v2/tags/<taguid__uid>/`
 `/users/` | `kpi.views.v1.user.UserViewSet` | `user-kpi-list` | `/api/v2/users/`
@@ -123,7 +126,7 @@ URL Pattern | View Class or Function | View Name
 
 The following `/api/v1/data` actions were removed in favour of using the
 OpenRosa classes within Python code in KPI. The remaining `/api/v1/data`
-endpoints were fully removed in release 2.026.__ (see above).
+endpoints were fully removed in release 2.026.22 (see above).
 
 URL Pattern | View Class or Function | Description
 -- | -- | --

@@ -164,7 +164,12 @@ class GoogleTranscriptionService(GoogleService):
         )
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
-    def process_data(self, xpath: str, params: dict) -> dict:
+    def process_data(
+        self,
+        xpath: str,
+        params: dict,
+        bulk_action_uid: str | None = None,
+    ) -> dict:
         """
         Start or resume a single-submission transcription request
 
@@ -193,7 +198,6 @@ class GoogleTranscriptionService(GoogleService):
             return {'status': 'failed', 'error': message}
 
         source_language = language_config.language_code
-        bulk_action_uid = params.get('bulk_action_uid')
         operation_name = self._get_operation_reference(
             xpath, source_language, bulk_action_uid
         )

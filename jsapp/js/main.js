@@ -10,22 +10,20 @@
  */
 import 'jquery-ui/ui/widgets/sortable'
 import '@mantine/core/styles.css'
+import '@mantine/dropzone/styles.css'
 // We import all the weights and styles we actually use here to avoid unnecessary weight (pun intended).
-import '@fontsource/roboto/400.css'
-import '@fontsource/roboto/400-italic.css'
-import '@fontsource/roboto/500.css'
-// Roboto doesn't have semibold (600) version. We do use 600 font weight a lot in our styles, but they all are rendered
-// as weight 700. To have true 600, we would need to switch to variable font Roboto Flex - but this would require more
-// refactor, and AFAIK would also not play nicely with Mantine which uses "Roboto" as default font and doesn't seem
-// ready for using a variable font.
-// import '@fontsource/roboto/600.css'
-import '@fontsource/roboto/700.css'
+import './fonts'
 import '../scss/main.scss'
 
 import $ from 'jquery'
 // jQuery v4 ESM no longer auto-populates window.$/window.jQuery
 // The xlform/Backbone layer reads these globals directly, so we must assign them.
 window.$ = window.jQuery = $
+// jQuery 4 removed $.isArray, $.isFunction, and $.trim. Polyfill for select2 3.x compatibility.
+// TODO: remove when select2 is replaced.
+$.isArray = Array.isArray
+$.isFunction = (value) => typeof value === 'function'
+$.trim = (value) => (value == null ? '' : (value + '').trim())
 import React from 'react'
 
 import * as Sentry from '@sentry/react'

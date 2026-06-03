@@ -7,10 +7,9 @@ import type { FileRejection } from 'react-dropzone'
 import bem from '#/bem'
 import AssetsTable from '#/components/assetsTable/assetsTable'
 import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
+import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
 import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
-import { MODAL_TYPES } from '#/constants'
 import { dropImportXLSForms } from '#/dropzone.utils'
-import pageState from '#/pageState.store'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { validFileTypes } from '#/utils'
 import myLibraryStore from './myLibraryStore'
@@ -69,12 +68,11 @@ export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreDa
    */
   onFileDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
     if (acceptedFiles.length === 1) {
-      pageState.switchModal({
-        type: MODAL_TYPES.LIBRARY_UPLOAD,
+      openLibraryUploadModal({
         file: acceptedFiles[0],
       })
     } else {
-      dropImportXLSForms(acceptedFiles, rejectedFiles)
+      dropImportXLSForms(acceptedFiles, rejectedFiles, { feedbackMode: 'toast' })
     }
   }
 

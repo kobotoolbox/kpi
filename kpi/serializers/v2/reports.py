@@ -1,4 +1,3 @@
-# coding: utf-8
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -34,10 +33,3 @@ class ReportsDetailSerializer(serializers.ModelSerializer):
             'count': len(_list),
             'list': _list,
         }
-
-
-class ReportListSerializer(ReportsDetailSerializer):
-
-    def to_representation(self, obj):
-        request = self.context['request']
-        return {'url': reverse('reports-detail', args=(obj.uid,), request=request)}

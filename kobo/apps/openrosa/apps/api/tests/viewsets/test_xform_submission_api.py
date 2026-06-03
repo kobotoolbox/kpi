@@ -71,15 +71,15 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             request = self.factory.post('/submission', data, format='json')
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
-            expected_queries = FuzzyInt(42, 47)
+            expected_queries = FuzzyInt(40, 45)
             # In stripe-enabled environments usage limit enforcement
             # requires additional queries
             # TODO: Constance adds three extra queries when checking
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                # But because of cache, sometimes goes down to 60
-                expected_queries = FuzzyInt(60, 90)
+                # But because of cache, sometimes goes down to 58
+                expected_queries = FuzzyInt(58, 90)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
