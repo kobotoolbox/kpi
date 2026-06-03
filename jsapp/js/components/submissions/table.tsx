@@ -409,13 +409,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       selectedSubmissionIds.includes(String(submission._id)),
     )
 
+    const selectedSubmissionUuids = selectedSubmissions.map((submission) => submission._uuid)
+
+    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
+    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
+
     openBulkTranscriptModal({
       fieldId,
       assetUid: this.props.asset.uid,
-      selectedSubmissions,
-      selectedRowsCount: this.state.selectAll ? this.state.resultsTotal : selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
-      totalRowsCount: this.state.resultsTotal,
+      selectedSubmissionUuids,
+      selectedRowsCount: selectedSubmissionIds.length,
+      showWarningModal: showWarningModal,
     })
   }
 
@@ -431,7 +435,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       assetUid: this.props.asset.uid,
       selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
     })
   }
 

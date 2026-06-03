@@ -1,56 +1,80 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { useQueries } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
-import {
-  assetsDataList,
-  getAssetsDataListQueryKey,
-  useAssetsAdvancedFeaturesBulkActionsCreate,
-} from '#/api/react-query/survey-data'
+import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
-import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import ButtonNew from '../common/ButtonNew'
-import LoadingSpinner from '../common/loadingSpinner'
 import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelectorField from '../languages/RegionSelectorField'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
-const SUBMISSIONS_PER_PAGE = 1000
 
 interface BulkTranscriptionModalProps {
   fieldId: string
   assetUid: string
-  selectedSubmissions: SubmissionResponse[]
+  selectedSubmissionUuids: string[]
   selectedRowsCount: number
-  selectedAllPages: boolean
-  totalRowsCount: number
+  showWarningModal: boolean
   onRequestClose: () => void
-  submissionsToUse?: SubmissionResponse[] // Already-fetched submissions from wrapper (when fetching all)
-  modalId?: string // ID of the modal so we can update its title
 }
 
 type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
 
 export default function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
-  const modalId = 'bulk-transcription'
+  if (args.showWarningModal ) {
+    const warningModalId = modals.openConfirmModal({
+      title: t('Request too large'),
+      size: 'lg',
+      children: (
+        <Stack gap='md'>
+          <Text size='sm'>
+            {t(
+              'This bulk processing request is too large and could affect the performance of the application. Only the results currently visible in the data table (##count##) will be processed.',
+            ).replace('##count##', String(args.selectedRowsCount))}
+          </Text>
 
-  modals.open({
-    modalId,
+          <Alert type='info' iconName='information' m={0}>
+            {t('To increase the number of files processed, increase the number of rows displayed in the table')}
+          </Alert>
+        </Stack>
+      ),
+      labels: {
+        confirm: t('Continue'),
+        cancel: t('Cancel'),
+      },
+      confirmProps: {
+        variant: 'filled',
+      },
+      cancelProps: {
+        variant: 'light',
+      },
+      onConfirm: () => {
+        modals.close(warningModalId)
+        openBulkTranscriptModalInternal(args)
+      },
+    })
+    return
+  }
+
+  openBulkTranscriptModalInternal(args)
+}
+
+function openBulkTranscriptModalInternal(args: BulkTranscriptionModalArgs) {
+  const modalId = modals.open({
     title: t('Transcribe selected audio files'),
     size: 'lg',
     children: (
-      <BulkTranscriptionModalWrapper
-        modalId={modalId}
+      <BulkTranscriptionModal
         onRequestClose={() => {
           modals.close(modalId)
         }}
@@ -60,173 +84,25 @@ export default function openBulkTranscriptModal(args: BulkTranscriptionModalArgs
   })
 }
 
-// Wrapper component that checks for existing transcriptions and decides which step to show. DRY way to not repeat any
-// hooks that both modal steps need
-function BulkTranscriptionModalWrapper(props: BulkTranscriptionModalProps) {
-  const [showWarning, setShowWarning] = useState(true)
-
-  // Only fetch all submissions if we selected all pages AND there are more rows than currently selected
-  const needsToFetchAll = props.selectedAllPages && props.totalRowsCount > props.selectedSubmissions.length
-
-  const pageCount = useMemo(() => {
-    if (!needsToFetchAll) return 0
-    return Math.ceil(props.totalRowsCount / SUBMISSIONS_PER_PAGE)
-  }, [needsToFetchAll, props.totalRowsCount])
-
-  // Inspired by formMapWrapper, we need to request pages in parallel until we get all possible submissions
-  const queryOptions = Array.from({ length: pageCount }).map((_, index) => {
-    return {
-      queryKey: [
-        ...getAssetsDataListQueryKey(props.assetUid, {
-          fields: '["_uuid", "_supplementalDetails"]',
-          start: index * SUBMISSIONS_PER_PAGE,
-          limit: SUBMISSIONS_PER_PAGE,
-        }),
-        'page',
-        index,
-      ],
-      queryFn: () =>
-        assetsDataList(props.assetUid, {
-          fields: '["_uuid", "_supplementalDetails"]',
-          start: index * SUBMISSIONS_PER_PAGE,
-          limit: SUBMISSIONS_PER_PAGE,
-        }),
-      enabled: needsToFetchAll,
-      retry: false,
-    }
-  })
-
-  const results = useQueries({ queries: queryOptions })
-
-  // Combine all pages into one array
-  const allFetchedSubmissions = results
-    .filter((result) => result.isSuccess)
-    .flatMap((result) => {
-      if (result.data && result.data.status === 200) {
-        return result.data.data.results || []
-      }
-      return []
-    })
-
-  const isLoadingAllSubmissions = results.some((result) => result.isLoading)
-  const isErrorAllSubmissions = results.some((result) => result.isError)
-
-  const submissionsToCheck = useMemo(() => {
-    if (needsToFetchAll) {
-      return allFetchedSubmissions
-    }
-    return props.selectedSubmissions
-  }, [needsToFetchAll, allFetchedSubmissions, props.selectedSubmissions])
-
-  // Check for existing transcriptions
-  const hasExistingTranscriptions = useMemo(
-    () =>
-      submissionsToCheck.some((submission) => {
-        if (!submission._supplementalDetails) {
-          return false
-        }
-        const fieldData = submission._supplementalDetails[props.fieldId]
-        if (!fieldData || !('transcript' in fieldData)) {
-          return false
-        }
-        if (!fieldData.transcript) {
-          return false
-        }
-        return fieldData.transcript.value !== null && fieldData.transcript.value !== ''
-      }),
-    [submissionsToCheck, props.fieldId],
-  )
-
-  // Update modal title when we detect existing transcriptions
-  useEffect(() => {
-    if (hasExistingTranscriptions && showWarning && props.modalId) {
-      modals.updateModal({
-        modalId: props.modalId,
-        title: t('Some audio files already transcribed'),
-      })
-    } else if (props.modalId) {
-      modals.updateModal({
-        modalId: props.modalId,
-        title: t('Transcribe selected audio files'),
-      })
-    }
-  }, [hasExistingTranscriptions, showWarning, props.modalId])
-
-  // Show loading while fetching data to check for existing transcriptions
-  if (needsToFetchAll && isLoadingAllSubmissions) {
-    return (
-      <Stack gap='md' align='center' py='xl'>
-        <LoadingSpinner />
-        <Text size='sm'>{t('Checking submissions...')}</Text>
-      </Stack>
-    )
-  }
-
-  if (isErrorAllSubmissions) {
-    return (
-      <Alert type='error' iconName='alert' mt={12} mb={12}>
-        {t('Failed to load all submissions. Please try again or select submissions from the current page only.')}
-      </Alert>
-    )
-  }
-
-  // If there are existing transcriptions and we haven't confirmed yet, show warning
-  if (hasExistingTranscriptions && showWarning) {
-    return (
-      <Stack gap='md'>
-        <Text size='sm'>
-          {t(
-            "You've selected audio files that already have transcripts. Those files will be skipped. Transcripts will only be generated for files without existing transcripts.",
-          )}
-        </Text>
-
-        <Alert type='warning' iconName='information' p='md'>
-          {t('If you continue, existing transcripts will remain unchanged.')}
-        </Alert>
-
-        <Group justify='flex-end' mt='md'>
-          <ButtonNew onClick={props.onRequestClose} variant='light'>
-            {t('Cancel')}
-          </ButtonNew>
-          <ButtonNew onClick={() => setShowWarning(false)} variant='filled'>
-            {t('Continue')}
-          </ButtonNew>
-        </Group>
-      </Stack>
-    )
-  }
-
-  // Show the main transcription modal, passing down the already-fetched submissions
-  return <BulkTranscriptionModal {...props} submissionsToUse={submissionsToCheck as SubmissionResponse[]} />
-}
-
 function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const [serviceCode] = useState<TransxServiceCode>('goog')
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
 
-  // Get organization ID from session
+  const navigate = useNavigate()
+
+  // Get organization ID to check ASR limits
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
-  const { data: dataUsage, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
+  const { data, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!),
       enabled: !!organizationId,
     },
   })
-
-  const navigate = useNavigate()
-
-  // Get the submission UUIDs - use submissionsToUse if provided (from wrapper), otherwise use selectedSubmissions
-  const submissionUuids = useMemo(() => {
-    const submissions = props.submissionsToUse || props.selectedSubmissions
-    return submissions.map((submission) => submission._uuid)
-  }, [props.submissionsToUse, props.selectedSubmissions])
-
-  const serviceUsageData = dataUsage?.status === 200 ? dataUsage.data : null
+  const serviceUsageData = data?.status === 200 ? data.data : null
   const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
-
   const hasExceededLimit = userAsrBalance?.exceeded ?? false
 
   const handleLanguageChange = (language: LanguageCode | null) => {
@@ -245,7 +121,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         data: {
           action_id: ActionIdEnum.automatic_google_transcription,
           question_xpath: props.fieldId,
-          submission_uuids: submissionUuids,
+          submission_uuids: props.selectedSubmissionUuids,
           params: {
             language: selectedLanguage!,
             locale: selectedRegion || undefined,
@@ -298,7 +174,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
       {hasExceededLimit && (
         <Alert type='warning' iconName='information' mt={12} mb={12}>
-          {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
+          {t('You’ve reached your automatic transcription limit. Please purchase an add‑on to continue.')}
         </Alert>
       )}
 
@@ -315,11 +191,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNew
-            loading={isPending || isLoadingUsage}
-            onClick={handleStartTranscription}
-            disabled={!selectedLanguage}
-          >
+          <ButtonNew loading={isPending} onClick={handleStartTranscription} disabled={!selectedLanguage}>
             {t('Start Transcription')}
           </ButtonNew>
         )}
