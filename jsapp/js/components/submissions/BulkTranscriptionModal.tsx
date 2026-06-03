@@ -209,7 +209,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   // Get organization ID from session
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
-  const { data, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
+  const { data: dataUsage, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!),
       enabled: !!organizationId,
@@ -224,7 +224,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     return submissions.map((submission) => submission._uuid)
   }, [props.submissionsToUse, props.selectedSubmissions])
 
-  const serviceUsageData = data?.status === 200 ? data.data : null
+  const serviceUsageData = dataUsage?.status === 200 ? dataUsage.data : null
   const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
 
   const hasExceededLimit = userAsrBalance?.exceeded ?? false
@@ -315,7 +315,11 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNew loading={isPending} onClick={handleStartTranscription} disabled={!selectedLanguage}>
+          <ButtonNew
+            loading={isPending || isLoadingUsage}
+            onClick={handleStartTranscription}
+            disabled={!selectedLanguage}
+          >
             {t('Start Transcription')}
           </ButtonNew>
         )}
