@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
 import { ActionIcon, rem } from '@mantine/core'
 import classes from './ActionIcon.module.css'
 

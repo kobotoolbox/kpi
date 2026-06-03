@@ -136,7 +136,7 @@ class AttachmentViewSet(
 
     Available actions:
     - list            → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/
-    - retrieve        → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}
+    - retrieve        → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/
     - thumb (suffix)  → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/{suffix}/  # noqa
 
     Documentation:

@@ -1,10 +1,10 @@
 import { Tooltip } from '@mantine/core'
+import { KOBO_Z_INDEX } from './zIndex'
 
 export const TooltipThemeKobo = Tooltip.extend({
   defaultProps: {
     offset: { mainAxis: -4 },
-    // Make sure it appears above modals (e.g. BigModal) :)
-    zIndex: 3100,
+    zIndex: KOBO_Z_INDEX.tooltip,
     position: 'bottom',
     withArrow: true,
     arrowSize: 8,

@@ -13,11 +13,13 @@ from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
 
 @ddt
 class UserActivityQueryTests(BaseTestCase):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
     """
     Tests for identifying in/active users based on login, asset modifications,
     and submissions

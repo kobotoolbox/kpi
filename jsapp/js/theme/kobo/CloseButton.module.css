@@ -1,0 +1,20 @@
+.root {
+  width: var(--cb-size);
+  height: var(--cb-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--cb-color);
+
+  &:hover:not(:disabled) {
+    color: var(--cb-hover-color);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

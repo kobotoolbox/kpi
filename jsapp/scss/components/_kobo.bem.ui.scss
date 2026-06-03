@@ -79,12 +79,14 @@ iframe {
     }
   }
 
-  input[type='text'],
-  input[type='email'],
-  input[type='password'],
-  input[type='url'],
-  select,
-  textarea {
+  // Use direct-child selectors here so legacy modal field styling does not
+  // leak into nested component internals (for example Mantine TagsInput).
+  > input[type='text'],
+  > input[type='email'],
+  > input[type='password'],
+  > input[type='url'],
+  > select,
+  > textarea {
     width: 100%;
     padding: 10px 14px;
     font-size: 14px;
