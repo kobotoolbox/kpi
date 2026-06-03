@@ -16,6 +16,7 @@ from google.api_core.exceptions import (
     GoogleAPIError,
     InvalidArgument,
     PermissionDenied,
+    ResourceExhausted,
     Unauthenticated,
 )
 from google.cloud import speech_v2 as speech
@@ -35,11 +36,17 @@ from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
 from ...exceptions import (
     AudioTooLongError,
+    GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     SubsequenceTimeoutError,
     TranscriptionResultNotFound
 )
 from .base import GoogleService
+from .rate_limit import (
+    GoogleServiceRateLimitExceeded,
+    get_google_retry_after_seconds,
+    require_google_service_quota,
+)
 
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
@@ -125,6 +132,8 @@ class GoogleTranscriptionService(GoogleService):
             f'{self.submission_root_uuid=}, {xpath=}, {source_lang=}, '
             f'{speech_location=}, {speech_model=}'
         )
+        # Check Redis bucket and halt locally if we are exceeding allowed requests
+        require_google_service_quota('speech_v2_batch_recognize')
         self._cleanup_batch_files(xpath, source_lang)
         gcs_input_uri = self.store_file(flac_content, input_path)
 
@@ -173,18 +182,25 @@ class GoogleTranscriptionService(GoogleService):
         """
         Start or resume a single-submission transcription request
 
-        - return `in_progress` while Google is still processing
-        - return `complete` with a transcript when results are available
-        - return `failed` with a user-facing error for expected failures
+        Returns:
+        - `in_progress` while Google is still processing
+        - `complete` with a transcript when results are available
+        - `failed` with a user-facing error for expected failures
 
-        NOTE: Current implementation submits one Google batch job per submission.
-        This is correct for both single and bulk transcription today.
+        Quota Management Flow:
+        1. INTERNAL CHECK: Before reaching out to Google, require_google_service_quota()
+           checks our Redis token bucket. If we are sending too many requests,
+           it raises GoogleServiceRateLimitExceeded and Celery is told to wait.
+        2. EXTERNAL CHECK: If Google's servers reject our request, we catch
+           ResourceExhausted. We read Google's 'Retry-After' header and tell
+           Celery to sleep for that exact amount of time.
+        3. FALLBACK: If a standard network error occurs, we return 'in_progress'
+           to let Celery's standard exponential backoff try again safely.
 
-        A future optimisation would collect all audio files for a SubsequenceBulkAction
-        into a single BatchRecognizeRequest, reducing API overhead and potentially
-        lowering cost. This requires:
-        - SubsequenceBulkAction / SubsequenceBulkActionItem models
-        - A fan-out step to map GCS output files back to individual items
+        NOTE: The current implementation intentionally submits one Google batch
+        job per submission. This allows us to track the progress of a batch
+        request on a per-file basis, which is the correct behavior for both
+        single and bulk transcriptions.
         """
         requested_language = params.get('locale') or params['language']
         try:
@@ -240,6 +256,20 @@ class GoogleTranscriptionService(GoogleService):
                     'status': 'failed',
                     'error': f'Transcription failed with error {str(err)}',
                 }
+            except GoogleServiceRateLimitExceeded as err:
+                logging.info(
+                    'Deferred Google transcription start because project quota '
+                    f'is exhausted for {xpath=}, '
+                    f'retry_after={err.retry_after}'
+                )
+                raise
+            except ResourceExhausted as err:
+                retry_after = get_google_retry_after_seconds(err)
+                logging.warning(
+                    'Google transcription quota was exhausted while starting '
+                    f'{xpath=}, retry_after={retry_after}: {err}'
+                )
+                raise GoogleQuotaExceededError(retry_after=retry_after) from err
             except (GoogleAPIError, GoogleCloudError) as err:
                 # Unable to reach Google to start the transcription job,
                 # return 'in_progress' to allow celery to retry
@@ -288,6 +318,13 @@ class GoogleTranscriptionService(GoogleService):
                         'It is possible Google was unable to transcribe the audio.'
                     ),
                 }
+            except ResourceExhausted as err:
+                retry_after = get_google_retry_after_seconds(err)
+                logging.warning(
+                    'Google transcription quota was exhausted while waiting for '
+                    f'{xpath=}, retry_after={retry_after}: {err}'
+                )
+                raise GoogleQuotaExceededError(retry_after=retry_after) from err
             except (GoogleAPIError, GoogleCloudError) as err:
                 # Unable to reach Google to check the operation status, but the
                 # job may have still succeeded. Return 'in_progress' to allow Celery
@@ -353,6 +390,13 @@ class GoogleTranscriptionService(GoogleService):
                     f'permissions are invalid: {str(err)}'
                 ),
             }
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google transcription quota was exhausted while polling '
+                f'{xpath=}, retry_after={retry_after}: {err}'
+            )
+            raise GoogleQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check the operation status.
             # The transcription may still be running, so return 'in_progress'
@@ -513,26 +557,11 @@ class GoogleTranscriptionService(GoogleService):
 
     def _get_bulk_action_item(self, bulk_action_uid: str | None):
         """
-        Note: This method is designed to support future bulk transcription feature.
+        Retrieve the `SubsequenceBulkActionItem` associated with this submission
 
-        Retrieve the SubsequenceBulkActionItem associated with this submission
-
-        Current behavior:
-        The `SubsequenceBulkActionItem` model is not yet implemented. When the
-        model is unavailable, this method returns `None` and the system falls
-        back to cache-based operation tracking.
-
-        Future behavior:
-        Once the model is implemented, this method will:
-
-        1. Look up the bulk action item using:
-           - parent UID (bulk_action_uid)
-           - submission_root_uuid
-        2. Return the matching database record if found.
-        3. Return None if the item does not exist.
-
-        This allows bulk transcription operations to store their Google
-        operation identifiers in the database rather than cache.
+        Returns the matching database record using the parent bulk action UID
+        and the submission root UUID. This allows bulk transcriptions to track
+        their Google operations in the database rather than falling back to cache.
         """
         if not bulk_action_uid:
             return None
@@ -544,8 +573,8 @@ class GoogleTranscriptionService(GoogleService):
             )
         except LookupError:
             logging.info(
-                'bulk_action_uid was provided but SubsequenceBulkActionItem '
-                'is not available yet; using cache fallback'
+                'bulk_action_uid was provided but the SubsequenceBulkActionItem '
+                'model could not be loaded, using cache fallback'
             )
             return None
 
@@ -570,8 +599,14 @@ class GoogleTranscriptionService(GoogleService):
         """
         Fetch the persisted Google operation id from bulk storage or cache
         """
+        from ...models import PENDING_OPERATION_MARKER
+
         bulk_action_item = self._get_bulk_action_item(bulk_action_uid)
-        if bulk_action_item and bulk_action_item.service_id:
+        if (
+            bulk_action_item
+            and bulk_action_item.service_id
+            and bulk_action_item.service_id != PENDING_OPERATION_MARKER
+        ):
             return bulk_action_item.service_id
 
         cache_key = self._get_cache_key(xpath, source_lang, target_lang=None)

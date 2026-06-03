@@ -1,4 +1,5 @@
 import type { Survey } from '../../xlform/src/model.survey'
+import type formMediaActions from './actions/mediaActions'
 import type { AssetResponse, FailResponse } from './dataInterface'
 
 /**
@@ -156,16 +157,6 @@ interface RemoveSubmissionValidationStatusDefinition extends Function {
   (assetUid: string, submissionUid: string): void
   completed: AnySubmissionValidationStatusCompletedDefinition
   failed: GenericFailedDefinition
-}
-
-interface ResourcesGetAssetFilesDefinition extends Function {
-  (assetId: string, fileType: AssetFileType): void
-  completed: ResourcesGetAssetFilesCompletedDefinition
-  failed: GenericFailedDefinition
-}
-interface ResourcesGetAssetFilesCompletedDefinition extends Function {
-  (response: PaginatedResponse<AssetFileResponse>): void
-  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function
 }
 
 interface ResourcesGetAssetFilesDefinition extends Function {
@@ -444,7 +435,7 @@ export declare const actions: {
     bulkPatchValues: GenericDefinition
     bulkDelete: GenericDefinition
   }
-  media: object
+  media: typeof formMediaActions
   exports: {
     getExport: GetExportDefinition
     getExports: GenericDefinition
