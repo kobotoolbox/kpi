@@ -1,6 +1,6 @@
 export const endpoints = {
   ME: '/me/',
-  ENVIRONMENT: '/environment/',
+  ENVIRONMENT: '/api/v2/environment/',
   /** Note: currently this endpoint only handles DELETE. Pass `{submission_root_uuids: string[]}` as payload. */
   ATTACHMENT_BULK_URL: '/api/v2/assets/:asset_uid/attachments/bulk/',
   /** Note: currently this endpoint only handles DELETE */
@@ -8,8 +8,10 @@ export const endpoints = {
   ASSET_HISTORY: '/api/v2/assets/:asset_uid/history/',
   ASSET_HISTORY_ACTIONS: '/api/v2/assets/:asset_uid/history/actions',
   ASSET_HISTORY_EXPORT: '/api/v2/assets/:asset_uid/history/export/',
+  ASSET_ADVANCED_FEATURES_BULK_ACTIONS: '/api/v2/assets/:uid/advanced-features/bulk-actions/',
   ASSETS_URL: '/api/v2/assets/',
   ASSET_URL: '/api/v2/assets/:uid/',
+  ASSET_DATA_URL: '/api/v2/assets/:uid/data/',
   ASSET_DEPLOYMENT_URL: '/api/v2/assets/:uid/deployment/',
   ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
   ME_URL: '/me/',

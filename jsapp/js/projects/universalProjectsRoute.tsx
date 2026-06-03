@@ -95,6 +95,13 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
   const selectedAssets = customView.assets.filter((asset) => selectedRows.includes(asset.uid))
 
+  const onDrop = (
+    acceptedFiles: Parameters<typeof dropImportXLSForms>[0],
+    rejectedFiles: Parameters<typeof dropImportXLSForms>[1],
+  ) => {
+    dropImportXLSForms(acceptedFiles, rejectedFiles, { feedbackMode: 'toast' })
+  }
+
   /** Filters out excluded fields */
   const getTableVisibleFields = () => {
     const outcome = toJS(customView.fields) || customView.defaultVisibleFields
@@ -102,7 +109,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
   }
 
   return (
-    <Dropzone onDrop={dropImportXLSForms} noClick multiple accept={validFileTypes()}>
+    <Dropzone onDrop={onDrop} noClick multiple accept={validFileTypes()}>
       {({ getRootProps, getInputProps, isDragActive }) => (
         <div
           {...getRootProps({

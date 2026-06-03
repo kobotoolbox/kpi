@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
 import { Alert } from '@mantine/core'
 import type { AlertType } from '#/components/common/alert'
 import classes from './Alert.module.css'

@@ -581,8 +581,6 @@ class TestPandasMongoBridge(TestBase):
         expected_data_0 = {
             '_xform_id_string': 'groups_in_repeats',
             '_status': 'submitted_via_web',
-            '_tags': '',
-            '_notes': '',
             "_submitted_by": 'bob',
             'name': 'Abe',
             'age': '88',
@@ -653,8 +651,6 @@ class TestPandasMongoBridge(TestBase):
                     '_index': 1,
                     '_parent_table_name': None,
                     '_parent_index': -1,
-                    '_tags': [],
-                    '_notes': [],
                     '_validation_status': {}
                 }
             ],

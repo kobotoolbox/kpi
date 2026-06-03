@@ -5,13 +5,11 @@ from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from kpi.utils.log import logging
-from kpi.views import authorized_application_authenticate_user, home, modern_browsers
+from kpi.views import home, modern_browsers
 from kpi.views.current_user import CurrentUserViewSet
-from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.logout import logout_from_all_devices
-from .router_api_v1 import urls_patterns as router_api_v1_urls
 from .router_api_v2 import URL_NAMESPACE
 from .router_api_v2 import urls_patterns as router_api_v2_urls
 
@@ -28,18 +26,11 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy',
     }), name='currentuser-detail'),
-    path('', include(router_api_v1_urls)),
     path('api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
     path('api/scim/v2/', include('kobo.apps.kobo_scim.urls')),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    # DEPRECATED, remove with v1
-    path(
-        'authorized_application/authenticate_user/',
-        authorized_application_authenticate_user,
-        name='authenticate_user',
-    ),
     path(
         'api/v2/authorized_application/authenticate_user/',
         AuthorizedApplicationUserViewSet.as_view({'post': 'authenticate_user'}),
@@ -51,8 +42,6 @@ urlpatterns = [
     path('jsi18n/', JavaScriptCatalog.as_view(),
          name='javascript-catalog'),
     path('token/', TokenView.as_view(), name='token'),
-    # TODO: Deprecate this endpoint and move it to the v2 API
-    path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.content_view, name='configurationfile'),
     path('private-media/', include(private_storage.urls)),

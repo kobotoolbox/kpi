@@ -16,6 +16,15 @@ class ErrorObjectSerializer(serializers.Serializer):
     detail = serializers.JSONField()
 
 
+class ErrorSerializer(serializers.Serializer):
+    """
+    Used for OpenRosa endpoints that return `{'error': '...'}` instead of
+    the standard `{'detail': '...'}` shape.
+    """
+
+    error = serializers.CharField()
+
+
 def open_api_200_ok_response(
     given_serializer: Optional[Serializer] = None,
     media_type: Optional[str] = None,

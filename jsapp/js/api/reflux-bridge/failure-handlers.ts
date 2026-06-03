@@ -68,6 +68,14 @@ export const BRIDGE_FAILURE_HANDLERS: ReadonlyArray<BridgeFailureHandler> = [
     },
   },
   {
+    endpoint: 'POST /api/v2/imports/',
+    refluxAction: 'actions.resources.createImport.failed',
+    matches: ({ pathname }) => pathname === '/api/v2/imports/',
+    run: ({ legacyFailurePayload }) => {
+      actions.resources.createImport.failed(legacyFailurePayload)
+    },
+  },
+  {
     endpoint: `POST ${endpoints.ASSET_DEPLOYMENT_URL}`,
     refluxAction: 'actions.resources.deployAsset.failed',
     matches: ({ deploymentAssetUid }) => Boolean(deploymentAssetUid),

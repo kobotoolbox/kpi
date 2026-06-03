@@ -8098,6 +8098,32 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/environment/:
+    get:
+      operationId: api_v2_environment_retrieve
+      description: |
+        Retrieve Kobo server environment configurations.
+
+        This endpoint provides a wide range of configuration details required by the frontend client, including:
+        - Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).
+        - Frontend configuration (retry times, usage limit enforcement, etc).
+        - Global static lists (sectors, countries, interface languages, operational purposes).
+        - Metadata configuration (available project and user metadata fields).
+        - Features configurations (MFA, password entropy meter, custom guidance text).
+        - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
+      tags:
+      - Configuration
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentResponse'
+          description: null
   /api/v2/imports/:
     get:
       operationId: api_v2_imports_list
@@ -12150,32 +12176,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /environment/:
-    get:
-      operationId: environment_retrieve
-      description: |
-        Retrieve Kobo server environment configurations.
-
-        This endpoint provides a wide range of configuration details required by the frontend client, including:
-        - Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).
-        - Frontend configuration (retry times, usage limit enforcement, etc).
-        - Global static lists (sectors, countries, interface languages, operational purposes).
-        - Metadata configuration (available project and user metadata fields).
-        - Features configurations (MFA, password entropy meter, custom guidance text).
-        - Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
-      tags:
-      - Configuration
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EnvironmentResponse'
-          description: null
   /me/:
     get:
       operationId: me_retrieve
@@ -15160,7 +15160,7 @@ components:
         data:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/data/
           readOnly: true
         children:
           type: object
@@ -15198,12 +15198,17 @@ components:
           type: string
           readOnly: true
           nullable: true
+        created_by:
+          type: string
+          readOnly: true
+          nullable: true
       required:
       - access_types
       - analysis_form_json
       - asset_type
       - assignable_permissions
       - children
+      - created_by
       - data
       - deployed_version_id
       - deployed_versions
@@ -16532,16 +16537,6 @@ components:
           type: string
           format: date-time
           title: ' submission time'
-        _tags:
-          type: array
-          items:
-            type: string
-          title: ' tags'
-        _notes:
-          type: array
-          items:
-            type: string
-          title: ' notes'
         _validation_status:
           oneOf:
           - $ref: '#/components/schemas/DataValidationStatus'
@@ -16569,11 +16564,9 @@ components:
       - _attachments
       - _geolocation
       - _id
-      - _notes
       - _status
       - _submission_time
       - _submitted_by
-      - _tags
       - _uuid
       - _validation_status
       - _xform_id_string
@@ -17046,6 +17039,8 @@ components:
           type: boolean
         mfa_code_length:
           type: integer
+        superuser_auth_enforcement:
+          type: boolean
         enable_password_entropy_meter:
           type: boolean
         enable_custom_password_guidance_text:
@@ -17111,6 +17106,7 @@ components:
       - source_code_url
       - stripe_public_key
       - submission_placeholder
+      - superuser_auth_enforcement
       - support_email
       - support_url
       - terms_of_service__sitewidemessage__exists
