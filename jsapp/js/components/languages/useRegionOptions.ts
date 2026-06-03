@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLanguagesRetrieve } from '#/api/react-query/other'
+import { getLanguagesRetrieveQueryKey, useLanguagesRetrieve } from '#/api/react-query/other'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 
 export function useRegionOptions(
@@ -8,7 +8,12 @@ export function useRegionOptions(
   serviceType: 'transcription' | 'translation',
   onRegionChange: (selectedRegion: LanguageCode | null) => void,
 ) {
-  const { data, isLoading, isError } = useLanguagesRetrieve(rootLanguage)
+  const { data, isLoading, isError } = useLanguagesRetrieve(rootLanguage, {
+    query: {
+      queryKey: getLanguagesRetrieveQueryKey(rootLanguage),
+      enabled: rootLanguage !== '',
+    },
+  })
   const language = data?.status === 200 ? data.data : undefined
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
 
