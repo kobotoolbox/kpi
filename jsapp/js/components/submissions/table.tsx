@@ -409,23 +409,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       selectedSubmissionIds.includes(String(submission._id)),
     )
 
-    const submissionsWithTranscripts = selectedSubmissions.filter((submission) => {
-      if (!submission._supplementalDetails) {
-        return false
-      }
-      const fieldData = submission._supplementalDetails[fieldId]
-      if (!fieldData?.transcript) {
-        return false
-      }
-      return fieldData.transcript.value !== null && fieldData.transcript.value !== ''
-    })
-
     openBulkTranscriptModal({
       fieldId,
       assetUid: this.props.asset.uid,
       selectedSubmissions,
       selectedRowsCount: this.state.selectAll ? this.state.resultsTotal : selectedSubmissionIds.length,
-      hasExistingTranscriptions: submissionsWithTranscripts.length > 0,
       selectedAllPages: this.state.selectAll,
       totalRowsCount: this.state.resultsTotal,
     })

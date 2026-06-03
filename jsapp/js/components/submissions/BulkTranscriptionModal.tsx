@@ -1,6 +1,6 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
@@ -33,59 +33,23 @@ interface BulkTranscriptionModalProps {
   selectedAllPages: boolean
   totalRowsCount: number
   onRequestClose: () => void
+  submissionsToUse?: SubmissionResponse[] // Already-fetched submissions from wrapper (when fetching all)
+  modalId?: string // ID of the modal so we can update its title
 }
 
-type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'> & {
-  hasExistingTranscriptions: boolean
-}
+type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
 
 export default function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
-  // If there are existing transcripts, show warning modal first
-  if (args.hasExistingTranscriptions) {
-    const warningModalId = modals.openConfirmModal({
-      title: t('Some audio files already transcribed'),
-      size: 'lg',
-      children: (
-        <Stack gap='sm'>
-          <Text size='sm'>
-            {t(
-              'You’ve selected audio files that already have transcripts. Those files will be skipped. Transcripts will only be generated for files without existing transcripts.',
-            )}
-          </Text>
+  // We need a modalId in order to update the title later
+  const modalId = 'bulk-transcription'
 
-          <Alert type='warning' iconName='information' p='md'>
-            {t('If you continue, existing transcripts will remain unchanged.')}
-          </Alert>
-        </Stack>
-      ),
-      labels: {
-        confirm: t('Continue'),
-        cancel: t('Cancel'),
-      },
-      confirmProps: {
-        variant: 'filled',
-      },
-      cancelProps: {
-        variant: 'light',
-      },
-      onConfirm: () => {
-        modals.close(warningModalId)
-        openBulkTranscriptModalInternal(args)
-      },
-    })
-    return
-  }
-
-  openBulkTranscriptModalInternal(args)
-}
-
-// Internal function that opens the actual transcription modal
-function openBulkTranscriptModalInternal(args: BulkTranscriptionModalArgs) {
-  const modalId = modals.open({
+  modals.open({
+    modalId,
     title: t('Transcribe selected audio files'),
     size: 'lg',
     children: (
-      <BulkTranscriptionModal
+      <BulkTranscriptionModalWrapper
+        modalId={modalId}
         onRequestClose={() => {
           modals.close(modalId)
         }}
@@ -93,6 +57,124 @@ function openBulkTranscriptModalInternal(args: BulkTranscriptionModalArgs) {
       />
     ),
   })
+}
+
+// Wrapper component that checks for existing transcriptions and decides which step to show. DRY way to not repeat any
+// hooks that both modal steps need
+function BulkTranscriptionModalWrapper(props: BulkTranscriptionModalProps) {
+  const [showWarning, setShowWarning] = useState(true)
+
+  // Only fetch all submissions if we selected all pages AND there are more rows than currently selected
+  const needsToFetchAll = props.selectedAllPages && props.totalRowsCount > props.selectedSubmissions.length
+
+  const { data: allSubmissionsData, isLoading: isLoadingAllSubmissions, isError: isErrorAllSubmissions } = useAssetsDataList(
+    props.assetUid,
+    {
+      fields: '["_uuid", "_supplementalDetails"]',
+      limit: 30000,
+    },
+    {
+      query: {
+        queryKey: getAssetsDataListQueryKey(props.assetUid, {
+          fields: '["_uuid", "_supplementalDetails"]',
+          limit: 30000,
+        }),
+        enabled: needsToFetchAll,
+        retry: false,
+      },
+    },
+  )
+
+  const submissionsToCheck = useMemo(() => {
+    if (needsToFetchAll) {
+      if (allSubmissionsData?.status === 200) {
+        return allSubmissionsData.data.results
+      }
+      return []
+    }
+    return props.selectedSubmissions
+  }, [needsToFetchAll, props.selectedSubmissions, allSubmissionsData])
+
+  // Check for existing transcriptions
+  const hasExistingTranscriptions = useMemo(
+    () =>
+      submissionsToCheck.some((submission) => {
+        if (!submission._supplementalDetails) {
+          return false
+        }
+        const fieldData = submission._supplementalDetails[props.fieldId]
+        if (!fieldData || !('transcript' in fieldData)) {
+          return false
+        }
+        if (!fieldData.transcript) {
+          return false
+        }
+        return fieldData.transcript.value !== null && fieldData.transcript.value !== ''
+      }),
+    [submissionsToCheck, props.fieldId],
+  )
+
+  // Update modal title when we detect existing transcriptions
+  useEffect(() => {
+    if (hasExistingTranscriptions && showWarning && props.modalId) {
+      modals.updateModal({
+        modalId: props.modalId,
+        title: t('Some audio files already transcribed'),
+      })
+    } else if (!hasExistingTranscriptions && props.modalId) {
+      modals.updateModal({
+        modalId: props.modalId,
+        title: t('Transcribe selected audio files'),
+      })
+    }
+  }, [hasExistingTranscriptions, showWarning, props.modalId])
+
+  // Show loading while fetching data to check for existing transcriptions
+  if (needsToFetchAll && isLoadingAllSubmissions) {
+    return (
+      <Stack gap='md' align='center' py='xl'>
+        <LoadingSpinner />
+        <Text size='sm'>{t('Checking submissions...')}</Text>
+      </Stack>
+    )
+  }
+
+  if (isErrorAllSubmissions) {
+    return (
+      <Alert type='error' iconName='alert' mt={12} mb={12}>
+        {t('Failed to load all submissions. Please try again or select submissions from the current page only.')}
+      </Alert>
+    )
+  }
+
+  // If there are existing transcriptions and we haven't confirmed yet, show warning
+  if (hasExistingTranscriptions && showWarning) {
+    return (
+      <Stack gap='md'>
+        <Text size='sm'>
+          {t(
+          "You've selected audio files that already have transcripts. Those files will be skipped. Transcripts will only be generated for files without existing transcripts."
+          )}
+        </Text>
+
+        <Alert type='warning' iconName='information' p='md'>
+          {t('If you continue, existing transcripts will remain unchanged.')}
+        </Alert>
+
+        <Group justify='flex-end' mt='md'>
+          <ButtonNew onClick={props.onRequestClose} variant='light'>
+            {t('Cancel')}
+          </ButtonNew>
+          <ButtonNew onClick={() => setShowWarning(false)} variant='filled'>
+            {t('Continue')}
+          </ButtonNew>
+        </Group>
+      </Stack>
+    )
+  }
+
+  // Show the main transcription modal, passing down the already-fetched submissions
+  return <BulkTranscriptionModal {...props} submissionsToUse={submissionsToCheck as SubmissionResponse[]} />
 }
 
 function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
@@ -113,38 +195,11 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
   const navigate = useNavigate()
 
-  // Only fetch all submissions if we selected all pages AND there are more rows than currently selected
-  const needsToFetchAll = props.selectedAllPages && props.totalRowsCount > props.selectedSubmissions.length
-
-  const {
-    data: allSubmissionsData,
-    isLoading: isLoadingAllSubmissions,
-    isError: isErrorAllSubmissions,
-  } = useAssetsDataList(
-    props.assetUid,
-    {
-      fields: '["_uuid"]',
-      limit: 30000,
-    },
-    {
-      query: {
-        queryKey: getAssetsDataListQueryKey(props.assetUid, { fields: '["_uuid"]', limit: 30000 }),
-        enabled: needsToFetchAll,
-        retry: false,
-      },
-    },
-  )
-
-  // Get the submission UUIDs based on whether we need to fetch all
+  // Get the submission UUIDs - use submissionsToUse if provided (from wrapper), otherwise use selectedSubmissions
   const submissionUuids = useMemo(() => {
-    if (needsToFetchAll) {
-      if (allSubmissionsData?.status === 200) {
-        return allSubmissionsData.data.results.map((submission) => submission._uuid)
-      }
-      return []
-    }
-    return props.selectedSubmissions.map((submission) => submission._uuid)
-  }, [needsToFetchAll, props.selectedSubmissions, allSubmissionsData])
+    const submissions = props.submissionsToUse || props.selectedSubmissions
+    return submissions.map((submission) => submission._uuid)
+  }, [props.submissionsToUse, props.selectedSubmissions])
 
   const serviceUsageData = data?.status === 200 ? data.data : null
   const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
@@ -191,16 +246,6 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     props.onRequestClose()
   }
 
-  // Show loading spinner while fetching all submissions (only when we actually need to fetch)
-  if (needsToFetchAll && isLoadingAllSubmissions) {
-    return (
-      <Stack gap='md' align='center' py='xl'>
-        <LoadingSpinner />
-        <Text size='sm'>{t('Loading submissions...')}</Text>
-      </Stack>
-    )
-  }
-
   return (
     <Stack gap='md'>
       <Text size='sm'>
@@ -230,12 +275,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
       {hasExceededLimit && (
         <Alert type='warning' iconName='information' mt={12} mb={12}>
-          {t('You’ve reached your automatic transcription limit. Please purchase an add‑on to continue.')}
-        </Alert>
-      )}
-      {isErrorAllSubmissions && (
-        <Alert type='error' iconName='alert' mt={12} mb={12}>
-          {t('Failed to load all submissions. Please try again or select submissions from the current page only.')}
+          {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
         </Alert>
       )}
 
@@ -253,11 +293,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNew
-            loading={isPending}
-            onClick={handleStartTranscription}
-            disabled={!selectedLanguage || isErrorAllSubmissions}
-          >
+          <ButtonNew loading={isPending} onClick={handleStartTranscription} disabled={!selectedLanguage}>
             {t('Start Transcription')}
           </ButtonNew>
         )}
