@@ -10,6 +10,7 @@
  */
 import 'jquery-ui/ui/widgets/sortable'
 import '@mantine/core/styles.css'
+import '@mantine/dropzone/styles.css'
 // We import all the weights and styles we actually use here to avoid unnecessary weight (pun intended).
 import './fonts'
 import '../scss/main.scss'
