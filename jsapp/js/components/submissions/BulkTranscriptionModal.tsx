@@ -1,13 +1,14 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
+import { useQueries } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import {
+  assetsDataList,
   getAssetsDataListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsCreate,
-  useAssetsDataList,
 } from '#/api/react-query/survey-data'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
@@ -24,6 +25,7 @@ import RegionSelectorField from '../languages/RegionSelectorField'
 import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
+const SUBMISSIONS_PER_PAGE = 1000
 
 interface BulkTranscriptionModalProps {
   fieldId: string
@@ -66,37 +68,55 @@ function BulkTranscriptionModalWrapper(props: BulkTranscriptionModalProps) {
   // Only fetch all submissions if we selected all pages AND there are more rows than currently selected
   const needsToFetchAll = props.selectedAllPages && props.totalRowsCount > props.selectedSubmissions.length
 
-  const {
-    data: allSubmissionsData,
-    isLoading: isLoadingAllSubmissions,
-    isError: isErrorAllSubmissions,
-  } = useAssetsDataList(
-    props.assetUid,
-    {
-      fields: '["_uuid", "_supplementalDetails"]',
-      limit: 30000,
-    },
-    {
-      query: {
-        queryKey: getAssetsDataListQueryKey(props.assetUid, {
+  const pageCount = useMemo(() => {
+    if (!needsToFetchAll) return 0
+    return Math.ceil(props.totalRowsCount / SUBMISSIONS_PER_PAGE)
+  }, [needsToFetchAll, props.totalRowsCount])
+
+  // Inspired by formMapWrapper, we need to request pages in parallel until we get all possible submissions
+  const queryOptions = Array.from({ length: pageCount }).map((_, index) => {
+    return {
+      queryKey: [
+        ...getAssetsDataListQueryKey(props.assetUid, {
           fields: '["_uuid", "_supplementalDetails"]',
-          limit: 30000,
+          start: index * SUBMISSIONS_PER_PAGE,
+          limit: SUBMISSIONS_PER_PAGE,
         }),
-        enabled: needsToFetchAll,
-        retry: false,
-      },
-    },
-  )
+        'page',
+        index,
+      ],
+      queryFn: () =>
+        assetsDataList(props.assetUid, {
+          fields: '["_uuid", "_supplementalDetails"]',
+          start: index * SUBMISSIONS_PER_PAGE,
+          limit: SUBMISSIONS_PER_PAGE,
+        }),
+      enabled: needsToFetchAll,
+      retry: false,
+    }
+  })
+
+  const results = useQueries({ queries: queryOptions })
+
+  // Combine all pages into one array
+  const allFetchedSubmissions = results
+    .filter((result) => result.isSuccess)
+    .flatMap((result) => {
+      if (result.data && result.data.status === 200) {
+        return result.data.data.results || []
+      }
+      return []
+    })
+
+  const isLoadingAllSubmissions = results.some((result) => result.isLoading)
+  const isErrorAllSubmissions = results.some((result) => result.isError)
 
   const submissionsToCheck = useMemo(() => {
     if (needsToFetchAll) {
-      if (allSubmissionsData?.status === 200) {
-        return allSubmissionsData.data.results
-      }
-      return []
+      return allFetchedSubmissions
     }
     return props.selectedSubmissions
-  }, [needsToFetchAll, props.selectedSubmissions, allSubmissionsData])
+  }, [needsToFetchAll, allFetchedSubmissions, props.selectedSubmissions])
 
   // Check for existing transcriptions
   const hasExistingTranscriptions = useMemo(
