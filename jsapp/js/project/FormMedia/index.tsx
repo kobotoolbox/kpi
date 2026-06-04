@@ -3,6 +3,7 @@ import { Anchor, Group, Stack, Text } from '@mantine/core'
 import React, { useCallback, useEffect, useState } from 'react'
 import Dropzone from 'react-dropzone'
 import { actions } from '#/actions'
+import type { MediaUploadPayload, MediaUploadSource } from '#/actions/mediaActions'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
@@ -12,6 +13,7 @@ import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import type { AssetFileResponse, PaginatedResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { notify, truncateString, truncateUrl } from '#/utils'
+import usePendingUploads from './usePendingUploads'
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'
 const MEDIA_SUPPORT_URL = 'upload_media.html'
@@ -66,8 +68,13 @@ export default function FormMedia(props: FormMediaProps) {
   const [inputURL, setInputURL] = useState('')
   // Show a loading state before first media list fetch resolves.
   const [isInitialised, setIsInitialised] = useState(false)
-  const [isUploadFilePending, setIsUploadFilePending] = useState(false)
   const [isUploadURLPending, setIsUploadURLPending] = useState(false)
+  const {
+    isPending: isUploadFilePending,
+    beginBatch: beginPendingFileUploads,
+    resolveOne: resolveOnePendingFileUpload,
+    reset: resetPendingFileUploads,
+  } = usePendingUploads()
 
   const loadMedia = useCallback(() => {
     actions.media.loadMedia(props.asset.uid)
@@ -76,15 +83,27 @@ export default function FormMedia(props: FormMediaProps) {
   useEffect(() => {
     const onGetMediaCompleted = (response: PaginatedResponse<FormMediaItem>) => {
       setUploadedAssets(response.results)
-      setIsUploadFilePending(false)
-      setIsUploadURLPending(false)
       setIsInitialised(true)
     }
 
-    const onUploadFailed = (response: { responseJSON?: FieldErrors }) => {
-      setFieldsErrors(response?.responseJSON ?? {})
-      setIsUploadFilePending(false)
+    const onUploadCompleted = (_uid: string, uploadSource: MediaUploadSource) => {
+      if (uploadSource === 'file') {
+        resolveOnePendingFileUpload()
+        return
+      }
+
       setIsUploadURLPending(false)
+    }
+
+    const onUploadFailed = (response: unknown, uploadSource: MediaUploadSource) => {
+      const typedResponse = response as { responseJSON?: FieldErrors } | undefined
+      setFieldsErrors(typedResponse?.responseJSON ?? {})
+
+      if (uploadSource === 'file') {
+        resolveOnePendingFileUpload()
+      } else {
+        setIsUploadURLPending(false)
+      }
     }
 
     // Initial fetch for media list when this screen mounts.
@@ -93,18 +112,26 @@ export default function FormMedia(props: FormMediaProps) {
     // Keep listening to legacy Reflux actions until this feature is moved
     // to React Query. We clean up listeners in the effect return.
     const stopLoadMediaCompleted = actions.media.loadMedia.completed.listen(onGetMediaCompleted)
+    const stopUploadCompleted = actions.media.uploadMedia.completed.listen(onUploadCompleted)
     const stopUploadFailed = actions.media.uploadMedia.failed.listen(onUploadFailed)
 
     return () => {
+      // Avoid stale pending state if the user leaves this route mid-upload.
+      resetPendingFileUploads()
+
       if (typeof stopLoadMediaCompleted === 'function') {
         stopLoadMediaCompleted()
+      }
+
+      if (typeof stopUploadCompleted === 'function') {
+        stopUploadCompleted()
       }
 
       if (typeof stopUploadFailed === 'function') {
         stopUploadFailed()
       }
     }
-  }, [loadMedia])
+  }, [loadMedia, resetPendingFileUploads, resolveOnePendingFileUpload])
 
   const toBase64 = useCallback(
     // Backend accepts base64 payloads for uploaded files.
@@ -119,15 +146,10 @@ export default function FormMedia(props: FormMediaProps) {
   )
 
   const uploadMedia = useCallback(
-    (formMediaJSON: {
-      description: string
-      file_type: string
-      metadata: string
-      base64Encoded?: string | ArrayBuffer | null
-    }) => {
+    (formMediaJSON: MediaUploadPayload, uploadSource: MediaUploadSource) => {
       // Clear stale errors so users only see feedback for the latest attempt.
       setFieldsErrors({})
-      actions.media.uploadMedia(props.asset.uid, formMediaJSON)
+      actions.media.uploadMedia(props.asset.uid, formMediaJSON, uploadSource)
     },
     [props.asset.uid],
   )
@@ -138,22 +160,33 @@ export default function FormMedia(props: FormMediaProps) {
         return
       }
 
-      setIsUploadFilePending(true)
+      beginPendingFileUploads(files.length)
 
       // We intentionally upload each file independently.
       // Reflux will refresh the list when each upload completes.
       files.forEach(async (file) => {
-        const base64File = await toBase64(file)
+        try {
+          // We await per-file conversion before sending the upload request.
+          const base64File = await toBase64(file)
 
-        uploadMedia({
-          description: DEFAULT_MEDIA_DESCRIPTION,
-          file_type: ASSET_FILE_TYPES.form_media.id,
-          metadata: JSON.stringify({ filename: file.name }),
-          base64Encoded: base64File,
-        })
+          uploadMedia(
+            {
+              description: DEFAULT_MEDIA_DESCRIPTION,
+              file_type: ASSET_FILE_TYPES.form_media.id,
+              metadata: JSON.stringify({ filename: file.name }),
+              base64Encoded: base64File,
+            },
+            'file',
+          )
+        } catch {
+          // If file reading fails before request dispatch, no action callback
+          // will fire, so we must resolve this pending slot manually.
+          resolveOnePendingFileUpload()
+          notify.error(t('Could not process one of the selected files.'))
+        }
       })
     },
-    [toBase64, uploadMedia],
+    [beginPendingFileUploads, resolveOnePendingFileUpload, toBase64, uploadMedia],
   )
 
   const onSubmitURL = useCallback(() => {
@@ -168,11 +201,14 @@ export default function FormMedia(props: FormMediaProps) {
     setInputURL('')
 
     // For URL uploads backend expects redirect_url inside metadata JSON.
-    uploadMedia({
-      description: DEFAULT_MEDIA_DESCRIPTION,
-      file_type: ASSET_FILE_TYPES.form_media.id,
-      metadata: JSON.stringify({ redirect_url: url }),
-    })
+    uploadMedia(
+      {
+        description: DEFAULT_MEDIA_DESCRIPTION,
+        file_type: ASSET_FILE_TYPES.form_media.id,
+        metadata: JSON.stringify({ redirect_url: url }),
+      },
+      'url',
+    )
   }, [inputURL, uploadMedia])
 
   const onDeleteMedia = useCallback(

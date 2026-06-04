@@ -1948,8 +1948,28 @@ paths:
       description: |
         ## List bulk processing jobs on an asset
 
-        Returns all bulk processing jobs associated with the specified asset. Each job
-        is organized around one question and many submissions.
+        Returns paginated bulk processing jobs associated with the specified asset. Each
+        job is organized around one action, one question, and many submissions.
+
+        Use this endpoint to monitor recently-created bulk transcription and translation
+        jobs. Each result includes the parent job status, per-submission statuses, the
+        original deterministic params, the user who created the job, cancellation
+        metadata, and integer `progress` from `0` to `100`.
+
+        Job statuses:
+
+        * `pending`: the job exists but has not started.
+        * `in_progress`: one or more child submissions are still active.
+        * `complete`: every child submission has reached a terminal state.
+        * `cancelled`: the job was cancelled.
+
+        Child submission statuses:
+
+        * `pending`
+        * `in_progress`
+        * `complete`
+        * `failed`
+        * `cancelled`
       parameters:
       - name: limit
         required: false
@@ -1988,7 +2008,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BulkActionListResponse'
               examples:
-                BulkActionListResponse:
+                BulkTranscriptionJobListResponse:
                   value:
                     count: 1
                     next: null
@@ -1997,24 +2017,64 @@ paths:
                     - uid: ba123456789AbCdEfGhIjklm
                       status: in_progress
                       action_id: automatic_google_transcription
-                      question_xpath: q1
+                      question_xpath: q1_audio
                       submission_uuids:
                       - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                       - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                      - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
                       submission_statuses:
                       - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                         status: complete
+                        error: null
                       - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
                         status: in_progress
+                        error: null
+                      - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                        status: failed
+                        error: Google quota exceeded
                       params:
                         language: en
                         locale: en-US
+                      progress: 66
                       created_by:
                         username: someuser
                       date_created: '2026-05-05T09:00:00Z'
                       date_modified: '2026-05-05T09:02:00Z'
                       cancelled_by: null
-                  summary: Bulk action list response
+                  summary: Bulk transcription job list response
+                BulkTranslationJobListResponse:
+                  value:
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
+                    - uid: ba123456789AbCdEfGhIjklm
+                      status: in_progress
+                      action_id: automatic_google_translation
+                      question_xpath: q1_transcript
+                      submission_uuids:
+                      - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                      - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                      - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      submission_statuses:
+                      - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                        status: complete
+                        error: null
+                      - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                        status: in_progress
+                        error: null
+                      - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                        status: failed
+                        error: Google quota exceeded
+                      params:
+                        language: fr
+                      progress: 66
+                      created_by:
+                        username: someuser
+                      date_created: '2026-05-05T09:00:00Z'
+                      date_modified: '2026-05-05T09:02:00Z'
+                      cancelled_by: null
+                  summary: Bulk translation job list response
           description: null
         '404':
           content:
@@ -2032,8 +2092,25 @@ paths:
       description: |
         ## Create a bulk processing job
 
-        Creates a placeholder bulk transcription or bulk translation job for a single
-        question across multiple submissions.
+        Creates and starts a bulk processing job for one question across multiple
+        submissions.
+
+        Supported actions:
+
+        * `automatic_google_transcription`
+        * `automatic_google_translation`
+
+        The request must include the target `question_xpath`, the submission root UUIDs
+        to process, and deterministic `params`. `params.language` is required. For
+        transcription, `params.locale` may also be supplied when a more specific Google
+        Speech locale is needed.
+
+        Creation is atomic. If any selected submission is unknown, already has matching
+        results, or already has an active matching bulk action, no job or child items are
+        created.
+
+        The response is the created job. Its initial status is `in_progress` because
+        creation immediately starts background processing.
       parameters:
       - in: path
         name: uid_asset
@@ -2052,7 +2129,7 @@ paths:
               BulkTranscriptionJob:
                 value:
                   action_id: automatic_google_transcription
-                  question_xpath: q1
+                  question_xpath: q1_audio
                   submission_uuids:
                   - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                   - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
@@ -2060,16 +2137,20 @@ paths:
                     language: en
                     locale: en-US
                 summary: Bulk transcription job
+                description: Starts Google transcription for the selected audio question
+                  across the listed submissions. `locale` is optional.
               BulkTranslationJob:
                 value:
                   action_id: automatic_google_translation
-                  question_xpath: q1
+                  question_xpath: q1_transcript
                   submission_uuids:
                   - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                   - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
                   params:
                     language: fr
                 summary: Bulk translation job
+                description: Starts Google translation for the selected question across
+                  the listed submissions. `language` is the target language.
         required: true
       security:
       - BasicAuth: []
@@ -2081,29 +2162,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/BulkActionResponse'
               examples:
-                BulkActionResponse:
+                BulkTranscriptionJobResponse:
                   value:
                     uid: ba123456789AbCdEfGhIjklm
                     status: in_progress
                     action_id: automatic_google_transcription
-                    question_xpath: q1
+                    question_xpath: q1_audio
                     submission_uuids:
                     - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                     - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                    - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
                     submission_statuses:
                     - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                       status: complete
+                      error: null
                     - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
                       status: in_progress
+                      error: null
+                    - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      status: failed
+                      error: Google quota exceeded
                     params:
                       language: en
                       locale: en-US
+                    progress: 66
                     created_by:
                       username: someuser
                     date_created: '2026-05-05T09:00:00Z'
                     date_modified: '2026-05-05T09:02:00Z'
                     cancelled_by: null
-                  summary: Bulk action response
+                  summary: Bulk transcription job response
+                  description: Bulk transcription responses include the action params
+                    used to start the job. `locale` appears when it was supplied.
+                BulkTranslationJobResponse:
+                  value:
+                    uid: ba123456789AbCdEfGhIjklm
+                    status: in_progress
+                    action_id: automatic_google_translation
+                    question_xpath: q1_transcript
+                    submission_uuids:
+                    - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                    - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                    - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                    submission_statuses:
+                    - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                      status: complete
+                      error: null
+                    - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                      status: in_progress
+                      error: null
+                    - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      status: failed
+                      error: Google quota exceeded
+                    params:
+                      language: fr
+                    progress: 66
+                    created_by:
+                      username: someuser
+                    date_created: '2026-05-05T09:00:00Z'
+                    date_modified: '2026-05-05T09:02:00Z'
+                    cancelled_by: null
+                  summary: Bulk translation job response
+                  description: Bulk translation responses use the same job shape.
+                    `params.language` is the target translation language.
           description: null
         '404':
           content:
@@ -2136,10 +2257,11 @@ paths:
         ## Retrieve a bulk processing job
 
         Returns detailed information about a single bulk processing job, including its
-        current status and processing metadata.
+        current status, per-submission status, processing params, creator, cancellation
+        metadata, timestamps, and integer `progress` from `0` to `100`.
 
         The response shape is identical to the item returned by the bulk job creation
-        endpoint.
+        endpoint and to each item in the paginated list response.
       parameters:
       - in: path
         name: action_uid
@@ -2165,29 +2287,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/BulkActionResponse'
               examples:
-                BulkActionResponse:
+                BulkTranscriptionJobResponse:
                   value:
                     uid: ba123456789AbCdEfGhIjklm
                     status: in_progress
                     action_id: automatic_google_transcription
-                    question_xpath: q1
+                    question_xpath: q1_audio
                     submission_uuids:
                     - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                     - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                    - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
                     submission_statuses:
                     - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                       status: complete
+                      error: null
                     - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
                       status: in_progress
+                      error: null
+                    - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      status: failed
+                      error: Google quota exceeded
                     params:
                       language: en
                       locale: en-US
+                    progress: 66
                     created_by:
                       username: someuser
                     date_created: '2026-05-05T09:00:00Z'
                     date_modified: '2026-05-05T09:02:00Z'
                     cancelled_by: null
-                  summary: Bulk action response
+                  summary: Bulk transcription job response
+                  description: Bulk transcription responses include the action params
+                    used to start the job. `locale` appears when it was supplied.
+                BulkTranslationJobResponse:
+                  value:
+                    uid: ba123456789AbCdEfGhIjklm
+                    status: in_progress
+                    action_id: automatic_google_translation
+                    question_xpath: q1_transcript
+                    submission_uuids:
+                    - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                    - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                    - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                    submission_statuses:
+                    - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                      status: complete
+                      error: null
+                    - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                      status: in_progress
+                      error: null
+                    - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      status: failed
+                      error: Google quota exceeded
+                    params:
+                      language: fr
+                    progress: 66
+                    created_by:
+                      username: someuser
+                    date_created: '2026-05-05T09:00:00Z'
+                    date_modified: '2026-05-05T09:02:00Z'
+                    cancelled_by: null
+                  summary: Bulk translation job response
+                  description: Bulk translation responses use the same job shape.
+                    `params.language` is the target translation language.
           description: null
         '404':
           content:
@@ -2205,11 +2367,23 @@ paths:
       description: |
         ## Update a bulk processing job
 
-        Cancels a single bulk processing job for an asset.
+        Cancels a single bulk processing job for an asset. This endpoint currently only
+        supports cancellation.
 
-        The `PATCH` endpoint is used for bulk action cancellation.
+        Request body:
 
-        The request body sets the job status to `cancelled`.
+        ```json
+        {
+          "status": "cancelled"
+        }
+        ```
+
+        Cancellation is idempotent. Cancelling an already-cancelled job returns the
+        current cancelled job. Completed jobs cannot be cancelled.
+
+        When a job is cancelled, pending and in-progress child items are marked
+        `cancelled`; terminal child items are not modified. The response is the updated
+        job, including `cancelled_by`.
       parameters:
       - in: path
         name: action_uid
@@ -2245,29 +2419,71 @@ paths:
               schema:
                 $ref: '#/components/schemas/BulkActionResponse'
               examples:
-                BulkActionResponse:
+                CancelledBulkTranscriptionJobResponse:
                   value:
                     uid: ba123456789AbCdEfGhIjklm
-                    status: in_progress
+                    status: cancelled
                     action_id: automatic_google_transcription
-                    question_xpath: q1
+                    question_xpath: q1_audio
                     submission_uuids:
                     - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                     - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                    - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
                     submission_statuses:
                     - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
                       status: complete
+                      error: null
                     - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
-                      status: in_progress
+                      status: cancelled
+                      error: null
+                    - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      status: failed
+                      error: Google quota exceeded
                     params:
                       language: en
                       locale: en-US
+                    progress: 100
                     created_by:
                       username: someuser
                     date_created: '2026-05-05T09:00:00Z'
                     date_modified: '2026-05-05T09:02:00Z'
-                    cancelled_by: null
-                  summary: Bulk action response
+                    cancelled_by:
+                      username: someuser
+                  summary: Cancelled bulk transcription job response
+                  description: The cancelled response shows active child items moved
+                    to `cancelled`; terminal child items remain unchanged.
+                CancelledBulkTranslationJobResponse:
+                  value:
+                    uid: ba123456789AbCdEfGhIjklm
+                    status: cancelled
+                    action_id: automatic_google_translation
+                    question_xpath: q1_transcript
+                    submission_uuids:
+                    - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                    - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                    - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                    submission_statuses:
+                    - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                      status: complete
+                      error: null
+                    - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                      status: cancelled
+                      error: null
+                    - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      status: failed
+                      error: Google quota exceeded
+                    params:
+                      language: fr
+                    progress: 100
+                    created_by:
+                      username: someuser
+                    date_created: '2026-05-05T09:00:00Z'
+                    date_modified: '2026-05-05T09:02:00Z'
+                    cancelled_by:
+                      username: someuser
+                  summary: Cancelled bulk translation job response
+                  description: The cancelled response includes the user who cancelled
+                    the job in `cancelled_by`.
           description: null
         '404':
           content:
@@ -15685,6 +15901,35 @@ components:
                   type: boolean
                 endpoint:
                   type: boolean
+            bulk_action:
+              type: object
+              properties:
+                uid:
+                  type: string
+                action_id:
+                  type: string
+                type:
+                  type: string
+                status:
+                  type: string
+                question_xpath:
+                  type: string
+                params:
+                  type: object
+                created_by:
+                  type: string
+                cancelled_by:
+                  type: string
+                total_count:
+                  type: integer
+                processed_count:
+                  type: integer
+                completed_count:
+                  type: integer
+                failed_count:
+                  type: integer
+                cancelled_count:
+                  type: integer
             name:
               type: object
               properties:
@@ -15842,6 +16087,10 @@ components:
             $ref: '#/components/schemas/BulkActionSubmissionStatusResponse'
         params:
           $ref: '#/components/schemas/BulkActionParamsResponse'
+        progress:
+          type: integer
+          maximum: 100
+          minimum: 0
         created_by:
           $ref: '#/components/schemas/BulkActionUserResponse'
         date_created:
@@ -15860,6 +16109,7 @@ components:
       - date_created
       - date_modified
       - params
+      - progress
       - question_xpath
       - status
       - submission_statuses
@@ -15884,7 +16134,11 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/BulkActionSubmissionStatusResponseStatusEnum'
+        error:
+          type: string
+          nullable: true
       required:
+      - error
       - status
       - uuid
     BulkActionSubmissionStatusResponseStatusEnum:
@@ -17429,6 +17683,35 @@ components:
                   type: boolean
                 endpoint:
                   type: boolean
+            bulk_action:
+              type: object
+              properties:
+                uid:
+                  type: string
+                action_id:
+                  type: string
+                type:
+                  type: string
+                status:
+                  type: string
+                question_xpath:
+                  type: string
+                params:
+                  type: object
+                created_by:
+                  type: string
+                cancelled_by:
+                  type: string
+                total_count:
+                  type: integer
+                processed_count:
+                  type: integer
+                completed_count:
+                  type: integer
+                failed_count:
+                  type: integer
+                cancelled_count:
+                  type: integer
             name:
               type: object
               properties:
@@ -20571,6 +20854,35 @@ components:
                   type: boolean
                 endpoint:
                   type: boolean
+            bulk_action:
+              type: object
+              properties:
+                uid:
+                  type: string
+                action_id:
+                  type: string
+                type:
+                  type: string
+                status:
+                  type: string
+                question_xpath:
+                  type: string
+                params:
+                  type: object
+                created_by:
+                  type: string
+                cancelled_by:
+                  type: string
+                total_count:
+                  type: integer
+                processed_count:
+                  type: integer
+                completed_count:
+                  type: integer
+                failed_count:
+                  type: integer
+                cancelled_count:
+                  type: integer
             name:
               type: object
               properties:

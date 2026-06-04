@@ -7,6 +7,7 @@ import { dataInterface } from '#/dataInterface'
 import { notify } from '#/utils'
 
 const FORM_MEDIA_FILE_TYPE = 'form_media'
+const DEFAULT_UPLOAD_SOURCE = 'file'
 
 /**
  * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
@@ -17,13 +18,15 @@ const formMediaActions = Reflux.createActions({
   deleteMedia: { children: ['completed', 'failed'] },
 })
 
-formMediaActions.uploadMedia.listen((uid, formMediaJSON) => {
+formMediaActions.uploadMedia.listen((uid, formMediaJSON, uploadSource = DEFAULT_UPLOAD_SOURCE) => {
   dataInterface
     .postFormMedia(uid, formMediaJSON)
     .done(() => {
-      formMediaActions.uploadMedia.completed(uid)
+      formMediaActions.uploadMedia.completed(uid, uploadSource)
     })
-    .fail(formMediaActions.uploadMedia.failed)
+    .fail((response) => {
+      formMediaActions.uploadMedia.failed(response, uploadSource)
+    })
 })
 formMediaActions.uploadMedia.completed.listen((uid) => {
   formMediaActions.loadMedia(uid)
