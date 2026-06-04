@@ -117,7 +117,7 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
   {
     name: AuditActions['bulk-processing'],
     label: t('bulk processing'),
-    message: t('##username## ran a bulk processing job'),
+    message: t('##username## started a bulk processing job'),
   },
   {
     name: AuditActions['modify-automatic-qa-data'],

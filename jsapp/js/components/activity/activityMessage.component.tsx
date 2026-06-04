@@ -15,11 +15,11 @@ export function ActivityMessage(props: { data: ActivityLogsItem }) {
     if (bulkActionId === 'automatic_google_transcription') {
       message = t('##username## bulk transcribed audio files')
     } else if (bulkActionId === 'automatic_google_translation') {
-      message = t('##username## bulk translated transcripts')
+      message = t('##username## bulk translated transcriptions')
     }
   }
 
-  // Here we reaplace all possible placeholders with appropriate data. This way
+  // Here we replace all possible placeholders with appropriate data. This way
   // we don't really need to know which message (out of around 30) are we
   // dealing with - if it has given placeholder, it would be replaced, if it
   // doesn't nothing will happen.
