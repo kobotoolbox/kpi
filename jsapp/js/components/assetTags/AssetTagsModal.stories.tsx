@@ -1,6 +1,6 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
 import assetFactory from '#/endpoints/asset.factory'
@@ -15,10 +15,10 @@ const mockAsset = assetFactory({
   tag_string: 'alpha,beta',
 })
 const mockAssetUid = mockAsset.uid
-let latestPatchedAsset: { uid: string; tag_string: string } | null = null
+const onAssetPatched = fn()
 
 function createAssetPatchHandler() {
-  latestPatchedAsset = null
+  onAssetPatched.mockClear()
 
   return assetPatchMock<{ tag_string?: string }>({
     asset: mockAsset,
@@ -26,10 +26,10 @@ function createAssetPatchHandler() {
       asset.tag_string = payload.tag_string || ''
     },
     onPatch: (asset) => {
-      latestPatchedAsset = {
+      onAssetPatched({
         uid: asset.uid,
         tag_string: asset.tag_string || '',
-      }
+      })
     },
   })
 }
@@ -79,7 +79,7 @@ export const Default: Story = {}
 
 export const UpdateTagsFlow: Story = {
   play: async ({ canvasElement, step }) => {
-    latestPatchedAsset = null
+    onAssetPatched.mockClear()
 
     const canvas = within(canvasElement)
 
@@ -104,7 +104,7 @@ export const UpdateTagsFlow: Story = {
 
     await step('Verify payload', async () => {
       await waitFor(async () => {
-        await expect(latestPatchedAsset).toEqual({
+        await expect(onAssetPatched).toHaveBeenLastCalledWith({
           uid: mockAssetUid,
           tag_string: 'alpha,beta,gamma',
         })
