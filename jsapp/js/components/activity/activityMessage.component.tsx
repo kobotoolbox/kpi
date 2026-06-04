@@ -10,6 +10,7 @@ import styles from './activityMessage.module.scss'
 export function ActivityMessage(props: { data: ActivityLogsItem }) {
   let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
 
+  // Replace deafult bulk processing message with more precise one
   if (props.data.action === 'bulk-processing') {
     const bulkActionId = props.data.metadata.bulk_action?.action_id
     if (bulkActionId === 'automatic_google_transcription') {
