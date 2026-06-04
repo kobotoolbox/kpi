@@ -5,7 +5,6 @@ import Dropzone, { type Accept, type FileRejection } from 'react-dropzone'
 import { actions } from '#/actions'
 import { getQuestionOrChoiceDisplayName, getRowName } from '#/assetUtils'
 import bem from '#/bem'
-import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import Modal from '#/components/common/modal'
 import MapColorPicker from '#/components/map/MapColorPicker'
@@ -33,13 +32,19 @@ enum MapSettingsTabNames {
 export interface MapSettingsTabsConditions {
   hasMultipleGeopointQuestions: boolean
   hasLargeQueryCount: boolean
+  hasChangeAssetPermission: boolean
 }
 
 export function buildMapSettingsTabsToDisplay({
   hasMultipleGeopointQuestions,
   hasLargeQueryCount,
+  hasChangeAssetPermission,
 }: MapSettingsTabsConditions): MapSettingsTabNames[] {
-  const enabledTabs = new Set<MapSettingsTabNames>([MapSettingsTabNames.colors, MapSettingsTabNames.overlays])
+  const enabledTabs = new Set<MapSettingsTabNames>([MapSettingsTabNames.colors])
+
+  if (hasChangeAssetPermission) {
+    enabledTabs.add(MapSettingsTabNames.overlays)
+  }
 
   if (hasMultipleGeopointQuestions) {
     enabledTabs.add(MapSettingsTabNames.geoquestion)
@@ -278,6 +283,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     const tabsToDisplay = buildMapSettingsTabsToDisplay({
       hasMultipleGeopointQuestions: this.state.geoQuestions.length > 1,
       hasLargeQueryCount: this.state.queryCount > QUERY_LIMIT_MINIMUM,
+      hasChangeAssetPermission,
     })
 
     const activeTab = tabsToDisplay.includes(this.state.activeModalTab) ? this.state.activeModalTab : tabsToDisplay[0]
@@ -320,53 +326,46 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
             )}
             {activeTab === MapSettingsTabNames.overlays && (
               <div className='map-settings__overlay'>
-                {!hasChangeAssetPermission && (
-                  <Alert type='info'>{t('Managing overlay layers requires permission to edit this project.')}</Alert>
+                {this.state.files.length > 0 && (
+                  <bem.FormModal__item m='list-files'>
+                    <label>{t('Uploaded layers')}</label>
+                    {this.state.files.map((file, i) => (
+                      <div className='list-file-row' key={i}>
+                        <span className='file-type'>{file.metadata.type}</span>
+                        <span className='file-layer-name'>{file.description}</span>
+                        <span
+                          className='file-delete'
+                          onClick={() => this.deleteFile(file.uid)}
+                          data-tip={t('Delete layer')}
+                        >
+                          <i className='k-icon k-icon-trash' />
+                        </span>
+                      </div>
+                    ))}
+                  </bem.FormModal__item>
                 )}
-                {hasChangeAssetPermission && (
-                  <>
-                    {this.state.files.length > 0 && (
-                      <bem.FormModal__item m='list-files'>
-                        <label>{t('Uploaded layers')}</label>
-                        {this.state.files.map((file, i) => (
-                          <div className='list-file-row' key={i}>
-                            <span className='file-type'>{file.metadata.type}</span>
-                            <span className='file-layer-name'>{file.description}</span>
-                            <span
-                              className='file-delete'
-                              onClick={() => this.deleteFile(file.uid)}
-                              data-tip={t('Delete layer')}
-                            >
-                              <i className='k-icon k-icon-trash' />
-                            </span>
-                          </div>
-                        ))}
-                      </bem.FormModal__item>
+                <bem.FormModal__item m='layer-upload'>
+                  <label htmlFor='name'>
+                    {t(
+                      'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.',
                     )}
-                    <bem.FormModal__item m='layer-upload'>
-                      <label htmlFor='name'>
-                        {t(
-                          'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.',
-                        )}
-                      </label>
-                      <input
-                        type='text'
-                        id='name'
-                        placeholder={t('Layer name')}
-                        value={this.state.layerName}
-                        onChange={this.onLayerNameChange.bind(this)}
-                      />
-                      <Dropzone onDrop={this.dropFiles.bind(this)} multiple={false} accept={MAP_LAYER_DROPZONE_ACCEPT}>
-                        {({ getRootProps, getInputProps }) => (
-                          <div {...getRootProps({ className: 'dropzone' })}>
-                            <input {...getInputProps()} />
-                            <Button type='primary' size='l' label={t('Upload')} isFullWidth />
-                          </div>
-                        )}
-                      </Dropzone>
-                    </bem.FormModal__item>
-                  </>
-                )}
+                  </label>
+                  <input
+                    type='text'
+                    id='name'
+                    placeholder={t('Layer name')}
+                    value={this.state.layerName}
+                    onChange={this.onLayerNameChange.bind(this)}
+                  />
+                  <Dropzone onDrop={this.dropFiles.bind(this)} multiple={false} accept={MAP_LAYER_DROPZONE_ACCEPT}>
+                    {({ getRootProps, getInputProps }) => (
+                      <div {...getRootProps({ className: 'dropzone' })}>
+                        <input {...getInputProps()} />
+                        <Button type='primary' size='l' label={t('Upload')} isFullWidth />
+                      </div>
+                    )}
+                  </Dropzone>
+                </bem.FormModal__item>
               </div>
             )}
             {activeTab === MapSettingsTabNames.colors && (

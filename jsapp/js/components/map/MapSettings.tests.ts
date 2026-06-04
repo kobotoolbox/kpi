@@ -5,6 +5,7 @@ describe('buildMapSettingsTabsToDisplay', () => {
     const tabs = buildMapSettingsTabsToDisplay({
       hasMultipleGeopointQuestions: false,
       hasLargeQueryCount: false,
+      hasChangeAssetPermission: true,
     })
 
     chai.expect(tabs).to.deep.equal(['colors', 'overlays'])
@@ -14,6 +15,7 @@ describe('buildMapSettingsTabsToDisplay', () => {
     const tabs = buildMapSettingsTabsToDisplay({
       hasMultipleGeopointQuestions: false,
       hasLargeQueryCount: true,
+      hasChangeAssetPermission: true,
     })
 
     chai.expect(tabs).to.deep.equal(['colors', 'querylimit', 'overlays'])
@@ -23,6 +25,7 @@ describe('buildMapSettingsTabsToDisplay', () => {
     const tabs = buildMapSettingsTabsToDisplay({
       hasMultipleGeopointQuestions: true,
       hasLargeQueryCount: false,
+      hasChangeAssetPermission: true,
     })
 
     chai.expect(tabs).to.deep.equal(['colors', 'geoquestion', 'overlays'])
@@ -32,8 +35,19 @@ describe('buildMapSettingsTabsToDisplay', () => {
     const tabs = buildMapSettingsTabsToDisplay({
       hasMultipleGeopointQuestions: true,
       hasLargeQueryCount: true,
+      hasChangeAssetPermission: true,
     })
 
     chai.expect(tabs).to.deep.equal(['colors', 'querylimit', 'geoquestion', 'overlays'])
+  })
+
+  it('hides overlays when user has no permission to edit project', () => {
+    const tabs = buildMapSettingsTabsToDisplay({
+      hasMultipleGeopointQuestions: true,
+      hasLargeQueryCount: true,
+      hasChangeAssetPermission: false,
+    })
+
+    chai.expect(tabs).to.deep.equal(['colors', 'querylimit', 'geoquestion'])
   })
 })
