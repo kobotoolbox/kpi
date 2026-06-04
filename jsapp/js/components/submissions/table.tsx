@@ -420,6 +420,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
       showWarningModal: showWarningModal,
+      onSuccess: () => {
+        this.setState({
+          selectedRows: {},
+          selectAll: false,
+        })
+      },
     })
   }
 

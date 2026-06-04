@@ -15,7 +15,7 @@ import { useSession } from '#/stores/useSession'
 import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
 import RegionSelectorField from '../languages/RegionSelectorField'
-import type { LanguageCode, TransxServiceCode } from '../languages/languagesStore'
+import type { LanguageCode } from '../languages/languagesStore'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
@@ -26,12 +26,13 @@ interface BulkTranscriptionModalProps {
   selectedRowsCount: number
   showWarningModal: boolean
   onRequestClose: () => void
+  onSuccess: () => void
 }
 
 type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
 
 export default function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
-  if (args.showWarningModal ) {
+  if (args.showWarningModal) {
     const warningModalId = modals.openConfirmModal({
       title: t('Request too large'),
       size: 'lg',
@@ -87,8 +88,8 @@ function openBulkTranscriptModalInternal(args: BulkTranscriptionModalArgs) {
 function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
-  const [serviceCode] = useState<TransxServiceCode>('goog')
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
+  const serviceCode = 'goog'
 
   const navigate = useNavigate()
 
@@ -115,6 +116,8 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   }
 
   const handleStartTranscription = () => {
+    // Although we warn about existing transcripts, we still pass all of the submissions without filtering them out.
+    // Currently the backend skips the submissions that already have a transcript.
     createBulkTranscription(
       {
         uidAsset: props.assetUid,
@@ -132,6 +135,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         onSuccess: () => {
           // TODO: implement @mantine/notifications system, see DEV-2211
           props.onRequestClose()
+          props.onSuccess()
         },
         onError: () => {
           // TODO: implement @mantine/notifications system, see DEV-2211

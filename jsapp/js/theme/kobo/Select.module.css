@@ -11,5 +11,5 @@
 
 .required {
   line-height: 0;
-  color: var(--mantine-color-red-7)
+  color: var(--mantine-color-red-7);
 }

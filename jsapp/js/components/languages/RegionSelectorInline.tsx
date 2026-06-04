@@ -20,22 +20,29 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
 }
 
 /** Dropdown + language display region selector for automated transcriptions */
-const RegionSelectorInline = (props: RegionSelectorProps) => {
-  const { rootLanguage, serviceCode, serviceType, onRegionChange, onCancel, disabled, ...flexProps } = props
+const RegionSelectorInline = ({
+  rootLanguage,
+  serviceCode,
+  serviceType,
+  onRegionChange,
+  onCancel,
+  disabled,
+  ...flexProps
+}: RegionSelectorProps) => {
   const { regionOptions, selectedRegion, handleRegionChange, isLoading, isError, language } = useRegionOptions(
-    props.rootLanguage,
-    props.serviceCode,
-    props.serviceType,
-    props.onRegionChange,
+    rootLanguage,
+    serviceCode,
+    serviceType,
+    onRegionChange,
   )
 
   if (isLoading) {
-    return <Loader size='xs' mb={props?.mb} />
+    return <Loader size='xs' mb={flexProps.mb} />
   }
 
   if (isError) {
     return (
-      <Text c='var(--mantine-color-red-5)' size='sm' mb={props?.mb}>
+      <Text c='var(--mantine-color-red-5)' size='sm' mb={flexProps.mb}>
         {t('Failed to load regions')}
       </Text>
     )
@@ -51,13 +58,7 @@ const RegionSelectorInline = (props: RegionSelectorProps) => {
           leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
           w={220}
           rightSection={
-            <ActionIcon
-              aria-label={t('Close')}
-              variant='transparent'
-              size='sm'
-              onClick={props.onCancel}
-              disabled={props.disabled}
-            >
+            <ActionIcon aria-label={t('Close')} variant='transparent' size='sm' onClick={onCancel} disabled={disabled}>
               <KoboIcon icon={IconX} size='xs' />
             </ActionIcon>
           }
@@ -70,7 +71,7 @@ const RegionSelectorInline = (props: RegionSelectorProps) => {
             value={selectedRegion}
             size='sm'
             onChange={handleRegionChange}
-            disabled={props.disabled}
+            disabled={disabled}
             placeholder={t('Select a region...')}
           />
         )}
