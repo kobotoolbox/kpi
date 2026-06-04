@@ -1,7 +1,7 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
@@ -9,7 +9,7 @@ import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openFormLanguagesModal } from './index'
 
 const mockAssetUid = 'storyFormLanguagesManagerUid'
-let latestPatchedAsset: AssetResponse | null = null
+const onAssetPatched = fn()
 
 const storyAreaStyle = {
   minHeight: 720,
@@ -43,6 +43,8 @@ function buildInitialAsset(): AssetResponse {
 }
 
 function createAssetPatchHandler(initialAsset: AssetResponse) {
+  onAssetPatched.mockClear()
+
   return assetPatchMock<{ content?: string; name?: string }>({
     asset: initialAsset,
     applyPatch: (asset, payload) => {
@@ -57,7 +59,7 @@ function createAssetPatchHandler(initialAsset: AssetResponse) {
     onPatch: (asset) => {
       // Keep the most recent saved snapshot around so the play steps can
       // inspect the translated survey structure after each PATCH.
-      latestPatchedAsset = asset
+      onAssetPatched(asset)
     },
   })
 }
@@ -129,7 +131,7 @@ export const Default: Story = {}
 /** Exercises the language management workflow from setup through saving translations. */
 export const BasicFlow: Story = {
   play: async ({ canvasElement, step }) => {
-    latestPatchedAsset = null
+    onAssetPatched.mockClear()
 
     const canvas = within(canvasElement)
     const page = within(document.body)
@@ -255,8 +257,11 @@ export const BasicFlow: Story = {
 
     await step('Verify API saved translation for question 11', async () => {
       await waitFor(async () => {
-        await expect(latestPatchedAsset).not.toBeNull()
+        await expect(onAssetPatched).toHaveBeenCalled()
       })
+
+      const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
+      const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
 
       const survey = latestPatchedAsset?.content?.survey || []
       const question11 = survey.find((item) => item.name === 'question_11')
