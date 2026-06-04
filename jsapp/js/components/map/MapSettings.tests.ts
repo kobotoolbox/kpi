@@ -3,7 +3,6 @@ import { buildMapSettingsTabsToDisplay } from './MapSettings'
 describe('buildMapSettingsTabsToDisplay', () => {
   it('keeps baseline tabs when no extra tab conditions are met', () => {
     const tabs = buildMapSettingsTabsToDisplay({
-      hasChangeAssetPermission: true,
       hasMultipleGeopointQuestions: false,
       hasLargeQueryCount: false,
     })
@@ -13,7 +12,6 @@ describe('buildMapSettingsTabsToDisplay', () => {
 
   it('includes query limit without removing overlays', () => {
     const tabs = buildMapSettingsTabsToDisplay({
-      hasChangeAssetPermission: true,
       hasMultipleGeopointQuestions: false,
       hasLargeQueryCount: true,
     })
@@ -23,7 +21,6 @@ describe('buildMapSettingsTabsToDisplay', () => {
 
   it('includes geopoint question without removing overlays', () => {
     const tabs = buildMapSettingsTabsToDisplay({
-      hasChangeAssetPermission: true,
       hasMultipleGeopointQuestions: true,
       hasLargeQueryCount: false,
     })
@@ -33,7 +30,6 @@ describe('buildMapSettingsTabsToDisplay', () => {
 
   it('includes query limit and geopoint question together without removing overlays', () => {
     const tabs = buildMapSettingsTabsToDisplay({
-      hasChangeAssetPermission: true,
       hasMultipleGeopointQuestions: true,
       hasLargeQueryCount: true,
     })
@@ -41,13 +37,12 @@ describe('buildMapSettingsTabsToDisplay', () => {
     chai.expect(tabs).to.deep.equal(['querylimit', 'geoquestion', 'overlays', 'colors'])
   })
 
-  it('omits overlays if the user cannot change the asset', () => {
+  it('still keeps overlays tab when the user cannot change the asset', () => {
     const tabs = buildMapSettingsTabsToDisplay({
-      hasChangeAssetPermission: false,
       hasMultipleGeopointQuestions: true,
       hasLargeQueryCount: true,
     })
 
-    chai.expect(tabs).to.deep.equal(['querylimit', 'geoquestion', 'colors'])
+    chai.expect(tabs).to.deep.equal(['querylimit', 'geoquestion', 'overlays', 'colors'])
   })
 })

@@ -1,24 +1,17 @@
 import alertify from 'alertifyjs'
 import cx from 'classnames'
-// Libraries
 import React from 'react'
 import Dropzone, { type Accept, type FileRejection } from 'react-dropzone'
-
-// Partial components
-import bem from '../../../js/bem'
-import Button from '../../../js/components/common/button'
-import Modal from '../../../js/components/common/modal'
-import MapColorPicker from '../../../js/components/map/MapColorPicker'
-
-// Stores, hooks and utilities
-import { actions } from '../../../js/actions'
-import { getQuestionOrChoiceDisplayName, getRowName } from '../../../js/assetUtils'
-import { userCan } from '../../../js/components/permissions/utils'
-import { dataInterface } from '../../../js/dataInterface'
-import { findFirstGeopoint, notify } from '../../../js/utils'
-
-// Constants and types
-import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT } from '../../../js/constants'
+import { actions } from '#/actions'
+import { getQuestionOrChoiceDisplayName, getRowName } from '#/assetUtils'
+import bem from '#/bem'
+import Alert from '#/components/common/alert'
+import Button from '#/components/common/button'
+import Modal from '#/components/common/modal'
+import MapColorPicker from '#/components/map/MapColorPicker'
+import { userCan } from '#/components/permissions/utils'
+import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT } from '#/constants'
+import { dataInterface } from '#/dataInterface'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -27,7 +20,8 @@ import type {
   FailResponse,
   LabelValuePair,
   PaginatedResponse,
-} from '../../../js/dataInterface'
+} from '#/dataInterface'
+import { findFirstGeopoint, notify } from '#/utils'
 
 enum MapSettingsTabNames {
   colors = 'colors',
@@ -37,21 +31,16 @@ enum MapSettingsTabNames {
 }
 
 export interface MapSettingsTabsConditions {
-  hasChangeAssetPermission: boolean
   hasMultipleGeopointQuestions: boolean
   hasLargeQueryCount: boolean
 }
 
 export function buildMapSettingsTabsToDisplay({
-  hasChangeAssetPermission,
   hasMultipleGeopointQuestions,
   hasLargeQueryCount,
 }: MapSettingsTabsConditions): MapSettingsTabNames[] {
-  const enabledTabs = new Set<MapSettingsTabNames>([MapSettingsTabNames.colors])
+  const enabledTabs = new Set<MapSettingsTabNames>([MapSettingsTabNames.colors, MapSettingsTabNames.overlays])
 
-  if (hasChangeAssetPermission) {
-    enabledTabs.add(MapSettingsTabNames.overlays)
-  }
   if (hasMultipleGeopointQuestions) {
     enabledTabs.add(MapSettingsTabNames.geoquestion)
   }
@@ -59,12 +48,7 @@ export function buildMapSettingsTabsToDisplay({
     enabledTabs.add(MapSettingsTabNames.querylimit)
   }
 
-  return [
-    MapSettingsTabNames.querylimit,
-    MapSettingsTabNames.geoquestion,
-    MapSettingsTabNames.overlays,
-    MapSettingsTabNames.colors,
-  ].filter((tabId) => enabledTabs.has(tabId))
+  return Array.from(TABS.keys()).filter((tabId) => enabledTabs.has(tabId))
 }
 
 interface MapSettingsTabDefinition {
@@ -83,6 +67,7 @@ const MAP_LAYER_DROPZONE_ACCEPT: Accept = {
   'application/wkt': ['.wkt'],
 }
 
+// FYI the order here matters
 const TABS = new Map<MapSettingsTabNames, MapSettingsTabDefinition>([
   [MapSettingsTabNames.colors, { id: MapSettingsTabNames.colors, label: t('Marker Colors') }],
   [MapSettingsTabNames.querylimit, { id: MapSettingsTabNames.querylimit, label: t('Query Limit') }],
@@ -125,15 +110,6 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     const queryCount = props.asset.deployment__submission_count
 
-    let defaultActiveTab = MapSettingsTabNames.colors
-    if (queryCount > QUERY_LIMIT_MINIMUM) {
-      defaultActiveTab = MapSettingsTabNames.querylimit
-    } else if (geoQuestions.length > 1) {
-      defaultActiveTab = MapSettingsTabNames.geoquestion
-    } else if (userCan('change_asset', this.props.asset)) {
-      defaultActiveTab = MapSettingsTabNames.overlays
-    }
-
     const mapStyles = Object.assign({}, this.props.asset.map_styles)
     if (this.props.overridenStyles) {
       Object.assign(mapStyles, this.props.overridenStyles)
@@ -151,7 +127,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     }
 
     this.state = {
-      activeModalTab: defaultActiveTab,
+      activeModalTab: MapSettingsTabNames.colors,
       geoQuestions: geoQuestions,
       mapSettings: mapStyles,
       files: [],
@@ -292,6 +268,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
   render() {
     let queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT
+    const hasChangeAssetPermission = userCan('change_asset', this.props.asset)
 
     // This case can only happen if somehow the queryLimit in map_styles is using the old slider values
     if (Number(queryLimit) > this.props.queryLimit) {
@@ -299,7 +276,6 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     }
 
     const tabsToDisplay = buildMapSettingsTabsToDisplay({
-      hasChangeAssetPermission: userCan('change_asset', this.props.asset),
       hasMultipleGeopointQuestions: this.state.geoQuestions.length > 1,
       hasLargeQueryCount: this.state.queryCount > QUERY_LIMIT_MINIMUM,
     })
@@ -344,46 +320,53 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
             )}
             {activeTab === MapSettingsTabNames.overlays && (
               <div className='map-settings__overlay'>
-                {this.state.files.length > 0 && (
-                  <bem.FormModal__item m='list-files'>
-                    <label>{t('Uploaded layers')}</label>
-                    {this.state.files.map((file, i) => (
-                      <div className='list-file-row' key={i}>
-                        <span className='file-type'>{file.metadata.type}</span>
-                        <span className='file-layer-name'>{file.description}</span>
-                        <span
-                          className='file-delete'
-                          onClick={() => this.deleteFile(file.uid)}
-                          data-tip={t('Delete layer')}
-                        >
-                          <i className='k-icon k-icon-trash' />
-                        </span>
-                      </div>
-                    ))}
-                  </bem.FormModal__item>
+                {!hasChangeAssetPermission && (
+                  <Alert type='info'>{t('Managing overlay layers requires permission to edit this project.')}</Alert>
                 )}
-                <bem.FormModal__item m='layer-upload'>
-                  <label htmlFor='name'>
-                    {t(
-                      'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.',
+                {hasChangeAssetPermission && (
+                  <>
+                    {this.state.files.length > 0 && (
+                      <bem.FormModal__item m='list-files'>
+                        <label>{t('Uploaded layers')}</label>
+                        {this.state.files.map((file, i) => (
+                          <div className='list-file-row' key={i}>
+                            <span className='file-type'>{file.metadata.type}</span>
+                            <span className='file-layer-name'>{file.description}</span>
+                            <span
+                              className='file-delete'
+                              onClick={() => this.deleteFile(file.uid)}
+                              data-tip={t('Delete layer')}
+                            >
+                              <i className='k-icon k-icon-trash' />
+                            </span>
+                          </div>
+                        ))}
+                      </bem.FormModal__item>
                     )}
-                  </label>
-                  <input
-                    type='text'
-                    id='name'
-                    placeholder={t('Layer name')}
-                    value={this.state.layerName}
-                    onChange={this.onLayerNameChange.bind(this)}
-                  />
-                  <Dropzone onDrop={this.dropFiles.bind(this)} multiple={false} accept={MAP_LAYER_DROPZONE_ACCEPT}>
-                    {({ getRootProps, getInputProps }) => (
-                      <div {...getRootProps({ className: 'dropzone' })}>
-                        <input {...getInputProps()} />
-                        <Button type='primary' size='l' label={t('Upload')} isFullWidth />
-                      </div>
-                    )}
-                  </Dropzone>
-                </bem.FormModal__item>
+                    <bem.FormModal__item m='layer-upload'>
+                      <label htmlFor='name'>
+                        {t(
+                          'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.',
+                        )}
+                      </label>
+                      <input
+                        type='text'
+                        id='name'
+                        placeholder={t('Layer name')}
+                        value={this.state.layerName}
+                        onChange={this.onLayerNameChange.bind(this)}
+                      />
+                      <Dropzone onDrop={this.dropFiles.bind(this)} multiple={false} accept={MAP_LAYER_DROPZONE_ACCEPT}>
+                        {({ getRootProps, getInputProps }) => (
+                          <div {...getRootProps({ className: 'dropzone' })}>
+                            <input {...getInputProps()} />
+                            <Button type='primary' size='l' label={t('Upload')} isFullWidth />
+                          </div>
+                        )}
+                      </Dropzone>
+                    </bem.FormModal__item>
+                  </>
+                )}
               </div>
             )}
             {activeTab === MapSettingsTabNames.colors && (
@@ -428,7 +411,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
           activeTab,
         ) && (
           <bem.Modal__footer>
-            {userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT && (
+            {hasChangeAssetPermission && queryLimit !== QUERY_LIMIT_DEFAULT && (
               <Button type='danger' size='l' onClick={this.resetMapSettings.bind(this)} label={t('Reset')} />
             )}
 
