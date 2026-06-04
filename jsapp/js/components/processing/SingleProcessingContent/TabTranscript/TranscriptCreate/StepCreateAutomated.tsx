@@ -14,7 +14,7 @@ import {
 } from '#/api/react-query/survey-data'
 import KoboIcon from '#/components/common/KoboIcon'
 import Button from '#/components/common/button'
-import RegionSelectorField from '#/components/languages/RegionSelectorField'
+import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -156,7 +156,7 @@ export default function StepCreateAutomated({
             }
           />
 
-          <RegionSelectorField
+          <RegionSelector
             rootLanguage={languageCode}
             disabled={anyPending}
             serviceCode='goog'

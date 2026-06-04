@@ -14,7 +14,7 @@ import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import ButtonNew from '../common/ButtonNew'
 import LanguageSelector from '../languages/LanguageSelector'
-import RegionSelectorField from '../languages/RegionSelectorField'
+import RegionSelector from '../languages/RegionSelector'
 import type { LanguageCode } from '../languages/languagesStore'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
@@ -167,7 +167,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           // Smaller message to fit in the modal
           nothingFoundMessage={t('I cannot find my language')}
         />
-        <RegionSelectorField
+        <RegionSelector
           disabled={!selectedLanguage || hasExceededLimit}
           rootLanguage={selectedLanguage || ''}
           serviceCode={serviceCode}

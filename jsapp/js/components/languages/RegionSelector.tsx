@@ -21,7 +21,7 @@ interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
 }
 
 /** Dropdown only region selector for automated transcriptions */
-const RegionSelectorField = ({
+const RegionSelector = ({
   rootLanguage,
   serviceCode,
   serviceType,
@@ -127,4 +127,4 @@ const RegionSelectorField = ({
   )
 }
 
-export default RegionSelectorField
+export default RegionSelector
