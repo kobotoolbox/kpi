@@ -15,12 +15,12 @@ export default assetHistoryMock
 
 const assetHistoryActionsResponse: AssetHistoryActionsResponse = {
   actions: [
+    'bulk-processing',
     'disallow-anonymous-submissions',
     'add-media',
     'add-submission',
     'allow-anonymous-submissions',
     'modify-user-permissions',
-    'modify-qa-data',
     'update-content',
     'deploy',
     'delete-submission',

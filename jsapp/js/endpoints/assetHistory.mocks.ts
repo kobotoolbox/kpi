@@ -8,17 +8,7 @@ export const mockAssetUid = defaultAssetHistoryAssetUid
 
 type AssetHistoryLogOverrides = Parameters<typeof assetHistoryLogFactory>[0]
 type ActivityPermissions = NonNullable<ActivityLogsItem['metadata']['permissions']>
-interface ActivityBulkProcessingMetadata {
-  action_id?: string
-  succeeded_submissions_count?: number
-  errored_submissions_count?: number
-  skipped_submissions_count?: number
-  cancelled_by?: string | { username?: string }
-}
 
-type AssetHistoryMetadataWithBulkProcessing = ActivityLogsItem['metadata'] & {
-  bulk_processing?: ActivityBulkProcessingMetadata
-}
 const johnLog = (overrides: AssetHistoryLogOverrides) =>
   assetHistoryLogFactory({
     user: '/api/v2/users/john/',
@@ -60,7 +50,7 @@ const modifyUserPermissionsLog = (permissions: ActivityPermissions, dateCreated:
 const addMediaAttachmentLog = karinaLog({
   action: AuditActions['add-media'],
   metadata: {
-    'asset-file': {
+    'asset-files': {
       uid: 'afRwzbjzPQvJRhxic8qzXc7',
       filename: 'secrets.zip',
       md5_hash: 'md5:46f405aafd79d8698efcb4eb8abaa083',
@@ -71,34 +61,44 @@ const addMediaAttachmentLog = karinaLog({
 })
 
 const bulkTranslatedTranscriptionsLog = karinaLog({
-  action: AuditActions['modify-qa-data'],
+  action: AuditActions['bulk-processing'],
   metadata: {
-    bulk_processing: {
+    bulk_action: {
+      uid: 'sbaY9R2P3mF8rQnZ4x1cV7',
       action_id: 'automatic_google_translation',
-      succeeded_submissions_count: 5,
-      errored_submissions_count: 1,
-      skipped_submissions_count: 2,
-      cancelled_by: {
-        username: 'john',
-      },
+      type: 'translation',
+      status: 'complete',
+      question_xpath: '/data/audio_q',
+      params: { language: 'es' },
+      created_by: 'karina',
+      total_count: 8,
+      processed_count: 8,
+      completed_count: 5,
+      failed_count: 1,
+      cancelled_count: 2,
     },
-  } as AssetHistoryMetadataWithBulkProcessing,
+  },
   date_created: '2026-05-30T13:43:20Z',
 })
 
 const bulkTranscribedAudioFilesLog = karinaLog({
-  action: AuditActions['modify-qa-data'],
+  action: AuditActions['bulk-processing'],
   metadata: {
-    bulk_processing: {
+    bulk_action: {
+      uid: 'sbaJ3kN7vL2pQxR5mT8wB1',
       action_id: 'automatic_google_transcription',
-      succeeded_submissions_count: 7,
-      errored_submissions_count: 2,
-      skipped_submissions_count: 1,
-      cancelled_by: {
-        username: 'john',
-      },
+      type: 'transcription',
+      status: 'complete',
+      question_xpath: '/data/audio_q',
+      params: { language: 'en' },
+      created_by: 'karina',
+      total_count: 10,
+      processed_count: 10,
+      completed_count: 7,
+      failed_count: 2,
+      cancelled_count: 1,
     },
-  } as AssetHistoryMetadataWithBulkProcessing,
+  },
   date_created: '2026-05-30T13:41:20Z',
 })
 

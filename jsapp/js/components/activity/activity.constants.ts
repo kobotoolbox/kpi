@@ -5,13 +5,14 @@ import type { PermissionCodename } from '../permissions/permConstants'
 
 /**
  * All possible log item actions.
- * @see `AuditAction` class from {@link kobo/apps/audit_log/models.py} (BE code)
+ * @see `AuditAction` class from {@link kobo/apps/audit_log/audit_actions.py} (BE code)
  */
 export enum AuditActions {
   'add-media' = 'add-media',
   'add-submission' = 'add-submission',
   'allow-anonymous-submissions' = 'allow-anonymous-submissions',
   archive = 'archive',
+  'bulk-processing' = 'bulk-processing',
   'clone-permissions' = 'clone-permissions',
   'connect-project' = 'connect-project',
   'delete-media' = 'delete-media',
@@ -112,6 +113,11 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
     name: AuditActions['modify-qa-data'],
     label: t('edit qualitative analysis data'),
     message: t('##username## edited qualitative analysis data'),
+  },
+  {
+    name: AuditActions['bulk-processing'],
+    label: t('bulk processing'),
+    message: t('##username## ran a bulk processing job'),
   },
   {
     name: AuditActions['modify-automatic-qa-data'],
@@ -284,13 +290,6 @@ interface ActivityLogsMetadata extends Omit<ProjectHistoryLogResponseMetadata, '
     username: string
     added?: Array<PermissionCodename | AuditPartialPermission>
     removed?: Array<PermissionCodename | AuditPartialPermission>
-  }
-  // TODO(DEV-1416): Remove this extension once OpenAPI includes asset file metadata on history entries.
-  'asset-file'?: {
-    uid: string
-    filename: string
-    md5_hash: string
-    download_url: string
   }
 }
 
