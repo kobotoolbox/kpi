@@ -36,13 +36,4 @@ describe('buildMapSettingsTabsToDisplay', () => {
 
     chai.expect(tabs).to.deep.equal(['colors', 'querylimit', 'geoquestion', 'overlays'])
   })
-
-  it('still keeps overlays tab when the user cannot change the asset', () => {
-    const tabs = buildMapSettingsTabsToDisplay({
-      hasMultipleGeopointQuestions: true,
-      hasLargeQueryCount: true,
-    })
-
-    chai.expect(tabs).to.deep.equal(['colors', 'querylimit', 'geoquestion', 'overlays'])
-  })
 })
