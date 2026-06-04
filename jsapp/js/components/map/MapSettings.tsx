@@ -67,7 +67,7 @@ const MAP_LAYER_DROPZONE_ACCEPT: Accept = {
   'application/wkt': ['.wkt'],
 }
 
-// FYI the order here matters
+// FYI the order here matters and inflences the order of tabs in UI
 const TABS = new Map<MapSettingsTabNames, MapSettingsTabDefinition>([
   [MapSettingsTabNames.colors, { id: MapSettingsTabNames.colors, label: t('Marker Colors') }],
   [MapSettingsTabNames.querylimit, { id: MapSettingsTabNames.querylimit, label: t('Query Limit') }],
@@ -127,7 +127,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     }
 
     this.state = {
-      activeModalTab: MapSettingsTabNames.colors,
+      activeModalTab: Array.from(TABS.keys())[0],
       geoQuestions: geoQuestions,
       mapSettings: mapStyles,
       files: [],
