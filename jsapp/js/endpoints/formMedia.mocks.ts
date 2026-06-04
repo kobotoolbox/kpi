@@ -9,6 +9,11 @@ interface CreateFormMediaPayload {
   base64Encoded?: string
 }
 
+interface FormMediaMockOptions {
+  // Optional per-filename delays for story/play-test scenarios.
+  uploadDelayByFilenameMs?: Record<string, number>
+}
+
 function parsePayloadFromText(textPayload: string): CreateFormMediaPayload {
   const params = new URLSearchParams(textPayload)
 
@@ -32,7 +37,17 @@ async function parsePayload(request: Request): Promise<CreateFormMediaPayload> {
   return parsePayloadFromText(await request.text())
 }
 
-export function formMediaHandlers(assetUid: string, seedItems: FormMediaItem[] = [formMediaFactory(1)]) {
+function waitMs(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
+export function formMediaHandlers(
+  assetUid: string,
+  seedItems: FormMediaItem[] = [formMediaFactory(1)],
+  options: FormMediaMockOptions = {},
+) {
   // We mutate this local array to mimic backend persistence between requests
   // inside a single Storybook run.
   const mediaItems = [...seedItems]
@@ -59,6 +74,13 @@ export function formMediaHandlers(assetUid: string, seedItems: FormMediaItem[] =
       const payload = await parsePayload(request)
       // metadata is sent as a string by the API contract.
       const parsedMetadata = payload.metadata ? JSON.parse(payload.metadata) : {}
+      const fileName = parsedMetadata.filename as string | undefined
+      // Unknown filenames (or missing delay map) upload immediately.
+      const delayMs = (fileName && options.uploadDelayByFilenameMs?.[fileName]) || 0
+      if (delayMs > 0) {
+        await waitMs(delayMs)
+      }
+
       const index = mediaItems.length + 1
 
       const newItem = formMediaFactory(index, {

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
+from kobo.apps.subsequences.audit import create_bulk_action_history_log
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubsequenceBulkAction
 from kobo.apps.subsequences.serializers import (
@@ -289,6 +290,7 @@ class BulkActionViewSet(
         # Re-fetch the instance to ensure all related data is included
         # (e.g. for response serialization)
         instance = self.get_queryset().get(pk=instance.pk)
+        create_bulk_action_history_log(request, instance)
         response_serializer = BulkActionResponseSerializer(instance)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
