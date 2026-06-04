@@ -55,6 +55,8 @@ function createAssetPatchHandler(initialAsset: AssetResponse) {
       }
     },
     onPatch: (asset) => {
+      // Keep the most recent saved snapshot around so the play steps can
+      // inspect the translated survey structure after each PATCH.
       latestPatchedAsset = asset
     },
   })
@@ -121,8 +123,10 @@ export default meta
 
 type Story = StoryObj<typeof StoryTrigger>
 
+/** Opens the modal from a minimal story shell without extra interactions. */
 export const Default: Story = {}
 
+/** Exercises the language management workflow from setup through saving translations. */
 export const BasicFlow: Story = {
   play: async ({ canvasElement, step }) => {
     latestPatchedAsset = null

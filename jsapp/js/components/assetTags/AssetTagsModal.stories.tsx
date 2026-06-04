@@ -26,6 +26,8 @@ function createAssetPatchHandler() {
       asset.tag_string = payload.tag_string || ''
     },
     onPatch: (asset) => {
+      // Using a Storybook spy is more robust than sharing mutable module state:
+      // the play function can assert the exact PATCH payload and call order.
       onAssetPatched({
         uid: asset.uid,
         tag_string: asset.tag_string || '',
@@ -75,8 +77,14 @@ export default meta
 
 type Story = StoryObj<typeof StoryTrigger>
 
+/**
+ * Renders the trigger button without opening the modal automatically.
+ */
 export const Default: Story = {}
 
+/**
+ * Covers the full tag editing flow and verifies the PATCH payload sent to the API mock.
+ */
 export const UpdateTagsFlow: Story = {
   play: async ({ canvasElement, step }) => {
     onAssetPatched.mockClear()

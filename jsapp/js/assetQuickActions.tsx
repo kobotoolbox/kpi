@@ -29,6 +29,7 @@ import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
 import { notify, renderCheckbox } from './utils'
 
+/** Opens the correct builder route for the current asset context. */
 export function openInFormBuilder(uid: string) {
   if (isAnyLibraryRoute()) {
     router!.navigate(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid))
@@ -37,6 +38,9 @@ export function openInFormBuilder(uid: string) {
   }
 }
 
+/**
+ * Shows the destructive delete confirmation flow and deletes the asset if confirmed.
+ */
 export function deleteAsset(
   asset: AssetResponse | ProjectViewAsset,
   name: string,
@@ -339,6 +343,7 @@ export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
   })
 }
 
+/** Removes a shared asset from the current user's workspace. */
 export function removeAssetSharing(uid: string) {
   const dialog = alertify.dialog('confirm')
   const opts = {
@@ -428,6 +433,9 @@ function _redeployAsset(asset: AssetResponse | ProjectViewAsset, callback?: (res
   dialog.set(opts).show()
 }
 
+/**
+ * Deploys a survey for the first time or re-deploys an existing deployment.
+ */
 export function deployAsset(
   asset: AssetResponse | ProjectViewAsset,
   callback?: (response: DeploymentResponse) => void,
@@ -462,7 +470,7 @@ export function manageAssetLanguages(asset: AssetResponse) {
   openFormLanguagesModal(asset)
 }
 
-/** Opens a modal for modifying asset tags (also editable in Details Modal). */
+/** Opens the Mantine tags editor used for project and library assets. */
 export function modifyAssetTags(asset: AssetResponse | ProjectViewAsset) {
   openAssetTagsModal(asset)
 }

@@ -19,6 +19,9 @@ interface AssetTagsModalProps {
   onRequestClose: () => void
 }
 
+/**
+ * Opens the Mantine-based asset tags editor and returns imperative close helpers.
+ */
 export function openAssetTagsModal(asset: AssetTagsModalAsset) {
   let modalId = ''
 
@@ -34,11 +37,16 @@ export function openAssetTagsModal(asset: AssetTagsModalAsset) {
   }
 }
 
+/**
+ * Lets a user edit an asset's comma-separated tags and save them through Orval/react-query.
+ */
 export default function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
   const [isSessionLoaded, setIsSessionLoaded] = useState(!!sessionStore.isLoggedIn)
   const [tags, setTags] = useState<string[]>(() => (asset.tag_string ? asset.tag_string.split(',') : []))
 
   useEffect(() => {
+    // Some modal entrypoints can run before the session store finishes hydrating.
+    // Waiting here keeps the form from rendering against incomplete auth state.
     const disposeSessionWhen = when(
       () => sessionStore.isInitialLoadComplete,
       () => setIsSessionLoaded(true),
@@ -67,6 +75,8 @@ export default function AssetTagsModal({ asset, onRequestClose }: AssetTagsModal
   function onSubmit(evt: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) {
     evt.preventDefault()
 
+    // The backend still stores tags as one comma-delimited string, so we join
+    // the cleaned list right before sending the PATCH request.
     updateAssetMutation.mutate({
       uidAsset: asset.uid,
       data: {

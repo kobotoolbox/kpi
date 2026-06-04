@@ -9,6 +9,8 @@ interface AssetPatchMockOptions<TPayload> {
   onPatch?: (asset: AssetResponse, payload: TPayload) => void
 }
 
+// Storybook handlers often need isolated copies so one interaction test does
+// not leak mutations into the next render.
 const cloneAsset = (asset: AssetResponse): AssetResponse => JSON.parse(JSON.stringify(asset)) as AssetResponse
 
 /**
@@ -27,6 +29,9 @@ const assetMock = (assetUid: string, override?: Partial<AssetResponse>) =>
     })
   })
 
+/**
+ * Builds a reusable PATCH handler for single-asset stories while keeping the in-memory asset mutable.
+ */
 export const assetPatchMock = <TPayload>({ asset, applyPatch, onPatch }: AssetPatchMockOptions<TPayload>) => {
   const currentAsset = cloneAsset(asset)
 
@@ -39,6 +44,8 @@ export const assetPatchMock = <TPayload>({ asset, applyPatch, onPatch }: AssetPa
 
     applyPatch(currentAsset, payload)
 
+    // Give assertions a fresh snapshot so later mutations do not retroactively
+    // change what the test thought was saved.
     const responseAsset = cloneAsset(currentAsset)
     onPatch?.(responseAsset, payload)
 
@@ -46,6 +53,9 @@ export const assetPatchMock = <TPayload>({ asset, applyPatch, onPatch }: AssetPa
   })
 }
 
+/**
+ * Provides a realistic asset detail payload for stories that only need one asset instance.
+ */
 export const defaultMockResponse: AssetResponse = {
   url: 'http://kf.kobo.local/api/v2/assets/abam8JiJ3hHTW3EYp6Tpb5/',
   owner: 'http://kf.kobo.local/api/v2/users/zefir/',
