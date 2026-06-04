@@ -173,6 +173,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           serviceCode={serviceCode}
           serviceType='transcription'
           onRegionChange={handleRegionChange}
+          titleOverride={t('Select a region')}
         />
       </Group>
 
