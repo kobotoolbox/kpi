@@ -1,11 +1,10 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { http, HttpResponse } from 'msw'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
-import { endpoints } from '#/api.endpoints'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
 import assetFactory from '#/endpoints/asset.factory'
+import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openAssetTagsModal } from './AssetTagsModal'
@@ -21,22 +20,17 @@ let latestPatchedAsset: { uid: string; tag_string: string } | null = null
 function createAssetPatchHandler() {
   latestPatchedAsset = null
 
-  return http.patch(endpoints.ASSET_URL, async ({ params, request }) => {
-    if (params.uid !== mockAssetUid) {
-      return HttpResponse.json({ detail: 'asset not found' }, { status: 404 })
-    }
-
-    const payload = (await request.json()) as { tag_string?: string }
-
-    latestPatchedAsset = {
-      uid: mockAssetUid,
-      tag_string: payload.tag_string || '',
-    }
-
-    return HttpResponse.json({
-      ...mockAsset,
-      tag_string: payload.tag_string || '',
-    })
+  return assetPatchMock<{ tag_string?: string }>({
+    asset: mockAsset,
+    applyPatch: (asset, payload) => {
+      asset.tag_string = payload.tag_string || ''
+    },
+    onPatch: (asset) => {
+      latestPatchedAsset = {
+        uid: asset.uid,
+        tag_string: asset.tag_string || '',
+      }
+    },
   })
 }
 

@@ -3,6 +3,14 @@ import { endpoints } from '#/api.endpoints'
 import { AssetTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 
+interface AssetPatchMockOptions<TPayload> {
+  asset: AssetResponse
+  applyPatch: (asset: AssetResponse, payload: TPayload) => void
+  onPatch?: (asset: AssetResponse, payload: TPayload) => void
+}
+
+const cloneAsset = (asset: AssetResponse): AssetResponse => JSON.parse(JSON.stringify(asset)) as AssetResponse
+
 /**
  * Mock API for single asset detail. Use in Storybook tests in `parameters.msw.handlers.asset`.
  *
@@ -18,6 +26,29 @@ const assetMock = (assetUid: string, override?: Partial<AssetResponse>) =>
       uid: params.uid || override?.uid || defaultMockResponse.uid,
     })
   })
+
+export const assetPatchMock = <TPayload>({
+  asset,
+  applyPatch,
+  onPatch,
+}: AssetPatchMockOptions<TPayload>) => {
+  const currentAsset = cloneAsset(asset)
+
+  return http.patch(endpoints.ASSET_URL, async ({ params, request }) => {
+    if (params.uid !== asset.uid) {
+      return HttpResponse.json({ detail: 'asset not found' }, { status: 404 })
+    }
+
+    const payload = (await request.json()) as TPayload
+
+    applyPatch(currentAsset, payload)
+
+    const responseAsset = cloneAsset(currentAsset)
+    onPatch?.(responseAsset, payload)
+
+    return HttpResponse.json(responseAsset)
+  })
+}
 
 export const defaultMockResponse: AssetResponse = {
   url: 'http://kf.kobo.local/api/v2/assets/abam8JiJ3hHTW3EYp6Tpb5/',
