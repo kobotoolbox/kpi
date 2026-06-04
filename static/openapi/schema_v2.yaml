@@ -15901,6 +15901,35 @@ components:
                   type: boolean
                 endpoint:
                   type: boolean
+            bulk_action:
+              type: object
+              properties:
+                uid:
+                  type: string
+                action_id:
+                  type: string
+                type:
+                  type: string
+                status:
+                  type: string
+                question_xpath:
+                  type: string
+                params:
+                  type: object
+                created_by:
+                  type: string
+                cancelled_by:
+                  type: string
+                total_count:
+                  type: integer
+                processed_count:
+                  type: integer
+                completed_count:
+                  type: integer
+                failed_count:
+                  type: integer
+                cancelled_count:
+                  type: integer
             name:
               type: object
               properties:
@@ -17654,6 +17683,35 @@ components:
                   type: boolean
                 endpoint:
                   type: boolean
+            bulk_action:
+              type: object
+              properties:
+                uid:
+                  type: string
+                action_id:
+                  type: string
+                type:
+                  type: string
+                status:
+                  type: string
+                question_xpath:
+                  type: string
+                params:
+                  type: object
+                created_by:
+                  type: string
+                cancelled_by:
+                  type: string
+                total_count:
+                  type: integer
+                processed_count:
+                  type: integer
+                completed_count:
+                  type: integer
+                failed_count:
+                  type: integer
+                cancelled_count:
+                  type: integer
             name:
               type: object
               properties:
@@ -20790,6 +20848,35 @@ components:
                   type: boolean
                 endpoint:
                   type: boolean
+            bulk_action:
+              type: object
+              properties:
+                uid:
+                  type: string
+                action_id:
+                  type: string
+                type:
+                  type: string
+                status:
+                  type: string
+                question_xpath:
+                  type: string
+                params:
+                  type: object
+                created_by:
+                  type: string
+                cancelled_by:
+                  type: string
+                total_count:
+                  type: integer
+                processed_count:
+                  type: integer
+                completed_count:
+                  type: integer
+                failed_count:
+                  type: integer
+                cancelled_count:
+                  type: integer
             name:
               type: object
               properties:
