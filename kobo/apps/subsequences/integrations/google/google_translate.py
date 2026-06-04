@@ -9,7 +9,11 @@ import constance
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
-from google.api_core.exceptions import GoogleAPIError, InvalidArgument
+from google.api_core.exceptions import (
+    GoogleAPIError,
+    InvalidArgument,
+    ResourceExhausted,
+)
 from google.cloud import translate_v3 as translate
 from google.cloud.exceptions import GoogleCloudError
 from google.protobuf.json_format import MessageToDict
@@ -19,9 +23,18 @@ from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
-from ...exceptions import SubsequenceTimeoutError, TranslationResultNotFound
+from ...exceptions import (
+    GoogleQuotaExceededError,
+    SubsequenceTimeoutError,
+    TranslationResultNotFound,
+)
 from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
+from .rate_limit import (
+    GoogleServiceRateLimitExceeded,
+    get_google_retry_after_seconds,
+    require_google_service_quota,
+)
 
 
 class GoogleTranslationService(GoogleService):
@@ -86,13 +99,15 @@ class GoogleTranslationService(GoogleService):
             source_lang,
             target_lang,
         )
-        self._cleanup_batch_files(xpath, source_lang, target_lang)
 
         logging.info(
             'Starting async translation for '
             f'{self.submission_root_uuid=}, {xpath=}, {source_lang=}, '
             f'{target_lang=}'
         )
+        # Check Redis bucket and halt locally if we are exceeding allowed requests
+        require_google_service_quota('translate_v3_batch_translate_text')
+        self._cleanup_batch_files(xpath, source_lang, target_lang)
 
         destination = self.bucket.blob(source_path)
         destination.upload_from_string(content, content_type='text/plain')
@@ -205,6 +220,8 @@ class GoogleTranslationService(GoogleService):
             f'{target_language_code=}'
         )
         try:
+            # Check Redis bucket and halt locally if we are exceeding allowed requests
+            require_google_service_quota('translate_v3_translate_text')
             response = self.translate_client.translate_text(
                 request={
                     'contents': [content],
@@ -215,6 +232,20 @@ class GoogleTranslationService(GoogleService):
                     'labels': {'username': self.asset.owner.username},
                 }
             )
+        except GoogleServiceRateLimitExceeded as err:
+            logging.info(
+                'Deferred Google sync translation because project quota is '
+                'exhausted for '
+                f'{self.submission_root_uuid=}, retry_after={err.retry_after}'
+            )
+            raise
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google sync translation quota was exhausted for '
+                f'{self.submission_root_uuid=}, retry_after={retry_after}: {err}'
+            )
+            raise GoogleQuotaExceededError(retry_after=retry_after) from err
         except InvalidArgument as err:
             logging.exception('Error when processing translation')
             return {
@@ -262,6 +293,19 @@ class GoogleTranslationService(GoogleService):
                 target_lang=target_language_code,
                 content=content,
             )
+        except GoogleServiceRateLimitExceeded as err:
+            logging.info(
+                'Deferred Google async translation because project quota is '
+                f'exhausted for {xpath=}, retry_after={err.retry_after}'
+            )
+            raise
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google async translation quota was exhausted for '
+                f'{xpath=}, retry_after={retry_after}: {err}'
+            )
+            raise GoogleQuotaExceededError(retry_after=retry_after) from err
         except InvalidArgument as err:
             logging.exception('Error when starting translation')
             return {
@@ -318,6 +362,13 @@ class GoogleTranslationService(GoogleService):
                 'status': 'failed',
                 'error': f'Translation failed with error {str(err)}',
             }
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google async translation quota was exhausted while waiting for '
+                f'{xpath=}, retry_after={retry_after}: {err}'
+            )
+            raise GoogleQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             logging.error(
                 'Google infrastructure error while starting translation for '
@@ -385,6 +436,13 @@ class GoogleTranslationService(GoogleService):
                 'status': 'failed',
                 'error': f'Translation failed with error {str(err)}',
             }
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google async translation quota was exhausted while polling '
+                f'{xpath=}, retry_after={retry_after}: {err}'
+            )
+            raise GoogleQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Keep the operation reference so a later manual retry can resume
             # instead of recreating the Google job.
@@ -533,10 +591,11 @@ class GoogleTranslationService(GoogleService):
 
     def _get_bulk_action_item(self, bulk_action_uid: str | None):
         """
-        Retrieve the SubsequenceBulkActionItem for this submission
+        Retrieve the `SubsequenceBulkActionItem` for this submission
 
-        NOTE: The model is not available yet, so this returns `None` today and lets
-        the service keep using cache-based operation tracking.
+        Returns the matching database record using the parent bulk action UID
+        and the submission root UUID. This allows bulk translations to track
+        their Google operations in the database rather than falling back to cache.
         """
         if not bulk_action_uid:
             return None
@@ -548,8 +607,8 @@ class GoogleTranslationService(GoogleService):
             )
         except LookupError:
             logging.info(
-                'bulk_action_uid was provided but SubsequenceBulkActionItem '
-                'is not available yet; using cache fallback'
+                'bulk_action_uid was provided but the SubsequenceBulkActionItem '
+                'model could not be loaded, using cache fallback'
             )
             return None
 
@@ -575,8 +634,14 @@ class GoogleTranslationService(GoogleService):
         """
         Fetch the persisted Google operation id from bulk storage or cache
         """
+        from ...models import PENDING_OPERATION_MARKER
+
         bulk_action_item = self._get_bulk_action_item(bulk_action_uid)
-        if bulk_action_item and bulk_action_item.service_id:
+        if (
+            bulk_action_item
+            and bulk_action_item.service_id
+            and bulk_action_item.service_id != PENDING_OPERATION_MARKER
+        ):
             return bulk_action_item.service_id
 
         cache_key = self._get_cache_key(xpath, source_lang, target_lang)

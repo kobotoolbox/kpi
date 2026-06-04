@@ -11,6 +11,9 @@ from kobo.apps.subsequences.exceptions import (
 from kobo.apps.subsequences.integrations.google.google_transcribe import (
     GoogleTranscriptionService,
 )
+from kobo.apps.subsequences.integrations.google.rate_limit import (
+    GoogleServiceRateLimitExceeded,
+)
 
 
 class MockBlob:
@@ -147,6 +150,30 @@ def test_process_data_returns_failed_for_polling_auth_errors():
     service._clear_operation_reference.assert_called_once_with(
         'audio', 'en-US', None
     )
+
+
+def test_process_data_raises_quota_error_when_start_quota_is_exhausted():
+    """
+    Test that if the internal token bucket rate limit is exhausted,
+    the transcription process aborts locally and bubbles the quota error up
+    to Celery for retrying, without making any external API calls to Google
+    """
+    service = _get_service_for_process_data()
+    service._get_google_language_config = MagicMock(
+        return_value=MagicMock(language_code='en-US', location_code='global')
+    )
+    service._get_operation_reference = MagicMock(return_value=None)
+    service.get_converted_audio = MagicMock(return_value=(b'audio', MagicMock()))
+    service.begin_google_operation = MagicMock(
+        side_effect=GoogleServiceRateLimitExceeded(
+            'speech_v2_batch_recognize',
+            retry_after=1,
+        )
+    )
+
+    with pytest.raises(GoogleServiceRateLimitExceeded):
+        service.process_data('audio', {'language': 'en'})
+    service._clear_operation_reference.assert_not_called()
 
 
 def test_process_data_returns_failed_for_unexpected_polling_errors():
