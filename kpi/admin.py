@@ -65,7 +65,7 @@ class ExtraProjectMetadataFieldAdmin(admin.ModelAdmin):
 class TokenAdmin(DRFTokenAdmin):
     def get_readonly_fields(self, request, obj=...):
         if obj is None:
-            return ('',)
+            return ()
         else:
             return ('user',)
 
