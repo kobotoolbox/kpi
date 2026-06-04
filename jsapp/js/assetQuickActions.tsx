@@ -18,6 +18,7 @@ import sessionStore from '#/stores/session'
 import { actions } from './actions'
 import { renderJSXMessage } from './alertify'
 import assetUtils from './assetUtils'
+import { openAssetTagsModal } from './components/assetTags/AssetTagsModal'
 import myLibraryStore from './components/library/myLibraryStore'
 import { userCan } from './components/permissions/utils'
 import { ASSET_TYPES, MODAL_TYPES } from './constants'
@@ -463,7 +464,7 @@ export function manageAssetLanguages(asset: AssetResponse) {
 
 /** Opens a modal for modifying asset tags (also editable in Details Modal). */
 export function modifyAssetTags(asset: AssetResponse | ProjectViewAsset) {
-  pageState.showModal({ type: MODAL_TYPES.ASSET_TAGS, asset: asset })
+  openAssetTagsModal(asset)
 }
 
 /**

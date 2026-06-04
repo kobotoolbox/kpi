@@ -19649,6 +19649,12 @@ components:
         required:
         - enabled
         - fields
+      - type: object
+        properties:
+          tag_string:
+            type: string
+        required:
+        - tag_string
     PatchedBulkActionPatchRequest:
       type: object
       properties:
