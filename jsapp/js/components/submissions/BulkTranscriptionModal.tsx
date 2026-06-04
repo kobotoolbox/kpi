@@ -195,7 +195,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNew loading={isPending} onClick={handleStartTranscription} disabled={!selectedLanguage}>
+          <ButtonNew loading={isPending} onClick={handleStartTranscription} disabled={!selectedLanguage || isLoadingUsage}>
             {t('Start Transcription')}
           </ButtonNew>
         )}
