@@ -141,7 +141,7 @@ export function populateSelectQuestionLabels(
 
   if (responses) {
     reportRow.data.responseLabels = responses.map((responseName) => {
-      const choice = asset.content.choices?.find(
+      const choice = asset.content?.choices?.find(
         (choiceItem) =>
           question && choiceItem.list_name === question.select_from_list_name && choiceItem.name === responseName,
       )
