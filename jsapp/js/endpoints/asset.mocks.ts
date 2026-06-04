@@ -7,6 +7,7 @@ interface AssetPatchMockOptions<TPayload> {
   asset: AssetResponse
   applyPatch: (asset: AssetResponse, payload: TPayload) => void
   onPatch?: (asset: AssetResponse, payload: TPayload) => void
+  persistMutations?: boolean
 }
 
 // Storybook handlers often need isolated copies so one interaction test does
@@ -32,7 +33,12 @@ const assetMock = (assetUid: string, override?: Partial<AssetResponse>) =>
 /**
  * Builds a reusable PATCH handler for single-asset stories while keeping the in-memory asset mutable.
  */
-export const assetPatchMock = <TPayload>({ asset, applyPatch, onPatch }: AssetPatchMockOptions<TPayload>) => {
+export const assetPatchMock = <TPayload>({
+  asset,
+  applyPatch,
+  onPatch,
+  persistMutations = true,
+}: AssetPatchMockOptions<TPayload>) => {
   const currentAsset = cloneAsset(asset)
 
   return http.patch(endpoints.ASSET_URL, async ({ params, request }) => {
@@ -42,11 +48,15 @@ export const assetPatchMock = <TPayload>({ asset, applyPatch, onPatch }: AssetPa
 
     const payload = (await request.json()) as TPayload
 
-    applyPatch(currentAsset, payload)
+    // `persistMutations` lets stories opt into stateless request handling so
+    // repeated play runs do not inherit state from previous runs.
+    const targetAsset = persistMutations ? currentAsset : cloneAsset(asset)
+
+    applyPatch(targetAsset, payload)
 
     // Give assertions a fresh snapshot so later mutations do not retroactively
     // change what the test thought was saved.
-    const responseAsset = cloneAsset(currentAsset)
+    const responseAsset = cloneAsset(targetAsset)
     onPatch?.(responseAsset, payload)
 
     return HttpResponse.json(responseAsset)

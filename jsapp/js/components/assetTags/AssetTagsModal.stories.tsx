@@ -22,6 +22,7 @@ function createAssetPatchHandler() {
 
   return assetPatchMock<{ tag_string?: string }>({
     asset: mockAsset,
+    persistMutations: false,
     applyPatch: (asset, payload) => {
       asset.tag_string = payload.tag_string || ''
     },
