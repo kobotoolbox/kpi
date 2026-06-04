@@ -24,6 +24,11 @@ export interface BulkActionResponse {
   submission_uuids: string[]
   submission_statuses: BulkActionSubmissionStatusResponse[]
   params: BulkActionParamsResponse
+  /**
+   * @minimum 0
+   * @maximum 100
+   */
+  progress: number
   created_by: BulkActionUserResponse
   date_created: string
   date_modified: string

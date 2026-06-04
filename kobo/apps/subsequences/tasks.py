@@ -429,6 +429,7 @@ def update_batch_status(subsequence_bulk_action_id: str):
     The parent stays in_progress while any item is active. Once all items are in
     terminal states, the parent is marked complete and progress reaches 100.
     """
+    from .audit import sync_bulk_action_history_log
     from .models import BulkActionItemStatus, BulkActionStatus
 
     SubsequenceBulkAction = apps.get_model(  # noqa: N806
@@ -439,10 +440,14 @@ def update_batch_status(subsequence_bulk_action_id: str):
     with transaction.atomic():
         bulk_action = (
             SubsequenceBulkAction.objects.select_for_update(skip_locked=True)
-            .filter(pk=subsequence_bulk_action_id, status=BulkActionStatus.IN_PROGRESS)
+            .filter(pk=subsequence_bulk_action_id)
             .first()
         )
         if not bulk_action:
+            return
+
+        if bulk_action.status != BulkActionStatus.IN_PROGRESS:
+            sync_bulk_action_history_log(bulk_action)
             return
 
         counts = bulk_action.items.aggregate(
@@ -482,6 +487,7 @@ def update_batch_status(subsequence_bulk_action_id: str):
             update_fields.append('status')
         bulk_action.save(update_fields=update_fields)
 
+    sync_bulk_action_history_log(bulk_action)
     if next_status == BulkActionStatus.IN_PROGRESS:
         update_batch_status.apply_async(
             args=(subsequence_bulk_action_id,),
