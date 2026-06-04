@@ -144,7 +144,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     )
   }
 
-  const handlePurchaseAddOn = () => {
+  const handleNavigateToAddOn = () => {
     navigate(ACCOUNT_ROUTES.ADD_ONS)
     props.onRequestClose()
   }
@@ -200,7 +200,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           </ButtonNew>
         )}
         {hasExceededLimit && (
-          <ButtonNew loading={isLoadingUsage} type='button' onClick={handlePurchaseAddOn} variant='light'>
+          <ButtonNew loading={isLoadingUsage} type='button' onClick={handleNavigateToAddOn} variant='light'>
             {t('Purchase add-on')}
           </ButtonNew>
         )}

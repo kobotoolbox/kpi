@@ -206,7 +206,7 @@ export default function StepCreateAutomated({
             rootLanguage={languageCode}
             disabled={anyPending}
             serviceCode='goog'
-            serviceType='transcription'
+            serviceType='translation'
             onRegionChange={handleChangeLocale}
             size='sm'
           />
