@@ -127,7 +127,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     }
 
     this.state = {
-      activeModalTab: Array.from(TABS.keys())[0],
+      activeModalTab: MapSettingsTabNames.colors,
       geoQuestions: geoQuestions,
       mapSettings: mapStyles,
       files: [],
