@@ -8,6 +8,14 @@
   }
 }
 
+/*
+We keep it transparent (instead of white) so it doesn't cause problems for the modal body elements (e.g. when displaying
+an input immediately at top of the body, the focus styles were being partially hidden underneath white header)
+*/
+.header {
+  background-color: transparent;
+}
+
 .title {
   font-size: var(--mantine-font-size-xl);
   font-weight: var(--mantine-heading-font-weight);
