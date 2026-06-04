@@ -1,6 +1,13 @@
 import { getTranslatedRowLabel } from '#/assetUtils'
-import type { SurveyRow } from '#/dataInterface'
-import type { ReportsPaginatedResponse, ReportsResponse } from './reportsConstants'
+import type { AssetResponse, SurveyRow } from '#/dataInterface'
+import { recordKeys } from '#/utils'
+import type {
+  AssetResponseReportStyles,
+  CustomReportSettings,
+  ReportStyle,
+  ReportsPaginatedResponse,
+  ReportsResponse,
+} from './reportsConstants'
 
 /**
  * This function filters out reports to get only ones with responses. Also makes
@@ -28,6 +35,16 @@ export function getDataWithResponses(
   return dataWithResponses
 }
 
+/**
+ * Returns the best available human-readable label for a report row.
+ *
+ * Fallback order:
+ * 1) row label translation at requested index
+ * 2) row label as plain string
+ * 3) translated label from survey at requested index
+ * 4) translated label from survey at index 0
+ * 5) generic "Unlabeled"
+ */
 export function getReportRowTranslatedLabel(
   report: ReportsResponse,
   /**
@@ -65,4 +82,106 @@ export function getReportRowTranslatedLabel(
   // Return found label or fallback user-friendly name
   // TODO: would XML row name be better here than "Unlabeled"?
   return label || t('Unlabeled')
+}
+
+/**
+ * Merges a sparse question-level style override with base report style.
+ *
+ * This preserves inherited values (for example `report_colors`) when an
+ * override only changes one field such as `report_type`.
+ */
+export function buildEffectiveReportStyle(baseStyle?: ReportStyle, specifiedStyle?: ReportStyle) {
+  // Question-level overrides are intentionally partial (e.g. only report_type),
+  // so we always merge them on top of the base report style.
+  if (!specifiedStyle || !recordKeys(specifiedStyle).length) {
+    return baseStyle
+  }
+
+  return {
+    ...(baseStyle || {}),
+    ...specifiedStyle,
+  }
+}
+
+/**
+ * Resolves the effective style for a single row by combining:
+ * 1) the active base style (custom report first, otherwise default), and
+ * 2) row-level overrides from the matching style map.
+ */
+export function getEffectiveRowReportStyle(
+  rowName: string,
+  customReport?: CustomReportSettings,
+  defaultReportStyles?: AssetResponseReportStyles,
+) {
+  const specifiedReportStyles = customReport?.specified?.[rowName] || defaultReportStyles?.specified?.[rowName]
+  const baseReportStyle = customReport?.reportStyle || defaultReportStyles?.default
+
+  return buildEffectiveReportStyle(baseReportStyle, specifiedReportStyles)
+}
+
+/**
+ * Enriches response labels for select questions in-place.
+ *
+ * Why in-place: report rows are already mutable in this rendering pipeline and
+ * downstream components consume these same row objects.
+ */
+export function populateSelectQuestionLabels(
+  reportRow: ReportsResponse,
+  asset: AssetResponse,
+  translationIndex: number,
+  groupBy?: string,
+) {
+  if (!asset?.content?.choices) {
+    return
+  }
+
+  const rowName = reportRow.name
+  const question = asset.content.survey?.find((z) => z.name === rowName || z.$autoname === rowName)
+  const responses = reportRow.data.responses
+
+  if (responses) {
+    reportRow.data.responseLabels = responses.map((responseName) => {
+      const choice = asset.content.choices?.find(
+        (choiceItem) =>
+          question && choiceItem.list_name === question.select_from_list_name && choiceItem.name === responseName,
+      )
+
+      return choice?.label?.[translationIndex] || responseName
+    })
+    return
+  }
+
+  const values = reportRow.data.values
+  if (!(values?.[0]?.[1] && 'responses' in values[0][1] && values[0][1].responses)) {
+    return
+  }
+
+  const responseValues = values[0][1].responses
+  const groupByQuestion = asset.content.survey?.find((z) => z.name === groupBy || z.$autoname === groupBy)
+
+  reportRow.data.responseLabels = responseValues.map((responseLabel) => {
+    const groupByChoice = asset.content?.choices?.find(
+      (choiceItem) =>
+        groupByQuestion &&
+        choiceItem.list_name === groupByQuestion.select_from_list_name &&
+        choiceItem.label?.includes(responseLabel),
+    )
+
+    return groupByChoice?.label?.[translationIndex] || responseLabel
+  })
+
+  for (let valueIndex = values.length - 1; valueIndex >= 0; valueIndex--) {
+    const choice = asset.content.choices.find(
+      (choiceItem) =>
+        question &&
+        choiceItem.list_name === question.select_from_list_name &&
+        (choiceItem.name === String(values[valueIndex][0]) || choiceItem.$autoname === String(values[valueIndex][0])),
+    )
+
+    if (choice?.label?.[translationIndex]) {
+      values[valueIndex][2] = choice.label[translationIndex]
+    } else {
+      values[valueIndex][2] = values[valueIndex][0]
+    }
+  }
 }
