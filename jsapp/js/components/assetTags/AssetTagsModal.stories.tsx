@@ -82,24 +82,23 @@ export const UpdateTagsFlow: Story = {
     latestPatchedAsset = null
 
     const canvas = within(canvasElement)
-    const page = within(document.body)
 
     await step('Open the modal', async () => {
       await userEvent.click(canvas.getByRole('button', { name: 'Open AssetTagsModal' }))
 
       await waitFor(async () => {
-        await expect(page.getByRole('dialog', { name: 'Edit tags' })).toBeInTheDocument()
+        await expect(canvas.getByRole('dialog', { name: 'Edit tags' })).toBeInTheDocument()
       })
     })
 
     await step('Submit new tags', async () => {
-      const tagsInput = page.getByRole('textbox')
+      const tagsInput = canvas.getByRole('textbox')
       await userEvent.click(tagsInput)
       await userEvent.type(tagsInput, 'gamma{enter}')
-      await userEvent.click(page.getByRole('button', { name: 'Update' }))
+      await userEvent.click(canvas.getByRole('button', { name: 'Update' }))
 
       await waitFor(async () => {
-        await expect(page.queryByRole('dialog', { name: 'Edit tags' })).not.toBeInTheDocument()
+        await expect(canvas.queryByRole('dialog', { name: 'Edit tags' })).not.toBeInTheDocument()
       })
     })
 

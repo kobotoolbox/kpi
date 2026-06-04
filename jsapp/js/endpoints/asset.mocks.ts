@@ -27,11 +27,7 @@ const assetMock = (assetUid: string, override?: Partial<AssetResponse>) =>
     })
   })
 
-export const assetPatchMock = <TPayload>({
-  asset,
-  applyPatch,
-  onPatch,
-}: AssetPatchMockOptions<TPayload>) => {
+export const assetPatchMock = <TPayload>({ asset, applyPatch, onPatch }: AssetPatchMockOptions<TPayload>) => {
   const currentAsset = cloneAsset(asset)
 
   return http.patch(endpoints.ASSET_URL, async ({ params, request }) => {
