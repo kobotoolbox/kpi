@@ -1,6 +1,11 @@
 import { getTextContentOnly } from '#/utils'
 import Avatar from '../common/avatar'
-import { AUDIT_ACTION_TYPES, type ActivityLogsItem, FALLBACK_MESSAGE } from './activity.constants'
+import {
+  AUDIT_ACTION_TYPES,
+  type ActivityLogsItem,
+  BULK_PROCESSING_ACTION_IDS,
+  FALLBACK_MESSAGE,
+} from './activity.constants'
 import styles from './activityMessage.module.scss'
 
 /**
@@ -10,12 +15,12 @@ import styles from './activityMessage.module.scss'
 export function ActivityMessage(props: { data: ActivityLogsItem }) {
   let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
 
-  // Replace deafult bulk processing message with more precise one
+  // Replace default bulk processing message with more precise one
   if (props.data.action === 'bulk-processing') {
     const bulkActionId = props.data.metadata.bulk_action?.action_id
-    if (bulkActionId === 'automatic_google_transcription') {
+    if (bulkActionId === BULK_PROCESSING_ACTION_IDS.automaticGoogleTranscription) {
       message = t('##username## bulk transcribed audio files')
-    } else if (bulkActionId === 'automatic_google_translation') {
+    } else if (bulkActionId === BULK_PROCESSING_ACTION_IDS.automaticGoogleTranslation) {
       message = t('##username## bulk translated transcriptions')
     }
   }

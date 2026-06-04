@@ -1,6 +1,10 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
-import { type ActivityLogsItem, AuditActions } from '#/components/activity/activity.constants'
+import {
+  type ActivityLogsItem,
+  AuditActions,
+  BULK_PROCESSING_ACTION_IDS,
+} from '#/components/activity/activity.constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import assetHistoryLogFactory, { defaultAssetHistoryAssetUid } from './assetHistoryLog.factory'
 
@@ -65,7 +69,7 @@ const bulkTranslatedTranscriptionsLog = karinaLog({
   metadata: {
     bulk_action: {
       uid: 'sbaY9R2P3mF8rQnZ4x1cV7',
-      action_id: 'automatic_google_translation',
+      action_id: BULK_PROCESSING_ACTION_IDS.automaticGoogleTranslation,
       type: 'translation',
       status: 'complete',
       question_xpath: '/data/audio_q',
@@ -86,7 +90,7 @@ const bulkTranscribedAudioFilesLog = karinaLog({
   metadata: {
     bulk_action: {
       uid: 'sbaJ3kN7vL2pQxR5mT8wB1',
-      action_id: 'automatic_google_transcription',
+      action_id: BULK_PROCESSING_ACTION_IDS.automaticGoogleTranscription,
       type: 'transcription',
       status: 'complete',
       question_xpath: '/data/audio_q',

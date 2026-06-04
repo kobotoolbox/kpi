@@ -51,6 +51,11 @@ export enum AuditActions {
   'update-qa' = 'update-qa',
 }
 
+export const BULK_PROCESSING_ACTION_IDS = {
+  automaticGoogleTranscription: 'automatic_google_transcription',
+  automaticGoogleTranslation: 'automatic_google_translation',
+} as const
+
 interface AuditActionDefinition {
   name: AuditActions
   label: string
