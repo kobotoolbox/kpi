@@ -34,8 +34,4 @@ def get_max_lookback_days(user, **kwargs) -> int:
     # this really shouldn't happen, but handle it just in case
     if limit == inf:
         return max(settings.ACCESS_LOG_LIFESPAN, settings.PROJECT_HISTORY_LOG_LIFESPAN)
-    return int(
-        get_organization_subscription_limit(
-            organization=user_org, usage_type=UsageType.LOG_LOOKBACK_DAYS
-        )
-    )
+    return int(limit)
