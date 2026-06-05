@@ -40,7 +40,7 @@ export function openAssetTagsModal(asset: AssetTagsModalAsset) {
 /**
  * Lets a user edit an asset's comma-separated tags and save them through Orval/react-query.
  */
-export default function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
+function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
   const [isSessionLoaded, setIsSessionLoaded] = useState(!!sessionStore.isLoggedIn)
   const [tags, setTags] = useState<string[]>(() => (asset.tag_string ? asset.tag_string.split(',') : []))
 

@@ -7,7 +7,7 @@ import assetFactory from '#/endpoints/asset.factory'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
-import { openAssetTagsModal } from './AssetTagsModal'
+import { openAssetTagsModal } from '.'
 
 const mockAsset = assetFactory({
   uid: 'storyAssetTagsUid',
