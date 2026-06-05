@@ -63,11 +63,13 @@ class ExtraProjectMetadataFieldAdmin(admin.ModelAdmin):
 
 
 class TokenAdmin(DRFTokenAdmin):
+    autocomplete_fields = ['user']
     def get_readonly_fields(self, request, obj=...):
         if obj is None:
             return ()
         else:
             return ('user',)
+
 
 # Register your models here.
 admin.site.register(AuthorizedApplication)
