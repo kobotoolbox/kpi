@@ -150,7 +150,13 @@ export default function StepCreateAutomated({
             w={220}
             size='sm'
             rightSection={
-              <ActionIcon aria-label={t('Close')} variant='transparent' size='sm' onClick={handleClickBack}>
+              <ActionIcon
+                disabled={anyPending}
+                aria-label={t('Close')}
+                variant='transparent'
+                size='sm'
+                onClick={handleClickBack}
+              >
                 <KoboIcon icon={IconX} size='xs' />
               </ActionIcon>
             }

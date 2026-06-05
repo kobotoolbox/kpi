@@ -116,8 +116,8 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   }
 
   const handleStartTranscription = () => {
-    // Although we warn about existing transcripts, we still pass all of the submissions without filtering them out.
-    // Currently the backend skips the submissions that already have a transcript.
+    // We pass all of the submissions without filtering out the ones that have transcripts already. Currently the
+    // backend skips the submissions that already have a transcript.
     createBulkTranscription(
       {
         uidAsset: props.assetUid,
