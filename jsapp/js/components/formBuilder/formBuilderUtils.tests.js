@@ -275,6 +275,54 @@ describe('translations hack', () => {
       })
       expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
     })
+
+    it('should use first array item when restoring default language value', () => {
+      // Defensive behavior for malformed/nullified input:
+      // this code path only restores the default-language value from `label`.
+      // Extra array entries are ambiguous unless they are explicit
+      // `label::Language` keys, so we intentionally keep index 0 only.
+      const test = {
+        surveyDataJSON: JSON.stringify({
+          survey: [
+            {
+              label: ['Cheese?', 'Queso?'],
+            },
+          ],
+          choices: [
+            {
+              label: ['Yes', 'Si'],
+            },
+          ],
+          settings: [
+            {
+              default_language: 'English (en)',
+            },
+          ],
+        }),
+        assetContent: {
+          translated: ['label'],
+          translations_0: 'English (en)',
+        },
+      }
+      const target = JSON.stringify({
+        survey: [
+          {
+            'label::English (en)': 'Cheese?',
+          },
+        ],
+        choices: [
+          {
+            'label::English (en)': 'Yes',
+          },
+        ],
+        settings: [
+          {
+            default_language: 'English (en)',
+          },
+        ],
+      })
+      expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
+    })
   })
 })
 
