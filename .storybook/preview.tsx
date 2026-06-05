@@ -1,4 +1,6 @@
 import '@mantine/core/styles.css'
+// ‼️ import notifications styles after core package styles
+import '@mantine/notifications/styles.css';
 import '@mantine/dropzone/styles.css'
 import '../jsapp/js/fonts'
 import '../jsapp/scss/main.scss'
