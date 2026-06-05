@@ -70,5 +70,10 @@ describe('tableUtils', () => {
       const test = isTableColumnFilterableByTextInput(QuestionTypeName.hidden, 'my_hidden_question')
       chai.expect(test).to.equal(true)
     })
+
+    it('should return false for a non-filterable question type', () => {
+      const test = isTableColumnFilterableByTextInput(QuestionTypeName.audio, 'my_audio_question')
+      chai.expect(test).to.equal(false)
+    })
   })
 })
