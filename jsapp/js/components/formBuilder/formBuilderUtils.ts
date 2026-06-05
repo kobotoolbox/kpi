@@ -79,7 +79,10 @@ export function unnullifyTranslations(surveyDataJSON: string, surveyInitialParam
               surveyRow.type === 'begin_group' &&
               (translatedValue === null || translatedValue === '')
             ) {
+              // Keep old behavior for empty theme-grid group labels: omit the
+              // translated key entirely instead of writing null/empty.
               surveyRow[translatedProp] = undefined
+              return
             }
             // Match choices behavior: only map the default-language value,
             // never the whole translation array.

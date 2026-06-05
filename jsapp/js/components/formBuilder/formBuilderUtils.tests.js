@@ -323,6 +323,43 @@ describe('translations hack', () => {
       })
       expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
     })
+
+    it('should omit translated label key for empty theme-grid begin_group label', () => {
+      const test = {
+        surveyDataJSON: JSON.stringify({
+          survey: [
+            {
+              type: 'begin_group',
+              label: null,
+            },
+          ],
+          settings: [
+            {
+              default_language: 'English (en)',
+              style: 'theme-grid',
+            },
+          ],
+        }),
+        assetContent: {
+          translated: ['label'],
+          translations_0: 'English (en)',
+        },
+      }
+      const target = JSON.stringify({
+        survey: [
+          {
+            type: 'begin_group',
+          },
+        ],
+        settings: [
+          {
+            default_language: 'English (en)',
+            style: 'theme-grid',
+          },
+        ],
+      })
+      expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
+    })
   })
 })
 
