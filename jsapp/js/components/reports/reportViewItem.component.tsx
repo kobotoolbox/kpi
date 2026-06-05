@@ -94,7 +94,7 @@ export class ReportViewItem extends React.Component<ReportViewItemProps> {
     this.itemChart = new ChartJS(this.canvasRef.current, this.buildChartOptions())
   }
 
-  buildDatasetColors(chartType: string, colors: string[], isArea: boolean) {
+  buildDatasetColors(chartType: string, colors: string[]) {
     if (chartType === CHART_STYLES.line.value || chartType === CHART_STYLES.area.value) {
       return {
         backgroundColor: colors[0],
@@ -126,7 +126,7 @@ export class ReportViewItem extends React.Component<ReportViewItemProps> {
 
     return {
       backgroundColor: colors,
-      borderColor: isArea ? colors[0] : colors,
+      borderColor: colors,
     }
   }
 
@@ -200,7 +200,7 @@ export class ReportViewItem extends React.Component<ReportViewItemProps> {
           data: data.percentages,
           barPercentage: 0.5,
           fill: isArea,
-          ...this.buildDatasetColors(chartType, colors, isArea),
+          ...this.buildDatasetColors(chartType, colors),
         })
       }
       if (data.responseLabels) {

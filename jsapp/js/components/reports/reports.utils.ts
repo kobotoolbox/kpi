@@ -113,7 +113,10 @@ export function getEffectiveRowReportStyle(
   customReport?: CustomReportSettings,
   defaultReportStyles?: AssetResponseReportStyles,
 ) {
-  const specifiedReportStyles = customReport?.specified?.[rowName] || defaultReportStyles?.specified?.[rowName]
+  // Keep row-level overrides isolated to the active report context.
+  const specifiedReportStyles = customReport
+    ? customReport.specified?.[rowName]
+    : defaultReportStyles?.specified?.[rowName]
   const baseReportStyle = customReport?.reportStyle || defaultReportStyles?.default
 
   return buildEffectiveReportStyle(baseReportStyle, specifiedReportStyles)
