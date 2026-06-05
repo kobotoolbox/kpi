@@ -1,13 +1,9 @@
 import React from 'react'
 
-import { Stack, Text } from '@mantine/core'
+import { Group, Modal, Stack, Text } from '@mantine/core'
 import { deleteAsset } from '#/assetQuickActions'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
-import KoboModal from '#/components/modals/koboModal'
-import KoboModalContent from '#/components/modals/koboModalContent'
-import KoboModalFooter from '#/components/modals/koboModalFooter'
-import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 
@@ -98,21 +94,21 @@ function DeleteAssetPrompt(props: DeleteAssetPromptProps) {
   }
 
   return (
-    <KoboModal
-      isOpen={props.isOpen}
-      onRequestClose={props.onRequestClose}
-      isDismissableByDefaultMeans={!isConfirmDeletePending}
-      size='medium'
+    <Modal
+      opened={props.isOpen}
+      onClose={props.onRequestClose}
+      closeOnEscape={!isConfirmDeletePending}
+      closeOnClickOutside={!isConfirmDeletePending}
+      withCloseButton
+      title={t('Delete ##ASSET_TYPE## "##NAME##"')
+        .replace('##ASSET_TYPE##', assetTypeLabel)
+        .replace('##NAME##', props.name)}
+      size='md'
     >
-      <KoboModalHeader headerColor='white' onRequestCloseByX={props.onRequestClose}>
-        {t('Delete ##ASSET_TYPE## "##NAME##"')
-          .replace('##ASSET_TYPE##', assetTypeLabel)
-          .replace('##NAME##', props.name)}
-      </KoboModalHeader>
-      <KoboModalContent>
-        <Stack gap='md'>{promptContent}</Stack>
-      </KoboModalContent>
-      <KoboModalFooter>
+      <Stack gap='md'>
+        {promptContent}
+
+        <Group justify='flex-end'>
         <Button
           type='secondary'
           size='m'
@@ -128,8 +124,9 @@ function DeleteAssetPrompt(props: DeleteAssetPromptProps) {
           isDisabled={isConfirmDisabled}
           isPending={isConfirmDeletePending}
         />
-      </KoboModalFooter>
-    </KoboModal>
+        </Group>
+      </Stack>
+    </Modal>
   )
 }
 
