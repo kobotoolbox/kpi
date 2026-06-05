@@ -5,7 +5,7 @@ import { modals } from '@mantine/modals'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
 import type { PaginatedListResponse } from '#/UniversalTable'
-import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
+import { assetsPartialUpdate, getAssetsRetrieveQueryKey } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
 import ModalNew from '#/components/common/ModalNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -179,6 +179,13 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         // TODO: remove casting when parent component starts operating on
         // `Asset` (orval) rather than `AssetResponse` (legacy)
         setAsset(response.data as unknown as AssetResponse)
+
+        // Keep the shared asset cache in sync so Form Builder doesn't boot from
+        // stale content after language updates.
+        // We do both: setQueryData for immediate consistency in this session,
+        // then invalidate to let React Query refresh from server truth.
+        queryClient.setQueryData(getAssetsRetrieveQueryKey(asset.uid), response)
+        queryClient.invalidateQueries({ queryKey: getAssetsRetrieveQueryKey(asset.uid) })
         return true
       }
 
