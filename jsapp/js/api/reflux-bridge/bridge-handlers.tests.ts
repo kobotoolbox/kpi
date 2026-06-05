@@ -103,6 +103,41 @@ describe('reflux bridge handler flow', () => {
     chai.expect(reportActions.setStyle.completed.mock.calls.length).to.equal(0)
     chai.expect(reportActions.setCustom.completed.mock.calls.length).to.equal(0)
   })
+
+  it('dispatches resources.updateAsset.completed for generic asset PATCH payloads like tag_string', () => {
+    const url = '/api/v2/assets/abc123/'
+    const config = {
+      method: 'PATCH' as const,
+      body: JSON.stringify({ tag_string: 'alpha,beta,gamma' }),
+    }
+
+    const successAsset = {
+      uid: 'abc123',
+      tag_string: 'alpha,beta,gamma',
+    }
+
+    bridgeOrvalSuccessToLegacyActions(url, config, {
+      data: successAsset,
+      status: 200,
+      headers: new Headers(),
+    })
+
+    const resourceActions = mockedActions.resources as unknown as {
+      updateAsset: { completed: jest.Mock }
+    }
+    const reportActions = mockedActions.reports as unknown as {
+      setStyle: { completed: jest.Mock }
+      setCustom: { completed: jest.Mock }
+    }
+    const mapActions = mockedActions.map as unknown as {
+      setMapStyles: { completed: jest.Mock }
+    }
+
+    chai.expect(resourceActions.updateAsset.completed.mock.calls).to.deep.equal([[successAsset]])
+    chai.expect(reportActions.setStyle.completed.mock.calls.length).to.equal(0)
+    chai.expect(reportActions.setCustom.completed.mock.calls.length).to.equal(0)
+    chai.expect(mapActions.setMapStyles.completed.mock.calls.length).to.equal(0)
+  })
 })
 
 describe('endpoint pattern matching', () => {
