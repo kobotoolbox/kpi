@@ -1,15 +1,15 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { http, HttpResponse } from 'msw'
-import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
+import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openFormLanguagesModal } from './index'
 
 const mockAssetUid = 'storyFormLanguagesManagerUid'
-let latestPatchedAsset: AssetResponse | null = null
+const onAssetPatched = fn()
 
 const storyAreaStyle = {
   minHeight: 720,
@@ -43,26 +43,24 @@ function buildInitialAsset(): AssetResponse {
 }
 
 function createAssetPatchHandler(initialAsset: AssetResponse) {
-  const currentAsset = JSON.parse(JSON.stringify(initialAsset)) as AssetResponse
+  onAssetPatched.mockClear()
 
-  return http.patch('/api/v2/assets/:uid/', async ({ params, request }) => {
-    if (params.uid !== mockAssetUid) {
-      return HttpResponse.json({ detail: 'asset not found' }, { status: 404 })
-    }
+  return assetPatchMock<{ content?: string; name?: string }>({
+    asset: initialAsset,
+    applyPatch: (asset, payload) => {
+      if (payload.name) {
+        asset.name = payload.name
+      }
 
-    const payload = (await request.json()) as { content?: string; name?: string }
-
-    if (payload.name) {
-      currentAsset.name = payload.name
-    }
-
-    if (payload.content) {
-      currentAsset.content = JSON.parse(payload.content)
-    }
-
-    latestPatchedAsset = JSON.parse(JSON.stringify(currentAsset)) as AssetResponse
-
-    return HttpResponse.json(currentAsset)
+      if (payload.content) {
+        asset.content = JSON.parse(payload.content)
+      }
+    },
+    onPatch: (asset) => {
+      // Keep the most recent saved snapshot around so the play steps can
+      // inspect the translated survey structure after each PATCH.
+      onAssetPatched(asset)
+    },
   })
 }
 
@@ -127,11 +125,13 @@ export default meta
 
 type Story = StoryObj<typeof StoryTrigger>
 
+/** Opens the modal from a minimal story shell without extra interactions. */
 export const Default: Story = {}
 
+/** Exercises the language management workflow from setup through saving translations. */
 export const BasicFlow: Story = {
   play: async ({ canvasElement, step }) => {
-    latestPatchedAsset = null
+    onAssetPatched.mockClear()
 
     const canvas = within(canvasElement)
     const page = within(document.body)
@@ -257,8 +257,11 @@ export const BasicFlow: Story = {
 
     await step('Verify API saved translation for question 11', async () => {
       await waitFor(async () => {
-        await expect(latestPatchedAsset).not.toBeNull()
+        await expect(onAssetPatched).toHaveBeenCalled()
       })
+
+      const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
+      const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
 
       const survey = latestPatchedAsset?.content?.survey || []
       const question11 = survey.find((item) => item.name === 'question_11')
