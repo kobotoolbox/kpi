@@ -70,6 +70,11 @@ export default function ApiTokenDisplay() {
       regenerateModal.close()
     } catch {
       notify.error(t('Failed to regenerate API key'))
+      // We cleared `token` above but left no replacement. Reset to the hidden
+      // state so the field stops showing a masked-but-"revealed" value and a
+      // single Display click re-fetches the still-valid token (the fetch
+      // effect only runs when `isVisible` transitions).
+      setIsVisible(false)
     } finally {
       setIsRegenerating(false)
     }
