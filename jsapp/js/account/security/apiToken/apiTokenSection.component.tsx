@@ -49,14 +49,23 @@ export default function ApiTokenDisplay() {
 
   const regenerateToken = async () => {
     setIsRegenerating(true)
+    // Clear any displayed token up front so a now-stale value is never shown
+    // while we work (or if the user dismisses the modal mid-flight).
+    setToken(null)
     try {
-      // Revoke the existing token first, and immediately clear it from local
-      // state so a now-invalid token is never displayed.
+      // The whole sequence is best-effort and self-verifying: if any step
+      // fails we simply start over on the next attempt. We don't trust the
+      // DELETE's own response to confirm the rotation; instead we (1) read the
+      // current token, (2) delete it, then (3) read again and require a
+      // different value. A concurrent session rotating the token in between is
+      // fine — we only care that the final token differs from our baseline.
+      const before = await dataInterface.apiToken()
       await dataInterface.deleteApiToken()
-      setToken(null)
-      // Fetching the token triggers the backend to generate a new one.
-      const result = await dataInterface.apiToken()
-      setToken(result.token)
+      const after = await dataInterface.apiToken()
+      if (after.token === before.token) {
+        throw new Error('API key was not rotated')
+      }
+      setToken(after.token)
       notify(t('API key regenerated successfully'))
       regenerateModal.close()
     } catch {
