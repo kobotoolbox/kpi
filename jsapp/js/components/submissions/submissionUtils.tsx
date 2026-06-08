@@ -688,6 +688,7 @@ export function getSupplementalDetailsContent(
     // we don't need the language code in the last element of the path.
     pathArray.push('transcript')
     const transcriptObj = get(submission, pathArray, '')
+    console.log('transcriptObj.get', path)
     if (transcriptObj.languageCode === pathParts.languageCode && typeof transcriptObj.value === 'string') {
       return transcriptObj.value
     }

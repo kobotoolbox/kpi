@@ -93,6 +93,7 @@ import { recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import { openBulkTranscriptionModal } from './BulkTranscriptionModal'
+import {openBulkTranslationModal} from './BulkTranslationModal'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -432,15 +433,25 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onTranslateSelectedTranscriptions(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
-    const selectedSubmissionUuids = this.state.submissions
-      .filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
-      .map((submission) => submission._uuid)
+    const selectedSubmissions = this.state.submissions.filter((submission) =>
+      selectedSubmissionIds.includes(String(submission._id)),
+    )
 
-    console.log('Bulk processing - Translate selected transcriptions', {
+    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
+    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
+
+    openBulkTranslationModal({
       fieldId,
       assetUid: this.props.asset.uid,
-      selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
+      showWarningModal: showWarningModal,
+      onSuccess: () => {
+        this.setState({
+          selectedRows: {},
+          selectAll: false,
+        })
+      },
+      selectedSubmissions: selectedSubmissions
     })
   }
 

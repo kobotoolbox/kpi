@@ -76,12 +76,12 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       },
       {
         onSuccess: () => {
-          // TODO: implement @mantine/notifications system, see DEV-2211
+          // TODO: implement @mantine/notifications system, see DEV-1412
           props.onRequestClose()
           props.onSuccess()
         },
         onError: () => {
-          // TODO: implement @mantine/notifications system, see DEV-2211
+          // TODO: implement @mantine/notifications system, see DEV-1412
         },
       },
     )
@@ -139,7 +139,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNew
+          <ButtonNewprops.
             loading={isPending}
             onClick={handleStartTranscription}
             disabled={!selectedLanguage || isLoadingUsage}
