@@ -31,12 +31,7 @@ import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
 import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
 
 // Constants and types
-import {
-  ASSET_FILE_TYPES,
-  isMapDisplayableGeopointType,
-  MODAL_TYPES,
-  QUERY_LIMIT_DEFAULT,
-} from '../../../js/constants'
+import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
