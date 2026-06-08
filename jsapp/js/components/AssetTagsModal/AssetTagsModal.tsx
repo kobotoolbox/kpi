@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
 import { Group, Stack } from '@mantine/core'
-import { modals } from '@mantine/modals'
 import { when } from 'mobx'
 import { useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import { cleanupAndUniqueTags } from '#/assetUtils'
@@ -12,35 +11,17 @@ import type { AssetResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
 
-type AssetTagsModalAsset = Pick<AssetResponse, 'uid'> & Partial<Pick<AssetResponse, 'tag_string'>>
+export type AssetTagsModalAsset = Pick<AssetResponse, 'uid'> & Partial<Pick<AssetResponse, 'tag_string'>>
 
-interface AssetTagsModalProps {
+export interface AssetTagsModalProps {
   asset: AssetTagsModalAsset
   onRequestClose: () => void
 }
 
 /**
- * Opens the Mantine-based asset tags editor and returns imperative close helpers.
- */
-export function openAssetTagsModal(asset: AssetTagsModalAsset) {
-  let modalId = ''
-
-  modalId = modals.open({
-    title: t('Edit tags'),
-    size: 'lg',
-    children: <AssetTagsModal asset={asset} onRequestClose={() => modals.close(modalId)} />,
-  })
-
-  return {
-    modalId,
-    close: () => modals.close(modalId),
-  }
-}
-
-/**
  * Lets a user edit an asset's comma-separated tags and save them through Orval/react-query.
  */
-function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
+export function AssetTagsModal({ asset, onRequestClose }: AssetTagsModalProps) {
   const [isSessionLoaded, setIsSessionLoaded] = useState(!!sessionStore.isLoggedIn)
   const [tags, setTags] = useState<string[]>(() => (asset.tag_string ? asset.tag_string.split(',') : []))
 
