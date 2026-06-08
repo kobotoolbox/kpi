@@ -21,12 +21,12 @@ def _get_default_usage_limits():
     return limits
 
 
-def _get_limit_key(usage_type: UsageType):
+def get_limit_key(usage_type: UsageType) -> str:
     return f'{usage_type}_limit'
 
 
 def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
-    limit_key = _get_limit_key(usage_type)
+    limit_key = get_limit_key(usage_type)
     return (
         f'items__price__metadata__{limit_key}',
         f'items__price__product__metadata__{limit_key}',
@@ -126,12 +126,12 @@ def get_organizations_subscription_limits(
             row_limits['addon_storage_limit'] = row[f'{UsageType.STORAGE_BYTES}_limit']
         subscription_limits_by_org_id[row['org_id']] = row_limits
 
-    storage_limit = _get_limit_key(UsageType.STORAGE_BYTES)
-    submission_limit = _get_limit_key(UsageType.SUBMISSION)
-    characters_limit = _get_limit_key(UsageType.MT_CHARACTERS)
-    seconds_limit = _get_limit_key(UsageType.ASR_SECONDS)
-    requests_limit = _get_limit_key(UsageType.LLM_REQUESTS)
-    log_access_limit = _get_limit_key(UsageType.LOG_LOOKBACK_DAYS)
+    storage_limit = get_limit_key(UsageType.STORAGE_BYTES)
+    submission_limit = get_limit_key(UsageType.SUBMISSION)
+    characters_limit = get_limit_key(UsageType.MT_CHARACTERS)
+    seconds_limit = get_limit_key(UsageType.ASR_SECONDS)
+    requests_limit = get_limit_key(UsageType.LLM_REQUESTS)
+    log_access_limit = get_limit_key(UsageType.LOG_LOOKBACK_DAYS)
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
         Product.objects.filter(metadata__default_free_plan='true')

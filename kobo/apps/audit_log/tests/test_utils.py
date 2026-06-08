@@ -29,6 +29,15 @@ class LookbackUtilsTestCase(TestCase):
         generate_plan_subscription(someuser.organization, product_metadata)
         assert get_max_lookback_days(someuser) == 60
 
+    @pytest.mark.skipif(
+        settings.STRIPE_ENABLED, reason='Tests non-stripe functionality'
+    )
+    @override_settings(PROJECT_HISTORY_LOG_LIFESPAN=10)
+    @override_settings(ACCESS_LOG_LIFESPAN=5)
+    def test_lookback_if_subscription_missing_log_lookback_days_limit(self):
+        someuser = User.objects.get(username='someuser')
+        assert get_max_lookback_days(someuser) == 5
+
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     def test_lookback_with_stripe_default_subscription(self):
         someuser = User.objects.get(username='someuser')
@@ -41,11 +50,10 @@ class LookbackUtilsTestCase(TestCase):
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_settings(PROJECT_HISTORY_LOG_LIFESPAN=10)
     @override_settings(ACCESS_LOG_LIFESPAN=5)
-    def test_lookback_if_subscription_missing_log_lookback_days_limit(self):
+    def test_lookback_if_no_default_plan(self):
         someuser = User.objects.get(username='someuser')
         assert get_max_lookback_days(someuser) == 5
 
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     def test_lookback_with_anonymous_user(self):
         anon_user = get_anonymous_user()
         assert get_max_lookback_days(anon_user) == 0
