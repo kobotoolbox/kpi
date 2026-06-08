@@ -93,7 +93,7 @@ import { recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import { openBulkTranscriptionModal } from './BulkTranscriptionModal'
-import {openBulkTranslationModal} from './BulkTranslationModal'
+import { openBulkTranslationModal } from './BulkTranslationModal'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -451,7 +451,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           selectAll: false,
         })
       },
-      selectedSubmissions: selectedSubmissions
+      selectedSubmissions: selectedSubmissions,
     })
   }
 
