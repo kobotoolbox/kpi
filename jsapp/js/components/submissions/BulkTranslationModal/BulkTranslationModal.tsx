@@ -95,7 +95,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     <Stack gap='md'>
       <Text size='sm'>
         {t(
-          'Your ##count## transcripts is a total of ##totalCharacters## characters. This will take some time to complete.',
+          '##count## transcripts selected, totalling ##totalCharacters## characters. This will take some time to complete.',
         )
           .replace('##count##', String(props.selectedRowsCount))
           .replace('##totalCharacters##', String(totalCharacters))}
