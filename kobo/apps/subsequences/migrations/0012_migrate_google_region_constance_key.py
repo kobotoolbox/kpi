@@ -1,6 +1,5 @@
 import json
 from django.db import migrations
-from constance.codecs import loads, dumps
 
 
 def _read_constance_value(raw: str | None) -> str:

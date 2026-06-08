@@ -64,6 +64,7 @@ class GoogleTranscriptionService(GoogleService):
         class. It uses Google Cloud Speech-to-Text v2 batch API.
         """
         super().__init__(submission=submission, asset=asset, *args, **kwargs)
+        self.speech_location = get_speech_location()
 
     def adapt_response(self, response: Union[dict, list]) -> str:
         """
@@ -120,21 +121,20 @@ class GoogleTranscriptionService(GoogleService):
                 'Audio file of duration %s is too long.' % duration
             )
 
-        speech_location = get_speech_location()
         speech_model = model_code or DEFAULT_SPEECH_MODEL
-        speech_client = self._get_speech_client(speech_location)
+        speech_client = self._get_speech_client(self.speech_location)
         input_path, output_prefix = self._get_batch_paths(xpath, source_lang)
 
         logging.info(
             'Starting Google automatic transcription for '
             f'{self.submission_root_uuid=}, {xpath=}, {source_lang=}, '
-            f'{speech_location=}, {speech_model=}'
+            f'{self.speech_location=}, {speech_model=}'
         )
         self._cleanup_batch_files(xpath, source_lang)
         gcs_input_uri = self.store_file(flac_content, input_path)
 
         request = speech.BatchRecognizeRequest(
-            recognizer=self._get_recognizer_name(speech_location),
+            recognizer=self._get_recognizer_name(self.speech_location),
             config=speech.RecognitionConfig(
                 auto_decoding_config=speech.AutoDetectDecodingConfig(),
                 language_codes=[source_lang],
@@ -159,7 +159,7 @@ class GoogleTranscriptionService(GoogleService):
 
     def get_client_options(self):
         return client_options.ClientOptions(
-            api_endpoint=f'{get_speech_location()}-speech.googleapis.com'
+            api_endpoint=f'{self.speech_location}-speech.googleapis.com'
         )
 
     def get_converted_audio(
@@ -480,7 +480,7 @@ class GoogleTranscriptionService(GoogleService):
         """
         Poll the Google long-running operation backing the batch request.
         """
-        speech_client = self._get_speech_client(get_speech_location())
+        speech_client = self._get_speech_client(self.speech_location)
         operation = speech_client.transport.operations_client.get_operation(
             operation_name
         )
