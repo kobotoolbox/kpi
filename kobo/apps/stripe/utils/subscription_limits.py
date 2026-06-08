@@ -18,6 +18,7 @@ def _get_default_usage_limits():
     limits['log_lookback_days_limit'] = min(
         settings.PROJECT_HISTORY_LOG_LIFESPAN, settings.ACCESS_HISTORY_LOG_LIFESPAN
     )
+    return limits
 
 
 def _get_limit_key(usage_type: UsageType):
