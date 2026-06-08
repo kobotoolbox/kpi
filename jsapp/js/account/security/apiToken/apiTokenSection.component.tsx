@@ -50,15 +50,10 @@ export default function ApiTokenDisplay() {
   const regenerateToken = async () => {
     setIsRegenerating(true)
     // Clear any displayed token up front so a now-stale value is never shown
-    // while we work (or if the user dismisses the modal mid-flight).
     setToken(null)
     try {
-      // The whole sequence is best-effort and self-verifying: if any step
-      // fails we simply start over on the next attempt. We don't trust the
-      // DELETE's own response to confirm the rotation; instead we (1) read the
-      // current token, (2) delete it, then (3) read again and require a
-      // different value. A concurrent session rotating the token in between is
-      // fine — we only care that the final token differs from our baseline.
+      // The true test of success is whether a new (i.e. different) token was
+      // generated and returned by the API
       const before = await dataInterface.apiToken()
       await dataInterface.deleteApiToken()
       const after = await dataInterface.apiToken()
@@ -70,10 +65,8 @@ export default function ApiTokenDisplay() {
       regenerateModal.close()
     } catch {
       notify.error(t('Failed to regenerate API key'))
-      // We cleared `token` above but left no replacement. Reset to the hidden
-      // state so the field stops showing a masked-but-"revealed" value and a
-      // single Display click re-fetches the still-valid token (the fetch
-      // effect only runs when `isVisible` transitions).
+      // Handle the case where "Display" had already been clicked before
+      // attempting (and failing) to regenerate the token
       setIsVisible(false)
     } finally {
       setIsRegenerating(false)
@@ -109,7 +102,7 @@ export default function ApiTokenDisplay() {
       >
         <Stack>
           <Text>
-            {t('All access through your existing API key will be revoked, and a new one will be generated randomly.')}
+            {t('All access through your existing API key will be revoked, and a new key will be generated randomly.')}
           </Text>
 
           <Group justify='flex-end'>
