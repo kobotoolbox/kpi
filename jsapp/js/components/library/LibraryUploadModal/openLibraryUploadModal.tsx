@@ -4,6 +4,9 @@ import { MODAL_TYPES } from '#/constants'
 import LibraryUploadModal from './LibraryUploadModal'
 import type { LibraryUploadModalParams } from './LibraryUploadModal'
 
+// We use `modals.open` way for handling this modal, as `LibraryNewItemForm` has a flow that requires using such opener
+// function. We would need to refactor that component to make it possible to use `LibraryUploadModal` directly (as
+// a controllable wrapper of Mantine Modal)
 export function openLibraryUploadModal(
   params: Partial<Omit<LibraryUploadModalParams, 'type'>> & { type?: LibraryUploadModalParams['type'] } = {},
 ) {
