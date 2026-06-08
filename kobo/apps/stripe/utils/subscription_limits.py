@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 
-from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -14,7 +14,10 @@ from kobo.apps.stripe.utils.import_management import requires_stripe
 
 
 def _get_default_usage_limits():
-    return {f'{usage_type}_limit': inf for usage_type, _ in UsageType.choices}
+    limits = {f'{usage_type}_limit': inf for usage_type in USAGE_TYPES_WITH_COUNTERS}
+    limits['log_lookback_days_limit'] = min(
+        settings.PROJECT_HISTORY_LOG_LIFESPAN, settings.ACCESS_HISTORY_LOG_LIFESPAN
+    )
 
 
 def _get_limit_key(usage_type: UsageType):
