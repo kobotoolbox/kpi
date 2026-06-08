@@ -9,6 +9,7 @@ import constance
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
+from google.api_core import client_options
 from google.api_core.exceptions import GoogleAPIError, InvalidArgument
 from google.cloud import translate_v3 as translate
 from google.cloud.exceptions import GoogleCloudError
@@ -22,6 +23,7 @@ from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
 from ...exceptions import SubsequenceTimeoutError, TranslationResultNotFound
 from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
+from .locations import get_translate_endpoint, get_translate_location
 
 
 class GoogleTranslationService(GoogleService):
@@ -41,16 +43,17 @@ class GoogleTranslationService(GoogleService):
         super().__init__(submission, asset, *args, **kwargs)
 
         self.translate_client = translate.TranslationServiceClient(
-            credentials=google_credentials_from_constance_config()
+            credentials=google_credentials_from_constance_config(),
+            client_options=client_options.ClientOptions(
+                api_endpoint=get_translate_endpoint()
+            ),
         )
+        translate_location = get_translate_location()
         self.translate_parent = (
-            f'projects/{constance.config.ASR_MT_GOOGLE_PROJECT_ID}'
-        )
-        # Google batch translation requires a concrete regional location
-        self.translate_async_parent = (
             f'projects/{constance.config.ASR_MT_GOOGLE_PROJECT_ID}/'
-            f'locations/{constance.config.ASR_MT_GOOGLE_TRANSLATION_LOCATION}'
+            f'locations/{translate_location}'
         )
+        self.translate_async_parent = self.translate_parent
         self.bucket_prefix = (
             constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX
         )
@@ -70,6 +73,9 @@ class GoogleTranslationService(GoogleService):
     @property
     def counter_name(self):
         return 'google_mt_characters'
+
+    def get_client_options(self):
+        return client_options.ClientOptions(api_endpoint=get_translate_endpoint())
 
     def begin_google_operation(
         self,
