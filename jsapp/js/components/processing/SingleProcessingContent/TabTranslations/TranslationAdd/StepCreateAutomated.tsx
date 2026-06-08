@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { ActionIcon, Flex, Group, TextInput } from '@mantine/core'
+import { Flex, Group, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
 import cx from 'classnames'
 import { ServerError } from '#/api/ServerError'
@@ -13,6 +13,7 @@ import {
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
+import ActionIcon from '#/components/common/ActionIcon'
 import KoboIcon from '#/components/common/KoboIcon'
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
@@ -202,9 +203,8 @@ export default function StepCreateAutomated({
                 variant='transparent'
                 size='sm'
                 onClick={handleClickBack}
-              >
-                <KoboIcon icon={IconX} size='xs' />
-              </ActionIcon>
+                icon={IconX}
+              />
             }
           />
 
