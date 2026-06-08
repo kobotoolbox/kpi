@@ -45,8 +45,8 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     },
   })
   const serviceUsageData = data?.status === 200 ? data.data : null
-  const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
-  const hasExceededLimit = userAsrBalance?.exceeded ?? false
+  const userMtBalance = serviceUsageData?.balances?.mt_characters ?? null
+  const hasExceededLimit = userMtBalance?.exceeded ?? false
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
