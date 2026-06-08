@@ -119,7 +119,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
       )}
 
       <Text size='xs'>
-        {t('Automatic transcription is provided by Google Cloud Platform.')}
+        {t('Automatic translation is provided by Google Cloud Platform.')}
         &nbsp;
         <Anchor href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL} underline='always'>
           {t('Learn more')}
