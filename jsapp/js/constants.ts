@@ -382,6 +382,21 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName['start-geopoint'],
 ]) as { [P in MetaQuestionTypeName]: MetaQuestionTypeName }
 
+/**
+ * Question types that contain geopoint data that can be displayed on the map.
+ */
+export const MAP_DISPLAYABLE_GEOPOINT_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.geopoint,
+  MetaQuestionTypeName['start-geopoint'],
+]
+
+/**
+ * Type guard to check if a question type is a map-displayable geopoint type.
+ */
+export function isMapDisplayableGeopointType(type: AnyRowTypeName | undefined): boolean {
+  return type !== undefined && MAP_DISPLAYABLE_GEOPOINT_TYPES.includes(type)
+}
+
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
 // 2. https://github.com/kobotoolbox/kpi/blob/7db39015866c905edc645677d72b9c1ea16067b1/jsapp/js/constants.es6#L284-L294

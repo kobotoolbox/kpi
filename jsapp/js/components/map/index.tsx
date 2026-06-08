@@ -31,7 +31,12 @@ import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
 import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
 
 // Constants and types
-import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
+import {
+  ASSET_FILE_TYPES,
+  isMapDisplayableGeopointType,
+  MODAL_TYPES,
+  QUERY_LIMIT_DEFAULT,
+} from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -204,7 +209,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     super(props)
 
     const survey = props.asset.content?.survey || []
-    const hasGeoPoint = survey.some((row) => row.type === QUESTION_TYPES.geopoint.id)
+    const hasGeoPoint = survey.some((row) => isMapDisplayableGeopointType(row.type))
 
     this.state = {
       map: undefined,
