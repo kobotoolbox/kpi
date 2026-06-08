@@ -16,7 +16,7 @@ from kobo.apps.stripe.utils.import_management import requires_stripe
 def _get_default_usage_limits():
     limits = {f'{usage_type}_limit': inf for usage_type in USAGE_TYPES_WITH_COUNTERS}
     limits['log_lookback_days_limit'] = min(
-        settings.PROJECT_HISTORY_LOG_LIFESPAN, settings.ACCESS_HISTORY_LOG_LIFESPAN
+        settings.PROJECT_HISTORY_LOG_LIFESPAN, settings.ACCESS_LOG_LIFESPAN
     )
     return limits
 
