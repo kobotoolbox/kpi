@@ -139,7 +139,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           {t('Cancel')}
         </ButtonNew>
         {!hasExceededLimit && (
-          <ButtonNewprops.
+          <ButtonNew
             loading={isPending}
             onClick={handleStartTranscription}
             disabled={!selectedLanguage || isLoadingUsage}
