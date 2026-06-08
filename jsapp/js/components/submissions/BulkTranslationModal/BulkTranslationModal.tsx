@@ -114,7 +114,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
 
       {hasExceededLimit && (
         <Alert type='warning' iconName='information' mt={12} mb={12}>
-          {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
+          {t("You've reached your automatic translation limit. Please purchase an add‑on to continue.")}
         </Alert>
       )}
 
