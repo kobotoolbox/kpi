@@ -1,5 +1,4 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
-import { modals } from '@mantine/modals'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
@@ -12,14 +11,14 @@ import {
 import Alert from '#/components/common/alert'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
-import ButtonNew from '../common/ButtonNew'
-import LanguageSelector from '../languages/LanguageSelector'
-import RegionSelector from '../languages/RegionSelector'
-import type { LanguageCode } from '../languages/languagesStore'
+import ButtonNew from '../../common/ButtonNew'
+import LanguageSelector from '../../languages/LanguageSelector'
+import RegionSelector from '../../languages/RegionSelector'
+import type { LanguageCode } from '../../languages/languagesStore'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
-interface BulkTranscriptionModalProps {
+export interface BulkTranscriptionModalProps {
   fieldId: string
   assetUid: string
   selectedSubmissionUuids: string[]
@@ -29,63 +28,7 @@ interface BulkTranscriptionModalProps {
   onSuccess: () => void
 }
 
-type BulkTranscriptionModalArgs = Omit<BulkTranscriptionModalProps, 'onRequestClose'>
-
-export default function openBulkTranscriptModal(args: BulkTranscriptionModalArgs) {
-  if (args.showWarningModal) {
-    const warningModalId = modals.openConfirmModal({
-      title: t('Request too large'),
-      size: 'lg',
-      children: (
-        <Stack gap='md'>
-          <Text size='sm'>
-            {t(
-              'This bulk processing request is too large and could affect the performance of the application. Only the results currently visible in the data table (##count##) will be processed.',
-            ).replace('##count##', String(args.selectedRowsCount))}
-          </Text>
-
-          <Alert type='info' iconName='information' m={0}>
-            {t('To increase the number of files processed, increase the number of rows displayed in the table')}
-          </Alert>
-        </Stack>
-      ),
-      labels: {
-        confirm: t('Continue'),
-        cancel: t('Cancel'),
-      },
-      confirmProps: {
-        variant: 'filled',
-      },
-      cancelProps: {
-        variant: 'light',
-      },
-      onConfirm: () => {
-        modals.close(warningModalId)
-        openBulkTranscriptModalInternal(args)
-      },
-    })
-    return
-  }
-
-  openBulkTranscriptModalInternal(args)
-}
-
-function openBulkTranscriptModalInternal(args: BulkTranscriptionModalArgs) {
-  const modalId = modals.open({
-    title: t('Transcribe selected audio files'),
-    size: 'lg',
-    children: (
-      <BulkTranscriptionModal
-        onRequestClose={() => {
-          modals.close(modalId)
-        }}
-        {...args}
-      />
-    ),
-  })
-}
-
-function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
+export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
@@ -179,7 +122,7 @@ function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
       {hasExceededLimit && (
         <Alert type='warning' iconName='information' mt={12} mb={12}>
-          {t('You’ve reached your automatic transcription limit. Please purchase an add‑on to continue.')}
+          {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
         </Alert>
       )}
 

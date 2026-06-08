@@ -92,7 +92,7 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
-import openBulkTranscriptModal from './BulkTranscriptionModal'
+import { openBulkTranscriptionModal } from './BulkTranscriptionModal'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -414,7 +414,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
 
-    openBulkTranscriptModal({
+    openBulkTranscriptionModal({
       fieldId,
       assetUid: this.props.asset.uid,
       selectedSubmissionUuids,
