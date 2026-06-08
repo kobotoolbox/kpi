@@ -1159,6 +1159,12 @@ export const dataInterface: DataInterface = {
       url: `${ROOT_URL}/token/?format=json`,
     }),
 
+  deleteApiToken: (): JQuery.jqXHR<void> =>
+    $ajax({
+      url: `${ROOT_URL}/token/?format=json`,
+      method: 'DELETE',
+    }),
+
   getUser: (userUrl: string): JQuery.jqXHR<UserResponse> =>
     $ajax({
       url: userUrl,
