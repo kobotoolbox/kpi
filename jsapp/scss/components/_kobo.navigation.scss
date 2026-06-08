@@ -2,6 +2,7 @@
 @use 'scss/_variables';
 @use 'scss/z-indexes';
 @use 'scss/colors';
+@use 'scss/mixins';
 @use 'scss/libs/_mdl';
 @use 'sass:color';
 
@@ -276,9 +277,8 @@
         border-bottom: 1px solid colors.$kobo-blue;
       }
 
-      &:focus {
-        background: rgba(colors.$kobo-white, 0.05);
-        border-bottom: 1px solid colors.$kobo-blue;
+      &:focus-visible {
+        @include mixins.default-ui-focus;
       }
     }
   }

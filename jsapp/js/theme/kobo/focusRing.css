@@ -1,0 +1,8 @@
+/*
+ * Mantine adds .mantine-focus-auto to focusable controls when theme.focusRing is set to "auto".
+ * We override it globally to keep keyboard focus rings consistent with Kobo styles.
+ */
+.mantine-focus-auto:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}

@@ -35,6 +35,11 @@ export const cssVariablesResolverKobo: CSSVariablesResolver = () => {
       '--kobo-z-index-nested-modal-overlay': String(KOBO_Z_INDEX.nestedModalOverlay),
       '--kobo-z-index-nested-modal': String(KOBO_Z_INDEX.nestedModal),
       '--kobo-z-index-dropdown': String(KOBO_Z_INDEX.dropdown),
+      '--kobo-focus-ring-color': 'var(--mantine-primary-color-filled)',
+      '--kobo-focus-ring-color-danger': 'var(--mantine-color-red-6)',
+      '--kobo-focus-ring-width': '2px',
+      '--kobo-focus-ring-offset': '2px',
+      '--kobo-focus-ring': 'var(--kobo-focus-ring-width) solid var(--kobo-focus-ring-color)',
     },
     light: {},
     dark: {},
@@ -42,6 +47,7 @@ export const cssVariablesResolverKobo: CSSVariablesResolver = () => {
 }
 
 export const themeKobo = createTheme({
+  focusRing: 'auto',
   primaryColor: 'blue',
   colors: {
     gray: [
