@@ -5666,6 +5666,11 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/?collections_first=true&ordering=-name
         ```
       parameters:
+      - in: query
+        name: file_type
+        schema:
+          type: string
+        description: Filter files by type (e.g., "form_media")
       - name: limit
         required: false
         in: query
@@ -16219,86 +16224,81 @@ components:
       - kind
     CreateFilePayload:
       oneOf:
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          content:
-            type: string
-        required:
-        - asset
-        - content
-        - description
-        - file_type
-        - user
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          base64Encoded:
-            type: string
-          metadata:
-            type: object
-            properties:
-              filename:
-                type: string
-            required:
-            - filename
-        required:
-        - asset
-        - base64Encoded
-        - description
-        - file_type
-        - metadata
-        - user
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          metadata:
-            type: object
-            properties:
-              redirect_url:
-                type: string
-                format: uri
-            required:
-            - redirect_url
-        required:
-        - asset
-        - description
-        - file_type
-        - metadata
-        - user
+      - $ref: '#/components/schemas/CreateFilePayloadBinary'
+      - $ref: '#/components/schemas/CreateFilePayloadBase64'
+      - $ref: '#/components/schemas/CreateFilePayloadURL'
+    CreateFilePayloadBase64:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uri
+          example: http://kf.local.kbtdev.org/api/v2/users/bob/
+        asset:
+          type: string
+          format: uri
+          example: http://kf.local.kbtdev.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+        description:
+          type: string
+        file_type:
+          type: string
+        base64Encoded:
+          type: string
+        metadata:
+          type: object
+      required:
+      - asset
+      - base64Encoded
+      - description
+      - file_type
+      - metadata
+      - user
+    CreateFilePayloadBinary:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uri
+          example: http://kf.local.kbtdev.org/api/v2/users/bob/
+        asset:
+          type: string
+          format: uri
+          example: http://kf.local.kbtdev.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+        description:
+          type: string
+        file_type:
+          type: string
+        content:
+          type: string
+      required:
+      - asset
+      - content
+      - description
+      - file_type
+      - user
+    CreateFilePayloadURL:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uri
+          example: http://kf.local.kbtdev.org/api/v2/users/bob/
+        asset:
+          type: string
+          format: uri
+          example: http://kf.local.kbtdev.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+        description:
+          type: string
+        file_type:
+          type: string
+        metadata:
+          type: object
+      required:
+      - asset
+      - description
+      - file_type
+      - metadata
+      - user
     CreateResponseAutomaticQualActionParams:
       type: object
       properties:

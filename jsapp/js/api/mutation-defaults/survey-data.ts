@@ -9,6 +9,9 @@ import {
   getAssetsDataListQueryKey,
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
+  getAssetsFilesCreateMutationOptions,
+  getAssetsFilesDestroyMutationOptions,
+  getAssetsFilesListQueryKey,
   getAssetsPairedDataDestroyMutationOptions,
   getAssetsPairedDataListQueryKey,
 } from '#/api/react-query/survey-data'
@@ -29,6 +32,30 @@ import type { SupplementalDataManualTranscription } from '../models/supplemental
 import type { SupplementalDataManualTranslation } from '../models/supplementalDataManualTranslation'
 import { queryClient } from '../queryClient'
 import { invalidateItem, invalidatePaginatedList, optimisticallyUpdateItem } from './common'
+
+// Note: No reflux bridge routes needed for assets files endpoints - all
+// actions.media.* consumers have been migrated to React Query.
+queryClient.setMutationDefaults(
+  getAssetsFilesCreateMutationOptions().mutationKey!,
+  getAssetsFilesCreateMutationOptions({
+    mutation: {
+      onSettled: (_data, _error, { uidAsset }) => {
+        invalidateItem(getAssetsFilesListQueryKey(uidAsset))
+      },
+    },
+  }),
+)
+
+queryClient.setMutationDefaults(
+  getAssetsFilesDestroyMutationOptions().mutationKey!,
+  getAssetsFilesDestroyMutationOptions({
+    mutation: {
+      onSettled: (_data, _error, { uidAsset }) => {
+        invalidateItem(getAssetsFilesListQueryKey(uidAsset))
+      },
+    },
+  }),
+)
 
 queryClient.setMutationDefaults(
   getAssetsAdvancedFeaturesCreateMutationOptions().mutationKey!,

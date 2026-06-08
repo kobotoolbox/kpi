@@ -110,6 +110,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     list=extend_schema(
         description=read_md('kpi', 'files/list.md'),
+        parameters=[
+            OpenApiParameter(
+                name='file_type',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Filter files by type (e.g., "form_media")',
+                required=False,
+            ),
+        ],
         responses=open_api_200_ok_response(
             FilesResponse,
             validate_payload=False,
