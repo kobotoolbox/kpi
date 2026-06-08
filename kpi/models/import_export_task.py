@@ -44,10 +44,7 @@ from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
 from kobo.apps.subsequences.exceptions import SupplementMigrationInProgress
 from kobo.apps.subsequences.models import SubmissionSupplement
-from kobo.apps.subsequences.utils.supplement_data import (
-    get_analysis_form_json,
-    stream_with_supplements,
-)
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -1079,9 +1076,6 @@ class SubmissionExportTaskBase(ImportExportTask):
                 raise SupplementMigrationInProgress(
                     'Supplement data migration in progress, please retry later.'
                 )
-            submission_stream = stream_with_supplements(
-                source, submission_stream, for_output=True
-            )
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
