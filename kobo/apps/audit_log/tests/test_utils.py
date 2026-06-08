@@ -12,7 +12,7 @@ class LookbackUtilsTestCase(TestCase):
 
     fixtures = ['test_data']
 
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason="Stripe is not enabled")
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     def test_lookback_with_stripe(self):
         someuser = User.objects.get(username='someuser')
         from kobo.apps.stripe.tests.utils import generate_plan_subscription
@@ -29,7 +29,7 @@ class LookbackUtilsTestCase(TestCase):
         generate_plan_subscription(someuser.organization, product_metadata)
         assert get_max_lookback_days(someuser) == 60
 
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason="Stripe is not enabled")
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     def test_lookback_with_stripe_default_subscription(self):
         someuser = User.objects.get(username='someuser')
         from kobo.apps.stripe.tests.utils import generate_free_plan
@@ -38,14 +38,14 @@ class LookbackUtilsTestCase(TestCase):
         lookback_days = plan.metadata.get('log_lookback_days_limit')
         assert get_max_lookback_days(someuser) == int(lookback_days)
 
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason="Stripe is not enabled")
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_settings(PROJECT_HISTORY_LOG_LIFESPAN=10)
     @override_settings(ACCESS_LOG_LIFESPAN=5)
     def test_lookback_if_subscription_missing_log_lookback_days_limit(self):
         someuser = User.objects.get(username='someuser')
         assert get_max_lookback_days(someuser) == 5
 
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason="Stripe is not enabled")
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     def test_lookback_with_anonymous_user(self):
         anon_user = get_anonymous_user()
         assert get_max_lookback_days(anon_user) == 0
