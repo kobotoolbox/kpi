@@ -149,8 +149,12 @@ def get_organizations_subscription_limits(
     for usage_type, _ in UsageType.choices:
         limit_key = f'{usage_type}_limit'
         default_limit = default_plan.get(limit_key)
-        if default_limit is None:
+        if default_limit is None and usage_type != UsageType.LOG_LOOKBACK_DAYS:
             default_plan_limits[limit_key] = 'unlimited'
+        elif default_limit is None and usage_type == UsageType.LOG_LOOKBACK_DAYS:
+            default_plan_limits[limit_key] = min(
+                settings.ACCESS_LOG_LIFESPAN, settings.PROJECT_HISTORY_LOG_LIFESPAN
+            )
         else:
             default_plan_limits[limit_key] = default_limit
 

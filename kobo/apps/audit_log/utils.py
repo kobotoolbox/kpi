@@ -1,7 +1,4 @@
 from dataclasses import dataclass
-from math import inf
-
-from django.conf import settings
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.subscription_limits import (
@@ -31,6 +28,4 @@ def get_max_lookback_days(user, **kwargs) -> int:
         [user_org], include_onetime_addons=False, include_storage_addons=False
     )[user_org.id]
     limit = limits[get_limit_key(UsageType.LOG_LOOKBACK_DAYS)]
-    if limit == inf:
-        limit = min(settings.ACCESS_LOG_LIFESPAN, settings.PROJECT_HISTORY_LOG_LIFESPAN)
     return int(limit)
