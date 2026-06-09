@@ -290,6 +290,8 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     var modalTabs = tabsToDisplay.map((tabId) => (
       <button
+        role='tab'
+        aria-selected={activeTab === tabId}
         className={cx({
           'legacy-modal-tab-button': true,
           'legacy-modal-tab-button--active': activeTab === tabId,

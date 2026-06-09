@@ -129,6 +129,12 @@ const meta: Meta<typeof FormMapWrapper> = {
   title: 'Features/FormMap',
   component: FormMapWrapper,
   parameters: {
+    docs: {
+      description: {
+        component:
+          '⚠️ **Docs view does NOT work reliably for these stories due to map initialization rule (there can be only one). Use single stories please.** Also note that many interactive elements are not mocked and will not work.',
+      },
+    },
     reactRouter: reactRouterParameters({
       location: {
         pathParams: { uid: mockAssetUid },
@@ -229,6 +235,7 @@ export const WithBothGeopointTypes: Story = {
   },
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement)
+    const page = within(document.body)
 
     await step('Verify that the map loads successfully', async () => {
       await waitFor(
@@ -245,6 +252,47 @@ export const WithBothGeopointTypes: Story = {
         async () => {
           const settingsButton = canvas.getByLabelText('Map display settings')
           expect(settingsButton).toBeEnabled()
+        },
+        { timeout: 5000 },
+      )
+    })
+
+    await step('Open Map display settings', async () => {
+      const settingsButton = canvas.getByLabelText('Map display settings')
+      settingsButton.click()
+
+      await waitFor(
+        async () => {
+          const modal = page.getByRole('dialog', { name: /Map Settings/i })
+          expect(modal).toBeInTheDocument()
+        },
+        { timeout: 5000 },
+      )
+    })
+
+    await step('Switch to geopoint question tab', async () => {
+      const modal = page.getByRole('dialog', { name: /Map Settings/i })
+      const geopointTab = within(modal).getByRole('tab', { name: /geopoint question/i })
+      geopointTab.click()
+
+      await waitFor(
+        async () => {
+          expect(geopointTab).toHaveAttribute('aria-selected', 'true')
+        },
+        { timeout: 5000 },
+      )
+    })
+
+    await step('Verify both geopoint questions are available', async () => {
+      const modal = page.getByRole('dialog', { name: /Map Settings/i })
+
+      await waitFor(
+        async () => {
+          const whereAreYouOption = within(modal).getByText('Where are you?')
+          const startGeopointOption = within(modal).getByText('start-geopoint')
+
+          expect(whereAreYouOption).toBeInTheDocument()
+          expect(startGeopointOption).toBeInTheDocument()
         },
         { timeout: 5000 },
       )
