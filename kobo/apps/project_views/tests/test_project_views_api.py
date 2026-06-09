@@ -1,9 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization
 from kobo.apps.project_views.models import ProjectView
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
@@ -29,24 +27,24 @@ class ProjectViewsApiTestCase(BaseTestCase):
 
         # Create Project Views
         self.pv_country = ProjectView.objects.create(
-            name="Spain Projects",
-            countries="ESP",
-            uid_organizations="*",
+            name='Spain Projects',
+            countries='ESP',
+            uid_organizations='*',
             permissions=[PERM_VIEW_ASSET],
         )
         self.pv_country.users.add(self.regular_user)
 
         self.pv_org = ProjectView.objects.create(
-            name="Org Projects",
-            countries="*",
+            name='Org Projects',
+            countries='*',
             uid_organizations=self.org.id,
             permissions=[PERM_VIEW_ASSET],
         )
         self.pv_org.users.add(self.regular_user)
 
         self.pv_both = ProjectView.objects.create(
-            name="Org Spain Projects",
-            countries="ESP",
+            name='Org Spain Projects',
+            countries='ESP',
             uid_organizations=self.org.id,
             permissions=[PERM_VIEW_ASSET],
         )
@@ -56,7 +54,7 @@ class ProjectViewsApiTestCase(BaseTestCase):
         # 1. Asset belonging to org, country ESP
         self.asset_org_esp = Asset.objects.create(
             owner=self.admin_user,
-            name="Org ESP",
+            name='Org ESP',
             asset_type=ASSET_TYPE_SURVEY,
             settings={'country': [{'value': 'ESP', 'label': 'España'}]},
         )
@@ -64,7 +62,7 @@ class ProjectViewsApiTestCase(BaseTestCase):
         # 2. Asset belonging to org, country FRA
         self.asset_org_fra = Asset.objects.create(
             owner=self.admin_user,
-            name="Org FRA",
+            name='Org FRA',
             asset_type=ASSET_TYPE_SURVEY,
             settings={'country': [{'value': 'FRA', 'label': 'Francia'}]},
         )
@@ -72,7 +70,7 @@ class ProjectViewsApiTestCase(BaseTestCase):
         # 3. Asset NOT belonging to org, country ESP
         self.asset_ext_esp = Asset.objects.create(
             owner=self.external_user,
-            name="Ext ESP",
+            name='Ext ESP',
             asset_type=ASSET_TYPE_SURVEY,
             settings={'country': [{'value': 'ESP', 'label': 'España'}]},
         )
