@@ -1,5 +1,8 @@
 import type { DecoratorFunction } from '@storybook/types'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { applyManageProjectsMutationDefaults } from '#/api/mutation-defaults/manage-projects-and-library-content'
+import { applySurveyDataMutationDefaults } from '#/api/mutation-defaults/survey-data'
+import { applyUserTeamOrganizationMutationDefaults } from '#/api/mutation-defaults/user-team-organization-usage'
 
 export const queryClientDecorator: DecoratorFunction = (Story) => {
   // We define a new QueryClient for each story to avoid sharing state between stories.
@@ -13,5 +16,11 @@ export const queryClientDecorator: DecoratorFunction = (Story) => {
       },
     },
   })
+
+  // Apply mutation defaults so stories have the same invalidation behavior as production
+  applySurveyDataMutationDefaults(mockQueryClient)
+  applyManageProjectsMutationDefaults(mockQueryClient)
+  applyUserTeamOrganizationMutationDefaults(mockQueryClient)
+
   return <QueryClientProvider client={mockQueryClient}>{Story()}</QueryClientProvider>
 }
