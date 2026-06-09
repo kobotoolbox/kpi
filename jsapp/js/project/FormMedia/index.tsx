@@ -4,7 +4,6 @@ import { useIsMutating } from '@tanstack/react-query'
 import React, { useCallback, useState } from 'react'
 import Dropzone from 'react-dropzone'
 import type { ServerError } from '#/api/ServerError'
-import { buildCreateFilePayload } from '#/api/models/createFilePayloadHelpers'
 import type { FilesResponse } from '#/api/models/filesResponse'
 import type { FilesResponseMetadata } from '#/api/models/filesResponseMetadata'
 import { useAssetsFilesCreate, useAssetsFilesDestroy, useAssetsFilesList } from '#/api/react-query/survey-data'
@@ -141,12 +140,12 @@ export default function FormMedia(props: FormMediaProps) {
           fileUploadMutation.mutate(
             {
               uidAsset: props.asset.uid,
-              data: buildCreateFilePayload({
+              data: {
                 description: DEFAULT_MEDIA_DESCRIPTION,
                 file_type: ASSET_FILE_TYPES.form_media.id,
                 base64Encoded: base64File as string,
                 metadata: { filename: file.name },
-              }),
+              },
             },
             {
               onError: (error) => {
@@ -179,11 +178,11 @@ export default function FormMedia(props: FormMediaProps) {
     urlUploadMutation.mutate(
       {
         uidAsset: props.asset.uid,
-        data: buildCreateFilePayload({
+        data: {
           description: DEFAULT_MEDIA_DESCRIPTION,
           file_type: ASSET_FILE_TYPES.form_media.id,
           metadata: { redirect_url: url },
-        }),
+        },
       },
       {
         onError: (error) => {

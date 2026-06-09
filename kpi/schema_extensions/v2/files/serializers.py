@@ -6,8 +6,9 @@ from .fields import (
     AssetUrlField,
     ContentURlField,
     FileUrlField,
-    MetadataCreateField,
+    MetadataBase64Field,
     MetadataField,
+    MetadataURLField,
     UserUrlField,
 )
 
@@ -15,8 +16,6 @@ from .fields import (
 CreateFilePayloadBinary = inline_serializer_class(
     name='CreateFilePayloadBinary',
     fields={
-        'user': UserUrlField(),
-        'asset': AssetUrlField(),
         'description': serializers.CharField(),
         'file_type': serializers.CharField(),
         'content': serializers.CharField(),
@@ -26,23 +25,19 @@ CreateFilePayloadBinary = inline_serializer_class(
 CreateFilePayloadBase64 = inline_serializer_class(
     name='CreateFilePayloadBase64',
     fields={
-        'user': UserUrlField(),
-        'asset': AssetUrlField(),
         'description': serializers.CharField(),
         'file_type': serializers.CharField(),
         'base64Encoded': serializers.CharField(),
-        'metadata': MetadataCreateField(required=True),
+        'metadata': MetadataBase64Field(required=True),
     },
 )
 
 CreateFilePayloadURL = inline_serializer_class(
     name='CreateFilePayloadURL',
     fields={
-        'user': UserUrlField(),
-        'asset': AssetUrlField(),
         'description': serializers.CharField(),
         'file_type': serializers.CharField(),
-        'metadata': MetadataCreateField(required=True),
+        'metadata': MetadataURLField(required=True),
     },
 )
 

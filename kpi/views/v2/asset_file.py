@@ -13,7 +13,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.constants import PERM_VIEW_ASSET
-from kpi.filters import RelatedAssetPermissionsFilter
+from kpi.filters import AssetFileTypeFilter, RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
 from kpi.schema_extensions.v2.files.schema import (
@@ -21,7 +21,6 @@ from kpi.schema_extensions.v2.files.schema import (
     URL_METADATA_SCHEMA,
 )
 from kpi.schema_extensions.v2.files.serializers import CreateFilePayload, FilesResponse
-from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA, USER_URL_SCHEMA
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
@@ -58,10 +57,8 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             OpenApiExample(
                 name='Creating a file with binary content',
                 value={
-                    'user': generate_example_from_schema(USER_URL_SCHEMA),
-                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                     'description': 'Description of the file',
-                    'file_type': 'image/png',
+                    'file_type': 'form_media',
                     'content': '<binary>',
                 },
                 request_only=True,
@@ -69,10 +66,8 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             OpenApiExample(
                 name='Creating a file with Base64 content',
                 value={
-                    'user': generate_example_from_schema(USER_URL_SCHEMA),
-                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                     'description': 'Description of the file',
-                    'file_type': 'image/png',
+                    'file_type': 'form_media',
                     'base64Encoded': 'SGVsbG8sIFdvcmxkIQ',
                     'metadata': generate_example_from_schema(BASE64_METADATA_SCHEMA),
                 },
@@ -81,10 +76,8 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             OpenApiExample(
                 name='Creating a file with a remote url',
                 value={
-                    'user': generate_example_from_schema(USER_URL_SCHEMA),
-                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                     'description': 'Description of the file',
-                    'file_type': 'image/png',
+                    'file_type': 'form_media',
                     'metadata': generate_example_from_schema(URL_METADATA_SCHEMA),
                 },
                 request_only=True,
@@ -110,15 +103,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     list=extend_schema(
         description=read_md('kpi', 'files/list.md'),
-        parameters=[
-            OpenApiParameter(
-                name='file_type',
-                type=str,
-                location=OpenApiParameter.QUERY,
-                description='Filter files by type (e.g., "form_media")',
-                required=False,
-            ),
-        ],
         responses=open_api_200_ok_response(
             FilesResponse,
             validate_payload=False,
@@ -166,7 +150,7 @@ class AssetFileViewSet(
     model = AssetFile
     lookup_field = 'uid'
     lookup_url_kwarg = 'uid_file'
-    filter_backends = (RelatedAssetPermissionsFilter,)
+    filter_backends = (AssetFileTypeFilter, RelatedAssetPermissionsFilter)
     serializer_class = AssetFileSerializer
     permission_classes = (AssetEditorPermission,)
     log_type = AuditType.PROJECT_HISTORY
@@ -181,19 +165,13 @@ class AssetFileViewSet(
 
     def get_queryset(self):
         _queryset = self.model.objects.filter(asset__uid=self.asset_uid)
-        file_type = self.request.GET.get('file_type')
-        if file_type is not None:
-            _queryset = _queryset.filter(file_type=file_type)
         _queryset = _queryset.filter(date_deleted__isnull=True).exclude(
             file_type=AssetFile.PAIRED_DATA
         )
         return _queryset
 
     def perform_create_override(self, serializer):
-        serializer.save(
-            asset=self.asset,
-            user=self.request.user
-        )
+        serializer.save(asset=self.asset, user=self.request.user)
 
     class PrivateContentView(PrivateStorageDetailView):
         model = AssetFile
@@ -234,7 +212,7 @@ class AssetFileViewSet(
             model=AssetFile,
             slug_url_kwarg='uid',
             slug_field='uid',
-            model_file_field='content'
+            model_file_field='content',
         )
 
         # TODO: simply redirect if external storage with expiring tokens (e.g.
