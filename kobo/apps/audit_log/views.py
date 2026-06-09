@@ -99,7 +99,9 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     def get_lookback_date(self):
         user = self.request.user
         lookback_days = get_max_lookback_days(user)
-        min_date = timezone.now().date() - timedelta(days=lookback_days)
+        now = timezone.now()
+        now_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        min_date = now_midnight - timedelta(days=lookback_days)
         return min_date
 
     def get_queryset(self):
@@ -340,8 +342,11 @@ class ProjectHistoryLogViewSet(
 
     @action(detail=False, methods=['GET'])
     def actions(self, request, *args, **kwargs):
+        min_date = self.get_lookback_date()
         actions = (
-            self.model.objects.filter(metadata__asset_uid=self.asset_uid)
+            self.model.objects.filter(
+                metadata__asset_uid=self.asset_uid, date_created__gte=min_date
+            )
             .values_list('action')
             .distinct()
         )

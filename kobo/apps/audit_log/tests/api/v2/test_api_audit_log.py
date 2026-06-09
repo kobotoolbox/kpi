@@ -735,6 +735,30 @@ class ApiProjectHistoryLogsTestCase(
         response = self.client.get(f'{self.url}actions/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @override_settings(ACCESS_LOG_LIFESPAN=60, PROJECT_HISTORY_LOG_LIFESPAN=60)
+    def test_list_actions_filters_by_max_lookback(self):
+        if settings.STRIPE_ENABLED:
+            self.create_plan_for_user(self.user, lookback_days=60)
+        today = timezone.now()
+        out_of_range_date = today - timedelta(days=70)
+
+        ProjectHistoryLog.objects.create(
+            user=self.user,
+            object_id=self.asset.id,
+            action=AuditAction.DELETE,
+            metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
+            date_created=out_of_range_date,
+        )
+        ProjectHistoryLog.objects.create(
+            user=self.user,
+            object_id=self.asset.id,
+            action=AuditAction.MODIFY_SHARING,
+            metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
+        )
+        response = self.client.get(f'{self.url}actions/')
+        # older DELETE action should not show up
+        assert response.data['actions'] == [AuditAction.MODIFY_SHARING]
+
     def test_show_project_history_logs_filters_to_project(self):
         asset2 = Asset.objects.get(pk=2)
         ProjectHistoryLog.objects.create(
