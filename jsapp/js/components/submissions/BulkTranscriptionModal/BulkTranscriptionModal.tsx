@@ -1,4 +1,6 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+import { IconCheckFilled } from '@tabler/icons-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
@@ -8,8 +10,10 @@ import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+import KoboIcon from '#/components/common/KoboIcon'
 import Alert from '#/components/common/alert'
 import envStore from '#/envStore'
+import { ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import ButtonNew from '../../common/ButtonNew'
 import LanguageSelector from '../../languages/LanguageSelector'
@@ -75,13 +79,25 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         },
       },
       {
-        onSuccess: () => {
-          // TODO: implement @mantine/notifications system, see DEV-1412
+        onSuccess: (response) => {
+          // Error handling is already done by the API toast notifications
+          if (response.status === 201) {
+            response.data.submission_uuids.forEach(() => {
+              notifications.show({
+                title: 'Your transcripts are on their way!',
+                message: (
+                  <>
+                    <a href={ROUTES.FORM_ACTIVITY.replace(':uid', props.assetUid)}>{t('Click here')}</a>{' '}
+                    {t('to monitor your progress or to cancel this job')}
+                  </>
+                ),
+                icon: <KoboIcon icon={IconCheckFilled} size={'sm'} />,
+                position: 'bottom-center',
+              })
+            })
+          }
           props.onRequestClose()
           props.onSuccess()
-        },
-        onError: () => {
-          // TODO: implement @mantine/notifications system, see DEV-1412
         },
       },
     )

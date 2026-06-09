@@ -156,7 +156,7 @@ class App extends React.Component {
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
           <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
-            <Notifications />
+            <Notifications limit={3} />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
               <RootContextProvider>
                 <Tracking />
