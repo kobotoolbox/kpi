@@ -391,9 +391,11 @@ export const MAP_DISPLAYABLE_GEOPOINT_TYPES: AnyRowTypeName[] = [
 ]
 
 /**
- * Type guard to check if a question type is a map-displayable geopoint type.
+ * Type predicate to check if a question type is a map-displayable geopoint type.
  */
-export function isMapDisplayableGeopointType(type: AnyRowTypeName | undefined): boolean {
+export function isMapDisplayableGeopointType(
+  type: AnyRowTypeName | undefined
+): type is typeof MAP_DISPLAYABLE_GEOPOINT_TYPES[number] {
   return type !== undefined && MAP_DISPLAYABLE_GEOPOINT_TYPES.includes(type)
 }
 
