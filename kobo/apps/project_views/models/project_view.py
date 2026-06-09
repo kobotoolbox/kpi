@@ -12,8 +12,8 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
-from .assignment import AssignmentProjectViewM2MInline
 from ..fields import ChoiceArrayField
+from .assignment import AssignmentProjectViewM2MInline
 
 
 class ProjectView(models.Model):

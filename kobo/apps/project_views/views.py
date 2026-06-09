@@ -390,8 +390,12 @@ class ProjectViewViewSet(
 
         if '*' not in uid_organizations:
             if obj_type == 'user':
-                queryset = queryset.filter(organizations_organization__id__in=uid_organizations)
+                queryset = queryset.filter(
+                    organizations_organization__id__in=uid_organizations
+                )
             else:
-                queryset = queryset.filter(owner__organizations_organization__id__in=uid_organizations)
+                queryset = queryset.filter(
+                    owner__organizations_organization__id__in=uid_organizations
+                )
 
         return queryset
