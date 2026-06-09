@@ -392,10 +392,10 @@ class ProjectViewViewSet(
             if obj_type == 'user':
                 queryset = queryset.filter(
                     organizations_organization__id__in=uid_organizations
-                )
+                ).distinct()
             else:
                 queryset = queryset.filter(
                     owner__organizations_organization__id__in=uid_organizations
-                )
+                ).distinct()
 
         return queryset

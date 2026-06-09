@@ -31,7 +31,7 @@ def get_project_view_user_permissions_for_asset(
     if asset.owner and asset.owner.organization:
         asset_org = asset.owner.organization.id
 
-    q_orgs = Q(uid_organizations__contains='*')
+    q_orgs = Q(uid_organizations='*')
     if asset_org:
         q_orgs |= Q(uid_organizations__contains=asset_org)
 
