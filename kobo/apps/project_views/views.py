@@ -25,7 +25,11 @@ from kpi.serializers.v2.asset import (
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.project_views import get_region_for_view, user_has_view_perms
+from kpi.utils.project_views import (
+    get_region_for_view,
+    get_uid_organizations_for_view,
+    user_has_view_perms,
+)
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from .models.project_view import ProjectView
@@ -376,11 +380,18 @@ class ProjectViewViewSet(
     ) -> QuerySet:
 
         region = get_region_for_view(uid)
+        uid_organizations = get_uid_organizations_for_view(uid)
 
-        if '*' in region:
-            return queryset
+        if '*' not in region:
+            if obj_type == 'user':
+                queryset = queryset.filter(extra_details__data__country__in=region)
+            else:
+                queryset = queryset.filter(settings__country_codes__in_array=region)
 
-        if obj_type == 'user':
-            return queryset.filter(extra_details__data__country__in=region)
-        else:
-            return queryset.filter(settings__country_codes__in_array=region)
+        if '*' not in uid_organizations:
+            if obj_type == 'user':
+                queryset = queryset.filter(organizations_organization__id__in=uid_organizations)
+            else:
+                queryset = queryset.filter(owner__organizations_organization__id__in=uid_organizations)
+
+        return queryset

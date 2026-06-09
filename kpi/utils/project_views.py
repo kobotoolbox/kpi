@@ -23,11 +23,20 @@ def get_project_view_user_permissions_for_asset(
     asset_countries = asset.settings.get('country_codes', [])
     user = get_database_user(user)
 
-    q = Q(countries__contains='*')
+    q_countries = Q(countries__contains='*')
     for country in asset_countries:
-        q |= Q(countries__contains=country)
+        q_countries |= Q(countries__contains=country)
+
+    asset_org = None
+    if asset.owner and asset.owner.organization:
+        asset_org = asset.owner.organization.id
+
+    q_orgs = Q(uid_organizations__contains='*')
+    if asset_org:
+        q_orgs |= Q(uid_organizations__contains=asset_org)
+
     perms = list(
-        ProjectView.objects.filter(q, users=user).values_list(
+        ProjectView.objects.filter(q_countries, q_orgs, users=user).values_list(
             'permissions', flat=True
         )
     )
@@ -73,3 +82,11 @@ def get_region_for_view(view: str) -> list[str]:
     Returns list of county codes for a specified view id
     """
     return ProjectView.objects.get(uid=view).get_countries()
+
+
+@cache_for_request
+def get_uid_organizations_for_view(view: str) -> list[str]:
+    """
+    Returns list of organization uids for a specified view id
+    """
+    return ProjectView.objects.get(uid=view).get_uid_organizations()
