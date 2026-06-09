@@ -902,7 +902,12 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments', '_supplementalDetails']
+        additional_fields = [
+            '_attachments',
+            '_supplementalDetails',
+            '_uuid',
+            'meta/rootUuid',
+        ]
 
         field_groups = set()
         for field in fields:
@@ -1061,6 +1066,7 @@ class SubmissionExportTaskBase(ImportExportTask):
             fields=fields,
             submission_ids=submission_ids,
             query=query,
+            for_output=True,
         )
 
         if source.has_advanced_features:
