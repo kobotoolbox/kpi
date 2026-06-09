@@ -68,8 +68,6 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
     holding it open during slow storage I/O.
     """
 
-    print('DELETE INSTANCES', request_data, flush=True)
-
     deleted_records_count = 0
     postgres_query, mongo_query = build_db_queries(xform, request_data)
 
@@ -245,6 +243,15 @@ def set_instance_validation_statuses(
 
     # Update Postgres & Mongo
     records_queryset = Instance.objects.filter(**postgres_query)
+
+    requested_ids = postgres_query.get('id__in')
+    if requested_ids is not None and (
+        records_queryset.count() != len(set(requested_ids))
+    ):
+        # At least one requested id does not belong to this XForm. Reject the
+        # whole batch without revealing whether those ids exist elsewhere.
+        raise InvalidSubmissionIdsError
+
     validation_status = new_validation_status.get('label', 'None')
     if get_current_request() is not None:
         get_current_request().instances = {

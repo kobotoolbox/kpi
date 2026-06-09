@@ -730,8 +730,14 @@ class DataViewSet(
             perm=PERM_VALIDATE_SUBMISSIONS
         )
         bulk_actions_validator.is_valid(raise_exception=True)
-        json_response = deployment.set_validation_statuses(
-            request.user, bulk_actions_validator.data)
+        try:
+            json_response = deployment.set_validation_statuses(
+                request.user, bulk_actions_validator.data)
+        except InvalidSubmissionIdsError:
+            return Response(
+                {'detail': t('One or more submission ids are invalid')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(**json_response)
 
