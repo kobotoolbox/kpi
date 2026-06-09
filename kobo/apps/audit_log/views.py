@@ -94,7 +94,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
     pagination_class = NoCountPagination
 
-
     def get_queryset(self):
         min_date = get_lookback_date(self.request.user)
         return (
