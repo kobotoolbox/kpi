@@ -1,9 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-
 import { Checkbox, Group, Stack, Text } from '@mantine/core'
-import { modals } from '@mantine/modals'
 import { IconFileTypeXls } from '@tabler/icons-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import orvalFetchWithAuth from '#/api/orval.mutator'
 import { importsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -88,43 +86,6 @@ function readFileAsDataURL(file: File): Promise<string | ArrayBuffer | null> {
 
     reader.readAsDataURL(file)
   })
-}
-
-export function openLibraryUploadModal(
-  params: Partial<Omit<LibraryUploadModalParams, 'type'>> & { type?: LibraryUploadModalParams['type'] } = {},
-) {
-  const initialType = params.type ?? MODAL_TYPES.LIBRARY_UPLOAD
-  const initialTitle = initialType === MODAL_TYPES.UPLOADING_XLS ? t('Uploading XLS file') : t('Upload file')
-  let modalId = ''
-
-  modalId = modals.open({
-    title: initialTitle,
-    size: 'lg',
-    children: (
-      <LibraryUploadModal
-        params={{
-          type: initialType,
-          file: params.file,
-          filename: params.filename,
-          onBack: params.onBack,
-        }}
-        onTitleChange={(title) => {
-          modals.updateModal({
-            modalId,
-            title,
-          })
-        }}
-        onRequestClose={() => {
-          modals.close(modalId)
-        }}
-      />
-    ),
-  })
-
-  return {
-    modalId,
-    close: () => modals.close(modalId),
-  }
 }
 
 export default function LibraryUploadModal(props: LibraryUploadModalProps) {
