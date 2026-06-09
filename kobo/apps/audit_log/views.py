@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.db import transaction
+from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
@@ -47,6 +50,7 @@ from .serializers import (
     AuditLogSerializer,
     ProjectHistoryLogSerializer,
 )
+from .utils import get_max_lookback_days
 
 
 @extend_schema(
@@ -92,6 +96,20 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
     pagination_class = NoCountPagination
 
+    def get_lookback_date(self):
+        user = self.request.user
+        lookback_days = get_max_lookback_days(user)
+        min_date = timezone.now().date() - timedelta(days=lookback_days)
+        return min_date
+
+    def get_queryset(self):
+        min_date = self.get_lookback_date()
+        return (
+            AuditLog.objects.select_related('user')
+            .filter(date_created__gte=min_date)
+            .order_by('-date_created')
+        )
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -115,8 +133,15 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Documentation:
     - docs/api/v2/access_logs/list.md
     """
-    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
+
+    def get_queryset(self):
+        min_date = self.get_lookback_date()
+        return (
+            AccessLog.objects.with_submissions_grouped()
+            .filter(date_created__gte=min_date)
+            .order_by('-date_created')
+        )
 
 
 @extend_schema_view(
@@ -131,7 +156,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
         ),
     )
 )
-class AccessLogViewSet(AuditLogViewSet):
+class AccessLogViewSet(AllAccessLogViewSet):
     """
     ViewSet for listing a user's access logs
 
@@ -142,7 +167,6 @@ class AccessLogViewSet(AuditLogViewSet):
     - docs/api/v2/access_logs/me/list.md
     """
 
-    queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
@@ -177,6 +201,12 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
     queryset = ProjectHistoryLog.objects.all().order_by('-date_created')
     serializer_class = ProjectHistoryLogSerializer
+
+    def get_queryset(self):
+        min_date = self.get_lookback_date()
+        return ProjectHistoryLog.objects.filter(date_created__gte=min_date).order_by(
+            '-date_created'
+        )
 
     @extend_schema(
         methods=['GET'],
@@ -303,9 +333,10 @@ class ProjectHistoryLogViewSet(
     pagination_class = FastPagination
 
     def get_queryset(self):
-        return self.model.objects.filter(metadata__asset_uid=self.asset_uid).order_by(
-            '-date_created'
-        )
+        min_date = self.get_lookback_date()
+        return self.model.objects.filter(
+            metadata__asset_uid=self.asset_uid, date_created__gte=min_date
+        ).order_by('-date_created')
 
     @action(detail=False, methods=['GET'])
     def actions(self, request, *args, **kwargs):
