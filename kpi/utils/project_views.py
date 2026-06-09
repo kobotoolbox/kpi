@@ -1,10 +1,8 @@
-# coding: utf-8
 from __future__ import annotations
 
 from typing import Union
 
 from django.conf import settings
-from django.db.models import Q
 from django_request_cache import cache_for_request
 
 from kobo.apps.project_views.models import ProjectView
@@ -29,7 +27,7 @@ def get_project_view_user_permissions_for_asset(
 
     project_views = ProjectView.objects.filter(users=user)
     perms = []
-    
+
     for pv in project_views:
         region = pv.get_countries()
         uid_organizations = pv.get_uid_organizations()
@@ -37,7 +35,7 @@ def get_project_view_user_permissions_for_asset(
         if '*' not in region:
             if not any(c in region for c in asset_countries):
                 continue
-                
+
         if '*' not in uid_organizations:
             if not asset_org or asset_org not in uid_organizations:
                 continue
