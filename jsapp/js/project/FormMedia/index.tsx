@@ -149,7 +149,9 @@ export default function FormMedia(props: FormMediaProps) {
             },
             {
               onError: (error) => {
-                setFieldsErrors((error as ServerError)?.parsedResponse ?? {})
+                setFieldsErrors((prev) => {
+                  return { ...prev, ...((error as ServerError)?.parsedResponse ?? {}) }
+                })
               },
             },
           )
