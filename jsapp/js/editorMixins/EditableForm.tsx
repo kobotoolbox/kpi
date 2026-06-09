@@ -612,7 +612,8 @@ export default function EditableForm(props: EditableFormProps) {
   function launchAppForSurveyContent(assetContent?: AssetContent, _state?: LaunchAppData) {
     // If we already rendered the app in the formWrapRef container, there is no need to do it again. Without this check
     // we would end up adding copies of the app in HTML
-    if (app !== undefined) {
+    // Use appRef to check for existing app - state may not have updated yet if called during rapid re-renders
+    if (appRef.current !== undefined) {
       return
     }
 
