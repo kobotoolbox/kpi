@@ -25,11 +25,11 @@ class ProjectViewsApiTestCase(BaseTestCase):
         # Organization
         self.org = self.admin_user.organization
 
-        # Create Project Views
+        # Create ProjectViews
         self.pv_country = ProjectView.objects.create(
             name='Spain Projects',
             countries='ESP',
-            uid_organizations='*',
+            all_organizations=True,
             permissions=[PERM_VIEW_ASSET],
         )
         self.pv_country.users.add(self.regular_user)
@@ -37,17 +37,19 @@ class ProjectViewsApiTestCase(BaseTestCase):
         self.pv_org = ProjectView.objects.create(
             name='Org Projects',
             countries='*',
-            uid_organizations=self.org.id,
+            all_organizations=False,
             permissions=[PERM_VIEW_ASSET],
         )
+        self.pv_org.organizations.add(self.org)
         self.pv_org.users.add(self.regular_user)
 
         self.pv_both = ProjectView.objects.create(
-            name='Org Spain Projects',
+            name='Spain Org Projects',
             countries='ESP',
-            uid_organizations=self.org.id,
+            all_organizations=False,
             permissions=[PERM_VIEW_ASSET],
         )
+        self.pv_both.organizations.add(self.org)
         self.pv_both.users.add(self.regular_user)
 
         # Create Assets

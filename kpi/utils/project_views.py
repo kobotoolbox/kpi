@@ -18,31 +18,33 @@ def get_project_view_user_permissions_for_asset(
     asset within a project view
     """
 
-    asset_countries = asset.settings.get('country_codes', [])
     user = get_database_user(user)
+    asset_org = (
+        asset.owner.organization.id
+        if asset.owner and asset.owner.organization
+        else None
+    )
+    asset_countries = asset.settings.get('country_codes', [])
 
-    asset_org = None
-    if asset.owner and asset.owner.organization:
-        asset_org = asset.owner.organization.id
-
-    project_views = ProjectView.objects.filter(users=user)
-    perms = []
+    project_views = ProjectView.objects.filter(users=user).prefetch_related(
+        'organizations'
+    )
+    perms = set()
 
     for pv in project_views:
         region = pv.get_countries()
-        uid_organizations = pv.get_uid_organizations()
 
-        if '*' not in region:
-            if not any(c in region for c in asset_countries):
-                continue
+        if '*' not in region and not any(c in region for c in asset_countries):
+            continue
 
-        if '*' not in uid_organizations:
-            if not asset_org or asset_org not in uid_organizations:
-                continue
+        if not pv.all_organizations and asset_org not in [
+            org.id for org in pv.organizations.all()
+        ]:
+            continue
 
-        perms.extend(pv.permissions)
+        perms.update(pv.permissions)
 
-    return list(set(perms))
+    return list(perms)
 
 
 @cache_for_request
@@ -84,11 +86,3 @@ def get_region_for_view(view: str) -> list[str]:
     Returns list of county codes for a specified view id
     """
     return ProjectView.objects.get(uid=view).get_countries()
-
-
-@cache_for_request
-def get_uid_organizations_for_view(view: str) -> list[str]:
-    """
-    Returns list of organization uids for a specified view id
-    """
-    return ProjectView.objects.get(uid=view).get_uid_organizations()

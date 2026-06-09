@@ -7,12 +7,26 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('project_views', '0001_initial'),
+        ('organizations', '0001_squashed_0004_remove_organization_uid'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='projectview',
-            name='uid_organizations',
-            field=models.TextField(default='*'),
+            name='all_organizations',
+            field=models.BooleanField(
+                default=True,
+                help_text='If checked, grants access to all organizations. Uncheck to specify specific organizations below.',
+            ),
+        ),
+        migrations.AddField(
+            model_name='projectview',
+            name='organizations',
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Select specific organizations. (Ignored if 'All organizations' is checked)",
+                related_name='project_views',
+                to='organizations.Organization',
+            ),
         ),
     ]

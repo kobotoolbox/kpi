@@ -25,11 +25,7 @@ from kpi.serializers.v2.asset import (
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.project_views import (
-    get_region_for_view,
-    get_uid_organizations_for_view,
-    user_has_view_perms,
-)
+from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from .models.project_view import ProjectView
@@ -376,11 +372,11 @@ class ProjectViewViewSet(
 
     @staticmethod
     def _get_regional_queryset(
-        queryset: QuerySet, uid: str, obj_type: str
+        queryset: QuerySet, uid: str, obj_type: str = 'asset'
     ) -> QuerySet:
-
         region = get_region_for_view(uid)
-        uid_organizations = get_uid_organizations_for_view(uid)
+
+        pv = ProjectView.objects.prefetch_related('organizations').get(uid=uid)
 
         if '*' not in region:
             if obj_type == 'user':
@@ -388,14 +384,14 @@ class ProjectViewViewSet(
             else:
                 queryset = queryset.filter(settings__country_codes__in_array=region)
 
-        if '*' not in uid_organizations:
+        if not pv.all_organizations:
             if obj_type == 'user':
                 queryset = queryset.filter(
-                    organizations_organization__id__in=uid_organizations
+                    organizations_organization__in=pv.organizations.all()
                 ).distinct()
             else:
                 queryset = queryset.filter(
-                    owner__organizations_organization__id__in=uid_organizations
+                    owner__organizations_organization__in=pv.organizations.all()
                 ).distinct()
 
         return queryset
