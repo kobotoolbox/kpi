@@ -14,44 +14,37 @@ GOOGLE_REGION_CHOICES = (GOOGLE_REGION_US, GOOGLE_REGION_EU)
 
 DEFAULT_GOOGLE_REGION = GOOGLE_REGION_US
 
+# 'us' and 'eu' are STT v2 multi-region endpoints with identical language
+# support and model availability
 SPEECH_LOCATION_BY_REGION = {
     GOOGLE_REGION_EU: 'eu',
     GOOGLE_REGION_US: 'us',
 }
 
-# To maintain strict EU data residency compliance, EU traffic is explicitly
-# routed through the dedicated 'translate-eu' multi-regional gateway. This
-# guarantees that TLS termination, data in transit, and processing
-# (in europe-west1) remain entirely within European borders.
-#
-# For the default/US region, we utilize the global endpoint to process in
-# us-central1, as there are no data residency restrictions and this allows for
-# more flexible failover and redundancy options across Google's global infrastructure
+# Translation requests are routed through multi-region endpoints:
+# `translate-eu.googleapis.com` keeps TLS termination and processing within the EU
+# for EU data residency requirements, while `translate-us.googleapis.com` routes
+# requests through the US multi-region
 TRANSLATE_ENDPOINT_BY_REGION = {
     GOOGLE_REGION_EU: 'translate-eu.googleapis.com',
-    GOOGLE_REGION_US: 'translate.googleapis.com',
+    GOOGLE_REGION_US: 'translate-us.googleapis.com',
 }
 
 TRANSLATE_LOCATION_BY_REGION = {
     GOOGLE_REGION_EU: 'europe-west1',
-    GOOGLE_REGION_US: 'us-central1',
+    GOOGLE_REGION_US: 'us-west1',
 }
 
 
 def get_google_region() -> str:
     """
-    Return the configured ASR/MT Google processing region
+    Return the configured ASR/MT Google processing region ('US' or 'EU')
 
-    Constance values are editable at runtime, so tolerate lower-case values and
-    fall back to the 'US' with a warning if an un-recognized value is set.
+    Reads ASR_MT_GOOGLE_REGION from constance at call time, so an admin can
+    change the region without restarting the server. Tolerates lower-case input
+    and falls back to 'US' with a warning if an unrecognised value is set
     """
-    region = str(
-        getattr(
-            constance.config,
-            'ASR_MT_GOOGLE_REGION',
-            DEFAULT_GOOGLE_REGION,
-        )
-    ).upper()
+    region = constance.config.ASR_MT_GOOGLE_REGION
     if region in GOOGLE_REGION_CHOICES:
         return region
 
