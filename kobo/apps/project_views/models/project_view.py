@@ -27,6 +27,7 @@ class ProjectView(models.Model):
     uid = KpiUidField(uid_prefix='pv')
     name = models.CharField(max_length=200)
     countries = models.CharField(max_length=1000)
+    uid_organizations = models.TextField(default='*')
     permissions = ChoiceArrayField(
         base_field=models.CharField(
             max_length=25,
@@ -50,8 +51,12 @@ class ProjectView(models.Model):
     def get_countries(self) -> list[str]:
         return [c.strip().upper() for c in self.countries.split(',')]
 
+    def get_uid_organizations(self) -> list[str]:
+        return [o.strip() for o in self.uid_organizations.split(',')]
+
     def save(self, *args, **kwargs) -> None:
         self.countries = ', '.join(self.get_countries())
+        self.uid_organizations = ', '.join(self.get_uid_organizations())
         super().save(*args, **kwargs)
 
 
@@ -65,6 +70,6 @@ class ProjectViewAdmin(admin.ModelAdmin):
 
     form = ProjectViewForm
 
-    list_display = ('name', 'countries', 'permissions')
+    list_display = ('name', 'countries', 'uid_organizations', 'permissions')
     exclude = ('uid',)
     inlines = (AssignmentProjectViewM2MInline,)
