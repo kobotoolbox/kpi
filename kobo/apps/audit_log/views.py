@@ -1,7 +1,5 @@
-from datetime import timedelta
 
 from django.db import transaction
-from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
@@ -50,7 +48,7 @@ from .serializers import (
     AuditLogSerializer,
     ProjectHistoryLogSerializer,
 )
-from .utils import get_max_lookback_days
+from .utils import get_lookback_date
 
 
 @extend_schema(
@@ -96,16 +94,9 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
     pagination_class = NoCountPagination
 
-    def get_lookback_date(self):
-        user = self.request.user
-        lookback_days = get_max_lookback_days(user)
-        now = timezone.now()
-        now_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        min_date = now_midnight - timedelta(days=lookback_days)
-        return min_date
 
     def get_queryset(self):
-        min_date = self.get_lookback_date()
+        min_date = get_lookback_date(self.request.user)
         return (
             AuditLog.objects.select_related('user')
             .filter(date_created__gte=min_date)
@@ -138,7 +129,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     serializer_class = AccessLogSerializer
 
     def get_queryset(self):
-        min_date = self.get_lookback_date()
+        min_date = get_lookback_date(self.request.user)
         return (
             AccessLog.objects.with_submissions_grouped()
             .filter(date_created__gte=min_date)
@@ -205,7 +196,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     serializer_class = ProjectHistoryLogSerializer
 
     def get_queryset(self):
-        min_date = self.get_lookback_date()
+        min_date = get_lookback_date(self.request.user)
         return ProjectHistoryLog.objects.filter(date_created__gte=min_date).order_by(
             '-date_created'
         )
@@ -335,14 +326,14 @@ class ProjectHistoryLogViewSet(
     pagination_class = FastPagination
 
     def get_queryset(self):
-        min_date = self.get_lookback_date()
+        min_date = get_lookback_date(self.request.user)
         return self.model.objects.filter(
             metadata__asset_uid=self.asset_uid, date_created__gte=min_date
         ).order_by('-date_created')
 
     @action(detail=False, methods=['GET'])
     def actions(self, request, *args, **kwargs):
-        min_date = self.get_lookback_date()
+        min_date = get_lookback_date(self.request.user)
         actions = (
             self.model.objects.filter(
                 metadata__asset_uid=self.asset_uid, date_created__gte=min_date
