@@ -8,7 +8,6 @@ import RESTServicesForm from '#/components/RESTServices/RESTServicesForm'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
-import { AssetTagsForm } from '#/components/modalForms/AssetTagsForm'
 import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
@@ -98,10 +97,6 @@ class BigModal extends React.Component {
 
       case MODAL_TYPES.LIBRARY_COLLECTION:
         this.setModalTitle(t('Collection details'))
-        break
-
-      case MODAL_TYPES.ASSET_TAGS:
-        this.setModalTitle(t('Edit tags'))
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
@@ -257,7 +252,6 @@ class BigModal extends React.Component {
               onSetModalTitle={this.setModalTitle}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.ASSET_TAGS && <AssetTagsForm asset={this.props.params.asset} />}
           {this.props.params.type === MODAL_TYPES.REPLACE_PROJECT && (
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.REPLACE}

@@ -24,6 +24,7 @@ from .schema import (
     ASSET_FIELDS_SCHEMA,
     ASSET_NAME_SCHEMA,
     ASSET_SETTINGS_SCHEMA,
+    ASSET_TAG_STRING_SCHEMA,
     ASSET_TYPE_SCHEMA,
     BULK_ACTION_SCHEMA,
     BULK_ASSET_UIDS_SCHEMA,
@@ -133,6 +134,12 @@ class AssetPatchRequestSerializerExtension(OpenApiSerializerExtension):
                     properties={
                         'enabled': ASSET_ENABLED_SCHEMA,
                         'fields': ASSET_FIELDS_SCHEMA,
+                    },
+                ),
+                build_object_type(
+                    required=['tag_string'],
+                    properties={
+                        'tag_string': ASSET_TAG_STRING_SCHEMA,
                     },
                 ),
             ]

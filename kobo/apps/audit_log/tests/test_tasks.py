@@ -1,7 +1,6 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-from constance.test import override_config
 from django.test import override_settings
 from django.utils import timezone
 
@@ -20,7 +19,7 @@ from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
 
-@override_config(ACCESS_LOG_LIFESPAN=1)
+@override_settings(ACCESS_LOG_LIFESPAN=1)
 class AuditLogTasksTestCase(BaseTestCase):
 
     fixtures = ['test_data']

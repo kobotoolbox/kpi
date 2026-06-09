@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react'
 
+import { Group, Stack, Text } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
+import ButtonNew from '#/components/common/ButtonNew'
+import ModalNew from '#/components/common/ModalNew'
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { dataInterface } from '#/dataInterface'
@@ -18,6 +22,8 @@ export default function ApiTokenDisplay() {
   const [token, setToken] = useState(null)
   const [isFetching, setIsFetching] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
+  const [isRegenerateModalOpen, regenerateModal] = useDisclosure(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   const toggleTokenVisibility = () => {
     setIsVisible(!isVisible)
@@ -41,6 +47,32 @@ export default function ApiTokenDisplay() {
     }
   }, [isVisible])
 
+  const regenerateToken = async () => {
+    setIsRegenerating(true)
+    // Clear any displayed token up front so a now-stale value is never shown
+    setToken(null)
+    try {
+      // The true test of success is whether a new (i.e. different) token was
+      // generated and returned by the API
+      const before = await dataInterface.apiToken()
+      await dataInterface.deleteApiToken()
+      const after = await dataInterface.apiToken()
+      if (after.token === before.token) {
+        throw new Error('API key was not rotated')
+      }
+      setToken(after.token)
+      notify(t('API key regenerated successfully'))
+      regenerateModal.close()
+    } catch {
+      notify.error(t('Failed to regenerate API key'))
+      // Handle the case where "Display" had already been clicked before
+      // attempting (and failing) to regenerate the token
+      setIsVisible(false)
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
   return (
     <section className={securityStyles.securitySection}>
       <div className={securityStyles.securitySectionTitle}>
@@ -57,8 +89,33 @@ export default function ApiTokenDisplay() {
       </div>
 
       <div className={styles.options}>
+        <Button label={t('Regenerate key')} size='m' type='text' onClick={regenerateModal.open} />
+
         <Button label={t('Display')} size='m' type='primary' onClick={toggleTokenVisibility} />
       </div>
+
+      <ModalNew
+        opened={isRegenerateModalOpen}
+        onClose={regenerateModal.close}
+        title={t('Regenerate API key')}
+        size='md'
+      >
+        <Stack>
+          <Text>
+            {t('All access through your existing API key will be revoked, and a new key will be generated randomly.')}
+          </Text>
+
+          <Group justify='flex-end'>
+            <ButtonNew size='md' onClick={regenerateModal.close} variant='light' disabled={isRegenerating}>
+              {t('Cancel')}
+            </ButtonNew>
+
+            <ButtonNew size='md' onClick={regenerateToken} variant='danger' loading={isRegenerating}>
+              {t('Regenerate')}
+            </ButtonNew>
+          </Group>
+        </Stack>
+      </ModalNew>
     </section>
   )
 }

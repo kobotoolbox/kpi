@@ -36,6 +36,7 @@ AssetPatchRequest = inline_serializer_class(
         'name': serializers.CharField(),
         'enabled': serializers.BooleanField(),
         'fields': serializers.CharField(),
+        'tag_string': serializers.CharField(required=False),
     },
 )
 

@@ -2,6 +2,7 @@ import React from 'react'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { useAssetsAdvancedFeaturesBulkActionsList } from '#/api/react-query/survey-data'
+import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
 
@@ -18,15 +19,17 @@ interface UseDataTableBulkActionsResult {
 export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActionsResult {
   // Feature flag keeps all bulk-processing logic disabled unless explicitly enabled.
   const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
+  const isAsrMtFeaturesEnabled = envStore.data.asr_mt_features_enabled
+  const isBulkProcessingEnabled = isBulkProcessingFeatureEnabled && isAsrMtFeaturesEnabled
   const session = useSession()
   // While session is loading we avoid making user-specific decisions.
   const currentUsername = session.isPending ? undefined : session.currentLoggedAccount?.username
 
   // Empty uid disables the query in Orval/react-query options.
-  const bulkActionsListQuery = useAssetsAdvancedFeaturesBulkActionsList(isBulkProcessingFeatureEnabled ? assetUid : '')
+  const bulkActionsListQuery = useAssetsAdvancedFeaturesBulkActionsList(isBulkProcessingEnabled ? assetUid : '')
 
   const activeBulkActions = React.useMemo(() => {
-    if (!isBulkProcessingFeatureEnabled) {
+    if (!isBulkProcessingEnabled) {
       return []
     }
 
@@ -38,7 +41,7 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
         bulkAction.status === BulkActionResponseStatusEnum.pending ||
         bulkAction.status === BulkActionResponseStatusEnum.in_progress,
     )
-  }, [bulkActionsListQuery.data, isBulkProcessingFeatureEnabled])
+  }, [bulkActionsListQuery.data, isBulkProcessingEnabled])
 
   const hasActiveBulkActionsCreatedByAnotherUser = React.useMemo(() => {
     if (!currentUsername) {
