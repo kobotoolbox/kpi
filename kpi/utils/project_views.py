@@ -23,24 +23,28 @@ def get_project_view_user_permissions_for_asset(
     asset_countries = asset.settings.get('country_codes', [])
     user = get_database_user(user)
 
-    q_countries = Q(countries__contains='*')
-    for country in asset_countries:
-        q_countries |= Q(countries__contains=country)
-
     asset_org = None
     if asset.owner and asset.owner.organization:
         asset_org = asset.owner.organization.id
 
-    q_orgs = Q(uid_organizations='*')
-    if asset_org:
-        q_orgs |= Q(uid_organizations__contains=asset_org)
+    project_views = ProjectView.objects.filter(users=user)
+    perms = []
+    
+    for pv in project_views:
+        region = pv.get_countries()
+        uid_organizations = pv.get_uid_organizations()
 
-    perms = list(
-        ProjectView.objects.filter(q_countries, q_orgs, users=user).values_list(
-            'permissions', flat=True
-        )
-    )
-    return list(set(p for np in perms for p in np))
+        if '*' not in region:
+            if not any(c in region for c in asset_countries):
+                continue
+                
+        if '*' not in uid_organizations:
+            if not asset_org or asset_org not in uid_organizations:
+                continue
+
+        perms.extend(pv.permissions)
+
+    return list(set(perms))
 
 
 @cache_for_request
