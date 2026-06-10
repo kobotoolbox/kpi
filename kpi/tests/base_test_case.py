@@ -7,6 +7,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from kobo.apps.audit_log.models import AccessLog, AuditType, ProjectHistoryLog
+from kobo.apps.audit_log.tests.utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
@@ -135,3 +137,66 @@ class BaseAssetDetailTestCase(BaseAssetTestCase):
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
         self.asset_uid = self.r.data['uid']
+
+
+class BaseAuditLogTestCase(BaseTestCase):
+
+    fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def get_endpoint_basename(self):
+        return ''
+
+    def setUp(self):
+        super(BaseAuditLogTestCase, self).setUp()
+        if self.get_endpoint_basename():
+            self.url = reverse(self._get_endpoint(self.get_endpoint_basename()))
+
+    def login_user(self, username, password):
+        # always skip creating the access logs for logins so we have full control over the logs in the test db
+        with skip_login_access_log():
+            self.client.login(username=username, password=password)
+
+    def force_login_user(self, user):
+        # always skip creating the access logs for logins so we have full control over the logs in the test db
+        with skip_login_access_log():
+            self.client.force_login(user)
+
+
+class BaseProjectHistoryLogTestCase(BaseAuditLogTestCase):
+
+    model = ProjectHistoryLog
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.get(username='adminuser')
+        self.asset = Asset.objects.get(id=1)
+        self.default_metadata = {
+            'ip_address': '1.2.3.4',
+            'source': 'source',
+            'log_subtype': 'project',
+            'project_owner': 'someuser',
+        }
+
+    def get_baker_defaults(self):
+        return {
+            'user': self.user,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'metadata': {**self.default_metadata, 'asset_uid': self.asset.uid},
+            'object_id': self.asset.uid,
+        }
+
+
+class BaseAccessLogTestCase(BaseAuditLogTestCase):
+    model = AccessLog
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.get(username='adminuser')
+
+    def get_baker_defaults(self):
+        return {
+            'user': self.user,
+            'log_type': AuditType.ACCESS,
+            'user_uid': self.user.extra_details.uid,
+        }

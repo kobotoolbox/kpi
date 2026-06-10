@@ -10,7 +10,7 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AccessLog, AuditLog, AuditType, ProjectHistoryLog
-from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
+from kobo.apps.audit_log.tests.utils import skip_login_access_log
 from kobo.apps.audit_log.utils import get_max_lookback_days
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
@@ -25,8 +25,11 @@ from kpi.models.import_export_task import (
     AccessLogExportTask,
     ProjectHistoryLogExportTask,
 )
-from kpi.tests.base_test_case import BaseTestCase
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.tests.base_test_case import (
+    BaseAccessLogTestCase,
+    BaseAuditLogTestCase,
+    BaseProjectHistoryLogTestCase,
+)
 
 
 class LookbackTestMixin:
@@ -68,27 +71,7 @@ class LookbackTestMixin:
         self.assertEqual(len(response.data['results']), 1)
 
 
-class BaseAuditLogTestCase(BaseTestCase):
 
-    fixtures = ['test_data']
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
-
-    def get_endpoint_basename(self):
-        raise NotImplementedError
-
-    def setUp(self):
-        super(BaseAuditLogTestCase, self).setUp()
-        self.url = reverse(self._get_endpoint(self.get_endpoint_basename()))
-
-    def login_user(self, username, password):
-        # always skip creating the access logs for logins so we have full control over the logs in the test db
-        with skip_login_access_log():
-            self.client.login(username=username, password=password)
-
-    def force_login_user(self, user):
-        # always skip creating the access logs for logins so we have full control over the logs in the test db
-        with skip_login_access_log():
-            self.client.force_login(user)
 
 
 class ProjectHistoryLogTestCaseMixin:
@@ -367,20 +350,11 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase, LookbackTestMixin):
         assert response.data['results'][0]['user'] is None
 
 
-class ApiAccessLogTestCase(BaseAuditLogTestCase, LookbackTestMixin):
-
-    model = AccessLog
+class ApiAccessLogTestCase(BaseAccessLogTestCase, LookbackTestMixin):
 
     def setUp(self):
         super().setUp()
         self.user = User.objects.get(username='someuser')
-
-    def get_baker_defaults(self):
-        return {
-            'user': self.user,
-            'log_type': AuditType.ACCESS,
-            'user_uid': self.user.extra_details.uid,
-        }
 
     def get_endpoint_basename(self):
         return 'access-log-list'
@@ -465,16 +439,11 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase, LookbackTestMixin):
         self.assertEqual(result['count'], 2)
 
 
-class AllApiAccessLogsTestCase(BaseAuditLogTestCase, LookbackTestMixin):
-
-    model = AccessLog
+class AllApiAccessLogsTestCase(BaseAccessLogTestCase, LookbackTestMixin):
 
     def setUp(self):
         super().setUp()
         self.user = User.objects.get(username='adminuser')
-
-    def get_baker_defaults(self):
-        return {'log_type': AuditType.ACCESS}
 
     def get_endpoint_basename(self):
         return 'all-access-logs-list'
@@ -690,10 +659,8 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase, LookbackTestMixin):
 
 
 class ApiProjectHistoryLogsTestCase(
-    BaseTestCase, ProjectHistoryLogTestCaseMixin, LookbackTestMixin
+    BaseProjectHistoryLogTestCase, ProjectHistoryLogTestCaseMixin, LookbackTestMixin
 ):
-
-    fixtures = ['test_data']
 
     def setUp(self):
         super().setUp()
@@ -701,21 +668,7 @@ class ApiProjectHistoryLogsTestCase(
         self.url = reverse('api_v2:history-list', kwargs={'uid_asset': self.asset.uid})
         self.user = User.objects.get(username='someuser')
         self.asset.assign_perm(user_obj=self.user, perm=PERM_MANAGE_ASSET)
-        self.default_metadata = {
-            'ip_address': '1.2.3.4',
-            'source': 'source',
-            'log_subtype': 'project',
-            'project_owner': 'someuser',
-        }
         self.client.force_login(self.user)
-
-    def get_baker_defaults(self):
-        return {
-            'user': self.user,
-            'log_type': AuditType.PROJECT_HISTORY,
-            'metadata': {**self.default_metadata, 'asset_uid': self.asset.uid},
-            'object_id': self.asset.uid,
-        }
 
     def test_list_without_permissions_returns_forbidden(self):
         user2 = User.objects.get(username='anotheruser')
@@ -832,21 +785,8 @@ class ApiProjectHistoryLogsTestCase(
 
 
 class ApiAllProjectHistoryLogsTestCase(
-    BaseAuditLogTestCase, ProjectHistoryLogTestCaseMixin, LookbackTestMixin
+    BaseProjectHistoryLogTestCase, ProjectHistoryLogTestCaseMixin, LookbackTestMixin
 ):
-
-    def get_baker_defaults(self):
-        return {
-            'user': self.user,
-            'log_type': AuditType.PROJECT_HISTORY,
-            'metadata': {
-                'asset_uid': self.asset.uid,
-                'ip_address': '1.2.3.4',
-                'source': 'source',
-                'log_subtype': 'project',
-                'project_owner': 'someuser',
-            },
-        }
 
     def get_endpoint_basename(self):
         return 'all-project-history-logs-list'
