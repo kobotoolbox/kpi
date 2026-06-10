@@ -195,6 +195,12 @@ export default function EditableForm(props: EditableFormProps) {
 
   useEffect(() => {
     const assetData = assetQuery.data?.data
+    if (assetQuery.isFetching) {
+      // Wait for the fetch to settle before seeding local state.
+      // Otherwise Form Builder can initialize from stale cached content and
+      // carry outdated translation metadata into save payloads.
+      return
+    }
     if (assetData && 'uid' in assetData) {
       // TODO: stop casting this as AssetResponse after backend openAPI task DEV-1727 is done
       const assetDataCast = assetData as unknown as AssetResponse
@@ -205,7 +211,7 @@ export default function EditableForm(props: EditableFormProps) {
         asset: assetDataCast,
       }))
     }
-  }, [assetQuery.data?.data])
+  }, [assetQuery.data?.data, assetQuery.isFetching])
 
   useEffect(() => {
     if (state.asset) {

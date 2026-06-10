@@ -1,13 +1,12 @@
 import type { MantineSize, TooltipProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconChevronDown, IconSearch, IconX } from '@tabler/icons-react'
+import type { ForwardRefExoticComponent } from 'react'
 import { expect, fn, userEvent, within } from 'storybook/test'
 import { type IconName, IconNames } from '#/k-icons'
-import Button, { type ButtonProps } from './ButtonNew'
-import '@mantine/core/styles.css'
-import type { ForwardRefExoticComponent } from 'react'
 import type { StoryArgsFromPolymorphic } from '#/storybookUtils'
 import { recordValues } from '#/utils'
+import Button, { type ButtonProps } from './ButtonNew'
 
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
