@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { withRouter } from 'storybook-addon-remix-react-router'
-import { expect, waitFor, within } from 'storybook/test'
+import { expect, within } from 'storybook/test'
 import assetsMock from '#/endpoints/assets.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -38,19 +38,9 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for the delete account button to appear (means auth and data loading complete)
-    const deleteButton = await canvas.findByRole('button', { name: /delete account/i }, { timeout: 5000 })
-
-    // Wait for loading state to complete (ellipsis should disappear)
-    await waitFor(
-      () => {
-        const ellipsisText = canvas.queryByText('…')
-        expect(ellipsisText).not.toBeInTheDocument()
-      },
-      { timeout: 5000 },
-    )
-
-    // Delete button should be disabled when user has assets
+    // MSW mocks respond instantly, just wait for React Query to update
+    const deleteButton = await canvas.findByRole('button', { name: /delete account/i })
+    expect(canvas.queryByText('…')).not.toBeInTheDocument()
     expect(deleteButton).toBeDisabled()
   },
 }
@@ -59,21 +49,9 @@ export const UserHasAssets: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for the delete account button to appear
-    const deleteButton = await canvas.findByRole('button', { name: /delete account/i }, { timeout: 5000 })
-
-    // Wait for loading to complete (ellipsis disappears)
-    await waitFor(
-      () => {
-        expect(canvas.queryByText('…')).not.toBeInTheDocument()
-      },
-      { timeout: 5000 },
-    )
-
-    // Should show message about deleting/transferring projects
+    const deleteButton = await canvas.findByRole('button', { name: /delete account/i })
+    expect(canvas.queryByText('…')).not.toBeInTheDocument()
     expect(canvas.getByText(/need to delete or transfer ownership/i)).toBeInTheDocument()
-
-    // Delete button should be disabled
     expect(deleteButton).toBeDisabled()
   },
 }
@@ -89,21 +67,9 @@ export const UserHasNoAssets: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for the delete account button to appear
-    const deleteButton = await canvas.findByRole('button', { name: /delete account/i }, { timeout: 5000 })
-
-    // Wait for loading to complete (ellipsis disappears)
-    await waitFor(
-      () => {
-        expect(canvas.queryByText('…')).not.toBeInTheDocument()
-      },
-      { timeout: 5000 },
-    )
-
-    // Should show message about deleting account
+    const deleteButton = await canvas.findByRole('button', { name: /delete account/i })
+    expect(canvas.queryByText('…')).not.toBeInTheDocument()
     expect(canvas.getByText(/delete your account and all your account data/i)).toBeInTheDocument()
-
-    // Delete button should be enabled
     expect(deleteButton).toBeEnabled()
   },
 }
@@ -119,13 +85,8 @@ export const UserOwnsMMO: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Wait for the delete account button to appear
-    const deleteButton = await canvas.findByRole('button', { name: /delete account/i }, { timeout: 5000 })
-
-    // For organization owners, message should appear (checking for asset loading isn't necessary since it's blocked)
+    const deleteButton = await canvas.findByRole('button', { name: /delete account/i })
     expect(canvas.getByText(/transfer ownership of your organization/i)).toBeInTheDocument()
-
-    // Delete button should be disabled
     expect(deleteButton).toBeDisabled()
   },
 }
