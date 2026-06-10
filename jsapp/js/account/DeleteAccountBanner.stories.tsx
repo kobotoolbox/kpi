@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
-import { expect, waitFor, within } from 'storybook/test'
 import { withRouter } from 'storybook-addon-remix-react-router'
+import { expect, waitFor, within } from 'storybook/test'
 import assetsMock from '#/endpoints/assets.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -42,7 +42,7 @@ export const Default: Story = {
         const ellipsisText = canvas.queryByText('…')
         expect(ellipsisText).not.toBeInTheDocument()
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     )
 
     // Delete button should be disabled when user has assets
@@ -62,7 +62,7 @@ export const UserHasAssets: Story = {
       () => {
         expect(canvas.queryByText('…')).not.toBeInTheDocument()
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     )
 
     // Should show message about deleting/transferring projects
@@ -92,7 +92,7 @@ export const UserHasNoAssets: Story = {
       () => {
         expect(canvas.queryByText('…')).not.toBeInTheDocument()
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     )
 
     // Should show message about deleting account
