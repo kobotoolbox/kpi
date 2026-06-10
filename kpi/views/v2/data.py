@@ -628,6 +628,11 @@ class DataViewSet(
                 bulk_actions_validator.data, request.user
             )
         except InvalidSubmissionIdsError:
+            # Raised before any deletion is attempted, so none of the
+            # pre-recorded instances were actually deleted. Clear them to
+            # avoid phantom DELETE_SUBMISSION audit log entries, which the
+            # middleware would otherwise create even for this 400 response.
+            request._request.instances = {}
             return {
                 'data': {'detail': t('One or more submission ids are invalid')},
                 'content_type': 'application/json',
