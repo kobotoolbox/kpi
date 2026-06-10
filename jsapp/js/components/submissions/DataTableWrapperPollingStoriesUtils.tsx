@@ -113,6 +113,7 @@ const pollingBulkActionInProgress = bulkActionFactory(pollingSubmissionInitial['
     {
       uuid: pollingSubmissionInitial['meta/rootUuid'],
       status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+      error: null,
     },
   ],
 })
@@ -126,6 +127,7 @@ const pollingBulkActionComplete = bulkActionFactory(pollingSubmissionInitial['me
     {
       uuid: pollingSubmissionInitial['meta/rootUuid'],
       status: BulkActionSubmissionStatusResponseStatusEnum.complete,
+      error: null,
     },
   ],
 })

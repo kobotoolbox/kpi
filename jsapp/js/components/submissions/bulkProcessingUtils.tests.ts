@@ -97,6 +97,7 @@ describe('bulkProcessingUtils', () => {
           {
             uuid: submission._uuid,
             status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+            error: null,
           },
         ],
       }),
@@ -108,6 +109,7 @@ describe('bulkProcessingUtils', () => {
           {
             uuid: submission._uuid,
             status: BulkActionSubmissionStatusResponseStatusEnum.complete,
+            error: null,
           },
         ],
       }),
@@ -126,6 +128,7 @@ describe('bulkProcessingUtils', () => {
           {
             uuid: submission._uuid,
             status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+            error: null,
           },
         ],
       }),
@@ -144,6 +147,7 @@ describe('bulkProcessingUtils', () => {
           {
             uuid: submission._uuid,
             status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+            error: null,
           },
         ],
       }),
