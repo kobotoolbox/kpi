@@ -83,6 +83,7 @@ export const TEXT_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
   QuestionTypeName.date,
   QuestionTypeName.datetime,
   QuestionTypeName.decimal,
+  QuestionTypeName.hidden,
   QuestionTypeName.integer,
   QuestionTypeName.range,
   QuestionTypeName.rank,

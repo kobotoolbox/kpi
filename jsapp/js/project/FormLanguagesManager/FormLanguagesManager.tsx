@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Box, CloseButton, Group, Text } from '@mantine/core'
-import { modals } from '@mantine/modals'
+import { Box, Group, Text } from '@mantine/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
 import type { PaginatedListResponse } from '#/UniversalTable'
@@ -20,67 +19,13 @@ import TranslationsEditor from './TranslationsEditor'
 import type { TranslationRowItem } from './types'
 import { SAVE_BUTTON_LABEL, buildTranslationRows, deleteTranslations, prepareTranslations } from './utils'
 
-type FormLanguagesManagerView = 'languages' | 'translations'
+export type FormLanguagesManagerView = 'languages' | 'translations'
 
-interface FormLanguagesManagerProps {
+export interface FormLanguagesManagerProps {
   asset: AssetResponse
   onRequestClose: () => void
   registerOnRequestClose?: (closeHandler: () => void) => void
   onActiveViewChange?: (view: FormLanguagesManagerView) => void
-}
-
-export function openFormLanguagesModal(asset: AssetResponse) {
-  let requestModalClose = () => {}
-  const modalSizeByView: Record<FormLanguagesManagerView, string> = {
-    languages: 'lg',
-    translations: '80%',
-  }
-
-  const modalId = modals.open({
-    title: (
-      <Group justify='space-between' wrap='nowrap'>
-        <Box>{t('Manage Languages')}</Box>
-        <CloseButton aria-label={t('Close')} onClick={() => requestModalClose()} />
-      </Group>
-    ),
-    size: modalSizeByView.languages,
-    // Keep default close button disabled and render a controlled one in title,
-    // so close requests always go through FormLanguagesManager.requestClose.
-    withCloseButton: false,
-    // closeOnEscape and closeOnClickOutside are kept disabled because the
-    // modals manager calls closeModal() directly, bypassing any guard logic.
-    // Instead we intercept both events manually and route them through
-    // FormLanguagesManager.requestClose (unsaved-changes confirmation):
-    //   - Escape key: handled via onKeyDown on the content root Box
-    //   - Overlay click: handled via overlayProps.onClick below
-    closeOnEscape: false,
-    closeOnClickOutside: false,
-    overlayProps: {
-      ...KOBO_MODAL_OVERLAY_PROPS,
-      onClick: () => requestModalClose(),
-    },
-    children: (
-      <FormLanguagesManager
-        asset={asset}
-        registerOnRequestClose={(closeHandler) => {
-          requestModalClose = closeHandler
-        }}
-        onActiveViewChange={(view) => {
-          modals.updateModal({
-            modalId,
-            size: modalSizeByView[view],
-          })
-        }}
-        onRequestClose={() => {
-          modals.close(modalId)
-        }}
-      />
-    ),
-  })
-
-  requestModalClose = () => {
-    modals.close(modalId)
-  }
 }
 
 export default function FormLanguagesManager(props: FormLanguagesManagerProps) {

@@ -26,11 +26,13 @@ describe('bulkProcessingUtils', () => {
         {
           uuid: submission._uuid,
           status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+          error: null,
         },
       ],
       params: {
         language: 'fr',
       },
+      progress: 50,
       created_by: {
         username: 'leszek',
       },
@@ -75,6 +77,7 @@ describe('bulkProcessingUtils', () => {
             {
               uuid: submission._uuid,
               status: BulkActionSubmissionStatusResponseStatusEnum.complete,
+              error: null,
             },
           ],
         }),

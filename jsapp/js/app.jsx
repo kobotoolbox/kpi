@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react'
 
 import { MantineProvider } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
+import { Notifications } from '@mantine/notifications'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
@@ -155,6 +156,7 @@ class App extends React.Component {
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
           <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+            <Notifications />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
               <RootContextProvider>
                 <Tracking />

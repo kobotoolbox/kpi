@@ -10,6 +10,7 @@ import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
 import { SortValues } from '#/components/submissions/tableConstants'
 import type { AssetResponse } from '#/dataInterface'
+import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 interface TableColumnSortDropdownProps {
@@ -40,11 +41,13 @@ interface TableColumnSortDropdownProps {
 export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
+  const isAsrMtFeaturesEnabled = envStore.data.asr_mt_features_enabled
+  const isBulkProcessingEnabled = isBulkProcessingFeatureEnabled && isAsrMtFeaturesEnabled
 
   const canTranscribeSelectedAudioFiles =
-    isBulkProcessingFeatureEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
+    isBulkProcessingEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
   const canTranslateSelectedTranscriptions =
-    isBulkProcessingFeatureEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
+    isBulkProcessingEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
   const shouldRenderBulkProcessingButtons = canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions
 
   function renderTrigger() {

@@ -6,6 +6,7 @@ import {
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
+import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
 import { getEstimatedTranscriptionDurationSeconds } from '#/utils'
@@ -84,10 +85,12 @@ export function getBulkActionsPollingIntervalMs(activeBulkActions: BulkActionRes
 export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActionsResult {
   // Feature flag keeps all bulk-processing logic disabled unless explicitly enabled.
   const isBulkProcessingFeatureEnabled = useFeatureFlag(FeatureFlag.bulkProcessingEnabled)
+  const isAsrMtFeaturesEnabled = envStore.data.asr_mt_features_enabled
+  const isBulkProcessingEnabled = isBulkProcessingFeatureEnabled && isAsrMtFeaturesEnabled
   const session = useSession()
   // While session is loading we avoid making user-specific decisions.
   const currentUsername = session.isPending ? undefined : session.currentLoggedAccount?.username
-  const effectiveAssetUid = isBulkProcessingFeatureEnabled ? assetUid : ''
+  const effectiveAssetUid = isBulkProcessingEnabled ? assetUid : ''
 
   // Empty uid disables the query in Orval/react-query options.
   const bulkActionsListQuery = useAssetsAdvancedFeaturesBulkActionsList(effectiveAssetUid, undefined, {
@@ -95,12 +98,12 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
       // The generated query options in this codebase require explicit queryKey.
       queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(effectiveAssetUid, undefined),
       refetchInterval: (query) => {
-        if (!isBulkProcessingFeatureEnabled) {
+        if (!isBulkProcessingEnabled) {
           return false
         }
 
         const bulkActions = query.state.data?.status === 200 ? query.state.data.data.results : []
-        const activeBulkActions = getActiveBulkActions(bulkActions, isBulkProcessingFeatureEnabled)
+        const activeBulkActions = getActiveBulkActions(bulkActions, isBulkProcessingEnabled)
         return getBulkActionsPollingIntervalMs(activeBulkActions)
       },
       // We only poll while the tab is foregrounded.
@@ -112,8 +115,8 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
     const bulkActions = bulkActionsListQuery.data?.status === 200 ? bulkActionsListQuery.data.data.results : []
 
     // Only non-terminal jobs should affect the table state and banner visibility.
-    return getActiveBulkActions(bulkActions, isBulkProcessingFeatureEnabled)
-  }, [bulkActionsListQuery.data, isBulkProcessingFeatureEnabled])
+    return getActiveBulkActions(bulkActions, isBulkProcessingEnabled)
+  }, [bulkActionsListQuery.data, isBulkProcessingEnabled])
 
   const hasActiveBulkActionsCreatedByAnotherUser = React.useMemo(() => {
     if (!currentUsername) {

@@ -424,7 +424,8 @@ const environmentResponse: EnvironmentResponse = {
     },
   ],
   social_apps: [],
-  asr_mt_features_enabled: false,
+  // Note: this is needed to be `true` for all bulk processing related stories to work
+  asr_mt_features_enabled: true,
   submission_placeholder: '%SUBMISSION%',
   project_history_log_lifespan: 60,
   stripe_public_key: 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM',

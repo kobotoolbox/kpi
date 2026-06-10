@@ -14,4 +14,6 @@ import type { BulkActionSubmissionStatusResponseStatusEnum } from './bulkActionS
 export interface BulkActionSubmissionStatusResponse {
   uuid: string
   status: BulkActionSubmissionStatusResponseStatusEnum
+  /** @nullable */
+  error: string | null
 }

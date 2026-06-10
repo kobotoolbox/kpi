@@ -3,15 +3,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
-# Translators:
-# Translators:
 # Faiz Mohammed, 2021
 # Leszek Pietrzak <leszek@magicznyleszek.xyz>, 2023
 msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 16:30+0000\n"
+"POT-Creation-Date: 2026-06-09 05:50+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Leszek Pietrzak <leszek@magicznyleszek.xyz>, 2023\n"
 "Language-Team: Chinese Simplified (http://app.transifex.com/kobotoolbox/kobotoolbox/language/zh-Hans/)\n"
@@ -38,7 +36,6 @@ msgid "Government institution"
 msgstr "政府机构"
 
 #: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
-#| msgid "Educational Services / Higher Education"
 msgid "Educational organization"
 msgstr "教育机构"
 
@@ -89,22 +86,31 @@ msgstr "name@organization.org"
 msgid "This field is required."
 msgstr "该字段为必填字段。"
 
-#: kobo/apps/accounts/forms.py:269
+#: kobo/apps/accounts/forms.py:280
 msgid "Email must match SSO server email"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:322
+#: kobo/apps/accounts/forms.py:333
 msgid "You must type the same password each time."
 msgstr "你必须每次输入相同的密码。"
 
+#: kobo/apps/accounts/mfa/forms.py:26 kobo/apps/accounts/mfa/forms.py:38
+msgid "Code"
+msgstr ""
+
+#: kobo/apps/accounts/mfa/forms.py:29 kobo/apps/accounts/mfa/forms.py:41
+msgid "Enter token or backup code"
+msgstr ""
+
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:19
-msgid "Please enter your verification token"
-msgstr "请输入你的验证令牌"
+msgid "Please enter your verification token or backup code"
+msgstr ""
 
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:22
 msgid ""
-"Please enter the verification token displayed by your authenticator app."
-msgstr "请输入你的验证器应用程序显示的验证令牌。"
+"Use the 6-character token displayed by your authenticator app or one of your"
+" backup codes."
+msgstr ""
 
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:29
 msgid "Problems with the token"
@@ -123,24 +129,25 @@ msgid "Back"
 msgstr "后退"
 
 #: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:321
+#: kpi/serializers/current_user.py:320
 msgid "This action is not allowed."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
 msgid ""
-"To confirm the new email address associated with your KoboToolbox account, "
+"To confirm the email address associated with your KoboToolbox account, "
 "please follow the link below."
-msgstr "要确认与你KoboToolbox账户关联的新电子邮箱地址，请点击下面的链接。"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:7
 msgid ""
-"This link will expire in one hour. To request a new verification link, "
-"please go to your account settings and re-enter your new email address:"
-msgstr "此链接将于一小时后失效。如需请求新验证链接，请前往账户设置，重新输入新电子邮箱地址："
+"This link will expire in 24 hours. To activate a new account, please sign "
+"into your account with your credentials (username and password) and a new "
+"link will be sent to you. To verify an email address change, you can request"
+" a new activation link directly from your account under Settings > Security."
+msgstr ""
 
-#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:10
-#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:15
 #: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:15
 #: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:15
 #: kobo/apps/hook/templates/reports/failures_email_body.html:37
@@ -149,32 +156,77 @@ msgid "Best,"
 msgstr "祝好,"
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:10
-msgid "Thanks for signing up with KoboToolbox!"
-msgstr "感谢你在KoboToolbox上注册账户!"
+#, python-format
+msgid "Hi %(first_name)s,"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:12
 msgid ""
-"Confirming your account will give you access to KoboToolbox applications. "
-"Please visit the following URL to finish activation of your new account."
-msgstr "确认账户后，你就能访问KoboToolbox应用程式。请访问以下网址完成新账户的激活。"
+"Welcome to KoboToolbox! To get started, please activate your account by "
+"clicking the link below:"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:16
-#| msgid "Username"
-msgid "Your username is:"
+msgid ""
+"This link will expire in 24 hours for security reasons. If it expires or you"
+" need a new one, simply sign in with your credentials (username and "
+"password) and a new link will be sent to you."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:25
 msgid ""
-"For help getting started, check out the KoboToolbox user documentation: "
-"https://support.kobotoolbox.com"
+"To get the most out of KoboToolbox, check out the following resources and "
+"join the community:"
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:27
 msgid ""
-"You can also join the KoboToolbox community forum to ask questions, share "
-"solutions, and chat with thousands of users: "
-"https://community.kobotoolbox.org"
-msgstr "你可以加入KoboToolbox社群论坛，提出问题，分享解决方法，及和数千名用户聊天：https://community.kobotoolbox.org"
+"• Help Center: Find answers to your questions in our Help Center’s extensive"
+" library of support articles. Visit the Help Center: "
+"https://support.kobotoolbox.org/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+msgid ""
+"• Online Learning: For a comprehensive introduction to KoboToolbox, we offer"
+" the online self-paced KoboToolbox Essentials Course. Get started with the "
+"Essentials Course: https://academy.kobotoolbox.org/courses/essentials"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:31
+msgid ""
+"• Community Forum: Visit our Community Forum to chat with thousands of "
+"KoboToolbox users, ask questions, and find information about software "
+"updates. Explore the Community Forum: https://community.kobotoolbox.org/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:33
+msgid ""
+"• Support Services: We offer custom solutions and expert support for "
+"organizations, including training, project support, and dashboard "
+"development. Learn more about our services: "
+"https://www.kobotoolbox.org/services/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:35
+msgid "Follow us on on social media:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:36
+msgid "• Facebook: https://www.facebook.com/kobotoolbox"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:37
+msgid "• LinkedIn: https://www.linkedin.com/company/kobotoolbox"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:39
+msgid "Thanks for signing up!"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:40
+msgid "The KoboToolbox Team"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_subject.txt:10
 msgid "Activate your KoboToolbox Account"
@@ -251,20 +303,27 @@ msgstr "请确认<a href=\"mailto:%(email)s\">%(email)s</a> 是用户%(user_disp
 msgid "Confirm"
 msgstr "确认"
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:33
-msgid "Activation failed"
-msgstr "激活失败"
+#: kobo/apps/accounts/templates/account/email_confirm.html:34
+msgid "Activation Failed"
+msgstr ""
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:36
+#: kobo/apps/accounts/templates/account/email_confirm.html:38
 msgid ""
-"Sorry, we couldn't activate your account. The link we sent you has expired."
-msgstr "抱歉，我们无法激活你的账户。我们发送的链接已超过时效。"
+"This activation link has expired. We could not confirm your email address. "
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email_confirm.html:42
 msgid ""
-"This e-mail confirmation link expired or is invalid. If you need to request "
-"a new link to verify your email address change, please go to your account "
-"settings page and enter your email address again."
+"If you are trying to activate a new account, please sign into your account "
+"with your credentials (username and password) and a new link will be sent to"
+" you."
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:46
+msgid ""
+"If you are trying to verify an email address change, please go to the "
+"security tab under your account settings, and click the 'resend' button to "
+"receive an activation link."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/login.html:29
@@ -354,8 +413,10 @@ msgid "Confirm your email address"
 msgstr "确认电子邮箱地址"
 
 #: kobo/apps/accounts/templates/account/verification_sent.html:11
-msgid "Please click the activation link in the email just sent to you."
-msgstr "请点击刚刚发送给你的电子邮件中的激活链接。"
+msgid ""
+"We have sent you an activation link. Please check your inbox (and spam "
+"folder) and click the link to activate your account."
+msgstr ""
 
 #: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
 #: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
@@ -460,7 +521,6 @@ msgid ""
 msgstr "用户名长度必须在 2 到 30 个字符之间，并且只能包含小写字母、数字和下划线，其中第一个字符必须是字母。"
 
 #: kobo/apps/hook/serializers/v2/hook.py:85
-#| msgid "Invalid token."
 msgid "Invalid scheme"
 msgstr "无效方案"
 
@@ -469,7 +529,6 @@ msgid "Unsecured endpoint is not allowed"
 msgstr "不允许使用不安全的端点"
 
 #: kobo/apps/hook/serializers/v2/hook.py:99
-#| msgid "Invalid token."
 msgid "Invalid JSON"
 msgstr "无效的JSON"
 
@@ -477,7 +536,7 @@ msgstr "无效的JSON"
 msgid "Can be used only with JSON submission format"
 msgstr "只能与JSON提交格式一起使用"
 
-#: kobo/apps/hook/tasks.py:145
+#: kobo/apps/hook/tasks.py:146
 msgid "REST Services Failure Report"
 msgstr "REST服务失败报告"
 
@@ -537,31 +596,31 @@ msgstr "亲爱的"
 msgid "Some submissions could not be sent to their external endpoints."
 msgstr "某些提交无法被发送到其外部端点。"
 
-#: kobo/apps/hook/views/v2/hook.py:186
+#: kobo/apps/hook/views/v2/hook.py:185
 msgid "Task successfully scheduled"
 msgstr "任务安排成功"
 
-#: kobo/apps/hook/views/v2/hook.py:222
+#: kobo/apps/hook/views/v2/hook.py:221
 msgid "No data to retry"
 msgstr "没有数据可重试"
 
-#: kobo/apps/hook/views/v2/hook.py:225
-msgid "Can not retry on disabled hooks"
-msgstr "无法在禁用的钩子上重试"
+#: kobo/apps/hook/views/v2/hook.py:224
+msgid "Cannot retry on disabled hooks"
+msgstr ""
 
-#: kobo/apps/hook/views/v2/hook_log.py:130
-msgid "An error has occurred when sending the data. Please try again later."
-msgstr "发送数据时发生错误。请稍后重试。"
-
-#: kobo/apps/hook/views/v2/hook_log.py:135
+#: kobo/apps/hook/views/v2/hook_log.py:132
 msgid "Data is being or has already been processed"
 msgstr "数据正在处理或已完成处理"
+
+#: kobo/apps/kobo_scim/authentication.py:31
+msgid "Invalid or inactive SCIM token."
+msgstr ""
 
 #: kobo/apps/languages/templates/admin/languages_change_list.html:8
 msgid "Import"
 msgstr "导入"
 
-#: kobo/apps/mass_emails/tasks.py:244
+#: kobo/apps/mass_emails/tasks.py:255
 msgid "Not available"
 msgstr ""
 
@@ -594,7 +653,6 @@ msgstr ""
 
 #: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
 #, python-format
-#| msgid "Invalid token."
 msgid "Invalid formId %s."
 msgstr ""
 
@@ -663,27 +721,36 @@ msgstr ""
 msgid "Submission with this instance ID already exists"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:31
+#: kobo/apps/openrosa/apps/logger/exceptions.py:34
+msgid "Invalid submission - deprecatedID refers to an old submission version"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:41
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1039
+msgid "Invalid submission - deprecatedID not found"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:46
 msgid "Duplicate Instance"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:48
+#: kobo/apps/openrosa/apps/logger/exceptions.py:63
 msgid "Empty instance"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:53
+#: kobo/apps/openrosa/apps/logger/exceptions.py:68
 msgid "Could not determine the user"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:58
+#: kobo/apps/openrosa/apps/logger/exceptions.py:73
 msgid "Could not determine the instance ID"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:67
+#: kobo/apps/openrosa/apps/logger/exceptions.py:82
 msgid "The instance could not be parsed"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:72
+#: kobo/apps/openrosa/apps/logger/exceptions.py:87
 msgid "Submission is currently being processed."
 msgstr ""
 
@@ -703,27 +770,27 @@ msgstr ""
 msgid "XForms"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:203
+#: kobo/apps/openrosa/apps/logger/models/xform.py:207
 #, python-format
 msgid ""
 "Your updated form's id_string '%(new_id)s' must match the existing forms' "
 "id_string '%(old_id)s'."
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:212
+#: kobo/apps/openrosa/apps/logger/models/xform.py:216
 msgid ""
 "In strict mode, the XForm ID must be a valid slug and contain no spaces."
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:226
+#: kobo/apps/openrosa/apps/logger/models/xform.py:230
 msgid "Submission Count"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:274
+#: kobo/apps/openrosa/apps/logger/models/xform.py:281
 msgid "There should be a single id string."
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:299
+#: kobo/apps/openrosa/apps/logger/models/xform.py:306
 msgid "There should be a single title."
 msgstr ""
 
@@ -766,10 +833,10 @@ msgstr ""
 msgid "Not shared."
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:35
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:76
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:104
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:525
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:36
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:77
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:105
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:542
 msgid "XML string must have a survey element."
 msgstr ""
 
@@ -813,17 +880,17 @@ msgstr ""
 msgid "Invalid export type specified"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:141
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:193
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:142
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:194
 msgid "Invalid start/limit params"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:157
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
 #, python-format
 msgid "Invalid pipeline! %s"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:159
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:160
 #, python-format
 msgid "Invalid query! %s"
 msgstr ""
@@ -873,7 +940,6 @@ msgid "Create Export"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/viewer/templates/export_list.html:65
-#| msgid "Username"
 msgid "Filename"
 msgstr ""
 
@@ -913,7 +979,6 @@ msgid "%s is not a valid export type"
 msgstr ""
 
 #: kobo/apps/openrosa/apps/viewer/views.py:96
-#| msgid "Invalid token."
 msgid "Invalid export type"
 msgstr ""
 
@@ -995,7 +1060,6 @@ msgid "Cannot determine content type"
 msgstr ""
 
 #: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
-#| msgid "Invalid token."
 msgid "Invalid content type"
 msgstr ""
 
@@ -1836,7 +1900,6 @@ msgid "Sudan"
 msgstr ""
 
 #: kobo/apps/openrosa/libs/utils/country_field.py:218
-#| msgid "Username"
 msgid "Suriname"
 msgstr ""
 
@@ -1992,84 +2055,87 @@ msgstr ""
 msgid "Unknown or unspecified country"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:134
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:141
 msgid "Forbidden"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:144
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:151
 msgid ""
 "Forbidden attempt to edit a submission. To make a new submission, Remove "
 "`deprecatedID` from the submission XML and try again."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:456
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:467
 msgid "Username or ID required."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:459
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
 msgid "Received empty submission. No instance was created"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:462
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:473
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:465
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:482
 msgid "Form is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:468
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:485
 msgid "Temporarily unavailable"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:474
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:491
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:478
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:495
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:483
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:500
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:486
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:503
 msgid "Form does not exist on this account"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:489
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:506
 msgid "Improperly formatted XML."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:507
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:524
 msgid "Access denied"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:514
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:531
 msgid "File likely corrupted during transmission, please try later."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:651
-#| msgid "Invalid token."
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:668
 msgid "Invalid URL format."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:663
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:680
 msgid "Form validation timeout, please try again."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:722
-#: kobo/apps/openrosa/libs/utils/viewer_tools.py:76
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:739
+#: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:755
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:772
 msgid "The requested file could not be found."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:111
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1036
+msgid "Invalid submission - deprecatedID refers to an old version"
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:89
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
@@ -2093,6 +2159,10 @@ msgstr ""
 
 #: kobo/apps/organizations/tasks.py:84
 msgid "Organization invite has expired"
+msgstr ""
+
+#: kobo/apps/organizations/templates/admin/organizations/organization/change_form.html:12
+msgid "Create Stripe Subscription"
 msgstr ""
 
 #: kobo/apps/organizations/templates/emails/accepted_org_invite.html:4
@@ -2289,7 +2359,7 @@ msgstr "项目`##asset_uid##`不能被转移。当前状态：##status##"
 msgid "Must not be in the same organization"
 msgstr ""
 
-#: kobo/apps/project_ownership/tasks.py:185
+#: kobo/apps/project_ownership/tasks.py:186
 msgid "Invite has expired"
 msgstr "邀请已过期"
 
@@ -2540,7 +2610,7 @@ msgid "%d plan add-on was created."
 msgid_plural "%d plan add-ons were created."
 msgstr[0] ""
 
-#: kobo/settings/base.py:284
+#: kobo/settings/base.py:301
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2548,7 +2618,7 @@ msgid ""
 "email##)."
 msgstr "如果你无法访问身份验证器应用程序，请输入你其中一个备用验证码来替代。 如果你两者都无法访问，那么你将需要联系 [##support email##](mailto: ##support email##) 来请求帮助。"
 
-#: kobo/settings/base.py:551
+#: kobo/settings/base.py:563
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2715,58 +2785,69 @@ msgstr "Instagram"
 msgid "I want to receive occasional updates about KoboToolbox"
 msgstr "我希望收到有关 KoboToolbox 不定期的更新"
 
+#: kpi/admin.py:46
+msgid "Options Configuration"
+msgstr ""
+
+#: kpi/admin.py:50
+msgid "Provide a JSON list of objects containing 'name' and 'label'."
+msgstr ""
+
+#: kpi/admin.py:62
+msgid "Default Label"
+msgstr ""
+
 #: kpi/authentication.py:70
-#| msgid "Invalid token."
 msgid "Invalid username/password"
 msgstr "无效的用户名/密码"
 
-#: kpi/deployment_backends/base_backend.py:138
+#: kpi/deployment_backends/base_backend.py:142
 msgid "No submissions match the given `submission_ids`"
 msgstr "没有提交内容与给定的`submission_ids`匹配"
 
-#: kpi/deployment_backends/base_backend.py:603
+#: kpi/deployment_backends/base_backend.py:612
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "该参数未执行。 请改用响应的`count`属性。"
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:623
 msgid "This param is not supported in `XML` format"
 msgstr "该参数不支持`XML`格式"
 
-#: kpi/deployment_backends/base_backend.py:619
+#: kpi/deployment_backends/base_backend.py:628
 msgid "This is not supported in `XML` format"
 msgstr "不支持`XML`格式"
 
-#: kpi/deployment_backends/base_backend.py:639
-#: kpi/deployment_backends/base_backend.py:668
-#: kpi/deployment_backends/base_backend.py:690 kpi/views/v2/data.py:448
+#: kpi/deployment_backends/base_backend.py:648
+#: kpi/deployment_backends/base_backend.py:677
+#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1103
 msgid "Value must be valid JSON."
 msgstr "值必须是有效的 JSON。"
 
-#: kpi/deployment_backends/base_backend.py:644
+#: kpi/deployment_backends/base_backend.py:653
 msgid "Value must be a list."
 msgstr "值必须是一个列表。"
 
-#: kpi/deployment_backends/base_backend.py:675
-#: kpi/deployment_backends/base_backend.py:682
+#: kpi/deployment_backends/base_backend.py:684
+#: kpi/deployment_backends/base_backend.py:691
 msgid "A positive integer is required."
 msgstr "须填一个正整数。"
 
-#: kpi/deployment_backends/openrosa_backend.py:405
+#: kpi/deployment_backends/openrosa_backend.py:412
 msgid "Your submission XML is malformed."
 msgstr "你提交的 XML 格式不正确。"
 
-#: kpi/deployment_backends/openrosa_backend.py:411
+#: kpi/deployment_backends/openrosa_backend.py:418
 msgid "Your submission XML is missing critical elements."
 msgstr "你提交的 XML 缺少关键元素。"
 
-#: kpi/deployment_backends/openrosa_backend.py:449
+#: kpi/deployment_backends/openrosa_backend.py:456
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "找不到你尝试编辑的提交内容，或者你无权访问它。"
 
-#: kpi/deployment_backends/openrosa_backend.py:1005
+#: kpi/deployment_backends/openrosa_backend.py:1012
 msgid "Successful submission"
 msgstr ""
 
@@ -2778,52 +2859,44 @@ msgstr "批量提交的更新内容无效"
 msgid "Must call `asset.connect_deployment()` first"
 msgstr "必须先调用`asset.connect_deployment()`"
 
-#: kpi/exceptions.py:84
-msgid "XML contains forbidden DTDs"
-msgstr ""
-
-#: kpi/exceptions.py:95
-msgid "XML contains forbidden entities"
-msgstr ""
-
-#: kpi/exceptions.py:120
+#: kpi/exceptions.py:98
 msgid "Invalid search. Please try again"
 msgstr "无效搜索。 请重试"
 
-#: kpi/exceptions.py:125
+#: kpi/exceptions.py:103
 msgid "Deployment links to an unexpected KoboCAT XForm"
 msgstr ""
 
-#: kpi/exceptions.py:161
+#: kpi/exceptions.py:139
 msgid "An error occurred trying to duplicate the submission"
 msgstr "尝试重复提交时出错"
 
-#: kpi/exceptions.py:179
+#: kpi/exceptions.py:157
 msgid "The specified object has not been deployed"
 msgstr "指定对象尚未部署"
 
-#: kpi/exceptions.py:188
+#: kpi/exceptions.py:166
 msgid "Bad syntax"
 msgstr "语法错误"
 
-#: kpi/exceptions.py:193
+#: kpi/exceptions.py:171
 msgid "Not supported field lookup"
 msgstr "不支持字段查找"
 
-#: kpi/exceptions.py:216
+#: kpi/exceptions.py:194
 msgid "Your query is too short"
 msgstr "你的查询内容太短"
 
-#: kpi/exceptions.py:230
+#: kpi/exceptions.py:208
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
-#: kpi/fields/jsonschema_form_field.py:23
-#: kpi/fields/jsonschema_form_field.py:26
+#: kpi/fields/jsonschema_form_field.py:31
+#: kpi/fields/jsonschema_form_field.py:36
 msgid "Enter valid JSON."
 msgstr "输入有效的JSON。"
 
-#: kpi/fields/jsonschema_form_field.py:158
+#: kpi/fields/jsonschema_form_field.py:126
 msgid "`##place_holder##` field cannot be hidden."
 msgstr "`##place_holder##`字段无法隐藏。"
 
@@ -2832,144 +2905,148 @@ msgstr "`##place_holder##`字段无法隐藏。"
 msgid "Unable to parse JSON: {error}"
 msgstr "无法解析JSON：{error}"
 
+#: kpi/forms/extra_metadata_form.py:26
+msgid "Select fields require at least one option in JSON format."
+msgstr ""
+
 #: kpi/mixins/mfa.py:22
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "此帐户启用了多重身份验证。 "
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:306
 msgid "Can view asset"
 msgstr "可以查看资源"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:307
 msgid "Can discover asset in public lists"
 msgstr "可以在公共列表中的查看资源"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:308
 msgid "Can manage all aspects of asset"
 msgstr "可以管理资源的各个层面"
 
-#: kpi/models/asset.py:321
+#: kpi/models/asset.py:310
 msgid "Can submit data to asset"
 msgstr "可以向资源中提交数据"
 
-#: kpi/models/asset.py:322
+#: kpi/models/asset.py:311
 msgid "Can view submitted data for asset"
 msgstr "可以查看提交的资源数据"
 
-#: kpi/models/asset.py:323
+#: kpi/models/asset.py:312
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "可以对特定用户提交的资源数据进行部分操作"
 
-#: kpi/models/asset.py:326
+#: kpi/models/asset.py:315
 msgid "Can modify submitted data for asset"
 msgstr "可以修改提交的资源数据"
 
-#: kpi/models/asset.py:327
+#: kpi/models/asset.py:316
 msgid "Can delete submitted data for asset"
 msgstr "可以删除已提交的资源数据"
 
-#: kpi/models/asset.py:328
+#: kpi/models/asset.py:317
 msgid "Can validate submitted data asset"
 msgstr "可以验证提交的资源数据"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:336
 msgid "project"
 msgstr "项目"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:336
 msgid "form"
 msgstr "形式"
 
-#: kpi/models/asset.py:349
+#: kpi/models/asset.py:338
 msgid "template"
 msgstr "模板"
 
-#: kpi/models/asset.py:350
+#: kpi/models/asset.py:339
 msgid "block"
 msgstr "块"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:340
 msgid "question"
 msgstr "问题"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:341
 msgid "text"
 msgstr "文本"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:342
 msgid "empty"
 msgstr "空的"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:343
 msgid "collection"
 msgstr "集合"
 
-#: kpi/models/asset.py:361
+#: kpi/models/asset.py:350
 msgid "View ##asset_type_label##"
 msgstr "查看 ##asset_type_label##"
 
-#: kpi/models/asset.py:362
+#: kpi/models/asset.py:351
 msgid "Edit ##asset_type_label##"
 msgstr "编辑 ##asset_type_label##"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:352
 msgid "Discover ##asset_type_label##"
 msgstr "发现 ##asset_type_label##"
 
-#: kpi/models/asset.py:364
+#: kpi/models/asset.py:353
 msgid "Manage ##asset_type_label##"
 msgstr "管理 ##asset_type_label##"
 
-#: kpi/models/asset.py:365
+#: kpi/models/asset.py:354
 msgid "Add submissions"
 msgstr "添加提交内容"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:355
 msgid "View submissions"
 msgstr "查看提交内容"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:358
 msgid "Act on submissions only from specific users"
 msgstr "仅操作特定用户提交的内容"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:361
 msgid "View submissions only from specific users"
 msgstr "仅查看特定用户提交的内容"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:364
 msgid "Edit submissions only from specific users"
 msgstr "仅编辑特定用户提交的内容"
 
-#: kpi/models/asset.py:378
+#: kpi/models/asset.py:367
 msgid "Delete submissions only from specific users"
 msgstr "仅删除特定用户提交的内容"
 
-#: kpi/models/asset.py:381
+#: kpi/models/asset.py:370
 msgid "Validate submissions only from specific users"
 msgstr "仅验证特定用户提交的内容"
 
-#: kpi/models/asset.py:384
+#: kpi/models/asset.py:373
 msgid "Edit submissions"
 msgstr "编辑提交内容"
 
-#: kpi/models/asset.py:385
+#: kpi/models/asset.py:374
 msgid "Delete submissions"
 msgstr "删除提交内容"
 
-#: kpi/models/asset.py:386
+#: kpi/models/asset.py:375
 msgid "Validate submissions"
 msgstr "验证提交内容"
 
-#: kpi/models/asset.py:729
+#: kpi/models/asset.py:689
 msgid "Only partial permissions for submissions are supported"
 msgstr "仅支持部分提交权限"
 
-#: kpi/models/asset.py:1490
+#: kpi/models/asset.py:1398
 msgid "Can not assign '{}' permission to owner"
 msgstr "无法将'{}'权限分配给用户"
 
-#: kpi/models/asset.py:1494
+#: kpi/models/asset.py:1402
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "无法分配'{}'权限。 缺少部分权限。"
 
@@ -2977,11 +3054,55 @@ msgstr "无法分配'{}'权限。 缺少部分权限。"
 msgid "Invalid token."
 msgstr "令牌无效。"
 
-#: kpi/models/import_export_task.py:153
+#: kpi/models/extra_project_metadata_field.py:7
+msgid "Text"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:8
+msgid "Single Select"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:9
+msgid "Multi Select"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:16
+msgid "Unique internal identifier (e.g. 'project_sectors')"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:21
+msgid "Translation map: {\"default\": \"Country\", \"fr\": \"Pays\"}"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:28
+msgid "Required"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:32
+msgid "List of [{\"name\": \"value\", \"label\": \"Label\"}] dicts"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:37
+msgid "Extra Project Metadata Field"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:38
+msgid "Extra Project Metadata Fields"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:48
+msgid "Options are required for select fields."
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:60
+msgid "Each option must be a dictionary containing 'name' and 'label'."
+msgstr ""
+
+#: kpi/models/import_export_task.py:161
 msgid "Cannot access data"
 msgstr "无法访问数据"
 
-#: kpi/models/import_export_task.py:762
+#: kpi/models/import_export_task.py:790
 msgid "This data does not exist or you do not have access to it"
 msgstr "该数据不存在或你访问其的权限"
 
@@ -2999,87 +3120,86 @@ msgid ""
 "characters."
 msgstr "密码必须至少包含##number of rules##种不同类型的字符。"
 
-#: kpi/serializers/current_user.py:205
+#: kpi/serializers/current_user.py:206
 msgid "Incorrect current password."
 msgstr "当前密码不正确。"
 
-#: kpi/serializers/current_user.py:225
+#: kpi/serializers/current_user.py:226
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password`和`new_password`必须都是"
 
-#: kpi/serializers/current_user.py:265
-#: kpi/serializers/v2/asset_permission_assignment.py:286
+#: kpi/serializers/current_user.py:264
+#: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr "该字段不能为空。"
 
-#: kpi/serializers/v2/asset.py:161
+#: kpi/serializers/v2/asset.py:165
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "%(count)d项目已被撤销删除"
 
-#: kpi/serializers/v2/asset.py:167
+#: kpi/serializers/v2/asset.py:171
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "%(count)d项目已被删除"
 
-#: kpi/serializers/v2/asset.py:174
+#: kpi/serializers/v2/asset.py:178
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "%(count)d项目已撤销存档"
 
-#: kpi/serializers/v2/asset.py:180
+#: kpi/serializers/v2/asset.py:184
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "%(count)d项目已存档"
 
-#: kpi/serializers/v2/asset.py:196
+#: kpi/serializers/v2/asset.py:200
 msgid "One or many projects have been deleted already!"
 msgstr "一个或多个项目已被删除！"
 
-#: kpi/serializers/v2/asset.py:204
+#: kpi/serializers/v2/asset.py:208
 msgid "One or many projects are already being deleted!"
 msgstr "一个或多个项目已正在被删除！"
 
-#: kpi/serializers/v2/asset.py:280
+#: kpi/serializers/v2/asset.py:284
 msgid "`action` parameter is required"
 msgstr "`action`参数为必填项"
 
-#: kpi/serializers/v2/asset.py:285
+#: kpi/serializers/v2/asset.py:289
 msgid "Supported values for `action` are: "
 msgstr "支持`action`的值为： "
 
-#: kpi/serializers/v2/asset.py:307
+#: kpi/serializers/v2/asset.py:311
 msgid "Draft projects cannot be archived"
 msgstr "项目草稿无法存档"
 
-#: kpi/serializers/v2/asset.py:313 kpi/serializers/v2/data.py:61
-#| msgid "Information / Media"
+#: kpi/serializers/v2/asset.py:317 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "需要确认"
 
-#: kpi/serializers/v2/asset.py:974
+#: kpi/serializers/v2/asset.py:992
 msgid "The property is required"
 msgstr "属性为必填项"
 
-#: kpi/serializers/v2/asset.py:978
+#: kpi/serializers/v2/asset.py:996
 msgid "The property must be an array"
 msgstr "该属性必须是一个数组"
 
-#: kpi/serializers/v2/asset.py:1000
+#: kpi/serializers/v2/asset.py:1018
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{valid_fields}`"
 msgstr "有些字段无效，选择为：`{valid_fields}`"
 
-#: kpi/serializers/v2/asset.py:1022
+#: kpi/serializers/v2/asset.py:1040
 msgid "User cannot update current parent collection"
 msgstr "用户无法更新当前父集"
 
-#: kpi/serializers/v2/asset.py:1032
+#: kpi/serializers/v2/asset.py:1050
 #: kpi/tests/api/v2/test_api_collections.py:476
 msgid "Target collection not found"
 msgstr "未找到目标集合"
 
-#: kpi/serializers/v2/asset.py:1036
+#: kpi/serializers/v2/asset.py:1054
 #: kpi/tests/api/v2/test_api_collections.py:466
 msgid "User cannot update target parent collection"
 msgstr "用户无法更新目标父集"
@@ -3109,12 +3229,12 @@ msgid "`lang` for this asset must be either {}"
 msgstr "该资源的`lang`必须为这其中一种 {}"
 
 #: kpi/serializers/v2/asset_export_settings.py:119
-#: kpi/serializers/v2/export_task.py:232
+#: kpi/serializers/v2/export_task.py:233
 msgid "Must be a JSON object"
 msgstr "必须为JSON 对象"
 
 #: kpi/serializers/v2/asset_export_settings.py:134
-#: kpi/serializers/v2/export_task.py:250
+#: kpi/serializers/v2/export_task.py:251
 msgid "All values in the array must be integers"
 msgstr "数组中的所有值都必须为整数"
 
@@ -3131,7 +3251,6 @@ msgid "JSON is invalid"
 msgstr "JSON 无效"
 
 #: kpi/serializers/v2/asset_file.py:134
-#| msgid "Invalid token."
 msgid "Invalid content"
 msgstr "无效内容"
 
@@ -3170,34 +3289,33 @@ msgstr "`redirect_url`无效"
 msgid "Only `{}` MIME types are allowed"
 msgstr "仅允许`{}`MIME 类型"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:159
+#: kpi/serializers/v2/asset_permission_assignment.py:172
 msgid "This field is required for the '{}' permission"
 msgstr "必须填写该字段以获取'{}'权限"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:173
-#: kpi/serializers/v2/asset_permission_assignment.py:178
-#: kpi/serializers/v2/asset_permission_assignment.py:184
-#: kpi/serializers/v2/asset_permission_assignment.py:493
+#: kpi/serializers/v2/asset_permission_assignment.py:186
+#: kpi/serializers/v2/asset_permission_assignment.py:191
+#: kpi/serializers/v2/asset_permission_assignment.py:197
+#: kpi/serializers/v2/asset_permission_assignment.py:601
 msgid "Invalid `url`"
 msgstr "无效的`url`"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:189
-#| msgid "Invalid token."
+#: kpi/serializers/v2/asset_permission_assignment.py:202
 msgid "Invalid `filters`"
 msgstr "无效的`filters`"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:206
+#: kpi/serializers/v2/asset_permission_assignment.py:219
 #, python-brace-format
 msgid ""
 "{permission} cannot be assigned explicitly to Asset objects of this type."
 msgstr "{permission}无法明确分配给该类型的 Asset 对象。"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:285
+#: kpi/serializers/v2/asset_permission_assignment.py:372
 msgid "Not a valid list."
 msgstr "不是有效的列表。"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:486
-#: kpi/serializers/v2/asset_permission_assignment.py:489
+#: kpi/serializers/v2/asset_permission_assignment.py:594
+#: kpi/serializers/v2/asset_permission_assignment.py:597
 msgid "Invalid hyperlink - Object does not exist."
 msgstr "超链接无效 - 对象不存在。"
 
@@ -3222,7 +3340,6 @@ msgid "List cannot be empty"
 msgstr ""
 
 #: kpi/serializers/v2/attachment_delete.py:79
-#| msgid "Invalid token."
 msgid "Invalid attachment UID"
 msgstr ""
 
@@ -3230,7 +3347,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:690
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:867
 msgid "The specified asset has not been deployed"
 msgstr "指定资源尚未部署"
 
@@ -3250,39 +3367,39 @@ msgstr "`data`为必填项"
 msgid "`validation_status.uid` is required"
 msgstr "`validation_status.uid`为必填项"
 
-#: kpi/serializers/v2/export_task.py:126
+#: kpi/serializers/v2/export_task.py:127
 msgid "Must contain all the following required keys: {}"
 msgstr "必须包含以下所有必填的键：{}"
 
-#: kpi/serializers/v2/export_task.py:140
+#: kpi/serializers/v2/export_task.py:141
 msgid "Can contain only the following valid keys: {}"
 msgstr "只能包含以下有效键：{}"
 
-#: kpi/serializers/v2/export_task.py:155 kpi/serializers/v2/export_task.py:240
+#: kpi/serializers/v2/export_task.py:156 kpi/serializers/v2/export_task.py:241
 msgid "Must be an array"
 msgstr "必须为一个数组"
 
-#: kpi/serializers/v2/export_task.py:162
+#: kpi/serializers/v2/export_task.py:163
 msgid "All values in the array must be strings"
 msgstr "数组中的所有值都必须为字符串"
 
-#: kpi/serializers/v2/export_task.py:172
+#: kpi/serializers/v2/export_task.py:173
 msgid "Must be a non-empty value"
 msgstr "必须为非空值"
 
-#: kpi/serializers/v2/export_task.py:185
+#: kpi/serializers/v2/export_task.py:186
 msgid "For this asset must be either {}"
 msgstr "对于此资源必须为这其中一种{}"
 
-#: kpi/serializers/v2/export_task.py:197 kpi/serializers/v2/export_task.py:261
+#: kpi/serializers/v2/export_task.py:198 kpi/serializers/v2/export_task.py:262
 msgid "Must be either {}"
 msgstr "必须为这其中之一 {}"
 
-#: kpi/serializers/v2/export_task.py:207
+#: kpi/serializers/v2/export_task.py:208
 msgid "The asset must be deployed."
 msgstr "必须部署资源。"
 
-#: kpi/serializers/v2/export_task.py:224
+#: kpi/serializers/v2/export_task.py:225
 msgid "The export name must be a string."
 msgstr "导出名称必须为字符串。"
 
@@ -3395,7 +3512,7 @@ msgstr "Opera下载页面"
 msgid "Opera"
 msgstr "Opera"
 
-#: kpi/tests/test_registration.py:71
+#: kpi/tests/test_registration.py:73
 msgid "This email domain is not allowed to create an account"
 msgstr "该电子邮件域不允许创建帐户"
 
@@ -3428,7 +3545,6 @@ msgid ""
 msgstr "KoBoCAT 数据库最初由 KPI 共享，但 KPI 表格并未从该共享数据库复制至新的仅包含 KPI 的数据库。"
 
 #: kpi/views/current_user.py:86
-#| msgid "Invalid token."
 msgid "Invalid confirmation"
 msgstr "确认无效"
 
@@ -3469,12 +3585,6 @@ msgstr "转换过程中出现错误"
 msgid "Conversion is not supported for {}"
 msgstr "{}不支持转换"
 
-#: kpi/views/v2/data.py:679
+#: kpi/views/v2/data.py:853
 msgid "A positive integer is required"
 msgstr "须填一个正整数"
-
-#~ msgid "User"
-#~ msgstr "Username"
-
-#~ msgid "Username"
-#~ msgstr "Username"
