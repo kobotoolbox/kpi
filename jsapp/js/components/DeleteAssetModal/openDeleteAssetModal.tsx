@@ -1,6 +1,7 @@
 import { modals } from '@mantine/modals'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
+import { generateUuid } from '#/utils'
 import { DeleteAssetModal } from './DeleteAssetModal'
 
 export function openDeleteAssetModal(
@@ -8,9 +9,10 @@ export function openDeleteAssetModal(
   name: string,
   onDeleted?: (deletedAssetUid: string) => void,
 ) {
-  let modalId = ''
+  const modalId = `delete-asset-${generateUuid()}`
 
-  modalId = modals.open({
+  modals.open({
+    modalId,
     title: t('Delete ##ASSET_TYPE## "##NAME##"')
       .replace('##ASSET_TYPE##', ASSET_TYPES[asset.asset_type].label)
       .replace('##NAME##', name),

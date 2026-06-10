@@ -1,4 +1,4 @@
-import React from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 
 import { Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
@@ -16,30 +16,30 @@ export interface DeleteAssetModalProps {
   onRequestClose: () => void
 }
 
-export function DeleteAssetModal(props: DeleteAssetModalProps) {
-  const assetTypeLabel = ASSET_TYPES[props.asset.asset_type].label
-  const [isDataChecked, setIsDataChecked] = React.useState(false)
-  const [isFormChecked, setIsFormChecked] = React.useState(false)
-  const [isRecoverChecked, setIsRecoverChecked] = React.useState(false)
-  const [isConfirmDeletePending, setIsConfirmDeletePending] = React.useState(false)
+export function DeleteAssetModal({ asset, name, onDeleted, modalId, onRequestClose }: DeleteAssetModalProps) {
+  const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
+  const [isDataChecked, setIsDataChecked] = useState(false)
+  const [isFormChecked, setIsFormChecked] = useState(false)
+  const [isRecoverChecked, setIsRecoverChecked] = useState(false)
+  const [isConfirmDeletePending, setIsConfirmDeletePending] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     modals.updateModal({
-      modalId: props.modalId,
+      modalId,
       closeOnEscape: !isConfirmDeletePending,
       closeOnClickOutside: !isConfirmDeletePending,
     })
-  }, [isConfirmDeletePending, props.modalId])
+  }, [isConfirmDeletePending, modalId])
 
   function onConfirmDelete() {
     setIsConfirmDeletePending(true)
 
     deleteAsset(
-      props.asset,
-      props.name,
+      asset,
+      name,
       (deletedAssetUid: string) => {
-        props.onRequestClose()
-        props.onDeleted?.(deletedAssetUid)
+        onRequestClose()
+        onDeleted?.(deletedAssetUid)
       },
       () => {
         setIsConfirmDeletePending(false)
@@ -47,13 +47,13 @@ export function DeleteAssetModal(props: DeleteAssetModalProps) {
     )
   }
 
-  const isDeployed = props.asset.has_deployment
-  const shouldConfirmDataDeletion = isDeployed && props.asset.deployment__submission_count !== 0
+  const isDeployed = asset.has_deployment
+  const shouldConfirmDataDeletion = isDeployed && asset.deployment__submission_count !== 0
   const shouldRequireConfirmation = isDeployed
   const isConfirmDisabled =
     shouldRequireConfirmation && ((shouldConfirmDataDeletion && !isDataChecked) || !isFormChecked || !isRecoverChecked)
 
-  let promptContent: React.ReactNode
+  let promptContent: ReactNode
 
   if (isDeployed) {
     promptContent = (
@@ -83,7 +83,7 @@ export function DeleteAssetModal(props: DeleteAssetModalProps) {
         </strong>
       </>
     )
-  } else if (props.asset.asset_type !== ASSET_TYPES.survey.id) {
+  } else if (asset.asset_type !== ASSET_TYPES.survey.id) {
     promptContent = <Text>{t('You are about to permanently delete this item from your library.')}</Text>
   } else {
     promptContent = <Text>{t('You are about to permanently delete this draft.')}</Text>
@@ -94,7 +94,7 @@ export function DeleteAssetModal(props: DeleteAssetModalProps) {
       {promptContent}
 
       <Group justify='flex-end' mt='lg'>
-        <ButtonNew variant='light' size='md' onClick={props.onRequestClose} disabled={isConfirmDeletePending}>
+        <ButtonNew variant='light' size='md' onClick={onRequestClose} disabled={isConfirmDeletePending}>
           {t('Cancel')}
         </ButtonNew>
         <ButtonNew
