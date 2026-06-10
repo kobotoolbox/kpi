@@ -23,6 +23,7 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
@@ -150,6 +151,38 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions_submitted_by_anotheruser = submissions[4:6]
         self.submissions = submissions
 
+    def _create_other_project_with_submissions(self):
+        """
+        Create a second deployed project owned by `anotheruser` with its own
+        submissions and return the list of its PostgreSQL `Instance` ids.
+        """
+        content_source_asset = Asset.objects.get(id=1)
+        other_asset = Asset.objects.create(
+            content=content_source_asset.content,
+            owner=self.anotheruser,
+            asset_type='survey',
+        )
+        other_asset.deploy(backend='mock', active=True)
+        v_uid = other_asset.latest_deployed_version.uid
+        submissions = []
+        for i in range(2):
+            uuid_ = uuid.uuid4()
+            submissions.append(
+                {
+                    '__version__': v_uid,
+                    'q1': 'foreign',
+                    'meta/instanceID': f'uuid:{uuid_}',
+                    '_uuid': str(uuid_),
+                    '_submitted_by': 'anotheruser',
+                }
+            )
+        other_asset.deployment.mock_submissions(submissions)
+        return list(
+            Instance.objects.filter(
+                xform__kpi_asset_uid=other_asset.uid
+            ).values_list('id', flat=True)
+        )
+
 
 class BulkDeleteSubmissionsApiTests(
     SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase
@@ -243,6 +276,60 @@ class BulkDeleteSubmissionsApiTests(
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
+
+    def test_cannot_delete_submissions_of_another_project(self):
+        """
+        someuser owns `self.asset`. They must not be able to delete the
+        submissions of another project by passing foreign ids to their own
+        project bulk-delete endpoint. The request is rejected (400) and the
+        foreign data is left untouched.
+        """
+        foreign_ids = self._create_other_project_with_submissions()
+        assert len(foreign_ids) == 2
+
+        self.client.force_login(self.someuser)
+        data = {'payload': {'submission_ids': foreign_ids}}
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # The foreign submissions must still exist
+        assert (
+            Instance.objects.filter(id__in=foreign_ids).count() == len(foreign_ids)
+        )
+
+    def test_delete_submissions_rejects_whole_batch_if_one_id_is_foreign(self):
+        """
+        A batch mixing someuser's own ids with a foreign id must be rejected
+        entirely (strict): none of the submissions — own or foreign — are
+        deleted.
+        """
+        foreign_ids = self._create_other_project_with_submissions()
+        own_ids = list(
+            Instance.objects.filter(
+                xform__kpi_asset_uid=self.asset.uid
+            ).values_list('id', flat=True)
+        )
+        assert own_ids and foreign_ids
+
+        self.client.force_login(self.someuser)
+        data = {'payload': {'submission_ids': own_ids[:1] + foreign_ids[:1]}}
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Nothing was deleted: both the own and the foreign submissions remain
+        assert Instance.objects.filter(id__in=own_ids).count() == len(own_ids)
+        assert (
+            Instance.objects.filter(id__in=foreign_ids).count() == len(foreign_ids)
+        )
+
+        # No phantom DELETE_SUBMISSION audit log entries for the rejected batch
+        assert not ProjectHistoryLog.objects.filter(
+            object_id=self.asset.id, action=AuditAction.DELETE_SUBMISSION
+        ).exists()
 
     def test_delete_all_allowed_submissions_with_partial_perms_as_anotheruser(self):
         """
@@ -3085,6 +3172,31 @@ class SubmissionValidationStatusesApiTests(
             uid='validation_status_not_approved', username='someuser'
         )
 
+    def test_cannot_set_validation_statuses_of_another_project(self):
+        """
+        someuser must not be able to set the validation status of another
+        project's submissions by passing foreign ids to their own project
+        endpoint. The whole batch is rejected (400).
+        """
+        foreign_ids = self._create_other_project_with_submissions()
+        assert len(foreign_ids) == 2
+
+        self.client.force_login(self.someuser)
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'submission_ids': foreign_ids,
+            }
+        }
+        response = self.client.patch(
+            self.validation_statuses_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # The foreign submissions must not have been updated
+        for instance in Instance.objects.filter(id__in=foreign_ids):
+            assert instance.validation_status in ({}, None)
+
     def test_delete_all_statuses_as_owner(self):
         """
         someuser is the owner of the project.
@@ -3100,7 +3212,7 @@ class SubmissionValidationStatusesApiTests(
         someuser is the owner of the project.
         someuser can bulk delete the status of some of their submissions.
         """
-        submission_id = 1
+        submission_id = self.submissions_submitted_by_someuser[0]['_id']
         data = {
             'payload': {
                 'validation_status.uid': None,
@@ -3241,7 +3353,7 @@ class SubmissionValidationStatusesApiTests(
         someuser is the owner of the project.
         someuser can edit some validation statuses at once.
         """
-        submission_id = 1
+        submission_id = self.submissions_submitted_by_someuser[0]['_id']
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
