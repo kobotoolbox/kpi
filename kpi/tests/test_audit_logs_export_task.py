@@ -130,6 +130,7 @@ class AccessLogExportTaskTests(BaseAccessLogTestCase, LookbackTestMixin):
         )
 
     def test_csv_content_structure(self):
+        now = timezone.now()
         log = AccessLog.objects.create(
             user=self.user,
             metadata={
@@ -140,7 +141,7 @@ class AccessLogExportTaskTests(BaseAccessLogTestCase, LookbackTestMixin):
                 'initial_user_uid': 'initial_superuser_uid',
                 'authorized_app_name': 'test_app',
             },
-            date_created='2024-11-05T12:00:00Z',
+            date_created=now,
         )
         task = self.create_export_task(self.superuser)
         task.run()
