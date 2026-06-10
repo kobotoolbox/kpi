@@ -1,14 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import type { DecoratorFunction } from '@storybook/types'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import { expect, waitFor, within } from 'storybook/test'
 import assetsMock from '#/endpoints/assets.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import RequireAuth from '#/router/requireAuth'
+import { RequireOrg } from '#/router/RequireOrg'
 import DeleteAccountBanner from './DeleteAccountBanner'
-
-const RequireAuthDecorator: DecoratorFunction = (Story) => <RequireAuth>{Story()}</RequireAuth>
 
 const meta: Meta<typeof DeleteAccountBanner> = {
   title: 'Components/DeleteAccountBanner',
@@ -23,7 +20,15 @@ const meta: Meta<typeof DeleteAccountBanner> = {
     },
     a11y: { test: 'todo' },
   },
-  decorators: [RequireAuthDecorator, withRouter, queryClientDecorator],
+  decorators: [
+    (Story) => (
+      <RequireOrg>
+        <Story />
+      </RequireOrg>
+    ),
+    withRouter,
+    queryClientDecorator,
+  ],
 }
 
 export default meta
