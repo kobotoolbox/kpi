@@ -369,7 +369,7 @@ CONSTANCE_CONFIG = {
         (
             'Google Cloud region for ASR/MT data residency. Use `US` for '
             'Speech-to-Text location `us` and Translation location '
-            '`us-central1`; use `EU` for Speech-to-Text location `eu` and '
+            '`us-west1`; use `EU` for Speech-to-Text location `eu` and '
             'Translation location `europe-west1`.'
         ),
         'google_region_choice',
