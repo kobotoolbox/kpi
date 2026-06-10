@@ -286,13 +286,15 @@ class BulkActionViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+        skipped_uuids = instance.skipped_uuids
 
         # Re-fetch the instance to ensure all related data is included
         # (e.g. for response serialization)
         instance = self.get_queryset().get(pk=instance.pk)
         create_bulk_action_history_log(request, instance)
-        response_serializer = BulkActionResponseSerializer(instance)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        response_data = BulkActionResponseSerializer(instance).data
+        response_data['skipped_uuids'] = skipped_uuids
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
