@@ -62,7 +62,10 @@ const getFilterOptions = async (assetUid: string): Promise<LabelValuePair[]> => 
   })
 
   return filterOptions.actions
-    .map((key) => AUDIT_ACTION_TYPES[key])
+    .map((key) => AUDIT_ACTION_TYPES[key as keyof typeof AUDIT_ACTION_TYPES])
+    .filter((auditAction): auditAction is (typeof AUDIT_ACTION_TYPES)[keyof typeof AUDIT_ACTION_TYPES] =>
+      Boolean(auditAction),
+    )
     .filter((auditAction) => !HIDDEN_AUDIT_ACTIONS.includes(auditAction.name))
     .sort((a, b) => a.order - b.order)
     .map((auditAction) => {
