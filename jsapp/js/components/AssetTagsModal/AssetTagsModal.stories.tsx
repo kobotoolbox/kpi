@@ -98,6 +98,12 @@ export const UpdateTagsFlow: Story = {
       await waitFor(async () => {
         await expect(canvas.getByRole('dialog', { name: 'Edit tags' })).toBeInTheDocument()
       })
+
+      // Wait for the session store to load and the form to become interactive.
+      // The modal shows a loading spinner until sessionStore.isInitialLoadComplete is true.
+      await waitFor(async () => {
+        await expect(canvas.getByRole('textbox')).toBeInTheDocument()
+      })
     })
 
     await step('Submit new tags', async () => {
@@ -106,9 +112,13 @@ export const UpdateTagsFlow: Story = {
       await userEvent.type(tagsInput, 'gamma{enter}')
       await userEvent.click(canvas.getByRole('button', { name: 'Update' }))
 
-      await waitFor(async () => {
-        await expect(canvas.queryByRole('dialog', { name: 'Edit tags' })).not.toBeInTheDocument()
-      })
+      // Wait for the modal to close after the successful PATCH request
+      await waitFor(
+        async () => {
+          await expect(canvas.queryByRole('dialog', { name: 'Edit tags' })).not.toBeInTheDocument()
+        },
+        { timeout: 3000 },
+      )
     })
 
     await step('Verify payload', async () => {
