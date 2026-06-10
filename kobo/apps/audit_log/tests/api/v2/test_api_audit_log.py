@@ -52,7 +52,7 @@ class LookbackTestMixin:
         return {}
 
     @override_settings(ACCESS_LOG_LIFESPAN=60, PROJECT_HISTORY_LOG_LIFESPAN=60)
-    def test_results_limited_by_subscription_date(self):
+    def test_results_limited_by_lookback_days(self):
         if settings.STRIPE_ENABLED:
             self.create_plan_for_user(self.user, lookback_days=60)
         today = timezone.now()
@@ -69,9 +69,6 @@ class LookbackTestMixin:
         as_str = longer_out_of_range_date.date().strftime('%Y-%m-%d')
         response = self.client.get(f'{self.url}?q=date_created__gt:{as_str}')
         self.assertEqual(len(response.data['results']), 1)
-
-
-
 
 
 class ProjectHistoryLogTestCaseMixin:

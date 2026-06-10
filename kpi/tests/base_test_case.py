@@ -153,12 +153,14 @@ class BaseAuditLogTestCase(BaseTestCase):
             self.url = reverse(self._get_endpoint(self.get_endpoint_basename()))
 
     def login_user(self, username, password):
-        # always skip creating the access logs for logins so we have full control over the logs in the test db
+        # always skip creating the access logs for logins
+        # so we have full control over the logs in the test db
         with skip_login_access_log():
             self.client.login(username=username, password=password)
 
     def force_login_user(self, user):
-        # always skip creating the access logs for logins so we have full control over the logs in the test db
+        # always skip creating the access logs for logins so we have
+        # full control over the logs in the test db
         with skip_login_access_log():
             self.client.force_login(user)
 

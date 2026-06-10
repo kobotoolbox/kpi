@@ -10,8 +10,9 @@ def skip_login_access_log():
     """
     Context manager for skipping the creation of an access log on login
 
-    Disconnects the method that creates access logs from the user_logged_in signal within the contextmanager block.
-    Useful when you want full control over the audit logs produced in a test.
+    Disconnects the method that creates access logs from the user_logged_in signal
+    within the contextmanager block. Useful when you want full control over the audit
+    logs produced in a test.
     """
     user_logged_in.disconnect(create_access_log)
     yield
