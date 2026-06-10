@@ -335,7 +335,8 @@ class BulkActionCreateSerializer(serializers.Serializer):
             return bulk_action
         except IntegrityError as err:
             raise serializers.ValidationError(
-                'One or more submissions already have an active matching bulk action.'
+                'One or more submissions are already processed or currently '
+                'being processed.'
             ) from err
 
     def _ensure_question_advanced_feature(

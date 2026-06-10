@@ -48,10 +48,13 @@ AdvancedFeaturePostRequest = inline_serializer_class(
 )
 
 
+BULK_ACTION_STATUS_CHOICES = ['pending', 'in_progress', 'complete', 'cancelled']
+
+
 class BulkActionStatusField(serializers.ChoiceField):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            choices=['pending', 'in_progress', 'complete', 'cancelled'],
+            choices=BULK_ACTION_STATUS_CHOICES,
             *args,
             **kwargs,
         )
@@ -125,6 +128,14 @@ BulkActionResponse = inline_serializer_class(
         'date_created': serializers.DateTimeField(),
         'date_modified': serializers.DateTimeField(),
         'cancelled_by': BulkActionUserResponse(required=False, allow_null=True),
+    },
+)
+
+BulkActionCreateResponse = inline_serializer_class(
+    name='BulkActionCreateResponse',
+    fields={
+        **BulkActionResponse().get_fields(),
+        'skipped_uuids': serializers.ListField(child=serializers.CharField()),
     },
 )
 
