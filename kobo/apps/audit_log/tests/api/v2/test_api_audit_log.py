@@ -667,6 +667,14 @@ class ApiProjectHistoryLogsTestCase(
         self.asset.assign_perm(user_obj=self.user, perm=PERM_MANAGE_ASSET)
         self.client.force_login(self.user)
 
+    def get_baker_defaults(self):
+        return {
+            'user': self.user,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'metadata': {**self.default_metadata, 'asset_uid': self.asset.uid},
+            'object_id': self.asset.uid,
+        }
+
     def test_list_without_permissions_returns_forbidden(self):
         user2 = User.objects.get(username='anotheruser')
         self.client.force_login(user2)
@@ -784,6 +792,19 @@ class ApiProjectHistoryLogsTestCase(
 class ApiAllProjectHistoryLogsTestCase(
     BaseProjectHistoryLogTestCase, ProjectHistoryLogTestCaseMixin, LookbackTestMixin
 ):
+
+    def get_baker_defaults(self):
+        return {
+            'user': self.user,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'metadata': {
+                'asset_uid': self.asset.uid,
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'log_subtype': 'project',
+                'project_owner': 'someuser',
+            },
+        }
 
     def get_endpoint_basename(self):
         return 'all-project-history-logs-list'
