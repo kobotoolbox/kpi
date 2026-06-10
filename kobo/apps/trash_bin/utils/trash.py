@@ -375,7 +375,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             Attachment,
             'attachment_uid',
             'empty_attachment',
-            f'{DELETE_ATTACHMENT_STR_PREFIX} ({{attachment_uid}}) {{attachment_basename}} ',  # noqa E501
+            f'{DELETE_ATTACHMENT_STR_PREFIX} ({{attachment_uid}}) {{attachment_basename}}',  # noqa E501
         )
 
     raise TrashNotImplementedError
