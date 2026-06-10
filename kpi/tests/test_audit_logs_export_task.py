@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.test import override_settings
 from django.utils import timezone
 from model_bakery import baker
 
@@ -43,6 +44,7 @@ class LookbackTestMixin:
     def get_default_export_task_kwargs(self):
         return {}
 
+    @override_settings(PROJECT_HISTORY_LOG_LIFESPAN=60, ACCESS_LOG_LIFESPAN=60)
     def test_export_respects_lookback_limit(self):
         if settings.STRIPE_ENABLED:
             self.create_plan_for_user(self.user, lookback_days=60)
