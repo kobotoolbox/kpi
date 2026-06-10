@@ -1,13 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from django.utils import timezone
+from model_bakery import baker
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AccessLog, AuditLog, AuditType, ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
+from kobo.apps.audit_log.utils import get_max_lookback_days
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
@@ -23,6 +27,45 @@ from kpi.models.import_export_task import (
 )
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+
+
+class LookbackTestMixin:
+
+    def create_plan_for_user(self, user, lookback_days):
+        from kobo.apps.stripe.tests.utils import generate_plan_subscription
+
+        product_metadata = {
+            'mmo_enabled': 'true',
+            'plan_type': 'enterprise',
+            'asr_seconds_limit': 1,
+            'mt_characters_limit': 1,
+            'submission_limit': 1,
+            'storage_bytes_limit': 1,
+            'log_lookback_days_limit': lookback_days,
+        }
+        return generate_plan_subscription(user.organization, product_metadata)
+
+    def get_baker_defaults(self):
+        return {}
+
+    @override_settings(ACCESS_LOG_LIFESPAN=60, PROJECT_HISTORY_LOG_LIFESPAN=60)
+    def test_results_limited_by_subscription_date(self):
+        if settings.STRIPE_ENABLED:
+            self.create_plan_for_user(self.user, lookback_days=60)
+        today = timezone.now()
+        baker_defaults = self.get_baker_defaults()
+        out_of_range_date = today - timedelta(days=70)
+        baker.make(self.model, date_created=out_of_range_date, **baker_defaults)
+        baker.make(self.model, date_created=today, **baker_defaults)
+        with skip_login_access_log():
+            self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(len(response.data['results']), 1)
+        # only allow maximum lookback even if the search filter asks for more
+        longer_out_of_range_date = timezone.now() - timedelta(days=160)
+        as_str = longer_out_of_range_date.date().strftime('%Y-%m-%d')
+        response = self.client.get(f'{self.url}?q=date_created__gt:{as_str}')
+        self.assertEqual(len(response.data['results']), 1)
 
 
 class BaseAuditLogTestCase(BaseTestCase):
@@ -52,6 +95,8 @@ class ProjectHistoryLogTestCaseMixin:
     """
     Common tests for /project-history-logs and asset/<uid>/history
     """
+
+    model = ProjectHistoryLog
 
     def test_results_have_expected_fields(self):
         now = timezone.now()
@@ -198,7 +243,13 @@ class ProjectHistoryLogTestCaseMixin:
         self.assertIn(task.status, ['created', 'processing', 'complete'])
 
 
-class ApiAuditLogTestCase(BaseAuditLogTestCase):
+class ApiAuditLogTestCase(BaseAuditLogTestCase, LookbackTestMixin):
+
+    model = AuditLog
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.get(username='adminuser')
 
     def get_endpoint_basename(self):
         return 'audit-log-list'
@@ -316,7 +367,20 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         assert response.data['results'][0]['user'] is None
 
 
-class ApiAccessLogTestCase(BaseAuditLogTestCase):
+class ApiAccessLogTestCase(BaseAuditLogTestCase, LookbackTestMixin):
+
+    model = AccessLog
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.get(username='someuser')
+
+    def get_baker_defaults(self):
+        return {
+            'user': self.user,
+            'log_type': AuditType.ACCESS,
+            'user_uid': self.user.extra_details.uid,
+        }
 
     def get_endpoint_basename(self):
         return 'access-log-list'
@@ -371,22 +435,24 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         # the logic of grouping submissions is tested more thoroughly in test_models,
         # this is just to ensure that we're using the grouping query
         user = User.objects.get(username='someuser')
+        min_date = timezone.now() - timedelta(days=get_max_lookback_days(user))
+        min_date_1_30_am = min_date.replace(
+            hour=1, minute=30, second=25, microsecond=123456
+        )
+        min_date_1_45_am = min_date.replace(
+            hour=1, minute=45, second=25, microsecond=123456
+        )
+
         self.force_login_user(user)
-        jan_1_1_30_am = datetime.fromisoformat(
-            '2024-01-01T01:30:25.123456+00:00'
-        )
-        jan_1_1_45_am = datetime.fromisoformat(
-            '2024-01-01T01:45:25.123456+00:00'
+        AccessLog.objects.create(
+            user=user,
+            metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
+            date_created=min_date_1_30_am,
         )
         AccessLog.objects.create(
             user=user,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_30_am,
-        )
-        AccessLog.objects.create(
-            user=user,
-            metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_45_am,
+            date_created=min_date_1_45_am,
         )
         response = self.client.get(self.url)
         # should return 1 submission group with 2 submissions
@@ -399,7 +465,16 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         self.assertEqual(result['count'], 2)
 
 
-class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
+class AllApiAccessLogsTestCase(BaseAuditLogTestCase, LookbackTestMixin):
+
+    model = AccessLog
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.get(username='adminuser')
+
+    def get_baker_defaults(self):
+        return {'log_type': AuditType.ACCESS}
 
     def get_endpoint_basename(self):
         return 'all-access-logs-list'
@@ -439,20 +514,27 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         admin = User.objects.get(username='adminuser')
 
         self.force_login_user(admin)
-        jan_1_1_30_am = datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
-        jan_1_1_45_am = datetime.fromisoformat('2024-01-01T01:45:25.123456+00:00')
-        jan_1_1_50_am = datetime.fromisoformat('2024-01-01T01:50:25.123456+00:00')
+        min_date = timezone.now() - timedelta(days=get_max_lookback_days(admin))
+        min_date_1_30_am = min_date.replace(
+            hour=1, minute=30, second=25, microsecond=123456
+        )
+        min_date_1_45_am = min_date.replace(
+            hour=1, minute=45, second=25, microsecond=123456
+        )
+        min_date_1_50_am = min_date.replace(
+            hour=1, minute=50, second=25, microsecond=123456
+        )
 
         # create 2 submissions for user1
         AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_30_am,
+            date_created=min_date_1_30_am,
         )
         AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_45_am,
+            date_created=min_date_1_45_am,
         )
 
         # 2 submissions for user2, after the ones for user1 so we know the expected
@@ -460,12 +542,12 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         AccessLog.objects.create(
             user=user2,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_45_am,
+            date_created=min_date_1_45_am,
         )
         AccessLog.objects.create(
             user=user2,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_50_am,
+            date_created=min_date_1_50_am,
         )
         response = self.client.get(self.url)
         # should return 2 submission group with 2 submissions each
@@ -512,17 +594,22 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
 
         # create two submissions that will be grouped together
         # these are the only two logs for user admin
-        jan_1_1_30_am = datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
-        jan_1_1_45_am = datetime.fromisoformat('2024-01-01T01:45:25.123456+00:00')
-        AccessLog.objects.create(
-            user=user1,
-            metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_30_am,
+        min_date = timezone.now() - timedelta(days=get_max_lookback_days(admin))
+        min_date_1_30_am = min_date.replace(
+            hour=1, minute=30, second=25, microsecond=123456
+        )
+        min_date_1_45_am = min_date.replace(
+            hour=1, minute=45, second=25, microsecond=123456
         )
         AccessLog.objects.create(
             user=user1,
             metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
-            date_created=jan_1_1_45_am,
+            date_created=min_date_1_30_am,
+        )
+        AccessLog.objects.create(
+            user=user1,
+            metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
+            date_created=min_date_1_45_am,
         )
 
         # create an extra log for user2 so we know it gets filtered out
@@ -602,7 +689,9 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         )
 
 
-class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin):
+class ApiProjectHistoryLogsTestCase(
+    BaseTestCase, ProjectHistoryLogTestCaseMixin, LookbackTestMixin
+):
 
     fixtures = ['test_data']
 
@@ -619,6 +708,14 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
             'project_owner': 'someuser',
         }
         self.client.force_login(self.user)
+
+    def get_baker_defaults(self):
+        return {
+            'user': self.user,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'metadata': {**self.default_metadata, 'asset_uid': self.asset.uid},
+            'object_id': self.asset.uid,
+        }
 
     def test_list_without_permissions_returns_forbidden(self):
         user2 = User.objects.get(username='anotheruser')
@@ -637,6 +734,30 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
         self.asset.assign_perm(user_obj=user2, perm=PERM_MANAGE_ASSET)
         response = self.client.get(f'{self.url}actions/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @override_settings(ACCESS_LOG_LIFESPAN=60, PROJECT_HISTORY_LOG_LIFESPAN=60)
+    def test_list_actions_filters_by_max_lookback(self):
+        if settings.STRIPE_ENABLED:
+            self.create_plan_for_user(self.user, lookback_days=60)
+        today = timezone.now()
+        out_of_range_date = today - timedelta(days=70)
+
+        ProjectHistoryLog.objects.create(
+            user=self.user,
+            object_id=self.asset.id,
+            action=AuditAction.DELETE,
+            metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
+            date_created=out_of_range_date,
+        )
+        ProjectHistoryLog.objects.create(
+            user=self.user,
+            object_id=self.asset.id,
+            action=AuditAction.MODIFY_SHARING,
+            metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
+        )
+        response = self.client.get(f'{self.url}actions/')
+        # older DELETE action should not show up
+        assert response.data['actions'] == [AuditAction.MODIFY_SHARING]
 
     def test_show_project_history_logs_filters_to_project(self):
         asset2 = Asset.objects.get(pk=2)
@@ -711,8 +832,21 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
 
 
 class ApiAllProjectHistoryLogsTestCase(
-    BaseAuditLogTestCase, ProjectHistoryLogTestCaseMixin
+    BaseAuditLogTestCase, ProjectHistoryLogTestCaseMixin, LookbackTestMixin
 ):
+
+    def get_baker_defaults(self):
+        return {
+            'user': self.user,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'metadata': {
+                'asset_uid': self.asset.uid,
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'log_subtype': 'project',
+                'project_owner': 'someuser',
+            },
+        }
 
     def get_endpoint_basename(self):
         return 'all-project-history-logs-list'
