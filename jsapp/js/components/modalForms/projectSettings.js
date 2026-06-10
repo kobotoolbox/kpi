@@ -11,6 +11,7 @@ import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
+import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -26,7 +27,6 @@ import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH, PROJECT_SETTINGS_C
 import { dataInterface } from '#/dataInterface'
 import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import envStore from '#/envStore'
-import { DeleteAssetPromptHookBridge } from '#/hooks/useDeleteAssetPrompt.hook'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { router, withRouter } from '#/router/legacy'
@@ -300,11 +300,7 @@ class ProjectSettings extends React.Component {
   deleteProject(evt) {
     evt.preventDefault()
 
-    this.openDeleteAssetPrompt?.(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
-  }
-
-  onDeleteAssetPromptReady(openDeleteAssetPrompt) {
-    this.openDeleteAssetPrompt = openDeleteAssetPrompt
+    openDeleteAssetModal(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
   }
 
   // archive flow
@@ -1164,12 +1160,7 @@ class ProjectSettings extends React.Component {
         throw new Error(`Unknown step: ${this.state.currentStep}!`)
     }
 
-    return (
-      <>
-        {content}
-        <DeleteAssetPromptHookBridge onReady={this.onDeleteAssetPromptReady} />
-      </>
-    )
+    return <>{content}</>
   }
 }
 

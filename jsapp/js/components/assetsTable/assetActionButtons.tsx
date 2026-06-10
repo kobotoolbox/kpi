@@ -29,6 +29,7 @@ import {
 } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import bem from '#/bem'
+import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
 import Button from '#/components/common/button'
 import type { ButtonType } from '#/components/common/button'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
@@ -36,7 +37,6 @@ import type { ManagedCollectionsStoreData } from '#/components/library/managedCo
 import { userCan } from '#/components/permissions/utils'
 import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
 import type { AssetDownloads, AssetResponse } from '#/dataInterface'
-import { DeleteAssetPromptHookBridge, type OpenDeleteAssetPrompt } from '#/hooks/useDeleteAssetPrompt.hook'
 import type { IconName } from '#/k-icons'
 import PopoverMenu from '#/popoverMenu'
 import { withRouter } from '#/router/legacy'
@@ -60,7 +60,6 @@ interface AssetActionButtonsState {
 
 class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetActionButtonsState> {
   private unlisteners: Function[] = []
-  private openDeleteAssetPrompt?: OpenDeleteAssetPrompt
 
   hidePopoverDebounced = debounce(() => {
     if (this.state.isPopoverVisible) {
@@ -143,15 +142,11 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   delete() {
-    this.openDeleteAssetPrompt?.(
+    openDeleteAssetModal(
       this.props.asset,
       assetUtils.getAssetDisplayName(this.props.asset).final,
       this.onDeleteComplete.bind(this, this.props.asset.uid),
     )
-  }
-
-  onDeleteAssetPromptReady(openDeleteAssetPrompt: OpenDeleteAssetPrompt) {
-    this.openDeleteAssetPrompt = openDeleteAssetPrompt
   }
 
   /**
@@ -491,8 +486,6 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
         )}
 
         {this.renderMoreActions()}
-
-        <DeleteAssetPromptHookBridge onReady={this.onDeleteAssetPromptReady} />
       </menu>
     )
   }
