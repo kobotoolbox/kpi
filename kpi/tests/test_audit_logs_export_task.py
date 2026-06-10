@@ -227,6 +227,7 @@ class ProjectHistoryLogExportTaskTests(
         asset = Asset.objects.get(id=1)
         user = User.objects.get(username='someuser')
         asset.assign_perm(user_obj=user, perm=PERM_MANAGE_ASSET)
+        now = timezone.now()
         log = ProjectHistoryLog.objects.create(
             user=user,
             metadata={
@@ -239,8 +240,8 @@ class ProjectHistoryLogExportTaskTests(
                 },
                 'project_owner': 'someuser',
             },
-            date_created='2024-11-05T12:00:00Z',
             action=AuditAction.ADD_SUBMISSION,
+            date_created=now,
             object_id=asset.id,
         )
         task = self.create_export_task(user, asset.uid)
@@ -273,6 +274,10 @@ class ProjectHistoryLogExportTaskTests(
             self.assertEqual(first_row['source'], 'test_source')
             self.assertEqual(first_row['ip_address'], '127.0.0.1')
             self.assertIsNotNone(first_row['other_details'])
+            self.assertEqual(
+                datetime.strptime(first_row['date_created'], '%Y-%m-%d %H:%M:%S.%f%z'),
+                now,
+            )
 
     def test_export_for_single_asset(self):
         asset = Asset.objects.get(id=1)

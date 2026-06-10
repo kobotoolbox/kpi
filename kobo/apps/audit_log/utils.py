@@ -24,7 +24,6 @@ class SubmissionUpdate:
 
 
 def get_lookback_date(user):
-    user = user
     lookback_days = get_max_lookback_days(user)
     now = timezone.now()
     now_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
