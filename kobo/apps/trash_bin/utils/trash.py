@@ -127,7 +127,7 @@ def move_to_trash(
     max_char = PeriodicTask._meta.get_field('name').max_length
 
     def shorten_name(name):
-        if len(name) < max_char:
+        if len(name) <= max_char:
             return name
         return f'{name[0:max_char-3]}...'
 
