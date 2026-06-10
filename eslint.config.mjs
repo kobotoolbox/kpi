@@ -219,6 +219,11 @@ const tsConfig = {
           },
           {
             name: '@mantine/core',
+            importNames: ['MultiSelect'],
+            message: "Use MultiSelect from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
             importNames: ['Notification'],
             message: "Use Notification from 'jsapp/js/components/common' instead.",
           },
@@ -229,6 +234,11 @@ const tsConfig = {
           },
           {
             name: '@mantine/core',
+            importNames: ['TagsInput'],
+            message: "Use TagsInput from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
             importNames: ['Textarea'],
             message: "Use Textarea from 'jsapp/js/components/common' instead.",
           },
@@ -236,6 +246,10 @@ const tsConfig = {
             name: '@mantine/core',
             importNames: ['TextInput'],
             message: "Use TextInput from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: 'react-dropzone',
+            message: "react-dropzone is deprecated. Use @mantine/dropzone via jsapp/js/components/common/DropzoneNew instead.",
           },
         ],
       },

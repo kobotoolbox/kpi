@@ -95,6 +95,23 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         'endpoint': build_basic_type(OpenApiTypes.BOOL),
                     }
                 ),
+                'bulk_action': build_object_type(
+                    properties={
+                        'uid': GENERIC_STRING_SCHEMA,
+                        'action_id': GENERIC_STRING_SCHEMA,
+                        'type': GENERIC_STRING_SCHEMA,
+                        'status': GENERIC_STRING_SCHEMA,
+                        'question_xpath': GENERIC_STRING_SCHEMA,
+                        'params': GENERIC_OBJECT_SCHEMA,
+                        'created_by': GENERIC_STRING_SCHEMA,
+                        'cancelled_by': GENERIC_STRING_SCHEMA,
+                        'total_count': build_basic_type(OpenApiTypes.INT),
+                        'processed_count': build_basic_type(OpenApiTypes.INT),
+                        'completed_count': build_basic_type(OpenApiTypes.INT),
+                        'failed_count': build_basic_type(OpenApiTypes.INT),
+                        'cancelled_count': build_basic_type(OpenApiTypes.INT),
+                    }
+                ),
                 'name': build_object_type(
                     properties={
                         'new': GENERIC_STRING_SCHEMA,

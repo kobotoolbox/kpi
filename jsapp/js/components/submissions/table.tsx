@@ -19,6 +19,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
 import { isBulkProcessingCellInProgress } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
@@ -97,6 +98,8 @@ const DEFAULT_PAGE_SIZE = 30
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
+  hasActiveBulkActionsCreatedByAnotherUser?: boolean
+  currentUsername?: string
 }
 
 interface DataTableState {
@@ -1331,6 +1334,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       <bem.FormView m={formViewModifiers}>
         <bem.FormView__item m='banner-container'>
           <LimitNotifications />
+          <BulkProcessingBanner
+            assetUid={this.props.asset.uid}
+            currentUsername={this.props.currentUsername}
+            activeBulkActionsCount={this.props.activeBulkActions?.length || 0}
+            hasActiveBulkActionsCreatedByAnotherUser={Boolean(this.props.hasActiveBulkActionsCreatedByAnotherUser)}
+          />
         </bem.FormView__item>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (

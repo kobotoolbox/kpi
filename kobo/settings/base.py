@@ -143,7 +143,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
-    'kobo.apps.openrosa.apps.api',
     'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
@@ -647,16 +646,6 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
-    'PROJECT_HISTORY_LOG_LIFESPAN': (
-        60,
-        'Length of time days to keep project history logs.',
-        'positive_int',
-    ),
-    'ACCESS_LOG_LIFESPAN': (
-        60,
-        'Length of time in days to keep access logs.',
-        'positive_int',
-    ),
     'USE_TEAM_LABEL': (
         True,
         'Use the term "Team" instead of "Organization" when Stripe is not enabled',
@@ -729,8 +718,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
-        'ACCESS_LOG_LIFESPAN',
-        'PROJECT_HISTORY_LOG_LIFESPAN',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
@@ -1265,6 +1252,56 @@ def dj_stripe_request_callback_method():
     pass
 
 
+BULK_ACTION_RATE_LIMITS = {
+    'automatic_google_transcription': {
+        'max_jobs_per_minute': 120,
+    },
+    'automatic_google_translation': {
+        'max_jobs_per_minute': 300,
+    },
+}
+
+# These limits restrict the maximum number of Google Cloud requests per minute
+# across the entire platform. They are intentionally set lower than Google
+# project quotas to leave headroom for window skew, manual retries, and services
+# that share the same Google project outside this process.
+GOOGLE_SERVICE_RATE_LIMITS = {
+    'speech_v2_batch_recognize': {
+        'max_requests': env.int(
+            'GOOGLE_SPEECH_V2_BATCH_RECOGNIZE_MAX_REQUESTS_PER_MINUTE',
+            140,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            2000,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_batch_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_BATCH_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            3000,
+        ),
+        'period_seconds': 60,
+    },
+}
+GOOGLE_SERVICE_QUOTA_RETRY_AFTER = env.int(
+    'GOOGLE_SERVICE_QUOTA_RETRY_AFTER',
+    100,
+)
+
+BULK_ACTION_STATUS_POLL_INTERVAL = env.int(
+    'BULK_ACTION_STATUS_POLL_INTERVAL',
+    30,
+)
+BULK_ACTION_STUCK_THRESHOLD = env.int(
+    'BULK_ACTION_STUCK_THRESHOLD',
+    BULK_ACTION_STATUS_POLL_INTERVAL * 10,
+)
+
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
@@ -1596,6 +1633,11 @@ CELERY_BEAT_SCHEDULE = {
     'mark-zombie-submissions': {
         'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'resume-stuck-subsequence-bulk-actions': {
+        'task': 'kobo.apps.subsequences.tasks.resume_stuck_bulk_actions',
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
@@ -2287,3 +2329,7 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
     'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
 )
+
+# 24 months x 31 days/month = 744 default
+PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
+ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)

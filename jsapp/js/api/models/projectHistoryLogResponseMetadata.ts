@@ -1,4 +1,5 @@
 import type { ProjectHistoryLogResponseMetadataAssetFiles } from './projectHistoryLogResponseMetadataAssetFiles'
+import type { ProjectHistoryLogResponseMetadataBulkAction } from './projectHistoryLogResponseMetadataBulkAction'
 import type { ProjectHistoryLogResponseMetadataHook } from './projectHistoryLogResponseMetadataHook'
 import type { ProjectHistoryLogResponseMetadataName } from './projectHistoryLogResponseMetadataName'
 /**
@@ -33,6 +34,7 @@ export type ProjectHistoryLogResponseMetadata = {
   latest_version_uid?: string
   submission?: ProjectHistoryLogResponseMetadataSubmission
   hook?: ProjectHistoryLogResponseMetadataHook
+  bulk_action?: ProjectHistoryLogResponseMetadataBulkAction
   name?: ProjectHistoryLogResponseMetadataName
   shared_fields?: ProjectHistoryLogResponseMetadataSharedFields
 }

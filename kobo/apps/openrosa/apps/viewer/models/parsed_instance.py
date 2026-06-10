@@ -12,7 +12,7 @@ from pymongo import UpdateOne
 from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
-from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, Note, XForm
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import (
@@ -21,10 +21,8 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     ID,
     META_ROOT_UUID,
     MONGO_STRFTIME,
-    NOTES,
     SUBMISSION_TIME,
     SUBMITTED_BY,
-    TAGS,
     UUID,
     VALIDATION_STATUS,
 )
@@ -310,8 +308,6 @@ class ParsedInstance(models.Model):
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
             SUBMISSION_TIME: self.instance.date_created.strftime(MONGO_STRFTIME),
-            TAGS: list(self.instance.tags.names()),
-            NOTES: self.get_notes(),
             VALIDATION_STATUS: self.instance.get_validation_status(),
             SUBMITTED_BY: self.submitted_by,
         }
@@ -445,24 +441,6 @@ class ParsedInstance(models.Model):
                 )
 
         return success
-
-    def add_note(self, note):
-        note = Note(instance=self.instance, note=note)
-        note.save()
-
-    def remove_note(self, pk):
-        note = self.instance.notes.get(pk=pk)
-        note.delete()
-
-    def get_notes(self):
-        notes = []
-        note_qs = self.instance.notes.values(
-            'id', 'note', 'date_created', 'date_modified')
-        for note in note_qs:
-            note['date_created'] = note['date_created'].strftime(MONGO_STRFTIME)
-            note['date_modified'] = note['date_modified'].strftime(MONGO_STRFTIME)
-            notes.append(note)
-        return notes
 
     @staticmethod
     def bulk_update_attachments(instance_ids: list[int]):

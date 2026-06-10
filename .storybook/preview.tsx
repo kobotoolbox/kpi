@@ -1,9 +1,13 @@
 import '@mantine/core/styles.css'
+// ‼️ import notifications styles after core package styles
+import '@mantine/notifications/styles.css';
+import '@mantine/dropzone/styles.css'
 import '../jsapp/js/fonts'
 import '../jsapp/scss/main.scss'
 import '#/bemComponents'
 import { FeatureFlag } from '../jsapp/js/featureFlags'
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
+import { Notifications } from '@mantine/notifications';
 import type { Preview } from '@storybook/react'
 import * as mswAddon from 'msw-storybook-addon'
 import { useEffect } from 'react'
@@ -45,7 +49,7 @@ window.t = (str) => str
 const preview: Preview = {
   decorators: [
     (Story) => <ColorSchemeWrapper>{Story()}</ColorSchemeWrapper>,
-    (Story) => <MantineProvider theme={themeKobo}>{Story()}</MantineProvider>,
+    (Story) => <MantineProvider theme={themeKobo}><Notifications />{Story()}</MantineProvider>,
   ],
   loaders: [mswAddon.mswLoader],
   tags: ['autodocs'],

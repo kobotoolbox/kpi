@@ -1,8 +1,9 @@
 import hashlib
 import json
 
+from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 from kpi.utils.log import logging
 
@@ -309,6 +310,12 @@ class BulkActionItemStatus(models.TextChoices):
     CANCELLED = 'cancelled'
 
 
+PENDING_OPERATION_MARKER = 'pending'
+
+BULK_ACTION_TYPE_TRANSCRIPTION = 'transcription'
+BULK_ACTION_TYPE_TRANSLATION = 'translation'
+
+
 class SubsequenceBulkAction(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='sba', primary_key=True)
     asset = models.ForeignKey(
@@ -339,6 +346,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         null=True,
         blank=True,
     )
+    progress = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         ordering = ['-date_created']
@@ -457,6 +465,27 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         if should_sync_items:
             self._original_status = self.status
 
+    def start_batch(self) -> 'SubsequenceBulkAction':
+        """
+        Move a pending batch into execution
+
+        The parent status change propagates pending children to in_progress,
+        then the child Celery jobs are queued after the transaction commits so
+        workers never see partially-created bulk action rows.
+        """
+        with transaction.atomic():
+            locked = type(self).objects.select_for_update().get(pk=self.pk)
+            if locked.status != BulkActionStatus.PENDING:
+                self.refresh_from_db()
+                return self
+
+            locked.status = BulkActionStatus.IN_PROGRESS
+            locked.save(update_fields=['status', 'date_modified'])
+            transaction.on_commit(lambda: locked._schedule_batch_tasks())
+
+        self.refresh_from_db()
+        return self
+
     def cancel(self, *, cancelled_by: str | None = None) -> 'SubsequenceBulkAction':
         """
         Cancels the bulk action job and propagates cancellation to all eligible
@@ -479,6 +508,8 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                     service_id__isnull=True,
                 ).exclude(
                     service_id='',
+                ).exclude(
+                    service_id=PENDING_OPERATION_MARKER,
                 )
             )
 
@@ -488,6 +519,15 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 locked.cancelled_by = cancelled_by
                 update_fields.append('cancelled_by')
             locked.save(update_fields=update_fields)
+
+            # Schedule the history log sync inside the atomic block so
+            # that transaction.on_commit() defers it until after the DB
+            # commit. Outside the block there is no open transaction,
+            # causing on_commit to fire synchronously and add latency to
+            # the cancel response.
+            from .audit import sync_bulk_action_history_log
+
+            sync_bulk_action_history_log(locked)
 
         for item in in_progress_items:
             try:
@@ -500,6 +540,123 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
 
         self.refresh_from_db()
         return self
+
+    def _schedule_batch_tasks(self) -> None:
+        """
+        Enqueue one execution task per child item plus parent status polling
+
+        Scheduling happens from transaction.on_commit() callbacks and watchdog
+        tasks. Broker failures must not raise back into the request after the
+        database transaction has already committed, stale in-progress batches
+        are retried by resume_stuck_bulk_actions().
+        """
+        from .tasks import start_bulk_item_job, update_batch_status
+
+        delay_between_jobs = self._get_delay_between_jobs()
+        item_ids = list(
+            self.items.filter(status=BulkActionItemStatus.IN_PROGRESS)
+            .values_list('pk', flat=True)
+        )
+
+        for index, item_id in enumerate(item_ids):
+            countdown = (index * delay_between_jobs) if delay_between_jobs else 0
+            try:
+                start_bulk_item_job.apply_async(
+                    args=(item_id,),
+                    countdown=countdown,
+                )
+            except Exception:
+                logging.exception(
+                    'Failed to schedule bulk action item job for '
+                    f'{self.uid=}, {item_id=}'
+                )
+
+        try:
+            update_batch_status.apply_async(
+                args=(self.pk,),
+                countdown=settings.BULK_ACTION_STATUS_POLL_INTERVAL,
+            )
+        except Exception:
+            logging.exception(
+                f'Failed to schedule bulk action status polling for {self.uid=}'
+            )
+
+    def _get_delay_between_jobs(self) -> float:
+        """
+        Return the per-item enqueue delay required by configured rate limits
+        """
+        config = settings.BULK_ACTION_RATE_LIMITS.get(self.action_id)
+        if not config:
+            return 0
+
+        max_jobs_per_minute = config.get('max_jobs_per_minute', 0)
+        if not max_jobs_per_minute:
+            return 0
+        return 60 / max_jobs_per_minute
+
+    def get_item_status_counts(self) -> dict[str, int]:
+        """
+        Return item counts grouped for bulk-processing activity log metadata
+        """
+        counts = self.items.aggregate(
+            total=Count('pk'),
+            pending=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.PENDING),
+            ),
+            in_progress=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.IN_PROGRESS),
+            ),
+            completed=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.COMPLETE),
+            ),
+            failed=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.FAILED),
+            ),
+            cancelled=Count(
+                'pk',
+                filter=Q(status=BulkActionItemStatus.CANCELLED),
+            ),
+        )
+        return {key: value or 0 for key, value in counts.items()}
+
+    def get_bulk_action_type(self) -> str:
+        if self.action_id == Action.AUTOMATIC_GOOGLE_TRANSCRIPTION:
+            return BULK_ACTION_TYPE_TRANSCRIPTION
+        if self.action_id == Action.AUTOMATIC_GOOGLE_TRANSLATION:
+            return BULK_ACTION_TYPE_TRANSLATION
+        return self.action_id
+
+    def get_history_log_metadata(self) -> dict:
+        """
+        Build the bulk-specific metadata embedded in project history logs
+
+        `processed_count` follows the product requirement: successful, failed,
+        and cancelled submissions are no longer active.
+        """
+        counts = self.get_item_status_counts()
+        processed_count = (
+            counts['completed'] + counts['failed'] + counts['cancelled']
+        )
+        bulk_action_type = self.get_bulk_action_type()
+        return {
+            'uid': self.uid,
+            'action_id': self.action_id,
+            'type': bulk_action_type,
+            'status': self.status,
+            'question_xpath': self.question_xpath,
+            'params': self.params,
+            'created_by': self.created_by,
+            'cancelled_by': self.cancelled_by,
+            'total_count': counts['total'],
+            'processed_count': processed_count,
+            'completed_count': counts['completed'],
+            'failed_count': counts['failed'],
+            'cancelled_count': counts['cancelled'],
+        }
 
 
 class SubsequenceBulkActionItem(AbstractTimeStampedModel):
@@ -524,6 +681,7 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
     )
     hash = models.CharField(max_length=64, db_index=True)
     service_id = models.CharField(max_length=2048, null=True, blank=True)
+    failure_error = models.TextField(null=True, blank=True)
 
     class Meta:
         constraints = [

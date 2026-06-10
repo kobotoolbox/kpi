@@ -28,6 +28,8 @@ ASSET_SETTINGS_SCHEMA = build_object_type(
 
 ASSET_NAME_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
+ASSET_TAG_STRING_SCHEMA = build_basic_type(OpenApiTypes.STR)
+
 ASSET_TYPE_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
 BULK_ACTION_SCHEMA = build_basic_type(OpenApiTypes.STR)
