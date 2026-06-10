@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 
-import { Group, Modal, Stack, Text } from '@mantine/core'
+import { Group, Stack, Text } from '@mantine/core'
 import { deleteAsset } from '#/assetQuickActions'
-import Button from '#/components/common/button'
+import ButtonNew from '#/components/common/ButtonNew'
+import ModalNew from '#/components/common/ModalNew'
 import Checkbox from '#/components/common/checkbox'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
@@ -29,10 +30,10 @@ interface DeleteAssetPromptProps {
 
 function DeleteAssetPrompt(props: DeleteAssetPromptProps) {
   const assetTypeLabel = ASSET_TYPES[props.asset.asset_type].label
-  const [isDataChecked, setIsDataChecked] = React.useState(false)
-  const [isFormChecked, setIsFormChecked] = React.useState(false)
-  const [isRecoverChecked, setIsRecoverChecked] = React.useState(false)
-  const [isConfirmDeletePending, setIsConfirmDeletePending] = React.useState(false)
+  const [isDataChecked, setIsDataChecked] = useState(false)
+  const [isFormChecked, setIsFormChecked] = useState(false)
+  const [isRecoverChecked, setIsRecoverChecked] = useState(false)
+  const [isConfirmDeletePending, setIsConfirmDeletePending] = useState(false)
 
   function onConfirmDelete() {
     setIsConfirmDeletePending(true)
@@ -94,7 +95,7 @@ function DeleteAssetPrompt(props: DeleteAssetPromptProps) {
   }
 
   return (
-    <Modal
+    <ModalNew
       opened={props.isOpen}
       onClose={props.onRequestClose}
       closeOnEscape={!isConfirmDeletePending}
@@ -108,36 +109,33 @@ function DeleteAssetPrompt(props: DeleteAssetPromptProps) {
       <Stack gap='md'>
         {promptContent}
 
-        <Group justify='flex-end'>
-        <Button
-          type='secondary'
-          size='m'
-          label={t('Cancel')}
-          onClick={props.onRequestClose}
-          isDisabled={isConfirmDeletePending}
-        />
-        <Button
-          type='danger'
-          size='m'
-          label={t('Delete')}
-          onClick={onConfirmDelete}
-          isDisabled={isConfirmDisabled}
-          isPending={isConfirmDeletePending}
-        />
+        <Group justify='flex-end' mt='lg'>
+          <ButtonNew variant='light' size='md' onClick={props.onRequestClose} disabled={isConfirmDeletePending}>
+            {t('Cancel')}
+          </ButtonNew>
+          <ButtonNew
+            variant='danger'
+            size='md'
+            onClick={onConfirmDelete}
+            disabled={isConfirmDisabled}
+            loading={isConfirmDeletePending}
+          >
+            {t('Delete')}
+          </ButtonNew>
         </Group>
       </Stack>
-    </Modal>
+    </ModalNew>
   )
 }
 
 export function useDeleteAssetPrompt() {
-  const [promptRequest, setPromptRequest] = React.useState<PromptRequest | null>(null)
+  const [promptRequest, setPromptRequest] = useState<PromptRequest | null>(null)
 
-  const handleClosePrompt = React.useCallback(() => {
+  const handleClosePrompt = useCallback(() => {
     setPromptRequest(null)
   }, [])
 
-  const handleOpenPrompt = React.useCallback<OpenDeleteAssetPrompt>((asset, name, onDeleted) => {
+  const handleOpenPrompt = useCallback<OpenDeleteAssetPrompt>((asset, name, onDeleted) => {
     setPromptRequest({ asset, name, onDeleted })
   }, [])
 
