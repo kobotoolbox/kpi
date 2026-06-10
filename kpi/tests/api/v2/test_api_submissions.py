@@ -22,6 +22,7 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
@@ -325,6 +326,11 @@ class BulkDeleteSubmissionsApiTests(
         assert (
             Instance.objects.filter(id__in=foreign_ids).count() == len(foreign_ids)
         )
+
+        # No phantom DELETE_SUBMISSION audit log entries for the rejected batch
+        assert not ProjectHistoryLog.objects.filter(
+            object_id=self.asset.id, action=AuditAction.DELETE_SUBMISSION
+        ).exists()
 
     def test_delete_all_allowed_submissions_with_partial_perms_as_anotheruser(self):
         """
