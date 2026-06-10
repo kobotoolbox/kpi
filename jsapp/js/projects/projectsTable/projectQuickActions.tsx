@@ -33,8 +33,7 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   // a lot of options available.
   const isChangingPossible = userCan('change_asset', asset)
   const isManagingPossible = userCan('manage_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
-  const isDeletingPossible =
-    userCan('delete_asset', asset) || (organization.is_mmo && organization.request_user_role === MemberRoleEnum.admin)
+  const isDeletingPossible = userCan('delete_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
   const isProjectViewAsset = !('permissions' in asset)
 
   return (
