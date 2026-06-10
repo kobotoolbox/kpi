@@ -1,7 +1,6 @@
 from unittest.mock import Mock, patch
 
 from allauth.account.models import EmailAddress
-from audit_log.tests.utils import skip_login_access_log
 from constance.signals import config_updated
 from ddt import data, ddt
 from django.contrib.auth.models import AnonymousUser
@@ -16,6 +15,7 @@ from kobo.apps.accounts.mfa.tests.utils import (
 )
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.audit_log.tests.utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.constants import (
