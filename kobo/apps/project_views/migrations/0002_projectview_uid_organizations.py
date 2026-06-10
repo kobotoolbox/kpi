@@ -16,7 +16,8 @@ class Migration(migrations.Migration):
             name='all_organizations',
             field=models.BooleanField(
                 default=True,
-                help_text='If checked, grants access to all organizations. Uncheck to specify specific organizations below.',
+                help_text='If checked, grants access to all organizations. Uncheck to '
+                'specify specific organizations below.',
             ),
         ),
         migrations.AddField(
@@ -24,7 +25,8 @@ class Migration(migrations.Migration):
             name='organizations',
             field=models.ManyToManyField(
                 blank=True,
-                help_text="Select specific organizations. (Ignored if 'All organizations' is checked)",
+                help_text='Select specific organizations. '
+                '(Ignored if "All organizations" is checked)',
                 related_name='project_views',
                 to='organizations.Organization',
             ),

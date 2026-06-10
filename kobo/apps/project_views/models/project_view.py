@@ -11,6 +11,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
+
 from ..fields import ChoiceArrayField
 from .assignment import AssignmentProjectViewM2MInline
 
@@ -35,8 +36,8 @@ class ProjectView(models.Model):
         'organizations.Organization',
         related_name='project_views',
         blank=True,
-        help_text="Select specific organizations. "
-        "(Ignored if 'All organizations' is checked)",
+        help_text='Select specific organizations. '
+        '(Ignored if "All organizations" is checked)',
     )
     permissions = ChoiceArrayField(
         base_field=models.CharField(
