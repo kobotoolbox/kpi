@@ -124,6 +124,13 @@ def move_to_trash(
             )
         )
 
+    max_char = PeriodicTask._meta.get_field('name').max_length
+
+    def shorten_name(name):
+        if len(name) < max_char:
+            return name
+        return f'{name[0:max_char-3]}...'
+
     with temporarily_disconnect_signals(save=True):
         clocked_time = timezone.now() + timedelta(days=grace_period)
         clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
@@ -134,7 +141,7 @@ def move_to_trash(
                 [
                     PeriodicTask(
                         clocked=clocked,
-                        name=task_name_placeholder.format(**ato.metadata),
+                        name=shorten_name(task_name_placeholder.format(**ato.metadata)),
                         task=f'kobo.apps.trash_bin.tasks.{python_file}.{task}',
                         args=json.dumps([ato.id]),
                         one_off=True,
@@ -344,7 +351,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             Asset,
             'asset_uid',
             'empty_project',
-            f'{DELETE_PROJECT_STR_PREFIX} {{asset_name}} ({{asset_uid}})',
+            f'{DELETE_PROJECT_STR_PREFIX} ({{asset_uid}}) {{asset_name}}',
         )
 
     if trash_type == 'user':
