@@ -1,4 +1,4 @@
-import type { FlexProps, MantineSize } from '@mantine/core'
+import type { MantineSize } from '@mantine/core'
 import { Group, Loader, Text } from '@mantine/core'
 import { IconInfoCircleFilled } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'

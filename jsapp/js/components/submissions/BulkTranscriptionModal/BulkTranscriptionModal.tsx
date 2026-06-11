@@ -114,11 +114,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
             <ButtonNew onClick={props.onRequestClose} variant='light'>
               {t('Cancel')}
             </ButtonNew>
-            <ButtonNew
-              onClick={handleWarningContinue}
-            >
-              {t('Continue')}
-            </ButtonNew>
+            <ButtonNew onClick={handleWarningContinue}>{t('Continue')}</ButtonNew>
           </Group>
         </Stack>
       )}
