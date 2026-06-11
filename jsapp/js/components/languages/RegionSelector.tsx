@@ -8,7 +8,7 @@ import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 
-interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
+interface RegionSelectorProps {
   rootLanguage: LanguageCode
   disabled?: boolean
   /** We display regions only from selected provider of given type. */

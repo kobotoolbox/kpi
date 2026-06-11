@@ -92,8 +92,12 @@ textarea {
   outline: none;
 }
 
-:focus-visible {
-  outline: 1px solid colors.$kobo-blue;
+// We need to disable focus styles for inner input of Mantine TagsInput. When we
+// reach a point of global focus styles not being needed (e.g. after final
+// Mantine migration) we can remove it.
+:focus-visible:not(.mantine-focus-auto, .mantine-TagsInput-inputField) {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
 }
 
 i {

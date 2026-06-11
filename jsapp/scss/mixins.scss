@@ -53,6 +53,6 @@
 }
 
 @mixin default-ui-focus() {
-  outline: 3px solid colors.$kobo-mid-blue !important;
-  border-color: colors.$kobo-blue !important;
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
 }

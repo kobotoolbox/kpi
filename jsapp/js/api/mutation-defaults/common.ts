@@ -1,4 +1,4 @@
-import type { Updater } from '@tanstack/react-query'
+import type { QueryClient, Updater } from '@tanstack/react-query'
 import { queryClient } from '../queryClient'
 
 /**
@@ -25,9 +25,9 @@ const filterPaginatedListSnapshots = ([listSnapshotKey]: [readonly unknown[], un
 /**
  * @see {@link filterPaginatedListSnapshots}
  */
-export const invalidatePaginatedList = (queryKey: readonly unknown[]) => {
-  const listSnapshots = queryClient.getQueriesData({ queryKey: queryKey }).filter(filterPaginatedListSnapshots)
-  for (const [snapshotKey] of listSnapshots) queryClient.invalidateQueries({ queryKey: snapshotKey })
+export const invalidatePaginatedList = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  const listSnapshots = client.getQueriesData({ queryKey: queryKey }).filter(filterPaginatedListSnapshots)
+  for (const [snapshotKey] of listSnapshots) client.invalidateQueries({ queryKey: snapshotKey })
 }
 
 /**
@@ -35,8 +35,8 @@ export const invalidatePaginatedList = (queryKey: readonly unknown[]) => {
  *
  * By convention, infinite-query keys append {@link INFINITE_QUERY_KEY_MARKER} as the last segment.
  */
-export const invalidateInfiniteList = (queryKey: readonly unknown[]) => {
-  queryClient.invalidateQueries({
+export const invalidateInfiniteList = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  client.invalidateQueries({
     predicate: ({ queryKey: candidateKey }) =>
       candidateKey.length > queryKey.length &&
       queryKey.every((keyPart, index) => candidateKey[index] === keyPart) &&
@@ -47,18 +47,18 @@ export const invalidateInfiniteList = (queryKey: readonly unknown[]) => {
 /**
  * @see {@link filterPaginatedListSnapshots}
  */
-export const invalidateItems = (queryKey: readonly unknown[]) => {
-  const itemSnapshots = queryClient
+export const invalidateItems = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  const itemSnapshots = client
     .getQueriesData({ queryKey: queryKey })
     .filter((tuple) => !filterPaginatedListSnapshots(tuple))
-  for (const [itemKey] of itemSnapshots) queryClient.invalidateQueries({ queryKey: itemKey })
+  for (const [itemKey] of itemSnapshots) client.invalidateQueries({ queryKey: itemKey })
 }
 
 /**
  * Convenience helper for consistency alongside {@link invalidateItems} and {@link invalidatePaginatedList}
  */
-export const invalidateItem = (queryKey: readonly unknown[]) => {
-  queryClient.invalidateQueries({ queryKey })
+export const invalidateItem = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  client.invalidateQueries({ queryKey })
 }
 
 //// Helpers for optimistic update + invalidation.
@@ -74,16 +74,17 @@ export const invalidateItem = (queryKey: readonly unknown[]) => {
 export const optimisticallyUpdatePaginatedList = async <T>(
   queryKey: readonly unknown[],
   updater: Updater<NoInfer<T> | undefined, NoInfer<T> | undefined>,
+  client: QueryClient = queryClient,
 ) => {
-  const listSnapshots = queryClient
+  const listSnapshots = client
     .getQueriesData<T>({
       queryKey,
       exact: false,
     })
     .filter(filterPaginatedListSnapshots)
   for (const [listSnapshotKey] of listSnapshots) {
-    await queryClient.cancelQueries({ queryKey: listSnapshotKey })
-    queryClient.setQueryData<T>(listSnapshotKey, updater)
+    await client.cancelQueries({ queryKey: listSnapshotKey })
+    client.setQueryData<T>(listSnapshotKey, updater)
   }
   return listSnapshots
 }
@@ -98,13 +99,14 @@ export const optimisticallyUpdatePaginatedList = async <T>(
 export const optimisticallyUpdateItem = async <T>(
   queryKey: readonly unknown[],
   updater: Updater<NoInfer<T> | undefined, NoInfer<T> | undefined> | null,
+  client: QueryClient = queryClient,
 ) => {
-  const itemSnapshot = queryClient.getQueryData<T>(queryKey)
-  await queryClient.cancelQueries({ queryKey })
+  const itemSnapshot = client.getQueryData<T>(queryKey)
+  await client.cancelQueries({ queryKey })
   if (updater) {
-    queryClient.setQueryData<T>(queryKey, updater)
+    client.setQueryData<T>(queryKey, updater)
   } else {
-    queryClient.removeQueries({ queryKey, exact: true })
+    client.removeQueries({ queryKey, exact: true })
   }
   return [queryKey, itemSnapshot] as const
 }
