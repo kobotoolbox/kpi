@@ -6,7 +6,7 @@ export type BulkTranslationModalArgs = Omit<BulkTranslationModalProps, 'onReques
 
 export default function openBulkTranslationModal(args: BulkTranslationModalArgs) {
   const modalId = modals.open({
-    title: t('Transcribe selected audio files'),
+    title: t('Translate selected transcripts'),
     size: 'lg',
     children: (
       <BulkTranslationModal
