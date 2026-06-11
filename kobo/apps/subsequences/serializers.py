@@ -156,19 +156,27 @@ class BulkActionCreateSerializer(serializers.Serializer):
             )
 
         self._validate_submissions_exist(asset, submission_uuids)
-        self._validate_no_existing_results(
-            asset,
-            question_xpath,
-            action_id,
-            params,
-            submission_uuids,
+
+        skipped = self._get_existing_result_uuids(
+            asset, question_xpath, action_id, params, submission_uuids
         )
-        self._validate_no_active_bulk_conflicts(
-            question_xpath,
-            action_id,
-            params,
-            submission_uuids,
+        skipped |= self._get_active_bulk_conflict_uuids(
+            question_xpath, action_id, params, submission_uuids
         )
+        eligible = [uuid for uuid in submission_uuids if uuid not in skipped]
+
+        if not eligible:
+            raise serializers.ValidationError(
+                {
+                    'submission_uuids': [
+                        'All submissions are already processed or currently '
+                        'being processed.'
+                    ]
+                }
+            )
+
+        attrs['submission_uuids'] = eligible
+        attrs['skipped_uuids'] = sorted(skipped)
         return attrs
 
     def _validate_submissions_exist(self, asset, submission_uuids):
@@ -192,37 +200,36 @@ class BulkActionCreateSerializer(serializers.Serializer):
                 }
             )
 
-    def _validate_no_active_bulk_conflicts(
+    def _get_active_bulk_conflict_uuids(
         self,
         question_xpath: str,
         action_id: str,
         params: dict,
         submission_uuids: list[str],
-    ):
+    ) -> set[str]:
         params_hash = SubsequenceBulkAction.make_params_hash(params)
-        if SubsequenceBulkActionItem.objects.filter(
-            parent__asset=self.context['asset'],
-            submission_root_uuid__in=submission_uuids,
-            action_id=action_id,
-            question_xpath=question_xpath,
-            hash=params_hash,
-            status__in=[
-                BulkActionItemStatus.PENDING,
-                BulkActionItemStatus.IN_PROGRESS,
-            ],
-        ).exists():
-            raise serializers.ValidationError(
-                'One or more submissions already have an active matching bulk action.'
-            )
+        return set(
+            SubsequenceBulkActionItem.objects.filter(
+                parent__asset=self.context['asset'],
+                submission_root_uuid__in=submission_uuids,
+                action_id=action_id,
+                question_xpath=question_xpath,
+                hash=params_hash,
+                status__in=[
+                    BulkActionItemStatus.PENDING,
+                    BulkActionItemStatus.IN_PROGRESS,
+                ],
+            ).values_list('submission_root_uuid', flat=True)
+        )
 
-    def _validate_no_existing_results(
+    def _get_existing_result_uuids(
         self,
         asset,
         question_xpath: str,
         action_id: str,
         params: dict,
         submission_uuids: list[str],
-    ):
+    ) -> set[str]:
         supplements_by_uuid = {
             supplement.submission_uuid: supplement.content or {}
             for supplement in SubmissionSupplement.objects.filter(
@@ -231,26 +238,18 @@ class BulkActionCreateSerializer(serializers.Serializer):
             ).only('submission_uuid', 'content')
         }
 
-        ineligible = []
+        ineligible = set()
         for submission_uuid in submission_uuids:
             supplement = supplements_by_uuid.get(submission_uuid, {})
             question_data = supplement.get(question_xpath) or {}
             if action_id == 'automatic_google_transcription':
                 if self._has_existing_transcription(question_data, params):
-                    ineligible.append(submission_uuid)
+                    ineligible.add(submission_uuid)
             elif action_id == 'automatic_google_translation':
                 if self._has_existing_translation(question_data, params):
-                    ineligible.append(submission_uuid)
+                    ineligible.add(submission_uuid)
 
-        if ineligible:
-            raise serializers.ValidationError(
-                {
-                    'submission_uuids': [
-                        'These submissions already contain matching results: '
-                        + ', '.join(ineligible)
-                    ]
-                }
-            )
+        return ineligible
 
     def _has_existing_transcription(self, question_data: dict, params: dict) -> bool:
         candidates = []
@@ -332,10 +331,12 @@ class BulkActionCreateSerializer(serializers.Serializer):
                     submission_root_uuids=validated_data['submission_uuids'],
                 )
                 bulk_action.start_batch()
+            bulk_action.skipped_uuids = validated_data.get('skipped_uuids', [])
             return bulk_action
         except IntegrityError as err:
             raise serializers.ValidationError(
-                'One or more submissions already have an active matching bulk action.'
+                'One or more submissions are already processed or currently '
+                'being processed.'
             ) from err
 
     def _ensure_question_advanced_feature(
