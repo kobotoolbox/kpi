@@ -4,6 +4,8 @@ import '@mantine/notifications/styles.css';
 import '@mantine/dropzone/styles.css'
 import '../jsapp/js/fonts'
 import '../jsapp/scss/main.scss'
+// Focus ring styles need to go after main styles
+import '../jsapp/js/theme/kobo/focusRing.css'
 import '#/bemComponents'
 import { FeatureFlag } from '../jsapp/js/featureFlags'
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'

@@ -5,11 +5,6 @@
   color: var(--mantine-color-gray-1);
 }
 
-.input:focus-within:has(:focus-visible) {
-  outline: var(--kobo-focus-ring);
-  outline-offset: var(--kobo-focus-ring-offset);
-}
-
 .input {
   border-color: var(--mantine-color-gray-6);
 
