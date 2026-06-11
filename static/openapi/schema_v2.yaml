@@ -5698,6 +5698,12 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/?collections_first=true&ordering=-name
         ```
       parameters:
+      - name: file_type
+        required: false
+        in: query
+        description: Filter files by type (e.g., "form_media")
+        schema:
+          type: string
       - name: limit
         required: false
         in: query
@@ -5791,28 +5797,22 @@ paths:
             examples:
               CreatingAFileWithBinaryContent:
                 value:
-                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
-                  file_type: image/png
+                  file_type: form_media
                   content: <binary>
                 summary: Creating a file with binary content
               CreatingAFileWithBase64Content:
                 value:
-                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
-                  file_type: image/png
+                  file_type: form_media
                   base64Encoded: SGVsbG8sIFdvcmxkIQ
                   metadata:
                     filename: string
                 summary: Creating a file with Base64 content
               CreatingAFileWithARemoteUrl:
                 value:
-                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
-                  file_type: image/png
+                  file_type: form_media
                   metadata:
                     redirect_url: string
                 summary: Creating a file with a remote url
@@ -16305,86 +16305,62 @@ components:
       - kind
     CreateFilePayload:
       oneOf:
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          content:
-            type: string
-        required:
-        - asset
-        - content
-        - description
-        - file_type
-        - user
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          base64Encoded:
-            type: string
-          metadata:
-            type: object
-            properties:
-              filename:
-                type: string
-            required:
-            - filename
-        required:
-        - asset
-        - base64Encoded
-        - description
-        - file_type
-        - metadata
-        - user
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          metadata:
-            type: object
-            properties:
-              redirect_url:
-                type: string
-                format: uri
-            required:
-            - redirect_url
-        required:
-        - asset
-        - description
-        - file_type
-        - metadata
-        - user
+      - $ref: '#/components/schemas/CreateFilePayloadBinary'
+      - $ref: '#/components/schemas/CreateFilePayloadBase64'
+      - $ref: '#/components/schemas/CreateFilePayloadURL'
+    CreateFilePayloadBase64:
+      type: object
+      properties:
+        description:
+          type: string
+        file_type:
+          type: string
+        base64Encoded:
+          type: string
+        metadata:
+          type: object
+          required:
+          - filename
+          properties:
+            filename:
+              type: string
+      required:
+      - base64Encoded
+      - description
+      - file_type
+      - metadata
+    CreateFilePayloadBinary:
+      type: object
+      properties:
+        description:
+          type: string
+        file_type:
+          type: string
+        content:
+          type: string
+      required:
+      - content
+      - description
+      - file_type
+    CreateFilePayloadURL:
+      type: object
+      properties:
+        description:
+          type: string
+        file_type:
+          type: string
+        metadata:
+          type: object
+          required:
+          - redirect_url
+          properties:
+            redirect_url:
+              type: string
+              format: uri
+      required:
+      - description
+      - file_type
+      - metadata
     CreateResponseAutomaticQualActionParams:
       type: object
       properties:
