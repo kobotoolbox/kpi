@@ -431,8 +431,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   //TODO: replace with modal logic DEV-1414
   // @ts-ignore
-  onTranslateSelectedTranscriptions(fieldId: string) {
-  }
+  onTranslateSelectedTranscriptions(fieldId: string) {}
 
   // We need to distinguish between repeated groups with nested values
   // and other question types that use a flat nested key (i.e. with '/').
