@@ -9,9 +9,8 @@ import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { SurveyFlatPaths } from '#/assetUtils'
-import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
+import { getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
-import DebouncedTextInput from '#/components/common/DebouncedTextInput'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -33,6 +32,8 @@ import type {
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
 import TableBulkOptions from '#/components/submissions/tableBulkOptions'
 import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
+import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
+import TableTextFilter from '#/components/submissions/TableTextFilter'
 import {
   CELLS_WIDTH_OVERRIDES,
   DATA_TABLE_SETTING,
@@ -914,39 +915,23 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // We set filters here, so they apply for all columns
       if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true
-        const DropdownFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
-          <select
-            onChange={(event) => onChange(event.target.value)}
-            style={{ width: '100%' }}
-            value={filter ? filter.value : ''}
-          >
-            <option value=''>{t('Show All')}</option>
-            {choices
-              .filter((choiceItem) => choiceItem.list_name === columnQuestion?.select_from_list_name)
-              .map((item, n) => {
-                const displayName = getQuestionOrChoiceDisplayName(item, translationIndex)
-                return (
-                  <option value={item.name} key={n}>
-                    {displayName}
-                  </option>
-                )
-              })}
-          </select>
-        )
-        DropdownFilter.displayName = 'DropdownFilter'
-        col.Filter = DropdownFilter
-      } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
-        col.filterable = true
-        const TextInputFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
-          <DebouncedTextInput
-            value={filter ? filter.value : undefined}
-            onChange={onChange}
-            placeholder={t('Search')}
-            size='xs'
+        const DropdownFilterWrapper = (props: { filter: any; onChange: (value: any) => void }) => (
+          <TableDropdownFilter
+            {...props}
+            choices={choices}
+            selectFromListName={columnQuestion?.select_from_list_name}
+            translationIndex={translationIndex}
           />
         )
-        TextInputFilter.displayName = 'TextInputFilter'
-        col.Filter = TextInputFilter
+        DropdownFilterWrapper.displayName = 'DropdownFilterWrapper'
+        col.Filter = DropdownFilterWrapper
+      } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
+        col.filterable = true
+        const TextFilterWrapper = (props: { filter: any; onChange: (value: any) => void }) => (
+          <TableTextFilter {...props} />
+        )
+        TextFilterWrapper.displayName = 'TextFilterWrapper'
+        col.Filter = TextFilterWrapper
       }
 
       // Ensure frozen columns stay correctly aligned to the left, even after
