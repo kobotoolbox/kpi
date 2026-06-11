@@ -1,11 +1,14 @@
 import React from 'react'
+import type { Filter } from 'react-table'
 import { getQuestionOrChoiceDisplayName } from '#/assetUtils'
 import type { SurveyChoice } from '#/dataInterface'
+import type { TableColumn } from '#/components/submissions/table.types'
 
 interface TableDropdownFilterProps {
-  filter: any
-  onChange: (value: any) => void
-  column: any // React-Table column object with custom properties
+  column: TableColumn
+  filter?: Filter
+  onChange: (value?: string) => void
+  key?: string
 }
 
 /**

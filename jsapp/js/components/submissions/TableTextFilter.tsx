@@ -1,9 +1,13 @@
 import React from 'react'
+import type { Column, Filter } from 'react-table'
 import DebouncedTextInput from '#/components/common/DebouncedTextInput'
+import type { SubmissionResponse } from '#/dataInterface'
 
 interface TableTextFilterProps {
-  filter: any
-  onChange: (value: any) => void
+  column: Column<SubmissionResponse>
+  filter?: Filter
+  onChange: (value?: string) => void
+  key?: string
 }
 
 /**

@@ -5,9 +5,9 @@ export type SubmissionPageName = 'next' | 'prev'
 
 // TODO: there might be some more properties here
 export interface TableColumn extends Column<SubmissionResponse> {
-  id: string
+  id?: string
   /** For ordering columns in the table */
-  index: string
+  index?: string
   question?: SurveyRow
   /** For dropdown filters - attached to column to maintain stable filter references */
   choices?: SurveyChoice[]
