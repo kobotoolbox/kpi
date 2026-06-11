@@ -47,6 +47,8 @@ import type { AttachmentRetrieveParams } from '../models/attachmentRetrieveParam
 
 import type { BulkActionCreateRequest } from '../models/bulkActionCreateRequest'
 
+import type { BulkActionCreateResponse } from '../models/bulkActionCreateResponse'
+
 import type { BulkActionListResponse } from '../models/bulkActionListResponse'
 
 import type { BulkActionResponse } from '../models/bulkActionResponse'
@@ -715,7 +717,7 @@ creation immediately starts background processing.
 
  */
 export type assetsAdvancedFeaturesBulkActionsCreateResponse201 = {
-  data: BulkActionResponse
+  data: BulkActionCreateResponse
   status: 201
 }
 

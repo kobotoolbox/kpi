@@ -1,6 +1,11 @@
 import { getTextContentOnly } from '#/utils'
 import Avatar from '../common/avatar'
-import { AUDIT_ACTION_TYPES, type ActivityLogsItem, FALLBACK_MESSAGE } from './activity.constants'
+import {
+  AUDIT_ACTION_TYPES,
+  type ActivityLogsItem,
+  BULK_PROCESSING_ACTION_IDS,
+  FALLBACK_MESSAGE,
+} from './activity.constants'
 import styles from './activityMessage.module.scss'
 
 /**
@@ -8,9 +13,19 @@ import styles from './activityMessage.module.scss'
  * by short text describing what username did.
  */
 export function ActivityMessage(props: { data: ActivityLogsItem }) {
-  let message = AUDIT_ACTION_TYPES[props.data.action]?.message || FALLBACK_MESSAGE
+  let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
 
-  // Here we reaplace all possible placeholders with appropriate data. This way
+  // Replace default bulk processing message with more precise one
+  if (props.data.action === 'bulk-processing') {
+    const bulkActionId = props.data.metadata.bulk_action?.action_id
+    if (bulkActionId === BULK_PROCESSING_ACTION_IDS.automaticGoogleTranscription) {
+      message = t('##username## bulk transcribed audio files')
+    } else if (bulkActionId === BULK_PROCESSING_ACTION_IDS.automaticGoogleTranslation) {
+      message = t('##username## bulk translated transcriptions')
+    }
+  }
+
+  // Here we replace all possible placeholders with appropriate data. This way
   // we don't really need to know which message (out of around 30) are we
   // dealing with - if it has given placeholder, it would be replaced, if it
   // doesn't nothing will happen.
