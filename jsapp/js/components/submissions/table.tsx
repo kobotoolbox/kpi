@@ -20,6 +20,8 @@ import { userCan, userCanPartially, userHasPermForSubmission } from '#/component
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
+import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
+import TableTextFilter from '#/components/submissions/TableTextFilter'
 import { isBulkProcessingCellInProgress } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import type {
@@ -32,8 +34,6 @@ import type {
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
 import TableBulkOptions from '#/components/submissions/tableBulkOptions'
 import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
-import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
-import TableTextFilter from '#/components/submissions/TableTextFilter'
 import {
   CELLS_WIDTH_OVERRIDES,
   DATA_TABLE_SETTING,
@@ -915,23 +915,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // We set filters here, so they apply for all columns
       if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true
-        const DropdownFilterWrapper = (props: { filter: any; onChange: (value: any) => void }) => (
-          <TableDropdownFilter
-            {...props}
-            choices={choices}
-            selectFromListName={columnQuestion?.select_from_list_name}
-            translationIndex={translationIndex}
-          />
-        )
-        DropdownFilterWrapper.displayName = 'DropdownFilterWrapper'
-        col.Filter = DropdownFilterWrapper
+        // Attach column-specific data to the column object so TableDropdownFilter
+        // can read it from the column prop that React-Table passes in
+        col.choices = choices
+        col.selectFromListName = columnQuestion?.select_from_list_name
+        col.translationIndex = translationIndex
+        // Use stable reference - no wrapper needed
+        col.Filter = TableDropdownFilter
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
-        const TextFilterWrapper = (props: { filter: any; onChange: (value: any) => void }) => (
-          <TableTextFilter {...props} />
-        )
-        TextFilterWrapper.displayName = 'TextFilterWrapper'
-        col.Filter = TextFilterWrapper
+        // Use stable reference - no wrapper needed
+        col.Filter = TableTextFilter
       }
 
       // Ensure frozen columns stay correctly aligned to the left, even after
