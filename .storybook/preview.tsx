@@ -1,10 +1,15 @@
 import '@mantine/core/styles.css'
+// ‼️ import notifications styles after core package styles
+import '@mantine/notifications/styles.css';
 import '@mantine/dropzone/styles.css'
 import '../jsapp/js/fonts'
 import '../jsapp/scss/main.scss'
+// Focus ring styles need to go after main styles
+import '../jsapp/js/theme/kobo/focusRing.css'
 import '#/bemComponents'
 import { FeatureFlag } from '../jsapp/js/featureFlags'
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
+import { Notifications } from '@mantine/notifications';
 import type { Preview } from '@storybook/react'
 import * as mswAddon from 'msw-storybook-addon'
 import { useEffect } from 'react'
@@ -12,7 +17,7 @@ import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
 import { addons } from 'storybook/preview-api'
 import environmentMock from '#/endpoints/environment.mocks'
 import meMock from '#/endpoints/me.mocks'
-import { themeKobo } from '../jsapp/js/theme'
+import { cssVariablesResolverKobo, themeKobo } from '../jsapp/js/theme'
 
 // Imported with `as` to avoid having confusing `initialize` (i.e. what does it initialize?)
 const worker = mswAddon.initialize({}, [meMock, environmentMock])
@@ -46,7 +51,12 @@ window.t = (str) => str
 const preview: Preview = {
   decorators: [
     (Story) => <ColorSchemeWrapper>{Story()}</ColorSchemeWrapper>,
-    (Story) => <MantineProvider theme={themeKobo}>{Story()}</MantineProvider>,
+    (Story) => (
+      <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+        <Notifications />
+        {Story()}
+      </MantineProvider>
+    ),
   ],
   loaders: [mswAddon.mswLoader],
   tags: ['autodocs'],

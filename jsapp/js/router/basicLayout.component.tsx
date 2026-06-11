@@ -2,6 +2,7 @@ import React from 'react'
 
 import { MantineProvider } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
+import { Notifications } from '@mantine/notifications'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import { queryClient } from '#/api/queryClient'
@@ -29,6 +30,7 @@ export default function BasicLayout(props: BasicLayoutProps) {
     <DocumentTitle title='KoboToolbox'>
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+          <Notifications />
           <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
             <Tracking />
             <ToasterConfig />

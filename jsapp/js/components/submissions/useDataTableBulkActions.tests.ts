@@ -28,6 +28,17 @@ jest.mock('#/stores/useSession', () => {
   }
 })
 
+jest.mock('#/envStore', () => {
+  return {
+    __esModule: true,
+    default: {
+      data: {
+        asr_mt_features_enabled: true,
+      },
+    },
+  }
+})
+
 function buildBulkAction(
   status: BulkActionResponseStatusEnum,
   createdByUsername: string,
@@ -48,6 +59,7 @@ describe('useDataTableBulkActions', () => {
   const useBulkActionsListMock = useAssetsAdvancedFeaturesBulkActionsList as jest.MockedFunction<
     typeof useAssetsAdvancedFeaturesBulkActionsList
   >
+  const envStore = require('#/envStore').default as { data: { asr_mt_features_enabled: boolean } }
 
   function mockSession(username: string | undefined, isPending = false) {
     // Hook only needs username and pending state; the remaining methods are stubbed.
@@ -75,10 +87,26 @@ describe('useDataTableBulkActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks()
+    envStore.data.asr_mt_features_enabled = true
   })
 
   it('returns no active actions and false when feature flag is disabled', () => {
     useFeatureFlagMock.mockReturnValue(false)
+    mockSession('zefir')
+    mockBulkActions([
+      buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user'),
+      buildBulkAction(BulkActionResponseStatusEnum.pending, 'other-user'),
+    ])
+
+    const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
+
+    chai.expect(result.current.activeBulkActions).to.deep.equal([])
+    chai.expect(result.current.hasActiveBulkActionsCreatedByAnotherUser).to.equal(false)
+  })
+
+  it('returns no active actions and false when ASR/MT features are disabled in env', () => {
+    useFeatureFlagMock.mockReturnValue(true)
+    envStore.data.asr_mt_features_enabled = false
     mockSession('zefir')
     mockBulkActions([
       buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user'),

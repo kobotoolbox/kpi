@@ -1,4 +1,5 @@
-import { getColumnLabel } from './tableUtils'
+import { QuestionTypeName } from '#/constants'
+import { getColumnLabel, isTableColumnFilterableByTextInput } from './tableUtils'
 import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
@@ -62,5 +63,17 @@ describe('tableUtils', () => {
     // TODO: write more tests here… I haven't got enough time to go over all
     // possible cases, just added one that I was fixing a bug for and a couple
     // that came to my mind.
+  })
+
+  describe('isTableColumnFilterableByTextInput', () => {
+    it('should return true for hidden question type', () => {
+      const test = isTableColumnFilterableByTextInput(QuestionTypeName.hidden, 'my_hidden_question')
+      chai.expect(test).to.equal(true)
+    })
+
+    it('should return false for a non-filterable question type', () => {
+      const test = isTableColumnFilterableByTextInput(QuestionTypeName.audio, 'my_audio_question')
+      chai.expect(test).to.equal(false)
+    })
   })
 })

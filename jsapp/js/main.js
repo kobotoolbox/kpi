@@ -10,10 +10,14 @@
  */
 import 'jquery-ui/ui/widgets/sortable'
 import '@mantine/core/styles.css'
+// ‼️ import notifications styles after core package styles
+import '@mantine/notifications/styles.css'
 import '@mantine/dropzone/styles.css'
 // We import all the weights and styles we actually use here to avoid unnecessary weight (pun intended).
 import './fonts'
 import '../scss/main.scss'
+// Focus ring styles need to go after main styles
+import './theme/kobo/focusRing.css'
 
 import $ from 'jquery'
 // jQuery v4 ESM no longer auto-populates window.$/window.jQuery

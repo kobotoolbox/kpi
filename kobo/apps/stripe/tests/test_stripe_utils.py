@@ -15,24 +15,19 @@ from freezegun import freeze_time
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
+from kobo.apps.stripe.exceptions import (
+    DefaultCommunityPlanNotFoundError,
+    ManualSubscriptionExistsError,
+)
 from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.stripe.tests.utils import (
     _create_one_time_addon_product,
     _create_payment,
     generate_free_plan,
     generate_plan_subscription,
-)
-from kobo.apps.stripe.exceptions import (
-    DefaultCommunityPlanNotFoundError,
-    ManualSubscriptionExistsError,
-)
-from kobo.apps.stripe.utils.manual_subscription import (
-    create_manual_subscription,
-    get_default_community_plan_price,
-    organization_can_start_manual_subscription,
 )
 from kobo.apps.stripe.utils.billing_dates import (
     get_billing_dates_after_canceled_subscription,
@@ -43,6 +38,11 @@ from kobo.apps.stripe.utils.billing_dates import (
 from kobo.apps.stripe.utils.limit_enforcement import (
     check_exceeded_limit,
     update_or_remove_limit_counter,
+)
+from kobo.apps.stripe.utils.manual_subscription import (
+    create_manual_subscription,
+    get_default_community_plan_price,
+    organization_can_start_manual_subscription,
 )
 from kobo.apps.stripe.utils.subscription_limits import (
     determine_limit,
@@ -83,6 +83,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             f'{UsageType.LLM_REQUESTS}_limit': '300',
             f'{UsageType.SUBMISSION}_limit': '400',
             f'{UsageType.STORAGE_BYTES}_limit': '500',
+            f'{UsageType.LOG_LOOKBACK_DAYS}_limit': '60',
         }
         # second plan for org2 where we append (not add) 1 to all the limits
         second_paid_plan_limits = {
@@ -130,6 +131,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             f'{UsageType.LLM_REQUESTS}_limit': '1',
             f'{UsageType.SUBMISSION}_limit': '1',
             f'{UsageType.STORAGE_BYTES}_limit': '1',
+            f'{UsageType.LOG_LOOKBACK_DAYS}_limit': '1',
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }
@@ -139,6 +141,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             f'{UsageType.LLM_REQUESTS}_limit': '2',
             f'{UsageType.SUBMISSION}_limit': '2',
             f'{UsageType.STORAGE_BYTES}_limit': '2',
+            f'{UsageType.LOG_LOOKBACK_DAYS}_limit': '2',
         }
         generate_plan_subscription(
             self.organization, metadata=product_metadata, price_metadata=price_metadata
@@ -694,7 +697,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             check_exceeded_limit(self.someuser, usage_type)
             assert (
                 ExceededLimitCounter.objects.filter(
@@ -705,7 +708,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
 
     def test_check_exceeded_limit_updates_counters(self):
         today = timezone.now()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             baker.make(
                 ExceededLimitCounter,
                 user=self.anotheruser,
@@ -722,7 +725,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             check_exceeded_limit(self.someuser, usage_type)
             counter = ExceededLimitCounter.objects.get(
                 user_id=self.anotheruser.id, limit_type=usage_type
