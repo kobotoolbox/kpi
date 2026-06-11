@@ -429,19 +429,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     })
   }
 
+  //TODO: replace with modal logic DEV-1414
+  // @ts-ignore
   onTranslateSelectedTranscriptions(fieldId: string) {
-    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
-
-    const selectedSubmissionUuids = this.state.submissions
-      .filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
-      .map((submission) => submission._uuid)
-
-    console.log('Bulk processing - Translate selected transcriptions', {
-      fieldId,
-      assetUid: this.props.asset.uid,
-      selectedSubmissionUuids,
-      selectedRowsCount: selectedSubmissionIds.length,
-    })
   }
 
   // We need to distinguish between repeated groups with nested values
