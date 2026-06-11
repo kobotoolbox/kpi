@@ -140,7 +140,12 @@ class GoogleTranscriptionService(GoogleService):
                 language_codes=[source_lang],
                 model=speech_model,
                 features=speech.RecognitionFeatures(
-                    enable_automatic_punctuation=True
+                    # chirp_3, chirp_2, and chirp support automatic punctuation
+                    # for all languages. 'long' does not support it for several
+                    # languages, including the 6 legacy African languages
+                    # (Kinyarwanda, Swati, Southern Sotho, Tswana, Tsonga, Venda),
+                    # and will return a 400 error if enabled
+                    enable_automatic_punctuation = (speech_model != 'long'),
                 ),
             ),
             files=[speech.BatchRecognizeFileMetadata(uri=gcs_input_uri)],
