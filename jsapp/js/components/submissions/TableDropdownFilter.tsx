@@ -1,11 +1,10 @@
 import React from 'react'
-import type { Filter } from 'react-table'
+import type { Column, Filter, FilterRender } from 'react-table'
 import { getQuestionOrChoiceDisplayName } from '#/assetUtils'
-import type { SurveyChoice } from '#/dataInterface'
 import type { TableColumn } from '#/components/submissions/table.types'
 
 interface TableDropdownFilterProps {
-  column: TableColumn
+  column: TableColumn | Column<any>
   filter?: Filter
   onChange: (value?: string) => void
   key?: string
@@ -20,10 +19,10 @@ interface TableDropdownFilterProps {
  * the column object that React-Table passes in, allowing this component to be used
  * as a stable reference without wrapper functions.
  */
-export default function TableDropdownFilter(props: TableDropdownFilterProps) {
-  const choices: SurveyChoice[] = props.column.choices || []
-  const selectFromListName: string | undefined = props.column.selectFromListName
-  const translationIndex: number = props.column.translationIndex || 0
+const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
+  const choices = 'choices' in props.column ? props.column.choices || [] : []
+  const selectFromListName = 'selectFromListName' in props.column ? props.column.selectFromListName : undefined
+  const translationIndex = 'translationIndex' in props.column ? props.column.translationIndex || 0 : 0
 
   return (
     <select
@@ -45,3 +44,5 @@ export default function TableDropdownFilter(props: TableDropdownFilterProps) {
     </select>
   )
 }
+
+export default TableDropdownFilter
