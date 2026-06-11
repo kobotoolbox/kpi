@@ -1,5 +1,6 @@
 @use 'js/components/common/button';
 @use 'scss/colors';
+@use 'scss/mixins';
 @use 'scss/_variables';
 @use 'scss/libs/_mdl';
 
@@ -72,7 +73,9 @@
     }
 
     &.kobo-select__control--is-focused {
-      border-color: colors.$kobo-blue;
+      // We don't use mixins.default-ui-focus because we need to use important
+      outline: var(--kobo-focus-ring) !important;
+      outline-offset: var(--kobo-focus-ring-offset) !important;
     }
   }
 
