@@ -450,7 +450,6 @@ class SearchFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-
         try:
             q = request.query_params['q']
         except AttributeError:
