@@ -73,11 +73,9 @@ $projects-table-row-height: 36px;
 
       // Keyboard-focus ring for links
       &:focus-visible .asset-name {
-        outline: 1px solid colors.$kobo-blue;
+        @include mixins.default-ui-focus;
         border-radius: 2px;
         outline-offset: 4px;
-        text-decoration-color: colors.$kobo-mid-blue;
-        text-decoration-line: underline;
       }
     }
 
