@@ -6,10 +6,14 @@ from .fields import ImportUrlField, MessagesField
 ImportCreateRequestSerializer = inline_serializer_class(
     name='ImportCreateRequestSerializer',
     fields={
-        'destination': serializers.URLField(),
-        'url': serializers.URLField(),
-        'name': serializers.CharField(required=False, allow_blank=True),
-        'assetUid': serializers.CharField(),
+        'destination': serializers.URLField(required=False, allow_blank=True, allow_null=True),
+        'url': serializers.URLField(required=False, allow_blank=True, allow_null=True),
+        'name': serializers.CharField(required=False, allow_blank=True, allow_null=True),
+        'assetUid': serializers.CharField(required=False, allow_blank=True, allow_null=True),
+        'base64Encoded': serializers.CharField(required=False, allow_blank=True, allow_null=True),
+        'library': serializers.BooleanField(required=False, allow_null=True),
+        'desired_type': serializers.CharField(required=False, allow_blank=True, allow_null=True),
+        'totalFiles': serializers.IntegerField(required=False, allow_null=True),
     },
 )
 
