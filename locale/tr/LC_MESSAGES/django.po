@@ -3,8 +3,6 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
-# Translators:
-# Translators:
 # 366ed2bf29e62b010d8715287bd97cc3_f587f89, 2021
 # Ahsen Arkut, 2024
 # Ahsen Arkut, 2024
@@ -24,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 16:30+0000\n"
+"POT-Creation-Date: 2026-06-09 05:50+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: zeeshan azmi <zishan.azmi@webaccessglobal.com>, 2017\n"
 "Language-Team: Turkish (http://app.transifex.com/kobotoolbox/kobotoolbox/language/tr/)\n"
@@ -51,7 +49,6 @@ msgid "Government institution"
 msgstr "Devlet kurumu"
 
 #: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
-#| msgid "Educational Services / Higher Education"
 msgid "Educational organization"
 msgstr "Eğitim kuruluşu"
 
@@ -102,22 +99,31 @@ msgstr "name@organization.org"
 msgid "This field is required."
 msgstr "Bu alan zorunludur."
 
-#: kobo/apps/accounts/forms.py:269
+#: kobo/apps/accounts/forms.py:280
 msgid "Email must match SSO server email"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:322
+#: kobo/apps/accounts/forms.py:333
 msgid "You must type the same password each time."
 msgstr "Her seferinde aynı parolayı yazmanız gerekir."
 
+#: kobo/apps/accounts/mfa/forms.py:26 kobo/apps/accounts/mfa/forms.py:38
+msgid "Code"
+msgstr ""
+
+#: kobo/apps/accounts/mfa/forms.py:29 kobo/apps/accounts/mfa/forms.py:41
+msgid "Enter token or backup code"
+msgstr ""
+
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:19
-msgid "Please enter your verification token"
-msgstr "Lütfen doğrulama anahtarınızı girin"
+msgid "Please enter your verification token or backup code"
+msgstr ""
 
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:22
 msgid ""
-"Please enter the verification token displayed by your authenticator app."
-msgstr "Lütfen kimlik doğrulayıcı uygulamanızda gösterilen doğrulama anahtarını girin."
+"Use the 6-character token displayed by your authenticator app or one of your"
+" backup codes."
+msgstr ""
 
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:29
 msgid "Problems with the token"
@@ -136,24 +142,25 @@ msgid "Back"
 msgstr "Geri"
 
 #: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:321
+#: kpi/serializers/current_user.py:320
 msgid "This action is not allowed."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
 msgid ""
-"To confirm the new email address associated with your KoboToolbox account, "
+"To confirm the email address associated with your KoboToolbox account, "
 "please follow the link below."
-msgstr "KoboToolbox hesabınızla ilişkilendirilen yeni eposta adresinizi onaylamak için lütfen aşağıdaki bağlantıyı takip edin."
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:7
 msgid ""
-"This link will expire in one hour. To request a new verification link, "
-"please go to your account settings and re-enter your new email address:"
-msgstr "Bu bağlantının süresi bir saat içinde dolacaktır. Yeni bir doğrulama bağlantısı istemek için lütfen hesap ayarlarınıza gidin ve eposta adresinizi tekrar girin:"
+"This link will expire in 24 hours. To activate a new account, please sign "
+"into your account with your credentials (username and password) and a new "
+"link will be sent to you. To verify an email address change, you can request"
+" a new activation link directly from your account under Settings > Security."
+msgstr ""
 
-#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:10
-#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:15
 #: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:15
 #: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:15
 #: kobo/apps/hook/templates/reports/failures_email_body.html:37
@@ -162,32 +169,77 @@ msgid "Best,"
 msgstr "En içten dileklerimizle,"
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:10
-msgid "Thanks for signing up with KoboToolbox!"
-msgstr "KoboToolbox'a kaydolduğunuz için teşekkürler!"
+#, python-format
+msgid "Hi %(first_name)s,"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:12
 msgid ""
-"Confirming your account will give you access to KoboToolbox applications. "
-"Please visit the following URL to finish activation of your new account."
-msgstr "Hesabınızı onaylayarak KoboToolbox uygulamalarına erişim sağlayabilirsiniz. Yeni hesabınızı etkinleştirme işlemini tamamlamak için lütfen aşağıdaki URL’yi ziyaret edin."
+"Welcome to KoboToolbox! To get started, please activate your account by "
+"clicking the link below:"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:16
-#| msgid "Username"
-msgid "Your username is:"
+msgid ""
+"This link will expire in 24 hours for security reasons. If it expires or you"
+" need a new one, simply sign in with your credentials (username and "
+"password) and a new link will be sent to you."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:25
 msgid ""
-"For help getting started, check out the KoboToolbox user documentation: "
-"https://support.kobotoolbox.com"
+"To get the most out of KoboToolbox, check out the following resources and "
+"join the community:"
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:27
 msgid ""
-"You can also join the KoboToolbox community forum to ask questions, share "
-"solutions, and chat with thousands of users: "
-"https://community.kobotoolbox.org"
-msgstr "Dilerseniz soru sormak, sorunlara ilişkin çözümleri paylaşmak veya binlerce kullanıcıyla sohbet etmek için KoboToolbox topluluk forumuna da katılabilirsiniz: https://community.kobotoolbox.org"
+"• Help Center: Find answers to your questions in our Help Center’s extensive"
+" library of support articles. Visit the Help Center: "
+"https://support.kobotoolbox.org/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+msgid ""
+"• Online Learning: For a comprehensive introduction to KoboToolbox, we offer"
+" the online self-paced KoboToolbox Essentials Course. Get started with the "
+"Essentials Course: https://academy.kobotoolbox.org/courses/essentials"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:31
+msgid ""
+"• Community Forum: Visit our Community Forum to chat with thousands of "
+"KoboToolbox users, ask questions, and find information about software "
+"updates. Explore the Community Forum: https://community.kobotoolbox.org/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:33
+msgid ""
+"• Support Services: We offer custom solutions and expert support for "
+"organizations, including training, project support, and dashboard "
+"development. Learn more about our services: "
+"https://www.kobotoolbox.org/services/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:35
+msgid "Follow us on on social media:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:36
+msgid "• Facebook: https://www.facebook.com/kobotoolbox"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:37
+msgid "• LinkedIn: https://www.linkedin.com/company/kobotoolbox"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:39
+msgid "Thanks for signing up!"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:40
+msgid "The KoboToolbox Team"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_subject.txt:10
 msgid "Activate your KoboToolbox Account"
@@ -264,20 +316,27 @@ msgstr "Lütfen <a href=\"mailto:%(email)s\">%(email)s</a> eposta adresinin %(us
 msgid "Confirm"
 msgstr "Onaylayın"
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:33
-msgid "Activation failed"
-msgstr "Etkinleştirme başarısız oldu"
+#: kobo/apps/accounts/templates/account/email_confirm.html:34
+msgid "Activation Failed"
+msgstr ""
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:36
+#: kobo/apps/accounts/templates/account/email_confirm.html:38
 msgid ""
-"Sorry, we couldn't activate your account. The link we sent you has expired."
-msgstr "Üzgünüz, hesabınızı etkinleştiremedik. Size gönderdiğimiz bağlantının süresi doldu."
+"This activation link has expired. We could not confirm your email address. "
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email_confirm.html:42
 msgid ""
-"This e-mail confirmation link expired or is invalid. If you need to request "
-"a new link to verify your email address change, please go to your account "
-"settings page and enter your email address again."
+"If you are trying to activate a new account, please sign into your account "
+"with your credentials (username and password) and a new link will be sent to"
+" you."
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:46
+msgid ""
+"If you are trying to verify an email address change, please go to the "
+"security tab under your account settings, and click the 'resend' button to "
+"receive an activation link."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/login.html:29
@@ -367,8 +426,10 @@ msgid "Confirm your email address"
 msgstr "Eposta adresinizi onaylayın"
 
 #: kobo/apps/accounts/templates/account/verification_sent.html:11
-msgid "Please click the activation link in the email just sent to you."
-msgstr "Lütfen size gönderilen epostadaki etkinleştirme bağlantısına tıklayın."
+msgid ""
+"We have sent you an activation link. Please check your inbox (and spam "
+"folder) and click the link to activate your account."
+msgstr ""
 
 #: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
 #: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
@@ -473,7 +534,6 @@ msgid ""
 msgstr "Kullanıcı adları 2 ila 30 karakter uzunluğunda olmalı ve yalnızca küçük harflerden, sayılardan ve alt çizgilerden oluşmalıdır. Ayrıca, ilk karakter bir harf olmak zorundadır."
 
 #: kobo/apps/hook/serializers/v2/hook.py:85
-#| msgid "Invalid token."
 msgid "Invalid scheme"
 msgstr "Geçersiz şema"
 
@@ -482,7 +542,6 @@ msgid "Unsecured endpoint is not allowed"
 msgstr "Güvensiz uç noktaya izin verilmemektedir"
 
 #: kobo/apps/hook/serializers/v2/hook.py:99
-#| msgid "Invalid token."
 msgid "Invalid JSON"
 msgstr "Geçersiz JSON"
 
@@ -490,7 +549,7 @@ msgstr "Geçersiz JSON"
 msgid "Can be used only with JSON submission format"
 msgstr "Yalnızca JSON gönderim biçimiyle kullanılabilir"
 
-#: kobo/apps/hook/tasks.py:145
+#: kobo/apps/hook/tasks.py:146
 msgid "REST Services Failure Report"
 msgstr "REST Hizmetleri Hata Raporu"
 
@@ -550,31 +609,31 @@ msgstr "Sayın"
 msgid "Some submissions could not be sent to their external endpoints."
 msgstr "Bazı gönderimler harici uç noktalara gönderilemedi."
 
-#: kobo/apps/hook/views/v2/hook.py:186
+#: kobo/apps/hook/views/v2/hook.py:185
 msgid "Task successfully scheduled"
 msgstr "Görev başarıyla planlandı"
 
-#: kobo/apps/hook/views/v2/hook.py:222
+#: kobo/apps/hook/views/v2/hook.py:221
 msgid "No data to retry"
 msgstr "Yeniden denenecek veri yok"
 
-#: kobo/apps/hook/views/v2/hook.py:225
-msgid "Can not retry on disabled hooks"
-msgstr "Devre dışı bırakılan webhook’larda yeniden denenemez"
+#: kobo/apps/hook/views/v2/hook.py:224
+msgid "Cannot retry on disabled hooks"
+msgstr ""
 
-#: kobo/apps/hook/views/v2/hook_log.py:130
-msgid "An error has occurred when sending the data. Please try again later."
-msgstr "Verileri gönderirken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
-
-#: kobo/apps/hook/views/v2/hook_log.py:135
+#: kobo/apps/hook/views/v2/hook_log.py:132
 msgid "Data is being or has already been processed"
 msgstr "Veriler işleniyor veya hâlihazırda işlenmiş durumda"
+
+#: kobo/apps/kobo_scim/authentication.py:31
+msgid "Invalid or inactive SCIM token."
+msgstr ""
 
 #: kobo/apps/languages/templates/admin/languages_change_list.html:8
 msgid "Import"
 msgstr "İçe Aktar"
 
-#: kobo/apps/mass_emails/tasks.py:244
+#: kobo/apps/mass_emails/tasks.py:255
 msgid "Not available"
 msgstr ""
 
@@ -607,7 +666,6 @@ msgstr "Dosya adı '%s' bulunamadı."
 
 #: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
 #, python-format
-#| msgid "Invalid token."
 msgid "Invalid formId %s."
 msgstr "Geçersiz form kimliği %s."
 
@@ -676,27 +734,36 @@ msgstr ""
 msgid "Submission with this instance ID already exists"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:31
+#: kobo/apps/openrosa/apps/logger/exceptions.py:34
+msgid "Invalid submission - deprecatedID refers to an old submission version"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:41
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1039
+msgid "Invalid submission - deprecatedID not found"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:46
 msgid "Duplicate Instance"
 msgstr "Mükerrer Örnek"
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:48
+#: kobo/apps/openrosa/apps/logger/exceptions.py:63
 msgid "Empty instance"
 msgstr "Boş örnek"
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:53
+#: kobo/apps/openrosa/apps/logger/exceptions.py:68
 msgid "Could not determine the user"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:58
+#: kobo/apps/openrosa/apps/logger/exceptions.py:73
 msgid "Could not determine the instance ID"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:67
+#: kobo/apps/openrosa/apps/logger/exceptions.py:82
 msgid "The instance could not be parsed"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:72
+#: kobo/apps/openrosa/apps/logger/exceptions.py:87
 msgid "Submission is currently being processed."
 msgstr ""
 
@@ -716,27 +783,27 @@ msgstr "XForm"
 msgid "XForms"
 msgstr "XForm’lar"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:203
+#: kobo/apps/openrosa/apps/logger/models/xform.py:207
 #, python-format
 msgid ""
 "Your updated form's id_string '%(new_id)s' must match the existing forms' "
 "id_string '%(old_id)s'."
 msgstr "Güncellenmiş formunuzun id_string'i '%(new_id)s' mevcut formların id_string'i '%(old_id)s' ile eşleşmelidir."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:212
+#: kobo/apps/openrosa/apps/logger/models/xform.py:216
 msgid ""
 "In strict mode, the XForm ID must be a valid slug and contain no spaces."
 msgstr "Katı modda XForm kimliği, geçerli bir slug olmalı ve boşluk içermemelidir."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:226
+#: kobo/apps/openrosa/apps/logger/models/xform.py:230
 msgid "Submission Count"
 msgstr "Gönderim Sayısı"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:274
+#: kobo/apps/openrosa/apps/logger/models/xform.py:281
 msgid "There should be a single id string."
 msgstr "Tek bir kimlik dizesi olmalıdır."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:299
+#: kobo/apps/openrosa/apps/logger/models/xform.py:306
 msgid "There should be a single title."
 msgstr "Tek bir başlık olmalıdır."
 
@@ -779,10 +846,10 @@ msgstr "Formunuz %(id)s için XLS dosyası yok"
 msgid "Not shared."
 msgstr "Paylaşılmıyor."
 
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:35
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:76
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:104
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:525
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:36
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:77
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:105
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:542
 msgid "XML string must have a survey element."
 msgstr "XML dizesi bir anket öğesine sahip olmalıdır."
 
@@ -826,17 +893,17 @@ msgstr ""
 msgid "Invalid export type specified"
 msgstr "Geçersiz dışa aktarım türü belirtilmiş"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:141
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:193
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:142
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:194
 msgid "Invalid start/limit params"
 msgstr "Geçersiz başlangıç/limit parametreleri"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:157
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
 #, python-format
 msgid "Invalid pipeline! %s"
 msgstr "Geçersiz pipeline! %s"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:159
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:160
 #, python-format
 msgid "Invalid query! %s"
 msgstr "Geçersiz sorgu! %s"
@@ -886,7 +953,6 @@ msgid "Create Export"
 msgstr "Dışa Aktarım Oluştur"
 
 #: kobo/apps/openrosa/apps/viewer/templates/export_list.html:65
-#| msgid "Username"
 msgid "Filename"
 msgstr "Dosya adı"
 
@@ -926,7 +992,6 @@ msgid "%s is not a valid export type"
 msgstr "%s geçerli bir dışa aktarım türü değil"
 
 #: kobo/apps/openrosa/apps/viewer/views.py:96
-#| msgid "Invalid token."
 msgid "Invalid export type"
 msgstr "Geçersiz dışa aktarım türü"
 
@@ -1008,7 +1073,6 @@ msgid "Cannot determine content type"
 msgstr "İçerik türü belirlenemiyor"
 
 #: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
-#| msgid "Invalid token."
 msgid "Invalid content type"
 msgstr "Geçersiz içerik türü"
 
@@ -1849,7 +1913,6 @@ msgid "Sudan"
 msgstr "Sudan"
 
 #: kobo/apps/openrosa/libs/utils/country_field.py:218
-#| msgid "Username"
 msgid "Suriname"
 msgstr "Surinam"
 
@@ -2005,84 +2068,87 @@ msgstr "Zimbabve"
 msgid "Unknown or unspecified country"
 msgstr "Bilinmeyen veya belirtilmemiş ülke"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:134
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:141
 msgid "Forbidden"
 msgstr "Yasaklı"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:144
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:151
 msgid ""
 "Forbidden attempt to edit a submission. To make a new submission, Remove "
 "`deprecatedID` from the submission XML and try again."
 msgstr "Gönderimi düzenleme girişimi yasaktır. Yeni bir gönderim yapmak için `deprecatedID` kimliğini gönderim XML'inden kaldırın ve tekrar deneyin."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:456
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:467
 msgid "Username or ID required."
 msgstr "Kullanıcı adı veya kimlik gereklidir."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:459
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
 msgid "Received empty submission. No instance was created"
 msgstr "Boş gönderim alındı. Hiçbir örnek oluşturulmadı"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:462
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:473
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:465
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:482
 msgid "Form is not active"
 msgstr "Form aktif değil"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:468
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:485
 msgid "Temporarily unavailable"
 msgstr "Geçici olarak kullanılamıyor"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:474
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:491
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:478
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:495
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:483
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:500
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:486
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:503
 msgid "Form does not exist on this account"
 msgstr "Bu hesapta form bulunmuyor"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:489
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:506
 msgid "Improperly formatted XML."
 msgstr "Yanlış biçimlendirilmiş XML."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:507
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:524
 msgid "Access denied"
 msgstr "Erişim engellendi"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:514
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:531
 msgid "File likely corrupted during transmission, please try later."
 msgstr "Dosya muhtemelen iletim sırasında bozuldu, lütfen daha sonra deneyin."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:651
-#| msgid "Invalid token."
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:668
 msgid "Invalid URL format."
 msgstr "Geçersiz URL formatı."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:663
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:680
 msgid "Form validation timeout, please try again."
 msgstr "Form doğrulama zaman aşımı, lütfen tekrar deneyin."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:722
-#: kobo/apps/openrosa/libs/utils/viewer_tools.py:76
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:739
+#: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr "Talepte istisna: %(class)s: %(error)s"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:755
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:772
 msgid "The requested file could not be found."
 msgstr "Talep edilen dosya bulunamadı."
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:111
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1036
+msgid "Invalid submission - deprecatedID refers to an old version"
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:89
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
@@ -2106,6 +2172,10 @@ msgstr ""
 
 #: kobo/apps/organizations/tasks.py:84
 msgid "Organization invite has expired"
+msgstr ""
+
+#: kobo/apps/organizations/templates/admin/organizations/organization/change_form.html:12
+msgid "Create Stripe Subscription"
 msgstr ""
 
 #: kobo/apps/organizations/templates/emails/accepted_org_invite.html:4
@@ -2302,7 +2372,7 @@ msgstr "Proje `##asset_uid##` aktarılamaz. Mevcut durum: ##status##"
 msgid "Must not be in the same organization"
 msgstr ""
 
-#: kobo/apps/project_ownership/tasks.py:185
+#: kobo/apps/project_ownership/tasks.py:186
 msgid "Invite has expired"
 msgstr "Davetin süresi doldu"
 
@@ -2554,7 +2624,7 @@ msgid_plural "%d plan add-ons were created."
 msgstr[0] "%d plan eklentisi oluşturuldu."
 msgstr[1] "%d plan eklentisi oluşturuldu."
 
-#: kobo/settings/base.py:284
+#: kobo/settings/base.py:301
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2562,7 +2632,7 @@ msgid ""
 "email##)."
 msgstr "Kimlik doğrulama uygulamanıza erişemiyorsanız lütfen bunun yerine yedek kodlarınızdan birini girin. Bunlara da erişemiyorsanız [##support email##](mailto:##support email##) adresinden bizimle iletişime geçerek yardım talebinde bulunun."
 
-#: kobo/settings/base.py:551
+#: kobo/settings/base.py:563
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2729,58 +2799,69 @@ msgstr "Instagram"
 msgid "I want to receive occasional updates about KoboToolbox"
 msgstr "KoboToolbox ile ilgili güncellemeler almak istiyorum"
 
+#: kpi/admin.py:46
+msgid "Options Configuration"
+msgstr ""
+
+#: kpi/admin.py:50
+msgid "Provide a JSON list of objects containing 'name' and 'label'."
+msgstr ""
+
+#: kpi/admin.py:62
+msgid "Default Label"
+msgstr ""
+
 #: kpi/authentication.py:70
-#| msgid "Invalid token."
 msgid "Invalid username/password"
 msgstr "Geçersiz kullanıcı adı/parola"
 
-#: kpi/deployment_backends/base_backend.py:138
+#: kpi/deployment_backends/base_backend.py:142
 msgid "No submissions match the given `submission_ids`"
 msgstr "Verilen `submission_ids` ile eşleşen gönderim yok"
 
-#: kpi/deployment_backends/base_backend.py:603
+#: kpi/deployment_backends/base_backend.py:612
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "Bu parametre uygulanmaz. Bunun yerine, yanıtın `count` özelliğini kullanın."
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:623
 msgid "This param is not supported in `XML` format"
 msgstr "Bu parametre `XML` biçiminde desteklenmez"
 
-#: kpi/deployment_backends/base_backend.py:619
+#: kpi/deployment_backends/base_backend.py:628
 msgid "This is not supported in `XML` format"
 msgstr "Bu, `XML` biçiminde desteklenmez"
 
-#: kpi/deployment_backends/base_backend.py:639
-#: kpi/deployment_backends/base_backend.py:668
-#: kpi/deployment_backends/base_backend.py:690 kpi/views/v2/data.py:448
+#: kpi/deployment_backends/base_backend.py:648
+#: kpi/deployment_backends/base_backend.py:677
+#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1103
 msgid "Value must be valid JSON."
 msgstr "Değer, geçerli bir JSON olmalıdır."
 
-#: kpi/deployment_backends/base_backend.py:644
+#: kpi/deployment_backends/base_backend.py:653
 msgid "Value must be a list."
 msgstr "Değer, bir liste olmalıdır."
 
-#: kpi/deployment_backends/base_backend.py:675
-#: kpi/deployment_backends/base_backend.py:682
+#: kpi/deployment_backends/base_backend.py:684
+#: kpi/deployment_backends/base_backend.py:691
 msgid "A positive integer is required."
 msgstr "Pozitif bir tam sayı gereklidir."
 
-#: kpi/deployment_backends/openrosa_backend.py:405
+#: kpi/deployment_backends/openrosa_backend.py:412
 msgid "Your submission XML is malformed."
 msgstr "Gönderim XML’iniz yanlış biçimlendirilmiş."
 
-#: kpi/deployment_backends/openrosa_backend.py:411
+#: kpi/deployment_backends/openrosa_backend.py:418
 msgid "Your submission XML is missing critical elements."
 msgstr "Gönderim XML’inizde önemli öğeler eksik."
 
-#: kpi/deployment_backends/openrosa_backend.py:449
+#: kpi/deployment_backends/openrosa_backend.py:456
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "Düzenlemeye çalıştığınız gönderim bulunamadı veya bu gönderime erişiminiz yok."
 
-#: kpi/deployment_backends/openrosa_backend.py:1005
+#: kpi/deployment_backends/openrosa_backend.py:1012
 msgid "Successful submission"
 msgstr "Başarılı gönderim"
 
@@ -2792,52 +2873,44 @@ msgstr "Toplu gönderim güncellemesi için geçersiz yararlı yük"
 msgid "Must call `asset.connect_deployment()` first"
 msgstr "Önce `asset.connect_deployment()` birimini aramalısınız"
 
-#: kpi/exceptions.py:84
-msgid "XML contains forbidden DTDs"
-msgstr "XML yasaklanmış DTD'ler içeriyor"
-
-#: kpi/exceptions.py:95
-msgid "XML contains forbidden entities"
-msgstr "XML yasaklanmış öğeler içeriyor"
-
-#: kpi/exceptions.py:120
+#: kpi/exceptions.py:98
 msgid "Invalid search. Please try again"
 msgstr "Geçersiz arama. Lütfen tekrar deneyin"
 
-#: kpi/exceptions.py:125
+#: kpi/exceptions.py:103
 msgid "Deployment links to an unexpected KoboCAT XForm"
 msgstr "Yayınlama işlemi beklenmedik bir KoboCAT XForm'a bağlanıyor"
 
-#: kpi/exceptions.py:161
+#: kpi/exceptions.py:139
 msgid "An error occurred trying to duplicate the submission"
 msgstr "Gönderimi çoğaltmaya çalışırken bir hata oluştu"
 
-#: kpi/exceptions.py:179
+#: kpi/exceptions.py:157
 msgid "The specified object has not been deployed"
 msgstr "Belirtilen nesne yayınlanmadı"
 
-#: kpi/exceptions.py:188
+#: kpi/exceptions.py:166
 msgid "Bad syntax"
 msgstr "Hatalı söz dizimi"
 
-#: kpi/exceptions.py:193
+#: kpi/exceptions.py:171
 msgid "Not supported field lookup"
 msgstr "Desteklenmeyen alan araması"
 
-#: kpi/exceptions.py:216
+#: kpi/exceptions.py:194
 msgid "Your query is too short"
 msgstr "Sorgunuz çok kısa"
 
-#: kpi/exceptions.py:230
+#: kpi/exceptions.py:208
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
-#: kpi/fields/jsonschema_form_field.py:23
-#: kpi/fields/jsonschema_form_field.py:26
+#: kpi/fields/jsonschema_form_field.py:31
+#: kpi/fields/jsonschema_form_field.py:36
 msgid "Enter valid JSON."
 msgstr "Geçerli bir JSON girin."
 
-#: kpi/fields/jsonschema_form_field.py:158
+#: kpi/fields/jsonschema_form_field.py:126
 msgid "`##place_holder##` field cannot be hidden."
 msgstr "`##place_holder##` alanı gizlenemez."
 
@@ -2846,144 +2919,148 @@ msgstr "`##place_holder##` alanı gizlenemez."
 msgid "Unable to parse JSON: {error}"
 msgstr "JSON ayrıştırılamıyor: {error}"
 
+#: kpi/forms/extra_metadata_form.py:26
+msgid "Select fields require at least one option in JSON format."
+msgstr ""
+
 #: kpi/mixins/mfa.py:22
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "Bu hesap için çok faktörlü kimlik doğrulama etkinleştirildi. "
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:306
 msgid "Can view asset"
 msgstr "Varlığı görüntüleyebilir"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:307
 msgid "Can discover asset in public lists"
 msgstr "Herkese açık listelerdeki varlığı keşfedebilir"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:308
 msgid "Can manage all aspects of asset"
 msgstr "Varlığın tüm yönlerini yönetebilir"
 
-#: kpi/models/asset.py:321
+#: kpi/models/asset.py:310
 msgid "Can submit data to asset"
 msgstr "Varlığa veri gönderebilir"
 
-#: kpi/models/asset.py:322
+#: kpi/models/asset.py:311
 msgid "Can view submitted data for asset"
 msgstr "Varlık için gönderilen verileri görüntüleyebilir"
 
-#: kpi/models/asset.py:323
+#: kpi/models/asset.py:312
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Belirli kullanıcılar için varlığa gönderilen veriler üzerinde kısmi işlemler yapabilir"
 
-#: kpi/models/asset.py:326
+#: kpi/models/asset.py:315
 msgid "Can modify submitted data for asset"
 msgstr "Varlık için gönderilen verileri değiştirebilir"
 
-#: kpi/models/asset.py:327
+#: kpi/models/asset.py:316
 msgid "Can delete submitted data for asset"
 msgstr "Varlık için gönderilen verileri silebilir"
 
-#: kpi/models/asset.py:328
+#: kpi/models/asset.py:317
 msgid "Can validate submitted data asset"
 msgstr "Gönderilen veri varlığını doğrulayabilir"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:336
 msgid "project"
 msgstr "proje"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:336
 msgid "form"
 msgstr "form"
 
-#: kpi/models/asset.py:349
+#: kpi/models/asset.py:338
 msgid "template"
 msgstr "şablon"
 
-#: kpi/models/asset.py:350
+#: kpi/models/asset.py:339
 msgid "block"
 msgstr "blok"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:340
 msgid "question"
 msgstr "soru"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:341
 msgid "text"
 msgstr "metin"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:342
 msgid "empty"
 msgstr "boş"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:343
 msgid "collection"
 msgstr "koleksiyon"
 
-#: kpi/models/asset.py:361
+#: kpi/models/asset.py:350
 msgid "View ##asset_type_label##"
 msgstr "##asset_type_label## öğesini görüntüleyin"
 
-#: kpi/models/asset.py:362
+#: kpi/models/asset.py:351
 msgid "Edit ##asset_type_label##"
 msgstr "##asset_type_label## öğesini düzenleyin"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:352
 msgid "Discover ##asset_type_label##"
 msgstr "##asset_type_label## öğesini keşfedin"
 
-#: kpi/models/asset.py:364
+#: kpi/models/asset.py:353
 msgid "Manage ##asset_type_label##"
 msgstr "##asset_type_label## öğesini yönetin"
 
-#: kpi/models/asset.py:365
+#: kpi/models/asset.py:354
 msgid "Add submissions"
 msgstr "Gönderim ekleyin"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:355
 msgid "View submissions"
 msgstr "Gönderimleri görüntüleyin"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:358
 msgid "Act on submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimler üzerinde işlem yapın"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:361
 msgid "View submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri görüntüleyin"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:364
 msgid "Edit submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri düzenleyin"
 
-#: kpi/models/asset.py:378
+#: kpi/models/asset.py:367
 msgid "Delete submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri silin"
 
-#: kpi/models/asset.py:381
+#: kpi/models/asset.py:370
 msgid "Validate submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri doğrulayın"
 
-#: kpi/models/asset.py:384
+#: kpi/models/asset.py:373
 msgid "Edit submissions"
 msgstr "Gönderimleri düzenleyin"
 
-#: kpi/models/asset.py:385
+#: kpi/models/asset.py:374
 msgid "Delete submissions"
 msgstr "Gönderimleri silin"
 
-#: kpi/models/asset.py:386
+#: kpi/models/asset.py:375
 msgid "Validate submissions"
 msgstr "Gönderimleri doğrulayın"
 
-#: kpi/models/asset.py:729
+#: kpi/models/asset.py:689
 msgid "Only partial permissions for submissions are supported"
 msgstr "Gönderimler için yalnızca kısmi izinler desteklenmektedir"
 
-#: kpi/models/asset.py:1490
+#: kpi/models/asset.py:1398
 msgid "Can not assign '{}' permission to owner"
 msgstr "Bu kişiye '{}' izni atanamaz"
 
-#: kpi/models/asset.py:1494
+#: kpi/models/asset.py:1402
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Bu kişiye '{}' izni atanamaz. Kısmi izinler eksik."
 
@@ -2991,11 +3068,55 @@ msgstr "Bu kişiye '{}' izni atanamaz. Kısmi izinler eksik."
 msgid "Invalid token."
 msgstr "Anahtar geçersiz."
 
-#: kpi/models/import_export_task.py:153
+#: kpi/models/extra_project_metadata_field.py:7
+msgid "Text"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:8
+msgid "Single Select"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:9
+msgid "Multi Select"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:16
+msgid "Unique internal identifier (e.g. 'project_sectors')"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:21
+msgid "Translation map: {\"default\": \"Country\", \"fr\": \"Pays\"}"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:28
+msgid "Required"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:32
+msgid "List of [{\"name\": \"value\", \"label\": \"Label\"}] dicts"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:37
+msgid "Extra Project Metadata Field"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:38
+msgid "Extra Project Metadata Fields"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:48
+msgid "Options are required for select fields."
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:60
+msgid "Each option must be a dictionary containing 'name' and 'label'."
+msgstr ""
+
+#: kpi/models/import_export_task.py:161
 msgid "Cannot access data"
 msgstr "Verilere erişilemiyor"
 
-#: kpi/models/import_export_task.py:762
+#: kpi/models/import_export_task.py:790
 msgid "This data does not exist or you do not have access to it"
 msgstr "Bu veriler mevcut değil veya bunlara erişiminiz yok"
 
@@ -3013,87 +3134,86 @@ msgid ""
 "characters."
 msgstr "Parola en az ##number of rules## farklı türde karakterler içermelidir."
 
-#: kpi/serializers/current_user.py:205
+#: kpi/serializers/current_user.py:206
 msgid "Incorrect current password."
 msgstr "Mevcut parola yanlış."
 
-#: kpi/serializers/current_user.py:225
+#: kpi/serializers/current_user.py:226
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password` ve `new_password` şöyle olmalıdır:"
 
-#: kpi/serializers/current_user.py:265
-#: kpi/serializers/v2/asset_permission_assignment.py:286
+#: kpi/serializers/current_user.py:264
+#: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr "Bu alan boş bırakılamaz."
 
-#: kpi/serializers/v2/asset.py:161
+#: kpi/serializers/v2/asset.py:165
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "%(count)d projeyi silme işlemi geri alındı"
 
-#: kpi/serializers/v2/asset.py:167
+#: kpi/serializers/v2/asset.py:171
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "%(count)d proje silindi"
 
-#: kpi/serializers/v2/asset.py:174
+#: kpi/serializers/v2/asset.py:178
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "%(count)d proje arşivden çıkarıldı"
 
-#: kpi/serializers/v2/asset.py:180
+#: kpi/serializers/v2/asset.py:184
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "%(count)d proje arşivlendi"
 
-#: kpi/serializers/v2/asset.py:196
+#: kpi/serializers/v2/asset.py:200
 msgid "One or many projects have been deleted already!"
 msgstr "Projelerden biri veya daha fazlası zaten silinmiş!"
 
-#: kpi/serializers/v2/asset.py:204
+#: kpi/serializers/v2/asset.py:208
 msgid "One or many projects are already being deleted!"
 msgstr "Projelerden biri veya daha fazlası zaten silinmekte!"
 
-#: kpi/serializers/v2/asset.py:280
+#: kpi/serializers/v2/asset.py:284
 msgid "`action` parameter is required"
 msgstr "`action` parametresi gereklidir"
 
-#: kpi/serializers/v2/asset.py:285
+#: kpi/serializers/v2/asset.py:289
 msgid "Supported values for `action` are: "
 msgstr "`action` için desteklenen değerler şunlardır: "
 
-#: kpi/serializers/v2/asset.py:307
+#: kpi/serializers/v2/asset.py:311
 msgid "Draft projects cannot be archived"
 msgstr "Taslak projeler arşivlenemez"
 
-#: kpi/serializers/v2/asset.py:313 kpi/serializers/v2/data.py:61
-#| msgid "Information / Media"
+#: kpi/serializers/v2/asset.py:317 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "Onay gereklidir"
 
-#: kpi/serializers/v2/asset.py:974
+#: kpi/serializers/v2/asset.py:992
 msgid "The property is required"
 msgstr "Property gereklidir"
 
-#: kpi/serializers/v2/asset.py:978
+#: kpi/serializers/v2/asset.py:996
 msgid "The property must be an array"
 msgstr "Property bir dizi olmalıdır"
 
-#: kpi/serializers/v2/asset.py:1000
+#: kpi/serializers/v2/asset.py:1018
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{valid_fields}`"
 msgstr "Bazı alanlar geçersiz olup seçenekler şunlardır: `{valid_fields}`"
 
-#: kpi/serializers/v2/asset.py:1022
+#: kpi/serializers/v2/asset.py:1040
 msgid "User cannot update current parent collection"
 msgstr "Kullanıcı, mevcut üst koleksiyonu güncelleyemez"
 
-#: kpi/serializers/v2/asset.py:1032
+#: kpi/serializers/v2/asset.py:1050
 #: kpi/tests/api/v2/test_api_collections.py:476
 msgid "Target collection not found"
 msgstr "Hedef koleksiyon bulunamadı"
 
-#: kpi/serializers/v2/asset.py:1036
+#: kpi/serializers/v2/asset.py:1054
 #: kpi/tests/api/v2/test_api_collections.py:466
 msgid "User cannot update target parent collection"
 msgstr "Kullanıcı, hedef üst koleksiyonu güncelleyemez"
@@ -3123,12 +3243,12 @@ msgid "`lang` for this asset must be either {}"
 msgstr "Bu varlık için `lang` {} seçeneklerinden biri olmalıdır"
 
 #: kpi/serializers/v2/asset_export_settings.py:119
-#: kpi/serializers/v2/export_task.py:232
+#: kpi/serializers/v2/export_task.py:233
 msgid "Must be a JSON object"
 msgstr "Bir JSON nesnesi olmak zorundadır"
 
 #: kpi/serializers/v2/asset_export_settings.py:134
-#: kpi/serializers/v2/export_task.py:250
+#: kpi/serializers/v2/export_task.py:251
 msgid "All values in the array must be integers"
 msgstr "Dizideki tüm değerler tam sayı olmalıdır"
 
@@ -3145,7 +3265,6 @@ msgid "JSON is invalid"
 msgstr "JSON geçersiz"
 
 #: kpi/serializers/v2/asset_file.py:134
-#| msgid "Invalid token."
 msgid "Invalid content"
 msgstr "Geçersiz içerik"
 
@@ -3184,34 +3303,33 @@ msgstr "`redirect_url` geçersizdir"
 msgid "Only `{}` MIME types are allowed"
 msgstr "Yalnızca `{}` MIME türlerine izin verilir"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:159
+#: kpi/serializers/v2/asset_permission_assignment.py:172
 msgid "This field is required for the '{}' permission"
 msgstr "Bu alan '{}' izni için gereklidir"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:173
-#: kpi/serializers/v2/asset_permission_assignment.py:178
-#: kpi/serializers/v2/asset_permission_assignment.py:184
-#: kpi/serializers/v2/asset_permission_assignment.py:493
+#: kpi/serializers/v2/asset_permission_assignment.py:186
+#: kpi/serializers/v2/asset_permission_assignment.py:191
+#: kpi/serializers/v2/asset_permission_assignment.py:197
+#: kpi/serializers/v2/asset_permission_assignment.py:601
 msgid "Invalid `url`"
 msgstr "Geçersiz `url`"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:189
-#| msgid "Invalid token."
+#: kpi/serializers/v2/asset_permission_assignment.py:202
 msgid "Invalid `filters`"
 msgstr "Geçersiz `filters`"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:206
+#: kpi/serializers/v2/asset_permission_assignment.py:219
 #, python-brace-format
 msgid ""
 "{permission} cannot be assigned explicitly to Asset objects of this type."
 msgstr "{permission}, bu türdeki Varlık nesnelerine açıkça atanamaz."
 
-#: kpi/serializers/v2/asset_permission_assignment.py:285
+#: kpi/serializers/v2/asset_permission_assignment.py:372
 msgid "Not a valid list."
 msgstr "Geçerli bir liste değil."
 
-#: kpi/serializers/v2/asset_permission_assignment.py:486
-#: kpi/serializers/v2/asset_permission_assignment.py:489
+#: kpi/serializers/v2/asset_permission_assignment.py:594
+#: kpi/serializers/v2/asset_permission_assignment.py:597
 msgid "Invalid hyperlink - Object does not exist."
 msgstr "Geçersiz köprü - Nesne mevcut değil."
 
@@ -3236,7 +3354,6 @@ msgid "List cannot be empty"
 msgstr ""
 
 #: kpi/serializers/v2/attachment_delete.py:79
-#| msgid "Invalid token."
 msgid "Invalid attachment UID"
 msgstr ""
 
@@ -3244,7 +3361,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:690
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:867
 msgid "The specified asset has not been deployed"
 msgstr "Belirtilen varlık yayınlanmadı"
 
@@ -3264,39 +3381,39 @@ msgstr "`data` zorunludur"
 msgid "`validation_status.uid` is required"
 msgstr "`validation_status.uid` zorunludur"
 
-#: kpi/serializers/v2/export_task.py:126
+#: kpi/serializers/v2/export_task.py:127
 msgid "Must contain all the following required keys: {}"
 msgstr "Şu gerekli anahtarların tümünü içermelidir: {}"
 
-#: kpi/serializers/v2/export_task.py:140
+#: kpi/serializers/v2/export_task.py:141
 msgid "Can contain only the following valid keys: {}"
 msgstr "Yalnızca şu geçerli anahtarları içerebilir: {}"
 
-#: kpi/serializers/v2/export_task.py:155 kpi/serializers/v2/export_task.py:240
+#: kpi/serializers/v2/export_task.py:156 kpi/serializers/v2/export_task.py:241
 msgid "Must be an array"
 msgstr "Bir dizi olmalı"
 
-#: kpi/serializers/v2/export_task.py:162
+#: kpi/serializers/v2/export_task.py:163
 msgid "All values in the array must be strings"
 msgstr "Dizideki tüm değerler bir karakter dizisi/yazı olmalıdır"
 
-#: kpi/serializers/v2/export_task.py:172
+#: kpi/serializers/v2/export_task.py:173
 msgid "Must be a non-empty value"
 msgstr "Bu değer boş olamaz"
 
-#: kpi/serializers/v2/export_task.py:185
+#: kpi/serializers/v2/export_task.py:186
 msgid "For this asset must be either {}"
 msgstr "Bu varlık için {} seçeneklerinden biri kullanılmalıdır"
 
-#: kpi/serializers/v2/export_task.py:197 kpi/serializers/v2/export_task.py:261
+#: kpi/serializers/v2/export_task.py:198 kpi/serializers/v2/export_task.py:262
 msgid "Must be either {}"
 msgstr "{} seçeneklerinden biri kullanılmalıdır"
 
-#: kpi/serializers/v2/export_task.py:207
+#: kpi/serializers/v2/export_task.py:208
 msgid "The asset must be deployed."
 msgstr "Varlık yayınlanmalıdır."
 
-#: kpi/serializers/v2/export_task.py:224
+#: kpi/serializers/v2/export_task.py:225
 msgid "The export name must be a string."
 msgstr "Dışa aktarma adı bir karakter dizisi/yazı olmalıdır."
 
@@ -3409,7 +3526,7 @@ msgstr "Opera indirme sayfası"
 msgid "Opera"
 msgstr "Opera"
 
-#: kpi/tests/test_registration.py:71
+#: kpi/tests/test_registration.py:73
 msgid "This email domain is not allowed to create an account"
 msgstr "Bu eposta etki alanının bir hesap oluşturmasına izin verilmiyor"
 
@@ -3442,7 +3559,6 @@ msgid ""
 msgstr "KoBoCAT veri tabanı, başlangıçta KPI tarafından paylaşılıyordu ancak KPI tabloları, bu paylaşılan veri tabanından KPI’ya özel yeni veri tabanına kopyalanmadı."
 
 #: kpi/views/current_user.py:86
-#| msgid "Invalid token."
 msgid "Invalid confirmation"
 msgstr "Geçersiz onay"
 
@@ -3483,12 +3599,6 @@ msgstr "Dönüştürme sırasında hata oluştu"
 msgid "Conversion is not supported for {}"
 msgstr "{} için dönüştürme işlemi desteklenmiyor"
 
-#: kpi/views/v2/data.py:679
+#: kpi/views/v2/data.py:853
 msgid "A positive integer is required"
 msgstr "Pozitif bir tam sayı gereklidir"
-
-#~ msgid "User"
-#~ msgstr "Username"
-
-#~ msgid "Username"
-#~ msgstr "Username"
