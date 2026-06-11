@@ -1061,13 +1061,6 @@ class SubmissionExportTaskBase(ImportExportTask):
         # Include the group name in `fields` for Mongo to correctly filter
         # for repeat groups
         fields = self._get_fields_and_groups(fields)
-        submission_stream = source.deployment.get_submissions(
-            user=self.user,
-            fields=fields,
-            submission_ids=submission_ids,
-            query=query,
-            for_output=True,
-        )
 
         if source.has_advanced_features:
             # Use a cheap EXISTS query before the expensive full prefetch in
@@ -1083,6 +1076,13 @@ class SubmissionExportTaskBase(ImportExportTask):
                     'Supplement data migration in progress, please retry later.'
                 )
 
+        submission_stream = source.deployment.get_submissions(
+            user=self.user,
+            fields=fields,
+            submission_ids=submission_ids,
+            query=query,
+            for_output=True,
+        )
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
