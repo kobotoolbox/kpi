@@ -44,7 +44,7 @@ def get_google_region() -> str:
     change the region without restarting the server. Tolerates lower-case input
     and falls back to 'US' with a warning if an unrecognised value is set
     """
-    region = constance.config.ASR_MT_GOOGLE_REGION
+    region = str(constance.config.ASR_MT_GOOGLE_REGION).upper()
     if region in GOOGLE_REGION_CHOICES:
         return region
 
