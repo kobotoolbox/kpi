@@ -1,8 +1,11 @@
 import csv
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.test import TestCase
+from django.test import override_settings
+from django.utils import timezone
+from model_bakery import baker
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AccessLog, ProjectHistoryLog
@@ -13,11 +16,60 @@ from kpi.models.import_export_task import (
     AccessLogExportTask,
     ProjectHistoryLogExportTask,
 )
+from kpi.tests.base_test_case import (
+    BaseAccessLogTestCase,
+    BaseProjectHistoryLogTestCase,
+)
+from kpi.tests.utils import baker_generators  # noqa
 
 
-class AccessLogExportTaskTests(TestCase):
+class LookbackTestMixin:
+    def create_plan_for_user(self, user, lookback_days):
+        from kobo.apps.stripe.tests.utils import generate_plan_subscription
+
+        product_metadata = {
+            'mmo_enabled': 'true',
+            'plan_type': 'enterprise',
+            'asr_seconds_limit': 1,
+            'mt_characters_limit': 1,
+            'submission_limit': 1,
+            'storage_bytes_limit': 1,
+            'log_lookback_days_limit': lookback_days,
+        }
+        return generate_plan_subscription(user.organization, product_metadata)
+
+    def get_baker_defaults(self):
+        return {}
+
+    def get_default_export_task_kwargs(self):
+        return {}
+
+    @override_settings(PROJECT_HISTORY_LOG_LIFESPAN=60, ACCESS_LOG_LIFESPAN=60)
+    def test_export_respects_lookback_limit(self):
+        if settings.STRIPE_ENABLED:
+            self.create_plan_for_user(self.user, lookback_days=60)
+        today = timezone.now()
+        baker_defaults = self.get_baker_defaults()
+        out_of_range_date = today - timedelta(days=70)
+        baker.make(self.model, date_created=out_of_range_date, **baker_defaults)
+        baker.make(self.model, date_created=today, **baker_defaults)
+        export_task_kwargs = self.get_default_export_task_kwargs()
+        task = self.create_export_task(self.user, **export_task_kwargs)
+        task.run()
+        with default_storage.open(str(task.result), mode='r') as csv_file:
+            reader = csv.DictReader(csv_file)
+            rows = list(reader)
+        assert len(rows) == 1
+        date_created = datetime.strptime(
+            rows[0]['date_created'], '%Y-%m-%d %H:%M:%S.%f%z'
+        )
+        assert date_created == today
+
+
+class AccessLogExportTaskTests(BaseAccessLogTestCase, LookbackTestMixin):
 
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username='testuser', email='testuser@example.com', password='password'
         )
@@ -31,6 +83,9 @@ class AccessLogExportTaskTests(TestCase):
             get_all_logs=get_all_logs,
             data={'type': 'access_logs_export'},
         )
+
+    def get_default_export_task_kwargs(self):
+        return {'get_all_logs': False}
 
     def test_task_initialization(self):
         task = self.create_export_task(self.user, get_all_logs=False)
@@ -75,6 +130,7 @@ class AccessLogExportTaskTests(TestCase):
         )
 
     def test_csv_content_structure(self):
+        now = timezone.now()
         log = AccessLog.objects.create(
             user=self.user,
             metadata={
@@ -85,7 +141,7 @@ class AccessLogExportTaskTests(TestCase):
                 'initial_user_uid': 'initial_superuser_uid',
                 'authorized_app_name': 'test_app',
             },
-            date_created='2024-11-05T12:00:00Z',
+            date_created=now,
         )
         task = self.create_export_task(self.superuser)
         task.run()
@@ -130,9 +186,9 @@ class AccessLogExportTaskTests(TestCase):
         User.objects.all().delete()
 
 
-class ProjectHistoryLogExportTaskTests(TestCase):
-
-    fixtures = ['test_data']
+class ProjectHistoryLogExportTaskTests(
+    BaseProjectHistoryLogTestCase, LookbackTestMixin
+):
 
     def create_export_task(self, user, asset_uid=None):
         return ProjectHistoryLogExportTask.objects.create(
@@ -140,6 +196,9 @@ class ProjectHistoryLogExportTaskTests(TestCase):
             asset_uid=asset_uid,
             data={'type': 'project_history_logs_export'},
         )
+
+    def get_default_export_task_kwargs(self):
+        return {'asset_uid': Asset.objects.get(id=1).uid}
 
     def test_run_task_creates_csv(self):
         user = User.objects.get(username='adminuser')
@@ -169,6 +228,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
         asset = Asset.objects.get(id=1)
         user = User.objects.get(username='someuser')
         asset.assign_perm(user_obj=user, perm=PERM_MANAGE_ASSET)
+        now = timezone.now()
         log = ProjectHistoryLog.objects.create(
             user=user,
             metadata={
@@ -181,8 +241,8 @@ class ProjectHistoryLogExportTaskTests(TestCase):
                 },
                 'project_owner': 'someuser',
             },
-            date_created='2024-11-05T12:00:00Z',
             action=AuditAction.ADD_SUBMISSION,
+            date_created=now,
             object_id=asset.id,
         )
         task = self.create_export_task(user, asset.uid)
@@ -215,6 +275,10 @@ class ProjectHistoryLogExportTaskTests(TestCase):
             self.assertEqual(first_row['source'], 'test_source')
             self.assertEqual(first_row['ip_address'], '127.0.0.1')
             self.assertIsNotNone(first_row['other_details'])
+            self.assertEqual(
+                datetime.strptime(first_row['date_created'], '%Y-%m-%d %H:%M:%S.%f%z'),
+                now,
+            )
 
     def test_export_for_single_asset(self):
         asset = Asset.objects.get(id=1)

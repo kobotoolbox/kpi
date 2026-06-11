@@ -27,7 +27,10 @@ interface CheckboxProps {
   className?: string
 }
 
-/** A checkbox generic component. */
+/**
+ * A checkbox generic component.
+ * @deprecated Use Mantine's Checkbox instead.
+ */
 class Checkbox extends React.Component<CheckboxProps, {}> {
   constructor(props: CheckboxProps) {
     if (typeof props.onChange !== 'function') {

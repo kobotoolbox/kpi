@@ -39,3 +39,13 @@
     margin-inline-start: calc(var(--button-height) * 0.2);
   }
 }
+
+.root:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+
+  &[data-variant='danger'],
+  &[data-variant='danger-secondary'] {
+    outline-color: var(--kobo-focus-ring-color-danger);
+  }
+}

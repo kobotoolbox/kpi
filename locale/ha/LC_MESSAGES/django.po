@@ -3,14 +3,12 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
-# Translators:
-# Translators:
 # Leszek Pietrzak <leszek@magicznyleszek.xyz>, 2025
 msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 16:30+0000\n"
+"POT-Creation-Date: 2026-06-09 05:50+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Leszek Pietrzak <leszek@magicznyleszek.xyz>, 2025\n"
 "Language-Team: Hausa (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ha/)\n"
@@ -37,7 +35,6 @@ msgid "Government institution"
 msgstr "Cibiyar gwamnati"
 
 #: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
-#| msgid "Educational Services / Higher Education"
 msgid "Educational organization"
 msgstr "Ƙungiyar ilimi"
 
@@ -88,22 +85,31 @@ msgstr "name@organization.org"
 msgid "This field is required."
 msgstr "Ana bukatan wannan fillin."
 
-#: kobo/apps/accounts/forms.py:269
+#: kobo/apps/accounts/forms.py:280
 msgid "Email must match SSO server email"
 msgstr ""
 
-#: kobo/apps/accounts/forms.py:322
+#: kobo/apps/accounts/forms.py:333
 msgid "You must type the same password each time."
 msgstr "Dole ne ka rubuta kalmar sirri iri ɗaya a kowane lokaci."
 
+#: kobo/apps/accounts/mfa/forms.py:26 kobo/apps/accounts/mfa/forms.py:38
+msgid "Code"
+msgstr ""
+
+#: kobo/apps/accounts/mfa/forms.py:29 kobo/apps/accounts/mfa/forms.py:41
+msgid "Enter token or backup code"
+msgstr ""
+
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:19
-msgid "Please enter your verification token"
-msgstr "A shigar da tabbatacciyar alama"
+msgid "Please enter your verification token or backup code"
+msgstr ""
 
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:22
 msgid ""
-"Please enter the verification token displayed by your authenticator app."
-msgstr "A shigar da alamar tabbatarwa da ta bayyana a manhajar ku na tabbatar da shaida."
+"Use the 6-character token displayed by your authenticator app or one of your"
+" backup codes."
+msgstr ""
 
 #: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:29
 msgid "Problems with the token"
@@ -122,24 +128,25 @@ msgid "Back"
 msgstr "Baya"
 
 #: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:321
+#: kpi/serializers/current_user.py:320
 msgid "This action is not allowed."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
 msgid ""
-"To confirm the new email address associated with your KoboToolbox account, "
+"To confirm the email address associated with your KoboToolbox account, "
 "please follow the link below."
-msgstr "Don tabbatar da sabon adireshin imel da ke da alaƙa da shafinka na KoboToolbox, da fatan za a bi hanyar mahaɗi da ke ƙasa."
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:7
 msgid ""
-"This link will expire in one hour. To request a new verification link, "
-"please go to your account settings and re-enter your new email address:"
-msgstr "Wannan mahaɗin zai daina aiki cikin awa guda. Don neman sabuwar mahaɗin tabbatarwa, fatan za a je ɓangaren saiti na shafinku tare da sake shigar da sabon adireshin imel ɗinku:"
+"This link will expire in 24 hours. To activate a new account, please sign "
+"into your account with your credentials (username and password) and a new "
+"link will be sent to you. To verify an email address change, you can request"
+" a new activation link directly from your account under Settings > Security."
+msgstr ""
 
-#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:10
-#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:15
 #: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:15
 #: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:15
 #: kobo/apps/hook/templates/reports/failures_email_body.html:37
@@ -148,32 +155,77 @@ msgid "Best,"
 msgstr "Mafi kyau,"
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:10
-msgid "Thanks for signing up with KoboToolbox!"
-msgstr "Mun gode bisa yin rajista da KoboToolbox!"
+#, python-format
+msgid "Hi %(first_name)s,"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:12
 msgid ""
-"Confirming your account will give you access to KoboToolbox applications. "
-"Please visit the following URL to finish activation of your new account."
-msgstr "Tabbatar da shafinka zai ba ka damar shiga manhajar KoboToolbox. Da fatan za a ziyarci URL ɗin da ke ƙasa don kammala rijistar sabon shafinku."
+"Welcome to KoboToolbox! To get started, please activate your account by "
+"clicking the link below:"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:16
-#| msgid "Username"
-msgid "Your username is:"
+msgid ""
+"This link will expire in 24 hours for security reasons. If it expires or you"
+" need a new one, simply sign in with your credentials (username and "
+"password) and a new link will be sent to you."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:25
 msgid ""
-"For help getting started, check out the KoboToolbox user documentation: "
-"https://support.kobotoolbox.com"
+"To get the most out of KoboToolbox, check out the following resources and "
+"join the community:"
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:27
 msgid ""
-"You can also join the KoboToolbox community forum to ask questions, share "
-"solutions, and chat with thousands of users: "
-"https://community.kobotoolbox.org"
-msgstr "Sannan za a iya shiga dandalin tattaunawa na KoboToolbox don yin tambayoyi, bayyana mafita, da tattaunawa tare da dubban ma su amfani: https://community.kobotoolbox.org"
+"• Help Center: Find answers to your questions in our Help Center’s extensive"
+" library of support articles. Visit the Help Center: "
+"https://support.kobotoolbox.org/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+msgid ""
+"• Online Learning: For a comprehensive introduction to KoboToolbox, we offer"
+" the online self-paced KoboToolbox Essentials Course. Get started with the "
+"Essentials Course: https://academy.kobotoolbox.org/courses/essentials"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:31
+msgid ""
+"• Community Forum: Visit our Community Forum to chat with thousands of "
+"KoboToolbox users, ask questions, and find information about software "
+"updates. Explore the Community Forum: https://community.kobotoolbox.org/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:33
+msgid ""
+"• Support Services: We offer custom solutions and expert support for "
+"organizations, including training, project support, and dashboard "
+"development. Learn more about our services: "
+"https://www.kobotoolbox.org/services/"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:35
+msgid "Follow us on on social media:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:36
+msgid "• Facebook: https://www.facebook.com/kobotoolbox"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:37
+msgid "• LinkedIn: https://www.linkedin.com/company/kobotoolbox"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:39
+msgid "Thanks for signing up!"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:40
+msgid "The KoboToolbox Team"
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_subject.txt:10
 msgid "Activate your KoboToolbox Account"
@@ -250,20 +302,27 @@ msgstr "A tabbatar da cewa <a href=\"mailto:%(email)s\">%(email)s</a> Adireshin 
 msgid "Confirm"
 msgstr "Tabbatar"
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:33
-msgid "Activation failed"
-msgstr "An kasa shigarwa"
+#: kobo/apps/accounts/templates/account/email_confirm.html:34
+msgid "Activation Failed"
+msgstr ""
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:36
+#: kobo/apps/accounts/templates/account/email_confirm.html:38
 msgid ""
-"Sorry, we couldn't activate your account. The link we sent you has expired."
-msgstr "Yi haƙuri, ba za mu iya shiga shafinka ba. Amfanin mahaɗin da mu ka turo maka ya ƙare."
+"This activation link has expired. We could not confirm your email address. "
+msgstr ""
 
 #: kobo/apps/accounts/templates/account/email_confirm.html:42
 msgid ""
-"This e-mail confirmation link expired or is invalid. If you need to request "
-"a new link to verify your email address change, please go to your account "
-"settings page and enter your email address again."
+"If you are trying to activate a new account, please sign into your account "
+"with your credentials (username and password) and a new link will be sent to"
+" you."
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:46
+msgid ""
+"If you are trying to verify an email address change, please go to the "
+"security tab under your account settings, and click the 'resend' button to "
+"receive an activation link."
 msgstr ""
 
 #: kobo/apps/accounts/templates/account/login.html:29
@@ -353,8 +412,10 @@ msgid "Confirm your email address"
 msgstr "Tabbatar da adireshin imel ɗinku"
 
 #: kobo/apps/accounts/templates/account/verification_sent.html:11
-msgid "Please click the activation link in the email just sent to you."
-msgstr "Danna mahaɗin shiga a cikin imel ɗin da aka aiko maka."
+msgid ""
+"We have sent you an activation link. Please check your inbox (and spam "
+"folder) and click the link to activate your account."
+msgstr ""
 
 #: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
 #: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
@@ -459,7 +520,6 @@ msgid ""
 msgstr "Dole ne sunan mai amfani ya zama daga haruffa 2 zuwa 30, za kuma su iya zama ƙananan harufa kaɗai, ko lambobi, da alamomin layi na ƙasa yayin da harafi na farko dole ya zama harafi."
 
 #: kobo/apps/hook/serializers/v2/hook.py:85
-#| msgid "Invalid token."
 msgid "Invalid scheme"
 msgstr "Tsarin mara inganci"
 
@@ -468,7 +528,6 @@ msgid "Unsecured endpoint is not allowed"
 msgstr "Ba a aminta da wani mahaɗi mara tabbas ba"
 
 #: kobo/apps/hook/serializers/v2/hook.py:99
-#| msgid "Invalid token."
 msgid "Invalid JSON"
 msgstr "JSON mara inganci"
 
@@ -476,7 +535,7 @@ msgstr "JSON mara inganci"
 msgid "Can be used only with JSON submission format"
 msgstr "Ana iya amfani da shi ne kaɗai ta tsarin aikawa na JSON."
 
-#: kobo/apps/hook/tasks.py:145
+#: kobo/apps/hook/tasks.py:146
 msgid "REST Services Failure Report"
 msgstr "Rahoton Rashin Ayyukan REST"
 
@@ -536,31 +595,31 @@ msgstr "Barka"
 msgid "Some submissions could not be sent to their external endpoints."
 msgstr "Ba a samu an aika wasu bayanai zuwa mahaɗa na waje."
 
-#: kobo/apps/hook/views/v2/hook.py:186
+#: kobo/apps/hook/views/v2/hook.py:185
 msgid "Task successfully scheduled"
 msgstr "An samu nasarar tsara aikin"
 
-#: kobo/apps/hook/views/v2/hook.py:222
+#: kobo/apps/hook/views/v2/hook.py:221
 msgid "No data to retry"
 msgstr "Babu bayanan da za a sake gwadawa"
 
-#: kobo/apps/hook/views/v2/hook.py:225
-msgid "Can not retry on disabled hooks"
-msgstr "Ba za a iya gwadawa a mahaɗan da basa aiki"
+#: kobo/apps/hook/views/v2/hook.py:224
+msgid "Cannot retry on disabled hooks"
+msgstr ""
 
-#: kobo/apps/hook/views/v2/hook_log.py:130
-msgid "An error has occurred when sending the data. Please try again later."
-msgstr "An samu matsala yayin aika bayanai. A sake gwadawa daga baya."
-
-#: kobo/apps/hook/views/v2/hook_log.py:135
+#: kobo/apps/hook/views/v2/hook_log.py:132
 msgid "Data is being or has already been processed"
 msgstr "A na sarrafa ko an riga an sarrafa bayanan"
+
+#: kobo/apps/kobo_scim/authentication.py:31
+msgid "Invalid or inactive SCIM token."
+msgstr ""
 
 #: kobo/apps/languages/templates/admin/languages_change_list.html:8
 msgid "Import"
 msgstr "Shigo da"
 
-#: kobo/apps/mass_emails/tasks.py:244
+#: kobo/apps/mass_emails/tasks.py:255
 msgid "Not available"
 msgstr ""
 
@@ -593,7 +652,6 @@ msgstr "Ba a sami sunan fayil ɗin '%s' ba."
 
 #: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
 #, python-format
-#| msgid "Invalid token."
 msgid "Invalid formId %s."
 msgstr "Ba daidai ne formId %s."
 
@@ -662,27 +720,36 @@ msgstr ""
 msgid "Submission with this instance ID already exists"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:31
+#: kobo/apps/openrosa/apps/logger/exceptions.py:34
+msgid "Invalid submission - deprecatedID refers to an old submission version"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:41
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1039
+msgid "Invalid submission - deprecatedID not found"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:46
 msgid "Duplicate Instance"
 msgstr "Misalin Kwafi"
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:48
+#: kobo/apps/openrosa/apps/logger/exceptions.py:63
 msgid "Empty instance"
 msgstr "Babu misali"
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:53
+#: kobo/apps/openrosa/apps/logger/exceptions.py:68
 msgid "Could not determine the user"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:58
+#: kobo/apps/openrosa/apps/logger/exceptions.py:73
 msgid "Could not determine the instance ID"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:67
+#: kobo/apps/openrosa/apps/logger/exceptions.py:82
 msgid "The instance could not be parsed"
 msgstr ""
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:72
+#: kobo/apps/openrosa/apps/logger/exceptions.py:87
 msgid "Submission is currently being processed."
 msgstr ""
 
@@ -702,27 +769,27 @@ msgstr "XForm"
 msgid "XForms"
 msgstr "XForms"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:203
+#: kobo/apps/openrosa/apps/logger/models/xform.py:207
 #, python-format
 msgid ""
 "Your updated form's id_string '%(new_id)s' must match the existing forms' "
 "id_string '%(old_id)s'."
 msgstr "Form's id_string ɗinku da aka sabunta '%(new_id)s'dole ne ya dace da forms' id_string da ake da su '%(old_id)s'."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:212
+#: kobo/apps/openrosa/apps/logger/models/xform.py:216
 msgid ""
 "In strict mode, the XForm ID must be a valid slug and contain no spaces."
 msgstr "A yanayi mai tsanani, dole ne ID ɗin XForm ya zama mai inganci ba tare da tsallake ba."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:226
+#: kobo/apps/openrosa/apps/logger/models/xform.py:230
 msgid "Submission Count"
 msgstr "Ƙididdigar Aikawa"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:274
+#: kobo/apps/openrosa/apps/logger/models/xform.py:281
 msgid "There should be a single id string."
 msgstr "Ya kamata a sami ID guda ɗaya."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:299
+#: kobo/apps/openrosa/apps/logger/models/xform.py:306
 msgid "There should be a single title."
 msgstr "Ya kamata a sami take guda ɗaya."
 
@@ -765,10 +832,10 @@ msgstr "Babu fayil ɗin XLS don fom ɗinku %(id)s"
 msgid "Not shared."
 msgstr "Ba a tura ba."
 
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:35
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:76
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:104
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:525
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:36
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:77
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:105
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:542
 msgid "XML string must have a survey element."
 msgstr "Dole ne XML ya kasance ya na da ɓangaren bincike."
 
@@ -812,17 +879,17 @@ msgstr ""
 msgid "Invalid export type specified"
 msgstr "Nau'in fitarwa mara inganci da aka ƙayyade"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:141
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:193
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:142
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:194
 msgid "Invalid start/limit params"
 msgstr "Rashin ingancin farawa/iyakar"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:157
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:158
 #, python-format
 msgid "Invalid pipeline! %s"
 msgstr "Hanya mara inganci! %s"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:159
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:160
 #, python-format
 msgid "Invalid query! %s"
 msgstr "Tambaya mara inganci! %s"
@@ -872,7 +939,6 @@ msgid "Create Export"
 msgstr "Ƙirƙirar Fitarwa"
 
 #: kobo/apps/openrosa/apps/viewer/templates/export_list.html:65
-#| msgid "Username"
 msgid "Filename"
 msgstr "Sunan fayil"
 
@@ -912,7 +978,6 @@ msgid "%s is not a valid export type"
 msgstr "%s ba ingantaccen nauʻin fitarwa ba ce"
 
 #: kobo/apps/openrosa/apps/viewer/views.py:96
-#| msgid "Invalid token."
 msgid "Invalid export type"
 msgstr "Nau'in fitarwa mara inganci"
 
@@ -994,7 +1059,6 @@ msgid "Cannot determine content type"
 msgstr "Ba za a iya ƙayyade nau'in abun ciki ba"
 
 #: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
-#| msgid "Invalid token."
 msgid "Invalid content type"
 msgstr "Nau'in abun ciki ba shi da inganci"
 
@@ -1835,7 +1899,6 @@ msgid "Sudan"
 msgstr "Sudan"
 
 #: kobo/apps/openrosa/libs/utils/country_field.py:218
-#| msgid "Username"
 msgid "Suriname"
 msgstr "Suriname"
 
@@ -1991,84 +2054,87 @@ msgstr "Zimbabwe"
 msgid "Unknown or unspecified country"
 msgstr "Ƙasar da ba a sani ba ko kuma ba a bayyana ta ba"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:134
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:141
 msgid "Forbidden"
 msgstr "Haramtacce"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:144
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:151
 msgid ""
 "Forbidden attempt to edit a submission. To make a new submission, Remove "
 "`deprecatedID` from the submission XML and try again."
 msgstr "An haramta ƙoƙarin gyara abinda aka aika. Don ƙirƙirar sabon aikawa, Cire. `deprecatedID` daga madannin aikawa XML kuma sake gwadawa."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:456
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:467
 msgid "Username or ID required."
 msgstr "Ana buƙatar sunan mai amfani ko ID."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:459
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:470
 msgid "Received empty submission. No instance was created"
 msgstr "Babu komai a abinda aka aika. Babu wani abu da aka ƙirƙira"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:462
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:473
 msgid "Instance ID is required"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:465
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:482
 msgid "Form is not active"
 msgstr "Fom ɗin ba ya aiki"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:468
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:485
 msgid "Temporarily unavailable"
 msgstr "Ba za a iya samu ba na ɗan lokaci"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:474
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:491
 msgid "The owner of this survey has exceeded their submission limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:478
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:495
 msgid "The owner of this survey has exceeded their storage limit."
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:483
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:500
 msgid "Account is not active"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:486
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:503
 msgid "Form does not exist on this account"
 msgstr "Babu wani nau'in fom a wannan shafi"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:489
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:506
 msgid "Improperly formatted XML."
 msgstr "XML ɗin ba daidai ba ne."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:507
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:524
 msgid "Access denied"
 msgstr "An hana shiga"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:514
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:531
 msgid "File likely corrupted during transmission, please try later."
 msgstr "Mai yiwuwa fayil ɗin ya lalace yayin tafiya,a yi haƙuri a ƙara gwadawa."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:651
-#| msgid "Invalid token."
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:668
 msgid "Invalid URL format."
 msgstr "Tsarin URL mara inganci."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:663
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:680
 msgid "Form validation timeout, please try again."
 msgstr "Lokacin tabbatar da fom ɗin ya ƙare, a sake gwadawa."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:722
-#: kobo/apps/openrosa/libs/utils/viewer_tools.py:76
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:739
+#: kobo/apps/openrosa/libs/utils/viewer_tools.py:77
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr "Banda a lokacin nema: %(class)s: %(error)s"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:755
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:772
 msgid "The requested file could not be found."
 msgstr "Ba a samu fayil ɗin da aka nema ba."
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:111
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:1036
+msgid "Invalid submission - deprecatedID refers to an old version"
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:89
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
@@ -2092,6 +2158,10 @@ msgstr ""
 
 #: kobo/apps/organizations/tasks.py:84
 msgid "Organization invite has expired"
+msgstr ""
+
+#: kobo/apps/organizations/templates/admin/organizations/organization/change_form.html:12
+msgid "Create Stripe Subscription"
 msgstr ""
 
 #: kobo/apps/organizations/templates/emails/accepted_org_invite.html:4
@@ -2288,7 +2358,7 @@ msgstr "Aiki `##asset_uid##` Ba za a iya canja wurin shi ba. Matakin da ake : ##
 msgid "Must not be in the same organization"
 msgstr ""
 
-#: kobo/apps/project_ownership/tasks.py:185
+#: kobo/apps/project_ownership/tasks.py:186
 msgid "Invite has expired"
 msgstr "Gayyatar ta ƙare"
 
@@ -2540,7 +2610,7 @@ msgid_plural "%d plan add-ons were created."
 msgstr[0] ""
 msgstr[1] ""
 
-#: kobo/settings/base.py:284
+#: kobo/settings/base.py:301
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2548,7 +2618,7 @@ msgid ""
 "email##)."
 msgstr "Idan ba za ka iya samun damar manhajar tabbatar da shaida ba, a shigar da ɗaya daga cikin lambobin ajiyar ka maimakon. Idan ba za ku iya samun damar waɗannan ba, toh ku na buƙatar neman taimako ta hanyar tuntuɓar [##support email##](mailto:##support email##)."
 
-#: kobo/settings/base.py:551
+#: kobo/settings/base.py:563
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2715,58 +2785,69 @@ msgstr "Instagram"
 msgid "I want to receive occasional updates about KoboToolbox"
 msgstr "Ina so na dinga sabunta manhajar KoboToolbox lokaci-lokaci"
 
+#: kpi/admin.py:46
+msgid "Options Configuration"
+msgstr ""
+
+#: kpi/admin.py:50
+msgid "Provide a JSON list of objects containing 'name' and 'label'."
+msgstr ""
+
+#: kpi/admin.py:62
+msgid "Default Label"
+msgstr ""
+
 #: kpi/authentication.py:70
-#| msgid "Invalid token."
 msgid "Invalid username/password"
 msgstr "Sunan mai amfani/kalmar sirri ba daidai bane"
 
-#: kpi/deployment_backends/base_backend.py:138
+#: kpi/deployment_backends/base_backend.py:142
 msgid "No submissions match the given `submission_ids`"
 msgstr "Babu abinda aka tura da ya dace da abinda aka bayar `submission_ids`"
 
-#: kpi/deployment_backends/base_backend.py:603
+#: kpi/deployment_backends/base_backend.py:612
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "Ba a aiwatar da wannan tsarin ba. Maimakon `count` haka yi amfani da amsa."
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:623
 msgid "This param is not supported in `XML` format"
 msgstr "Wannan tsarin bai dace a `XML` nan ba"
 
-#: kpi/deployment_backends/base_backend.py:619
+#: kpi/deployment_backends/base_backend.py:628
 msgid "This is not supported in `XML` format"
 msgstr "Wannan bai dace da `XML` tsarin ba"
 
-#: kpi/deployment_backends/base_backend.py:639
-#: kpi/deployment_backends/base_backend.py:668
-#: kpi/deployment_backends/base_backend.py:690 kpi/views/v2/data.py:448
+#: kpi/deployment_backends/base_backend.py:648
+#: kpi/deployment_backends/base_backend.py:677
+#: kpi/deployment_backends/base_backend.py:699 kpi/views/v2/data.py:1103
 msgid "Value must be valid JSON."
 msgstr "Dole ne bayanin ya kasance mai aiki da JSON."
 
-#: kpi/deployment_backends/base_backend.py:644
+#: kpi/deployment_backends/base_backend.py:653
 msgid "Value must be a list."
 msgstr "Dole bayanin ya zama cikin jeri."
 
-#: kpi/deployment_backends/base_backend.py:675
-#: kpi/deployment_backends/base_backend.py:682
+#: kpi/deployment_backends/base_backend.py:684
+#: kpi/deployment_backends/base_backend.py:691
 msgid "A positive integer is required."
 msgstr "Ana buƙatar cikakken lamba."
 
-#: kpi/deployment_backends/openrosa_backend.py:405
+#: kpi/deployment_backends/openrosa_backend.py:412
 msgid "Your submission XML is malformed."
 msgstr "XML da aka aika ba shi da kyau."
 
-#: kpi/deployment_backends/openrosa_backend.py:411
+#: kpi/deployment_backends/openrosa_backend.py:418
 msgid "Your submission XML is missing critical elements."
 msgstr "XML da aka aika ya rasa abubuwa ma su muhimmanci."
 
-#: kpi/deployment_backends/openrosa_backend.py:449
+#: kpi/deployment_backends/openrosa_backend.py:456
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "Ba a sami abinda aka aika da ku ke ƙoƙarin gyarawa ba, ko kuma kun rasa damar amfani da shi."
 
-#: kpi/deployment_backends/openrosa_backend.py:1005
+#: kpi/deployment_backends/openrosa_backend.py:1012
 msgid "Successful submission"
 msgstr "An yi nasarar aikawa"
 
@@ -2778,52 +2859,44 @@ msgstr "Ba za a iya tura abubuwa ma su yawa ba"
 msgid "Must call `asset.connect_deployment()` first"
 msgstr "Dole ne a fara `asset.connect_deployment()` kira"
 
-#: kpi/exceptions.py:84
-msgid "XML contains forbidden DTDs"
-msgstr "XML na ɗauke da DTDs da aka haramta"
-
-#: kpi/exceptions.py:95
-msgid "XML contains forbidden entities"
-msgstr "XML na ɗauke da abubuwa da aka haramta"
-
-#: kpi/exceptions.py:120
+#: kpi/exceptions.py:98
 msgid "Invalid search. Please try again"
 msgstr "Ba a nemo daidai ba. A sake gwadawa"
 
-#: kpi/exceptions.py:125
+#: kpi/exceptions.py:103
 msgid "Deployment links to an unexpected KoboCAT XForm"
 msgstr "Mahaɗi zuwa KoboCAT XForm da ba a tsammani"
 
-#: kpi/exceptions.py:161
+#: kpi/exceptions.py:139
 msgid "An error occurred trying to duplicate the submission"
 msgstr "An sami kuskure wurin aikawa sau biyu"
 
-#: kpi/exceptions.py:179
+#: kpi/exceptions.py:157
 msgid "The specified object has not been deployed"
 msgstr "Ba a tura da abinda ya dace ba"
 
-#: kpi/exceptions.py:188
+#: kpi/exceptions.py:166
 msgid "Bad syntax"
 msgstr "Ginshiƙin ba shi da kyau"
 
-#: kpi/exceptions.py:193
+#: kpi/exceptions.py:171
 msgid "Not supported field lookup"
 msgstr "Bai yi daidai da wurin ba"
 
-#: kpi/exceptions.py:216
+#: kpi/exceptions.py:194
 msgid "Your query is too short"
 msgstr "Tambayar ka ta yi kaɗan"
 
-#: kpi/exceptions.py:230
+#: kpi/exceptions.py:208
 msgid "The owner of this asset has exeeded their usage limit"
 msgstr ""
 
-#: kpi/fields/jsonschema_form_field.py:23
-#: kpi/fields/jsonschema_form_field.py:26
+#: kpi/fields/jsonschema_form_field.py:31
+#: kpi/fields/jsonschema_form_field.py:36
 msgid "Enter valid JSON."
 msgstr "Shigar da ingantaccen JSON."
 
-#: kpi/fields/jsonschema_form_field.py:158
+#: kpi/fields/jsonschema_form_field.py:126
 msgid "`##place_holder##` field cannot be hidden."
 msgstr "`##place_holder##` Wurin ba zai ɓoyu ba."
 
@@ -2832,144 +2905,148 @@ msgstr "`##place_holder##` Wurin ba zai ɓoyu ba."
 msgid "Unable to parse JSON: {error}"
 msgstr "Ba za a iya yin amfani da JSON ba: {error}"
 
+#: kpi/forms/extra_metadata_form.py:26
+msgid "Select fields require at least one option in JSON format."
+msgstr ""
+
 #: kpi/mixins/mfa.py:22
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "Ana ba da damar tabbatarwa fiye da ɗaya a wannan shafi."
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:306
 msgid "Can view asset"
 msgstr "Za a iya duba kayan aiki"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:307
 msgid "Can discover asset in public lists"
 msgstr "Za a iya duba kayayyaki a jerin gama gari"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:308
 msgid "Can manage all aspects of asset"
 msgstr "Zai iya sarrafa duk wani ɓangare na kayayyaki."
 
-#: kpi/models/asset.py:321
+#: kpi/models/asset.py:310
 msgid "Can submit data to asset"
 msgstr "Za ka iya aika data zuwa kayayyaki."
 
-#: kpi/models/asset.py:322
+#: kpi/models/asset.py:311
 msgid "Can view submitted data for asset"
 msgstr "Za ka iya duba bayanan da aka gabatar don kayayyaki."
 
-#: kpi/models/asset.py:323
+#: kpi/models/asset.py:312
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Za a iya yin wasu ayyuka akan bayanan da aka tura don kayan aiki ga masu amfani na musamman"
 
-#: kpi/models/asset.py:326
+#: kpi/models/asset.py:315
 msgid "Can modify submitted data for asset"
 msgstr "Za a iya canza bayanan da aka tura don kayan aiki"
 
-#: kpi/models/asset.py:327
+#: kpi/models/asset.py:316
 msgid "Can delete submitted data for asset"
 msgstr "Zai iya goge bayanan da aka tura don kayan aiki"
 
-#: kpi/models/asset.py:328
+#: kpi/models/asset.py:317
 msgid "Can validate submitted data asset"
 msgstr "Za a iya tabbatar da bayanan kayan aiki da aka aika"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:336
 msgid "project"
 msgstr "aiki"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:336
 msgid "form"
 msgstr "fom"
 
-#: kpi/models/asset.py:349
+#: kpi/models/asset.py:338
 msgid "template"
 msgstr "samfuri"
 
-#: kpi/models/asset.py:350
+#: kpi/models/asset.py:339
 msgid "block"
 msgstr "toshe"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:340
 msgid "question"
 msgstr "tambaya"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:341
 msgid "text"
 msgstr "rubutu"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:342
 msgid "empty"
 msgstr "babu komai"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:343
 msgid "collection"
 msgstr "tari"
 
-#: kpi/models/asset.py:361
+#: kpi/models/asset.py:350
 msgid "View ##asset_type_label##"
 msgstr "Duba ##asset_type_label##"
 
-#: kpi/models/asset.py:362
+#: kpi/models/asset.py:351
 msgid "Edit ##asset_type_label##"
 msgstr "Gyara ##asset_type_label##"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:352
 msgid "Discover ##asset_type_label##"
 msgstr "Gano ##asset_type_label##"
 
-#: kpi/models/asset.py:364
+#: kpi/models/asset.py:353
 msgid "Manage ##asset_type_label##"
 msgstr "Kulawa ##asset_type_label##"
 
-#: kpi/models/asset.py:365
+#: kpi/models/asset.py:354
 msgid "Add submissions"
 msgstr "Ƙara turawa"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:355
 msgid "View submissions"
 msgstr "Duba abubuwan da aka tura"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:358
 msgid "Act on submissions only from specific users"
 msgstr "Yi aiki kan abinda ma su amfani na musamman su ka tura"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:361
 msgid "View submissions only from specific users"
 msgstr "Duba abinda ma su amfani na musamman su ka tura"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:364
 msgid "Edit submissions only from specific users"
 msgstr "Gyara abinda ma su amfani na musamman su ka tura"
 
-#: kpi/models/asset.py:378
+#: kpi/models/asset.py:367
 msgid "Delete submissions only from specific users"
 msgstr "Goge abinda ma su amfani na musamman su ka tura"
 
-#: kpi/models/asset.py:381
+#: kpi/models/asset.py:370
 msgid "Validate submissions only from specific users"
 msgstr "Tabbatar abinda ma su amfani bana musamman su ka tura"
 
-#: kpi/models/asset.py:384
+#: kpi/models/asset.py:373
 msgid "Edit submissions"
 msgstr "Gyara abinda aka tura"
 
-#: kpi/models/asset.py:385
+#: kpi/models/asset.py:374
 msgid "Delete submissions"
 msgstr "Goge abinda aka tura"
 
-#: kpi/models/asset.py:386
+#: kpi/models/asset.py:375
 msgid "Validate submissions"
 msgstr "Tabbatar da abinda aka tura"
 
-#: kpi/models/asset.py:729
+#: kpi/models/asset.py:689
 msgid "Only partial permissions for submissions are supported"
 msgstr "Ana amince da wasu izinin turawa kaɗai"
 
-#: kpi/models/asset.py:1490
+#: kpi/models/asset.py:1398
 msgid "Can not assign '{}' permission to owner"
 msgstr "Ba zai iya shiga ba '{}' sai da izinin mammallakin"
 
-#: kpi/models/asset.py:1494
+#: kpi/models/asset.py:1402
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Ba zai iya shiga '{}' ba da izinin ba. An rasa izini daga wani ɓangare."
 
@@ -2977,11 +3054,55 @@ msgstr "Ba zai iya shiga '{}' ba da izinin ba. An rasa izini daga wani ɓangare.
 msgid "Invalid token."
 msgstr "Alamar da ba ta da inganci."
 
-#: kpi/models/import_export_task.py:153
+#: kpi/models/extra_project_metadata_field.py:7
+msgid "Text"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:8
+msgid "Single Select"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:9
+msgid "Multi Select"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:16
+msgid "Unique internal identifier (e.g. 'project_sectors')"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:21
+msgid "Translation map: {\"default\": \"Country\", \"fr\": \"Pays\"}"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:28
+msgid "Required"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:32
+msgid "List of [{\"name\": \"value\", \"label\": \"Label\"}] dicts"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:37
+msgid "Extra Project Metadata Field"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:38
+msgid "Extra Project Metadata Fields"
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:48
+msgid "Options are required for select fields."
+msgstr ""
+
+#: kpi/models/extra_project_metadata_field.py:60
+msgid "Each option must be a dictionary containing 'name' and 'label'."
+msgstr ""
+
+#: kpi/models/import_export_task.py:161
 msgid "Cannot access data"
 msgstr "Ba za a iya samun damar bayanai ba"
 
-#: kpi/models/import_export_task.py:762
+#: kpi/models/import_export_task.py:790
 msgid "This data does not exist or you do not have access to it"
 msgstr "Babu waɗannan bayanan ko kuma babu damar isa gare su"
 
@@ -2999,87 +3120,86 @@ msgid ""
 "characters."
 msgstr "Dole ne kalmar sirri ta ƙunshi aƙalla ##number of rules## nau'ikan haruffa daban-daban."
 
-#: kpi/serializers/current_user.py:205
+#: kpi/serializers/current_user.py:206
 msgid "Incorrect current password."
 msgstr "Kalmar sirrin da aka saka ba dai-dai bace"
 
-#: kpi/serializers/current_user.py:225
+#: kpi/serializers/current_user.py:226
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password` dole `new_password` ne duka biyun su kasance"
 
-#: kpi/serializers/current_user.py:265
-#: kpi/serializers/v2/asset_permission_assignment.py:286
+#: kpi/serializers/current_user.py:264
+#: kpi/serializers/v2/asset_permission_assignment.py:373
 msgid "This field may not be blank."
 msgstr "Wannan filin ba zai zama babu komai ba."
 
-#: kpi/serializers/v2/asset.py:161
+#: kpi/serializers/v2/asset.py:165
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "%(count)d ba a goge aikin ba"
 
-#: kpi/serializers/v2/asset.py:167
+#: kpi/serializers/v2/asset.py:171
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "%(count)d an goge aikin"
 
-#: kpi/serializers/v2/asset.py:174
+#: kpi/serializers/v2/asset.py:178
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "%(count)d ba a adana aikin ba"
 
-#: kpi/serializers/v2/asset.py:180
+#: kpi/serializers/v2/asset.py:184
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "%(count)d an adana aikin"
 
-#: kpi/serializers/v2/asset.py:196
+#: kpi/serializers/v2/asset.py:200
 msgid "One or many projects have been deleted already!"
 msgstr "An riga da an goge ɗaya ko wasu daga cikin aikin!"
 
-#: kpi/serializers/v2/asset.py:204
+#: kpi/serializers/v2/asset.py:208
 msgid "One or many projects are already being deleted!"
 msgstr "An riga an fara goge ɗaya ko wasu daga cikin aikin!"
 
-#: kpi/serializers/v2/asset.py:280
+#: kpi/serializers/v2/asset.py:284
 msgid "`action` parameter is required"
 msgstr "`action` Ana buƙatar lamba"
 
-#: kpi/serializers/v2/asset.py:285
+#: kpi/serializers/v2/asset.py:289
 msgid "Supported values for `action` are: "
 msgstr "Lambibobin da aka amince dasu sune kamar `action` haka: "
 
-#: kpi/serializers/v2/asset.py:307
+#: kpi/serializers/v2/asset.py:311
 msgid "Draft projects cannot be archived"
 msgstr "Ba za a iya adana ayyukan da ba'a gama ba"
 
-#: kpi/serializers/v2/asset.py:313 kpi/serializers/v2/data.py:61
-#| msgid "Information / Media"
+#: kpi/serializers/v2/asset.py:317 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "Ana buƙatar tabbatarwa"
 
-#: kpi/serializers/v2/asset.py:974
+#: kpi/serializers/v2/asset.py:992
 msgid "The property is required"
 msgstr "Ana buƙatar wannan tsarin"
 
-#: kpi/serializers/v2/asset.py:978
+#: kpi/serializers/v2/asset.py:996
 msgid "The property must be an array"
 msgstr "Dole ne tsarin ya zama a jere"
 
-#: kpi/serializers/v2/asset.py:1000
+#: kpi/serializers/v2/asset.py:1018
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{valid_fields}`"
 msgstr "Wasu fannoni ba su da inganci, zaɓuɓɓuka sune: `{valid_fields}`"
 
-#: kpi/serializers/v2/asset.py:1022
+#: kpi/serializers/v2/asset.py:1040
 msgid "User cannot update current parent collection"
 msgstr "Mai amfani ba zai iya sabunta asalin abubuwa na yanzu ba"
 
-#: kpi/serializers/v2/asset.py:1032
+#: kpi/serializers/v2/asset.py:1050
 #: kpi/tests/api/v2/test_api_collections.py:476
 msgid "Target collection not found"
 msgstr "Ba a gano abubuwan da aka yi niyya ba"
 
-#: kpi/serializers/v2/asset.py:1036
+#: kpi/serializers/v2/asset.py:1054
 #: kpi/tests/api/v2/test_api_collections.py:466
 msgid "User cannot update target parent collection"
 msgstr "Mai amfani ba zai iya sabunta asalin abubuwan da aka yi niyya ba"
@@ -3109,12 +3229,12 @@ msgid "`lang` for this asset must be either {}"
 msgstr "`lang` domin waɗannan kayyaki dole ne ya zama ko dai {}"
 
 #: kpi/serializers/v2/asset_export_settings.py:119
-#: kpi/serializers/v2/export_task.py:232
+#: kpi/serializers/v2/export_task.py:233
 msgid "Must be a JSON object"
 msgstr "Dole ne ya zama ya na daga JSON"
 
 #: kpi/serializers/v2/asset_export_settings.py:134
-#: kpi/serializers/v2/export_task.py:250
+#: kpi/serializers/v2/export_task.py:251
 msgid "All values in the array must be integers"
 msgstr "Dukkanin lambonibin su zamo cikakken lambobi"
 
@@ -3131,7 +3251,6 @@ msgid "JSON is invalid"
 msgstr "JSON ba shi da inganci"
 
 #: kpi/serializers/v2/asset_file.py:134
-#| msgid "Invalid token."
 msgid "Invalid content"
 msgstr "Abin ba shi da inganci"
 
@@ -3170,34 +3289,33 @@ msgstr "`redirect_url` babu inganci"
 msgid "Only `{}` MIME types are allowed"
 msgstr "Nau’ín `{}` MIME kaɗai aka amince"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:159
+#: kpi/serializers/v2/asset_permission_assignment.py:172
 msgid "This field is required for the '{}' permission"
 msgstr "Ana buƙatar izini a wannan '{}' wurin"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:173
-#: kpi/serializers/v2/asset_permission_assignment.py:178
-#: kpi/serializers/v2/asset_permission_assignment.py:184
-#: kpi/serializers/v2/asset_permission_assignment.py:493
+#: kpi/serializers/v2/asset_permission_assignment.py:186
+#: kpi/serializers/v2/asset_permission_assignment.py:191
+#: kpi/serializers/v2/asset_permission_assignment.py:197
+#: kpi/serializers/v2/asset_permission_assignment.py:601
 msgid "Invalid `url`"
 msgstr "Babu inganci `url`"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:189
-#| msgid "Invalid token."
+#: kpi/serializers/v2/asset_permission_assignment.py:202
 msgid "Invalid `filters`"
 msgstr "Babu inganci `filters`"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:206
+#: kpi/serializers/v2/asset_permission_assignment.py:219
 #, python-brace-format
 msgid ""
 "{permission} cannot be assigned explicitly to Asset objects of this type."
 msgstr "{permission} ba za a iya sanyawa kai tsaye ga irin wannan nauʻin Kayan ba."
 
-#: kpi/serializers/v2/asset_permission_assignment.py:285
+#: kpi/serializers/v2/asset_permission_assignment.py:372
 msgid "Not a valid list."
 msgstr "Jerin ba ingantacce ba ne."
 
-#: kpi/serializers/v2/asset_permission_assignment.py:486
-#: kpi/serializers/v2/asset_permission_assignment.py:489
+#: kpi/serializers/v2/asset_permission_assignment.py:594
+#: kpi/serializers/v2/asset_permission_assignment.py:597
 msgid "Invalid hyperlink - Object does not exist."
 msgstr "Hyperlink ba ingantacce ba ne - Babu komai anan."
 
@@ -3222,7 +3340,6 @@ msgid "List cannot be empty"
 msgstr ""
 
 #: kpi/serializers/v2/attachment_delete.py:79
-#| msgid "Invalid token."
 msgid "Invalid attachment UID"
 msgstr ""
 
@@ -3230,7 +3347,7 @@ msgstr ""
 msgid "One or more of the root UUIDs are invalid"
 msgstr ""
 
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:690
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:867
 msgid "The specified asset has not been deployed"
 msgstr "Ba a tura kayan a aka ambato ba"
 
@@ -3250,39 +3367,39 @@ msgstr "`data` ana buƙata"
 msgid "`validation_status.uid` is required"
 msgstr "`validation_status.uid` ana buƙata"
 
-#: kpi/serializers/v2/export_task.py:126
+#: kpi/serializers/v2/export_task.py:127
 msgid "Must contain all the following required keys: {}"
 msgstr "Dole ne ya ƙunshi duk madannan da ake buƙata masu zuwa:{}"
 
-#: kpi/serializers/v2/export_task.py:140
+#: kpi/serializers/v2/export_task.py:141
 msgid "Can contain only the following valid keys: {}"
 msgstr "Zai iya ƙunsar madannai masu inganci kaɗai masu zuwa: {}"
 
-#: kpi/serializers/v2/export_task.py:155 kpi/serializers/v2/export_task.py:240
+#: kpi/serializers/v2/export_task.py:156 kpi/serializers/v2/export_task.py:241
 msgid "Must be an array"
 msgstr "Dole ne ya zama a jere"
 
-#: kpi/serializers/v2/export_task.py:162
+#: kpi/serializers/v2/export_task.py:163
 msgid "All values in the array must be strings"
 msgstr "Dukkan nau'ikan cikin jeri kuma a haɗe"
 
-#: kpi/serializers/v2/export_task.py:172
+#: kpi/serializers/v2/export_task.py:173
 msgid "Must be a non-empty value"
 msgstr "Dole ne ya zama lamba"
 
-#: kpi/serializers/v2/export_task.py:185
+#: kpi/serializers/v2/export_task.py:186
 msgid "For this asset must be either {}"
 msgstr "Don wannan kaya dole ya zama ko dai {}"
 
-#: kpi/serializers/v2/export_task.py:197 kpi/serializers/v2/export_task.py:261
+#: kpi/serializers/v2/export_task.py:198 kpi/serializers/v2/export_task.py:262
 msgid "Must be either {}"
 msgstr "Dole ne ya zama ko dai {}"
 
-#: kpi/serializers/v2/export_task.py:207
+#: kpi/serializers/v2/export_task.py:208
 msgid "The asset must be deployed."
 msgstr "Dole ne a tura kayan."
 
-#: kpi/serializers/v2/export_task.py:224
+#: kpi/serializers/v2/export_task.py:225
 msgid "The export name must be a string."
 msgstr "Dole sunan fitarwa ya zama a jere."
 
@@ -3395,7 +3512,7 @@ msgstr "Shafin saukar da Opera"
 msgid "Opera"
 msgstr "Opera"
 
-#: kpi/tests/test_registration.py:71
+#: kpi/tests/test_registration.py:73
 msgid "This email domain is not allowed to create an account"
 msgstr "Ba a amince da ƙirƙirar shafi a karkashin wannan Imel ba"
 
@@ -3428,7 +3545,6 @@ msgid ""
 msgstr "KPI ne ke tura bayanan KoBoCAT tun asali, amma ba a kwafi teburan KPI daga wanan rumbun da suke amfani yaretare zuwa sabbin, rumbun bayanan na KPI-kaɗai."
 
 #: kpi/views/current_user.py:86
-#| msgid "Invalid token."
 msgid "Invalid confirmation"
 msgstr "Tabbacin ba shi da inganci"
 
@@ -3469,12 +3585,6 @@ msgstr "Kuskuren ya afku ne lokacin musayar bayanan"
 msgid "Conversion is not supported for {}"
 msgstr "Musayar bayanan ba su dace da {}"
 
-#: kpi/views/v2/data.py:679
+#: kpi/views/v2/data.py:853
 msgid "A positive integer is required"
 msgstr "Ana buƙatar cikkakken lamba"
-
-#~ msgid "User"
-#~ msgstr "Username"
-
-#~ msgid "Username"
-#~ msgstr "Username"
