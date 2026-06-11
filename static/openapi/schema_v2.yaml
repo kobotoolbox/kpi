@@ -2160,7 +2160,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BulkActionResponse'
+                $ref: '#/components/schemas/BulkActionCreateResponse'
               examples:
                 BulkTranscriptionJobResponse:
                   value:
@@ -2191,6 +2191,7 @@ paths:
                     date_created: '2026-05-05T09:00:00Z'
                     date_modified: '2026-05-05T09:02:00Z'
                     cancelled_by: null
+                    skipped_uuids: []
                   summary: Bulk transcription job response
                   description: Bulk transcription responses include the action params
                     used to start the job. `locale` appears when it was supplied.
@@ -2222,9 +2223,44 @@ paths:
                     date_created: '2026-05-05T09:00:00Z'
                     date_modified: '2026-05-05T09:02:00Z'
                     cancelled_by: null
+                    skipped_uuids: []
                   summary: Bulk translation job response
-                  description: Bulk translation responses use the same job shape.
-                    `params.language` is the target translation language.
+                BulkActionResponse(withSkippedSubmissions):
+                  value:
+                    uid: ba123456789AbCdEfGhIjklm
+                    status: in_progress
+                    action_id: automatic_google_transcription
+                    question_xpath: q1_audio
+                    submission_uuids:
+                    - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                    - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                    - 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                    submission_statuses:
+                    - uuid: 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                      status: complete
+                      error: null
+                    - uuid: 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                      status: in_progress
+                      error: null
+                    - uuid: 5d4958d6-b2e8-4d4b-a51f-63f91b459e26
+                      status: failed
+                      error: Google quota exceeded
+                    params:
+                      language: en
+                      locale: en-US
+                    progress: 66
+                    created_by:
+                      username: someuser
+                    date_created: '2026-05-05T09:00:00Z'
+                    date_modified: '2026-05-05T09:02:00Z'
+                    cancelled_by: null
+                    skipped_uuids:
+                    - 7a1b2c3d-e4f5-6789-abcd-ef0123456789
+                  summary: Bulk action response (with skipped submissions)
+                  description: When some submitted UUIDs were already processed or
+                    currently being processed, they are excluded from the new bulk
+                    action and listed in `skipped_uuids`. The job proceeds for the
+                    remaining eligible submissions.
           description: null
         '404':
           content:
@@ -2317,8 +2353,6 @@ paths:
                     date_modified: '2026-05-05T09:02:00Z'
                     cancelled_by: null
                   summary: Bulk transcription job response
-                  description: Bulk transcription responses include the action params
-                    used to start the job. `locale` appears when it was supplied.
                 BulkTranslationJobResponse:
                   value:
                     uid: ba123456789AbCdEfGhIjklm
@@ -2348,8 +2382,6 @@ paths:
                     date_modified: '2026-05-05T09:02:00Z'
                     cancelled_by: null
                   summary: Bulk translation job response
-                  description: Bulk translation responses use the same job shape.
-                    `params.language` is the target translation language.
           description: null
         '404':
           content:
@@ -5666,6 +5698,12 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/?collections_first=true&ordering=-name
         ```
       parameters:
+      - name: file_type
+        required: false
+        in: query
+        description: Filter files by type (e.g., "form_media")
+        schema:
+          type: string
       - name: limit
         required: false
         in: query
@@ -5759,28 +5797,22 @@ paths:
             examples:
               CreatingAFileWithBinaryContent:
                 value:
-                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
-                  file_type: image/png
+                  file_type: form_media
                   content: <binary>
                 summary: Creating a file with binary content
               CreatingAFileWithBase64Content:
                 value:
-                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
-                  file_type: image/png
+                  file_type: form_media
                   base64Encoded: SGVsbG8sIFdvcmxkIQ
                   metadata:
                     filename: string
                 summary: Creating a file with Base64 content
               CreatingAFileWithARemoteUrl:
                 value:
-                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
-                  file_type: image/png
+                  file_type: form_media
                   metadata:
                     redirect_url: string
                 summary: Creating a file with a remote url
@@ -16025,6 +16057,60 @@ components:
       - params
       - question_xpath
       - submission_uuids
+    BulkActionCreateResponse:
+      type: object
+      properties:
+        uid:
+          type: string
+        status:
+          $ref: '#/components/schemas/BulkActionResponseStatusEnum'
+        action_id:
+          $ref: '#/components/schemas/ActionIdEnum'
+        question_xpath:
+          type: string
+        submission_uuids:
+          type: array
+          items:
+            type: string
+        submission_statuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkActionSubmissionStatusResponse'
+        params:
+          $ref: '#/components/schemas/BulkActionParamsResponse'
+        progress:
+          type: integer
+          maximum: 100
+          minimum: 0
+        created_by:
+          $ref: '#/components/schemas/BulkActionUserResponse'
+        date_created:
+          type: string
+          format: date-time
+        date_modified:
+          type: string
+          format: date-time
+        cancelled_by:
+          allOf:
+          - $ref: '#/components/schemas/BulkActionUserResponse'
+          nullable: true
+        skipped_uuids:
+          type: array
+          items:
+            type: string
+      required:
+      - action_id
+      - created_by
+      - date_created
+      - date_modified
+      - params
+      - progress
+      - question_xpath
+      - skipped_uuids
+      - status
+      - submission_statuses
+      - submission_uuids
+      - uid
     BulkActionListResponse:
       type: object
       properties:
@@ -16219,86 +16305,62 @@ components:
       - kind
     CreateFilePayload:
       oneOf:
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          content:
-            type: string
-        required:
-        - asset
-        - content
-        - description
-        - file_type
-        - user
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          base64Encoded:
-            type: string
-          metadata:
-            type: object
-            properties:
-              filename:
-                type: string
-            required:
-            - filename
-        required:
-        - asset
-        - base64Encoded
-        - description
-        - file_type
-        - metadata
-        - user
-      - type: object
-        properties:
-          user:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/users/bob/
-          asset:
-            type: string
-            format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          description:
-            type: string
-          file_type:
-            type: string
-          metadata:
-            type: object
-            properties:
-              redirect_url:
-                type: string
-                format: uri
-            required:
-            - redirect_url
-        required:
-        - asset
-        - description
-        - file_type
-        - metadata
-        - user
+      - $ref: '#/components/schemas/CreateFilePayloadBinary'
+      - $ref: '#/components/schemas/CreateFilePayloadBase64'
+      - $ref: '#/components/schemas/CreateFilePayloadURL'
+    CreateFilePayloadBase64:
+      type: object
+      properties:
+        description:
+          type: string
+        file_type:
+          type: string
+        base64Encoded:
+          type: string
+        metadata:
+          type: object
+          required:
+          - filename
+          properties:
+            filename:
+              type: string
+      required:
+      - base64Encoded
+      - description
+      - file_type
+      - metadata
+    CreateFilePayloadBinary:
+      type: object
+      properties:
+        description:
+          type: string
+        file_type:
+          type: string
+        content:
+          type: string
+      required:
+      - content
+      - description
+      - file_type
+    CreateFilePayloadURL:
+      type: object
+      properties:
+        description:
+          type: string
+        file_type:
+          type: string
+        metadata:
+          type: object
+          required:
+          - redirect_url
+          properties:
+            redirect_url:
+              type: string
+              format: uri
+      required:
+      - description
+      - file_type
+      - metadata
     CreateResponseAutomaticQualActionParams:
       type: object
       properties:

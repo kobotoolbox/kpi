@@ -534,6 +534,7 @@ def _bulk_action_response_value(
     *,
     action_id: str,
     cancelled: bool = False,
+    skipped_uuids: list | None = None,
 ) -> dict:
     if action_id == 'automatic_google_transcription':
         question_xpath = 'q1_audio'
@@ -590,7 +591,7 @@ def _bulk_action_response_value(
             },
         ]
 
-    return {
+    result = {
         'uid': 'ba123456789AbCdEfGhIjklm',
         'status': status,
         'action_id': action_id,
@@ -606,6 +607,9 @@ def _bulk_action_response_value(
         'date_modified': '2026-05-05T09:02:00Z',
         'cancelled_by': cancelled_by,
     }
+    if skipped_uuids is not None:
+        result['skipped_uuids'] = skipped_uuids
+    return result
 
 
 def get_bulk_action_response_examples() -> list[OpenApiExample]:
@@ -614,6 +618,7 @@ def get_bulk_action_response_examples() -> list[OpenApiExample]:
             'Bulk transcription job response',
             value=_bulk_action_response_value(
                 action_id='automatic_google_transcription',
+                skipped_uuids=[],
             ),
             description=(
                 'Bulk transcription responses include the action params used '
@@ -625,10 +630,40 @@ def get_bulk_action_response_examples() -> list[OpenApiExample]:
             'Bulk translation job response',
             value=_bulk_action_response_value(
                 action_id='automatic_google_translation',
+                skipped_uuids=[],
+            ),
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk action response (with skipped submissions)',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_transcription',
+                skipped_uuids=['7a1b2c3d-e4f5-6789-abcd-ef0123456789'],
             ),
             description=(
-                'Bulk translation responses use the same job shape. '
-                '`params.language` is the target translation language.'
+                'When some submitted UUIDs were already processed or currently '
+                'being processed, they are excluded from the new bulk action '
+                'and listed in `skipped_uuids`. The job proceeds for the '
+                'remaining eligible submissions.'
+            ),
+            response_only=True,
+        ),
+    ]
+
+
+def get_bulk_action_retrieve_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'Bulk transcription job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_transcription',
+            ),
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk translation job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_translation',
             ),
             response_only=True,
         ),

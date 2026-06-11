@@ -5,7 +5,9 @@ import formMediaFactory, { type FormMediaItem } from './formMedia.factory'
 interface CreateFormMediaPayload {
   description?: string
   file_type?: string
-  metadata?: string
+  // metadata may arrive as a JSON string (legacy URL-encoded POST) or as a
+  // parsed object (JSON POST from the orval-generated client).
+  metadata?: string | Record<string, unknown>
   base64Encoded?: string
 }
 
@@ -72,8 +74,12 @@ export function formMediaHandlers(
       }
 
       const payload = await parsePayload(request)
-      // metadata is sent as a string by the API contract.
-      const parsedMetadata = payload.metadata ? JSON.parse(payload.metadata) : {}
+      // metadata may be a JSON string (legacy form-encoded POST) or a plain
+      // object (JSON POST from the orval-generated client).
+      const parsedMetadata =
+        typeof payload.metadata === 'string'
+          ? (JSON.parse(payload.metadata) as Record<string, unknown>)
+          : (payload.metadata ?? {})
       const fileName = parsedMetadata.filename as string | undefined
       // Unknown filenames (or missing delay map) upload immediately.
       const delayMs = (fileName && options.uploadDelayByFilenameMs?.[fileName]) || 0
@@ -90,11 +96,11 @@ export function formMediaHandlers(
           hash: `hash-${index}`,
           size: 2048,
           type: 'application/octet-stream',
-          filename: parsedMetadata.filename || `uploaded-${index}.dat`,
+          filename: (parsedMetadata.filename as string | undefined) || `uploaded-${index}.dat`,
           mimetype: 'application/octet-stream',
-          redirect_url: parsedMetadata.redirect_url,
+          redirect_url: parsedMetadata.redirect_url as string | undefined,
         },
-        content: parsedMetadata.redirect_url || `/media/mock/uploaded-${index}.dat`,
+        content: (parsedMetadata.redirect_url as string | undefined) || `/media/mock/uploaded-${index}.dat`,
       })
 
       mediaItems.push(newItem)
