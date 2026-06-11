@@ -1,12 +1,9 @@
 import { Box, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchGet } from '#/api'
-import { endpoints } from '#/api.endpoints'
+import { useAssetsList } from '#/api/react-query/manage-projects-and-library-content'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
-import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import styles from './DeleteAccountBanner.module.scss'
@@ -17,17 +14,15 @@ export default function DeleteAccountBanner() {
   const navigate = useNavigate()
   const session = useSession()
   const [organization] = useOrganizationAssumed()
-  const [isAccountWithoutAssets, setIsAccountWithoutAssets] = useState<boolean | undefined>(undefined)
   const isAccountOrganizationOwner = organization.is_mmo && organization.is_owner
 
-  useEffect(() => {
-    const username = session.currentLoggedAccount.username
-    // We are fetching all user assets, but we are only interested in wheter user has at least one asset
-    const singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username:${username})&limit=1`
-    fetchGet<PaginatedResponse<AssetResponse>>(singleAssetEndpoint).then((data: PaginatedResponse<AssetResponse>) => {
-      setIsAccountWithoutAssets(data.count === 0)
-    })
-  }, [])
+  const username = session.currentLoggedAccount.username
+  const { data: assetsData, isPending } = useAssetsList({
+    q: `(owner__username:${username})`,
+    limit: 1,
+  })
+
+  const isAccountWithoutAssets = assetsData?.status === 200 ? assetsData.data.count === 0 : undefined
 
   function goToProjectsList() {
     navigate(PROJECTS_ROUTES.MY_PROJECTS)
@@ -42,28 +37,32 @@ export default function DeleteAccountBanner() {
           )}
         </Text>
       )
-    } else if (isAccountWithoutAssets === true) {
-      return <Text>{t('Delete your account and all your account data.')}</Text>
-    } else if (isAccountWithoutAssets === false) {
-      return (
-        <Group gap='4px'>
-          <Text>
-            {t(
-              'You need to delete or transfer ownership of all projects owned by your user before you can delete your account.',
-            )}
-          </Text>
+    }
 
-          <Button p='0' size='sm' onClick={goToProjectsList} rightIcon='arrow-right' variant='transparent'>
-            {t('Go to project list')}
-          </Button>
-        </Group>
-      )
-    } else {
+    if (isPending || isAccountWithoutAssets === undefined) {
       return <Text>…</Text>
     }
+
+    if (isAccountWithoutAssets) {
+      return <Text>{t('Delete your account and all your account data.')}</Text>
+    }
+
+    return (
+      <Group gap='4px'>
+        <Text>
+          {t(
+            'You need to delete or transfer ownership of all projects owned by your user before you can delete your account.',
+          )}
+        </Text>
+
+        <Button p='0' size='sm' onClick={goToProjectsList} rightIcon='arrow-right' variant='transparent'>
+          {t('Go to project list')}
+        </Button>
+      </Group>
+    )
   }
 
-  const isAllowedToDelete = isAccountWithoutAssets && !isAccountOrganizationOwner
+  const isAllowedToDelete = !isPending && isAccountWithoutAssets === true && !isAccountOrganizationOwner
 
   return (
     <Box className={styles.wrapper}>

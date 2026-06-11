@@ -25,6 +25,7 @@ from kpi.schema_extensions.v2.subsequences.examples import (
     get_bulk_action_list_response_examples,
     get_bulk_action_patch_examples,
     get_bulk_action_response_examples,
+    get_bulk_action_retrieve_examples,
     get_bulk_actions_create_examples,
     get_advanced_features_create_examples,
     get_advanced_features_list_examples,
@@ -36,6 +37,7 @@ from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeaturePostRequest,
     AdvancedFeatureResponse,
     BulkActionCreateRequest,
+    BulkActionCreateResponse,
     BulkActionListResponse,
     BulkActionPatchRequest,
     BulkActionResponse,
@@ -191,7 +193,7 @@ class QuestionAdvancedFeatureViewSet(
         description=read_md('subsequences', 'subsequences/bulk_actions_create.md'),
         request={'application/json': BulkActionCreateRequest},
         responses=open_api_201_created_response(
-            BulkActionResponse,
+            BulkActionCreateResponse,
             require_auth=False,
             raise_access_forbidden=False,
         ),
@@ -247,7 +249,7 @@ class QuestionAdvancedFeatureViewSet(
                 description='UID of the bulk action job',
             ),
         ],
-        examples=get_bulk_action_response_examples(),
+        examples=get_bulk_action_retrieve_examples(),
     ),
 )
 class BulkActionViewSet(
@@ -286,13 +288,15 @@ class BulkActionViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
+        skipped_uuids = instance.skipped_uuids
 
         # Re-fetch the instance to ensure all related data is included
         # (e.g. for response serialization)
         instance = self.get_queryset().get(pk=instance.pk)
         create_bulk_action_history_log(request, instance)
-        response_serializer = BulkActionResponseSerializer(instance)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        response_data = BulkActionResponseSerializer(instance).data
+        response_data['skipped_uuids'] = skipped_uuids
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

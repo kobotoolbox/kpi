@@ -343,7 +343,11 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert 'Unknown submission UUIDs: missing-uuid' in str(response.data)
         assert SubsequenceBulkAction.objects.count() == 0
 
-    def test_create_bulk_action_rejects_active_matching_conflicts(self):
+    def test_create_bulk_action_rejects_when_all_have_active_conflicts(self):
+        """
+        Test that a 400 is returned when every requested submission is already
+        being processed by an active bulk action with matching params
+        """
         SubsequenceBulkAction.create_with_items(
             asset=self.asset,
             action_id='automatic_google_transcription',
@@ -360,10 +364,14 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'active matching bulk action' in str(response.data)
+        assert 'already processed or currently being processed' in str(response.data)
         assert SubsequenceBulkAction.objects.count() == 1
 
-    def test_create_bulk_action_rejects_existing_transcription(self):
+    def test_create_bulk_action_rejects_when_all_have_existing_transcription(self):
+        """
+        Test that a 400 is returned when every requested submission already has
+        an accepted transcription result for the same language and locale
+        """
         SubmissionSupplement.objects.create(
             asset=self.asset,
             submission_uuid=self.submission_uuid,
@@ -377,6 +385,70 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'already contain matching results' in str(response.data)
-        assert self.submission_uuid in str(response.data)
+        assert 'already processed or currently being processed' in str(response.data)
         assert SubsequenceBulkAction.objects.count() == 0
+
+    def test_create_bulk_action_skips_submission_with_existing_transcription(self):
+        """
+        Test that a submission with an existing transcription result is excluded
+        from the new bulk action and returned in skipped_uuids
+        """
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content=self._make_transcription_supplement(),
+        )
+
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(
+                submission_uuids=[self.submission_uuid, self.second_submission_uuid]
+            ),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['submission_uuids'] == [self.second_submission_uuid]
+        assert response.data['skipped_uuids'] == [self.submission_uuid]
+        assert SubsequenceBulkAction.objects.count() == 1
+
+    def test_create_bulk_action_skips_submission_with_active_conflict(self):
+        """
+        Test that a submission already covered by a pending or in-progress bulk
+        action with matching params is excluded and returned in skipped_uuids
+        """
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+        )
+
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(
+                submission_uuids=[self.submission_uuid, self.second_submission_uuid]
+            ),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['submission_uuids'] == [self.second_submission_uuid]
+        assert response.data['skipped_uuids'] == [self.submission_uuid]
+        assert SubsequenceBulkAction.objects.count() == 2
+
+    def test_create_bulk_action_skipped_uuids_empty_when_no_conflicts(self):
+        """
+        Test that skipped_uuids is an empty list in the POST response when no
+        submissions are filtered out
+        """
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['skipped_uuids'] == []

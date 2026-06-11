@@ -83,6 +83,16 @@ class InstanceParseError(Exception):
         super().__init__(message)
 
 
+class InvalidSubmissionIdsError(Exception):
+    """
+    Raised when a bulk action references submission ids that do not all belong
+    to the targeted XForm. The whole batch is rejected without revealing
+    whether those ids exist elsewhere.
+    """
+
+    pass
+
+
 class LockedSubmissionError(Exception):
     def __init__(self, message=t('Submission is currently being processed.')):
         super().__init__(message)

@@ -646,16 +646,6 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
-    'PROJECT_HISTORY_LOG_LIFESPAN': (
-        60,
-        'Length of time days to keep project history logs.',
-        'positive_int',
-    ),
-    'ACCESS_LOG_LIFESPAN': (
-        60,
-        'Length of time in days to keep access logs.',
-        'positive_int',
-    ),
     'USE_TEAM_LABEL': (
         True,
         'Use the term "Team" instead of "Organization" when Stripe is not enabled',
@@ -728,8 +718,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
-        'ACCESS_LOG_LIFESPAN',
-        'PROJECT_HISTORY_LOG_LIFESPAN',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
@@ -1057,6 +1045,7 @@ SPECTACULAR_SETTINGS = {
         'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
         'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
         'AssetDeploymentStatusEnum': 'kpi.serializers.v2.asset.DEPLOYMENT_STATUS_ENUM',
+        'BulkActionResponseStatusEnum': 'kpi.schema_extensions.v2.subsequences.serializers.BULK_ACTION_STATUS_CHOICES',  # noqa
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -2341,3 +2330,7 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
     'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
 )
+
+# 24 months x 31 days/month = 744 default
+PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
+ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
