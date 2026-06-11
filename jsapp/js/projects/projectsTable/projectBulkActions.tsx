@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
-import BulkDeletePrompt from './bulkActions/bulkDeletePrompt'
+import { openBulkDeleteModal } from './bulkActions/openBulkDeleteModal'
 import actionsStyles from './projectActions.module.scss'
 
 interface ProjectBulkActionsProps {
@@ -22,7 +22,6 @@ function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
  * selected in the Project Table.
  */
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
-  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
   const [organization] = useOrganizationAssumed()
   const canBulkDelete = userCanDeleteAssets(props.assets) || organization.request_user_role === MemberRoleEnum.admin
 
@@ -59,17 +58,10 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() => setIsDeletePromptOpen(true)}
+        onClick={() => openBulkDeleteModal(props.assets.map((asset) => asset.uid))}
         tooltip={tooltipForDelete}
         tooltipPosition='right'
       />
-
-      {isDeletePromptOpen && (
-        <BulkDeletePrompt
-          assetUids={props.assets.map((asset) => asset.uid)}
-          onRequestClose={() => setIsDeletePromptOpen(false)}
-        />
-      )}
     </div>
   )
 }

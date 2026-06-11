@@ -61,7 +61,9 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
 
   return (
     <Stack gap='md'>
-      <Text>{t('You are about to permanently delete ##count## projects').replace('##count##', count)}</Text>
+      <Text>
+        {t('You are about to permanently delete ##count## projects').replace('##count##', count)}
+      </Text>
 
       <Checkbox
         checked={isDataChecked}
