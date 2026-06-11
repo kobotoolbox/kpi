@@ -25155,6 +25155,11 @@
                     "totalFiles": {
                         "type": "integer",
                         "nullable": true
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
                     }
                 }
             },

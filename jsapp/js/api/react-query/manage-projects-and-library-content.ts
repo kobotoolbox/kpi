@@ -1796,6 +1796,9 @@ export const importsCreate = async (
   if (importCreateRequest.totalFiles !== undefined && importCreateRequest.totalFiles !== null) {
     formData.append(`totalFiles`, importCreateRequest.totalFiles.toString())
   }
+  if (importCreateRequest.file !== undefined && importCreateRequest.file !== null) {
+    formData.append(`file`, importCreateRequest.file)
+  }
 
   return fetchWithAuth<importsCreateResponse>(getImportsCreateUrl(), {
     ...options,

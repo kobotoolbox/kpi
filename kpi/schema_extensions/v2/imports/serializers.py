@@ -24,6 +24,7 @@ ImportCreateRequestSerializer = inline_serializer_class(
             required=False, allow_blank=True, allow_null=True
         ),
         'totalFiles': serializers.IntegerField(required=False, allow_null=True),
+        'file': serializers.FileField(required=False, allow_null=True),
     },
 )
 

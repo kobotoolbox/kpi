@@ -27,4 +27,6 @@ export interface ImportCreateRequest {
   desired_type?: string | null
   /** @nullable */
   totalFiles?: number | null
+  /** @nullable */
+  file?: string | null
 }
