@@ -40,11 +40,17 @@ from ...exceptions import (
     TranscriptionResultNotFound
 )
 from .base import GoogleService
+from .locations import get_speech_location
 
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
-DEFAULT_SPEECH_LOCATION = 'global'
-DEFAULT_SPEECH_MODEL = 'long'
+
+# Fallback STT model used when a language has no `model_code` set in the
+# `TranscriptionServiceLanguageM2M` database table. 'chirp_3' is chosen over
+# 'long' because it is available for every language in the 'us' and 'eu'
+# multi-region endpoints, and it supports all recognition features
+# (e.g. enable_automatic_punctuation)
+DEFAULT_SPEECH_MODEL = 'chirp_3'
 
 
 class GoogleTranscriptionService(GoogleService):
@@ -58,6 +64,7 @@ class GoogleTranscriptionService(GoogleService):
         class. It uses Google Cloud Speech-to-Text v2 batch API.
         """
         super().__init__(submission=submission, asset=asset, *args, **kwargs)
+        self.speech_location = get_speech_location()
 
     def adapt_response(self, response: Union[dict, list]) -> str:
         """
@@ -102,7 +109,6 @@ class GoogleTranscriptionService(GoogleService):
         target_lang: str,
         content: Any,
         *,
-        location_code: str | None = None,
         model_code: str | None = None,
     ) -> tuple[object, int]:
         """
@@ -115,27 +121,31 @@ class GoogleTranscriptionService(GoogleService):
                 'Audio file of duration %s is too long.' % duration
             )
 
-        speech_location = location_code or DEFAULT_SPEECH_LOCATION
         speech_model = model_code or DEFAULT_SPEECH_MODEL
-        speech_client = self._get_speech_client(speech_location)
+        speech_client = self._get_speech_client(self.speech_location)
         input_path, output_prefix = self._get_batch_paths(xpath, source_lang)
 
         logging.info(
             'Starting Google automatic transcription for '
             f'{self.submission_root_uuid=}, {xpath=}, {source_lang=}, '
-            f'{speech_location=}, {speech_model=}'
+            f'{self.speech_location=}, {speech_model=}'
         )
         self._cleanup_batch_files(xpath, source_lang)
         gcs_input_uri = self.store_file(flac_content, input_path)
 
         request = speech.BatchRecognizeRequest(
-            recognizer=self._get_recognizer_name(speech_location),
+            recognizer=self._get_recognizer_name(self.speech_location),
             config=speech.RecognitionConfig(
                 auto_decoding_config=speech.AutoDetectDecodingConfig(),
                 language_codes=[source_lang],
                 model=speech_model,
                 features=speech.RecognitionFeatures(
-                    enable_automatic_punctuation=True
+                    # chirp_3, chirp_2, and chirp support automatic punctuation
+                    # for all languages. 'long' does not support it for several
+                    # languages, including the 6 legacy African languages
+                    # (Kinyarwanda, Swati, Southern Sotho, Tswana, Tsonga, Venda),
+                    # and will return a 400 error if enabled
+                    enable_automatic_punctuation=(speech_model != 'long'),
                 ),
             ),
             files=[speech.BatchRecognizeFileMetadata(uri=gcs_input_uri)],
@@ -151,6 +161,11 @@ class GoogleTranscriptionService(GoogleService):
     @property
     def counter_name(self):
         return 'google_asr_seconds'
+
+    def get_client_options(self):
+        return client_options.ClientOptions(
+            api_endpoint=f'{self.speech_location}-speech.googleapis.com'
+        )
 
     def get_converted_audio(
         self, xpath: str, submission_uuid: int, user: object
@@ -227,7 +242,6 @@ class GoogleTranscriptionService(GoogleService):
                     source_lang=source_language,
                     target_lang=None,
                     content=converted_audio,
-                    location_code=language_config.location_code,
                     model_code=language_config.model_code,
                 )
             except AudioTooLongError as err:
@@ -306,7 +320,6 @@ class GoogleTranscriptionService(GoogleService):
             # read the batch result after Google reports completion
             operation_payload = self._get_operation_payload(
                 operation_name,
-                language_config.location_code,
             )
             if not operation_payload.get('done'):
                 raise SubsequenceTimeoutError
@@ -449,12 +462,12 @@ class GoogleTranscriptionService(GoogleService):
         """
         Create a Speech client bound to the configured regional endpoint
         """
-        client_kwargs = {'credentials': self.credentials}
-        if location != DEFAULT_SPEECH_LOCATION:
-            client_kwargs['client_options'] = client_options.ClientOptions(
+        return speech.SpeechClient(
+            credentials=self.credentials,
+            client_options=client_options.ClientOptions(
                 api_endpoint=f'{location}-speech.googleapis.com'
-            )
-        return speech.SpeechClient(**client_kwargs)
+            ),
+        )
 
     def _get_recognizer_name(self, location: str) -> str:
         """
@@ -468,14 +481,11 @@ class GoogleTranscriptionService(GoogleService):
     def _get_operation_payload(
         self,
         operation_name: str,
-        location_code: str | None = None,
     ) -> dict:
         """
         Poll the Google long-running operation backing the batch request.
         """
-        speech_client = self._get_speech_client(
-            location_code or DEFAULT_SPEECH_LOCATION
-        )
+        speech_client = self._get_speech_client(self.speech_location)
         operation = speech_client.transport.operations_client.get_operation(
             operation_name
         )
