@@ -460,6 +460,18 @@ class AttachmentDeletionPermission(SubmissionPermission):
     }
 
 
+class AttachmentAudioDurationPermission(SubmissionPermission):
+    """
+    Permissions for querying audio duration of attachments.
+    Retrieving audio duration is a read-only operation gated on view_submissions.
+    """
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.view_%(model_name)s'],
+    }
+
+
 class AssetExportSettingsPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_submissions'],
