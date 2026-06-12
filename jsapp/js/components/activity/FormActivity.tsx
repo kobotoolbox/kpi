@@ -62,12 +62,7 @@ export default function FormActivity() {
       key: 'description',
       label: t('Event description'),
       cellFormatter: (data: ActivityLogsItem) => (
-        <>
-          <ActivityMessage data={data} assetUid={assetUid} />
-          <button className={styles.seeDetailsButton} onClick={() => setDetailsModalData(data)}>
-            {t('See details')}
-          </button>
-        </>
+        <ActivityMessage data={data} assetUid={assetUid} onShowDetails={() => setDetailsModalData(data)} />
       ),
     },
     {

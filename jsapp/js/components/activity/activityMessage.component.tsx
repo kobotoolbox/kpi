@@ -12,8 +12,15 @@ import styles from './activityMessage.module.scss'
 /**
  * An inline message that starts with avatar and username, and then is followed
  * by short text describing what username did.
+ *
+ * @param onShowDetails - When provided, renders a "See details" button that calls this callback.
+ *                        Omit this prop to hide the button (e.g., in modal headers or for ongoing bulk processing).
  */
-export function ActivityMessage(props: { data: ActivityLogsItem; assetUid?: string }) {
+export function ActivityMessage(props: {
+  data: ActivityLogsItem
+  assetUid?: string
+  onShowDetails?: () => void
+}) {
   // Handle ongoing bulk processing with special component
   if (props.data.action === 'bulk-processing' && props.assetUid) {
     const bulkAction = props.data.metadata.bulk_action
@@ -56,9 +63,17 @@ export function ActivityMessage(props: { data: ActivityLogsItem; assetUid?: stri
   }
 
   return (
-    <div className={styles.activityMessage} title={getTextContentOnly(message)}>
-      <Avatar size='s' username={props.data.username} />
-      <span dangerouslySetInnerHTML={{ __html: message }} />
-    </div>
+    <>
+      <div className={styles.activityMessage} title={getTextContentOnly(message)}>
+        <Avatar size='s' username={props.data.username} />
+        <span dangerouslySetInnerHTML={{ __html: message }} />
+      </div>
+
+      {props.onShowDetails && (
+        <button className={styles.seeDetailsButton} onClick={props.onShowDetails}>
+          {t('See details')}
+        </button>
+      )}
+    </>
   )
 }

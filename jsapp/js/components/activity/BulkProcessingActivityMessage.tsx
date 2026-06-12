@@ -69,6 +69,7 @@ export function BulkProcessingActivityMessage({ data, assetUid }: BulkProcessing
           onClick={handleCancel}
           loading={isLoading}
           disabled={isLoading}
+          p={0}
         >
           {t('Cancel process')}
         </ButtonNew>
