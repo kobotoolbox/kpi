@@ -1,5 +1,6 @@
 import { getTextContentOnly } from '#/utils'
 import Avatar from '../common/avatar'
+import { BulkProcessingActivityMessage } from './BulkProcessingActivityMessage'
 import {
   AUDIT_ACTION_TYPES,
   type ActivityLogsItem,
@@ -7,7 +8,6 @@ import {
   FALLBACK_MESSAGE,
 } from './activity.constants'
 import styles from './activityMessage.module.scss'
-import { BulkProcessingActivityMessage } from './BulkProcessingActivityMessage'
 
 /**
  * An inline message that starts with avatar and username, and then is followed

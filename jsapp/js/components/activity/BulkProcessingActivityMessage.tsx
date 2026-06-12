@@ -1,6 +1,8 @@
 import { Loader, Pill } from '@mantine/core'
+import { useQueryClient } from '@tanstack/react-query'
 import { BulkActionPatchRequestStatusEnum } from '#/api/models/bulkActionPatchRequestStatusEnum'
 import { useAssetsAdvancedFeaturesBulkActionsPartialUpdate } from '#/api/react-query/survey-data'
+import { QueryKeys } from '#/query/queryKeys'
 import ButtonNew from '../common/ButtonNew'
 import Avatar from '../common/avatar'
 import { type ActivityLogsItem, BULK_PROCESSING_ACTION_IDS } from './activity.constants'
@@ -12,9 +14,17 @@ interface BulkProcessingActivityMessageProps {
 }
 
 export function BulkProcessingActivityMessage({ data, assetUid }: BulkProcessingActivityMessageProps) {
+  const queryClient = useQueryClient()
   const bulkAction = data.metadata.bulk_action
 
-  const cancelMutation = useAssetsAdvancedFeaturesBulkActionsPartialUpdate({})
+  const cancelMutation = useAssetsAdvancedFeaturesBulkActionsPartialUpdate({
+    mutation: {
+      onSuccess: () => {
+        // Invalidate activity logs query to refresh the list and show updated status
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.activityLogs, assetUid] })
+      },
+    },
+  })
 
   if (!bulkAction) {
     return null
