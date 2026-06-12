@@ -48,9 +48,13 @@ def _run_ffprobe(path_or_url: str, label: str = '') -> Optional[float]:
             ],
             capture_output=True,
             text=True,
+            timeout=30,
         )
         data = json.loads(result.stdout)
         return float(data['format']['duration'])
+    except subprocess.TimeoutExpired:
+        logging.info('ffprobe timed out for %s', label or path_or_url)
+        return None
     except Exception as exc:
         logging.info('ffprobe failed for %s: %s', label or path_or_url, exc)
         return None

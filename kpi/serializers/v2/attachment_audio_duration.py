@@ -1,4 +1,4 @@
-from django.utils.translation import gettext as t
+from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 
 # Upper bound chosen so that ~0.5 s/file stays well under nginx's 120 s timeout
