@@ -4,12 +4,50 @@ import { Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { fetchPost, handleApiFail } from '#/api'
 import ButtonNew from '#/components/common/ButtonNew'
+import Alert from '#/components/common/alert'
 import Checkbox from '#/components/common/checkbox'
 import customViewStore from '#/projects/customViewStore'
 import { invalidateSidebarQueries } from '#/sidebar/SidebarFormsList'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
 
+// Blocker modal — shown when one or more selected projects cannot be deleted
+export interface BulkDeleteBlockerModalProps {
+  onRequestClose: () => void
+  reason: 'submissions' | 'permissions'
+}
+
+export function BulkDeleteBlockerModal({ onRequestClose, reason }: BulkDeleteBlockerModalProps) {
+  const body =
+    reason === 'submissions'
+      ? t('In order to delete projects, all submissions need to be deleted first.')
+      : t("Some of the selected projects can't be deleted because you don't have the required permissions.")
+
+  const alert =
+    reason === 'submissions'
+      ? t(
+          'Projects with data cannot be deleted as part of a team. Please make sure none of the projects selected contain any submissions.',
+        )
+      : t('Please make sure you have delete permissions for all selected projects, or contact an administrator.')
+
+  return (
+    <Stack gap='md'>
+      <Text>{body}</Text>
+
+      <Alert type='info' iconName='information'>
+        {alert}
+      </Alert>
+
+      <Group justify='flex-end' mt='lg'>
+        <ButtonNew variant='light' size='md' onClick={onRequestClose}>
+          {t('OK')}
+        </ButtonNew>
+      </Group>
+    </Stack>
+  )
+}
+
+// Confirm-delete modal
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive'
 interface AssetsBulkResponse {
   detail: string
@@ -61,9 +99,7 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
 
   return (
     <Stack gap='md'>
-      <Text>
-        {t('You are about to permanently delete ##count## projects').replace('##count##', count)}
-      </Text>
+      <Text>{t('You are about to permanently delete ##count## projects').replace('##count##', count)}</Text>
 
       <Checkbox
         checked={isDataChecked}

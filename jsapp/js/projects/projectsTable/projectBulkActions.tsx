@@ -13,20 +13,20 @@ interface ProjectBulkActionsProps {
   assets: Array<AssetResponse | ProjectViewAsset>
 }
 
-function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
-  return assets.every((asset) => userCan('delete_asset', asset))
-}
-
 /**
  * "Bulk" Quick Actions buttons. Use these when two or more projects are
  * selected in the Project Table.
  */
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const [organization] = useOrganizationAssumed()
-  const canBulkDelete = userCanDeleteAssets(props.assets) || organization.request_user_role === MemberRoleEnum.admin
+  const isAdmin = organization.request_user_role === MemberRoleEnum.admin
+  // Button is only fully disabled when no asset can be deleted at all.
+  const canDeleteSome = isAdmin || props.assets.some((asset) => userCan('delete_asset', asset))
+  // If some but not all assets are deletable, we show the blocker modal instead.
+  const canDeleteAll = isAdmin || props.assets.every((asset) => userCan('delete_asset', asset))
 
   let tooltipForDelete = t('Delete projects')
-  if (canBulkDelete) {
+  if (canDeleteSome) {
     tooltipForDelete = t('Delete ##count## projects').replace('##count##', String(props.assets.length))
   }
 
@@ -54,11 +54,11 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
 
       {/* Delete */}
       <Button
-        isDisabled={!canBulkDelete}
+        isDisabled={!canDeleteSome}
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() => openBulkDeleteModal(props.assets.map((asset) => asset.uid))}
+        onClick={() => openBulkDeleteModal(props.assets, { hasPermissionIssue: !canDeleteAll })}
         tooltip={tooltipForDelete}
         tooltipPosition='right'
       />
