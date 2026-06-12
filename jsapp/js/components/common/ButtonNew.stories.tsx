@@ -210,14 +210,12 @@ export const PreviewAllVariants = () => (
                     onClick: () => console.info('Clicked!', variant, size, label, leftIcon),
                   } satisfies StoryArgs
                   return (
-                    <Stack gap='xs'>
-                      <Button key={`${index}-normal`} {...buttonProps}>
+                    <Stack gap='xs' key={index}>
+                      <Button {...buttonProps}>{label}</Button>
+                      <Button {...buttonProps} loading>
                         {label}
                       </Button>
-                      <Button key={`${index}-loading`} {...buttonProps} loading>
-                        {label}
-                      </Button>
-                      <Button key={`${index}-disabled`} {...buttonProps} disabled>
+                      <Button {...buttonProps} disabled>
                         {label}
                       </Button>
                     </Stack>

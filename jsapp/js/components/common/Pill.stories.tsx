@@ -1,6 +1,5 @@
-import { Box, Group, type MantineSize, Stack, Title } from '@mantine/core'
+import { Box, Group, type MantineSize, Pill, type PillProps, Stack, Title } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import Pill, { type PillProps } from './Pill'
 
 const pillVariants: Array<PillProps['variant']> = ['gray-light', 'amber-light']
 
