@@ -56,7 +56,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='US',
     )
     def test_sync_translation_returns_failed_for_invalid_argument(self):
         """
@@ -86,7 +86,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='US',
     )
     def test_async_translation_returns_failed_timeout_and_saves_operation(self):
         """
@@ -130,7 +130,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='US',
     )
     def test_async_translation_reuses_cached_operation_and_returns_complete(self):
         """
@@ -169,7 +169,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='US',
     )
     def test_async_translation_reuses_cached_operation_and_returns_retry_later(self):
         """
@@ -209,7 +209,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='US',
     )
     def test_operation_payload_can_be_dict(self):
         """
@@ -228,7 +228,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='US',
     )
     def test_bulk_action_uid_falls_back_to_cache_when_model_is_unavailable(self):
         """

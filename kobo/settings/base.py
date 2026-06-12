@@ -363,12 +363,15 @@ CONSTANCE_CONFIG = {
             ' variable `GS_BUCKET_NAME`.'
         ),
     ),
-    'ASR_MT_GOOGLE_TRANSLATION_LOCATION': (
-        env.str('CONSTANCE_ASR_MT_GOOGLE_TRANSLATION_LOCATION', 'us-central1'),
+    'ASR_MT_GOOGLE_REGION': (
+        env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'US'),
         (
-            'Google Cloud location to use for large translation tasks. It'
-            ' cannot be `global`, and Google only allows certain locations.'
+            'Google Cloud region for ASR/MT data residency. Use `US` for '
+            'Speech-to-Text location `us` and Translation location '
+            '`us-west1`; use `EU` for Speech-to-Text location `eu` and '
+            'Translation location `europe-west1`.'
         ),
+        'google_region_choice',
     ),
     'ASR_MT_GOOGLE_CREDENTIALS': (
         '',
@@ -706,6 +709,15 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     'positive_int': ['django.forms.fields.IntegerField', {'min_value': 0}],
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {'min_value': -1}],
     'natural_int': ['django.forms.fields.IntegerField', {'min_value': 1}],
+    'google_region_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': (
+                ('US', 'US'),
+                ('EU', 'EU'),
+            ),
+        },
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -744,7 +756,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_INVITEE_USERNAMES',
         'ASR_MT_GOOGLE_PROJECT_ID',
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
+        'ASR_MT_GOOGLE_REGION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
         'AUTOMATIC_QA_REQUESTS_PER_SECOND'
