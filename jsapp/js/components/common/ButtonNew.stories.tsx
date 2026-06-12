@@ -1,4 +1,4 @@
-import type { MantineSize, TooltipProps } from '@mantine/core'
+import { Box, Group, type MantineSize, Stack, Title, type TooltipProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconChevronDown, IconSearch, IconX } from '@tabler/icons-react'
 import type { ForwardRefExoticComponent } from 'react'
@@ -21,6 +21,7 @@ const buttonVariants: Array<ButtonProps['variant']> = [
   //// Custom:
   'danger',
   'danger-secondary',
+  'danger-transparent',
 ]
 
 const buttonSizes: MantineSize[] = [
@@ -162,15 +163,15 @@ export const DefaultWithTablerIcon: Story = {
 
 const demoButtons: Array<{ label?: string; leftIcon?: ButtonProps['leftIcon'] }> = [
   {
-    label: 'Click me',
+    label: 'No icon',
     leftIcon: undefined,
   },
   {
-    label: 'Click me',
+    label: 'Legacy icon',
     leftIcon: 'document',
   },
   {
-    label: 'Click me',
+    label: 'Tabler icon',
     leftIcon: IconSearch,
   },
   //// For button without text use ActionIcon instead!
@@ -187,42 +188,48 @@ const demoButtons: Array<{ label?: string; leftIcon?: ButtonProps['leftIcon'] }>
  * - with label x icon configurations,
  * - and in idle, pending, and disabled states.
  */
-export const Preview = () => (
-  <div
-    style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(6, auto)',
-      gridAutoFlow: 'row',
-      gridGap: '30px 15px',
-      justifyItems: 'start',
-      padding: '10px',
-    }}
-  >
-    {buttonVariants.map((variant) =>
-      buttonSizes.map((size) =>
-        demoButtons.map(({ label, leftIcon }) => {
-          const buttonProps = {
-            variant,
-            size: size,
-            leftIcon,
-            onClick: () => console.info('Clicked!', variant, size, label, leftIcon),
-            tooltip: label,
-          } satisfies StoryArgs
-          return (
-            <>
-              <Button {...buttonProps}>{label}</Button>
-              <Button {...buttonProps} loading>
-                {label}
-              </Button>
-              <Button {...buttonProps} disabled>
-                {label}
-              </Button>
-            </>
-          )
-        }),
-      ),
-    )}
-  </div>
+export const PreviewAllVariants = () => (
+  <>
+    {buttonVariants.map((variant) => (
+      <Box key={variant} mb='lg'>
+        <Title order={2} mb='md'>
+          variant: <code>{variant}</code>
+        </Title>
+        <Group gap='lg' align='top'>
+          {buttonSizes.map((size) => (
+            <Stack key={size} gap='sm'>
+              <Title order={4}>
+                size: <code>{size}</code>
+              </Title>
+              <Group gap='xs'>
+                {demoButtons.map(({ label, leftIcon }, index) => {
+                  const buttonProps = {
+                    variant,
+                    size: size,
+                    leftIcon,
+                    onClick: () => console.info('Clicked!', variant, size, label, leftIcon),
+                  } satisfies StoryArgs
+                  return (
+                    <Stack gap='xs'>
+                      <Button key={`${index}-normal`} {...buttonProps}>
+                        {label}
+                      </Button>
+                      <Button key={`${index}-loading`} {...buttonProps} loading>
+                        {label}
+                      </Button>
+                      <Button key={`${index}-disabled`} {...buttonProps} disabled>
+                        {label}
+                      </Button>
+                    </Stack>
+                  )
+                })}
+              </Group>
+            </Stack>
+          ))}
+        </Group>
+      </Box>
+    ))}
+  </>
 )
 
 export const TestClick: Story = {
