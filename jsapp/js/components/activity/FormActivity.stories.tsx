@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
-import assetHistoryMock, { mockAssetUid } from '#/endpoints/assetHistory.mocks'
+import assetHistoryMock, { assetHistoryMockWithOngoingBulkProcessing, mockAssetUid } from '#/endpoints/assetHistory.mocks'
 import assetHistoryActionsMock from '#/endpoints/assetHistoryActions.mocks'
+import { bulkActionCancelMock } from '#/endpoints/bulkActions.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import FormActivity from './FormActivity'
@@ -61,5 +62,13 @@ export const TestFilteringByActivityType: Story = {
         await expect(resultItem).toBeInTheDocument()
       })
     })
+  },
+}
+
+export const OngoingBulkProcessing: Story = {
+  parameters: {
+    msw: {
+      handlers: [assetHistoryMockWithOngoingBulkProcessing, assetHistoryActionsMock, bulkActionCancelMock],
+    },
   },
 }

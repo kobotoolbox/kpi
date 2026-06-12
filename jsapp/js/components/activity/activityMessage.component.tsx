@@ -7,12 +7,23 @@ import {
   FALLBACK_MESSAGE,
 } from './activity.constants'
 import styles from './activityMessage.module.scss'
+import { BulkProcessingActivityMessage } from './BulkProcessingActivityMessage'
 
 /**
  * An inline message that starts with avatar and username, and then is followed
  * by short text describing what username did.
  */
-export function ActivityMessage(props: { data: ActivityLogsItem }) {
+export function ActivityMessage(props: { data: ActivityLogsItem; assetUid?: string }) {
+  // Handle ongoing bulk processing with special component
+  if (props.data.action === 'bulk-processing' && props.assetUid) {
+    const bulkAction = props.data.metadata.bulk_action
+    const isOngoing = bulkAction?.status === 'in_progress' || bulkAction?.status === 'pending'
+
+    if (isOngoing) {
+      return <BulkProcessingActivityMessage data={props.data} assetUid={props.assetUid} />
+    }
+  }
+
   let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
 
   // Replace default bulk processing message with more precise one

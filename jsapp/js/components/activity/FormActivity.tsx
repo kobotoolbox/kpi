@@ -63,7 +63,7 @@ export default function FormActivity() {
       label: t('Event description'),
       cellFormatter: (data: ActivityLogsItem) => (
         <>
-          <ActivityMessage data={data} />
+          <ActivityMessage data={data} assetUid={assetUid} />
           <button className={styles.seeDetailsButton} onClick={() => setDetailsModalData(data)}>
             {t('See details')}
           </button>
@@ -102,7 +102,7 @@ export default function FormActivity() {
         {detailsModalData && (
           <KoboModal isOpen size='medium' onRequestClose={() => setDetailsModalData(null)}>
             <KoboModalHeader onRequestCloseByX={() => setDetailsModalData(null)}>
-              <ActivityMessage data={detailsModalData} />
+              <ActivityMessage data={detailsModalData} assetUid={assetUid} />
             </KoboModalHeader>
 
             <section className={styles.detailsModalContent}>
