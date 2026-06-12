@@ -5,7 +5,7 @@ import { forwardRef } from 'react'
 
 export interface PillProps extends PillPropsMantine {}
 
-const Pill = forwardRef<HTMLDivElement, PillProps>((props, ref) => <PillMantine {...props} ref={ref} />)
+const Pill = forwardRef<HTMLSpanElement, PillProps>((props, ref) => <PillMantine {...props} ref={ref} />)
 Pill.displayName = 'Pill'
 
 export default Pill
