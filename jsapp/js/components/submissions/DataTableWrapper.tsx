@@ -11,7 +11,7 @@ interface DataTableWrapperProps {
  */
 export default function DataTableWrapper(props: DataTableWrapperProps) {
   // Hook gathers all bulk-action derived state in one place.
-  const { activeBulkActions, hasActiveBulkActionsCreatedByAnotherUser, hasActiveBulkActionsCreatedByCurrentUser, currentUsername } = useDataTableBulkActions(
+  const { activeBulkActions, hasActiveBulkActionsCreatedByCurrentUser, currentUsername } = useDataTableBulkActions(
     props.asset.uid,
   )
 
@@ -19,7 +19,6 @@ export default function DataTableWrapper(props: DataTableWrapperProps) {
     <DataTable
       asset={props.asset}
       activeBulkActions={activeBulkActions}
-      hasActiveBulkActionsCreatedByAnotherUser={hasActiveBulkActionsCreatedByAnotherUser}
       hasActiveBulkActionsCreatedByCurrentUser={hasActiveBulkActionsCreatedByCurrentUser}
       currentUsername={currentUsername}
     />

@@ -99,7 +99,6 @@ const DEFAULT_PAGE_SIZE = 30
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
-  hasActiveBulkActionsCreatedByAnotherUser?: boolean
   hasActiveBulkActionsCreatedByCurrentUser?: boolean
   currentUsername?: string
 }

@@ -8,14 +8,13 @@ import { useSession } from '#/stores/useSession'
 
 interface UseDataTableBulkActionsResult {
   activeBulkActions: BulkActionResponse[]
-  hasActiveBulkActionsCreatedByAnotherUser: boolean
   hasActiveBulkActionsCreatedByCurrentUser: boolean
   currentUsername: string | undefined
 }
 
 /**
- * Returns active data-table bulk actions and whether any active action was
- * created by a user other than the currently logged-in user.
+ * Returns active data-table bulk actions and whether the currently logged-in
+ * user has created any active bulk actions.
  */
 export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActionsResult {
   // Feature flag keeps all bulk-processing logic disabled unless explicitly enabled.
@@ -44,15 +43,6 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
     )
   }, [bulkActionsListQuery.data, isBulkProcessingEnabled])
 
-  const hasActiveBulkActionsCreatedByAnotherUser = React.useMemo(() => {
-    if (!currentUsername) {
-      return false
-    }
-
-    // Banner is only for "someone else started processing" scenario.
-    return activeBulkActions.some((bulkAction) => bulkAction.created_by.username !== currentUsername)
-  }, [activeBulkActions, currentUsername])
-
   const hasActiveBulkActionsCreatedByCurrentUser = React.useMemo(() => {
     if (!currentUsername) {
       return false
@@ -64,7 +54,6 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
 
   return {
     activeBulkActions,
-    hasActiveBulkActionsCreatedByAnotherUser,
     hasActiveBulkActionsCreatedByCurrentUser,
     currentUsername,
   }
