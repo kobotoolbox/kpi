@@ -8,6 +8,7 @@ export const SelectThemeKobo = Select.extend({
   classNames: {
     ...baseClasses,
     input: [baseClasses.input, classes.input].filter(Boolean).join(' '),
+    required: classes.required,
   },
   defaultProps: {
     size: 'md',
