@@ -5,6 +5,7 @@ import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
 import envStore from '#/envStore'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import KoboIcon from '../common/KoboIcon'
 import Select from '../common/Select'
 import type { LanguageCode } from '../languages/languagesStore'
@@ -18,6 +19,7 @@ interface LanguageSelectorProps {
   value?: LanguageCode | null
   disabled?: boolean
   required?: boolean
+  nothingFoundMessage?: string
 }
 
 const MINIMUM_SEARCH_LENGTH = 2
@@ -128,6 +130,7 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
       }}
       disabled={props.disabled}
       comboboxProps={{
+        zIndex: KOBO_Z_INDEX.dropdown,
         resetSelectionOnOptionHover: true,
         position: 'bottom',
         middlewares: { flip: false, shift: false },
@@ -142,7 +145,9 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
             c='var(--mantine-color-blue-5)'
           >
             <KoboIcon icon={IconInfoCircleFilled} size='sm' />
-            <Text>{t('No matching languages found. Try another spelling or language name')}</Text>
+            <Text>
+              {props.nothingFoundMessage ?? t('No matching languages found. Try another spelling or language name')}
+            </Text>
           </Group>
         )
       }
