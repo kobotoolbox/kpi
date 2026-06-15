@@ -483,6 +483,23 @@ class GoogleTranscriptionService(GoogleService):
             f'locations/{location}/recognizers/_'
         )
 
+    def cancel_google_operation(self, operation_name: str) -> None:
+        """
+        Parse the GCP location from a long-running operation resource name and
+        cancel a previously started Google long-running operation
+
+        STT v2 operation names follow the pattern:
+            projects/{project}/locations/{location}/operations/{id}
+        """
+        try:
+            parts = operation_name.split('/')
+            location = parts[parts.index('locations') + 1]
+        except (ValueError, IndexError):
+            location = get_speech_location()
+
+        speech_client = self._get_speech_client(location)
+        speech_client.transport.operations_client.cancel_operation(name=operation_name)
+
     def _get_operation_payload(
         self,
         operation_name: str,
