@@ -122,6 +122,8 @@ class GoogleTranscriptionService(GoogleService):
             )
 
         speech_model = model_code or DEFAULT_SPEECH_MODEL
+        if speech_location is None:
+            speech_location = get_speech_location()
         speech_client = self._get_speech_client(speech_location)
         input_path, output_prefix = self._get_batch_paths(xpath, source_lang)
 

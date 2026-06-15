@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from google.api_core.exceptions import PermissionDenied
@@ -130,7 +130,11 @@ def test_process_data_returns_failed_for_missing_google_service_config():
     }
 
 
-def test_process_data_returns_failed_for_polling_auth_errors():
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_returns_failed_for_polling_auth_errors(_mock_location):
     service = _get_service_for_process_data()
     service._get_google_language_config = MagicMock(
         return_value=MagicMock(language_code='en-US', location_code='global')
@@ -149,7 +153,11 @@ def test_process_data_returns_failed_for_polling_auth_errors():
     )
 
 
-def test_process_data_returns_failed_for_unexpected_polling_errors():
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_returns_failed_for_unexpected_polling_errors(_mock_location):
     service = _get_service_for_process_data()
     service._get_google_language_config = MagicMock(
         return_value=MagicMock(language_code='en-US', location_code='global')
