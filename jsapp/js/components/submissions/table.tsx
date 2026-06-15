@@ -100,6 +100,7 @@ interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
   hasActiveBulkActionsCreatedByAnotherUser?: boolean
+  hasActiveBulkActionsCreatedByCurrentUser?: boolean
   currentUsername?: string
 }
 
@@ -1347,8 +1348,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <BulkProcessingBanner
             assetUid={this.props.asset.uid}
             currentUsername={this.props.currentUsername}
-            activeBulkActionsCount={this.props.activeBulkActions?.length || 0}
-            hasActiveBulkActionsCreatedByAnotherUser={Boolean(this.props.hasActiveBulkActionsCreatedByAnotherUser)}
+            activeBulkActions={this.props.activeBulkActions || []}
+            hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
         </bem.FormView__item>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>

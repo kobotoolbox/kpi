@@ -9,6 +9,7 @@ import { useSession } from '#/stores/useSession'
 interface UseDataTableBulkActionsResult {
   activeBulkActions: BulkActionResponse[]
   hasActiveBulkActionsCreatedByAnotherUser: boolean
+  hasActiveBulkActionsCreatedByCurrentUser: boolean
   currentUsername: string | undefined
 }
 
@@ -52,9 +53,19 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
     return activeBulkActions.some((bulkAction) => bulkAction.created_by.username !== currentUsername)
   }, [activeBulkActions, currentUsername])
 
+  const hasActiveBulkActionsCreatedByCurrentUser = React.useMemo(() => {
+    if (!currentUsername) {
+      return false
+    }
+
+    // Check if current user has created any active bulk actions.
+    return activeBulkActions.some((bulkAction) => bulkAction.created_by.username === currentUsername)
+  }, [activeBulkActions, currentUsername])
+
   return {
     activeBulkActions,
     hasActiveBulkActionsCreatedByAnotherUser,
+    hasActiveBulkActionsCreatedByCurrentUser,
     currentUsername,
   }
 }
