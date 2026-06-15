@@ -1,4 +1,5 @@
 import './table.scss'
+import { Stack } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
@@ -1342,7 +1343,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        <bem.FormView__item m='banner-container'>
+        <Stack gap='sm' mt='sm'>
           <LimitNotifications />
           <BulkProcessingBanner
             assetUid={this.props.asset.uid}
@@ -1350,7 +1351,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             activeBulkActions={this.props.activeBulkActions || []}
             hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
-        </bem.FormView__item>
+        </Stack>
+
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
             <ColumnsHideDropdown
