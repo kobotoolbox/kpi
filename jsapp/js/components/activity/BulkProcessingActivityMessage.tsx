@@ -38,6 +38,9 @@ export function BulkProcessingActivityMessage({ data, assetUid }: BulkProcessing
     actionType = t('bulk transcribed audio files')
   } else if (action_id === BULK_PROCESSING_ACTION_IDS.automaticGoogleTranslation) {
     actionType = t('bulk translated transcriptions')
+  } else {
+    // A generic fallback if we ever add some different action in future
+    actionType = t('bulk processed items')
   }
 
   const handleCancel = () => {
