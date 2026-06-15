@@ -1343,7 +1343,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        <Stack gap='sm' mt='sm'>
+        <Stack gap='sm' className='table-banner-container'>
           <LimitNotifications />
           <BulkProcessingBanner
             assetUid={this.props.asset.uid}
