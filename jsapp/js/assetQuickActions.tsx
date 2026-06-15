@@ -27,7 +27,7 @@ import { openFormLanguagesModal } from './project/FormLanguagesManager'
 import { router } from './router/legacy'
 import { ROUTES } from './router/routerConstants'
 import { isAnyLibraryRoute } from './router/routerUtils'
-import { notify, renderCheckbox } from './utils'
+import { notify } from './utils'
 
 /** Opens the correct builder route for the current asset context. */
 export function openInFormBuilder(uid: string) {
@@ -43,81 +43,26 @@ export function openInFormBuilder(uid: string) {
  */
 export function deleteAsset(
   asset: AssetResponse | ProjectViewAsset,
-  name: string,
+  _name: string,
   callback?: (deletedAssetUid: string) => void,
+  onFail?: () => void,
 ) {
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
 
-  const safeName = escape(name)
-
-  const dialog = alertify.dialog('confirm')
-  const deployed = asset.has_deployment
-  let msg
-  let onshow
-  const onok = () => {
-    actions.resources.deleteAsset(
-      { uid: asset.uid, assetType: asset.asset_type },
-      {
-        onComplete: () => {
-          notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
-          if (typeof callback === 'function') {
-            callback(asset.uid)
-          }
-        },
+  actions.resources.deleteAsset(
+    { uid: asset.uid, assetType: asset.asset_type },
+    {
+      onComplete: () => {
+        notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
+        if (typeof callback === 'function') {
+          callback(asset.uid)
+        }
       },
-    )
-  }
-
-  if (deployed) {
-    msg = `${t('You are about to permanently delete this form.')}`
-    if (asset.deployment__submission_count !== 0) {
-      msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`
-    }
-    msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}`
-    msg += `${renderCheckbox(
-      'dt3',
-      t('I understand that if I delete this project I will not be able to recover it.'),
-      true,
-    )}`
-
-    onshow = () => {
-      const okBtn = dialog.elements.buttons.primary.firstChild as HTMLElement
-      const $els = $('.alertify-toggle input')
-
-      okBtn.setAttribute('disabled', 'true')
-      $els.each(function () {
-        $(this).prop('checked', false)
-      })
-
-      $els.change(() => {
-        okBtn.removeAttribute('disabled')
-        $els.each(function () {
-          if (!$(this).prop('checked')) {
-            okBtn.setAttribute('disabled', 'true')
-          }
-        })
-      })
-    }
-  } else if (asset.asset_type !== ASSET_TYPES.survey.id) {
-    msg = t('You are about to permanently delete this item from your library.')
-  } else {
-    msg = t('You are about to permanently delete this draft.')
-  }
-  const opts = {
-    title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
-    message: msg,
-    labels: {
-      ok: t('Delete'),
-      cancel: t('Cancel'),
+      onFail: () => {
+        onFail?.()
+      },
     },
-    onshow: onshow,
-    onok: onok,
-    oncancel: () => {
-      dialog.destroy()
-      $('.alertify-toggle input').prop('checked', false)
-    },
-  }
-  dialog.set(opts).show()
+  )
 }
 
 /** Displays a confirmation popup before archiving. */

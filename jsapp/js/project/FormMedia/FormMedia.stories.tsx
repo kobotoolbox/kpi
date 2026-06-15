@@ -3,6 +3,7 @@ import { expect, userEvent, waitFor, within } from 'storybook/test'
 import assetFactory from '#/endpoints/asset.factory'
 import formMediaFactory from '#/endpoints/formMedia.factory'
 import { formMediaHandlers } from '#/endpoints/formMedia.mocks'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
 import FormMedia from './index'
 
 const mockAsset = assetFactory({
@@ -13,6 +14,7 @@ const mockAsset = assetFactory({
 const meta: Meta<typeof FormMedia> = {
   title: 'Features/FormMedia',
   component: FormMedia,
+  decorators: [queryClientDecorator],
   args: {
     asset: mockAsset,
   },
