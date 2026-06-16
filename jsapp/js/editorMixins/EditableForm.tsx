@@ -205,15 +205,16 @@ export default function EditableForm(props: EditableFormProps) {
     if (assetData && 'uid' in assetData) {
       // TODO: stop casting this as AssetResponse after backend openAPI task DEV-1727 is done
       const assetDataCast = assetData as unknown as AssetResponse
-      // Deep clone the react-query cache reference to prevent mutations to survey.availableFiles
-      // from corrupting the cache. Form Builder code mutates asset properties during initialization.
-      const clonedAsset = clonedeep(assetDataCast)
-      setState((currentState) => ({
-        ...currentState,
-        // TODO: storing asset that we already have in `assetQuery` is not nice. I left it like this to avoid requiring
-        // too much refactor in here.
-        asset: clonedAsset,
-      }))
+      setState((currentState) => {
+        return {
+          ...currentState,
+          // Deep clone the react-query cache reference to prevent mutations to survey.availableFiles
+          // from corrupting the cache. Form Builder code mutates asset properties during initialization.
+          // TODO: storing asset that we already have in `assetQuery` is not nice. I left it like this to avoid requiring
+          // too much refactor in here.
+          asset: clonedeep(assetDataCast),
+        }
+      })
     }
   }, [assetQuery.data?.data, assetQuery.isFetching])
 
