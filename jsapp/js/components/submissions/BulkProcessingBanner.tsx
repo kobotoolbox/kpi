@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ROUTES } from '#/router/routerConstants'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
-import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
+import { ROUTES } from '#/router/routerConstants'
 
 interface BulkProcessingBannerProps {
   assetUid: string
@@ -66,12 +66,7 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   }
 
   // Guard early so parent can pass values safely without extra conditionals.
-  if (
-    !props.currentUsername ||
-    activeBulkActionsCount < 1 ||
-    isBannerDismissed === undefined ||
-    isBannerDismissed
-  ) {
+  if (!props.currentUsername || activeBulkActionsCount < 1 || isBannerDismissed === undefined || isBannerDismissed) {
     return null
   }
 

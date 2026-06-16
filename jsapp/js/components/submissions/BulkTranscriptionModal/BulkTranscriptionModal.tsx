@@ -5,7 +5,10 @@ import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
-import { getAssetsAdvancedFeaturesBulkActionsListQueryKey, useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
+import {
+  getAssetsAdvancedFeaturesBulkActionsListQueryKey,
+  useAssetsAdvancedFeaturesBulkActionsCreate,
+} from '#/api/react-query/survey-data'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   useOrganizationsServiceUsageRetrieve,

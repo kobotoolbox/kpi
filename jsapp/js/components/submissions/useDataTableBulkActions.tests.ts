@@ -165,9 +165,7 @@ describe('useDataTableBulkActions', () => {
   it('returns true for hasActiveBulkActionsCreatedByCurrentUser when current user has active actions', () => {
     useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
-    mockBulkActions([
-      buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'zefir'),
-    ])
+    mockBulkActions([buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'zefir')])
 
     const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
 
@@ -178,9 +176,7 @@ describe('useDataTableBulkActions', () => {
   it('returns false for hasActiveBulkActionsCreatedByCurrentUser when only other users have active actions', () => {
     useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
-    mockBulkActions([
-      buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user'),
-    ])
+    mockBulkActions([buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user')])
 
     const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
 
