@@ -31,6 +31,8 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   const [lastSeenBulkActionCount, setLastSeenBulkActionCount] = useState<number>(0)
   const [shouldShowBanner, setShouldShowBanner] = useState<boolean>(false)
 
+  // Load dismissal state from session storage on mount.
+  // We hash the username before using it as a storage key to avoid leaking PII.
   useEffect(() => {
     if (!storageKey) {
       // Wait for the async username hash before reading dismissal state,
@@ -47,7 +49,9 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
     setIsBannerDismissed(bannerStatus === BANNER_DISMISSAL_VALUE)
   }, [storageKey])
 
-  // If a new bulk action is created after banner was dismissed, show banner again
+  // When a new bulk action starts, re-show the banner even if it was dismissed before.
+  // We track the count in session storage so if the user dismisses "2 jobs running"
+  // and then a 3rd job starts, the banner appears again.
   useEffect(() => {
     if (storageKey && activeBulkActionsCount > lastSeenBulkActionCount) {
       setIsBannerDismissed(false)
@@ -57,14 +61,15 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
     }
   }, [activeBulkActionsCount, lastSeenBulkActionCount, storageKey])
 
-  // Handle delayed banner display: show immediately for large jobs (>10 rows), or after 5 seconds
+  // Show banner after a 5 second delay to avoid clutter for quick jobs.
+  // Exception: if someone is processing 10+ rows, show it right away because
+  // that takes longer and the user needs to know what's happening.
   useEffect(() => {
     if (activeBulkActionsCount === 0) {
       setShouldShowBanner(false)
       return
     }
 
-    // Check if any bulk action is processing many rows (immediate display)
     const hasLargeJob = props.activeBulkActions.some(
       (action) => action.submission_uuids && action.submission_uuids.length > LARGE_JOB_THRESHOLD
     )
@@ -74,7 +79,6 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
       return
     }
 
-    // Otherwise, show banner after delay
     const timer = setTimeout(() => {
       setShouldShowBanner(true)
     }, BANNER_DELAY_MS)
@@ -126,6 +130,7 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
         onClose={handleCloseBanner}
       >
         {message}
+        {/* Show activity log link only for users who created at least one of the jobs */}
         {props.hasActiveBulkActionsCreatedByCurrentUser && (
           <>
             {' '}

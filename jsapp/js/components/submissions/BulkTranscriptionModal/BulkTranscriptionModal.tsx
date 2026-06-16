@@ -43,7 +43,8 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         // Show success toast notification
         notify.success(t('Bulk transcription request submitted successfully'))
 
-        // Invalidate bulk actions list to trigger banner display
+        // Invalidate the bulk actions list so React Query refetches it.
+        // This triggers BulkProcessingBanner to appear (or update its count if already visible).
         queryClient.invalidateQueries({
           queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(props.assetUid),
         })
