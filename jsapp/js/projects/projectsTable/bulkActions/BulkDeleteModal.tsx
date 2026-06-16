@@ -1,45 +1,72 @@
 import { useState } from 'react'
 
-import { Group, Stack, Text } from '@mantine/core'
+import { Anchor, Group, List, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { fetchPost, handleApiFail } from '#/api'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import Checkbox from '#/components/common/checkbox'
+import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import customViewStore from '#/projects/customViewStore'
+import { ROUTES } from '#/router/routerConstants'
 import { invalidateSidebarQueries } from '#/sidebar/SidebarFormsList'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
 
 // Blocker modal — shown when one or more selected projects cannot be deleted
 export interface BulkDeleteBlockerModalProps {
-  onRequestClose: () => void
+  assets: Array<AssetResponse | ProjectViewAsset>
   reason: 'submissions' | 'permissions'
+  onRequestClose: () => void
 }
 
-export function BulkDeleteBlockerModal({ onRequestClose, reason }: BulkDeleteBlockerModalProps) {
-  const body =
-    reason === 'submissions'
-      ? t('In order to delete projects, all submissions need to be deleted first.')
-      : t("Some of the selected projects can't be deleted because you don't have the required permissions.")
+export function BulkDeleteBlockerModal({ assets, reason, onRequestClose }: BulkDeleteBlockerModalProps) {
+  const isSingle = assets.length === 1
+  const assetsWithSubmissions = assets.filter((asset) => (asset.deployment__submission_count ?? 0) > 0)
 
-  const alert =
-    reason === 'submissions'
+  let body: string
+  let alertText: string
+
+  if (reason === 'submissions') {
+    body = isSingle
+      ? t('In order to delete this project, all submissions need to be deleted first')
+      : t("The following projects have submissions and can't be deleted until all submissions have been deleted:")
+    alertText = isSingle
       ? t(
+          'Projects with data cannot be deleted as part of a team. Only empty projects with no submissions can be deleted.',
+        )
+      : t(
           'Projects with data cannot be deleted as part of a team. Please make sure none of the projects selected contain any submissions.',
         )
-      : t('Please make sure you have delete permissions for all selected projects, or contact an administrator.')
+  } else {
+    body = t(
+      'Team projects with submissions can only be deleted by the Team owner. Only empty projects you created can be deleted.',
+    )
+    alertText = t(
+      'Please make sure you can delete all the projects selected. Some may have been created by other members or contain data.',
+    )
+  }
 
   return (
     <Stack gap='md'>
-      <Text>{body}</Text>
+      <Text size='sm'>{body}</Text>
+
+      {reason === 'submissions' && !isSingle && assetsWithSubmissions.length > 0 && (
+        <List size='sm'>
+          {assetsWithSubmissions.map((asset) => (
+            <List.Item key={asset.uid}>
+              <Anchor href={ROUTES.FORM_LANDING.replace(':uid', asset.uid)}>{asset.name}</Anchor>
+            </List.Item>
+          ))}
+        </List>
+      )}
 
       <Alert type='info' iconName='information'>
-        {alert}
+        {alertText}
       </Alert>
 
-      <Group justify='flex-end' mt='lg'>
-        <ButtonNew variant='light' size='md' onClick={onRequestClose}>
+      <Group justify='flex-end' mt='xs'>
+        <ButtonNew variant='filled' size='md' onClick={onRequestClose}>
           {t('OK')}
         </ButtonNew>
       </Group>

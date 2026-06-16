@@ -5,34 +5,36 @@ import { BulkDeleteBlockerModal, BulkDeleteModal } from './BulkDeleteModal'
 
 /**
  * Opens the bulk delete confirmation modal, or a blocker if any of the
- * selected projects still have submissions that must be removed first, or if
- * the user lacks delete permissions on some of the selected projects.
+ * selected projects cannot be deleted (submissions or permissions issue).
+ * The caller is responsible for determining `blockerReason`.
  */
 export function openBulkDeleteModal(
   assets: Array<AssetResponse | ProjectViewAsset>,
-  { hasPermissionIssue = false } = {},
+  { blockerReason }: { blockerReason?: 'submissions' | 'permissions' } = {},
 ) {
   const assetUids = assets.map((asset) => asset.uid)
-  const hasSubmissionIssue = assets.some((asset) => (asset.deployment__submission_count ?? 0) > 0)
-
+  const isSingle = assets.length === 1
   const modalId = `bulk-delete-${generateUuid()}`
 
-  if (hasPermissionIssue || hasSubmissionIssue) {
+  if (blockerReason) {
+    const title = isSingle ? t("This project can't be deleted") : t("Some of these projects can't be deleted")
+
     modals.open({
       modalId,
-      title: t("Some of these projects can't be deleted"),
+      title,
       size: 'md',
       children: (
-        <BulkDeleteBlockerModal
-          reason={hasPermissionIssue ? 'permissions' : 'submissions'}
-          onRequestClose={() => modals.close(modalId)}
-        />
+        <BulkDeleteBlockerModal assets={assets} reason={blockerReason} onRequestClose={() => modals.close(modalId)} />
       ),
     })
   } else {
+    const title = isSingle
+      ? t('Delete 1 project')
+      : t('Delete ##count## projects').replace('##count##', String(assetUids.length))
+
     modals.open({
       modalId,
-      title: t('Delete ##count## projects').replace('##count##', String(assetUids.length)),
+      title,
       size: 'md',
       children: (
         <BulkDeleteModal assetUids={assetUids} modalId={modalId} onRequestClose={() => modals.close(modalId)} />
