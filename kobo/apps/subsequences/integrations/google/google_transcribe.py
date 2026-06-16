@@ -40,7 +40,7 @@ from ...exceptions import (
     TranscriptionResultNotFound
 )
 from .base import GoogleService
-from .locations import get_speech_location
+from .locations import get_speech_location_for_region, get_speech_location_for_model
 
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
@@ -64,7 +64,6 @@ class GoogleTranscriptionService(GoogleService):
         class. It uses Google Cloud Speech-to-Text v2 batch API.
         """
         super().__init__(submission=submission, asset=asset, *args, **kwargs)
-        self.speech_location = get_speech_location()
 
     def adapt_response(self, response: Union[dict, list]) -> str:
         """
@@ -110,6 +109,7 @@ class GoogleTranscriptionService(GoogleService):
         content: Any,
         *,
         model_code: str | None = None,
+        speech_location: str | None = None,
     ) -> tuple[object, int]:
         """
         Set up a batch transcription operation
@@ -122,19 +122,21 @@ class GoogleTranscriptionService(GoogleService):
             )
 
         speech_model = model_code or DEFAULT_SPEECH_MODEL
-        speech_client = self._get_speech_client(self.speech_location)
+        if speech_location is None:
+            speech_location = get_speech_location_for_region()
+        speech_client = self._get_speech_client(speech_location)
         input_path, output_prefix = self._get_batch_paths(xpath, source_lang)
 
         logging.info(
             'Starting Google automatic transcription for '
             f'{self.submission_root_uuid=}, {xpath=}, {source_lang=}, '
-            f'{self.speech_location=}, {speech_model=}'
+            f'{speech_location=}, {speech_model=}'
         )
         self._cleanup_batch_files(xpath, source_lang)
         gcs_input_uri = self.store_file(flac_content, input_path)
 
         request = speech.BatchRecognizeRequest(
-            recognizer=self._get_recognizer_name(self.speech_location),
+            recognizer=self._get_recognizer_name(speech_location),
             config=speech.RecognitionConfig(
                 auto_decoding_config=speech.AutoDetectDecodingConfig(),
                 language_codes=[source_lang],
@@ -161,11 +163,6 @@ class GoogleTranscriptionService(GoogleService):
     @property
     def counter_name(self):
         return 'google_asr_seconds'
-
-    def get_client_options(self):
-        return client_options.ClientOptions(
-            api_endpoint=f'{self.speech_location}-speech.googleapis.com'
-        )
 
     def get_converted_audio(
         self, xpath: str, submission_uuid: int, user: object
@@ -213,6 +210,12 @@ class GoogleTranscriptionService(GoogleService):
             return {'status': 'failed', 'error': message}
 
         source_language = language_config.language_code
+        speech_location = (
+            get_speech_location_for_model(language_config.model_code)
+            or language_config.location_code
+            or get_speech_location_for_region()
+        )
+
         operation_name = self._get_operation_reference(
             xpath, source_language, bulk_action_uid
         )
@@ -243,6 +246,7 @@ class GoogleTranscriptionService(GoogleService):
                     target_lang=None,
                     content=converted_audio,
                     model_code=language_config.model_code,
+                    speech_location=speech_location,
                 )
             except AudioTooLongError as err:
                 return {'status': 'failed', 'error': str(err)}
@@ -320,6 +324,7 @@ class GoogleTranscriptionService(GoogleService):
             # read the batch result after Google reports completion
             operation_payload = self._get_operation_payload(
                 operation_name,
+                speech_location,
             )
             if not operation_payload.get('done'):
                 raise SubsequenceTimeoutError
@@ -478,14 +483,32 @@ class GoogleTranscriptionService(GoogleService):
             f'locations/{location}/recognizers/_'
         )
 
+    def cancel_google_operation(self, operation_name: str) -> None:
+        """
+        Parse the GCP location from a long-running operation resource name and
+        cancel a previously started Google long-running operation
+
+        STT v2 operation names follow the pattern:
+            projects/{project}/locations/{location}/operations/{id}
+        """
+        try:
+            parts = operation_name.split('/')
+            location = parts[parts.index('locations') + 1]
+        except (ValueError, IndexError):
+            location = get_speech_location_for_region()
+
+        speech_client = self._get_speech_client(location)
+        speech_client.transport.operations_client.cancel_operation(name=operation_name)
+
     def _get_operation_payload(
         self,
         operation_name: str,
+        speech_location: str,
     ) -> dict:
         """
-        Poll the Google long-running operation backing the batch request.
+        Poll the Google long-running operation backing the batch request
         """
-        speech_client = self._get_speech_client(self.speech_location)
+        speech_client = self._get_speech_client(speech_location)
         operation = speech_client.transport.operations_client.get_operation(
             operation_name
         )
