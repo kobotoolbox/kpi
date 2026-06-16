@@ -37,7 +37,7 @@ def get_project_view_user_permissions_for_asset(
         if '*' not in region and not any(c in region for c in asset_countries):
             continue
 
-        if not pv.all_organizations and asset_org not in [
+        if pv.organizations.all() and asset_org not in [
             org.id for org in pv.organizations.all()
         ]:
             continue

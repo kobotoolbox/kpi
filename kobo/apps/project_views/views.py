@@ -385,7 +385,7 @@ class ProjectViewViewSet(
             else:
                 queryset = queryset.filter(settings__country_codes__in_array=region)
 
-        if not pv.all_organizations:
+        if pv.organizations.all():
             if obj_type == 'user':
                 queryset = queryset.filter(
                     organizations_organization__in=pv.organizations.all()

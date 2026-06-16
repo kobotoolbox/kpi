@@ -27,17 +27,11 @@ class ProjectView(models.Model):
     uid = KpiUidField(uid_prefix='pv')
     name = models.CharField(max_length=200)
     countries = models.CharField(max_length=1000)
-    all_organizations = models.BooleanField(
-        default=True,
-        help_text='If checked, grants access to all organizations. Uncheck to specify'
-        'specific organizations below.',
-    )
     organizations = models.ManyToManyField(
         'organizations.Organization',
         related_name='project_views',
         blank=True,
-        help_text='Select specific organizations. '
-        '(Ignored if "All organizations" is checked)',
+        help_text="Select specific organizations to filter by. Leave empty to include all organizations."
     )
     permissions = ChoiceArrayField(
         base_field=models.CharField(
@@ -77,7 +71,7 @@ class ProjectViewAdmin(admin.ModelAdmin):
 
     form = ProjectViewForm
 
-    list_display = ('name', 'countries', 'all_organizations', 'permissions')
+    list_display = ('name', 'countries', 'permissions')
     exclude = ('uid',)
     inlines = (AssignmentProjectViewM2MInline,)
     autocomplete_fields = ('organizations',)

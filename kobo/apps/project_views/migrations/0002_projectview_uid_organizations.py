@@ -13,20 +13,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='projectview',
-            name='all_organizations',
-            field=models.BooleanField(
-                default=True,
-                help_text='If checked, grants access to all organizations. Uncheck to '
-                'specify specific organizations below.',
-            ),
-        ),
-        migrations.AddField(
-            model_name='projectview',
             name='organizations',
             field=models.ManyToManyField(
                 blank=True,
-                help_text='Select specific organizations. '
-                '(Ignored if "All organizations" is checked)',
+                help_text='Select specific organizations to filter by. Leave empty to include all organizations.',
                 related_name='project_views',
                 to='organizations.Organization',
             ),

@@ -38,7 +38,6 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             'users',
             'users_export',
             'countries',
-            'all_organizations',
             'organizations',
             'permissions',
             'assigned_users',
