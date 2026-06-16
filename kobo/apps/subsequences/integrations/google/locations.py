@@ -10,8 +10,8 @@ from kpi.utils.log import logging
 # to whichever Google endpoint hosts that model.
 # EU - restrict all processing to EU-hosted Google endpoints for data residency
 # compliance; languages unavailable in EU become unsupported.
-GOOGLE_REGION_EU = 'EU'
-GOOGLE_REGION_GLOBAL = 'GLOBAL'
+GOOGLE_REGION_EU = 'eu'
+GOOGLE_REGION_GLOBAL = 'global'
 GOOGLE_REGION_CHOICES = (GOOGLE_REGION_GLOBAL, GOOGLE_REGION_EU)
 
 DEFAULT_GOOGLE_REGION = GOOGLE_REGION_GLOBAL
@@ -42,9 +42,9 @@ TRANSLATE_LOCATION_BY_REGION = {
 
 def get_google_region() -> str:
     """
-    Return the configured ASR/MT Google processing region ('GLOBAL' or 'EU')
+    Return the configured ASR/MT Google processing region ('global' or 'eu')
     """
-    region = str(constance.config.ASR_MT_GOOGLE_REGION).upper()
+    region = str(constance.config.ASR_MT_GOOGLE_REGION).lower()
     if region in GOOGLE_REGION_CHOICES:
         return region
 
@@ -66,7 +66,7 @@ def get_speech_location_for_model(model_code: str | None) -> str | None:
     return None
 
 
-def get_speech_location() -> str:
+def get_speech_location_for_region() -> str:
     return 'eu' if get_google_region() == GOOGLE_REGION_EU else 'us'
 
 

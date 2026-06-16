@@ -365,12 +365,12 @@ CONSTANCE_CONFIG = {
         ),
     ),
     'ASR_MT_GOOGLE_REGION': (
-        env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'GLOBAL'),
+        env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'global'),
         (
             'Google Cloud region for ASR/MT data residency. '
-            'GLOBAL (default): maximum language support, per-language routing '
+            'global (default): maximum language support, per-language routing '
             'to the best available Google endpoint for each model. '
-            'EU: restrict all processing to EU-hosted Google endpoints; '
+            'eu: restrict all processing to EU-hosted Google endpoints; '
             'languages only available outside the EU become unsupported.'
         ),
         'google_region_choice',
@@ -715,8 +715,8 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'django.forms.fields.ChoiceField',
         {
             'choices': (
-                ('GLOBAL', 'GLOBAL'),
-                ('EU', 'EU'),
+                ('global', 'global'),
+                ('eu', 'eu'),
             ),
         },
     ],

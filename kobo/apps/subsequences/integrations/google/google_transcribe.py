@@ -40,7 +40,7 @@ from ...exceptions import (
     TranscriptionResultNotFound
 )
 from .base import GoogleService
-from .locations import get_speech_location, get_speech_location_for_model
+from .locations import get_speech_location_for_region, get_speech_location_for_model
 
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
@@ -123,7 +123,7 @@ class GoogleTranscriptionService(GoogleService):
 
         speech_model = model_code or DEFAULT_SPEECH_MODEL
         if speech_location is None:
-            speech_location = get_speech_location()
+            speech_location = get_speech_location_for_region()
         speech_client = self._get_speech_client(speech_location)
         input_path, output_prefix = self._get_batch_paths(xpath, source_lang)
 
@@ -213,7 +213,7 @@ class GoogleTranscriptionService(GoogleService):
         speech_location = (
             get_speech_location_for_model(language_config.model_code)
             or language_config.location_code
-            or get_speech_location()
+            or get_speech_location_for_region()
         )
 
         operation_name = self._get_operation_reference(
@@ -495,7 +495,7 @@ class GoogleTranscriptionService(GoogleService):
             parts = operation_name.split('/')
             location = parts[parts.index('locations') + 1]
         except (ValueError, IndexError):
-            location = get_speech_location()
+            location = get_speech_location_for_region()
 
         speech_client = self._get_speech_client(location)
         speech_client.transport.operations_client.cancel_operation(name=operation_name)

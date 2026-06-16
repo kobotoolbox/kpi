@@ -13,10 +13,10 @@ def _read_constance_value(raw: str | None) -> str:
 
 def rename_us_to_global(apps, schema_editor):
     """
-    Rename the legacy constance value 'US' to 'GLOBAL'.
+    Rename the legacy constance value 'US' to 'global'
 
     Migration 0012 introduced ASR_MT_GOOGLE_REGION and wrote 'US' as the
-    default. The value is now 'GLOBAL' to reflect that non-EU servers use
+    default. The value is now 'global' to reflect that non-EU servers use
     per-language global routing rather than a fixed US endpoint.
     EU deployments are unaffected.
     """
@@ -34,13 +34,13 @@ def rename_us_to_global(apps, schema_editor):
         return
 
     if _read_constance_value(config.value).upper() == 'US':
-        config.value = json.dumps('GLOBAL')
+        config.value = json.dumps('global')
         config.save(update_fields=['value'])
 
 
 def rename_global_to_us(apps, schema_editor):
     """
-    Reverse: rename 'GLOBAL' back to 'US'
+    Reverse: rename 'global' back to 'US'
     """
     try:
         Constance = apps.get_model('constance', 'Constance')
@@ -55,7 +55,7 @@ def rename_global_to_us(apps, schema_editor):
     except Constance.DoesNotExist:
         return
 
-    if _read_constance_value(config.value).upper() == 'GLOBAL':
+    if _read_constance_value(config.value).lower() == 'global':
         config.value = json.dumps('US')
         config.save(update_fields=['value'])
 
