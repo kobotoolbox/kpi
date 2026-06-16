@@ -11,52 +11,52 @@ def _read_constance_value(raw: str | None) -> str:
         return str(raw)
 
 
-def rename_us_to_global(apps, schema_editor):
-    """
-    Rename the legacy constance value 'US' to 'global'
-
-    Migration 0012 introduced ASR_MT_GOOGLE_REGION and wrote 'US' as the
-    default. The value is now 'global' to reflect that non-EU servers use
-    per-language global routing rather than a fixed US endpoint.
-    EU deployments are unaffected.
-    """
+def _get_constance_config(apps, schema_editor):
     try:
         Constance = apps.get_model('constance', 'Constance')
     except LookupError:
-        return
-
-    db_alias = schema_editor.connection.alias
+        return None
     try:
-        config = Constance.objects.using(db_alias).get(
+        return Constance.objects.using(schema_editor.connection.alias).get(
             key='ASR_MT_GOOGLE_REGION'
         )
     except Constance.DoesNotExist:
+        return None
+
+
+def normalise_to_lowercase(apps, schema_editor):
+    """
+    Normalise legacy uppercase region slugs to lowercase
+
+    Migration 0012 wrote 'US' as the default and 'EU' for EU deployments.
+    Both are now lowercase ('global' and 'eu') to match the updated slug
+    convention. Leaving 'EU' uppercase would cause the Django admin Constance
+    form to render the wrong selected option, risking a silent switch from EU
+    to GLOBAL data residency on save.
+    """
+    config = _get_constance_config(apps, schema_editor)
+    if config is None:
         return
 
-    if _read_constance_value(config.value).upper() == 'US':
-        config.value = json.dumps('global')
+    RENAMES = {'us': 'global', 'eu': 'eu'}
+    current = _read_constance_value(config.value).lower()
+    if current in RENAMES and config.value != json.dumps(RENAMES[current]):
+        config.value = json.dumps(RENAMES[current])
         config.save(update_fields=['value'])
 
 
-def rename_global_to_us(apps, schema_editor):
+def revert_to_uppercase(apps, schema_editor):
     """
-    Reverse: rename 'global' back to 'US'
+    Reverse: restore uppercase slugs written by migration 0012
     """
-    try:
-        Constance = apps.get_model('constance', 'Constance')
-    except LookupError:
+    config = _get_constance_config(apps, schema_editor)
+    if config is None:
         return
 
-    db_alias = schema_editor.connection.alias
-    try:
-        config = Constance.objects.using(db_alias).get(
-            key='ASR_MT_GOOGLE_REGION'
-        )
-    except Constance.DoesNotExist:
-        return
-
-    if _read_constance_value(config.value).lower() == 'global':
-        config.value = json.dumps('US')
+    RENAMES = {'global': 'US', 'eu': 'EU'}
+    current = _read_constance_value(config.value).lower()
+    if current in RENAMES:
+        config.value = json.dumps(RENAMES[current])
         config.save(update_fields=['value'])
 
 
@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            rename_us_to_global,
-            reverse_code=rename_global_to_us,
+            normalise_to_lowercase,
+            reverse_code=revert_to_uppercase,
         ),
     ]
