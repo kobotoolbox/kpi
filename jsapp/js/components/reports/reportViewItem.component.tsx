@@ -1,11 +1,10 @@
-import React from 'react'
-
-import Chart from 'chart.js/auto'
+import ChartJS from 'chart.js/auto'
 import type { ChartConfiguration, ChartDataset, ChartType } from 'chart.js/auto'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import zip from 'lodash.zip'
 import { observer } from 'mobx-react'
+import React from 'react'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import sessionStore from '#/stores/session'
@@ -13,6 +12,9 @@ import ReportTable from './reportTable.component'
 import { CHART_COLOR_SETS, CHART_STYLES } from './reportsConstants'
 import type { ReportsResponse, ReportsResponseData } from './reportsConstants'
 
+/**
+ * Table rows rendered by ReportTable in regular mode.
+ */
 export type PreparedTable = Array<[string | null | undefined, number | undefined, number | undefined]>
 
 function truncateLabel(label: string, length = 25) {
@@ -34,19 +36,24 @@ function getPreparedTable(data: ReportsResponseData): PreparedTable | undefined 
   return []
 }
 
-/** We expect reports response to be passed together with some other props */
-interface ReportViewItemProps extends ReportsResponse {
+/** Props for a single report row visualized by ReportViewItem. */
+export interface ReportViewItemProps extends ReportsResponse {
   label: string
   triggerQuestionSettings: (questionName: string) => void
 }
 
-class ReportViewItem extends React.Component<ReportViewItemProps> {
+/**
+ * Renders one report row including chart and/or table representation.
+ *
+ * Exported named class is used by focused unit tests.
+ */
+export class ReportViewItem extends React.Component<ReportViewItemProps> {
   constructor(props: ReportViewItemProps) {
     super(props)
     this.canvasRef = React.createRef()
   }
   canvasRef: React.RefObject<HTMLCanvasElement>
-  itemChart?: Chart
+  itemChart?: ChartJS
 
   componentDidMount() {
     if (this.props.data.show_graph) {
@@ -84,7 +91,43 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     if (this.itemChart) {
       this.itemChart.destroy()
     }
-    this.itemChart = new Chart(this.canvasRef.current, this.buildChartOptions())
+    this.itemChart = new ChartJS(this.canvasRef.current, this.buildChartOptions())
+  }
+
+  buildDatasetColors(chartType: string, colors: string[]) {
+    if (chartType === CHART_STYLES.line.value || chartType === CHART_STYLES.area.value) {
+      return {
+        backgroundColor: colors[0],
+        borderColor: colors[0],
+        pointBackgroundColor: colors[0],
+        pointBorderColor: colors[0],
+      }
+    }
+
+    if (chartType === CHART_STYLES.radar.value) {
+      return {
+        backgroundColor: colors[0],
+        borderColor: colors[0],
+        pointBackgroundColor: colors,
+        pointBorderColor: colors,
+      }
+    }
+
+    if (
+      chartType === CHART_STYLES.pie.value ||
+      chartType === CHART_STYLES.donut.value ||
+      chartType === CHART_STYLES.polar.value
+    ) {
+      return {
+        backgroundColor: colors,
+        borderColor: colors,
+      }
+    }
+
+    return {
+      backgroundColor: colors,
+      borderColor: colors,
+    }
   }
 
   buildChartOptions() {
@@ -100,13 +143,13 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     const colors = this.buildChartColors()
 
     const baseColor = colors[0]
-    Chart.defaults.elements.bar.backgroundColor = baseColor
-    Chart.defaults.elements.line.borderColor = baseColor
-    Chart.defaults.elements.line.backgroundColor = 'rgba(255, 255, 255, 0.1)'
-    Chart.defaults.elements.point.backgroundColor = baseColor
-    Chart.defaults.elements.point.radius = 4
-    Chart.defaults.elements.arc.backgroundColor = baseColor
-    Chart.defaults.maintainAspectRatio = false
+    ChartJS.defaults.elements.bar.backgroundColor = baseColor
+    ChartJS.defaults.elements.line.borderColor = baseColor
+    ChartJS.defaults.elements.line.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+    ChartJS.defaults.elements.point.backgroundColor = baseColor
+    ChartJS.defaults.elements.point.radius = 4
+    ChartJS.defaults.elements.arc.backgroundColor = baseColor
+    ChartJS.defaults.maintainAspectRatio = false
 
     // If there is some invalid data we default to bar type
     const chartJsType: ChartType = CHART_STYLES[chartType]?.chartJsType || 'bar'
@@ -142,6 +185,9 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
           data: itemPerc,
           fill: isArea,
           backgroundColor: colors[i],
+          borderColor: colors[i],
+          pointBackgroundColor: colors[i],
+          pointBorderColor: colors[i],
         })
       })
 
@@ -154,7 +200,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
           data: data.percentages,
           barPercentage: 0.5,
           fill: isArea,
-          backgroundColor: colors,
+          ...this.buildDatasetColors(chartType, colors),
         })
       }
       if (data.responseLabels) {
@@ -215,14 +261,9 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       if (opts.options?.plugins?.legend) {
         opts.options.plugins.legend.display = true
       }
-      opts.data.datasets[0].backgroundColor = colors
       if (opts.options && !opts.options.scales) {
         opts.options.scales = { x: {}, y: {} }
       }
-    }
-
-    if (this.props.style.report_type === CHART_STYLES.area.value) {
-      opts.data.datasets[0].backgroundColor = colors[0]
     }
 
     return opts

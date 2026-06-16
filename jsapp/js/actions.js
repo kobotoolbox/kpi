@@ -4,7 +4,6 @@ import { replaceSupportEmail } from '#/textUtils'
 import { notify } from '#/utils'
 import exportsActions from './actions/exportsActions'
 import libraryActions from './actions/library'
-import formMediaActions from './actions/mediaActions'
 import { permissionsActions } from './actions/permissions'
 import submissionsActions from './actions/submissions'
 import { dataInterface } from './dataInterface'
@@ -17,7 +16,6 @@ export const actions = {
   permissions: permissionsActions,
   library: libraryActions,
   submissions: submissionsActions,
-  media: formMediaActions,
   exports: exportsActions,
 }
 
