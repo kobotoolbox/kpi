@@ -109,10 +109,12 @@ module.exports = do ->
       if !row.rows && rowlist = row.getList()
         # Generate a unique list name (same as row.clone() does)
         uniqueListName = txtid()
-        # Copy the options into a new list with the unique name
-        @choices.add(name: uniqueListName, options: rowlist.options.toJSON())
-        # Point the row at the new list instead of the library one
+        # Create a new choice list with unique name and add it to the survey
+        newList = @choices.add(name: uniqueListName, options: rowlist.options.toJSON())
+        # Update both the list name and the list object reference
+        # (both are needed - listName for serialization, list for in-session edits)
         row.get('type').set('listName', uniqueListName)
+        row.get('type').set('list', newList)
       return
 
     # Inserts library items (questions or groups) into the form.
