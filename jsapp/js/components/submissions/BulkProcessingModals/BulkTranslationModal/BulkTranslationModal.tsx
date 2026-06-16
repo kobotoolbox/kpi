@@ -14,11 +14,11 @@ import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
-import ButtonNew from '../../common/ButtonNew'
-import LanguageSelector from '../../languages/LanguageSelector'
-import type { LanguageCode } from '../../languages/languagesStore'
-import { BulkProcessingWarningModal } from '../BulkProcessingModals/BulkProcessingWarningModal'
-import { getSupplementalDetailsContent } from '../submissionUtils'
+import ButtonNew from '../../../common/ButtonNew'
+import LanguageSelector from '../../../languages/LanguageSelector'
+import type { LanguageCode } from '../../../languages/languagesStore'
+import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
+import { getSupplementalDetailsContent } from '../../submissionUtils'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
@@ -56,7 +56,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
         // Use the submission_uuids error message if available, otherwise show a generic fallback
 
         const errorMessage =
-          errorResponse?.submission_uuids?.[0] || t('Failed to start transcription. Please try again.')
+          errorResponse?.submission_uuids?.[0] || t('Failed to start translation. Please try again.')
 
         notify.error(errorMessage)
       },
@@ -94,7 +94,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     createBulkTranslation({
       uidAsset: props.assetUid,
       data: {
-        action_id: ActionIdEnum.automatic_google_transcription,
+        action_id: ActionIdEnum.automatic_google_translation,
         question_xpath: props.fieldId,
         submission_uuids: selectedSubmissionUuids,
         params: {
