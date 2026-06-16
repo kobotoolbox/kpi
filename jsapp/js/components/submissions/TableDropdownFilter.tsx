@@ -8,7 +8,6 @@ interface TableDropdownFilterProps {
   column: TableColumn | Column<any>
   filter?: Filter
   onChange: (value?: string) => void
-  key?: string
 }
 
 /**

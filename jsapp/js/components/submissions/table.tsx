@@ -920,11 +920,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         col.choices = choices
         col.selectFromListName = columnQuestion?.select_from_list_name
         col.translationIndex = translationIndex
-        // Use stable reference - no wrapper needed
         col.Filter = TableDropdownFilter
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
-        // Use stable reference - no wrapper needed
         col.Filter = TableTextFilter
       }
 
