@@ -13,23 +13,17 @@ interface BulkProcessingBannerProps {
 }
 
 const BANNER_DISMISSAL_VALUE = 'dismissed'
-const BANNER_DELAY_MS = 5000 // 5 seconds
-const LARGE_JOB_THRESHOLD = 10 // rows
 
 /**
  * Displays an informational banner when active bulk processing is running in
  * the table. Shows for all users, with an additional link to activity log
  * for users who created a bulk job themselves.
- *
- * The banner appears after 5 seconds, or immediately if a bulk job processes
- * more than 10 rows.
  */
 export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   const activeBulkActionsCount = props.activeBulkActions.length
   const storageKey = useSafeUsernameStorageKey(`kpiBulkProcessingBanner-${props.assetUid}`, props.currentUsername || '')
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
   const [lastSeenBulkActionCount, setLastSeenBulkActionCount] = useState<number>(0)
-  const [shouldShowBanner, setShouldShowBanner] = useState<boolean>(false)
 
   // Load dismissal state from session storage on mount.
   // We hash the username before using it as a storage key to avoid leaking PII.
@@ -61,31 +55,6 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
     }
   }, [activeBulkActionsCount, lastSeenBulkActionCount, storageKey])
 
-  // Show banner after a 5 second delay to avoid clutter for quick jobs.
-  // Exception: if someone is processing 10+ rows, show it right away because
-  // that takes longer and the user needs to know what's happening.
-  useEffect(() => {
-    if (activeBulkActionsCount === 0) {
-      setShouldShowBanner(false)
-      return
-    }
-
-    const hasLargeJob = props.activeBulkActions.some(
-      (action) => action.submission_uuids && action.submission_uuids.length > LARGE_JOB_THRESHOLD
-    )
-
-    if (hasLargeJob) {
-      setShouldShowBanner(true)
-      return
-    }
-
-    const timer = setTimeout(() => {
-      setShouldShowBanner(true)
-    }, BANNER_DELAY_MS)
-
-    return () => clearTimeout(timer)
-  }, [props.activeBulkActions, activeBulkActionsCount])
-
   function handleCloseBanner() {
     if (!storageKey) {
       return
@@ -101,8 +70,7 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
     !props.currentUsername ||
     activeBulkActionsCount < 1 ||
     isBannerDismissed === undefined ||
-    isBannerDismissed ||
-    !shouldShowBanner
+    isBannerDismissed
   ) {
     return null
   }

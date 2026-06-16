@@ -10,13 +10,6 @@ const multipleJobs = [
   bulkActionFactory('uuid-2', 'fr', { created_by: { username: 'other-user' } }),
   bulkActionFactory('uuid-3', 'es', { created_by: { username: 'another-user' } }),
 ]
-const largeJobByCurrentUser = [
-  bulkActionFactory('uuid-1', 'en', {
-    created_by: { username: 'storybook-user' },
-    submission_uuids: Array.from({ length: 15 }, (_, i) => `uuid-${i}`),
-  }),
-]
-
 const meta: Meta<typeof BulkProcessingBanner> = {
   title: 'Components/BulkProcessingBanner',
   component: BulkProcessingBanner,
@@ -54,12 +47,5 @@ export const MultipleJobs: Story = {
   args: {
     hasActiveBulkActionsCreatedByCurrentUser: true,
     activeBulkActions: multipleJobs,
-  },
-}
-
-export const LargeJobImmediateDisplay: Story = {
-  args: {
-    hasActiveBulkActionsCreatedByCurrentUser: true,
-    activeBulkActions: largeJobByCurrentUser,
   },
 }
