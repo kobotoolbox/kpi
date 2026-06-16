@@ -3684,6 +3684,56 @@
                 }
             }
         },
+        "/api/v2/assets/{uid_asset}/attachments/audio-duration/": {
+            "post": {
+                "operationId": "api_v2_assets_attachments_audio_duration_create",
+                "description": "## Get total audio duration for a list of attachments\n\n```curl\n  curl -X POST https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/attachments/audio-duration/\n```\n\n> **Payload**\n>\n>        {\n>           \"attachment_uids\": [\n>               \"attXXXXXXXXXXXXXXXXX\",\n>               \"attYYYYYYYYYYYYYYYYY\"\n>           ]\n>        }\n\n* Where: `attachment_uids` (required) is a list of attachment UIDs whose audio duration to retrieve. Maximum 200 UIDs per request.\n\n\n> **Response**\n>\n>        {\n>           \"attachments\": [\n>               { \"uid\": \"attXXXXXXXXXXXXXXXXX\", \"seconds\": 42 },\n>               { \"uid\": \"attYYYYYYYYYYYYYYYYY\", \"seconds\": null }\n>           ],\n>           \"total\": 42\n>        }\n\n* `attachments` - one entry per recognised, accessible UID in the order submitted.\n  Unrecognised or inaccessible UIDs are silently omitted.\n* `seconds` - integer duration, or `null` when `ffprobe` could not determine the duration (corrupt file, unsupported format, etc.).\n* `total` - sum of all non-null `seconds` values.\n\n\n### Batching and timeouts\n\n`ffprobe` takes approximately 0.5 s per file. With a 120 s nginx timeout, sending more\nthan ~200 files per request risks a **504 Gateway Timeout**.\n\n* Submit files in small batches from the front-end.\n* Retry on 504 - already-processed attachments will be served from the db, so\n  subsequent attempts complete faster.\n* Requests exceeding 200 UIDs are rejected immediately with **400 Bad Request**.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetAttachmentAudioDurationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetAttachmentAudioDurationResponse"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/assets/{uid_asset}/attachments/bulk/": {
             "delete": {
                 "operationId": "api_v2_assets_attachments_bulk_destroy",
@@ -21457,6 +21507,55 @@
                     "version_id",
                     "xform_link",
                     "xls_link"
+                ]
+            },
+            "AssetAttachmentAudioDurationItem": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "seconds": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "seconds",
+                    "uid"
+                ]
+            },
+            "AssetAttachmentAudioDurationRequest": {
+                "type": "object",
+                "properties": {
+                    "attachment_uids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "List of attachment UIDs whose audio duration to retrieve"
+                    }
+                },
+                "required": [
+                    "attachment_uids"
+                ]
+            },
+            "AssetAttachmentAudioDurationResponse": {
+                "type": "object",
+                "properties": {
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AssetAttachmentAudioDurationItem"
+                        }
+                    },
+                    "total": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "attachments",
+                    "total"
                 ]
             },
             "AssetBulkRequest": {

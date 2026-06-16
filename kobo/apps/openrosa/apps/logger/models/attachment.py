@@ -93,6 +93,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         db_index=True,
     )
     hash = models.CharField(null=True, max_length=64)
+    audio_length = models.FloatField(null=True, blank=True)
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()
