@@ -2,6 +2,7 @@ import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
 import {
@@ -12,10 +13,12 @@ import Alert from '#/components/common/alert'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
+import { notify } from '#/utils'
 import ButtonNew from '../../common/ButtonNew'
 import LanguageSelector from '../../languages/LanguageSelector'
 import type { LanguageCode } from '../../languages/languagesStore'
 import { getSupplementalDetailsContent } from '../submissionUtils'
+import {BulkProcessingWarningModal} from '../BulkProcessingModals/BulkProcessingWarningModal'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
@@ -32,7 +35,33 @@ export interface BulkTranslationModalProps {
 export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
-  const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
+  const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
+    mutation: {
+      onSuccess: () => {
+        // TODO: implement @mantine/notifications system, see DEV-2211
+        props.onRequestClose()
+        props.onSuccess()
+      },
+
+      onError: (error) => {
+        // This custom error handler overrides the default onErrorDefaultHandler,
+        // preventing the generic "400 Bad Request" notification from showing.
+        // Extract the specific error message from the parsed response
+        const serverError = error as ServerError
+
+        const errorResponse = serverError.parsedResponse as {
+          submission_uuids?: string[]
+        }
+
+        // Use the submission_uuids error message if available, otherwise show a generic fallback
+
+        const errorMessage =
+          errorResponse?.submission_uuids?.[0] || t('Failed to start transcription. Please try again.')
+
+        notify.error(errorMessage)
+      },
+    },
+  })
 
   const navigate = useNavigate()
 
@@ -60,31 +89,19 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const selectedSubmissionUuids = props.selectedSubmissions.map((submission) => submission._uuid)
 
   const handleStartTranslation = () => {
-    // We pass all of the submissions without filtering out the ones that have transcripts already. Currently the
-    // backend skips the submissions that already have a transcript.
-    createBulkTranslation(
-      {
-        uidAsset: props.assetUid,
-        data: {
-          action_id: ActionIdEnum.automatic_google_translation,
-          question_xpath: props.fieldId,
-          submission_uuids: selectedSubmissionUuids,
-          params: {
-            language: selectedLanguage!,
-          },
+    // We pass all of the submissions without filtering out the ones that have translations already. Currently the
+    // backend skips the submissions that already have a translation.
+    createBulkTranslation({
+      uidAsset: props.assetUid,
+      data: {
+        action_id: ActionIdEnum.automatic_google_transcription,
+        question_xpath: props.fieldId,
+        submission_uuids: selectedSubmissionUuids,
+        params: {
+          language: selectedLanguage!,
         },
       },
-      {
-        onSuccess: () => {
-          // TODO: implement @mantine/notifications system, see DEV-1412
-          props.onRequestClose()
-          props.onSuccess()
-        },
-        onError: () => {
-          // TODO: implement @mantine/notifications system, see DEV-1412
-        },
-      },
-    )
+    })
   }
 
   const handleNavigateToAddOn = () => {
@@ -99,24 +116,13 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   return (
     <>
       {showWarningModal && (
-        <Stack gap='md'>
-          <Text size='sm'>
-            {t(
-              'This bulk processing request is too large and could affect the performance of the application. Only the results currently visible in the data table (##count##) will be processed.',
-            ).replace('##count##', String(props.selectedRowsCount))}
-          </Text>
-
-          <Alert type='info' iconName='information' m={0}>
-            {t('To increase the number of files processed, increase the number of rows displayed in the table')}
-          </Alert>
-          <Group justify='flex-end' mt='md'>
-            <ButtonNew onClick={props.onRequestClose} variant='light'>
-              {t('Cancel')}
-            </ButtonNew>
-            <ButtonNew onClick={handleWarningContinue}>{t('Continue')}</ButtonNew>
-          </Group>
-        </Stack>
+        <BulkProcessingWarningModal
+          selectedRowsCount={props.selectedRowsCount}
+          onRequestClose={props.onRequestClose}
+          handleWarningContinue={handleWarningContinue}
+        />
       )}
+
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
@@ -147,7 +153,11 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
           <Text size='xs'>
             {t('Automatic translation is provided by Google Cloud Platform.')}
             &nbsp;
-            <Anchor href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL} underline='always'>
+            <Anchor
+              target='_blank'
+              href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL}
+              underline='always'
+            >
               {t('Learn more')}
             </Anchor>
           </Text>

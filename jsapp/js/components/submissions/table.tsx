@@ -93,8 +93,8 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
-import { openBulkTranscriptionModal } from './BulkTranscriptionModal'
-import { openBulkTranslationModal } from './BulkTranslationModal'
+import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
+import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
 
 const DEFAULT_PAGE_SIZE = 30
 
