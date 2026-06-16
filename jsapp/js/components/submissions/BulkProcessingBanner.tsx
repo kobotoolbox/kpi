@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import Alert from '#/components/common/alert'
+import TextWithInternalLink from '#/components/common/TextWithInternalLink'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 import { ROUTES } from '#/router/routerConstants'
-import { replaceBracketsWithLink } from '#/textUtils'
 
 interface BulkProcessingBannerProps {
   assetUid: string
@@ -115,13 +115,9 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
         {props.hasActiveBulkActionsCreatedByCurrentUser && (
           <>
             {' '}
-            <span
-              dangerouslySetInnerHTML={{
-                __html: replaceBracketsWithLink(
-                  t('[Click here] to monitor your progress or to cancel this job.'),
-                  activityLogPath,
-                ),
-              }}
+            <TextWithInternalLink
+              text={t('[Click here] to monitor your progress or to cancel this job.')}
+              path={activityLogPath}
             />
           </>
         )}
