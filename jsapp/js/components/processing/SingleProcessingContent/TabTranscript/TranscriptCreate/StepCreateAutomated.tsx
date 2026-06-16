@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 
+import { Flex, Group, TextInput } from '@mantine/core'
+import { IconLanguage, IconX } from '@tabler/icons-react'
 import cx from 'classnames'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { getLanguagesRetrieveQueryKey, useLanguagesRetrieve } from '#/api/react-query/other'
 import {
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
+import ActionIcon from '#/components/common/ActionIcon'
+import KoboIcon from '#/components/common/KoboIcon'
 import Button from '#/components/common/button'
 import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
@@ -59,8 +64,23 @@ export default function StepCreateAutomated({
     },
   })
 
+  // TODO: HACK-FIX: We should rely on passing Language instead of LanguageCode throughout the single processing view to avoid
+  // using the languages hook here, but this involves dealing with time consuming type handling for LanguageSelector.
+  // For now, we can rely on react-query's caching to not repeat a call and complete the RegionSelector refactor
+  const { data, isLoading: isLoadingLanguages } = useLanguagesRetrieve(languageCode, {
+    query: {
+      // Same key as the RegionSelector hook
+      queryKey: getLanguagesRetrieveQueryKey(languageCode),
+      enabled: languageCode !== '',
+    },
+  })
+  const language = data?.status === 200 ? data.data : undefined
+
   const anyPending =
-    mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
+    mutationCreateAF.isPending ||
+    mutationPatchAF.isPending ||
+    mutationCreateAutomaticTranscript.isPending ||
+    isLoadingLanguages
 
   function handleChangeLocale(newVal: LocaleCode | null) {
     setLocale(newVal)
@@ -122,15 +142,36 @@ export default function StepCreateAutomated({
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
-      <RegionSelector
-        disabled={anyPending}
-        serviceCode='goog'
-        serviceType='transcription'
-        rootLanguage={languageCode}
-        onRegionChange={handleChangeLocale}
-        onCancel={handleClickBack}
-        mb={'xl'}
-      />
+      <Flex component='section' direction='row' align='center' justify='center' mb='xl'>
+        <Group gap='xs'>
+          <TextInput
+            readOnly
+            value={language?.name || ''}
+            leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
+            w={220}
+            size='sm'
+            rightSection={
+              <ActionIcon
+                disabled={anyPending}
+                aria-label={t('Close')}
+                variant='transparent'
+                size='sm'
+                onClick={handleClickBack}
+                icon={IconX}
+              />
+            }
+          />
+
+          <RegionSelector
+            rootLanguage={languageCode}
+            disabled={anyPending}
+            serviceCode='goog'
+            serviceType='transcription'
+            onRegionChange={handleChangeLocale}
+            size='sm'
+          />
+        </Group>
+      </Flex>
 
       <h2>{t('Transcription provider')}</h2>
 

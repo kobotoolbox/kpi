@@ -96,6 +96,7 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import { openBulkTranscriptionModal } from './BulkTranscriptionModal'
 
 const DEFAULT_PAGE_SIZE = 30
 const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
@@ -504,24 +505,33 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onTranscribeSelectedAudioFiles(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
-    console.log('Bulk processing - Transcribe selected audio files', {
+    const selectedSubmissions = this.state.submissions.filter((submission) =>
+      selectedSubmissionIds.includes(String(submission._id)),
+    )
+
+    const selectedSubmissionUuids = selectedSubmissions.map((submission) => submission._uuid)
+
+    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
+    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
+
+    openBulkTranscriptionModal({
       fieldId,
-      selectedSubmissionIds,
+      assetUid: this.props.asset.uid,
+      selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
+      showWarningModal: showWarningModal,
+      onSuccess: () => {
+        this.setState({
+          selectedRows: {},
+          selectAll: false,
+        })
+      },
     })
   }
 
-  onTranslateSelectedTranscriptions(fieldId: string) {
-    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
-
-    console.log('Bulk processing - Translate selected transcriptions', {
-      fieldId,
-      selectedSubmissionIds,
-      selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
-    })
-  }
+  //TODO: replace with modal logic DEV-1414
+  // @ts-ignore
+  onTranslateSelectedTranscriptions(fieldId: string) {}
 
   // We need to distinguish between repeated groups with nested values
   // and other question types that use a flat nested key (i.e. with '/').

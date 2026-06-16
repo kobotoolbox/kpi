@@ -10,6 +10,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type CreateFilePayloadOneOfTwoMetadata = {
+export type CreateFilePayloadBase64Metadata = {
   filename: string
 }

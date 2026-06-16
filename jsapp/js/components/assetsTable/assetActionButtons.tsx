@@ -19,7 +19,6 @@ import {
   cloneAsset,
   cloneAssetAsSurvey,
   cloneAssetAsTemplate,
-  deleteAsset,
   deployAsset,
   manageAssetLanguages,
   manageAssetSettings,
@@ -30,6 +29,7 @@ import {
 } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import bem from '#/bem'
+import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
 import Button from '#/components/common/button'
 import type { ButtonType } from '#/components/common/button'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
@@ -60,6 +60,7 @@ interface AssetActionButtonsState {
 
 class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetActionButtonsState> {
   private unlisteners: Function[] = []
+
   hidePopoverDebounced = debounce(() => {
     if (this.state.isPopoverVisible) {
       this.setState({ shouldHidePopover: true })
@@ -141,7 +142,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   delete() {
-    deleteAsset(
+    openDeleteAssetModal(
       this.props.asset,
       assetUtils.getAssetDisplayName(this.props.asset).final,
       this.onDeleteComplete.bind(this, this.props.asset.uid),

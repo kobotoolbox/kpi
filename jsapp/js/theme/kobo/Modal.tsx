@@ -18,6 +18,7 @@ export const KOBO_MODAL_SHARED_PROPS = {
     icon: <KoboIcon icon={IconX} />,
   },
   padding: 'lg',
+  centered: true,
 } as const
 
 export const ModalThemeKobo = Modal.extend({

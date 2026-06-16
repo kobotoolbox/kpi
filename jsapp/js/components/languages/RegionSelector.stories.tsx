@@ -38,12 +38,9 @@ export const Primary: Story = {
     onRegionChange: (selectedRegion) => {
       console.log('Region changed:', selectedRegion)
     },
-    onCancel: () => {
-      console.log('Cancelled')
-    },
   },
 }
-// Tests complete RegionSelector workflow: loading, region selection, sorting, callbacks, and cancel
+// Tests RegionSelector: loading, region selection, sorting, and callbacks
 export const InteractionTest: Story = {
   args: {
     rootLanguage: 'en',
@@ -51,34 +48,14 @@ export const InteractionTest: Story = {
     serviceCode: 'goog',
     serviceType: 'transcription',
     onRegionChange: fn(),
-    onCancel: fn(),
   },
   play: async ({ canvasElement, args, step }) => {
     const canvas = within(canvasElement)
     const user = userEvent.setup()
 
-    await step('Wait for language data to load', async () => {
-      await waitFor(
-        async () => {
-          const languageInput = canvas.getByDisplayValue('English')
-          expect(languageInput).toBeInTheDocument()
-          expect(languageInput).toHaveAttribute('readonly')
-          expect(languageInput).toHaveValue('English')
-        },
-        { timeout: 3000 },
-      )
-    })
-
-    await step('Verify cancel button is present and enabled', async () => {
-      const cancelButton = canvas.getByRole('button', { name: 'Close' })
-      expect(cancelButton).toBeInTheDocument()
-      expect(cancelButton).not.toBeDisabled()
-    })
-
     await step('Wait for region select to appear', async () => {
       await waitFor(
         async () => {
-          // Mantine Select renders as an input, try multiple selectors
           const regionSelect = canvas.getByPlaceholderText('Select a region...')
           expect(regionSelect).toBeInTheDocument()
         },
@@ -89,22 +66,22 @@ export const InteractionTest: Story = {
     await step('Verify initial region is auto-selected', async () => {
       await waitFor(
         async () => {
-          expect(args.onRegionChange).toHaveBeenCalled()
+          // Wait for onRegionChange to be called with a truthy value (after data loads)
+          const calls = (args.onRegionChange as ReturnType<typeof fn>).mock.calls
+          const lastCall = calls.at(-1)
+          expect(lastCall).toBeDefined()
+          expect(lastCall![0]).toBeTruthy()
         },
         { timeout: 3000 },
       )
-      // onRegionChange first sends null before the data loads, we need to get the most recent post-load call with -1
-      const firstCall = (args.onRegionChange as ReturnType<typeof fn>).mock.calls.at(-1)!
-      expect(firstCall[0]).toBeTruthy()
     })
 
-    await step('Open region dropdown and verify options', async () => {
+    await step('Open region dropdown and verify options are sorted alphabetically', async () => {
       const regionSelect = canvas.getByPlaceholderText('Select a region...')
       await user.click(regionSelect)
 
       await waitFor(async () => {
         const options = document.querySelectorAll('[role="option"]')
-        expect(options.length).toBeGreaterThan(0)
         expect(options.length).toBe(2)
 
         // Verify alphabetical sorting
@@ -113,31 +90,22 @@ export const InteractionTest: Story = {
       })
     })
 
-    await step('Select a different region', async () => {
+    await step('Select a different region and verify callback', async () => {
       const options = document.querySelectorAll('[role="option"]')
       const unitedStatesOption = Array.from(options).find((option) => option.textContent === 'United States')
       expect(unitedStatesOption).toBeInTheDocument()
       await user.click(unitedStatesOption!)
 
-      // Verify correct option
+      // Verify onRegionChange called with correct value
       const calls = (args.onRegionChange as ReturnType<typeof fn>).mock.calls
       const lastCall = calls[calls.length - 1]
       expect(lastCall[0]).toBe('en-US')
     })
 
-    await step('Verify the select shows the selected value', async () => {
+    await step('Verify the select displays the selected value', async () => {
       await waitFor(() => {
         const selectInput = canvas.getByPlaceholderText('Select a region...')
         expect(selectInput).toHaveValue('United States')
-      })
-    })
-
-    await step('Test cancel button functionality', async () => {
-      const cancelButton = canvas.getByRole('button', { name: 'Close' })
-      await user.click(cancelButton)
-
-      await waitFor(() => {
-        expect(args.onCancel).toHaveBeenCalledTimes(1)
       })
     })
   },
