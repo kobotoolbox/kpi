@@ -248,16 +248,6 @@ export default function Reports(props: ReportsProps) {
       })
   }
 
-  function reportStyleListener(_assetUid: string, reportStyles: AssetResponseReportStyles) {
-    setState((currentState) => ({
-      ...currentState,
-      reportStyles: reportStyles,
-      showReportGraphSettings: false,
-      currentQuestionGraph: undefined,
-      groupBy: reportStyles.default?.groupDataBy || '',
-    }))
-  }
-
   function onSetStyleCompleted(asset: AssetResponse) {
     setState((currentState) => ({
       ...currentState,
@@ -267,36 +257,6 @@ export default function Reports(props: ReportsProps) {
       currentQuestionGraph: undefined,
       groupBy: asset.report_styles.default?.groupDataBy || '',
     }))
-  }
-
-  function reportCustomListener(_assetUid: string, reportCustom: { [crid: string]: CustomReportSettings }) {
-    const crid = state.currentCustomReport?.crid
-    let newGroupBy: string
-
-    if (crid && reportCustom[crid]) {
-      if (reportCustom[crid].reportStyle?.groupDataBy) {
-        newGroupBy = reportCustom[crid].reportStyle.groupDataBy
-      }
-
-      setState((currentState) => ({
-        ...currentState,
-        reportCustom: reportCustom,
-        showCustomReportModal: false,
-        showReportGraphSettings: false,
-        currentQuestionGraph: undefined,
-        groupBy: newGroupBy,
-      }))
-    } else {
-      setState((currentState) => ({
-        ...currentState,
-        reportCustom: reportCustom,
-        showCustomReportModal: false,
-        showReportGraphSettings: false,
-        currentQuestionGraph: undefined,
-        currentCustomReport: undefined,
-        groupBy: newGroupBy,
-      }))
-    }
   }
 
   function onSetCustomCompleted(asset: AssetResponse, crid: string) {

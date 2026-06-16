@@ -1,13 +1,11 @@
 import React from 'react'
-
 import bem from '#/bem'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { recordKeys } from '#/utils'
 import ReportViewItem from './reportViewItem.component'
 import type { ReportsState } from './reports'
-import { getReportRowTranslatedLabel } from './reports.utils'
-import type { ReportStyle, ReportsResponse } from './reportsConstants'
+import { getEffectiveRowReportStyle, getReportRowTranslatedLabel, populateSelectQuestionLabels } from './reports.utils'
+import type { ReportsResponse } from './reportsConstants'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void
@@ -16,18 +14,18 @@ interface ReportContentsProps {
   asset: AssetResponse
 }
 
+/**
+ * Renders report rows and applies row-level style/label preparation before
+ * delegating chart/table presentation to ReportViewItem.
+ */
 export default class ReportContents extends React.Component<ReportContentsProps> {
   shouldComponentUpdate(nextProps: ReportContentsProps) {
     // to improve UI performance, don't refresh report while a modal window is visible
-    if (
+    return !(
       nextProps.parentState.showReportGraphSettings ||
       nextProps.parentState.showCustomReportModal ||
       nextProps.parentState.currentQuestionGraph
-    ) {
-      return false
-    } else {
-      return true
-    }
+    )
   }
 
   render() {
@@ -52,83 +50,26 @@ export default class ReportContents extends React.Component<ReportContentsProps>
 
     const reportData = this.props.reportData
 
-    // TODO: the code below is very convoluted and hard to read/understand, even
-    // with all the types in place. Please consider rewriting it from scratch
+    // At this point we only orchestrate row preparation; complex transformations
+    // (style resolution and select label mapping) are delegated to utilities.
     for (let i = reportData.length - 1; i > -1; i--) {
       const rowName = reportData[i].name
       const rowType = reportData[i].row.type || null
-      let specifiedReportStyles: ReportStyle | undefined
 
-      if (customReport) {
-        if (customReport.specified?.[rowName]) {
-          specifiedReportStyles = customReport.specified[rowName]
-        }
-      } else {
-        specifiedReportStyles = defaultRS?.specified?.[rowName]
-      }
-
-      if (specifiedReportStyles && recordKeys(specifiedReportStyles).length) {
-        reportData[i].style = specifiedReportStyles
-      } else if (customReport?.reportStyle) {
-        reportData[i].style = customReport.reportStyle
-      } else if (defaultRS?.default) {
-        reportData[i].style = defaultRS.default
+      // Keep global/default values (like report_colors) unless the question
+      // override explicitly replaces them.
+      const effectiveReportStyle = getEffectiveRowReportStyle(rowName, customReport, defaultRS)
+      if (effectiveReportStyle) {
+        reportData[i].style = effectiveReportStyle
       }
 
       if (
         asset?.content?.choices &&
         (rowType === QUESTION_TYPES.select_one.id || rowType === QUESTION_TYPES.select_multiple.id)
       ) {
-        const question = asset.content?.survey?.find((z) => z.name === rowName || z.$autoname === rowName)
-        const resps = reportData[i].data.responses
-        let choice
-        if (resps) {
-          reportData[i].data.responseLabels = []
-          for (let j = resps.length - 1; j >= 0; j--) {
-            choice = asset.content.choices.find(
-              (o) => question && o.list_name === question.select_from_list_name && o.name === resps[j],
-            )
-            if (choice?.label?.[translationIndex]) {
-              reportData[i].data.responseLabels?.unshift(choice.label[translationIndex])
-            } else {
-              reportData[i].data.responseLabels?.unshift(resps[j])
-            }
-          }
-        } else {
-          const vals = reportData[i].data.values
-          if (vals?.[0]?.[1] && 'responses' in vals?.[0]?.[1] && vals?.[0]?.[1]?.responses) {
-            const respValues = vals[0][1].responses
-
-            const newLabels: Array<string | null> = []
-            const qGB = asset.content?.survey?.find((z) => z.name === groupBy || z.$autoname === groupBy)
-            respValues.forEach((r, ind) => {
-              choice = asset.content?.choices?.find(
-                (o) => qGB && o.list_name === qGB.select_from_list_name && o.label?.includes(r),
-              )
-              if (choice?.label?.[translationIndex]) {
-                newLabels[ind] = choice.label[translationIndex]
-              } else {
-                newLabels[ind] = r
-              }
-            })
-            reportData[i].data.responseLabels = newLabels
-
-            for (let vD = vals.length - 1; vD >= 0; vD--) {
-              choice = asset.content.choices.find(
-                (o) =>
-                  question &&
-                  o.list_name === question.select_from_list_name &&
-                  (o.name === String(vals[vD][0]) || o.$autoname === String(vals[vD][0])),
-              )
-
-              if (choice?.label?.[translationIndex]) {
-                vals[vD][2] = choice.label[translationIndex]
-              } else {
-                vals[vD][2] = vals[vD][0]
-              }
-            }
-          }
-        }
+        // Keep render focused on orchestration: utility handles the complex
+        // select-question label mapping logic and fallback behavior.
+        populateSelectQuestionLabels(reportData[i], asset, translationIndex, groupBy)
       }
     }
 

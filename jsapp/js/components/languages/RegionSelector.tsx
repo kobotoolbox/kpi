@@ -109,7 +109,7 @@ const RegionSelector = ({
       data={regionOptions}
       value={selectedRegion}
       onChange={handleRegionChange}
-      disabled={disabled}
+      disabled={disabled || isLoading}
       placeholder={t('Select a region...')}
       // Needed so the dropdown doesn't appear behind mantine modals
       comboboxProps={{ zIndex: KOBO_Z_INDEX.dropdown }}

@@ -23,6 +23,7 @@ from kpi.constants import API_NAMESPACES
 from kpi.permissions import AdvancedSubmissionPermission
 from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
+from kpi.views.v2.attachment_audio_duration import AttachmentAudioDurationViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
@@ -137,6 +138,13 @@ asset_routes.register(
     r'history',
     ProjectHistoryLogViewSet,
     basename='history',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
+    r'attachments/audio-duration',
+    AttachmentAudioDurationViewSet,
+    basename='asset-attachment-audio-duration',
     parents_query_lookups=['asset'],
 )
 

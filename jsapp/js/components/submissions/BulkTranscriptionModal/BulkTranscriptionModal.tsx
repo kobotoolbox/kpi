@@ -2,6 +2,7 @@ import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
 import {
@@ -11,6 +12,7 @@ import {
 import Alert from '#/components/common/alert'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
+import { notify } from '#/utils'
 import ButtonNew from '../../common/ButtonNew'
 import LanguageSelector from '../../languages/LanguageSelector'
 import RegionSelector from '../../languages/RegionSelector'
@@ -32,7 +34,30 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
-  const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate()
+  const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
+    mutation: {
+      onSuccess: () => {
+        // TODO: implement @mantine/notifications system, see DEV-2211
+        props.onRequestClose()
+        props.onSuccess()
+      },
+      onError: (error) => {
+        // This custom error handler overrides the default onErrorDefaultHandler,
+        // preventing the generic "400 Bad Request" notification from showing.
+        // Extract the specific error message from the parsed response
+        const serverError = error as ServerError
+        const errorResponse = serverError.parsedResponse as {
+          submission_uuids?: string[]
+        }
+
+        // Use the submission_uuids error message if available, otherwise show a generic fallback
+        const errorMessage =
+          errorResponse?.submission_uuids?.[0] || t('Failed to start transcription. Please try again.')
+
+        notify.error(errorMessage)
+      },
+    },
+  })
   const serviceCode = 'goog'
 
   const navigate = useNavigate()
@@ -62,30 +87,18 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const handleStartTranscription = () => {
     // We pass all of the submissions without filtering out the ones that have transcripts already. Currently the
     // backend skips the submissions that already have a transcript.
-    createBulkTranscription(
-      {
-        uidAsset: props.assetUid,
-        data: {
-          action_id: ActionIdEnum.automatic_google_transcription,
-          question_xpath: props.fieldId,
-          submission_uuids: props.selectedSubmissionUuids,
-          params: {
-            language: selectedLanguage!,
-            locale: selectedRegion || undefined,
-          },
+    createBulkTranscription({
+      uidAsset: props.assetUid,
+      data: {
+        action_id: ActionIdEnum.automatic_google_transcription,
+        question_xpath: props.fieldId,
+        submission_uuids: props.selectedSubmissionUuids,
+        params: {
+          language: selectedLanguage!,
+          locale: selectedRegion || undefined,
         },
       },
-      {
-        onSuccess: () => {
-          // TODO: implement @mantine/notifications system, see DEV-1412
-          props.onRequestClose()
-          props.onSuccess()
-        },
-        onError: () => {
-          // TODO: implement @mantine/notifications system, see DEV-1412
-        },
-      },
-    )
+    })
   }
 
   const handleNavigateToAddOn = () => {
