@@ -13,10 +13,12 @@ interface TextWithInternalLinkProps {
  * react-router Link component for internal navigation.
  *
  * Example:
+ * ```tsx
  * <TextWithInternalLink
  *   text={t('[Click here] to view details')}
  *   path="/account/settings"
  * />
+ * ```
  *
  * Output: "Click here to view details" where "Click here" is a Link to /account/settings
  */
