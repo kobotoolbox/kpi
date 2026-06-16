@@ -260,7 +260,6 @@ const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/ro
   created_by: {
     username: 'zefir',
   },
-  submission_uuids: Array.from({ length: 15 }, (_, i) => `uuid-${i}`),
 })
 const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/rootUuid'], 'es', {
   status: BulkActionResponseStatusEnum.pending,
@@ -268,7 +267,6 @@ const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/r
   created_by: {
     username: 'other-user',
   },
-  submission_uuids: Array.from({ length: 12 }, (_, i) => `uuid-other-${i}`), // >10 for immediate banner display
 })
 
 const meta: Meta<typeof DataTableWrapper> = {
