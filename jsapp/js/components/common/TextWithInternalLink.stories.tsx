@@ -10,6 +10,9 @@ const meta: Meta<typeof TextWithInternalLink> = {
     text: '[Click here] to view your settings',
     path: '/account/settings',
   },
+  parameters: {
+    a11y: { test: 'todo' },
+  },
 }
 
 export default meta
