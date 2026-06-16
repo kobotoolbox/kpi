@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import Alert from '#/components/common/alert'
 import TextWithInternalLink from '#/components/common/TextWithInternalLink'
+import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 import { ROUTES } from '#/router/routerConstants'
 
@@ -12,79 +12,60 @@ interface BulkProcessingBannerProps {
   hasActiveBulkActionsCreatedByCurrentUser: boolean
 }
 
-const BANNER_DISMISSAL_VALUE = 'dismissed'
-
 /**
  * Displays an informational banner when active bulk processing is running in
  * the table. Shows for all users, with an additional link to activity log
  * for users who created a bulk job themselves.
+ *
+ * Dismissal is tracked per job UID - when user dismisses, we store all current
+ * job UIDs. Banner re-appears when any new job (new UID) starts.
  */
 export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   const activeBulkActionsCount = props.activeBulkActions.length
   const storageKey = useSafeUsernameStorageKey(`kpiBulkProcessingBanner-${props.assetUid}`, props.currentUsername || '')
-  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
-  const [lastSeenBulkActionCount, setLastSeenBulkActionCount] = useState<number>(0)
+  const [dismissedUids, setDismissedUids] = useState<Set<string> | undefined>()
 
-  // Load dismissal state from session storage on mount.
+  // Load dismissed job UIDs from session storage on mount.
   // We hash the username before using it as a storage key to avoid leaking PII.
   useEffect(() => {
     if (!storageKey) {
       // Wait for the async username hash before reading dismissal state,
       // otherwise dismissed users can briefly see the banner flash.
-      setIsBannerDismissed(undefined)
+      setDismissedUids(undefined)
       return
     }
 
-    const bannerStatus = sessionStorage.getItem(storageKey)
-    const lastCountStr = sessionStorage.getItem(`${storageKey}-count`)
-    const lastCount = lastCountStr ? Number.parseInt(lastCountStr, 10) : 0
-
-    setLastSeenBulkActionCount(lastCount)
-    setIsBannerDismissed(bannerStatus === BANNER_DISMISSAL_VALUE)
+    const storedUids = sessionStorage.getItem(storageKey)
+    if (storedUids) {
+      try {
+        const parsed = JSON.parse(storedUids) as string[]
+        setDismissedUids(new Set(parsed))
+      } catch {
+        // Invalid JSON, start fresh
+        setDismissedUids(new Set())
+      }
+    } else {
+      setDismissedUids(new Set())
+    }
   }, [storageKey])
-
-  // When a new bulk action starts, re-show the banner even if it was dismissed before.
-  // We track the count in session storage so if the user dismisses "2 jobs running"
-  // and then a 3rd job starts, the banner appears again.
-  useEffect(() => {
-    if (!storageKey) {
-      return
-    }
-
-    // Wait for storage state to load before acting on count changes
-    // (prevents race condition where we think lastSeenBulkActionCount=0 is real when it's just initial state)
-    if (isBannerDismissed === undefined) {
-      return
-    }
-
-    // Reset count when all jobs complete so next job is treated as "new"
-    if (activeBulkActionsCount === 0 && lastSeenBulkActionCount > 0) {
-      sessionStorage.setItem(`${storageKey}-count`, '0')
-      setLastSeenBulkActionCount(0)
-      return
-    }
-
-    // Show banner when count increases (new job started)
-    if (activeBulkActionsCount > lastSeenBulkActionCount) {
-      setIsBannerDismissed(false)
-      sessionStorage.removeItem(storageKey)
-      sessionStorage.setItem(`${storageKey}-count`, String(activeBulkActionsCount))
-      setLastSeenBulkActionCount(activeBulkActionsCount)
-    }
-  }, [activeBulkActionsCount, lastSeenBulkActionCount, storageKey, isBannerDismissed])
 
   function handleCloseBanner() {
     if (!storageKey) {
       return
     }
-    sessionStorage.setItem(storageKey, BANNER_DISMISSAL_VALUE)
-    sessionStorage.setItem(`${storageKey}-count`, String(activeBulkActionsCount))
-    setIsBannerDismissed(true)
-    setLastSeenBulkActionCount(activeBulkActionsCount)
+    // Store all current active job UIDs as dismissed
+    const currentUids = props.activeBulkActions.map((action) => action.uid)
+    const newDismissed = new Set([...(dismissedUids || []), ...currentUids])
+    setDismissedUids(newDismissed)
+    sessionStorage.setItem(storageKey, JSON.stringify([...newDismissed]))
   }
 
+  // Check if any active job hasn't been dismissed
+  const hasUndismissedJobs =
+    dismissedUids !== undefined && props.activeBulkActions.some((action) => !dismissedUids.has(action.uid))
+
   // Guard early so parent can pass values safely without extra conditionals.
-  if (!props.currentUsername || activeBulkActionsCount < 1 || isBannerDismissed === undefined || isBannerDismissed) {
+  if (!props.currentUsername || activeBulkActionsCount < 1 || dismissedUids === undefined || !hasUndismissedJobs) {
     return null
   }
 
