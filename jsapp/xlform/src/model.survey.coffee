@@ -77,62 +77,50 @@ module.exports = do ->
           choiceList.__cascadedList = @choices.get(overlapping_choice_keys[0])
       return
 
-    # Inserts a row at the specified index in the survey
-    # This is called when cloning questions via the "Duplicate Question" button in the UI
-    # The row parameter should already be properly cloned via row.clone() which handles:
-    # - Generating unique $kuid
-    # - Creating unique choice lists with unique list_name
-    # - Adding the cloned choice list to the survey.choices collection
+    # Called when duplicating a question via the Duplicate button.
+    # The row should already be cloned (via row.clone()), which generates a unique
+    # $kuid and unique choice list. This just adds it to the survey.
     insert_row: (row, index) ->
-      # _isCloned flag is set by rank/score questions' ScoreRankMixin.clone() to preserve object references
-      # For regular select questions, this is false and we serialize to JSON instead
+      # Rank/score questions set _isCloned to preserve object references
       if row._isCloned
         @rows.add(row, at: index)
       else
-        # Serialize the cloned row to JSON and add it
-        # This JSON includes select_from_list_name with the unique list name from row.clone()
+        # Regular select questions: serialize to JSON (includes the unique list name)
         @rows.add(row.toJSON(), at: index)
       new_row = @rows.at(index)
       survey = @getSurvey()
 
-      # TODO: This block below appears to be legacy/redundant/unneeded code:
-      # - For select questions cloned via row.clone(), the choice list is already in survey.choices
-      # - The toJSON() above includes the correct select_from_list_name reference
-      # - Adding a nameless choice list here creates orphaned data
-      # However, removing this might break some edge case, so leaving it for now with this warning
+      # TODO: This looks redundant - row.clone() already added the list to survey.choices
+      # and toJSON() includes the correct list name. Leaving it in case some edge case
+      # depends on it, but it probably creates orphaned data.
       if rowlist = row.getList()
         survey.choices.add(options: rowlist.options.toJSON())
         new_row.get('type').set('list', rowlist)
 
-      # Ensure the question name is unique by deduplicating against existing questions
+      # Make sure the question name is unique (e.g. "select_one" -> "select_one_001")
       name_detail = new_row.get('name')
       return name_detail.set 'value', name_detail.deduplicate(survey)
 
-    # Ensures that when adding a select question from the Library, each instance gets
-    # its own independent choice list rather than sharing the same list_name
-    # This is called by insertSurvey() when dragging items from Library into Formbuilder
+    # Gives each library select question its own choice list.
+    # Without this, adding the same select from the library multiple times would
+    # make all copies share one list_name, so editing one changes all the others.
     _ensure_row_list_is_copied: (row)->
-      # Only process non-group rows (questions) that have choice lists (select_one/select_multiple)
+      # Only handle select_one/select_multiple questions (not groups)
       if !row.rows && rowlist = row.getList()
-        # Generate a unique list name using txtid() - same pattern as row.clone()
-        # This ensures each library item instance has independent choices
+        # Generate a unique list name (same as row.clone() does)
         uniqueListName = txtid()
-
-        # Create a new choice list with the unique name and copy of the options
+        # Copy the options into a new list with the unique name
         @choices.add(name: uniqueListName, options: rowlist.options.toJSON())
-
-        # Update the row's type to reference the new unique list name
-        # This breaks the connection to the original library item's list
+        # Point the row at the new list instead of the library one
         row.get('type').set('listName', uniqueListName)
       return
 
-    # Inserts questions/groups from Library into the form
-    # Called when dragging items from "Add from Library" panel in Formbuilder
-    # This handles both individual questions and groups (blocks) containing multiple questions
+    # Inserts library items (questions or groups) into the form.
+    # Called from surveyScope.addExternalItemAtPosition() after fetching the asset.
     insertSurvey: (survey, index=-1, targetGroupId)->
       index = @rows.length if index is -1
       for row, row_i in survey.rows.models
-        # Determine the target: either the root survey or a specific group
+        # Find the target (root survey or a specific group)
         target = @
         if targetGroupId
           foundGroup = @findRowByCid(targetGroupId, {includeGroups: true})
@@ -143,12 +131,10 @@ module.exports = do ->
 
         index_incr = index + row_i
 
-        # CASE 1: Inserting a group (block) from Library
-        # Groups can contain multiple questions, including select questions with choice lists
+        # Groups (blocks from library)
         if row.rows
           if row.forEachRow
-            # Process all questions within the group to ensure each select question
-            # gets a unique choice list
+            # Make sure nested select questions each get their own choice list
             row.forEachRow(
               (r) => @_ensure_row_list_is_copied(r),
               {includeGroups: true}
@@ -163,19 +149,17 @@ module.exports = do ->
             }
           )
 
-          # inserting a group (block from Library) doesn't trigger change event
-          # anywhere else, so we do it here manually
+          # Groups don't trigger change events automatically
           @trigger('change')
-        # CASE 2: Inserting a single question from Library
+        # Single questions
         else
-          # Ensure select questions get unique choice lists
+          # Give select questions unique choice lists
           @_ensure_row_list_is_copied(row)
 
-          # Ensure the question name is unique (e.g., "select_one" -> "select_one_001")
+          # Make the name unique if needed
           name_detail = row.get('name')
           name_detail.set 'value', name_detail.deduplicate(@)
 
-          # Add the question to the target (survey or group)
           target.rows.add(
             row.toJSON(),
             at: index_incr
