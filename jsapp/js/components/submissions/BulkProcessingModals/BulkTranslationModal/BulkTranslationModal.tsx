@@ -55,8 +55,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
 
         // Use the submission_uuids error message if available, otherwise show a generic fallback
 
-        const errorMessage =
-          errorResponse?.submission_uuids?.[0] || t('Failed to start translation. Please try again.')
+        const errorMessage = errorResponse?.submission_uuids?.[0] || t('Failed to start translation. Please try again.')
 
         notify.error(errorMessage)
       },
