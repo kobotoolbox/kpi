@@ -24,7 +24,10 @@ from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.storage import bulk_delete_files
-from ..exceptions import MissingValidationStatusPayloadError
+from ..exceptions import (
+    InvalidSubmissionIdsError,
+    MissingValidationStatusPayloadError,
+)
 from ..models.instance import Instance
 from ..models.xform import XForm
 from .database_query import build_db_queries
@@ -92,11 +95,15 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
     post_delete.disconnect(add_instance_to_request_post_delete, sender=Instance)
 
     try:
-        instance_ids = postgres_query.get('id__in')
-        if not instance_ids:
-            instance_ids = list(
-                Instance.objects.values_list('id', flat=True).filter(**postgres_query)
-            )
+        requested_ids = postgres_query.get('id__in')
+        instance_ids = list(
+            Instance.objects.filter(**postgres_query).values_list('id', flat=True)
+        )
+        # Validate all submissions passed for deletion belong to the project.
+        if requested_ids is not None and len(instance_ids) != len(set(requested_ids)):
+            # Otherwise, reject the whole batch without revealing whether those ids
+            # exist elsewhere.
+            raise InvalidSubmissionIdsError
 
         total_storage_bytes = 0
         files_to_delete = set()
@@ -236,6 +243,15 @@ def set_instance_validation_statuses(
 
     # Update Postgres & Mongo
     records_queryset = Instance.objects.filter(**postgres_query)
+
+    requested_ids = postgres_query.get('id__in')
+    if requested_ids is not None and (
+        records_queryset.count() != len(set(requested_ids))
+    ):
+        # At least one requested id does not belong to this XForm. Reject the
+        # whole batch without revealing whether those ids exist elsewhere.
+        raise InvalidSubmissionIdsError
+
     validation_status = new_validation_status.get('label', 'None')
     if get_current_request() is not None:
         get_current_request().instances = {

@@ -20,6 +20,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.exceptions import InvalidSubmissionIdsError
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
@@ -729,8 +730,14 @@ class DataViewSet(
             perm=PERM_VALIDATE_SUBMISSIONS
         )
         bulk_actions_validator.is_valid(raise_exception=True)
-        json_response = deployment.set_validation_statuses(
-            request.user, bulk_actions_validator.data)
+        try:
+            json_response = deployment.set_validation_statuses(
+                request.user, bulk_actions_validator.data)
+        except InvalidSubmissionIdsError:
+            return Response(
+                {'detail': t('One or more submission ids are invalid')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(**json_response)
 
@@ -771,6 +778,17 @@ class DataViewSet(
             deleted = deployment.delete_submissions(
                 bulk_actions_validator.data, request.user
             )
+        except InvalidSubmissionIdsError:
+            # Raised before any deletion is attempted, so none of the
+            # pre-recorded instances were actually deleted. Clear them to
+            # avoid phantom DELETE_SUBMISSION audit log entries, which the
+            # middleware would otherwise create even for this 400 response.
+            request._request.instances = {}
+            return {
+                'data': {'detail': t('One or more submission ids are invalid')},
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+            }
         except (MissingXFormException, InvalidXFormException):
             return {
                 'data': {'detail': 'Could not delete submissions'},
