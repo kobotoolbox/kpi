@@ -27,23 +27,23 @@ class ProjectViewsApiTestCase(BaseTestCase):
 
         # Create ProjectViews
         self.pv_country = ProjectView.objects.create(
-            name="Spain Projects",
-            countries="ESP",
+            name='Spain Projects',
+            countries='ESP',
             permissions=[PERM_VIEW_ASSET]
         )
         self.pv_country.users.add(self.regular_user)
-        
+
         self.pv_org = ProjectView.objects.create(
-            name="Org Projects",
-            countries="*",
+            name='Org Projects',
+            countries='*',
             permissions=[PERM_VIEW_ASSET]
         )
         self.pv_org.organizations.add(self.org)
         self.pv_org.users.add(self.regular_user)
-        
+
         self.pv_both = ProjectView.objects.create(
-            name="Spain Org Projects",
-            countries="ESP",
+            name='Spain Org Projects',
+            countries='ESP',
             permissions=[PERM_VIEW_ASSET]
         )
         self.pv_both.organizations.add(self.org)

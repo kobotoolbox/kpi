@@ -31,7 +31,10 @@ class ProjectView(models.Model):
         'organizations.Organization',
         related_name='project_views',
         blank=True,
-        help_text="Select specific organizations to filter by. Leave empty to include all organizations."
+        help_text=(
+            'Select specific organizations to filter by. '
+            'Leave empty to include all organizations.'
+        )
     )
     permissions = ChoiceArrayField(
         base_field=models.CharField(

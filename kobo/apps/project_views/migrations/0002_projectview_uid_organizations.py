@@ -16,7 +16,10 @@ class Migration(migrations.Migration):
             name='organizations',
             field=models.ManyToManyField(
                 blank=True,
-                help_text='Select specific organizations to filter by. Leave empty to include all organizations.',
+                help_text=(
+                    'Select specific organizations to filter by. '
+                    'Leave empty to include all organizations.'
+                ),
                 related_name='project_views',
                 to='organizations.Organization',
             ),
