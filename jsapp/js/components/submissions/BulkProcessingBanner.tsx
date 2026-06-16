@@ -51,6 +51,12 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
       return
     }
 
+    // Wait for storage state to load before acting on count changes
+    // (prevents race condition where we think lastSeenBulkActionCount=0 is real when it's just initial state)
+    if (isBannerDismissed === undefined) {
+      return
+    }
+
     // Reset count when all jobs complete so next job is treated as "new"
     if (activeBulkActionsCount === 0 && lastSeenBulkActionCount > 0) {
       sessionStorage.setItem(`${storageKey}-count`, '0')
@@ -65,7 +71,7 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
       sessionStorage.setItem(`${storageKey}-count`, String(activeBulkActionsCount))
       setLastSeenBulkActionCount(activeBulkActionsCount)
     }
-  }, [activeBulkActionsCount, lastSeenBulkActionCount, storageKey])
+  }, [activeBulkActionsCount, lastSeenBulkActionCount, storageKey, isBannerDismissed])
 
   function handleCloseBanner() {
     if (!storageKey) {
