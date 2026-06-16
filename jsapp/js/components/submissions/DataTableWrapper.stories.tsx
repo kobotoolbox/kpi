@@ -341,7 +341,7 @@ export const ProcessingColumnAndBanner: Story = {
         assetMock(processingAsset.uid, processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
-        organizationServiceUsageMock(), // No limits - no limit banner
+        organizationServiceUsageMock(), // No usage limits - no OverLimitBanner
         subscriptionMock(),
         bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
       ],
@@ -364,6 +364,7 @@ export const ProcessingAndLimitsBannersTogether: Story = {
         assetMock(processingAsset.uid, processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
+        // Shows both BulkProcessingBanner (active jobs) + OverLimitBanner (exceeded submission limit)
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
         subscriptionMock(),
         bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
