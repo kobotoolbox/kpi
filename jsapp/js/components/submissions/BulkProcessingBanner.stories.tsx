@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { withRouter } from 'storybook-addon-remix-react-router'
 import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import BulkProcessingBanner from './BulkProcessingBanner'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
@@ -13,7 +14,7 @@ const multipleJobs = [
 const meta: Meta<typeof BulkProcessingBanner> = {
   title: 'Components/BulkProcessingBanner',
   component: BulkProcessingBanner,
-  decorators: [withBulkProcessingBannerSessionReset],
+  decorators: [withRouter, withBulkProcessingBannerSessionReset],
   args: {
     assetUid: 'asset-uid-story',
     currentUsername: 'storybook-user',
