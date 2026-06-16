@@ -120,7 +120,6 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
                 __html: replaceBracketsWithLink(
                   t('[Click here] to monitor your progress or to cancel this job.'),
                   activityLogPath,
-                  false,
                 ),
               }}
             />
