@@ -715,8 +715,8 @@ CONSTANCE_ADDITIONAL_FIELDS = {
         'django.forms.fields.ChoiceField',
         {
             'choices': (
-                ('global', 'global'),
-                ('eu', 'eu'),
+                ('global', 'Global'),
+                ('eu', 'Europe'),
             ),
         },
     ],
