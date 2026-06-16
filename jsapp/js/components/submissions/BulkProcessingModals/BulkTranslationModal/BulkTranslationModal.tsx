@@ -17,8 +17,8 @@ import { notify } from '#/utils'
 import ButtonNew from '../../common/ButtonNew'
 import LanguageSelector from '../../languages/LanguageSelector'
 import type { LanguageCode } from '../../languages/languagesStore'
+import { BulkProcessingWarningModal } from '../BulkProcessingModals/BulkProcessingWarningModal'
 import { getSupplementalDetailsContent } from '../submissionUtils'
-import {BulkProcessingWarningModal} from '../BulkProcessingModals/BulkProcessingWarningModal'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
