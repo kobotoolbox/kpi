@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 import { ROUTES } from '#/router/routerConstants'
+import { replaceBracketsWithLink } from '#/textUtils'
 
 interface BulkProcessingBannerProps {
   assetUid: string
@@ -47,7 +47,19 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   // We track the count in session storage so if the user dismisses "2 jobs running"
   // and then a 3rd job starts, the banner appears again.
   useEffect(() => {
-    if (storageKey && activeBulkActionsCount > lastSeenBulkActionCount) {
+    if (!storageKey) {
+      return
+    }
+
+    // Reset count when all jobs complete so next job is treated as "new"
+    if (activeBulkActionsCount === 0 && lastSeenBulkActionCount > 0) {
+      sessionStorage.setItem(`${storageKey}-count`, '0')
+      setLastSeenBulkActionCount(0)
+      return
+    }
+
+    // Show banner when count increases (new job started)
+    if (activeBulkActionsCount > lastSeenBulkActionCount) {
       setIsBannerDismissed(false)
       sessionStorage.removeItem(storageKey)
       sessionStorage.setItem(`${storageKey}-count`, String(activeBulkActionsCount))
@@ -73,8 +85,8 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
   // Use separate messages for singular vs plural to keep translations simple.
   const message =
     activeBulkActionsCount === 1
-      ? t('Changes may occur in the data table due to ongoing bulk job')
-      : t('Changes may occur in the data table due to ongoing ##COUNT## bulk jobs').replace(
+      ? t('Changes may occur in the data table due to ongoing bulk job.')
+      : t('Changes may occur in the data table due to ongoing ##COUNT## bulk jobs.').replace(
           '##COUNT##',
           String(activeBulkActionsCount),
         )
@@ -97,7 +109,14 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
         {props.hasActiveBulkActionsCreatedByCurrentUser && (
           <>
             {' '}
-            <Link to={activityLogPath}>{t('Click here')}</Link> {t('to monitor your progress or to cancel this job')}.
+            <span
+              dangerouslySetInnerHTML={{
+                __html: replaceBracketsWithLink(
+                  t('[Click here] to monitor your progress or to cancel this job.'),
+                  activityLogPath,
+                ),
+              }}
+            />
           </>
         )}
       </Alert>
