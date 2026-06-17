@@ -553,6 +553,11 @@ class ProjectSettings extends React.Component {
           this.setState({ pendingTemplateCloneUid: null })
           this.resetApplyTemplateButton()
           notify.error(t('Failed to apply template.'))
+          // If auto-cloning from initialTemplateUid failed, close the modal
+          // since the user was sent here specifically for that template
+          if (this.props.initialTemplateUid === templateUid) {
+            pageState.hideModal()
+          }
         }
       })
   }
