@@ -6,6 +6,7 @@ import ReportViewItem from './reportViewItem.component'
 import type { ReportsState } from './reports'
 import { getEffectiveRowReportStyle, getReportRowTranslatedLabel, populateSelectQuestionLabels } from './reports.utils'
 import type { ReportsResponse } from './reportsConstants'
+import {userCan} from '../permissions/utils'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void
@@ -88,6 +89,7 @@ export default class ReportContents extends React.Component<ReportContentsProps>
                 {...rowContent}
                 label={label}
                 triggerQuestionSettings={this.props.triggerQuestionSettings.bind(this)}
+                isMenuDisabled={!userCan('change_asset', this.props.asset)}
               />
             </bem.ReportView__item>
           )
