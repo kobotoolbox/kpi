@@ -25,13 +25,6 @@ export function BulkDeleteBlockerModal({ assets, reason, onRequestClose }: BulkD
   const isSingle = assets.length === 1
   const assetsWithSubmissions = assets.filter((asset) => (asset.deployment__submission_count ?? 0) > 0)
 
-  // assetsWithSubmissions.push(...assetsWithSubmissions)
-  // assetsWithSubmissions.push(...assetsWithSubmissions)
-  // assetsWithSubmissions.push(...assetsWithSubmissions)
-  // assetsWithSubmissions.push(...assetsWithSubmissions)
-  // assetsWithSubmissions.push(...assetsWithSubmissions)
-  // assetsWithSubmissions.push(...assetsWithSubmissions)
-
   let body: string
   let alertText: string
 
