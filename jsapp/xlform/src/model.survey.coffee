@@ -107,12 +107,27 @@ module.exports = do ->
     _ensure_row_list_is_copied: (row)->
       # Only handle select_one/select_multiple questions (not groups)
       if !row.rows && rowlist = row.getList()
-        # Generate a unique list name (same as row.clone() does)
+        # Generate unique list name
         uniqueListName = txtid()
-        # Create a new choice list with unique name and add it to the survey
-        newList = @choices.add(name: uniqueListName, options: rowlist.options.toJSON())
-        # Update both the list name and the list object reference
-        # (both are needed - listName for serialization, list for in-session edits)
+
+        # Manually copy the options (can't use rowlist.clone() because it has a
+        # collection reference bug - it assigns the source collection to the cloned
+        # list, which would point to the library survey instead of this survey)
+        optionsData = []
+        for opt in rowlist.options.models
+          optData = opt.toJSON()
+          delete optData['$kuid']  # Strip $kuid so options are treated as new
+          optionsData.push(optData)
+
+        # Create new ChoiceList with unique name and copied options
+        newList = new $choices.ChoiceList({name: uniqueListName, options: optionsData})
+
+        # Add to this survey's choices collection
+        @choices.add(newList)
+
+        # Update both the list name and the list object reference.
+        # Both are needed: listName for serialization/XLSForm export,
+        # list for in-session edits (so the choice editor works correctly)
         row.get('type').set('listName', uniqueListName)
         row.get('type').set('list', newList)
       return
