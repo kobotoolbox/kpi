@@ -87,6 +87,7 @@ class ProjectSettings extends React.Component {
       isApplyTemplatePending: false,
       applyTemplateButton: t('Next'),
       chosenTemplateUid: this.props.initialTemplateUid || null,
+      pendingTemplateCloneUid: null,
       // upload files
       isUploadFilePending: false,
       // archive flow
@@ -105,14 +106,7 @@ class ProjectSettings extends React.Component {
     this.setInitialStep()
     // If an initial template is provided, apply it immediately
     if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
-      this.setState({
-        isApplyTemplatePending: true,
-        applyTemplateButton: t('Please wait…'),
-      })
-      actions.resources.cloneAsset({
-        uid: this.props.initialTemplateUid,
-        new_asset_type: 'survey',
-      })
+      this.cloneTemplateAsSurvey(this.props.initialTemplateUid)
     }
     when(
       () => sessionStore.isInitialLoadComplete,
@@ -124,8 +118,6 @@ class ProjectSettings extends React.Component {
       actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),
       actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
-      actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
-      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
       router.subscribe(this.onRouteChange.bind(this)),
@@ -181,10 +173,10 @@ class ProjectSettings extends React.Component {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
-        // If an initial template is provided, skip directly to template loading
-        // The actual PROJECT_DETAILS step will be shown after the template is cloned
+        // If an initial template is provided, keep currentStep null to show spinner
+        // until the clone completes, then onCloneAssetCompleted will show PROJECT_DETAILS
         if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
-          return this.displayStep(this.STEPS.CHOOSE_TEMPLATE)
+          return
         }
         return this.displayStep(this.STEPS.FORM_SOURCE)
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
@@ -476,29 +468,6 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onCloneAssetCompleted(asset) {
-    if (
-      (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
-        this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) &&
-      this.state.currentStep === this.STEPS.CHOOSE_TEMPLATE
-    ) {
-      this.setState({
-        formAsset: asset,
-        fields: this.getInitialFieldsFromAsset(asset),
-      })
-      this.resetApplyTemplateButton()
-      this.displayStep(this.STEPS.PROJECT_DETAILS)
-    }
-  }
-
-  onCloneAssetFailed() {
-    if (
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
-    ) {
-      this.resetApplyTemplateButton()
-    }
-  }
 
   getOrCreateFormAsset() {
     const assetPromise = new Promise((resolve, reject) => {
@@ -555,24 +524,56 @@ class ProjectSettings extends React.Component {
     })
   }
 
-  applyTemplate(evt) {
-    evt.preventDefault()
-
+  cloneTemplateAsSurvey(templateUid) {
     this.setState({
       isApplyTemplatePending: true,
       applyTemplateButton: t('Please wait…'),
+      pendingTemplateCloneUid: templateUid,
     })
 
+    // Use dataInterface directly with promise to avoid race with global listeners
+    dataInterface
+      .cloneAsset({
+        uid: templateUid,
+        new_asset_type: 'survey',
+      })
+      .done((asset) => {
+        // Only process if we're still waiting for this specific template
+        if (this.state.pendingTemplateCloneUid === templateUid) {
+          this.setState({
+            formAsset: asset,
+            fields: this.getInitialFieldsFromAsset(asset),
+            pendingTemplateCloneUid: null,
+          })
+          this.resetApplyTemplateButton()
+          this.displayStep(this.STEPS.PROJECT_DETAILS)
+        }
+      })
+      .fail(() => {
+        if (this.state.pendingTemplateCloneUid === templateUid) {
+          this.setState({ pendingTemplateCloneUid: null })
+          this.resetApplyTemplateButton()
+          notify.error(t('Failed to apply template.'))
+        }
+      })
+  }
+
+  applyTemplate(evt) {
+    evt.preventDefault()
+
+    const templateUid = this.state.chosenTemplateUid
+
     if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      this.setState({
+        isApplyTemplatePending: true,
+        applyTemplateButton: t('Please wait…'),
+      })
       actions.resources.updateAsset(this.state.formAsset.uid, {
-        clone_from: this.state.chosenTemplateUid,
+        clone_from: templateUid,
         name: this.state.formAsset.name,
       })
     } else {
-      actions.resources.cloneAsset({
-        uid: this.state.chosenTemplateUid,
-        new_asset_type: 'survey',
-      })
+      this.cloneTemplateAsSurvey(templateUid)
     }
   }
 
