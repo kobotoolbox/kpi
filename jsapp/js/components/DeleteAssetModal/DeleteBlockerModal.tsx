@@ -30,12 +30,12 @@ export function DeleteBlockerModal({ assets, reason, onRequestClose }: DeleteBlo
           'Projects with data cannot be deleted as part of a team. Please make sure none of the projects selected contain any submissions.',
         )
   } else {
-    body = t(
-      'Team projects with submissions can only be deleted by the Team owner. Only empty projects you created can be deleted.',
-    )
-    alertText = t(
-      'Please make sure you can delete all the projects selected. Some may have been created by other members or contain data.',
-    )
+    body = isSingle
+      ? t('This project can only be deleted by its owner or a team administrator.')
+      : t('Some of the selected projects can only be deleted by their owner or a team administrator.')
+    alertText = isSingle
+      ? t('Only the project owner or a team administrator can delete this project.')
+      : t('Make sure you are the owner of all selected projects, or ask a team administrator to delete them.')
   }
 
   const navigateToProject = (asset: AssetResponse | ProjectViewAsset) => {
