@@ -41,12 +41,10 @@ function getDeleteBlockerReason(
     ) {
       return 'permissions'
     }
-    return undefined
   }
 
-  if (!assets.every((asset) => userCan('delete_asset', asset))) {
-    return 'permissions'
-  }
+  // Non-MMO users: button is disabled unless they can delete all assets,
+  // so no blocker is needed — return undefined and open the confirmation modal.
   return undefined
 }
 

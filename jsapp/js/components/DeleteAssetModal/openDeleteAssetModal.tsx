@@ -36,12 +36,10 @@ function getDeleteBlockerReason(asset: AssetResponse | ProjectViewAsset): 'submi
     if (!asset.created_by || asset.created_by !== currentUsername || !userCan('manage_asset', asset)) {
       return 'permissions'
     }
-    return undefined
   }
 
-  if (!userCan('delete_asset', asset)) {
-    return 'permissions'
-  }
+  // Non-MMO users: the delete button is disabled unless they have delete_asset,
+  // so no blocker is needed — return undefined and open the confirmation modal.
   return undefined
 }
 

@@ -23,11 +23,12 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const isMmoMember = organization.is_mmo && organization.request_user_role === MemberRoleEnum.member
 
   // Button is enabled for anyone who may see either the confirm or blocker modal.
+  // Non-MMO: all selected assets must be deletable
   const canOpenDeleteModal =
     isAdmin ||
     (isMmoMember
       ? props.assets.every((asset) => userCan('manage_asset', asset))
-      : props.assets.some((asset) => userCan('delete_asset', asset)))
+      : props.assets.every((asset) => userCan('delete_asset', asset)))
 
   const tooltipForDelete = canOpenDeleteModal
     ? t('Delete ##count## projects').replace('##count##', String(props.assets.length))
