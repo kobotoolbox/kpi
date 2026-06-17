@@ -4,13 +4,14 @@ from collections import defaultdict
 from celery.signals import task_success
 from constance.signals import config_updated
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
-from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.signals import user_logged_in, user_login_failed
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django_userforeignkey.request import get_current_request
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMITTED_BY
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_PARTIAL_SUBMISSIONS
 from kpi.models import Asset, ImportTask
@@ -38,6 +39,17 @@ def create_access_log(sender, user, **kwargs):
         AccessLog.create_from_request(request, user)
     else:
         AccessLog.create_from_request(request)
+
+
+@receiver(user_login_failed)
+def create_failed_access_log(sender, credentials, request, **kwargs):
+    username = credentials.get('username')
+    try:
+        user = User.objects.get(username=username) if username else None
+    except User.DoesNotExist:
+        user = None
+
+    AccessLog.create_failed_from_request(request, credentials, user)
 
 
 # Project History Log receivers
