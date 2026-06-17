@@ -77,6 +77,21 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
+    def test_audit_log_created_on_failed_login(self):
+        count = AuditLog.objects.count()
+        self.assertEqual(count, 0)
+        data = {
+            'login': 'user',
+            'password': 'wrongpassword',
+        }
+        self.client.post(
+            reverse('kobo_login'), data=data, follow=True
+        )
+        audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
+        self.assertIsNotNone(audit_log)
+        self.assertEqual(audit_log.user.id, self.user.id)
+        self.assertEqual(audit_log.metadata.get('attempted_username'), 'user')
+
     def test_login_with_email_verification(self):
         user = AccessLogsSignalsTestCase.user
         data = {
