@@ -6,7 +6,6 @@ import {
   getOrganizationsRetrieveQueryKey,
 } from '#/api/react-query/user-team-organization-usage'
 import { DeleteBlockerModal } from '#/components/DeleteAssetModal/DeleteBlockerModal'
-import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { generateUuid } from '#/utils'
@@ -31,15 +30,15 @@ function getDeleteBlockerReason(
   const currentUsername = account.username
 
   if (isMmoMember) {
+    // Check permissions first: show the most fundamental blocker immediately
+    // rather than sending the user on a wasted data-deletion errand.
+    // Note: manage_asset is already enforced by the button gate in projectBulkActions,
+    // so the remaining condition here is whether the current user created all selected projects.
+    if (assets.some((asset) => !asset.created_by || asset.created_by !== currentUsername)) {
+      return 'permissions'
+    }
     if (assets.some((asset) => (asset.deployment__submission_count ?? 0) > 0)) {
       return 'submissions'
-    }
-    if (
-      assets.some(
-        (asset) => !asset.created_by || asset.created_by !== currentUsername || !userCan('manage_asset', asset),
-      )
-    ) {
-      return 'permissions'
     }
   }
 

@@ -5,7 +5,6 @@ import {
   type OrganizationsRetrieveQueryResult,
   getOrganizationsRetrieveQueryKey,
 } from '#/api/react-query/user-team-organization-usage'
-import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import sessionStore from '#/stores/session'
@@ -30,11 +29,15 @@ function getDeleteBlockerReason(asset: AssetResponse | ProjectViewAsset): 'submi
   const currentUsername = account.username
 
   if (isMmoMember) {
+    // Check permissions first: show the most fundamental blocker immediately
+    // rather than sending the user on a wasted data-deletion errand.
+    // Note: manage_asset is already enforced by the button gate in projectQuickActions,
+    // so the remaining condition here is whether the current user is the project creator.
+    if (!asset.created_by || asset.created_by !== currentUsername) {
+      return 'permissions'
+    }
     if ((asset.deployment__submission_count ?? 0) > 0) {
       return 'submissions'
-    }
-    if (!asset.created_by || asset.created_by !== currentUsername || !userCan('manage_asset', asset)) {
-      return 'permissions'
     }
   }
 
