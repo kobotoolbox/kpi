@@ -40,9 +40,10 @@ const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-
 /**
  * This is used for multiple different purposes:
  *
- * 1. When creating new project
- * 2. When replacing project with new one
- * 3. When editing project in /settings
+ * 1. When creating new project from scratch
+ * 2. When creating new project from template
+ * 3. When replacing project with new one
+ * 4. When editing project in /settings
  *
  * Identifying the purpose is done by checking `context` and `formAsset`.
  *
@@ -85,7 +86,7 @@ class ProjectSettings extends React.Component {
       // template
       isApplyTemplatePending: false,
       applyTemplateButton: t('Next'),
-      chosenTemplateUid: null,
+      chosenTemplateUid: this.props.initialTemplateUid || null,
       // upload files
       isUploadFilePending: false,
       // archive flow
@@ -102,6 +103,17 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep()
+    // If an initial template is provided, apply it immediately
+    if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
+      this.setState({
+        isApplyTemplatePending: true,
+        applyTemplateButton: t('Please wait…'),
+      })
+      actions.resources.cloneAsset({
+        uid: this.props.initialTemplateUid,
+        new_asset_type: 'survey',
+      })
+    }
     when(
       () => sessionStore.isInitialLoadComplete,
       () => {
@@ -169,6 +181,11 @@ class ProjectSettings extends React.Component {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
+        // If an initial template is provided, skip directly to template loading
+        // The actual PROJECT_DETAILS step will be shown after the template is cloned
+        if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
+          return this.displayStep(this.STEPS.CHOOSE_TEMPLATE)
+        }
         return this.displayStep(this.STEPS.FORM_SOURCE)
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
         return this.displayStep(this.STEPS.PROJECT_DETAILS)

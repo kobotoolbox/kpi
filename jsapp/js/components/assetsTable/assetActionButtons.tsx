@@ -178,7 +178,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   cloneAsSurvey() {
-    cloneAssetAsSurvey(this.props.asset.uid, assetUtils.getAssetDisplayName(this.props.asset).final)
+    cloneAssetAsSurvey(this.props.asset.uid)
   }
 
   cloneAsTemplate() {
