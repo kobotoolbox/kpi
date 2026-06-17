@@ -168,20 +168,25 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
         # remove any attempt to set fields that should
         # always be the same on an access log
         self.remove_common_fields_and_warn('access', kwargs)
-        action = kwargs.pop('action', None)
-        if action is not None:
+        action = kwargs.pop('action', AuditAction.AUTH)
+        if action not in [AuditAction.AUTH, AuditAction.AUTH_FAILED]:
             logging.warning(f'Ignoring attempt to set {action=} on access log')
-        user = kwargs.pop('user')
+            action = AuditAction.AUTH
+        user = kwargs.pop('user', None)
+
+        object_id = user.id if user else None
+        user_uid = getattr(getattr(user, 'extra_details', None), 'uid', '')
+
         return super().create(
             # set the fields that are always the same for access logs,
             # pass along the rest to the original constructor
             app_label=User._meta.app_label,
             model_name=User._meta.model_name,
-            action=AuditAction.AUTH,
+            action=action,
             log_type=AuditType.ACCESS,
             user=user,
-            object_id=user.id,
-            user_uid=user.extra_details.uid,
+            object_id=object_id,
+            user_uid=user_uid,
             **kwargs,
         )
 
@@ -233,7 +238,7 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
                     Cast('object_id_legacy', output_field=models.CharField()),
                 ),
             )
-            .values('user__username', 'effective_object_id', 'user_uid', 'group_key')
+            .values('user__username', 'effective_object_id', 'user_uid', 'group_key', 'action')
             .annotate(
                 # include the number of submissions per group
                 # will be '1' for everything else
@@ -331,6 +336,42 @@ class AccessLog(AuditLog):
         if extra_metadata is not None:
             metadata.update(extra_metadata)
         return AccessLog.objects.create(user=logged_in_user, metadata=metadata)
+
+    @staticmethod
+    def create_failed_from_request(
+        request,
+        credentials: dict,
+        user=None,
+        authentication_type: str = None,
+    ):
+        """
+        Create an access log for a failed login request
+        """
+        username = credentials.get('username')
+        
+        auth_type = authentication_type
+        if not auth_type:
+            auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
+
+        if request:
+            ip = get_client_ip(request)
+            source = get_human_readable_client_user_agent(request)
+        else:
+            ip = None
+            source = None
+        
+        metadata = {
+            'ip_address': ip,
+            'source': source,
+            'auth_type': auth_type,
+            'attempted_username': username,
+        }
+        
+        return AccessLog.objects.create(
+            user=user if user and user.is_authenticated else None,
+            metadata=metadata,
+            action=AuditAction.AUTH_FAILED
+        )
 
 
 class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
