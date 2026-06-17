@@ -53,7 +53,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
         // Use the submission_uuids error message if available, otherwise show a generic fallback
         const errorMessage =
-          errorResponse?.submission_uuids?.[0] || t('Failed to start transcription. Please try again.')
+          errorResponse?.submission_uuids?.join(', ') || t('Failed to start transcription. Please try again.')
 
         notify.error(errorMessage)
       },
