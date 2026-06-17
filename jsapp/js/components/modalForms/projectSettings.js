@@ -468,7 +468,6 @@ class ProjectSettings extends React.Component {
     }
   }
 
-
   getOrCreateFormAsset() {
     const assetPromise = new Promise((resolve, reject) => {
       if (this.state.formAsset) {
