@@ -2,11 +2,11 @@ import React from 'react'
 import bem from '#/bem'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { userCan } from '../permissions/utils'
 import ReportViewItem from './reportViewItem.component'
 import type { ReportsState } from './reports'
 import { getEffectiveRowReportStyle, getReportRowTranslatedLabel, populateSelectQuestionLabels } from './reports.utils'
 import type { ReportsResponse } from './reportsConstants'
-import {userCan} from '../permissions/utils'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void
