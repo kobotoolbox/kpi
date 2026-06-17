@@ -10,8 +10,6 @@ import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from '#/dataInterface'
 import customViewStore from '#/projects/customViewStore'
-import sessionStore from '#/stores/session'
-import { openBulkDeleteModal } from './bulkActions/openBulkDeleteModal'
 import styles from './projectActions.module.scss'
 
 interface ProjectQuickActionsProps {
@@ -27,8 +25,6 @@ interface ProjectQuickActionsProps {
  */
 const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   const [organization] = useOrganizationAssumed()
-  const currentUsername = sessionStore.currentAccount.username
-
   // The `userCan` method requires `permissions` property to be present in the
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
   // that property, and it is fine, as we don't expect Project View to have
@@ -39,28 +35,13 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   const isAdmin = organization.request_user_role === MemberRoleEnum.admin
   const isMmoMember = organization.is_mmo && organization.request_user_role === MemberRoleEnum.member
 
-  const canMmoMemberDelete =
-    isMmoMember &&
-    userCan('manage_asset', asset) &&
-    !!asset.created_by &&
-    asset.created_by === currentUsername &&
-    (asset.deployment__submission_count ?? 0) === 0
-
-  const isDeletingPossible = userCan('delete_asset', asset) || isAdmin || canMmoMemberDelete
-
-  // MMO members with manage_asset can open the flow even if they can't delete,
-  // so they see the appropriate blocker modal.
-  const canOpenDeleteFlow = isDeletingPossible || (isMmoMember && userCan('manage_asset', asset))
+  // Button is enabled for anyone who may see either the confirm or blocker modal.
+  const canOpenDeleteFlow = userCan('delete_asset', asset) || isAdmin || (isMmoMember && userCan('manage_asset', asset))
 
   function handleDelete() {
-    if (isDeletingPossible) {
-      openDeleteAssetModal(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
-        customViewStore.handleAssetsDeleted([deletedAssetUid])
-      })
-    } else {
-      const blockerReason = (asset.deployment__submission_count ?? 0) > 0 ? 'submissions' : 'permissions'
-      openBulkDeleteModal([asset], { blockerReason })
-    }
+    openDeleteAssetModal(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
+      customViewStore.handleAssetsDeleted([deletedAssetUid])
+    })
   }
 
   return (
