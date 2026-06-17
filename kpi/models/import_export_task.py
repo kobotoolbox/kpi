@@ -44,10 +44,7 @@ from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
 from kobo.apps.subsequences.exceptions import SupplementMigrationInProgress
 from kobo.apps.subsequences.models import SubmissionSupplement
-from kobo.apps.subsequences.utils.supplement_data import (
-    get_analysis_form_json,
-    stream_with_supplements,
-)
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -917,7 +914,12 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments', '_supplementalDetails']
+        additional_fields = [
+            '_attachments',
+            '_supplementalDetails',
+            '_uuid',
+            'meta/rootUuid',
+        ]
 
         field_groups = set()
         for field in fields:
@@ -1071,12 +1073,6 @@ class SubmissionExportTaskBase(ImportExportTask):
         # Include the group name in `fields` for Mongo to correctly filter
         # for repeat groups
         fields = self._get_fields_and_groups(fields)
-        submission_stream = source.deployment.get_submissions(
-            user=self.user,
-            fields=fields,
-            submission_ids=submission_ids,
-            query=query,
-        )
 
         if source.has_advanced_features:
             # Use a cheap EXISTS query before the expensive full prefetch in
@@ -1091,10 +1087,14 @@ class SubmissionExportTaskBase(ImportExportTask):
                 raise SupplementMigrationInProgress(
                     'Supplement data migration in progress, please retry later.'
                 )
-            submission_stream = stream_with_supplements(
-                source, submission_stream, for_output=True
-            )
 
+        submission_stream = source.deployment.get_submissions(
+            user=self.user,
+            fields=fields,
+            submission_ids=submission_ids,
+            query=query,
+            for_output=True,
+        )
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
