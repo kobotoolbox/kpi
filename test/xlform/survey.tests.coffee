@@ -315,3 +315,42 @@ do ->
       firstList = firstRow.getList()
       secondList = secondRow.getList()
       expect(firstList).not.toBe(secondList)
+
+    it 'handles groups/blocks with nested select questions', () ->
+      # Create a library block containing a select question
+      # This simulates a more complex block from the library
+      blockContent = {
+        survey: [
+          {type: 'begin_group', name: 'my_group', label: 'My Group'},
+          {type: 'select_one colors', name: 'color', label: 'Pick a color'},
+          {type: 'text', name: 'other_text', label: 'Some text'},
+          {type: 'end_group'}
+        ],
+        choices: [
+          {list_name: 'colors', name: 'red', label: 'Red'},
+          {list_name: 'colors', name: 'blue', label: 'Blue'}
+        ]
+      }
+
+      libraryBlock = $model.Survey.loadDict(blockContent)
+
+      # Insert the block - it should have 1 group
+      @targetSurvey.insertSurvey(libraryBlock, 0)
+      expect(@targetSurvey.rows.length).toBe(1)
+
+      group = @targetSurvey.rows.at(0)
+      expect(group.constructor.key).toBe('group')
+
+      # The group should have 2 nested rows (select + text)
+      expect(group.rows.length).toBe(2)
+
+      # The first row should be the select question
+      selectRow = group.rows.at(0)
+      expect(selectRow.get('type').get('typeId')).toBe('select_one')
+
+      # It should have a choice list with options
+      choiceList = selectRow.getList()
+      expect(choiceList).toBeDefined()
+      expect(choiceList.options.length).toBe(2)
+      expect(choiceList.options.at(0).get('name')).toBe('red')
+      expect(choiceList.options.at(1).get('name')).toBe('blue')
