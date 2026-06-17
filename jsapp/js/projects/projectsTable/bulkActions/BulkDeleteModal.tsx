@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { Anchor, Group, List, Stack, Text } from '@mantine/core'
+import { Anchor, Group, List, ScrollArea, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { fetchPost, handleApiFail } from '#/api'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -8,6 +8,7 @@ import Alert from '#/components/common/alert'
 import Checkbox from '#/components/common/checkbox'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import customViewStore from '#/projects/customViewStore'
+import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { invalidateSidebarQueries } from '#/sidebar/SidebarFormsList'
 import { useSession } from '#/stores/useSession'
@@ -23,6 +24,13 @@ export interface BulkDeleteBlockerModalProps {
 export function BulkDeleteBlockerModal({ assets, reason, onRequestClose }: BulkDeleteBlockerModalProps) {
   const isSingle = assets.length === 1
   const assetsWithSubmissions = assets.filter((asset) => (asset.deployment__submission_count ?? 0) > 0)
+
+  // assetsWithSubmissions.push(...assetsWithSubmissions)
+  // assetsWithSubmissions.push(...assetsWithSubmissions)
+  // assetsWithSubmissions.push(...assetsWithSubmissions)
+  // assetsWithSubmissions.push(...assetsWithSubmissions)
+  // assetsWithSubmissions.push(...assetsWithSubmissions)
+  // assetsWithSubmissions.push(...assetsWithSubmissions)
 
   let body: string
   let alertText: string
@@ -47,21 +55,38 @@ export function BulkDeleteBlockerModal({ assets, reason, onRequestClose }: BulkD
     )
   }
 
+  const navigateToProject = (asset: AssetResponse | ProjectViewAsset) => {
+    onRequestClose()
+    router!.navigate(ROUTES.FORM_LANDING.replace(':uid', asset.uid))
+  }
+
   return (
-    <Stack gap='md'>
+    <Stack gap='sm'>
       <Text size='sm'>{body}</Text>
 
       {reason === 'submissions' && !isSingle && assetsWithSubmissions.length > 0 && (
-        <List size='sm'>
-          {assetsWithSubmissions.map((asset) => (
-            <List.Item key={asset.uid}>
-              <Anchor href={ROUTES.FORM_LANDING.replace(':uid', asset.uid)}>{asset.name}</Anchor>
-            </List.Item>
-          ))}
-        </List>
+        <ScrollArea.Autosize mah={150} type='auto' offsetScrollbars>
+          <List
+            type='unordered'
+            pl='md'
+            icon={
+              <Text span aria-hidden size='sm' c='blue.4'>
+                •
+              </Text>
+            }
+          >
+            {assetsWithSubmissions.map((asset) => (
+              <List.Item key={asset.uid}>
+                <Anchor c='blue.4' td='underline' onClick={() => navigateToProject(asset)}>
+                  {asset.name}
+                </Anchor>
+              </List.Item>
+            ))}
+          </List>
+        </ScrollArea.Autosize>
       )}
 
-      <Alert type='info' iconName='information'>
+      <Alert m={0} type='info' iconName='information'>
         {alertText}
       </Alert>
 
