@@ -37,9 +37,7 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
 
   // Button is enabled for anyone who may see either the confirm or blocker modal.
   // MMO members are checked for manage_asset (their deletion gate); non-MMO for delete_asset.
-  const canOpenDeleteFlow =
-    isAdmin ||
-    (isMmoMember ? userCan('manage_asset', asset) : userCan('delete_asset', asset))
+  const canOpenDeleteFlow = isAdmin || (isMmoMember ? userCan('manage_asset', asset) : userCan('delete_asset', asset))
 
   function handleDelete() {
     openDeleteAssetModal(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
