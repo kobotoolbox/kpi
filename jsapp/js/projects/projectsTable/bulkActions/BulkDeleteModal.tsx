@@ -42,6 +42,9 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
 
     fetchPost<AssetsBulkResponse>('/api/v2/assets/bulk/', { payload: payload })
       .then((response) => {
+        // Ensure sidebar will refresh after bulk deletion is done.
+        // In future we will use react-query for bulk deletion and then this invalidation will be done elsewhere.
+        invalidateSidebarQueries(orgUid)
         onRequestClose()
         customViewStore.handleAssetsDeleted(assetUids)
         notify(response.detail)
@@ -50,11 +53,6 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
         handleApiFail(error)
         setIsConfirmDeletePending(false)
         modals.updateModal({ modalId, closeOnEscape: true, closeOnClickOutside: true })
-      })
-      .finally(() => {
-        // Ensure sidebar will refresh after bulk deletion is done.
-        // In future we will use react-query for bulk deletion and then this invalidation will be done elsewhere.
-        invalidateSidebarQueries(orgUid)
       })
   }
 
