@@ -14821,7 +14821,10 @@ components:
           type: string
         count:
           type: integer
+        action:
+          type: string
       required:
+      - action
       - count
       - date_created
       - metadata
@@ -22166,7 +22169,10 @@ components:
           type: string
         count:
           type: integer
+        action:
+          type: string
       required:
+      - action
       - count
       - date_created
       - metadata
