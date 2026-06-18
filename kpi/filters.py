@@ -341,7 +341,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         # but we should only search with one parent uid
         try:
             parent_obj = queryset.get(uid=parent_uids[0])
-        except ObjectDoesNotExist:
+        except (ObjectDoesNotExist, Asset.MultipleObjectsReturned):
             return queryset
 
         if not isinstance(parent_obj, Asset):
