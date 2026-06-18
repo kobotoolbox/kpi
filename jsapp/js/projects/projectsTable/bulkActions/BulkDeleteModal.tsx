@@ -10,7 +10,6 @@ import { invalidateSidebarQueries } from '#/sidebar/SidebarFormsList'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
 
-// Confirm-delete modal
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive'
 interface AssetsBulkResponse {
   detail: string

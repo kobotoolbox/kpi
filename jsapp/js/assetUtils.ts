@@ -5,6 +5,13 @@
 
 import React from 'react'
 import { isRtlLang } from 'rtl-detect'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { queryClient } from '#/api/queryClient'
+import {
+  type OrganizationsRetrieveQueryResult,
+  getOrganizationsRetrieveQueryKey,
+} from '#/api/react-query/user-team-organization-usage'
+import { DeleteBlockerReason } from '#/components/DeleteAssetModal/DeleteBlockerModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
@@ -723,6 +730,45 @@ export function getVirtualSupplementalFieldsForBulkActions(
   return result
 }
 
+type CanDeleteResult = { canDelete: true } | { canDelete: false; reason: DeleteBlockerReason }
+
+/**
+ * Checks whether the current user can delete the given assets.
+ * Returns `{ canDelete: true }` when deletion is allowed, or
+ * `{ canDelete: false; reason }` describing why it is blocked.
+ */
+export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): CanDeleteResult {
+  const account = sessionStore.currentAccount
+  const orgUid = 'organization' in account ? account.organization?.uid : undefined
+  const orgResponse = orgUid
+    ? queryClient.getQueryData<OrganizationsRetrieveQueryResult>(getOrganizationsRetrieveQueryKey(orgUid))
+    : undefined
+  const org = orgResponse?.status === 200 ? orgResponse.data : undefined
+
+  const isAdmin = org?.request_user_role === MemberRoleEnum.admin
+  if (isAdmin) {
+    return { canDelete: true }
+  }
+
+  const isMmoMember = org?.is_mmo && org?.request_user_role === MemberRoleEnum.member
+  const currentUsername = account.username
+
+  if (isMmoMember) {
+    // Check permissions first: show the most fundamental blocker immediately
+    // rather than sending the user on a wasted data-deletion errand.
+    if (assets.some((asset) => !asset.created_by || asset.created_by !== currentUsername)) {
+      return { canDelete: false, reason: DeleteBlockerReason.permissions }
+    }
+    if (assets.some((asset) => (asset.deployment__submission_count ?? 0) > 0)) {
+      return { canDelete: false, reason: DeleteBlockerReason.submissions }
+    }
+  }
+
+  // Non-MMO users: the delete button is disabled unless they have delete_asset,
+  // so no blocker is needed.
+  return { canDelete: true }
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -746,4 +792,5 @@ export default {
   isSelfOwned,
   renderQuestionTypeIcon,
   removeInvalidChars,
+  userCanDeleteAssets,
 }
