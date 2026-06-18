@@ -83,8 +83,16 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     manageAssetSettings(this.props.asset)
   }
 
-  editLanguages() {
-    manageAssetLanguages(this.props.asset)
+  async editLanguages() {
+    // Fetch full asset with content before opening modal
+    // (list endpoints don't include content for performance)
+    const { assetsRetrieve } = await import('#/api/react-query/manage-projects-and-library-content')
+    const response = await assetsRetrieve(this.props.asset.uid)
+    if (response.status === 200) {
+      // TODO: remove casting when parent component starts operating on
+      // `Asset` (orval) rather than `AssetResponse` (legacy)
+      manageAssetLanguages(response.data as unknown as AssetResponse)
+    }
   }
 
   share() {
