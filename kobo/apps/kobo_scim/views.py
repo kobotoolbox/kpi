@@ -748,8 +748,6 @@ class ScimSchemasView(APIView):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
             'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
-            'totalResults': 2,
-            'itemsPerPage': 2,
             'startIndex': 1,
             'Resources': [
                 {

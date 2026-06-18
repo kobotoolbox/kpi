@@ -181,11 +181,12 @@ def get_scim_extension_schemas():
             continue
 
         if urn not in schemas:
+            urn_name = urn.rsplit(':', 1)[-1] if ':' in urn else 'User'
             schemas[urn] = {
                 'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
                 'id': urn,
-                'name': 'User Extension',
-                'description': 'Custom user attributes mapped from Kobo USER_METADATA_FIELDS',
+                'name': f'{urn_name} Extension',
+                'description': f'Custom {urn_name} attributes mapped from Kobo USER_METADATA_FIELDS',
                 'attributes': [],
             }
 
