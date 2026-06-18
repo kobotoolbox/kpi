@@ -26,9 +26,10 @@
   flex-direction: row;
   align-items: center;
 
-  .popover-menu .popover-menu__toggle {
-    // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
-    height: auto;
+  .table-bulk-status-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 }
 

@@ -6,10 +6,10 @@ import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
+import Menu from '#/components/common/Menu'
 import type { LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
-import PopoverMenu from '#/popoverMenu'
 import { isAnyRouteBlockerActive } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { currentLang } from '#/utils'
@@ -78,68 +78,69 @@ export default function AccountMenu() {
 
   return (
     <bem.AccountBox>
-      <PopoverMenu type='account-menu' triggerLabel={<Avatar size='m' username={accountName} />}>
-        <bem.AccountBox__menu>
-          <bem.AccountBox__menuLI key='1'>
-            <bem.AccountBox__menuItem m={'avatar'}>
-              <Avatar size='m' username={accountName} fullName={accountName} email={accountEmail} />
-            </bem.AccountBox__menuItem>
-
-            <OrganizationBadge color='light-blue' />
-
-            {/*
-              There is no UI we can show to a user who sees a router blocker, so
-              we don't allow any in-app navigation.
-            */}
-            {!isAnyRouteBlockerActive() && (
-              <bem.AccountBox__menuItem m={'settings'}>
-                <Button
-                  type='primary'
-                  size='l'
-                  isFullWidth
-                  onClick={openAccountSettings}
-                  label={t('Account Settings')}
-                />
+      <Menu>
+        <Menu.Target>
+          <button type='button' className='account-menu-trigger'>
+            <Avatar size='m' username={accountName} />
+          </button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <bem.AccountBox__menu>
+            <bem.AccountBox__menuLI key='1'>
+              <bem.AccountBox__menuItem m={'avatar'}>
+                <Avatar size='m' username={accountName} fullName={accountName} email={accountEmail} />
               </bem.AccountBox__menuItem>
-            )}
-          </bem.AccountBox__menuLI>
 
-          {shouldDisplayUrls && (
-            <bem.AccountBox__menuLI key='2' className='environment-links'>
-              {envStore.data.terms_of_service_url && (
-                <a href={envStore.data.terms_of_service_url} target='_blank'>
-                  {t('Terms of Service')}
-                </a>
-              )}
-              {envStore.data.privacy_policy_url && (
-                <a href={envStore.data.privacy_policy_url} target='_blank'>
-                  {t('Privacy Policy')}
-                </a>
+              <OrganizationBadge color='light-blue' />
+
+              {/*
+                There is no UI we can show to a user who sees a router blocker, so
+                we don't allow any in-app navigation.
+              */}
+              {!isAnyRouteBlockerActive() && (
+                <bem.AccountBox__menuItem m={'settings'}>
+                  <Button
+                    type='primary'
+                    size='l'
+                    isFullWidth
+                    onClick={openAccountSettings}
+                    label={t('Account Settings')}
+                  />
+                </bem.AccountBox__menuItem>
               )}
             </bem.AccountBox__menuLI>
-          )}
 
-          <bem.AccountBox__menuLI m={'lang'} key='3'>
-            <ButtonNew
-              leftIcon={IconWorldFilled}
-              variant='transparent'
-              onClick={toggleLanguageSelector}
-              tabIndex={0}
-              data-popover-menu-stop-blur
-            >
-              {t('Language')}
-            </ButtonNew>
+            {shouldDisplayUrls && (
+              <bem.AccountBox__menuLI key='2' className='environment-links'>
+                {envStore.data.terms_of_service_url && (
+                  <a href={envStore.data.terms_of_service_url} target='_blank'>
+                    {t('Terms of Service')}
+                  </a>
+                )}
+                {envStore.data.privacy_policy_url && (
+                  <a href={envStore.data.privacy_policy_url} target='_blank'>
+                    {t('Privacy Policy')}
+                  </a>
+                )}
+              </bem.AccountBox__menuLI>
+            )}
 
-            {isLanguageSelectorVisible && <ul>{langs.map(renderLangItem)}</ul>}
-          </bem.AccountBox__menuLI>
+            <bem.AccountBox__menuLI m={'lang'} key='3'>
+              <ButtonNew leftIcon={IconWorldFilled} variant='transparent' onClick={toggleLanguageSelector} tabIndex={0}>
+                {t('Language')}
+              </ButtonNew>
 
-          <bem.AccountBox__menuLI m={'logout'} key='4'>
-            <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={sessionStore.logOut}>
-              {t('Logout')}
-            </ButtonNew>
-          </bem.AccountBox__menuLI>
-        </bem.AccountBox__menu>
-      </PopoverMenu>
+              {isLanguageSelectorVisible && <ul>{langs.map(renderLangItem)}</ul>}
+            </bem.AccountBox__menuLI>
+
+            <bem.AccountBox__menuLI m={'logout'} key='4'>
+              <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={sessionStore.logOut}>
+                {t('Logout')}
+              </ButtonNew>
+            </bem.AccountBox__menuLI>
+          </bem.AccountBox__menu>
+        </Menu.Dropdown>
+      </Menu>
     </bem.AccountBox>
   )
 }
