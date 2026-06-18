@@ -985,3 +985,8 @@ class ScimUsersAPITests(APITestCase):
 
         # Valid field should be successfully saved
         self.assertEqual(profile.organization, 'Valid Org')
+
+        # Assert ExtraUserDetail metadata is also scrubbed of the invalid field
+        extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
+        self.assertNotIn('country', extra_user_detail.data)
+        self.assertEqual(extra_user_detail.data.get('organization'), 'Valid Org')

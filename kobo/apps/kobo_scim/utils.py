@@ -30,6 +30,7 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
 
     extra_details_updated = False
     profile_updates = {}
+    profile_field_to_metadata_key = {}
     matched_any = False
 
     extra_user_detail = None
@@ -108,15 +109,19 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         if field_name == 'bio':
             profile.description = value
             profile_updates['description'] = value
+            profile_field_to_metadata_key['description'] = field_name
         elif field_name == 'organization_website':
             profile.home_page = value
             profile_updates['home_page'] = value
+            profile_field_to_metadata_key['home_page'] = field_name
         elif field_name == 'phone_number':
             profile.phonenumber = value
             profile_updates['phonenumber'] = value
+            profile_field_to_metadata_key['phonenumber'] = field_name
         elif field_name in user_profile_fields:
             setattr(profile, field_name, value)
             profile_updates[field_name] = value
+            profile_field_to_metadata_key[field_name] = field_name
 
         # Always save to ExtraUserDetail.data for a complete metadata source
         metadata[field_name] = value
@@ -139,6 +144,10 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
                             if field not in e.error_dict:
                                 setattr(profile, field, val)
                                 valid_fields.append(field)
+                            else:
+                                metadata_key = profile_field_to_metadata_key.get(field)
+                                if metadata_key and metadata_key in metadata:
+                                    del metadata[metadata_key]
 
                         if valid_fields:
                             profile.save(update_fields=valid_fields)
