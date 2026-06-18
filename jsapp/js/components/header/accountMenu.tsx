@@ -27,6 +27,8 @@ export default function AccountMenu() {
   const navigate = useNavigate()
 
   const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+
   const toggleLanguageSelector = () => {
     setIsLanguageSelectorVisible(!isLanguageSelectorVisible)
   }
@@ -66,6 +68,7 @@ export default function AccountMenu() {
   }
 
   const openAccountSettings = () => {
+    setIsMenuOpen(false)
     navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS)
   }
 
@@ -78,7 +81,7 @@ export default function AccountMenu() {
 
   return (
     <bem.AccountBox>
-      <Menu>
+      <Menu opened={isMenuOpen} onChange={setIsMenuOpen}>
         <Menu.Target>
           <button type='button' className='account-menu-trigger'>
             <Avatar size='m' username={accountName} />
