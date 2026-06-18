@@ -10,55 +10,57 @@ import {
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
+import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
-import ButtonNew from '../../common/ButtonNew'
-import LanguageSelector from '../../languages/LanguageSelector'
-import RegionSelector from '../../languages/RegionSelector'
-import type { LanguageCode } from '../../languages/languagesStore'
+import ButtonNew from '../../../common/ButtonNew'
+import LanguageSelector from '../../../languages/LanguageSelector'
+import type { LanguageCode } from '../../../languages/languagesStore'
+import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
+import { getSupplementalDetailsContent } from '../../submissionUtils'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
-export interface BulkTranscriptionModalProps {
+export interface BulkTranslationModalProps {
   fieldId: string
   assetUid: string
-  selectedSubmissionUuids: string[]
   selectedRowsCount: number
   showWarningModal: boolean
   onRequestClose: () => void
   onSuccess: () => void
+  selectedSubmissions: SubmissionResponse[]
 }
 
-export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
+export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
-  const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
-  const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
+  const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
       onSuccess: () => {
         // TODO: implement @mantine/notifications system, see DEV-2211
         props.onRequestClose()
         props.onSuccess()
       },
+
       onError: (error) => {
         // This custom error handler overrides the default onErrorDefaultHandler,
         // preventing the generic "400 Bad Request" notification from showing.
         // Extract the specific error message from the parsed response
         const serverError = error as ServerError
+
         const errorResponse = serverError.parsedResponse as {
           submission_uuids?: string[]
         }
 
         // Use the submission_uuids error message if available, otherwise show a generic fallback
         const errorMessage =
-          errorResponse?.submission_uuids?.[0] || t('Failed to start transcription. Please try again.')
+          errorResponse?.submission_uuids?.join(', ') || t('Failed to start translation. Please try again.')
 
         notify.error(errorMessage)
       },
     },
   })
-  const serviceCode = 'goog'
 
   const navigate = useNavigate()
 
@@ -72,30 +74,30 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     },
   })
   const serviceUsageData = data?.status === 200 ? data.data : null
-  const userAsrBalance = serviceUsageData?.balances?.asr_seconds ?? null
-  const hasExceededLimit = userAsrBalance?.exceeded ?? false
+  const userMtBalance = serviceUsageData?.balances?.mt_characters ?? null
+  const hasExceededLimit = userMtBalance?.exceeded ?? false
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
-    setSelectedRegion(null)
   }
 
-  const handleRegionChange = (region: LanguageCode | null) => {
-    setSelectedRegion(region)
-  }
+  const totalCharacters = props.selectedSubmissions.reduce((sum, sub) => {
+    const supplementalValue = getSupplementalDetailsContent(sub, props.fieldId) || ''
+    return sum + supplementalValue.length
+  }, 0)
+  const selectedSubmissionUuids = props.selectedSubmissions.map((submission) => submission._uuid)
 
-  const handleStartTranscription = () => {
-    // We pass all of the submissions without filtering out the ones that have transcripts already. Currently the
-    // backend skips the submissions that already have a transcript.
-    createBulkTranscription({
+  const handleStartTranslation = () => {
+    // We pass all of the submissions without filtering out the ones that have translations already. Currently the
+    // backend skips the submissions that already have a translation.
+    createBulkTranslation({
       uidAsset: props.assetUid,
       data: {
-        action_id: ActionIdEnum.automatic_google_transcription,
+        action_id: ActionIdEnum.automatic_google_translation,
         question_xpath: props.fieldId,
-        submission_uuids: props.selectedSubmissionUuids,
+        submission_uuids: selectedSubmissionUuids,
         params: {
           language: selectedLanguage!,
-          locale: selectedRegion || undefined,
         },
       },
     })
@@ -113,31 +115,21 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   return (
     <>
       {showWarningModal && (
-        <Stack gap='md'>
-          <Text size='sm'>
-            {t(
-              'This bulk processing request is too large and could affect the performance of the application. Only the results currently visible in the data table (##count##) will be processed.',
-            ).replace('##count##', String(props.selectedRowsCount))}
-          </Text>
-
-          <Alert type='info' iconName='information' m={0}>
-            {t('To increase the number of files processed, increase the number of rows displayed in the table')}
-          </Alert>
-          <Group justify='flex-end' mt='md'>
-            <ButtonNew onClick={props.onRequestClose} variant='light'>
-              {t('Cancel')}
-            </ButtonNew>
-            <ButtonNew onClick={handleWarningContinue}>{t('Continue')}</ButtonNew>
-          </Group>
-        </Stack>
+        <BulkProcessingWarningModal
+          selectedRowsCount={props.selectedRowsCount}
+          onRequestClose={props.onRequestClose}
+          handleWarningContinue={handleWarningContinue}
+        />
       )}
+
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t('##count## audio files selected for transcription. This may take some time to complete.').replace(
-              '##count##',
-              String(props.selectedRowsCount),
-            )}
+            {t(
+              '##count## transcripts selected, totalling ##totalCharacters## characters. This will take some time to complete.',
+            )
+              .replace('##count##', String(props.selectedRowsCount))
+              .replace('##totalCharacters##', String(totalCharacters))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
@@ -149,26 +141,22 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               // Smaller message to fit in the modal
               nothingFoundMessage={t('I cannot find my language')}
             />
-            <RegionSelector
-              disabled={!selectedLanguage || hasExceededLimit}
-              rootLanguage={selectedLanguage || ''}
-              serviceCode={serviceCode}
-              serviceType='transcription'
-              onRegionChange={handleRegionChange}
-              titleOverride={t('Select a region')}
-            />
           </Group>
 
           {hasExceededLimit && (
             <Alert type='warning' iconName='information' mt={12} mb={12}>
-              {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
+              {t("You've reached your automatic translation limit. Please purchase an add‑on to continue.")}
             </Alert>
           )}
 
           <Text size='xs'>
-            {t('Automatic transcription is provided by Google Cloud Platform.')}
+            {t('Automatic translation is provided by Google Cloud Platform.')}
             &nbsp;
-            <Anchor href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL} underline='always'>
+            <Anchor
+              target='_blank'
+              href={envStore.data.support_url + GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL}
+              underline='always'
+            >
               {t('Learn more')}
             </Anchor>
           </Text>
@@ -180,10 +168,10 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
             {!hasExceededLimit && (
               <ButtonNew
                 loading={isPending}
-                onClick={handleStartTranscription}
+                onClick={handleStartTranslation}
                 disabled={!selectedLanguage || isLoadingUsage}
               >
-                {t('Start Transcription')}
+                {t('Create translations')}
               </ButtonNew>
             )}
             {hasExceededLimit && (
