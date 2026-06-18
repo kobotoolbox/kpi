@@ -285,7 +285,11 @@ class ScimUserViewSet(
                 else:
                     # If the IdP provisions the user as deactivated, or links to an
                     # existing user but specifies active=False, deactivate them.
-                    apply_scim_user_metadata(user, data)
+                    apply_scim_user_metadata(
+                        user,
+                        data,
+                        enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+                    )
 
                     audit_action = (
                         AuditAction.REPROVISIONING
@@ -312,7 +316,11 @@ class ScimUserViewSet(
                     serializer = self.get_serializer(user)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-                apply_scim_user_metadata(user, data)
+                apply_scim_user_metadata(
+                    user,
+                    data,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+                )
 
                 if reactivated_users:
                     for reactivated_user in reactivated_users:
@@ -443,7 +451,11 @@ class ScimUserViewSet(
                         ),
                     )
 
-            apply_scim_user_metadata(instance, self.request.data)
+            apply_scim_user_metadata(
+                instance,
+                self.request.data,
+                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+            )
 
     def _reactivate_sso_linked_accounts(self, email, current_user=None):
         """
@@ -617,7 +629,11 @@ class ScimUserViewSet(
                         )
 
             if scim_patch_data:
-                metadata_processed = apply_scim_user_metadata(instance, scim_patch_data)
+                metadata_processed = apply_scim_user_metadata(
+                    instance,
+                    scim_patch_data,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+                )
 
         if metadata_processed or active_status is not None:
             # SCIM expects the updated resource returned on successful PATCH

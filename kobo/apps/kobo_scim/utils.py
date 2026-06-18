@@ -1,12 +1,14 @@
 from constance import config
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
-def apply_scim_user_metadata(user, scim_data):
+def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     """
     Applies custom IdP metadata from the SCIM payload to the Kobo user profile.
     It reads `constance.config.USER_METADATA_FIELDS` for mapping definitions.
@@ -27,7 +29,7 @@ def apply_scim_user_metadata(user, scim_data):
     }
 
     extra_details_updated = False
-    updated_profile_fields = set()
+    profile_updates = {}
     matched_any = False
 
     extra_user_detail = None
@@ -105,29 +107,45 @@ def apply_scim_user_metadata(user, scim_data):
         # Determine where to save the field in UserProfile
         if field_name == 'bio':
             profile.description = value
-            updated_profile_fields.add('description')
+            profile_updates['description'] = value
         elif field_name == 'organization_website':
             profile.home_page = value
-            updated_profile_fields.add('home_page')
+            profile_updates['home_page'] = value
         elif field_name == 'phone_number':
             profile.phonenumber = value
-            updated_profile_fields.add('phonenumber')
+            profile_updates['phonenumber'] = value
         elif field_name in user_profile_fields:
             setattr(profile, field_name, value)
-            updated_profile_fields.add(field_name)
+            profile_updates[field_name] = value
 
         # Always save to ExtraUserDetail.data for a complete metadata source
         metadata[field_name] = value
         extra_details_updated = True
 
-    if extra_details_updated or updated_profile_fields:
+    if extra_details_updated or profile_updates:
         with transaction.atomic():
+            if profile_updates:
+                try:
+                    profile.full_clean()
+                    profile.save(update_fields=list(profile_updates.keys()))
+                except DjangoValidationError as e:
+                    if enforce_strict_validation:
+                        raise DRFValidationError(e.message_dict)
+                    else:
+                        # Gracefully discard invalid fields and save the rest
+                        profile.refresh_from_db()
+                        valid_fields = []
+                        for field, val in profile_updates.items():
+                            if field not in e.error_dict:
+                                setattr(profile, field, val)
+                                valid_fields.append(field)
+
+                        if valid_fields:
+                            profile.save(update_fields=valid_fields)
+
             if extra_details_updated:
                 extra_user_detail.data = metadata
                 extra_user_detail.save(update_fields=['data'])
-
-            if updated_profile_fields:
-                profile.save(update_fields=list(updated_profile_fields))
 
     return matched_any
 

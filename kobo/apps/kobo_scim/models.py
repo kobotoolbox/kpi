@@ -35,6 +35,11 @@ class IdentityProvider(AbstractTimeStampedModel, models.Model):
         related_name='scim_idps',
         help_text='The associated SSO Social Application',
     )
+    enforce_strict_metadata_validation = models.BooleanField(
+        default=False,
+        verbose_name='Enforce strict metadata validation',
+        help_text='If enabled, invalid SCIM metadata fields will cause the entire provisioning request to fail. If disabled, invalid fields are gracefully ignored.',
+    )
 
     class Meta:
         verbose_name = 'Identity Provider'
