@@ -2,11 +2,10 @@ import './assetsTable.scss'
 
 import React from 'react'
 
-import ReactDOM from 'react-dom'
 import bem, { makeBem } from '#/bem'
+import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import Menu from '#/components/common/Menu'
 import type { AssetResponse, MetadataResponse } from '#/dataInterface'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { getScrollbarWidth, hasVerticalScrollbar } from '#/utils'
@@ -90,12 +89,11 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
       scrollbarWidth: null,
       isFullscreen: false,
     }
-    this.bodyRef = React.createRef()
   }
 
   private updateScrollbarWidthBound = this.updateScrollbarWidth.bind(this)
 
-  bodyRef: React.RefObject<any>
+  bodyRef: any = null
 
   componentDidMount() {
     this.updateScrollbarWidth()
@@ -117,7 +115,8 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
   }
 
   updateScrollbarWidth() {
-    const bodyNode = ReactDOM.findDOMNode(this.bodyRef?.current) as HTMLElement
+    // Get the underlying DOM element from the bem component
+    const bodyNode = this.bodyRef?.base || this.bodyRef
     if (bodyNode && hasVerticalScrollbar(bodyNode)) {
       this.setState({ scrollbarWidth: getScrollbarWidth() })
     } else {
@@ -380,7 +379,11 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
           </bem.AssetsTableRow>
         </bem.AssetsTable__header>
 
-        <bem.AssetsTable__body ref={this.bodyRef}>
+        <bem.AssetsTable__body
+          ref={(el) => {
+            this.bodyRef = el
+          }}
+        >
           {this.props.isLoading && <LoadingSpinner />}
 
           {!this.props.isLoading && this.props.assets.length === 0 && (
