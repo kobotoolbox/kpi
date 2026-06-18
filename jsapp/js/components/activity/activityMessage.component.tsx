@@ -1,5 +1,6 @@
 import { getTextContentOnly } from '#/utils'
 import Avatar from '../common/avatar'
+import { BulkProcessingActivityMessage } from './BulkProcessingActivityMessage'
 import {
   AUDIT_ACTION_TYPES,
   type ActivityLogsItem,
@@ -11,8 +12,25 @@ import styles from './activityMessage.module.scss'
 /**
  * An inline message that starts with avatar and username, and then is followed
  * by short text describing what username did.
+ *
+ * @param onShowDetails - When provided, renders a "See details" button that calls this callback.
+ *                        Omit this prop to hide the button (e.g., in modal headers or for ongoing bulk processing).
  */
-export function ActivityMessage(props: { data: ActivityLogsItem }) {
+export function ActivityMessage(props: {
+  data: ActivityLogsItem
+  assetUid?: string
+  onShowDetails?: () => void
+}) {
+  // Handle ongoing bulk processing with special component
+  if (props.data.action === 'bulk-processing' && props.assetUid) {
+    const bulkAction = props.data.metadata.bulk_action
+    const isOngoing = bulkAction?.status === 'in_progress' || bulkAction?.status === 'pending'
+
+    if (isOngoing) {
+      return <BulkProcessingActivityMessage data={props.data} assetUid={props.assetUid} />
+    }
+  }
+
   let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
 
   // Replace default bulk processing message with more precise one
@@ -45,9 +63,17 @@ export function ActivityMessage(props: { data: ActivityLogsItem }) {
   }
 
   return (
-    <div className={styles.activityMessage} title={getTextContentOnly(message)}>
-      <Avatar size='s' username={props.data.username} />
-      <span dangerouslySetInnerHTML={{ __html: message }} />
-    </div>
+    <>
+      <div className={styles.activityMessage} title={getTextContentOnly(message)}>
+        <Avatar size='s' username={props.data.username} />
+        <span dangerouslySetInnerHTML={{ __html: message }} />
+      </div>
+
+      {props.onShowDetails && (
+        <button className={styles.seeDetailsButton} onClick={props.onShowDetails}>
+          {t('See details')}
+        </button>
+      )}
+    </>
   )
 }
