@@ -61,7 +61,7 @@ def apply_scim_user_metadata(user, scim_data):
                             matched_key = key
 
             if matched_key:
-                remainder = scim_mapping[len(matched_key):]
+                remainder = scim_mapping[len(matched_key) :]
                 if remainder.startswith('.') or remainder.startswith(':'):
                     remainder = remainder[1:]
 
@@ -156,3 +156,51 @@ def generate_unique_scim_username(base_username, idp_slug):
         if not User.objects.filter(username__iexact=username).exists():
             return username
         counter += 1
+
+
+def get_scim_extension_schemas():
+    """
+    Parses constance.config.USER_METADATA_FIELDS and dynamically builds
+    SCIM extension schemas for the API to advertise.
+    """
+    metadata_fields = getattr(config, 'USER_METADATA_FIELDS', None)
+    if not isinstance(metadata_fields, list):
+        return []
+
+    schemas = {}
+    for field in metadata_fields:
+        scim_mapping = field.get('scim_mapping')
+        if not scim_mapping:
+            continue
+
+        if '.' in scim_mapping:
+            urn, attr_name = scim_mapping.rsplit('.', 1)
+        elif ':' in scim_mapping:
+            urn, attr_name = scim_mapping.rsplit(':', 1)
+        else:
+            continue
+
+        if urn not in schemas:
+            schemas[urn] = {
+                'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+                'id': urn,
+                'name': 'User Extension',
+                'description': 'Custom user attributes mapped from Kobo USER_METADATA_FIELDS',
+                'attributes': [],
+            }
+
+        schemas[urn]['attributes'].append(
+            {
+                'name': attr_name,
+                'type': 'string',
+                'description': field.get('name', ''),
+                'multiValued': False,
+                'required': bool(field.get('required', False)),
+                'caseExact': False,
+                'mutability': 'readWrite',
+                'returned': 'default',
+                'uniqueness': 'none',
+            }
+        )
+
+    return list(schemas.values())
