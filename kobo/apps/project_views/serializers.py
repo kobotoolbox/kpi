@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.static_lists import COUNTRIES
+
 from .models.project_view import ProjectView
 from .schema_extensions.v2.fields import (
     AssetsExportURLField,
@@ -37,6 +38,7 @@ class ProjectViewSerializer(serializers.ModelSerializer):
             'users',
             'users_export',
             'countries',
+            'organizations',
             'permissions',
             'assigned_users',
         )
