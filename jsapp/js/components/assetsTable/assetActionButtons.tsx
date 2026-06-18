@@ -116,7 +116,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   onPopoverSetVisible() {
-    this.setState({ isPopoverVisible: true })
+    this.setState({ isPopoverVisible: true, shouldHidePopover: false })
   }
 
   // Methods for managing the asset
