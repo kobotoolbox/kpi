@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 from django.conf import settings
 from django.db import migrations, models
 
@@ -11,7 +12,7 @@ def manually_create_indexes_instructions(apps, schema_editor):
         --
         -- Create index audit_log_user_date_idx on field(s) user_id, -date_created of model auditlog
         --
-        CREATE INDEX CONCURRENTLY idx_audit_user_date ON audit_log_auditlog (user_id, date_created DESC);
+        CREATE INDEX CONCURRENTLY audit_log_user_date_idx ON audit_log_auditlog (user_id, date_created DESC);
         """
     )
 
@@ -25,7 +26,7 @@ def manually_drop_indexes_instructions(apps, schema_editor):
         --
         -- Drop index audit_log_user_date_idx of model auditlog
         --
-        DROP INDEX CONCURRENTLY IF EXISTS "idx_audit_user_date";
+        DROP INDEX CONCURRENTLY IF EXISTS "audit_log_user_date_idx";
         """
     )
 

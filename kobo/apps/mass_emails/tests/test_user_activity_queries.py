@@ -1,7 +1,6 @@
 import uuid
 from datetime import timedelta
 
-import pytest
 from ddt import data, ddt, unpack
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -10,12 +9,13 @@ from django.utils.timezone import now
 from freezegun import freeze_time
 from rest_framework import status
 
-from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_active_users, get_inactive_users
 from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix, \
-    add_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    remove_uuid_prefix,
+    add_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.constants import PERM_ADD_SUBMISSIONS
@@ -246,7 +246,7 @@ class UserActivityQueryTests(BaseTestCase):
             },
             'formhub': {'uuid': asset.deployment.xform.uuid},
         })
-        assert response.status_code in (201, 202), f'Edit failed: {response.status_code} {response.data}'
+        assert response.status_code == status.HTTP_201_CREATED
 
         inactive_users = get_inactive_users()
         active_users = get_active_users()

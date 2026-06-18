@@ -10,7 +10,6 @@ from kpi.models import Asset
 from kpi.utils.log import logging
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
-THRESHOLD = timezone.now() - timedelta(days=90)
 
 
 def run():
@@ -27,8 +26,10 @@ def run():
        non-NULL and idempotent on migration restart.
     """
     last_pk = 0
-    while batch := _get_batch(last_pk):
-        _process_batch(batch)
+    threshold = timezone.now() - timedelta(days=90)
+
+    while batch := _get_batch(last_pk, threshold):
+        _process_batch(batch, threshold)
         last_pk = batch[-1].pk
         logging.info(
             f'[LRM 0026] backfilled last_project_activity up to '
@@ -36,31 +37,31 @@ def run():
         )
 
 
-def _get_batch(last_pk: int) -> list:
+def _get_batch(last_pk: int, threshold: int) -> list:
     return list(
         ExtraUserDetail.objects.filter(
             pk__gt=last_pk, last_project_activity__isnull=True
         )
-        .exclude(user__last_login__gt=THRESHOLD)
+        .exclude(user__last_login__gt=threshold)
         .select_related('user')
         .only('pk', 'user_id', 'user__id', 'user__username')
         .order_by('pk')[:CHUNK_SIZE]
     )
 
 
-def _process_batch(batch: list) -> None:
+def _process_batch(batch: list, threshold: int) -> None:
     username_to_ed = {ed.user.username: ed for ed in batch}
     user_id_to_ed = {ed.user_id: ed for ed in batch}
 
     created_dates = dict(
-        Asset.objects.filter(created_by__in=username_to_ed, date_created__gte=THRESHOLD)
+        Asset.objects.filter(created_by__in=username_to_ed, date_created__gte=threshold)
         .values('created_by')
         .annotate(max_date=Max('date_created'))
         .values_list('created_by', 'max_date')
     )
     modified_dates = dict(
         Asset.objects.filter(
-            last_modified_by__in=username_to_ed, date_modified__gte=THRESHOLD
+            last_modified_by__in=username_to_ed, date_modified__gte=threshold
         )
         .values('last_modified_by')
         .annotate(max_date=Max('date_modified'))
@@ -85,9 +86,6 @@ def _process_batch(batch: list) -> None:
     sentinel = timezone.now() - timedelta(days=731)
     if remaining_user_ids:
         for user_id in remaining_user_ids:
-            if not AuditLog.objects.filter(user_id=user_id).exists():
-                user_id_to_ed[user_id].last_project_activity = sentinel
-                continue
             date = (
                 AuditLog.objects.filter(user_id=user_id)
                 .order_by('-date_created')
