@@ -15,7 +15,11 @@ class Migration(migrations.Migration):
             name='enforce_strict_metadata_validation',
             field=models.BooleanField(
                 default=False,
-                help_text='If enabled, invalid SCIM metadata fields will cause the entire provisioning request to fail. If disabled, invalid fields are gracefully ignored.',
+                help_text=(
+                    'If enabled, invalid SCIM metadata fields will cause the '
+                    'entire provisioning request to fail. If disabled, invalid fields '
+                    'are gracefully ignored.'
+                ),
                 verbose_name='Enforce strict metadata validation',
             ),
         ),

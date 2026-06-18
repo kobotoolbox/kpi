@@ -38,7 +38,11 @@ class IdentityProvider(AbstractTimeStampedModel, models.Model):
     enforce_strict_metadata_validation = models.BooleanField(
         default=False,
         verbose_name='Enforce strict metadata validation',
-        help_text='If enabled, invalid SCIM metadata fields will cause the entire provisioning request to fail. If disabled, invalid fields are gracefully ignored.',
+        help_text=(
+            'If enabled, invalid SCIM metadata fields will cause the entire '
+            'provisioning request to fail. If disabled, invalid fields are '
+            'gracefully ignored.'
+        )
     )
 
     class Meta:

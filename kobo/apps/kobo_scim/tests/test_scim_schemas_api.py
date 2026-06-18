@@ -43,15 +43,15 @@ class ScimSchemasAPITests(APITestCase):
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',  # noqa E501
             },
             {
                 'name': 'country',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.country',
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.country',  # noqa E501
             },
             {
                 'name': 'bio',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.bio',
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.bio',  # noqa E501
             },
         ]
     )
@@ -92,7 +92,7 @@ class ScimSchemasAPITests(APITestCase):
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',  # noqa E501
             }
         ]
     )
@@ -116,7 +116,7 @@ class ScimSchemasAPITests(APITestCase):
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',
+                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',  # noqa E501
             }
         ]
     )

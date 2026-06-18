@@ -214,7 +214,10 @@ class ScimUserViewSet(
 
                 # First, check if user exists via SocialAccount linkage
                 social_account = (
-                    SocialAccount.objects.filter(provider=self.idp_provider_id, uid=uid)
+                    SocialAccount.objects.filter(
+                        provider=self.idp_provider_id,
+                        uid=uid,
+                    )
                     .select_related('user')
                     .first()
                 )
@@ -288,7 +291,7 @@ class ScimUserViewSet(
                     apply_scim_user_metadata(
                         user,
                         data,
-                        enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+                        enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
                     )
 
                     audit_action = (
@@ -319,7 +322,7 @@ class ScimUserViewSet(
                 apply_scim_user_metadata(
                     user,
                     data,
-                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
                 )
 
                 if reactivated_users:
@@ -632,7 +635,7 @@ class ScimUserViewSet(
                 metadata_processed = apply_scim_user_metadata(
                     instance,
                     scim_patch_data,
-                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
                 )
 
         if metadata_processed or active_status is not None:
