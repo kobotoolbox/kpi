@@ -35,6 +35,7 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
 
     extra_user_detail = None
     metadata = {}
+    original_metadata = {}
     profile = None
 
     for field_def in metadata_fields:
@@ -96,6 +97,8 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         if extra_user_detail is None:
             extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
             metadata = extra_user_detail.data or {}
+            # Snapshot original metadata to safely recover previously valid fields
+            original_metadata = dict(metadata)
 
         if profile is None:
             profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -147,7 +150,12 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
                             else:
                                 metadata_key = profile_field_to_metadata_key.get(field)
                                 if metadata_key and metadata_key in metadata:
-                                    del metadata[metadata_key]
+                                    if metadata_key in original_metadata:
+                                        metadata[metadata_key] = original_metadata[
+                                            metadata_key
+                                        ]
+                                    else:
+                                        del metadata[metadata_key]
 
                         if valid_fields:
                             profile.save(update_fields=valid_fields)

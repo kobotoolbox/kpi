@@ -990,3 +990,67 @@ class ScimUsersAPITests(APITestCase):
         extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
         self.assertNotIn('country', extra_user_detail.data)
         self.assertEqual(extra_user_detail.data.get('organization'), 'Valid Org')
+
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'country',
+                'required': False,
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+            }
+        ]
+    )
+    def test_custom_metadata_validation_retaining_existing_valid_value(
+        self,
+    ):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # Step 1: Create user with valid country
+        payload1 = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'existing_metadata_user',
+            'emails': [{'primary': True, 'value': 'existing_metadata@example.com'}],
+            'active': True,
+            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
+                'country': 'US',
+            },
+        }
+        response1 = self.client.post(
+            self.url,
+            payload1,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+
+        user_id = response1.json()['id']
+
+        # Step 2: Patch user with invalid country
+        payload2 = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {
+                    'op': 'replace',
+                    'value': {
+                        SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {'country': 'USA'}
+                    },
+                }
+            ],
+        }
+        response2 = self.client.patch(
+            f'{self.url}/{user_id}',
+            payload2,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+
+        user = User.objects.get(username='existing_metadata_user')
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+
+        # Profile country should still be US
+        self.assertEqual(profile.country, 'US')
+
+        # ExtraUserDetail metadata should still have US
+        extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
+        self.assertEqual(extra_user_detail.data.get('country'), 'US')
