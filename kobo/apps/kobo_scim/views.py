@@ -37,6 +37,7 @@ from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSeriali
 from kobo.apps.kobo_scim.utils import (
     apply_scim_user_metadata,
     generate_unique_scim_username,
+    get_scim_extension_schemas,
 )
 
 
@@ -940,6 +941,18 @@ class ScimSchemasView(APIView):
                 },
             ],
         }
+
+        extension_schemas = get_scim_extension_schemas()
+        for ext_schema in extension_schemas:
+            ext_schema['meta'] = {
+                'resourceType': 'Schema',
+                'location': f"{location}/{ext_schema['id']}",
+            }
+            payload['Resources'].append(ext_schema)
+
+        payload['totalResults'] = len(payload['Resources'])
+        payload['itemsPerPage'] = len(payload['Resources'])
+
         return Response(payload, status=status.HTTP_200_OK)
 
 
@@ -995,6 +1008,18 @@ class ScimResourceTypesView(APIView):
                 },
             ],
         }
+
+        extension_schemas = get_scim_extension_schemas()
+        schema_extensions = [
+            {'schema': ext['id'], 'required': False} for ext in extension_schemas
+        ]
+
+        user_resource = next(
+            (r for r in payload['Resources'] if r['id'] == 'User'), None
+        )
+        if user_resource:
+            user_resource['schemaExtensions'] = schema_extensions
+
         return Response(payload, status=status.HTTP_200_OK)
 
 
