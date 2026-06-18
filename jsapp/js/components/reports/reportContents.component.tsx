@@ -6,7 +6,7 @@ import ReportViewItem from './reportViewItem.component'
 import type { ReportsState } from './reports'
 import { getEffectiveRowReportStyle, getReportRowTranslatedLabel, populateSelectQuestionLabels } from './reports.utils'
 import type { ReportsResponse } from './reportsConstants'
-import {userCan} from '../permissions/utils'
+import { userCan } from '#/components/permissions/utils'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void
