@@ -2,8 +2,9 @@ import React from 'react'
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import { archiveAsset, deleteAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
+import { archiveAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
 import { getAssetDisplayName } from '#/assetUtils'
+import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
@@ -98,11 +99,11 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() =>
-          deleteAsset(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
+        onClick={() => {
+          openDeleteAssetModal(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
             customViewStore.handleAssetsDeleted([deletedAssetUid])
           })
-        }
+        }}
         tooltip={isDeletingPossible ? t('Delete 1 project') : t('Delete project')}
         tooltipPosition='right'
       />

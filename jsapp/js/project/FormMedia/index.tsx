@@ -1,19 +1,27 @@
 import './FormMedia.scss'
 import { Anchor, Group, Stack, Text } from '@mantine/core'
-import React, { useCallback, useEffect, useState } from 'react'
+import { useIsMutating } from '@tanstack/react-query'
+import React, { useCallback, useState } from 'react'
 import Dropzone from 'react-dropzone'
-import { actions } from '#/actions'
-import type { MediaUploadPayload, MediaUploadSource } from '#/actions/mediaActions'
+import type { ServerError } from '#/api/ServerError'
+import type { FilesResponse } from '#/api/models/filesResponse'
+import type { FilesResponseMetadata } from '#/api/models/filesResponseMetadata'
+import { useAssetsFilesCreate, useAssetsFilesDestroy, useAssetsFilesList } from '#/api/react-query/survey-data'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
-import type { AssetFileResponse, PaginatedResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { notify, truncateString, truncateUrl } from '#/utils'
-import usePendingUploads from './usePendingUploads'
+
+// Distinct mutation key so useIsMutating can count only file uploads, not URL uploads.
+// This approach is necessary because file uploads can be concurrent (multi-file drag-drop)
+// while URL uploads are sequential, and we need separate spinner logic for each flow.
+// useIsMutating tracks active mutations across all hook instances, making it more reliable
+// than per-component state for concurrent operations.
+const FILE_UPLOAD_MUTATION_KEY = ['assetsFilesCreate', 'form-media-file'] as const
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'
 const MEDIA_SUPPORT_URL = 'upload_media.html'
@@ -27,15 +35,7 @@ interface FormMediaProps {
   asset: FormMediaAsset
 }
 
-type FormMediaMetadata = AssetFileResponse['metadata'] & {
-  // Present only for entries created from a URL instead of an uploaded file.
-  redirect_url?: string
-}
-
-interface FormMediaItem extends Omit<AssetFileResponse, 'metadata'> {
-  metadata: FormMediaMetadata
-}
-
+// Field-level validation errors returned by the backend.
 interface FieldErrors {
   // API uses this key for file-upload validation errors.
   base64Encoded?: string
@@ -44,94 +44,71 @@ interface FieldErrors {
   [key: string]: unknown
 }
 
+type FormMediaItemMetadata = FilesResponseMetadata & {
+  // URL-based media entries carry redirect_url instead of a local filename.
+  redirect_url?: string
+}
+
+interface FormMediaItem extends Omit<FilesResponse, 'metadata'> {
+  metadata: FormMediaItemMetadata
+}
+
 function getReadableFileName(item: FormMediaItem): string {
   // URL-based media does not have a real filename, so we display a truncated URL.
   if (item.metadata.redirect_url) {
     return truncateUrl(item.metadata.redirect_url, MAX_DISPLAYED_STRING_LENGTH.form_media)
   }
 
-  return truncateString(item.metadata.filename, MAX_DISPLAYED_STRING_LENGTH.form_media)
+  return truncateString(item.metadata.filename ?? '', MAX_DISPLAYED_STRING_LENGTH.form_media)
 }
 
 /**
  * Form media management screen for a project.
  *
  * Lets users list existing media, upload new files (drag/drop), add media by
- * URL, and delete items. Data currently flows through legacy Reflux media
- * actions (`actions.media.*`).
+ * URL, and delete items.
  *
  * @param props.asset Project identifier and deployment state.
  */
 export default function FormMedia(props: FormMediaProps) {
-  const [uploadedAssets, setUploadedAssets] = useState<FormMediaItem[]>([])
   const [fieldsErrors, setFieldsErrors] = useState<FieldErrors>({})
   const [inputURL, setInputURL] = useState('')
-  // Show a loading state before first media list fetch resolves.
-  const [isInitialised, setIsInitialised] = useState(false)
-  const [isUploadURLPending, setIsUploadURLPending] = useState(false)
-  const {
-    isPending: isUploadFilePending,
-    beginBatch: beginPendingFileUploads,
-    resolveOne: resolveOnePendingFileUpload,
-    reset: resetPendingFileUploads,
-  } = usePendingUploads()
 
-  const loadMedia = useCallback(() => {
-    actions.media.loadMedia(props.asset.uid)
-  }, [props.asset.uid])
+  // useIsMutating counts active mutations in the cache across all hook instances,
+  // so it correctly tracks concurrent file uploads unlike per-call onSettled.
+  const isUploadFilePending = useIsMutating({ mutationKey: FILE_UPLOAD_MUTATION_KEY }) > 0
 
-  useEffect(() => {
-    const onGetMediaCompleted = (response: PaginatedResponse<FormMediaItem>) => {
-      setUploadedAssets(response.results)
-      setIsInitialised(true)
-    }
+  const mediaQuery = useAssetsFilesList(props.asset.uid, {
+    file_type: ASSET_FILE_TYPES.form_media.id,
+  })
 
-    const onUploadCompleted = (_uid: string, uploadSource: MediaUploadSource) => {
-      if (uploadSource === 'file') {
-        resolveOnePendingFileUpload()
-        return
-      }
+  const mediaItems = (mediaQuery.data?.status === 200 ? mediaQuery.data.data.results : []) as FormMediaItem[]
 
-      setIsUploadURLPending(false)
-    }
+  // Separate mutation instances for file vs URL uploads to keep their
+  // isPending states independent. Default toast suppressed for both since
+  // validation errors are displayed inline.
+  const fileUploadMutation = useAssetsFilesCreate({
+    mutation: {
+      mutationKey: FILE_UPLOAD_MUTATION_KEY,
+      onError: () => {
+        // Inline errors shown in the dropzone; suppress the default toast.
+      },
+    },
+  })
 
-    const onUploadFailed = (response: unknown, uploadSource: MediaUploadSource) => {
-      const typedResponse = response as { responseJSON?: FieldErrors } | undefined
-      setFieldsErrors(typedResponse?.responseJSON ?? {})
+  const urlUploadMutation = useAssetsFilesCreate({
+    mutation: {
+      onError: () => {
+        // Inline errors shown on the URL input; suppress the default toast.
+      },
+    },
+  })
 
-      if (uploadSource === 'file') {
-        resolveOnePendingFileUpload()
-      } else {
-        setIsUploadURLPending(false)
-      }
-    }
-
-    // Initial fetch for media list when this screen mounts.
-    loadMedia()
-
-    // Keep listening to legacy Reflux actions until this feature is moved
-    // to React Query. We clean up listeners in the effect return.
-    const stopLoadMediaCompleted = actions.media.loadMedia.completed.listen(onGetMediaCompleted)
-    const stopUploadCompleted = actions.media.uploadMedia.completed.listen(onUploadCompleted)
-    const stopUploadFailed = actions.media.uploadMedia.failed.listen(onUploadFailed)
-
-    return () => {
-      // Avoid stale pending state if the user leaves this route mid-upload.
-      resetPendingFileUploads()
-
-      if (typeof stopLoadMediaCompleted === 'function') {
-        stopLoadMediaCompleted()
-      }
-
-      if (typeof stopUploadCompleted === 'function') {
-        stopUploadCompleted()
-      }
-
-      if (typeof stopUploadFailed === 'function') {
-        stopUploadFailed()
-      }
-    }
-  }, [loadMedia, resetPendingFileUploads, resolveOnePendingFileUpload])
+  const destroyMutation = useAssetsFilesDestroy({
+    mutation: {
+      onError: () => notify.error(t('Failed to delete media!')),
+    },
+  })
 
   const toBase64 = useCallback(
     // Backend accepts base64 payloads for uploaded files.
@@ -145,48 +122,46 @@ export default function FormMedia(props: FormMediaProps) {
     [],
   )
 
-  const uploadMedia = useCallback(
-    (formMediaJSON: MediaUploadPayload, uploadSource: MediaUploadSource) => {
-      // Clear stale errors so users only see feedback for the latest attempt.
-      setFieldsErrors({})
-      actions.media.uploadMedia(props.asset.uid, formMediaJSON, uploadSource)
-    },
-    [props.asset.uid],
-  )
-
   const onFileDrop = useCallback(
     (files: File[]) => {
       if (files.length < 1) {
         return
       }
 
-      beginPendingFileUploads(files.length)
+      // Clear stale errors so users only see feedback for the latest attempt.
+      setFieldsErrors({})
 
-      // We intentionally upload each file independently.
-      // Reflux will refresh the list when each upload completes.
+      // Upload each file independently; the cache is invalidated per-upload.
       files.forEach(async (file) => {
         try {
-          // We await per-file conversion before sending the upload request.
+          // Await per-file conversion before dispatching the upload request.
           const base64File = await toBase64(file)
 
-          uploadMedia(
+          fileUploadMutation.mutate(
             {
-              description: DEFAULT_MEDIA_DESCRIPTION,
-              file_type: ASSET_FILE_TYPES.form_media.id,
-              metadata: JSON.stringify({ filename: file.name }),
-              base64Encoded: base64File,
+              uidAsset: props.asset.uid,
+              data: {
+                description: DEFAULT_MEDIA_DESCRIPTION,
+                file_type: ASSET_FILE_TYPES.form_media.id,
+                base64Encoded: base64File as string,
+                metadata: { filename: file.name },
+              },
             },
-            'file',
+            {
+              onError: (error) => {
+                setFieldsErrors((prev) => {
+                  return { ...prev, ...((error as ServerError)?.parsedResponse ?? {}) }
+                })
+              },
+            },
           )
         } catch {
-          // If file reading fails before request dispatch, no action callback
-          // will fire, so we must resolve this pending slot manually.
-          resolveOnePendingFileUpload()
+          // File reading failed before the request was dispatched — nothing to clean up.
           notify.error(t('Could not process one of the selected files.'))
         }
       })
     },
-    [beginPendingFileUploads, resolveOnePendingFileUpload, toBase64, uploadMedia],
+    [fileUploadMutation.mutate, props.asset.uid, toBase64],
   )
 
   const onSubmitURL = useCallback(() => {
@@ -197,25 +172,38 @@ export default function FormMedia(props: FormMediaProps) {
       return
     }
 
-    setIsUploadURLPending(true)
+    // Clear stale errors so users only see feedback for the latest attempt.
+    setFieldsErrors({})
     setInputURL('')
 
-    // For URL uploads backend expects redirect_url inside metadata JSON.
-    uploadMedia(
+    // For URL uploads backend expects redirect_url inside metadata.
+    urlUploadMutation.mutate(
       {
-        description: DEFAULT_MEDIA_DESCRIPTION,
-        file_type: ASSET_FILE_TYPES.form_media.id,
-        metadata: JSON.stringify({ redirect_url: url }),
+        uidAsset: props.asset.uid,
+        data: {
+          description: DEFAULT_MEDIA_DESCRIPTION,
+          file_type: ASSET_FILE_TYPES.form_media.id,
+          metadata: { redirect_url: url },
+        },
       },
-      'url',
+      {
+        onError: (error) => {
+          setFieldsErrors((error as ServerError)?.parsedResponse ?? {})
+        },
+      },
     )
-  }, [inputURL, uploadMedia])
+  }, [inputURL, props.asset.uid, urlUploadMutation.mutate])
 
   const onDeleteMedia = useCallback(
-    (url: string) => {
-      actions.media.deleteMedia(props.asset.uid, url)
+    (fileUid: string) => {
+      destroyMutation.mutate(
+        { uidAsset: props.asset.uid, uidFile: fileUid },
+        {
+          onSuccess: () => notify(t('Successfully deleted media')),
+        },
+      )
     },
-    [props.asset.uid],
+    [destroyMutation.mutate, props.asset.uid],
   )
 
   return (
@@ -284,7 +272,13 @@ export default function FormMedia(props: FormMediaProps) {
                 onChange={setInputURL}
               />
 
-              <Button variant='light' size='md' onClick={onSubmitURL} disabled={!inputURL} loading={isUploadURLPending}>
+              <Button
+                variant='light'
+                size='md'
+                onClick={onSubmitURL}
+                disabled={!inputURL}
+                loading={urlUploadMutation.isPending}
+              >
                 {t('Add')}
               </Button>
             </Group>
@@ -296,17 +290,17 @@ export default function FormMedia(props: FormMediaProps) {
 
           <ul>
             {/* Keep the spinner visible during first load and active uploads. */}
-            {(!isInitialised || isUploadFilePending || isUploadURLPending) && (
+            {(mediaQuery.isPending || isUploadFilePending || urlUploadMutation.isPending) && (
               <li className='form-media__list-item'>
                 <LoadingSpinner message={t('loading media')} />
               </li>
             )}
 
-            {isInitialised && !uploadedAssets.length && (
+            {!mediaQuery.isPending && !mediaItems.length && (
               <li className='form-media__list-item'>{t('No files uploaded yet')}</li>
             )}
 
-            {uploadedAssets.map((item) => (
+            {mediaItems.map((item) => (
               <li className='form-media__list-item' key={item.uid}>
                 <i
                   className={`form-media__file-type k-icon ${
@@ -330,7 +324,7 @@ export default function FormMedia(props: FormMediaProps) {
                   variant='subtle'
                   color='red'
                   aria-label={t('Delete file')}
-                  onClick={() => onDeleteMedia(item.url)}
+                  onClick={() => onDeleteMedia(item.uid)}
                 >
                   <i className='k-icon k-icon-trash' />
                 </ActionIcon>

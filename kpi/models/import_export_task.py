@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
-import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -22,6 +21,13 @@ from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from rest_framework import exceptions
+from rest_framework.reverse import reverse
+from werkzeug.http import parse_options_header
+
+import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -32,22 +38,13 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from rest_framework.reverse import reverse
-from werkzeug.http import parse_options_header
-
+from kobo.apps.audit_log.utils import get_lookback_date
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
 from kobo.apps.subsequences.exceptions import SupplementMigrationInProgress
 from kobo.apps.subsequences.models import SubmissionSupplement
-from kobo.apps.subsequences.utils.supplement_data import (
-    get_analysis_form_json,
-    stream_with_supplements,
-)
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -82,6 +79,7 @@ from kpi.utils.rename_xls_sheet import (
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 
 
 def utcnow(*args, **kwargs):
@@ -568,6 +566,11 @@ class AuditLogExportTaskMixin:
             output_field=CharField(),
         )
 
+    @staticmethod
+    def filter_queryset_by_lookback_limit(queryset, user):
+        lookback_date = get_lookback_date(user)
+        return queryset.filter(date_created__gte=lookback_date)
+
     common_fields = {
         'user_url': user_url(),
         'username': F('user__username'),
@@ -589,6 +592,9 @@ class AccessLogExportTask(ExportTaskMixin, AuditLogExportTaskMixin, ImportExport
         return 'Access Log Report Complete'
 
     def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        filtered_queryset = self.filter_queryset_by_lookback_limit(
+            filtered_queryset, self.user
+        )
         return filtered_queryset.annotate(
             **self.common_fields,
             auth_type=F('metadata__auth_type'),
@@ -640,6 +646,9 @@ class ProjectHistoryLogExportTask(
         return 'Project activity log export complete'
 
     def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        filtered_queryset = self.filter_queryset_by_lookback_limit(
+            filtered_queryset, self.user
+        )
         return filtered_queryset.annotate(
             **self.common_fields,
             asset_uid=F('metadata__asset_uid'),
@@ -905,7 +914,12 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments', '_supplementalDetails']
+        additional_fields = [
+            '_attachments',
+            '_supplementalDetails',
+            '_uuid',
+            'meta/rootUuid',
+        ]
 
         field_groups = set()
         for field in fields:
@@ -1059,12 +1073,6 @@ class SubmissionExportTaskBase(ImportExportTask):
         # Include the group name in `fields` for Mongo to correctly filter
         # for repeat groups
         fields = self._get_fields_and_groups(fields)
-        submission_stream = source.deployment.get_submissions(
-            user=self.user,
-            fields=fields,
-            submission_ids=submission_ids,
-            query=query,
-        )
 
         if source.has_advanced_features:
             # Use a cheap EXISTS query before the expensive full prefetch in
@@ -1079,10 +1087,14 @@ class SubmissionExportTaskBase(ImportExportTask):
                 raise SupplementMigrationInProgress(
                     'Supplement data migration in progress, please retry later.'
                 )
-            submission_stream = stream_with_supplements(
-                source, submission_stream, for_output=True
-            )
 
+        submission_stream = source.deployment.get_submissions(
+            user=self.user,
+            fields=fields,
+            submission_ids=submission_ids,
+            query=query,
+            for_output=True,
+        )
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
