@@ -2,6 +2,7 @@ from constance import config
 from django.db import transaction
 
 from hub.models.extra_user_detail import ExtraUserDetail
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
@@ -29,10 +30,9 @@ def apply_scim_user_metadata(user, scim_data):
     updated_profile_fields = set()
     matched_any = False
 
-    extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
-    metadata = extra_user_detail.data or {}
-
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    extra_user_detail = None
+    metadata = {}
+    profile = None
 
     for field_def in metadata_fields:
         field_name = field_def.get('name')
@@ -61,7 +61,7 @@ def apply_scim_user_metadata(user, scim_data):
                             matched_key = key
 
             if matched_key:
-                remainder = scim_mapping[len(matched_key):]
+                remainder = scim_mapping[len(matched_key) :]
                 if remainder.startswith('.') or remainder.startswith(':'):
                     remainder = remainder[1:]
 
@@ -89,6 +89,13 @@ def apply_scim_user_metadata(user, scim_data):
             continue
 
         matched_any = True
+
+        if extra_user_detail is None:
+            extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
+            metadata = extra_user_detail.data or {}
+
+        if profile is None:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
 
         # Apply value mapping if defined
         value_mapping = field_def.get('scim_value_mapping')
@@ -123,3 +130,77 @@ def apply_scim_user_metadata(user, scim_data):
                 profile.save(update_fields=list(updated_profile_fields))
 
     return matched_any
+
+
+def generate_unique_scim_username(base_username, idp_slug):
+    """
+    Generates a unique username for SCIM provisioning.
+    If the base_username is taken by another user, it appends the IdP slug.
+    If that is also taken, it appends an incremental number.
+    """
+    prefix = base_username.split('@')[0]
+
+    # Attempt 1: Base username
+    if not User.objects.filter(username__iexact=base_username).exists():
+        return base_username
+
+    # Attempt 2: {prefix}_{idp_slug}
+    base_with_suffix = f'{prefix}_{idp_slug}'
+    if not User.objects.filter(username__iexact=base_with_suffix).exists():
+        return base_with_suffix
+
+    # Attempt 3+: {prefix}_{idp_slug}_{counter}
+    counter = 1
+    while True:
+        username = f'{base_with_suffix}_{counter}'
+        if not User.objects.filter(username__iexact=username).exists():
+            return username
+        counter += 1
+
+
+def get_scim_extension_schemas():
+    """
+    Parses constance.config.USER_METADATA_FIELDS and dynamically builds
+    SCIM extension schemas for the API to advertise.
+    """
+    metadata_fields = getattr(config, 'USER_METADATA_FIELDS', None)
+    if not isinstance(metadata_fields, list):
+        return []
+
+    schemas = {}
+    for field in metadata_fields:
+        scim_mapping = field.get('scim_mapping')
+        if not scim_mapping:
+            continue
+
+        if '.' in scim_mapping:
+            urn, attr_name = scim_mapping.rsplit('.', 1)
+        elif ':' in scim_mapping:
+            urn, attr_name = scim_mapping.rsplit(':', 1)
+        else:
+            continue
+
+        if urn not in schemas:
+            schemas[urn] = {
+                'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+                'id': urn,
+                'name': 'User Extension',
+                'description': 'Custom user attributes mapped from Kobo USER_METADATA_FIELDS',
+                'attributes': [],
+            }
+
+        schemas[urn]['attributes'].append(
+            {
+                'name': attr_name,
+                'type': 'string',
+                'description': field.get('name', ''),
+                'multiValued': False,
+                'required': bool(field.get('required', False)),
+                'caseExact': False,
+                'mutability': 'readWrite',
+                'returned': 'default',
+                'uniqueness': 'none',
+            }
+        )
+
+    return list(schemas.values())
