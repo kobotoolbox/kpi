@@ -73,6 +73,13 @@ export default function AccessLogsSection() {
           // The `key`s of these columns are matching the `AccessLog` interface
           // properties (from `accessLogs.query.ts` file) using dot notation.
           {
+            key: 'action',
+            label: t('Status'),
+            cellFormatter: (log: AccessLogResponse) => {
+              return log.action === 'auth-failed' ? t('Failed') : t('Success')
+            },
+          },
+          {
             key: 'metadata.source',
             label: t('Source'),
             cellFormatter: (log: AccessLogResponse) => {
