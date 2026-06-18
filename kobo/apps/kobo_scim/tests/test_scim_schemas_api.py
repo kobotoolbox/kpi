@@ -32,7 +32,7 @@ class ScimSchemasAPITests(APITestCase):
 
     def get_resource_types_url(self):
         return reverse(
-            'api_v2:kobo_scim:scim-resourcetypes', kwargs={'idp_slug': self.idp.slug}
+            'api_v2:kobo_scim:scim-resource-types', kwargs={'idp_slug': self.idp.slug}
         )
 
     def test_get_scim_extension_schemas_util_empty(self):
