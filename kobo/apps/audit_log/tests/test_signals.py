@@ -84,9 +84,7 @@ class AccessLogsSignalsTestCase(BaseTestCase):
             'login': 'user',
             'password': 'wrongpassword',
         }
-        self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
         audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
         self.assertIsNotNone(audit_log)
         self.assertEqual(audit_log.user.id, self.user.id)
@@ -99,13 +97,13 @@ class AccessLogsSignalsTestCase(BaseTestCase):
             'login': 'invalidusername',
             'password': 'somepassword',
         }
-        self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
         audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
         self.assertIsNotNone(audit_log)
         self.assertIsNone(audit_log.user)
-        self.assertEqual(audit_log.metadata.get('attempted_username'), 'invalidusername')
+        self.assertEqual(
+            audit_log.metadata.get('attempted_username'), 'invalidusername'
+        )
 
     def test_login_with_email_verification(self):
         user = AccessLogsSignalsTestCase.user

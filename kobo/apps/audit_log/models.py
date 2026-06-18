@@ -376,7 +376,7 @@ class AccessLog(AuditLog):
         return AccessLog.objects.create(
             user=user if user and user.is_authenticated else None,
             metadata=metadata,
-            action=AuditAction.AUTH_FAILED
+            action=AuditAction.AUTH_FAILED,
         )
 
 

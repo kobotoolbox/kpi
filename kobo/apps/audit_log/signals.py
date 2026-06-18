@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from celery.signals import task_success
 from constance.signals import config_updated
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
+from django.contrib.admin.models import ADDITION, CHANGE, DELETION, LogEntry
 from django.contrib.auth.signals import user_logged_in, user_login_failed
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
