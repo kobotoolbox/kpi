@@ -1,8 +1,8 @@
-import { Anchor, Group, List, ScrollArea, Stack, Text } from '@mantine/core'
+import { Group, List, ScrollArea, Stack, Text } from '@mantine/core'
+import { Link } from 'react-router-dom'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
-import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 
 export enum DeleteBlockerReason {
@@ -43,11 +43,6 @@ export function DeleteBlockerModal({ assets, blockedAssets, reason, onRequestClo
     )
   }
 
-  const navigateToProject = (asset: AssetResponse | ProjectViewAsset) => {
-    onRequestClose()
-    router!.navigate(ROUTES.FORM_LANDING.replace(':uid', asset.uid))
-  }
-
   return (
     <Stack gap='sm'>
       <Text size='sm'>{body}</Text>
@@ -66,9 +61,13 @@ export function DeleteBlockerModal({ assets, blockedAssets, reason, onRequestClo
           >
             {blockedAssets.map((asset) => (
               <List.Item key={asset.uid}>
-                <Anchor c='blue.4' td='underline' onClick={() => navigateToProject(asset)}>
+                <Link
+                  to={ROUTES.FORM_LANDING.replace(':uid', asset.uid)}
+                  style={{ color: 'var(--mantine-color-blue-4)', textDecoration: 'underline' }}
+                  onClick={onRequestClose}
+                >
                   {asset.name}
-                </Anchor>
+                </Link>
               </List.Item>
             ))}
           </List>
