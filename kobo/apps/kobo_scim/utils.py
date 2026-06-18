@@ -61,7 +61,7 @@ def apply_scim_user_metadata(user, scim_data):
                             matched_key = key
 
             if matched_key:
-                remainder = scim_mapping[len(matched_key) :]
+                remainder = scim_mapping[len(matched_key):]
                 if remainder.startswith('.') or remainder.startswith(':'):
                     remainder = remainder[1:]
 
@@ -185,7 +185,7 @@ def get_scim_extension_schemas():
                 'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
                 'id': urn,
                 'name': 'User Extension',
-                'description': 'Custom user attributes mapped from Kobo USER_METADATA_FIELDS',
+                'description': 'Custom user attributes mapped from Kobo USER_METADATA_FIELDS',  # noqa E501
                 'attributes': [],
             }
 
