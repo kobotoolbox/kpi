@@ -12,42 +12,35 @@ export enum DeleteBlockerReason {
 
 export interface DeleteBlockerModalProps {
   assets: Array<AssetResponse | ProjectViewAsset>
+  blockedAssets?: Array<AssetResponse | ProjectViewAsset>
   reason: DeleteBlockerReason
   onRequestClose: () => void
 }
 
-export function DeleteBlockerModal({ assets, reason, onRequestClose }: DeleteBlockerModalProps) {
+export function DeleteBlockerModal({ assets, blockedAssets, reason, onRequestClose }: DeleteBlockerModalProps) {
   const isSingle = assets.length === 1
-  const assetsWithSubmissions = assets.filter((asset) => (asset.deployment__submission_count ?? 0) > 0)
 
   let body: string
   let alertText: string
 
-  switch (reason) {
-    case DeleteBlockerReason.submissions:
-      if (isSingle) {
-        body = t('In order to delete this project, all submissions need to be deleted first')
-        alertText = t(
-          'Projects with data cannot be deleted as part of a team. Only empty projects with no submissions can be deleted.',
-        )
-      } else {
-        body = t(
-          "The following projects have submissions and can't be deleted until all submissions have been deleted:",
-        )
-        alertText = t(
-          'Projects with data cannot be deleted as part of a team. Please make sure none of the projects selected contain any submissions.',
-        )
-      }
-      break
-    case DeleteBlockerReason.permissions:
-      if (isSingle) {
-        body = t('This project can only be deleted by its owner or a team administrator.')
-        alertText = t('Only the project owner or a team administrator can delete this project.')
-      } else {
-        body = t('Some of the selected projects can only be deleted by their owner or a team administrator.')
-        alertText = t('Only the project owners or a team administrator can delete these projects.')
-      }
-      break
+  if (isSingle) {
+    switch (reason) {
+      case DeleteBlockerReason.submissions:
+        body = t('Projects with submissions cannot be deleted by Team members.')
+        break
+      case DeleteBlockerReason.permissions:
+        body = t("You don't have permissions to delete projects from other Team members.")
+        break
+    }
+    alertText = t('Only empty projects you created can be deleted as part of a Team.')
+  } else {
+    body = t('The following ##COUNT## projects cannot be deleted as part of a Team:').replace(
+      '##COUNT##',
+      String(blockedAssets?.length ?? 0),
+    )
+    alertText = t(
+      'Some of these projects may have been created by other members or contain data. Only empty projects you created can be deleted.',
+    )
   }
 
   const navigateToProject = (asset: AssetResponse | ProjectViewAsset) => {
@@ -59,19 +52,19 @@ export function DeleteBlockerModal({ assets, reason, onRequestClose }: DeleteBlo
     <Stack gap='sm'>
       <Text size='sm'>{body}</Text>
 
-      {reason === DeleteBlockerReason.submissions && !isSingle && assetsWithSubmissions.length > 0 && (
+      {!isSingle && blockedAssets && blockedAssets.length > 0 && (
         <ScrollArea.Autosize mah={150} type='auto' offsetScrollbars>
           <List
             type='unordered'
             pl='md'
-            aria-label={t('Projects with submissions that cannot be deleted')}
+            aria-label={t('Projects that cannot be deleted')}
             icon={
               <Text span aria-hidden size='sm' c='blue.4'>
                 •
               </Text>
             }
           >
-            {assetsWithSubmissions.map((asset) => (
+            {blockedAssets.map((asset) => (
               <List.Item key={asset.uid}>
                 <Anchor c='blue.4' td='underline' onClick={() => navigateToProject(asset)}>
                   {asset.name}

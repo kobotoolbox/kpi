@@ -37,7 +37,12 @@ export function openBulkDeleteModal(assets: Array<AssetResponse | ProjectViewAss
       title,
       size: 'md',
       children: (
-        <DeleteBlockerModal assets={assets} reason={deleteCheck.reason} onRequestClose={() => modals.close(modalId)} />
+        <DeleteBlockerModal
+          assets={assets}
+          blockedAssets={deleteCheck.blockedAssets}
+          reason={deleteCheck.reason}
+          onRequestClose={() => modals.close(modalId)}
+        />
       ),
     })
   }

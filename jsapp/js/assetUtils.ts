@@ -730,12 +730,15 @@ export function getVirtualSupplementalFieldsForBulkActions(
   return result
 }
 
-type CanDeleteResult = { canDelete: true } | { canDelete: false; reason: DeleteBlockerReason }
+type CanDeleteResult =
+  | { canDelete: true }
+  | { canDelete: false; reason: DeleteBlockerReason; blockedAssets: Array<AssetResponse | ProjectViewAsset> }
 
 /**
  * Checks whether the current user can delete the given assets.
  * Returns `{ canDelete: true }` when deletion is allowed, or
- * `{ canDelete: false; reason }` describing why it is blocked.
+ * `{ canDelete: false; reason; blockedAssets }` describing why it is blocked
+ * and which specific assets are the cause.
  */
 export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): CanDeleteResult {
   const account = sessionStore.currentAccount
@@ -754,13 +757,18 @@ export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAss
   const currentUsername = account.username
 
   if (isMmoMember) {
-    // Check permissions first: show the most fundamental blocker immediately
-    // rather than sending the user on a wasted data-deletion errand.
-    if (assets.some((asset) => !asset.created_by || asset.created_by !== currentUsername)) {
-      return { canDelete: false, reason: DeleteBlockerReason.permissions }
-    }
-    if (assets.some((asset) => (asset.deployment__submission_count ?? 0) > 0)) {
-      return { canDelete: false, reason: DeleteBlockerReason.submissions }
+    // Only projects created by the user or that has no submissions
+    // can be deleted by MMO members.
+    const blockedAssets = assets.filter(
+      (asset) =>
+        !asset.created_by || asset.created_by !== currentUsername || (asset.deployment__submission_count ?? 0) > 0,
+    )
+    if (blockedAssets.length > 0) {
+      // Permissions take priority when determining the reason (affects single-asset copy)
+      const reason = blockedAssets.some((asset) => !asset.created_by || asset.created_by !== currentUsername)
+        ? DeleteBlockerReason.permissions
+        : DeleteBlockerReason.submissions
+      return { canDelete: false, reason, blockedAssets }
     }
   }
 
