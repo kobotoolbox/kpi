@@ -1,48 +1,36 @@
 /**
  * This is intended to be displayed in multiple places:
- * - library asset landing page
- * - library listing row
- * - project landing page (see: https://github.com/kobotoolbox/kpi/issues/2758)
- * - projects listing row (see: https://github.com/kobotoolbox/kpi/issues/2758)
+ * - library item page (AssetRoute)
+ * - library table of items (AssetsTable row)
  */
 import './assetActionButtons.scss'
-
 import React from 'react'
-
-import { IconWorldFilled } from '@tabler/icons-react'
 import autoBind from 'react-autobind'
 import { Link } from 'react-router-dom'
 import { actions } from '#/actions'
 import {
-  archiveAsset,
   cloneAsset,
   cloneAssetAsSurvey,
-  cloneAssetAsTemplate,
-  deployAsset,
   manageAssetLanguages,
   manageAssetSettings,
   manageAssetSharing,
   modifyAssetTags,
-  replaceAssetForm,
-  unarchiveAsset,
 } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
 import Button from '#/components/common/button'
 import type { ButtonType } from '#/components/common/button'
-import ButtonNew from '#/components/common/ButtonNew'
-import Menu from '#/components/common/Menu'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
 import { userCan } from '#/components/permissions/utils'
 import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
-import type { AssetDownloads, AssetResponse } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyFormRoute, isAnyLibraryItemRoute } from '#/router/routerUtils'
-import KoboIcon from '../common/KoboIcon'
+import AssetMoreActions from './AssetMoreActions'
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse
@@ -107,10 +95,6 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     modifyAssetTags(this.props.asset)
   }
 
-  replace() {
-    replaceAssetForm(this.props.asset)
-  }
-
   delete() {
     openDeleteAssetModal(
       this.props.asset,
@@ -131,28 +115,12 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     }
   }
 
-  deploy() {
-    deployAsset(this.props.asset)
-  }
-
-  archive() {
-    archiveAsset(this.props.asset)
-  }
-
-  unarchive() {
-    unarchiveAsset(this.props.asset)
-  }
-
   clone() {
     cloneAsset(this.props.asset)
   }
 
   cloneAsSurvey() {
     cloneAssetAsSurvey(this.props.asset.uid, assetUtils.getAssetDisplayName(this.props.asset).final)
-  }
-
-  cloneAsTemplate() {
-    cloneAssetAsTemplate(this.props.asset.uid, assetUtils.getAssetDisplayName(this.props.asset).final)
   }
 
   /** Pass `null` to remove from collection. */
@@ -196,141 +164,6 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     }
 
     return link
-  }
-
-  renderMoreActionsTrigger() {
-    const assetType = this.props.asset.asset_type
-    const userCanDelete = userCan('delete_submissions', this.props.asset)
-
-    if (assetType === ASSET_TYPES.collection.id && !userCanDelete) {
-      return null
-    }
-
-    return <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
-  }
-
-  renderMoreActions() {
-    const assetType = this.props.asset.asset_type
-    let downloads: AssetDownloads = []
-    if (assetType !== ASSET_TYPES.collection.id) {
-      downloads = this.props.asset.downloads
-    }
-    const userCanEdit = userCan('change_asset', this.props.asset)
-    const userCanDelete = userCan('delete_submissions', this.props.asset)
-    const isDeployable = assetType === ASSET_TYPES.survey.id && this.props.asset.deployed_version_id === null
-
-    // avoid rendering empty menu
-    if (!userCanEdit && downloads.length === 0) {
-      return null
-    }
-
-    return (
-      <Menu>
-        <Menu.Target>{this.renderMoreActionsTrigger()}</Menu.Target>
-
-        <Menu.Dropdown>
-          {userCanEdit && isDeployable && (
-            <Menu.Item onClick={this.deploy} leftSection={<i className='k-icon k-icon-deploy' />}>
-              {t('Deploy')}
-            </Menu.Item>
-          )}
-
-          {userCanEdit && assetType === ASSET_TYPES.survey.id && (
-            <Menu.Item onClick={this.replace} leftSection={<i className='k-icon k-icon-replace' />}>
-              {t('Replace form')}
-            </Menu.Item>
-          )}
-
-          {userCanEdit && assetType !== ASSET_TYPES.collection.id && (
-            <Menu.Item onClick={this.editLanguages} leftSection={<KoboIcon icon={IconWorldFilled} size={28} />}>
-              {t('Manage translations')}
-            </Menu.Item>
-          )}
-
-          {userCanEdit && assetType === ASSET_TYPES.survey.id && (
-            <Menu.Item onClick={this.cloneAsTemplate} leftSection={<i className='k-icon k-icon-template' />}>
-              {t('Create template')}
-            </Menu.Item>
-          )}
-
-          {downloads.map((dl) => (
-            <Menu.Item
-              component='a'
-              href={dl.url}
-              key={`dl-${dl.format}`}
-              leftSection={<i className={`k-icon k-icon-file-${dl.format}`} />}
-            >
-              {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
-            </Menu.Item>
-          ))}
-
-          {userCanEdit &&
-            assetType !== ASSET_TYPES.survey.id &&
-            assetType !== ASSET_TYPES.collection.id &&
-            this.props.asset.parent !== null && (
-              <Menu.Item
-                onClick={this.moveToCollection.bind(this, null)}
-                leftSection={<i className='k-icon k-icon-folder-out' />}
-              >
-                {t('Remove from collection')}
-              </Menu.Item>
-            )}
-
-          {userCanEdit &&
-            assetType !== ASSET_TYPES.survey.id &&
-            assetType !== ASSET_TYPES.collection.id &&
-            this.state.managedCollections.length > 0 && (
-              <>
-                <Menu.Label>{t('Move to')}</Menu.Label>
-                {this.state.managedCollections.map((collection) => {
-                  const isAssetParent = collection.url === this.props.asset.parent
-                  const displayName = assetUtils.getAssetDisplayName(collection).final
-                  return (
-                    <Menu.Item
-                      onClick={this.moveToCollection.bind(this, collection.url)}
-                      key={collection.uid}
-                      title={displayName}
-                      leftSection={
-                        isAssetParent ? (
-                          <i className='k-icon k-icon-check' />
-                        ) : (
-                          <i className='k-icon k-icon-folder-in' />
-                        )
-                      }
-                    >
-                      {displayName}
-                    </Menu.Item>
-                  )
-                })}
-              </>
-            )}
-
-          {userCanEdit &&
-            assetType === ASSET_TYPES.survey.id &&
-            this.props.has_deployment &&
-            !this.props.deployment__active && (
-              <Menu.Item onClick={this.unarchive} leftSection={<i className='k-icon k-icon-archived' />}>
-                {t('Unarchive')}
-              </Menu.Item>
-            )}
-
-          {userCanEdit &&
-            assetType === ASSET_TYPES.survey.id &&
-            this.props.has_deployment &&
-            this.props.deployment__active && (
-              <Menu.Item onClick={this.archive} leftSection={<i className='k-icon k-icon-archived' />}>
-                {t('Archive')}
-              </Menu.Item>
-            )}
-
-          {userCanEdit && userCanDelete && (
-            <Menu.Item onClick={this.delete} leftSection={<i className='k-icon k-icon-trash' />} color='red'>
-              {t('Delete')}
-            </Menu.Item>
-          )}
-        </Menu.Dropdown>
-      </Menu>
-    )
   }
 
   renderSubButton() {
@@ -454,7 +287,13 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
           />
         )}
 
-        {this.renderMoreActions()}
+        <AssetMoreActions
+          asset={this.props.asset}
+          managedCollections={this.state.managedCollections}
+          onEditLanguages={this.editLanguages}
+          onMoveToCollection={this.moveToCollection}
+          onDelete={this.delete}
+        />
       </menu>
     )
   }
