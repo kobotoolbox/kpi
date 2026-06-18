@@ -26,7 +26,13 @@ class ProjectView(models.Model):
 
     uid = KpiUidField(uid_prefix='pv')
     name = models.CharField(max_length=200)
-    countries = models.CharField(max_length=1000)
+    countries = models.CharField(
+        max_length=1000,
+        help_text=(
+            'Enter comma-separated country codes to filter by (e.g., "ESP, FRA"). '
+            'Use "*" to include all countries'
+        ),
+    )
     organizations = models.ManyToManyField(
         'organizations.Organization',
         related_name='project_views',
