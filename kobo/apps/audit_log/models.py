@@ -238,7 +238,13 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
                     Cast('object_id_legacy', output_field=models.CharField()),
                 ),
             )
-            .values('user__username', 'effective_object_id', 'user_uid', 'group_key', 'action')
+            .values(
+                'user__username',
+                'effective_object_id',
+                'user_uid',
+                'group_key',
+                'action',
+            )
             .annotate(
                 # include the number of submissions per group
                 # will be '1' for everything else
@@ -348,7 +354,7 @@ class AccessLog(AuditLog):
         Create an access log for a failed login request
         """
         username = credentials.get('username')
-        
+
         auth_type = authentication_type
         if not auth_type:
             auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
@@ -359,14 +365,14 @@ class AccessLog(AuditLog):
         else:
             ip = None
             source = None
-        
+
         metadata = {
             'ip_address': ip,
             'source': source,
             'auth_type': auth_type,
             'attempted_username': username,
         }
-        
+
         return AccessLog.objects.create(
             user=user if user and user.is_authenticated else None,
             metadata=metadata,
