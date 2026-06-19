@@ -79,7 +79,7 @@ export default function AccessLogsSection() {
           // properties (from `accessLogs.query.ts` file) using dot notation.
           {
             key: 'action',
-            label: t('Status'),
+            label: t('Action'),
             cellFormatter: (log: AccessLogResponse) => {
               return log.action === AccessLogAction.AUTH_FAILED ? t('Failed') : t('Success')
             },
