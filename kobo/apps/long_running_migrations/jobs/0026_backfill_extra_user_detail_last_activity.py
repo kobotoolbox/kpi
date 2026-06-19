@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db.models import Max
@@ -37,7 +37,7 @@ def run():
         )
 
 
-def _get_batch(last_pk: int, threshold: int) -> list:
+def _get_batch(last_pk: int, threshold: datetime) -> list:
     return list(
         ExtraUserDetail.objects.filter(
             pk__gt=last_pk, last_project_activity__isnull=True
@@ -49,7 +49,7 @@ def _get_batch(last_pk: int, threshold: int) -> list:
     )
 
 
-def _process_batch(batch: list, threshold: int) -> None:
+def _process_batch(batch: list, threshold: datetime) -> None:
     username_to_ed = {ed.user.username: ed for ed in batch}
     user_id_to_ed = {ed.user_id: ed for ed in batch}
 
