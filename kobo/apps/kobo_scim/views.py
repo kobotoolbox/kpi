@@ -203,7 +203,7 @@ class ScimUserViewSet(
         first_name = name_dict.get('givenName', '')
         last_name = name_dict.get('familyName', '')
         uid = data.get('externalId') or username
-        active = data.get('active', True)
+        active = str(data.get('active', '')).lower() == 'true'
 
         try:
             with transaction.atomic():
