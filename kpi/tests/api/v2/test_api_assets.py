@@ -331,6 +331,11 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         result_uids_float = [r['uid'] for r in resp_float.data.get('results', [])]
         self.assertIn(asset_float.uid, result_uids_float)
 
+    def test_nonexistent_parent(self):
+        res = self.client.get(self.list_url, data={'q': 'parent__uid:bad'})
+        assert res.status_code == status.HTTP_200_OK
+        assert res.data['results'] == []
+
     def test_assets_ordering(self):
 
         someuser = User.objects.get(username='someuser')
