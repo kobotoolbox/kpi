@@ -106,6 +106,48 @@ const bulkTranscribedAudioFilesLog = karinaLog({
   date_created: '2026-05-30T13:41:20Z',
 })
 
+const bulkTranscriptionInProgressLog = johnLog({
+  action: AuditActions['bulk-processing'],
+  metadata: {
+    bulk_action: {
+      uid: 'sbaX5mP9vN3wQyT7kR2bC8',
+      action_id: BULK_PROCESSING_ACTION_IDS.automaticGoogleTranscription,
+      type: 'transcription',
+      status: 'in_progress',
+      question_xpath: '/data/audio_file',
+      params: { language: 'en' },
+      created_by: 'john',
+      total_count: 25,
+      processed_count: 8,
+      completed_count: 7,
+      failed_count: 1,
+      cancelled_count: 0,
+    },
+  },
+  date_created: '2026-06-11T14:22:15Z',
+})
+
+const bulkTranslationInProgressLog = karinaLog({
+  action: AuditActions['bulk-processing'],
+  metadata: {
+    bulk_action: {
+      uid: 'sbaW2nL6uK4pRxS9jQ3aD5',
+      action_id: BULK_PROCESSING_ACTION_IDS.automaticGoogleTranslation,
+      type: 'translation',
+      status: 'in_progress',
+      question_xpath: '/data/transcript',
+      params: { language: 'fr' },
+      created_by: 'karina',
+      total_count: 15,
+      processed_count: 3,
+      completed_count: 3,
+      failed_count: 0,
+      cancelled_count: 0,
+    },
+  },
+  date_created: '2026-06-11T14:18:30Z',
+})
+
 /**
  * Mock API for project activity (AKA history logs). Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
@@ -357,3 +399,29 @@ const assetHistoryFilteredResponse: PaginatedResponse<ActivityLogsItem> = {
   previous: null,
   results: [addMediaAttachmentLog],
 }
+
+/**
+ * Response with ongoing bulk processing jobs for testing.
+ */
+export const assetHistoryWithOngoingBulkProcessing: PaginatedResponse<ActivityLogsItem> = {
+  count: 4,
+  next: null,
+  previous: null,
+  results: [
+    bulkTranscriptionInProgressLog,
+    bulkTranslationInProgressLog,
+    bulkTranslatedTranscriptionsLog,
+    bulkTranscribedAudioFilesLog,
+  ],
+}
+
+/**
+ * Mock API for project activity with ongoing bulk processing. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ */
+export const assetHistoryMockWithOngoingBulkProcessing = http.get<
+  PathParams<'limit' | 'start' | 'q'>,
+  never,
+  PaginatedResponse<ActivityLogsItem>
+>(endpoints.ASSET_HISTORY.replace(':asset_uid', mockAssetUid), () =>
+  HttpResponse.json(assetHistoryWithOngoingBulkProcessing),
+)

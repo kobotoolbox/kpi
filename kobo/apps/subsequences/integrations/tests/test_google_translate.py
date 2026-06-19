@@ -279,7 +279,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='global',
     )
     def test_async_translation_raises_quota_error_when_start_quota_is_exhausted(self):
         """
@@ -315,7 +315,7 @@ class TestGoogleTranslate(TestCase):
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_TRANSLATION_LOCATION='us-central1',
+        ASR_MT_GOOGLE_REGION='global',
     )
     def test_sync_translation_raises_quota_error_when_quota_is_exhausted(self):
         """

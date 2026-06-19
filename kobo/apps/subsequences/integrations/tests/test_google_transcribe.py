@@ -156,7 +156,11 @@ def test_process_data_returns_failed_for_polling_auth_errors(_mock_location):
     )
 
 
-def test_process_data_raises_quota_error_when_start_quota_is_exhausted():
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_raises_quota_error_when_start_quota_is_exhausted(_mock_location):
     """
     Test that if the internal token bucket rate limit is exhausted,
     the transcription process aborts locally and bubbles the quota error up
