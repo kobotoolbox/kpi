@@ -233,7 +233,11 @@ class BigModal extends React.Component {
         <Modal.Body>
           {this.props.params.type === MODAL_TYPES.SHARING && <SharingForm assetUid={uid} />}
           {this.props.params.type === MODAL_TYPES.NEW_FORM && (
-            <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.NEW} onSetModalTitle={this.setModalTitle} />
+            <ProjectSettings
+              context={PROJECT_SETTINGS_CONTEXTS.NEW}
+              onSetModalTitle={this.setModalTitle}
+              initialTemplateUid={this.props.params.initialTemplateUid}
+            />
           )}
           {this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM && (
             <LibraryNewItemForm onSetModalTitle={this.setModalTitle} />
