@@ -2302,4 +2302,6 @@ AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
 
 # Minimum gap between two ExtraUserDetail.last_project_activity writes for the same
 # user. Prevents write storms when a user submits many forms in a short window.
-LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = 3600  # seconds
+LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
+    'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
+)
