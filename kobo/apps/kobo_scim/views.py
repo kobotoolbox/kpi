@@ -437,6 +437,18 @@ class ScimUserViewSet(
             if was_active and not instance.is_active:
                 self.perform_destroy(instance)
             elif not was_active and instance.is_active:
+                self._create_provisioning_audit_log(
+                    user=instance,
+                    action=AuditAction.REPROVISIONING,
+                    email=instance.email,
+                    username=instance.username,
+                    status_code=status.HTTP_200_OK,
+                    reason=(
+                        'Automated account re-provisioning via SCIM PUT '
+                        'request from Identity Provider.'
+                    ),
+                )
+
                 reactivated_users = self._reactivate_sso_linked_accounts(
                     instance.email, instance
                 )
