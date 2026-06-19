@@ -278,13 +278,12 @@ export function cloneAssetAsTemplate(sourceUid: string, sourceName: string) {
 }
 
 /** To be used when creating a project from template. */
-export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
-  _cloneAssetAsNewType({
-    sourceUid: sourceUid,
-    sourceName: sourceName,
-    targetType: ASSET_TYPES.survey.id,
-    promptTitle: t('Create new project from this template'),
-    promptMessage: t('Enter the name of the new project.'),
+export function cloneAssetAsSurvey(sourceUid: string) {
+  // Open the NEW_FORM modal with the template pre-selected
+  // This ensures that metadata is properly collected during project creation
+  pageState.showModal({
+    type: MODAL_TYPES.NEW_FORM,
+    initialTemplateUid: sourceUid,
   })
 }
 

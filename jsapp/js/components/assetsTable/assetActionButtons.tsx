@@ -116,7 +116,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   onPopoverSetVisible() {
-    this.setState({ isPopoverVisible: true })
+    this.setState({ isPopoverVisible: true, shouldHidePopover: false })
   }
 
   // Methods for managing the asset
@@ -178,7 +178,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   cloneAsSurvey() {
-    cloneAssetAsSurvey(this.props.asset.uid, assetUtils.getAssetDisplayName(this.props.asset).final)
+    cloneAssetAsSurvey(this.props.asset.uid)
   }
 
   cloneAsTemplate() {
