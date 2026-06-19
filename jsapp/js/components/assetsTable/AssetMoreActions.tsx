@@ -51,6 +51,11 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
     return null
   }
 
+  // For collections, only action is Delete, so don't render menu unless user can delete
+  if (assetType === ASSET_TYPES.collection.id && (!userCanEdit || !userCanDelete)) {
+    return null
+  }
+
   // Only show collection management for templates and questions/blocks (not surveys or collections)
   const canManageCollections =
     userCanEdit && assetType !== ASSET_TYPES.survey.id && assetType !== ASSET_TYPES.collection.id
