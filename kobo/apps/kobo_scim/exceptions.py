@@ -1,10 +1,29 @@
 from django.db import IntegrityError
 from rest_framework import status
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
 from kpi.utils.drf_exceptions import custom_exception_handler
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_ERROR
+
+
+class ScimException(APIException):
+    """
+    Custom exception for SCIM-specific errors.
+    """
+
+    def __init__(
+        self,
+        detail,
+        status_code=status.HTTP_400_BAD_REQUEST,
+        error_code=None,
+        reason=None,
+    ):
+        super().__init__(detail)
+        self.status_code = status_code
+        self.error_code = error_code
+        self.reason = reason
 
 
 def scim_exception_handler(exc, context):
@@ -19,8 +38,14 @@ def scim_exception_handler(exc, context):
     status_code = None
     detail = None
     error_code = None
+    reason = str(exc)
 
-    if isinstance(exc, IntegrityError):
+    if isinstance(exc, ScimException):
+        status_code = exc.status_code
+        detail = str(exc.detail)
+        error_code = exc.error_code
+        reason = exc.reason
+    elif isinstance(exc, IntegrityError):
         status_code = status.HTTP_409_CONFLICT
         detail = 'One or more attributes in the resource already exists.'
         error_code = 'integrity_error'
@@ -65,7 +90,7 @@ def scim_exception_handler(exc, context):
                 username=username,
                 status_code=status_code,
                 error=error_code,
-                reason=str(exc),
+                reason=reason,
             )
 
         # Build SCIM response
