@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
+from time import sleep
 
 from django.conf import settings
 from django.db.models import Max
 from django.utils import timezone
 
 from hub.models.extra_user_detail import ExtraUserDetail
-from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kpi.models import Asset
 from kpi.utils.log import logging
 
@@ -14,52 +15,91 @@ CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 
 def run():
     """
-    Backfills ExtraUserDetail.last_project_activity from Asset and AuditLog history.
+    Backfills ExtraUserDetail.last_project_activity from login history, Asset,
+    XForm, and Instance records.
 
-    Skips users with a recent login, they are already considered active by
-    get_active_users() via last_login and do not need backfilling.
-
-    For the remaining users:
-    1. Most recent asset created_by / last_modified_by within 90 days
-    2. Most recent AuditLog entry per user
-    3. Sentinel (-731 days) when no activity is found anywhere, so the row is
+    For each user with last_project_activity IS NULL:
+    1. last_login within 90 days → use last_login directly (active under ALL admin
+       filter presets: 90 / 180 / 365 / 730 days). No further queries.
+    2. Asset batch query: MAX(date_created / date_modified) within 365 days.
+    3. XForm batch query: MAX(last_submission_time) within 365 days (form owner).
+       Runs for ALL remaining users — a user with an older asset date may have a
+       more recent received submission. Pre-computed field avoids GROUP BY MAX on
+       a multi-billion-row Instance table.
+    4. Per-user Instance query: most recent submission as submitter within 365 days.
+       Only for users with no date from any earlier source. Uses iterator(chunk_size=1)
+       to avoid the LIMIT 1 bad query plan.
+    5. login_fallback: for users with last_login in the 91-364 day range but no
+       project activity found in steps 2-4, fall back to last_login.
+    6. Sentinel (-731 days) when no activity is found anywhere, so the row is
        non-NULL and idempotent on migration restart.
     """
     last_pk = 0
-    threshold = timezone.now() - timedelta(days=90)
+    threshold = timezone.now() - timedelta(days=365)
 
-    while batch := _get_batch(last_pk, threshold):
+    while batch := _get_batch(last_pk):
         _process_batch(batch, threshold)
         last_pk = batch[-1].pk
         logging.info(
             f'[LRM 0026] backfilled last_project_activity up to '
             f'ExtraUserDetail pk={last_pk}'
         )
+        sleep(0.5)
 
 
-def _get_batch(last_pk: int, threshold: datetime) -> list:
+def _get_batch(last_pk: int) -> list:
     return list(
         ExtraUserDetail.objects.filter(
             pk__gt=last_pk, last_project_activity__isnull=True
         )
-        .exclude(user__last_login__gt=threshold)
         .select_related('user')
-        .only('pk', 'user_id', 'user__id', 'user__username')
+        .only('pk', 'user_id', 'user__id', 'user__username', 'user__last_login')
         .order_by('pk')[:CHUNK_SIZE]
     )
 
 
 def _process_batch(batch: list, threshold: datetime) -> None:
-    username_to_ed = {ed.user.username: ed for ed in batch}
-    user_id_to_ed = {ed.user_id: ed for ed in batch}
+    # Step 1: 90-day login shortcut (in-memory, no DB query).
+    # Users who logged in within 90 days are active under ALL admin filter presets
+    # (90 / 180 / 365 / 730 days). Safe to use last_login directly and skip DB queries.
+    recent_login_threshold = timezone.now() - timedelta(days=90)
+    remaining = []
+    for ed in batch:
+        if ed.user.last_login and ed.user.last_login >= recent_login_threshold:
+            ed.last_project_activity = ed.user.last_login
+        else:
+            remaining.append(ed)
 
-    created_dates = dict(
-        Asset.objects.filter(created_by__in=username_to_ed, date_created__gte=threshold)
+    if not remaining:
+        ExtraUserDetail.objects.bulk_update(batch, ['last_project_activity'])
+        return
+
+    username_to_ed = {ed.user.username: ed for ed in remaining}
+    user_id_to_ed = {ed.user_id: ed for ed in remaining}
+
+    # Collect last_login as a fallback for users with login in the 91-364 day range.
+    # Steps 2-4 may find more recent project activity (e.g., received submissions);
+    # last_login is only applied if nothing else is found within the 365-day window.
+    login_fallback = {
+        ed.user_id: ed.user.last_login
+        for ed in remaining
+        if ed.user.last_login and ed.user.last_login >= threshold
+    }
+
+    # Step 2: Asset batch queries (KPI DB).
+    # Query 1: assets owned by the user that were recently modified by anyone.
+    # Using date_modified (not date_created) covers both newly created assets and
+    # existing assets touched by a collaborator.
+    # Query 2: assets the user recently modified themselves (regardless of ownership).
+    owned_dates = dict(
+        Asset.objects.filter(
+            created_by__in=username_to_ed, date_modified__gte=threshold
+        )
         .values('created_by')
-        .annotate(max_date=Max('date_created'))
+        .annotate(max_date=Max('date_modified'))
         .values_list('created_by', 'max_date')
     )
-    modified_dates = dict(
+    modifier_dates = dict(
         Asset.objects.filter(
             last_modified_by__in=username_to_ed, date_modified__gte=threshold
         )
@@ -67,31 +107,50 @@ def _process_batch(batch: list, threshold: datetime) -> None:
         .annotate(max_date=Max('date_modified'))
         .values_list('last_modified_by', 'max_date')
     )
-
-    remaining_user_ids = set()
     for username, ed in username_to_ed.items():
         candidates = [
             d
-            for d in [created_dates.get(username), modified_dates.get(username)]
+            for d in [owned_dates.get(username), modifier_dates.get(username)]
             if d is not None
         ]
         if candidates:
             ed.last_project_activity = max(candidates)
-        else:
-            remaining_user_ids.add(ed.user_id)
 
-    # AuditLog fallback — per-user exists() + LIMIT 1, both use the composite
-    # index (user_id, date_created DESC) and are fast individually.
-    # GROUP BY MAX() across multiple users is slow even with the index.
+    # Step 3: XForm batch query — form owner (KoboCAT DB).
+    # Runs for ALL remaining users (not just those without an asset date): a user
+    # may have an older asset date but a more recent received submission.
+    # XForm.last_submission_time is pre-computed; avoids GROUP BY MAX on Instance.
+    xform_dates = dict(
+        XForm.objects.filter(
+            user_id__in=user_id_to_ed, last_submission_time__gte=threshold
+        )
+        .values('user_id')
+        .annotate(max_date=Max('last_submission_time'))
+        .values_list('user_id', 'max_date')
+    )
+    for user_id, date in xform_dates.items():
+        ed = user_id_to_ed[user_id]
+        if ed.last_project_activity is None or date > ed.last_project_activity:
+            ed.last_project_activity = date
+
+    # Step 4: Per-user Instance query — as submitter (KoboCAT DB).
+    # Only for users with no date from any earlier source. No LIMIT 1: avoids the
+    # bad date_created-index plan. iterator(chunk_size=1) opens a named cursor and
+    # fetches one row; Python breaks immediately.
+    for ed in (ed for ed in remaining if ed.last_project_activity is None):
+        for date in (
+            Instance.objects.filter(user_id=ed.user_id, date_modified__gte=threshold)
+            .values_list('date_modified', flat=True)
+            .order_by('-date_modified')
+            .iterator(chunk_size=1)
+        ):
+            ed.last_project_activity = date
+            break
+
+    # Apply login fallback or sentinel to users still without a date.
     sentinel = timezone.now() - timedelta(days=731)
-    if remaining_user_ids:
-        for user_id in remaining_user_ids:
-            date = (
-                AuditLog.objects.filter(user_id=user_id)
-                .order_by('-date_created')
-                .values_list('date_created', flat=True)
-                .first()
-            )
-            user_id_to_ed[user_id].last_project_activity = date or sentinel
+    for ed in remaining:
+        if ed.last_project_activity is None:
+            ed.last_project_activity = login_fallback.get(ed.user_id, sentinel)
 
     ExtraUserDetail.objects.bulk_update(batch, ['last_project_activity'])
