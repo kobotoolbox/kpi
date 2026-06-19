@@ -260,9 +260,27 @@ class ScimUserViewSet(
                         )
 
                     # Create the user natively
-                    unique_username = generate_unique_scim_username(
-                        username, self.idp.slug
-                    )
+                    try:
+                        unique_username = generate_unique_scim_username(
+                            username, self.idp.slug
+                        )
+                    except ValueError as e:
+                        self._create_provisioning_audit_log(
+                            action=AuditAction.PROVISIONING_ERROR,
+                            email=email,
+                            username=username,
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            error='unique_username_failed',
+                            reason=str(e),
+                        )
+                        return Response(
+                            {
+                                'schemas': [SCIM_SCHEMA_ERROR],
+                                'detail': str(e),
+                                'status': '400',
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
                     user = User.objects.create_user(
                         username=unique_username,
                         email=email,
