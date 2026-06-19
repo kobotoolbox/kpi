@@ -258,16 +258,16 @@ export const BasicFlow: Story = {
     await step('Verify API saved translation for question 11', async () => {
       await waitFor(async () => {
         await expect(onAssetPatched).toHaveBeenCalled()
+
+        const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
+        const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
+
+        const survey = latestPatchedAsset?.content?.survey || []
+        const question11 = survey.find((item) => item.name === 'question_11')
+        const label = question11?.label as Array<string | null> | undefined
+
+        await expect(label?.[1]).toBe('Nom')
       })
-
-      const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
-      const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
-
-      const survey = latestPatchedAsset?.content?.survey || []
-      const question11 = survey.find((item) => item.name === 'question_11')
-      const label = question11?.label as Array<string | null> | undefined
-
-      await expect(label && label[1]).toBe('Nom')
     })
 
     await step('Close modal', async () => {
