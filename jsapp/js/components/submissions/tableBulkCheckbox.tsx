@@ -1,10 +1,8 @@
 import './tableBulkCheckbox.scss'
-
 import React from 'react'
-
+import Menu from '#/components/common/Menu'
 import Checkbox from '#/components/common/checkbox'
 import Icon from '#/components/common/icon'
-import Menu from '#/components/common/Menu'
 
 interface TableBulkCheckboxProps {
   visibleRowsCount: number
