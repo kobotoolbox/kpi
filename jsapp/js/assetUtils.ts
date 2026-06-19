@@ -11,7 +11,6 @@ import {
   type OrganizationsRetrieveQueryResult,
   getOrganizationsRetrieveQueryKey,
 } from '#/api/react-query/user-team-organization-usage'
-import { DeleteBlockerReason } from '#/components/DeleteAssetModal/DeleteBlockerModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
@@ -48,6 +47,11 @@ import type { Asset } from './api/models/asset'
 import type { AssetMinimalList } from './api/models/assetMinimalList'
 import type { BulkActionResponse } from './api/models/bulkActionResponse'
 import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
+
+export enum DeleteBlockerReason {
+  submissions = 'submissions',
+  permissions = 'permissions',
+}
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.

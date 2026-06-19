@@ -1,14 +1,10 @@
 import { Group, List, ScrollArea, Stack, Text } from '@mantine/core'
 import { Link } from 'react-router-dom'
+import { DeleteBlockerReason } from '#/assetUtils'
 import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { ROUTES } from '#/router/routerConstants'
-
-export enum DeleteBlockerReason {
-  submissions = 'submissions',
-  permissions = 'permissions',
-}
 
 export interface DeleteBlockerModalProps {
   assets: Array<AssetResponse | ProjectViewAsset>
