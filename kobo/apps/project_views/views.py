@@ -28,6 +28,7 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
+
 from .models.project_view import ProjectView
 from .schema_extensions.v2.serializers import (
     ProjectViewAssetResponse,
@@ -372,15 +373,26 @@ class ProjectViewViewSet(
 
     @staticmethod
     def _get_regional_queryset(
-        queryset: QuerySet, uid: str, obj_type: str
+        queryset: QuerySet, uid: str, obj_type: str = 'asset'
     ) -> QuerySet:
-
         region = get_region_for_view(uid)
 
-        if '*' in region:
-            return queryset
+        pv = ProjectView.objects.prefetch_related('organizations').get(uid=uid)
 
-        if obj_type == 'user':
-            return queryset.filter(extra_details__data__country__in=region)
-        else:
-            return queryset.filter(settings__country_codes__in_array=region)
+        if '*' not in region:
+            if obj_type == 'user':
+                queryset = queryset.filter(extra_details__data__country__in=region)
+            else:
+                queryset = queryset.filter(settings__country_codes__in_array=region)
+
+        if pv.organizations.all():
+            if obj_type == 'user':
+                queryset = queryset.filter(
+                    organizations_organization__in=pv.organizations.all()
+                ).distinct()
+            else:
+                queryset = queryset.filter(
+                    owner__organizations_organization__in=pv.organizations.all()
+                ).distinct()
+
+        return queryset

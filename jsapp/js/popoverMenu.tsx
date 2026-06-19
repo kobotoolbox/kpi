@@ -36,6 +36,9 @@ type HTMLElementEvent<T extends HTMLElement> = Event & {
   relatedTarget: T
 }
 
+/**
+ * @deprecated please use `js/components/common/Menu`
+ */
 export default class PopoverMenu extends React.Component<PopoverMenuProps, PopoverMenuState> {
   _mounted: boolean
 
