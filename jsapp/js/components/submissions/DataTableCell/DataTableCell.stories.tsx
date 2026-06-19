@@ -1,6 +1,7 @@
 import { Box } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { CellInfo } from 'react-table'
+import assetDataFactory from '#/endpoints/assetData.factory'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
 import {
@@ -34,6 +35,28 @@ const supplementalSubmission = {
     },
   },
 } as SubmissionResponse
+
+// Submission with unaccepted automatic transcript - shows Review button
+const unacceptedTranscriptSubmission = assetDataFactory(1, {
+  [SUPPLEMENTAL_DETAILS_PROP]: {
+    What_is_your_opinion: {
+      automatic_google_transcription: {
+        _versions: [
+          {
+            _uuid: 'version-uuid-1',
+            _dateCreated: '2024-01-15T10:30:00Z',
+            _dateAccepted: undefined, // Not accepted - triggers Review button
+            _data: {
+              language: 'fr',
+              value: 'Ceci est une transcription automatique générée par Google.',
+              status: 'complete',
+            },
+          },
+        ],
+      },
+    },
+  } as any, // Type assertion needed as automatic_google_transcription isn't in the base interface
+})
 
 const meta: Meta<typeof DataTableCell> = {
   title: 'Components/DataTableCell',
@@ -91,5 +114,25 @@ export const BulkProcessingInProgress: Story = {
     translationIndex: 0,
     submissionCount: 2,
     isBulkProcessingInProgress: true,
+  },
+}
+
+export const UnacceptedAutomaticTranscript: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(unacceptedTranscriptSubmission, undefined),
+    columnKey: transcriptColumnKey,
+    question: undefined,
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Shows a "Review" button when there is unaccepted automatic transcript content',
+      },
+    },
   },
 }

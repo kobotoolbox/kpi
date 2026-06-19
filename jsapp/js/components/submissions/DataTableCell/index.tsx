@@ -1,4 +1,4 @@
-import { Group, Text } from '@mantine/core'
+import { Text } from '@mantine/core'
 import type { CellInfo } from 'react-table'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
@@ -9,11 +9,12 @@ import {
 } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { formatTimeDateShort, recordKeys } from '#/utils'
-import { getMediaAttachment, getSupplementalDetailsContent } from '../submissionUtils'
+import { getMediaAttachment } from '../submissionUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
 import MediaCell from './MediaCell'
 import RepeatGroupCell from './RepeatGroupCell'
+import SupplementalDetailsCell from './SupplementalDetailsCell'
 import TextModalCell from './TextModalCell'
 
 interface DataTableCellProps {
@@ -153,13 +154,11 @@ export default function DataTableCell(props: DataTableCellProps) {
     props.question === undefined &&
     props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
   ) {
-    const supplementalValue = getSupplementalDetailsContent(submission, props.columnKey) || ''
-    if (props.columnKey.endsWith('verified')) {
-      return <Group h='100%'>{supplementalValue}</Group>
-    }
     return (
-      <TextModalCell
-        text={supplementalValue}
+      <SupplementalDetailsCell
+        asset={props.asset}
+        submission={submission}
+        columnKey={props.columnKey}
         columnName={columnName}
         submissionIndex={submissionIndex}
         submissionTotal={props.submissionCount}

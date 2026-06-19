@@ -1,5 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
@@ -8,6 +9,7 @@ import {
   QUAL_NOTE_TYPE,
   type SubmissionAnalysisResponse,
 } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
+import { TransxVersionSortFunction } from '#/components/processing/common/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
@@ -941,4 +943,84 @@ export function getBackgroundAudioAttachment(
   }
 
   return undefined
+}
+
+/**
+ * Helper to check if a version item has unaccepted automatic content
+ */
+function hasUnacceptedVersion(version: any): boolean {
+  return Boolean(version._data?.value && !version._dateAccepted)
+}
+
+/**
+ * Checks if a supplemental details column contains unaccepted automatic content
+ * (transcript or translation that was auto-generated but not yet accepted by user).
+ *
+ * @param submission - The submission data
+ * @param columnKey - The supplemental details column key (e.g., '_supplementalDetails/audio_question/transcript_en')
+ * @returns true if the column has unaccepted automatic content, false otherwise
+ */
+export function hasUnacceptedAutomaticContent(
+  submission: DataResponse | SubmissionResponse,
+  columnKey: string,
+): boolean {
+  if (!columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+    return false
+  }
+
+  const pathParts = getSupplementalPathParts(columnKey)
+
+  // Only transcript and translation can have unaccepted automatic content
+  if (pathParts.type !== 'transcript' && pathParts.type !== 'translation') {
+    return false
+  }
+
+  // Check if submission has supplemental details
+  if (!submission._supplementalDetails || typeof submission._supplementalDetails !== 'object') {
+    return false
+  }
+
+  const sourceRowData = get(submission._supplementalDetails, pathParts.sourceRowPath, null)
+
+  if (!sourceRowData || typeof sourceRowData !== 'object') {
+    return false
+  }
+
+  // Check for automatic transcription versions
+  if (pathParts.type === 'transcript') {
+    const automaticTranscription = sourceRowData[ActionEnum.automatic_google_transcription]
+    if (!automaticTranscription?._versions) {
+      return false
+    }
+
+    // Find the latest version matching the language
+    const matchingVersions = automaticTranscription._versions.filter(
+      (v: any) => v._data?.language === pathParts.languageCode
+    )
+
+    if (matchingVersions.length === 0) {
+      return false
+    }
+
+    const latestVersion = matchingVersions.sort(TransxVersionSortFunction)[0]
+    return hasUnacceptedVersion(latestVersion)
+  }
+
+  // Check for automatic translation versions
+  if (pathParts.type === 'translation') {
+    const automaticTranslation = sourceRowData[ActionEnum.automatic_google_translation]
+    if (!automaticTranslation || typeof automaticTranslation !== 'object') {
+      return false
+    }
+
+    const languageTranslation = automaticTranslation[pathParts.languageCode || '']
+    if (!languageTranslation?._versions || languageTranslation._versions.length === 0) {
+      return false
+    }
+
+    const latestVersion = languageTranslation._versions.sort(TransxVersionSortFunction)[0]
+    return hasUnacceptedVersion(latestVersion)
+  }
+
+  return false
 }
