@@ -423,6 +423,7 @@ export default function Reports(props: ReportsProps) {
             startIcon='plus'
             onClick={openCustomReportModal}
             tooltip={t('Create New Report')}
+            isDisabled={!userCan('change_asset', state.asset)}
           />
 
           <Button
@@ -431,7 +432,7 @@ export default function Reports(props: ReportsProps) {
             startIcon='edit'
             onClick={editCustomReport}
             tooltip={t('Edit Report Questions')}
-            isDisabled={!state.currentCustomReport}
+            isDisabled={!userCan('change_asset', state.asset) || !state.currentCustomReport}
           />
 
           <Button
