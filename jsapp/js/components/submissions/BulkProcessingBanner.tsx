@@ -97,7 +97,7 @@ export default function BulkProcessingBanner(props: BulkProcessingBannerProps) {
           <>
             {' '}
             <TextWithInternalLink
-              text={t('[Click here] to monitor your progress or to cancel this job.')}
+              text={t('[Click here] to monitor your progress or to cancel pending requests.')}
               path={activityLogPath}
             />
           </>
