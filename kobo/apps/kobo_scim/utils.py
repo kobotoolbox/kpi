@@ -185,12 +185,17 @@ def generate_unique_scim_username(base_username, idp_slug):
         return base_with_suffix
 
     # Attempt 3+: {prefix}_{idp_slug}_{counter}
+    max_attempts = 1000
     counter = 1
-    while True:
+    while counter <= max_attempts:
         username = f'{base_with_suffix}_{counter}'
         if not User.objects.filter(username__iexact=username).exists():
             return username
         counter += 1
+    raise ValueError(
+        f'Could not generate a unique username for {base_username!r} after '
+        f'{max_attempts} attempts.'
+    )
 
 
 def get_scim_extension_schemas():
