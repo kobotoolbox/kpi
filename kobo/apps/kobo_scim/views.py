@@ -39,6 +39,12 @@ from kobo.apps.kobo_scim.utils import (
     generate_unique_scim_username,
     get_scim_extension_schemas,
 )
+from kobo.apps.kobo_scim.exceptions import scim_exception_handler
+
+
+class ScimExceptionHandlerMixin:
+    def get_exception_handler(self):
+        return scim_exception_handler
 
 
 def normalize_scim_patch_operations(operations):
@@ -113,6 +119,7 @@ def scim_extend_schema(**kwargs):
     ),
 )
 class ScimUserViewSet(
+    ScimExceptionHandlerMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
@@ -260,27 +267,9 @@ class ScimUserViewSet(
                         )
 
                     # Create the user natively
-                    try:
-                        unique_username = generate_unique_scim_username(
-                            username, self.idp.slug
-                        )
-                    except ValueError as e:
-                        self._create_provisioning_audit_log(
-                            action=AuditAction.PROVISIONING_ERROR,
-                            email=email,
-                            username=username,
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            error='unique_username_failed',
-                            reason=str(e),
-                        )
-                        return Response(
-                            {
-                                'schemas': [SCIM_SCHEMA_ERROR],
-                                'detail': str(e),
-                                'status': '400',
-                            },
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
+                    unique_username = generate_unique_scim_username(
+                        username, self.idp.slug
+                    )
                     user = User.objects.create_user(
                         username=unique_username,
                         email=email,
@@ -380,25 +369,6 @@ class ScimUserViewSet(
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        except IntegrityError as e:
-            # This is a safe fallback for edge cases like duplicate SocialAccount UIDs
-            self._create_provisioning_audit_log(
-                action=AuditAction.PROVISIONING_ERROR,
-                email=email,
-                username=username,
-                status_code=status.HTTP_409_CONFLICT,
-                error='integrity_error',
-                reason=str(e),
-            )
-            return Response(
-                {
-                    'schemas': [SCIM_SCHEMA_ERROR],
-                    'detail': 'One or more attributes in the resource already exists.',
-                    'status': '409',
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
-
     @extend_schema(
         responses=scim_responses(
             {
@@ -414,38 +384,7 @@ class ScimUserViewSet(
         update a user to have a username or email that already exists on another
         account, we intercept the IntegrityError and return a SCIM 409 Conflict.
         """
-        try:
-            return super().update(request, *args, **kwargs)
-        except IntegrityError as exc:
-            # If the SCIM client attempts to force an update that violates DB unique
-            # constraints (e.g. changing the username to one that already exists),
-            # return SCIM 409 format.
-            user = self.get_object()
-            data = request.data
-            email = data.get('email', user.email) if data else user.email
-            username = data.get('userName', user.username) if data else user.username
-
-            self._create_provisioning_audit_log(
-                user=user,
-                action=AuditAction.PROVISIONING_ERROR,
-                email=email,
-                username=username,
-                status_code=status.HTTP_409_CONFLICT,
-                error='integrity_error',
-                reason=(
-                    f'SCIM PUT update aborted due to constraint violation: '
-                    f'{str(exc)}'
-                ),
-            )
-
-            return Response(
-                {
-                    'schemas': [SCIM_SCHEMA_ERROR],
-                    'detail': 'One or more attributes in the resource already exists.',
-                    'status': '409',
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
+        return super().update(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         with transaction.atomic():
@@ -734,7 +673,7 @@ class ScimUserViewSet(
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM Service Provider Configuration.'),
 )
-class ScimServiceProviderConfigView(APIView):
+class ScimServiceProviderConfigView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant ServiceProviderConfig endpoint.
     - GET /ServiceProviderConfig
@@ -780,7 +719,7 @@ class ScimServiceProviderConfigView(APIView):
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM supported Schemas.'),
 )
-class ScimSchemasView(APIView):
+class ScimSchemasView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant Schemas endpoint.
     NOTE: The schemas returned by this view are limited to the fields we handle in
@@ -1008,7 +947,7 @@ class ScimSchemasView(APIView):
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM supported ResourceTypes.'),
 )
-class ScimResourceTypesView(APIView):
+class ScimResourceTypesView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant ResourceTypes endpoint.
     - GET /ResourceTypes
@@ -1098,7 +1037,7 @@ class ScimResourceTypesView(APIView):
         responses=scim_responses({200: ScimGroupSerializer}),
     ),
 )
-class ScimGroupViewSet(viewsets.ModelViewSet):
+class ScimGroupViewSet(ScimExceptionHandlerMixin, viewsets.ModelViewSet):
     """
     SCIM 2.0 compliant Groups API endpoint.
     - GET /Groups
