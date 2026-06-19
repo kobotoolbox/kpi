@@ -484,7 +484,7 @@ class ScimUserViewSet(
                 email__iexact=email,
                 is_active=False,
                 socialaccount__provider=self.idp_provider_id,
-            )
+            ).distinct()
 
             for target in targets:
                 target.is_active = True
@@ -548,6 +548,7 @@ class ScimUserViewSet(
             users = list(targets.select_related('extra_details'))
 
             targets.update(is_active=False)
+            instance.is_active = False
 
             # Create audit logs as System-initiated events
             idp_slug = self.kwargs.get('idp_slug')
