@@ -3,7 +3,7 @@
 
 import { generatePath, matchPath } from 'react-router-dom'
 import { router } from '#/router/legacy'
-import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, ROUTES } from '#/router/routerConstants'
+import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, PROCESSING_ROUTE_TRANSLATION_DETAIL, ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
 import { recordValues } from '#/utils'
 
@@ -28,6 +28,7 @@ interface ProcessingRouteParts {
   xpath: string
   submissionEditId: string
   tabName?: ProcessingTab
+  languageCode?: string
 }
 
 /**
@@ -43,10 +44,15 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
   // Step 1. Remove query string from path.
   const targetPath = path.split('?')[0]
 
-  // Step 2. Generate match profile (an object with parameters from the path).
-  let matchProfile = matchPath(PROCESSING_ROUTE_GENERIC, targetPath)
+  // Step 2. Try to match against translation detail route first (most specific)
+  let matchProfile = matchPath(PROCESSING_ROUTE_TRANSLATION_DETAIL, targetPath)
 
-  // Step 3. If a root route was passed (i.e. one without tab name), we need to
+  // Step 3. If not a translation detail, try generic tab route
+  if (!matchProfile) {
+    matchProfile = matchPath(PROCESSING_ROUTE_GENERIC, targetPath)
+  }
+
+  // Step 4. If a root route was passed (i.e. one without tab name), we need to
   // match it again, this time against different pattern.
   if (!matchProfile) {
     matchProfile = matchPath(ROUTES.FORM_PROCESSING_ROOT, targetPath)
@@ -56,7 +62,7 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
     return output
   }
 
-  // Step 4. Assign all the found values to output
+  // Step 5. Assign all the found values to output
   output.assetUid = matchProfile.params.uid as string
   output.xpath = decodeURLParamWithSlash(matchProfile.params.xpath || '') as string
   output.submissionEditId = matchProfile.params.submissionEditId as string
@@ -65,6 +71,12 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
     recordValues(ProcessingTab).includes(matchProfile.params.tabName as ProcessingTab)
   ) {
     output.tabName = matchProfile.params.tabName as ProcessingTab
+  }
+  // For translation detail route, we also have languageCode
+  if ('languageCode' in matchProfile.params && matchProfile.params.languageCode) {
+    output.languageCode = matchProfile.params.languageCode as string
+    // Translation detail routes should have Translations tab set
+    output.tabName = ProcessingTab.Translations
   }
   return output
 }
@@ -168,6 +180,14 @@ export function getActiveTab(): ProcessingTab | undefined {
 }
 
 /**
+ * Returns the active language code if on a translation detail route.
+ */
+export function getActiveLanguageCode(): string | undefined {
+  const routeParts = getCurrentProcessingRouteParts()
+  return routeParts.languageCode
+}
+
+/**
  * Navigates to different tab within the same question and submission as
  * currently loaded. It replaces params with current values from the
  * `singleProcessingStore`.
@@ -183,20 +203,27 @@ export function goToTabRoute(targetTabRoute: string) {
  * @param xpath - The question xpath
  * @param submissionEditId - The submission edit ID
  * @param targetTab - Optional specific tab to navigate to. If not provided, navigates to root (letting routes decide)
+ * @param languageCode - Optional language code for translation detail route (only applies to Translations tab)
  */
 export function goToProcessing(
   assetUid: string,
   xpath: string,
   submissionEditId: string,
-  targetTab?: ProcessingTab
+  targetTab?: ProcessingTab,
+  languageCode?: string
 ) {
   let targetRoute: string = ROUTES.FORM_PROCESSING_ROOT
 
   // If specific tab is provided, use it
   if (targetTab) {
-    const tabRoute = TabToRouteMap.get(targetTab)
-    if (tabRoute) {
-      targetRoute = tabRoute
+    // Special case: if Translations tab with languageCode, use detail route
+    if (targetTab === ProcessingTab.Translations && languageCode) {
+      targetRoute = PROCESSING_ROUTES.TRANSLATION_DETAIL
+    } else {
+      const tabRoute = TabToRouteMap.get(targetTab)
+      if (tabRoute) {
+        targetRoute = tabRoute
+      }
     }
   }
 
@@ -204,6 +231,7 @@ export function goToProcessing(
     uid: assetUid,
     xpath: encodeURLParamWithSlash(xpath),
     submissionEditId,
+    languageCode, // Will be ignored if not in the route pattern
   })
   router!.navigate(path)
 }
