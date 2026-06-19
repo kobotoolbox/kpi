@@ -207,15 +207,6 @@ export default function StepCreateAutomated({
               />
             }
           />
-
-          <RegionSelector
-            rootLanguage={languageCode}
-            disabled={anyPending}
-            serviceCode='goog'
-            serviceType='translation'
-            onRegionChange={handleChangeLocale}
-            size='sm'
-          />
         </Group>
       </Flex>
 
