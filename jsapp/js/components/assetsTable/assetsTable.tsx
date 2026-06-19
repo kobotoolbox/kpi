@@ -1,12 +1,10 @@
 import './assetsTable.scss'
-
 import React from 'react'
-
 import ReactDOM from 'react-dom'
 import bem, { makeBem } from '#/bem'
+import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import Menu from '#/components/common/Menu'
 import type { AssetResponse, MetadataResponse } from '#/dataInterface'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { getScrollbarWidth, hasVerticalScrollbar } from '#/utils'
