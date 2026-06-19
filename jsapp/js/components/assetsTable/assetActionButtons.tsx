@@ -8,6 +8,7 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import { Link } from 'react-router-dom'
 import { actions } from '#/actions'
+import { assetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import {
   cloneAsset,
   cloneAssetAsSurvey,
@@ -30,6 +31,7 @@ import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyFormRoute, isAnyLibraryItemRoute } from '#/router/routerUtils'
+import { notify } from '#/utils'
 import AssetMoreActions from './AssetMoreActions'
 
 interface AssetActionButtonsProps extends WithRouterProps {
@@ -86,12 +88,17 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   async editLanguages() {
     // Fetch full asset with content before opening modal
     // (list endpoints don't include content for performance)
-    const { assetsRetrieve } = await import('#/api/react-query/manage-projects-and-library-content')
-    const response = await assetsRetrieve(this.props.asset.uid)
-    if (response.status === 200) {
-      // TODO: remove casting when parent component starts operating on
-      // `Asset` (orval) rather than `AssetResponse` (legacy)
-      manageAssetLanguages(response.data as unknown as AssetResponse)
+    try {
+      const response = await assetsRetrieve(this.props.asset.uid)
+      if (response.status === 200) {
+        // TODO: remove casting when parent component starts operating on
+        // `Asset` (orval) rather than `AssetResponse` (legacy)
+        manageAssetLanguages(response.data as unknown as AssetResponse)
+      } else {
+        notify.error(t('Failed to load asset. Please try again.'))
+      }
+    } catch (error) {
+      notify.error(t('Failed to load asset. Please try again.'))
     }
   }
 
