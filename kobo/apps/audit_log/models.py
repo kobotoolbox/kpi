@@ -4,7 +4,7 @@ import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
 from django.db.models.functions import Cast, Coalesce, Concat, Trunc
 from django.utils import timezone
@@ -114,10 +114,6 @@ class AuditLog(models.Model):
             ),
             models.Index(
                 models.F('metadata__asset_uid'), name='audit_log_asset_uid_idx'
-            ),
-            models.Index(
-                fields=['user_id', '-date_created'],
-                name='audit_log_user_date_idx',
             ),
         ]
 
@@ -704,15 +700,17 @@ class ProjectHistoryLog(AuditLog):
                     metadata=metadata,
                 )
             )
-        with transaction.atomic():
-            ProjectHistoryLog.objects.bulk_create(logs)
+        # No transaction.atomic(): update_last_project_activity is a
+        # supplementary write — wrapping it with bulk_create would roll back
+        # audit entries if the activity update fails.
+        ProjectHistoryLog.objects.bulk_create(logs)
 
-            # Track activity for the submitter/editor and the form owner so that
-            # inactivity queries can detect cross-user submission activity without
-            # querying the Instance table (which lives in a separate database).
-            if logs:
-                user_ids = {user.id, request.asset.owner.id}
-                ExtraUserDetail.update_last_project_activity(user_ids)
+        # Track activity for the submitter/editor and the form owner so that
+        # inactivity queries can detect cross-user submission activity without
+        # querying the Instance table (which lives in a separate database).
+        if logs:
+            user_ids = {user.id, request.asset.owner.id}
+            ExtraUserDetail.update_last_project_activity(user_ids)
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
