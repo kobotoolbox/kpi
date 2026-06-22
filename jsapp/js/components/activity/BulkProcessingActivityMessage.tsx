@@ -62,7 +62,7 @@ export function BulkProcessingActivityMessage({ data, assetUid }: BulkProcessing
         <strong>{data.username}</strong> {actionType}{' '}
       </span>
       <span>{t('in progress')} </span>
-      <Pill size='xs' variant='amber-light'>
+      <Pill ml={8} size='xs' variant='amber-light'>
         <Loader type='oval' size='xxs' color='var(--mantine-color-amber-1)' /> {processed_count}/{total_count}
       </Pill>
       {uid && (

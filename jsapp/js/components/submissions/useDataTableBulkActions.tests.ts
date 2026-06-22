@@ -116,7 +116,7 @@ describe('useDataTableBulkActions', () => {
     const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
 
     chai.expect(result.current.activeBulkActions).to.deep.equal([])
-    chai.expect(result.current.hasActiveBulkActionsCreatedByAnotherUser).to.equal(false)
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(false)
   })
 
   it('returns no active actions and false when ASR/MT features are disabled in env', () => {
@@ -131,10 +131,10 @@ describe('useDataTableBulkActions', () => {
     const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
 
     chai.expect(result.current.activeBulkActions).to.deep.equal([])
-    chai.expect(result.current.hasActiveBulkActionsCreatedByAnotherUser).to.equal(false)
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(false)
   })
 
-  it('filters to pending/in-progress actions and returns true when any active action is by another user', () => {
+  it('filters to pending/in-progress actions and returns true when current user has an active action', () => {
     useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
     mockBulkActions([
@@ -149,10 +149,10 @@ describe('useDataTableBulkActions', () => {
     chai
       .expect(result.current.activeBulkActions.map((action) => action.status))
       .to.deep.equal([BulkActionResponseStatusEnum.pending, BulkActionResponseStatusEnum.in_progress])
-    chai.expect(result.current.hasActiveBulkActionsCreatedByAnotherUser).to.equal(true)
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(true)
   })
 
-  it('returns false when all active actions were created by current user', () => {
+  it('returns true when all active actions were created by current user', () => {
     useFeatureFlagMock.mockReturnValue(true)
     mockSession('zefir')
     mockBulkActions([
@@ -163,7 +163,7 @@ describe('useDataTableBulkActions', () => {
     const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
 
     chai.expect(result.current.activeBulkActions).to.have.length(2)
-    chai.expect(result.current.hasActiveBulkActionsCreatedByAnotherUser).to.equal(false)
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(true)
   })
 
   it('returns false when current username is not available yet', () => {
@@ -174,7 +174,29 @@ describe('useDataTableBulkActions', () => {
     const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
 
     chai.expect(result.current.activeBulkActions).to.have.length(1)
-    chai.expect(result.current.hasActiveBulkActionsCreatedByAnotherUser).to.equal(false)
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(false)
+  })
+
+  it('returns true for hasActiveBulkActionsCreatedByCurrentUser when current user has active actions', () => {
+    useFeatureFlagMock.mockReturnValue(true)
+    mockSession('zefir')
+    mockBulkActions([buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'zefir')])
+
+    const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
+
+    chai.expect(result.current.activeBulkActions).to.have.length(1)
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(true)
+  })
+
+  it('returns false for hasActiveBulkActionsCreatedByCurrentUser when only other users have active actions', () => {
+    useFeatureFlagMock.mockReturnValue(true)
+    mockSession('zefir')
+    mockBulkActions([buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'other-user')])
+
+    const { result } = renderHook(() => useDataTableBulkActions('asset-123'))
+
+    chai.expect(result.current.activeBulkActions).to.have.length(1)
+    chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(false)
   })
 
   it('returns false poll interval when there are no active bulk actions', () => {
