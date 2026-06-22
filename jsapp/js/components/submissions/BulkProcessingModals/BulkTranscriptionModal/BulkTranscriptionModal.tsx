@@ -1,6 +1,6 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
@@ -8,6 +8,7 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import {
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsCreate,
+  useAssetsAttachmentsAudioDurationCreate,
 } from '#/api/react-query/survey-data'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
@@ -15,6 +16,8 @@ import {
 } from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
 import RegionSelector from '#/components/languages/RegionSelector'
+import { secondsToTranscriptionEstimate } from '#/components/processing/SingleProcessingContent/TabTranscript/transcript.utils'
+import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
@@ -22,9 +25,10 @@ import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
 import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
-import {SubmissionResponse} from '#/dataInterface'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
+// TODO: change this to 200 when done testing
+const MAXIMUM_AUDIO_DURATION_BATCH_SIZE = 20
 
 export interface BulkTranscriptionModalProps {
   fieldId: string
@@ -41,7 +45,42 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
+  const [audioDuration, setAudioDuration] = useState<number>(0)
   const queryClient = useQueryClient()
+
+  // Extract audio attachment uuids from submissions
+  const attachmentUids = props.selectedSubmissions.map((submission) => submission._attachments[0].uid)
+  // Create batches of 200 (do it with 10s for now)
+  const attachmentUidBatches: string[][] = []
+  for (let i = 0; i < attachmentUids.length; i += MAXIMUM_AUDIO_DURATION_BATCH_SIZE) {
+    attachmentUidBatches.push(attachmentUids.slice(i, i + MAXIMUM_AUDIO_DURATION_BATCH_SIZE))
+  }
+  // Perform the logic needed w/ exp backoff per batch
+  const { mutate: getAudioDurations, isPending: isAudioDurationLoading } = useAssetsAttachmentsAudioDurationCreate({
+    mutation: {
+      onSuccess: (response) => {
+        setAudioDuration((prev) => prev + response.data.total)
+      },
+    },
+  })
+
+  const processBatches = async () => {
+    for (let i = 0; i < attachmentUidBatches.length; i++) {
+      const delay = Math.pow(2, i) * 1000 // Exponential backoff: 1s, 2s, 4s, 8s...
+      await new Promise((resolve) => setTimeout(resolve, delay))
+
+      getAudioDurations({
+        uidAsset: props.assetUid,
+        data: {
+          attachment_uids: attachmentUidBatches[i],
+        },
+      })
+    }
+  }
+
+  useEffect(() => {
+    processBatches()
+  }, [])
 
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
@@ -138,9 +177,14 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t('##count## audio files selected for transcription. This may take some time to complete.').replace(
+            {t(
+              'Your ##count## audio files is a total of ##duration## minutes. This may take some time to complete.',
+            ).replace(
               '##count##',
-              String(props.selectedRowsCount),
+              String(props.selectedRowsCount).replace(
+                '##duration##',
+                String(secondsToTranscriptionEstimate(audioDuration)),
+              ),
             )}
           </Text>
 
