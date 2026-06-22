@@ -19,7 +19,6 @@ from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
 from kobo.apps.kobo_scim.constants import (
-    SCIM_SCHEMA_ERROR,
     SCIM_SCHEMA_GROUP,
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_RESOURCE_TYPE,
@@ -227,8 +226,8 @@ class ScimUserViewSet(
                 # Fallback to email matching if not linked yet
                 if not user:
                     # The provisioning requirement is to abort if the incoming email
-                    # already belongs to any Kobo account, unless the account is already
-                    # linked to this IdP and is being reactivated.
+                    # already belongs to any Kobo account, unless the account
+                    # is already linked to this IdP and is being reactivated.
                     existing_email_users = (
                         User.objects.filter(email__iexact=email)
                         if email
@@ -251,8 +250,8 @@ class ScimUserViewSet(
                             {
                                 'schemas': [SCIM_SCHEMA_ERROR],
                                 'detail': (
-                                    'Email address already exists on one or more Kobo '
-                                    'accounts.'
+                                    'Email address already exists on one or more '
+                                    'Kobo accounts.'
                                 ),
                                 'status': '409',
                             },
