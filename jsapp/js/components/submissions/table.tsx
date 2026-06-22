@@ -520,6 +520,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     openBulkTranscriptionModal({
       fieldId,
       assetUid: this.props.asset.uid,
+      selectedSubmissions: selectedSubmissions,
       selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
       showWarningModal: showWarningModal,
