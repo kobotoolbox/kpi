@@ -95,66 +95,66 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
           <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
         </Menu.Target>
 
-      <Menu.Dropdown>
-        {/* Manage translations - available for all non-collection assets */}
-        {userCanEdit && assetType !== ASSET_TYPES.collection.id && (
-          <Menu.Item onClick={props.onEditLanguages} leftSection={<KoboIcon icon={IconWorldFilled} size='md' />}>
-            {t('Manage translations')}
-          </Menu.Item>
-        )}
+        <Menu.Dropdown>
+          {/* Manage translations - available for all non-collection assets */}
+          {userCanEdit && assetType !== ASSET_TYPES.collection.id && (
+            <Menu.Item onClick={props.onEditLanguages} leftSection={<KoboIcon icon={IconWorldFilled} size='md' />}>
+              {t('Manage translations')}
+            </Menu.Item>
+          )}
 
-        {/* Download files */}
-        {downloads.map((dl) => (
-          <Menu.Item
-            component='a'
-            href={dl.url}
-            key={`dl-${dl.format}`}
-            leftSection={<Icon name={`file-${dl.format}` as any} size='m' />}
-          >
-            {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
-          </Menu.Item>
-        ))}
+          {/* Download files */}
+          {downloads.map((dl) => (
+            <Menu.Item
+              component='a'
+              href={dl.url}
+              key={`dl-${dl.format}`}
+              leftSection={<Icon name={`file-${dl.format}` as any} size='m' />}
+            >
+              {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
+            </Menu.Item>
+          ))}
 
-        {/* Remove from collection */}
-        {canManageCollections && props.asset.parent !== null && (
-          <Menu.Item onClick={() => props.onMoveToCollection(null)} leftSection={<KoboIcon icon={IconFolderDown} />}>
-            {t('Remove from collection')}
-          </Menu.Item>
-        )}
+          {/* Remove from collection */}
+          {canManageCollections && props.asset.parent !== null && (
+            <Menu.Item onClick={() => props.onMoveToCollection(null)} leftSection={<KoboIcon icon={IconFolderDown} />}>
+              {t('Remove from collection')}
+            </Menu.Item>
+          )}
 
-        {/* Move to collection submenu */}
-        {canManageCollections && props.managedCollections.length > 0 && (
-          <Menu trigger='click-hover' position='left-start' offset={2} withinPortal={false}>
-            <Menu.Target>
-              <Menu.Item leftSection={<KoboIcon icon={IconChevronLeft} />}>{t('Move to')}</Menu.Item>
-            </Menu.Target>
-            <Menu.Dropdown mah='50vh' h={400} style={{ overflowY: 'auto' }}>
-              {props.managedCollections.map((collection) => {
-                const isAssetParent = collection.url === props.asset.parent
-                const displayName = assetUtils.getAssetDisplayName(collection).final
-                return (
-                  <Menu.Item
-                    onClick={() => props.onMoveToCollection(collection.url)}
-                    key={collection.uid}
-                    title={displayName}
-                    leftSection={<KoboIcon icon={isAssetParent ? IconCheck : IconFolderUp} />}
-                  >
-                    {isAssetParent ? <strong>{displayName}</strong> : displayName}
-                  </Menu.Item>
-                )
-              })}
-            </Menu.Dropdown>
-          </Menu>
-        )}
+          {/* Move to collection submenu */}
+          {canManageCollections && props.managedCollections.length > 0 && (
+            <Menu trigger='click-hover' position='left-start' offset={2} withinPortal={false}>
+              <Menu.Target>
+                <Menu.Item leftSection={<KoboIcon icon={IconChevronLeft} />}>{t('Move to')}</Menu.Item>
+              </Menu.Target>
+              <Menu.Dropdown mah='50vh' h={400} style={{ overflowY: 'auto' }}>
+                {props.managedCollections.map((collection) => {
+                  const isAssetParent = collection.url === props.asset.parent
+                  const displayName = assetUtils.getAssetDisplayName(collection).final
+                  return (
+                    <Menu.Item
+                      onClick={() => props.onMoveToCollection(collection.url)}
+                      key={collection.uid}
+                      title={displayName}
+                      leftSection={<KoboIcon icon={isAssetParent ? IconCheck : IconFolderUp} />}
+                    >
+                      {isAssetParent ? <strong>{displayName}</strong> : displayName}
+                    </Menu.Item>
+                  )
+                })}
+              </Menu.Dropdown>
+            </Menu>
+          )}
 
-        {/* Delete */}
-        {userCanEdit && userCanDelete && (
-          <Menu.Item onClick={props.onDelete} leftSection={<KoboIcon icon={IconTrashFilled} />} color='red'>
-            {t('Delete')}
-          </Menu.Item>
-        )}
-      </Menu.Dropdown>
-    </Menu>
+          {/* Delete */}
+          {userCanEdit && userCanDelete && (
+            <Menu.Item onClick={props.onDelete} leftSection={<KoboIcon icon={IconTrashFilled} />} color='red'>
+              {t('Delete')}
+            </Menu.Item>
+          )}
+        </Menu.Dropdown>
+      </Menu>
     </div>
   )
 }
