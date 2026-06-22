@@ -27,8 +27,7 @@ def run():
        more recent received submission. Pre-computed field avoids GROUP BY MAX on
        a multi-billion-row Instance table.
     4. Per-user Instance query: most recent submission as submitter within 365 days.
-       Only for users with no date from any earlier source. Uses iterator(chunk_size=1)
-       to avoid the LIMIT 1 bad query plan.
+       Only for users with no date from any earlier source.
     5. login_fallback: for users with last_login in the 91-364 day range but no
        project activity found in steps 2-4, fall back to last_login.
     6. Sentinel (-731 days) when no activity is found anywhere, so the row is
@@ -134,18 +133,17 @@ def _process_batch(batch: list, threshold: datetime) -> None:
             ed.last_project_activity = date
 
     # Step 4: Per-user Instance query — as submitter (KoboCAT DB).
-    # Only for users with no date from any earlier source. No LIMIT 1: avoids the
-    # bad date_created-index plan. iterator(chunk_size=1) opens a named cursor and
-    # fetches one row; Python breaks immediately.
+    # Only for users with no date from any earlier source. The composite index
+    # on (user_id, date_modified DESC) makes LIMIT 1 efficient here.
     for ed in (ed for ed in remaining if ed.last_project_activity is None):
-        for date in (
+        date = (
             Instance.objects.filter(user_id=ed.user_id, date_modified__gte=threshold)
             .values_list('date_modified', flat=True)
             .order_by('-date_modified')
-            .iterator(chunk_size=1)
-        ):
+            .first()
+        )
+        if date is not None:
             ed.last_project_activity = date
-            break
 
     # Apply login fallback or sentinel to users still without a date.
     sentinel = timezone.now() - timedelta(days=731)
