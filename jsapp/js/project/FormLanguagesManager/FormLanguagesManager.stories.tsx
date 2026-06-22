@@ -5,17 +5,12 @@ import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
+import { withMinHeightWrapper } from '#/storybookUtils'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openFormLanguagesModal } from './index'
 
 const mockAssetUid = 'storyFormLanguagesManagerUid'
 const onAssetPatched = fn()
-
-const storyAreaStyle = {
-  minHeight: 720,
-  padding: 'var(--mantine-spacing-lg)',
-  overflow: 'visible',
-}
 
 function buildInitialAsset(): AssetResponse {
   const survey = Array.from({ length: 11 }, (_, idx) => {
@@ -85,6 +80,7 @@ const meta: Meta<typeof StoryTrigger> = {
   // Keep both providers in one decorator so modals opened via `modals.open`
   // inherit the same React Query context used by the story.
   decorators: [
+    withMinHeightWrapper(720),
     (Story) => {
       const queryClient = new QueryClient({
         defaultOptions: {
@@ -105,9 +101,7 @@ const meta: Meta<typeof StoryTrigger> = {
               lockScroll: false,
             }}
           >
-            <div style={storyAreaStyle}>
-              <Story />
-            </div>
+            <Story />
           </ModalsProvider>
         </QueryClientProvider>
       )
@@ -258,16 +252,16 @@ export const BasicFlow: Story = {
     await step('Verify API saved translation for question 11', async () => {
       await waitFor(async () => {
         await expect(onAssetPatched).toHaveBeenCalled()
+
+        const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
+        const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
+
+        const survey = latestPatchedAsset?.content?.survey || []
+        const question11 = survey.find((item) => item.name === 'question_11')
+        const label = question11?.label as Array<string | null> | undefined
+
+        await expect(label?.[1]).toBe('Nom')
       })
-
-      const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
-      const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
-
-      const survey = latestPatchedAsset?.content?.survey || []
-      const question11 = survey.find((item) => item.name === 'question_11')
-      const label = question11?.label as Array<string | null> | undefined
-
-      await expect(label && label[1]).toBe('Nom')
     })
 
     await step('Close modal', async () => {

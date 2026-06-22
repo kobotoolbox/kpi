@@ -1,4 +1,5 @@
 import './table.scss'
+import { Stack } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
@@ -22,7 +23,10 @@ import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
 import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
 import TableTextFilter from '#/components/submissions/TableTextFilter'
-import { isBulkProcessingCellInProgress } from '#/components/submissions/bulkProcessingUtils'
+import {
+  getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  isBulkProcessingCellInProgress,
+} from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import type {
   DataTableSelectedRows,
@@ -86,22 +90,24 @@ import type {
   SurveyRow,
   ValidationStatusResponse,
 } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { recordKeys } from '#/utils'
+import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
 import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
 
 const DEFAULT_PAGE_SIZE = 30
+const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
 
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
-  hasActiveBulkActionsCreatedByAnotherUser?: boolean
+  hasActiveBulkActionsCreatedByCurrentUser?: boolean
   currentUsername?: string
 }
 
@@ -149,6 +155,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {}
+
+  private lastRowRefreshErrorNotifiedAt = 0
 
   private unlisteners: Function[] = []
 
@@ -241,10 +249,103 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions)
     } else if (!isEqual(prevActiveBulkActions, newActiveBulkActions)) {
+      // Keep `table.tsx` focused on orchestration: utility computes which rows
+      // need refresh, then this component dispatches one-row fetches.
+      const submissionUuidsToRefresh = getVisibleBulkProcessingSubmissionUuidsToRefresh(
+        prevActiveBulkActions || [],
+        newActiveBulkActions || [],
+        this.state.submissions,
+      )
+
+      this.refreshSubmissionsByUuids(submissionUuidsToRefresh)
+
       // If bulk actions have changed, it means they might've just gotten loaded
       // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
+  }
+
+  refreshSubmissionsByUuids(submissionUuids: string[]) {
+    if (submissionUuids.length === 0) {
+      return
+    }
+
+    // TODO: When DataTable is migrated to a functional component, replace this
+    // `dataInterface.getSubmissions` bridge with the Orval/react-query path.
+    // Hooks are not available in this legacy class component.
+
+    const uniqueSubmissionUuids = [...new Set(submissionUuids)]
+    const query = {
+      $or: [
+        {
+          'meta/rootUuid': { $in: uniqueSubmissionUuids.map((submissionUuid) => addDefaultUuidPrefix(submissionUuid)) },
+        },
+        { _uuid: { $in: uniqueSubmissionUuids } },
+      ],
+    }
+
+    dataInterface
+      .getSubmissions(
+        this.props.asset.uid,
+        uniqueSubmissionUuids.length,
+        0,
+        [],
+        [],
+        `&query=${encodeURIComponent(JSON.stringify(query))}`,
+      )
+      .done((response: PaginatedResponse<SubmissionResponse>) => {
+        this.onBulkProcessingSubmissionsRefreshCompleted(response.results)
+      })
+      .fail((response: FailResponse) => {
+        this.notifyRowRefreshFailure(response)
+      })
+  }
+
+  notifyRowRefreshFailure(response?: FailResponse) {
+    // TODO: Move this failure reporting to the Orval query error handling layer
+    // once this component uses hook-based data fetching.
+    const now = Date.now()
+    if (now - this.lastRowRefreshErrorNotifiedAt < ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS) {
+      return
+    }
+
+    this.lastRowRefreshErrorNotifiedAt = now
+    notify.error(
+      t('Could not refresh some processing rows. Table data may be temporarily out of date.'),
+      { id: 'datatable-row-refresh-failed' },
+      response?.responseText || response?.statusText || t('Bulk processing row refresh failed.'),
+    )
+  }
+
+  onBulkProcessingSubmissionsRefreshCompleted(updatedSubmissions: SubmissionResponse[]) {
+    if (!updatedSubmissions.length) {
+      return
+    }
+
+    const submissions = [...this.state.submissions]
+
+    updatedSubmissions.forEach((updatedSubmission) => {
+      const submissionIndex = submissions.findIndex(
+        (submission) =>
+          matchUuid(submission['meta/rootUuid'], updatedSubmission['meta/rootUuid']) ||
+          matchUuid(submission._uuid, updatedSubmission._uuid) ||
+          submission._id === updatedSubmission._id,
+      )
+
+      if (submissionIndex !== -1) {
+        submissions[submissionIndex] = updatedSubmission
+      }
+    })
+
+    if (isEqual(submissions, this.state.submissions)) {
+      return
+    }
+
+    // Rebuild columns because new supplemental values can introduce/show
+    // dynamic transcript/translation columns.
+    this.setState({ submissions }, () => {
+      this._prepColumns(submissions)
+    })
   }
 
   /**
@@ -1341,15 +1442,16 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        <bem.FormView__item m='banner-container'>
+        <Stack gap='sm' className='table-banner-container'>
           <LimitNotifications />
           <BulkProcessingBanner
             assetUid={this.props.asset.uid}
             currentUsername={this.props.currentUsername}
-            activeBulkActionsCount={this.props.activeBulkActions?.length || 0}
-            hasActiveBulkActionsCreatedByAnotherUser={Boolean(this.props.hasActiveBulkActionsCreatedByAnotherUser)}
+            activeBulkActions={this.props.activeBulkActions || []}
+            hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
-        </bem.FormView__item>
+        </Stack>
+
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
             <ColumnsHideDropdown

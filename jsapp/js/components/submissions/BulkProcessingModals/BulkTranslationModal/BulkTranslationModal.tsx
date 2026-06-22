@@ -38,6 +38,8 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
       onSuccess: () => {
+        notify.success(t('Bulk translation request submitted successfully'))
+
         // TODO: implement @mantine/notifications system, see DEV-2211
         props.onRequestClose()
         props.onSuccess()
