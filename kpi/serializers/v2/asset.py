@@ -521,8 +521,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             if name := validated_data.get('name'):
                 _validated_data['name'] = name
 
+            result = super().update(asset, _validated_data)
             ExtraUserDetail.update_last_project_activity({user.pk, asset.owner_id})
-            return super().update(asset, _validated_data)
+            return result
 
         asset_content = asset.content
         _req_data = request.data
