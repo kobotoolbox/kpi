@@ -429,6 +429,11 @@ export const truncateNumber = (decimal: number, decimalPlaces = 2) => Number.par
 export const convertSecondsToMinutes = (seconds: number) => Math.floor(truncateNumber(seconds / 60, 1))
 
 /**
+ * Rough estimate used for automatic transcription completion timing.
+ */
+export const getEstimatedTranscriptionDurationSeconds = (sourceSeconds: number) => Math.round(sourceSeconds * 0.5 + 10)
+
+/**
  * Generates a simple lowercase, underscored version of a string. Useful for
  * quick filename generation
  *
