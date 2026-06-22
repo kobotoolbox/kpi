@@ -36,9 +36,30 @@ interface AssetMoreActionsProps {
  * (deploy, replace form, archive, unarchive) are handled elsewhere in formLanding.
  */
 export default function AssetMoreActions(props: AssetMoreActionsProps) {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const menuRef = React.useRef<HTMLDivElement>(null)
   const assetType = props.asset.asset_type
   const userCanEdit = userCan('change_asset', props.asset)
   const userCanDelete = userCan('delete_submissions', props.asset)
+
+  // Close menu when mouse leaves the row
+  React.useEffect(() => {
+    if (!isMenuOpen) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Find the closest row element
+      const target = e.target as HTMLElement
+      const row = target.closest('.assets-table-row--asset')
+
+      // If we're not hovering over the row anymore, close the menu
+      if (menuRef.current && !row?.contains(menuRef.current)) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    return () => document.removeEventListener('mousemove', handleMouseMove)
+  }, [isMenuOpen])
 
   // Only non-collection assets have downloads
   let downloads: AssetDownloads = []
@@ -61,10 +82,17 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
     userCanEdit && assetType !== ASSET_TYPES.survey.id && assetType !== ASSET_TYPES.collection.id
 
   return (
-    <Menu position='bottom-start'>
-      <Menu.Target>
-        <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
-      </Menu.Target>
+    <div ref={menuRef}>
+      <Menu
+        position='bottom-start'
+        opened={isMenuOpen}
+        onChange={setIsMenuOpen}
+        withinPortal={false}
+        closeOnClickOutside={false}
+      >
+        <Menu.Target>
+          <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
+        </Menu.Target>
 
       <Menu.Dropdown>
         {/* Manage translations - available for all non-collection assets */}
@@ -95,11 +123,11 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
 
         {/* Move to collection submenu */}
         {canManageCollections && props.managedCollections.length > 0 && (
-          <Menu trigger='click-hover' position='left-start' offset={2}>
+          <Menu trigger='click-hover' position='left-start' offset={2} withinPortal={false}>
             <Menu.Target>
               <Menu.Item leftSection={<KoboIcon icon={IconChevronLeft} />}>{t('Move to')}</Menu.Item>
             </Menu.Target>
-            <Menu.Dropdown mah={400} style={{ overflowY: 'auto' }}>
+            <Menu.Dropdown mah='50vh' h={400} style={{ overflowY: 'auto' }}>
               {props.managedCollections.map((collection) => {
                 const isAssetParent = collection.url === props.asset.parent
                 const displayName = assetUtils.getAssetDisplayName(collection).final
@@ -126,5 +154,6 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
         )}
       </Menu.Dropdown>
     </Menu>
+    </div>
   )
 }
