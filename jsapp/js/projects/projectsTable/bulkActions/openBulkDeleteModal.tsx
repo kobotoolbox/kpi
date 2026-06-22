@@ -1,5 +1,5 @@
 import { modals } from '@mantine/modals'
-import { userCanDeleteAssets } from '#/assetUtils'
+import { type AssetDeleteCheckResult, userCanDeleteAssets } from '#/assetUtils'
 import { DeleteBlockerModal } from '#/components/DeleteAssetModal/DeleteBlockerModal'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { generateUuid } from '#/utils'
@@ -14,9 +14,11 @@ export function openBulkDeleteModal(assets: Array<AssetResponse | ProjectViewAss
   const assetUids = assets.map((asset) => asset.uid)
   const isSingle = assets.length === 1
   const modalId = `bulk-delete-${generateUuid()}`
-  const deleteCheck = userCanDeleteAssets(assets)
+  const deleteChecks = userCanDeleteAssets(assets)
+  type BlockedResult = Extract<AssetDeleteCheckResult, { canDelete: false }>
+  const blockedResults = deleteChecks.filter((r): r is BlockedResult => !r.canDelete)
 
-  if (deleteCheck.canDelete) {
+  if (blockedResults.length === 0) {
     const title = isSingle
       ? t('Delete 1 project')
       : t('Delete ##count## projects').replace('##count##', String(assetUids.length))
@@ -31,6 +33,8 @@ export function openBulkDeleteModal(assets: Array<AssetResponse | ProjectViewAss
     })
   } else {
     const title = isSingle ? t("This project can't be deleted") : t("Some of these projects can't be deleted")
+    const blockedAssets = blockedResults.map((r) => r.asset)
+    const reason = isSingle ? blockedResults[0].reason : undefined
 
     modals.open({
       modalId,
@@ -39,8 +43,8 @@ export function openBulkDeleteModal(assets: Array<AssetResponse | ProjectViewAss
       children: (
         <DeleteBlockerModal
           assets={assets}
-          blockedAssets={deleteCheck.blockedAssets}
-          reason={deleteCheck.reason}
+          blockedAssets={blockedAssets}
+          reason={reason}
           onRequestClose={() => modals.close(modalId)}
         />
       ),

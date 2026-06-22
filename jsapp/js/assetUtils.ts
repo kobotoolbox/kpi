@@ -734,17 +734,16 @@ export function getVirtualSupplementalFieldsForBulkActions(
   return result
 }
 
-type CanDeleteResult =
-  | { canDelete: true }
-  | { canDelete: false; reason: DeleteBlockerReason; blockedAssets: Array<AssetResponse | ProjectViewAsset> }
+export type AssetDeleteCheckResult =
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: true }
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: false; reason: DeleteBlockerReason }
 
 /**
  * Checks whether the current user can delete the given assets.
- * Returns `{ canDelete: true }` when deletion is allowed, or
- * `{ canDelete: false; reason; blockedAssets }` describing why it is blocked
- * and which specific assets are the cause.
+ * Returns one result per asset (in the same order), each with `canDelete: true`
+ * or `canDelete: false` with the reason why that specific asset is blocked.
  */
-export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): CanDeleteResult {
+export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): AssetDeleteCheckResult[] {
   const account = sessionStore.currentAccount
   const orgUid = 'organization' in account ? account.organization?.uid : undefined
   const orgResponse = orgUid
@@ -754,31 +753,35 @@ export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAss
 
   const isAdmin = org?.request_user_role === MemberRoleEnum.admin
   if (isAdmin) {
-    return { canDelete: true }
+    return assets.map((asset) => {
+      return { asset, canDelete: true as const }
+    })
   }
 
   const isMmoMember = org?.is_mmo && org?.request_user_role === MemberRoleEnum.member
   const currentUsername = account.username
 
   if (isMmoMember) {
-    // Only projects created by the user or that has no submissions
-    // can be deleted by MMO members.
-    const blockedAssets = assets.filter(
-      (asset) =>
-        !asset.created_by || asset.created_by !== currentUsername || (asset.deployment__submission_count ?? 0) > 0,
-    )
-    if (blockedAssets.length > 0) {
-      // Permissions take priority when determining the reason (affects single-asset copy)
-      const reason = blockedAssets.some((asset) => !asset.created_by || asset.created_by !== currentUsername)
-        ? DeleteBlockerReason.permissions
-        : DeleteBlockerReason.submissions
-      return { canDelete: false, reason, blockedAssets }
-    }
+    // Only projects created by the user with no submissions can be deleted by MMO members.
+    // Permissions reason takes priority over submissions reason.
+    return assets.map((asset) => {
+      const isNotOwned = !asset.created_by || asset.created_by !== currentUsername
+      const hasSubmissions = (asset.deployment__submission_count ?? 0) > 0
+      if (isNotOwned) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.permissions }
+      }
+      if (hasSubmissions) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.submissions }
+      }
+      return { asset, canDelete: true }
+    })
   }
 
   // Non-MMO users: the delete button is disabled unless they have delete_asset,
   // so no blocker is needed.
-  return { canDelete: true }
+  return assets.map((asset) => {
+    return { asset, canDelete: true as const }
+  })
 }
 
 export default {

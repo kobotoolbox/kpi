@@ -50,9 +50,9 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
       })
       .catch((error) => {
         handleApiFail(error)
-        setIsConfirmDeletePending(false)
       })
       .finally(() => {
+        setIsConfirmDeletePending(false)
         onRequestClose()
       })
   }

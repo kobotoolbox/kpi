@@ -9,14 +9,15 @@ import { ROUTES } from '#/router/routerConstants'
 export interface DeleteBlockerModalProps {
   assets: Array<AssetResponse | ProjectViewAsset>
   blockedAssets?: Array<AssetResponse | ProjectViewAsset>
-  reason: DeleteBlockerReason
+  /** Required when a single asset is blocked; unused for multiple blocked assets. */
+  reason?: DeleteBlockerReason
   onRequestClose: () => void
 }
 
 export function DeleteBlockerModal({ assets, blockedAssets, reason, onRequestClose }: DeleteBlockerModalProps) {
   const isSingle = assets.length === 1
 
-  let body: string
+  let body = ''
   let alertText: string
 
   if (isSingle) {

@@ -12,7 +12,7 @@ export function openDeleteAssetModal(
   onDeleted?: (deletedAssetUid: string) => void,
 ) {
   const modalId = `delete-asset-${generateUuid()}`
-  const deleteCheck = userCanDeleteAssets([asset])
+  const [deleteCheck] = userCanDeleteAssets([asset])
 
   if (deleteCheck.canDelete) {
     modals.open({
