@@ -15,6 +15,7 @@ import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { isMapDisplayableGeopointType } from './constants'
 import type { MongoQuery, SurveyRow } from './dataInterface'
 
 /**
@@ -299,7 +300,7 @@ export function parseLatLng(submission: DataResponse, selectedQuestion: string |
 }
 
 export function findFirstGeopoint(survey: SurveyRow[]) {
-  return survey.find((question) => question.type && question.type === 'geopoint')
+  return survey.find((question) => isMapDisplayableGeopointType(question.type))
 }
 
 /**
