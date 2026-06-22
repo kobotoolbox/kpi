@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { Flex, Group, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
@@ -18,8 +18,7 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import RegionSelector from '#/components/languages/RegionSelector'
-import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -47,8 +46,6 @@ export default function StepCreateAutomated({
   onCreate,
   advancedFeatures,
 }: Props) {
-  const [locale, setLocale] = useState<null | string>(null)
-
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.automatic_google_translation && af.question_xpath === questionXpath,
   )
@@ -83,7 +80,6 @@ export default function StepCreateAutomated({
   // For now, we can rely on react-query's caching to not repeat a call and complete the RegionSelector refactor
   const { data, isLoading: isLoadingLanguages } = useLanguagesRetrieve(languageCode, {
     query: {
-      // Same key as the RegionSelector hook
       queryKey: getLanguagesRetrieveQueryKey(languageCode),
       enabled: languageCode !== '',
     },
@@ -109,10 +105,6 @@ export default function StepCreateAutomated({
     mutationPatchAF.isPending ||
     mutationCreateAutomaticTranslation.isPending ||
     isLoadingLanguages
-
-  function handleChangeLocale(newVal: LocaleCode | null) {
-    setLocale(newVal)
-  }
 
   function handleClickBack() {
     onBack()
@@ -154,7 +146,7 @@ export default function StepCreateAutomated({
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            automatic_google_translation: { language: languageCode, locale },
+            automatic_google_translation: { language: languageCode },
           },
         },
       })
@@ -206,15 +198,6 @@ export default function StepCreateAutomated({
                 icon={IconX}
               />
             }
-          />
-
-          <RegionSelector
-            rootLanguage={languageCode}
-            disabled={anyPending}
-            serviceCode='goog'
-            serviceType='translation'
-            onRegionChange={handleChangeLocale}
-            size='sm'
           />
         </Group>
       </Flex>
