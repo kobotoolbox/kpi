@@ -46,8 +46,6 @@ export default function StepCreateAutomated({
   onCreate,
   advancedFeatures,
 }: Props) {
-  const [locale, setLocale] = useState<null | string>(null)
-
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.automatic_google_translation && af.question_xpath === questionXpath,
   )
@@ -82,7 +80,6 @@ export default function StepCreateAutomated({
   // For now, we can rely on react-query's caching to not repeat a call and complete the RegionSelector refactor
   const { data, isLoading: isLoadingLanguages } = useLanguagesRetrieve(languageCode, {
     query: {
-      // Same key as the RegionSelector hook
       queryKey: getLanguagesRetrieveQueryKey(languageCode),
       enabled: languageCode !== '',
     },
@@ -108,10 +105,6 @@ export default function StepCreateAutomated({
     mutationPatchAF.isPending ||
     mutationCreateAutomaticTranslation.isPending ||
     isLoadingLanguages
-
-  function handleChangeLocale(newVal: LocaleCode | null) {
-    setLocale(newVal)
-  }
 
   function handleClickBack() {
     onBack()
