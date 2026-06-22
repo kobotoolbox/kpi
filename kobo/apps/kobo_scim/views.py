@@ -235,7 +235,10 @@ class ScimUserViewSet(
 
                 if existing_email_users.exists():
                     raise ScimException(
-                        detail='Email address already exists on one or more Kobo accounts.',
+                        detail=(
+                            'Email address already exists on one or more '
+                            'Kobo accounts.'
+                        ),
                         status_code=status.HTTP_409_CONFLICT,
                         error_code='email_already_exists',
                         reason=(
