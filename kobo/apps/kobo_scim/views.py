@@ -202,7 +202,7 @@ class ScimUserViewSet(
         first_name = name_dict.get('givenName', '')
         last_name = name_dict.get('familyName', '')
         uid = data.get('externalId') or username
-        active = str(data.get('active', '')).lower() == 'true'
+        active = str(data.get('active', True)).lower() == 'true'
 
         with transaction.atomic():
             # Lock the IdentityProvider row to prevent concurrent provisioning
