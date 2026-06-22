@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.db import models, transaction
 from django.db.models import CharField, F, Value
-from django.db.models.functions import Concat
+from django.db.models.functions import Coalesce, Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
@@ -600,6 +600,7 @@ class AccessLogExportTask(ExportTaskMixin, AuditLogExportTaskMixin, ImportExport
         )
         return filtered_queryset.annotate(
             **self.common_fields,
+            username=Coalesce(F('user__username'), F('metadata__attempted_username')),
             auth_type=F('metadata__auth_type'),
             initial_superusername=F('metadata__initial_user_username'),
             initial_superuseruid=F('metadata__initial_user_uid'),
