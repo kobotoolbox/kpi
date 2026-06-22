@@ -369,6 +369,9 @@ class AccessLog(AuditLog):
         """
         Create an access log for a failed login request
         """
+        if request is None:
+            return
+
         metadata = AccessLog._get_auth_metadata(request, None, None, False)
         metadata['attempted_username'] = username
         user_id = None
