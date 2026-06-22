@@ -44,7 +44,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
       onSuccess: () => {
-        // Show success toast notification
         notify.success(t('Bulk transcription request submitted successfully'))
 
         // Invalidate the bulk actions list so React Query refetches it.
