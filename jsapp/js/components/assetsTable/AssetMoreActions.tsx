@@ -89,6 +89,7 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
         onChange={setIsMenuOpen}
         withinPortal={false}
         closeOnClickOutside={false}
+        zIndex={50}
       >
         <Menu.Target>
           <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
