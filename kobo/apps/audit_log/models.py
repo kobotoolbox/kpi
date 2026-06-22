@@ -173,10 +173,17 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
         if action not in [AuditAction.AUTH, AuditAction.AUTH_FAILED]:
             logging.warning(f'Ignoring attempt to set {action=} on access log')
             action = AuditAction.AUTH
-        user = kwargs.pop('user', None)
 
-        object_id = user.id if user else None
-        user_uid = getattr(getattr(user, 'extra_details', None), 'uid', '')
+        object_id = None
+        user_uid = ''
+        if user := kwargs.pop('user', None):
+            object_id = user.pk
+            user_uid = (
+                ExtraUserDetail.objects.values_list('uid', flat=True)
+                .filter(user=user)
+                .first()
+                or ''
+            )
 
         return super().create(
             # set the fields that are always the same for access logs,
@@ -354,7 +361,7 @@ class AccessLog(AuditLog):
         """
         logged_in_user = user or request.user
         metadata = AccessLog._get_auth_metadata(
-            request, authentication_type, logged_in_user, True
+            request, authentication_type, logged_in_user, is_successful=True
         )
         # add any other metadata the caller may want
         if extra_metadata is not None:
@@ -372,18 +379,20 @@ class AccessLog(AuditLog):
         if request is None:
             return
 
-        metadata = AccessLog._get_auth_metadata(request, None, None, False)
+        metadata = AccessLog._get_auth_metadata(
+            request,
+            authentication_type=None,
+            logged_in_user=None,
+            is_successful=False,
+        )
         metadata['attempted_username'] = username
-        user_id = None
-        user_id_query = (
+        user_id = (
             User.objects.filter(username=username)
             .exclude(pk=settings.ANONYMOUS_USER_ID)
-            .values_list('id')
+            .values_list('id', flat=True).first()
             if username
             else None
         )
-        if user_id_query:
-            user_id = user_id_query[0][0]
 
         return AccessLog.objects.create(
             user_id=user_id,
