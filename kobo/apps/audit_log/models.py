@@ -1,4 +1,5 @@
 import copy
+from typing import Optional
 
 import jsonschema
 from django.conf import settings
@@ -274,21 +275,12 @@ class AccessLog(AuditLog):
         proxy = True
 
     @staticmethod
-    def create_from_request(
+    def _get_auth_metadata(
         request,
-        user=None,
-        authentication_type: str = None,
-        extra_metadata: dict = None,
+        authentication_type: Optional[str],
+        logged_in_user: Optional[User],
+        is_successful: bool,
     ):
-        """
-        Create an access log for a request, assigned to either the given user or
-        request.user if not supplied
-
-        Note: Data passed in extra_metadata will override default values for the
-        same key
-        """
-        logged_in_user = user or request.user
-
         # django-loginas will keep the superuser as the _cached_user while request.user
         # is set to the new one sometimes there won't be a cached user at all,
         # mostly in tests
@@ -304,7 +296,8 @@ class AccessLog(AuditLog):
         )
         # a regular login may have an anonymous user as _cached_user, ignore that
         user_changed = (
-            initial_user
+            is_successful
+            and initial_user
             and initial_user.is_authenticated
             and initial_user.id != logged_in_user.id
         )
@@ -319,7 +312,11 @@ class AccessLog(AuditLog):
         elif is_loginas:
             # third option: loginas
             auth_type = ACCESS_LOG_LOGINAS_AUTH_TYPE
-        elif hasattr(logged_in_user, 'backend') and logged_in_user.backend is not None:
+        elif (
+            is_successful
+            and hasattr(logged_in_user, 'backend')
+            and logged_in_user.backend is not None
+        ):
             # fourth option: the backend that authenticated the user
             auth_type = logged_in_user.backend
         else:
@@ -338,6 +335,27 @@ class AccessLog(AuditLog):
         if is_loginas:
             metadata['initial_user_uid'] = initial_user.extra_details.uid
             metadata['initial_user_username'] = initial_user.username
+
+        return metadata
+
+    @staticmethod
+    def create_from_request(
+        request,
+        user=None,
+        authentication_type: str = None,
+        extra_metadata: dict = None,
+    ):
+        """
+        Create an access log for a request, assigned to either the given user or
+        request.user if not supplied
+
+        Note: Data passed in extra_metadata will override default values for the
+        same key
+        """
+        logged_in_user = user or request.user
+        metadata = AccessLog._get_auth_metadata(
+            request, authentication_type, logged_in_user, True
+        )
         # add any other metadata the caller may want
         if extra_metadata is not None:
             metadata.update(extra_metadata)
@@ -346,35 +364,26 @@ class AccessLog(AuditLog):
     @staticmethod
     def create_failed_from_request(
         request,
-        credentials: dict,
-        user=None,
-        authentication_type: str = None,
+        username,
     ):
         """
         Create an access log for a failed login request
         """
-        username = credentials.get('username')
-
-        auth_type = authentication_type
-        if not auth_type:
-            auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
-
-        if request:
-            ip = get_client_ip(request)
-            source = get_human_readable_client_user_agent(request)
-        else:
-            ip = None
-            source = None
-
-        metadata = {
-            'ip_address': ip,
-            'source': source,
-            'auth_type': auth_type,
-            'attempted_username': username,
-        }
+        metadata = AccessLog._get_auth_metadata(request, None, None, False)
+        metadata['attempted_username'] = username
+        user_id = None
+        user_id_query = (
+            User.objects.filter(username=username)
+            .exclude(pk=settings.ANONYMOUS_USER_ID)
+            .values_list('id')
+            if username
+            else None
+        )
+        if user_id_query:
+            user_id = user_id_query[0][0]
 
         return AccessLog.objects.create(
-            user=user if user and user.is_authenticated else None,
+            user_id=user_id,
             metadata=metadata,
             action=AuditAction.AUTH_FAILED,
         )

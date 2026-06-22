@@ -11,7 +11,6 @@ from django_userforeignkey.request import get_current_request
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMITTED_BY
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_PARTIAL_SUBMISSIONS
 from kpi.models import Asset, ImportTask
@@ -44,12 +43,7 @@ def create_access_log(sender, user, **kwargs):
 @receiver(user_login_failed)
 def create_failed_access_log(sender, credentials, request, **kwargs):
     username = credentials.get('username')
-    try:
-        user = User.objects.get(username=username) if username else None
-    except User.DoesNotExist:
-        user = None
-
-    AccessLog.create_failed_from_request(request, credentials, user)
+    AccessLog.create_failed_from_request(request, username)
 
 
 # Project History Log receivers
