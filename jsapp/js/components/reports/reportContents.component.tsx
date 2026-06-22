@@ -1,5 +1,6 @@
 import React from 'react'
 import bem from '#/bem'
+import { userCan } from '#/components/permissions/utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import ReportViewItem from './reportViewItem.component'
@@ -88,6 +89,7 @@ export default class ReportContents extends React.Component<ReportContentsProps>
                 {...rowContent}
                 label={label}
                 triggerQuestionSettings={this.props.triggerQuestionSettings.bind(this)}
+                isMenuDisabled={!userCan('change_asset', this.props.asset)}
               />
             </bem.ReportView__item>
           )

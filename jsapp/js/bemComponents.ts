@@ -122,14 +122,6 @@ bem.Modal__footer = makeBem(bem.Modal, 'footer', 'footer')
 bem.Modal__tabs = makeBem(bem.Modal, 'tabs')
 bem.Modal__hr = makeBem(bem.Modal, 'hr', 'hr')
 
-bem.PopoverMenu = makeBem(null, 'popover-menu')
-bem.PopoverMenu__content = makeBem(bem.PopoverMenu, 'content')
-bem.PopoverMenu__toggle = makeBem(bem.PopoverMenu, 'toggle', 'a')
-bem.PopoverMenu__link = makeBem(bem.PopoverMenu, 'link', 'a')
-bem.PopoverMenu__item = makeBem(bem.PopoverMenu, 'item')
-bem.PopoverMenu__heading = makeBem(bem.PopoverMenu, 'heading')
-bem.PopoverMenu__moveTo = makeBem(bem.PopoverMenu, 'moveTo')
-
 bem.LoginBox = makeBem(null, 'login-box')
 
 bem.AccountBox = makeBem(null, 'account-box')

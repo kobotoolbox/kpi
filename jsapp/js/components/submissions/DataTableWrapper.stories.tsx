@@ -8,8 +8,10 @@
 import { Box } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, waitFor } from 'storybook/test'
+import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
@@ -21,16 +23,94 @@ import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import bulkActionsMock from '#/endpoints/bulkActions.mocks'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
+import * as organizationServiceUsageFactory from '#/endpoints/organizationServiceUsage.factory'
 import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.mocks'
+import subscriptionMock from '#/endpoints/subscription.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
+import {
+  getPollingUpdateStoryHandlers,
+  getPollingUpdateStoryState,
+  getPollingUpdateStoryTimeoutMs,
+  pollingAsset,
+  resetPollingUpdateStoryHandlers,
+} from './DataTableWrapperPollingStoriesUtils'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
 // stretch to fill the row height — just like in the real UI.
 const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={360}>{Story()}</Box>
+
+// Decorator to show the LimitNotifications banner in stories.
+// The banner has a guard chain: it only shows if subscriptionStore.isInitialised is true.
+// Problem: the store is a MobX singleton that normally gets filled via jQuery AJAX,
+// but MSW (our Storybook mock layer) only intercepts fetch calls, not jQuery.
+// Solution: manually populate the store on mount and clean up on unmount.
+// Only add this decorator to stories that need to show limit banners.
+const initializeSubscriptionStoreDecorator: DecoratorFunction = (Story) => {
+  useEffect(() => {
+    subscriptionStore.isInitialised = true
+    subscriptionStore.isPending = false
+    subscriptionStore.activeSubscriptions = [
+      {
+        id: 'sub_mock123',
+        status: 'active',
+        items: [
+          {
+            id: 'si_mock123',
+            quantity: 1,
+            price: {
+              id: 'price_mock123',
+              nickname: 'Community Plan Monthly',
+              currency: 'usd',
+              type: 'recurring',
+              unit_amount: 0,
+              human_readable_price: '$0',
+              active: true,
+              recurring: {
+                interval: 'month',
+                aggregate_usage: 'sum',
+                interval_count: 1,
+                usage_type: 'licensed',
+              },
+              metadata: {},
+              transform_quantity: null,
+              product: {
+                id: 'prod_mock123',
+                name: 'Community Plan',
+                description: 'Community plan for small teams',
+                type: 'service',
+                metadata: {
+                  product_type: 'plan',
+                },
+              },
+            },
+          },
+        ],
+      } as any, // Type assertion since we're manually setting MobX store
+    ]
+    subscriptionStore.planResponse = subscriptionStore.activeSubscriptions.filter(
+      (sub) => sub.items[0]?.price.product.metadata?.product_type === 'plan',
+    )
+    subscriptionStore.addOnsResponse = []
+    subscriptionStore.canceledPlans = []
+
+    // Cleanup is important: subscriptionStore is a singleton, so if we don't reset it
+    // when navigating away, the next story inherits this state (showing the banner when it shouldn't).
+    return () => {
+      subscriptionStore.isInitialised = false
+      subscriptionStore.isPending = false
+      subscriptionStore.activeSubscriptions = []
+      subscriptionStore.planResponse = []
+      subscriptionStore.addOnsResponse = []
+      subscriptionStore.canceledPlans = []
+    }
+  }, [])
+
+  return Story()
+}
 
 // Decorator to set the hash for the current asset UID, so that (deprecated) `getCurrentPath` works.
 // This replaces the previous loader. It reads the UID from the story's args.asset.uid (if present).
@@ -200,6 +280,9 @@ const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/r
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
   component: DataTableWrapper,
+  async beforeEach() {
+    resetPollingUpdateStoryHandlers()
+  },
   args: {
     asset: minimalAsset,
   },
@@ -219,6 +302,7 @@ const meta: Meta<typeof DataTableWrapper> = {
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
+        subscriptionMock(),
         bulkActionsMock(minimalAsset.uid, { results: [] }),
       ],
     },
@@ -245,6 +329,7 @@ export const Default: Story = {
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
+        subscriptionMock(),
         bulkActionsMock(minimalAsset.uid, { results: [] }),
       ],
     },
@@ -252,7 +337,7 @@ export const Default: Story = {
   loaders: [loadAssetForStory],
 }
 
-export const ProcessingColumn: Story = {
+export const ProcessingColumnAndBanner: Story = {
   args: {
     asset: processingAsset,
   },
@@ -265,32 +350,160 @@ export const ProcessingColumn: Story = {
         assetMock(processingAsset.uid, processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
-        organizationServiceUsageMock(),
-        bulkActionsMock(processingAsset.uid, { results: [processingBulkAction] }),
-      ],
-    },
-  },
-  loaders: [loadAssetForStory],
-}
-
-export const ProcessingBannerOtherUser: Story = {
-  args: {
-    asset: processingAsset,
-  },
-  parameters: {
-    a11y: { test: 'todo' },
-    reactRouter: getRouterParams(processingAsset.uid),
-    msw: {
-      handlers: [
-        meMock,
-        assetMock(processingAsset.uid, processingAsset),
-        assetDataMock(processingAsset.uid, processingSubmissions),
-        organizationMock(),
-        organizationServiceUsageMock(),
+        organizationServiceUsageMock(), // No usage limits - no OverLimitBanner
+        subscriptionMock(),
         bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
       ],
     },
   },
   decorators: [withBulkProcessingBannerSessionReset],
+  loaders: [loadAssetForStory],
+}
+
+export const ProcessingPollingRefreshesTranslatedCell: Story = {
+  args: {
+    asset: pollingAsset,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Starts with a Processing placeholder and updates that row after polling (about 8 seconds) when the mocked bulk action item transitions to complete.',
+      },
+    },
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(pollingAsset.uid),
+    msw: {
+      handlers: getPollingUpdateStoryHandlers(),
+    },
+  },
+  loaders: [loadAssetForStory],
+  play: async ({ step }) => {
+    // We intentionally avoid asserting rendered translated text here.
+    // We tried multiple DOM-based variants (including intermediate
+    // "Processing" checks), but they remained flaky in CI across browsers.
+    // This play test focuses on stable polling/refresh behavior via mock state.
+    await step('Wait for polling to refresh one submission row', async () => {
+      await waitFor(
+        async () => {
+          const storyState = getPollingUpdateStoryState()
+          await expect(storyState.pollingBulkActionsCalls).toBeGreaterThanOrEqual(2)
+          await expect(storyState.pollingSubmissionRefreshCalls).toBeGreaterThanOrEqual(1)
+        },
+        { timeout: getPollingUpdateStoryTimeoutMs() },
+      )
+    })
+  },
+}
+export const ProcessingAndLimitsBannersTogether: Story = {
+  args: {
+    asset: processingAsset,
+  },
+  parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(processingAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        assetMock(processingAsset.uid, processingAsset),
+        assetDataMock(processingAsset.uid, processingSubmissions),
+        organizationMock(),
+        // Shows both BulkProcessingBanner (active jobs) + OverLimitBanner (exceeded submission limit)
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
+        subscriptionMock(),
+        bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator, withBulkProcessingBannerSessionReset],
+  loaders: [loadAssetForStory],
+}
+
+// Stories for testing LimitNotifications banner
+export const StorageLimitWarningBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        assetMock(minimalAsset.uid, minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageWarning()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
+  loaders: [loadAssetForStory],
+}
+
+export const StorageExceededBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        assetMock(minimalAsset.uid, minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageExceeded()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
+  loaders: [loadAssetForStory],
+}
+
+export const SubmissionExceededBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        assetMock(minimalAsset.uid, minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
+  loaders: [loadAssetForStory],
+}
+
+export const StorageAndSubmissionExceededBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        assetMock(minimalAsset.uid, minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.bothExceeded()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
   loaders: [loadAssetForStory],
 }
