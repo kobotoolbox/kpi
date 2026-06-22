@@ -77,7 +77,6 @@ export default function StepCreateAutomated({
 
   // TODO: HACK-FIX: We should rely on passing Language instead of LanguageCode throughout the single processing view to avoid
   // using the languages hook here, but this involves dealing with time consuming type handling for LanguageSelector.
-  // For now, we can rely on react-query's caching to not repeat a call and complete the RegionSelector refactor
   const { data, isLoading: isLoadingLanguages } = useLanguagesRetrieve(languageCode, {
     query: {
       queryKey: getLanguagesRetrieveQueryKey(languageCode),
