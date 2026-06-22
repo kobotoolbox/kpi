@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import { Flex, Group, TextInput } from '@mantine/core'
 import { IconLanguage, IconX } from '@tabler/icons-react'
@@ -18,7 +18,7 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -146,7 +146,7 @@ export default function StepCreateAutomated({
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            automatic_google_translation: { language: languageCode, locale },
+            automatic_google_translation: { language: languageCode },
           },
         },
       })
