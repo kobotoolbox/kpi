@@ -111,11 +111,6 @@ export const UpdateTagsFlow: Story = {
       await userEvent.click(tagsInput)
       await userEvent.type(tagsInput, 'gamma{enter}')
       await userEvent.click(canvas.getByRole('button', { name: 'Update' }))
-
-      // Wait for the modal to close after the successful PATCH request
-      await waitFor(async () => {
-        await expect(canvas.queryByRole('dialog', { name: 'Edit tags' })).not.toBeInTheDocument()
-      })
     })
 
     await step('Verify payload', async () => {

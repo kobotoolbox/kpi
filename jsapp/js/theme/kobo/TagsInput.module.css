@@ -5,10 +5,6 @@
   color: var(--mantine-color-gray-1);
 }
 
-.input:focus-within {
-  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
-}
-
 .input {
   border-color: var(--mantine-color-gray-6);
 
