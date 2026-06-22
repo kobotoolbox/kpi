@@ -87,7 +87,6 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
 
   async editLanguages() {
     // Fetch full asset with content before opening modal
-    // (list endpoints don't include content for performance)
     try {
       const response = await assetsRetrieve(this.props.asset.uid)
       if (response.status === 200) {
