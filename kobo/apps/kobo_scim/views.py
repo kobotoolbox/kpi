@@ -19,7 +19,6 @@ from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
 from kobo.apps.kobo_scim.constants import (
-    SCIM_SCHEMA_ERROR,
     SCIM_SCHEMA_GROUP,
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_RESOURCE_TYPE,
