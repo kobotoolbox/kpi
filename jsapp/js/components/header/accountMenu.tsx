@@ -1,15 +1,14 @@
-import React, { useState } from 'react'
-
 import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import bem from '#/bem'
+import Menu from '#/components/common/Menu'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
 import type { LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
-import PopoverMenu from '#/popoverMenu'
 import { isAnyRouteBlockerActive } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { currentLang } from '#/utils'
@@ -27,6 +26,8 @@ export default function AccountMenu() {
   const navigate = useNavigate()
 
   const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+
   const toggleLanguageSelector = () => {
     setIsLanguageSelectorVisible(!isLanguageSelectorVisible)
   }
@@ -66,6 +67,7 @@ export default function AccountMenu() {
   }
 
   const openAccountSettings = () => {
+    setIsMenuOpen(false)
     navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS)
   }
 
@@ -78,68 +80,69 @@ export default function AccountMenu() {
 
   return (
     <bem.AccountBox>
-      <PopoverMenu type='account-menu' triggerLabel={<Avatar size='m' username={accountName} />}>
-        <bem.AccountBox__menu>
-          <bem.AccountBox__menuLI key='1'>
-            <bem.AccountBox__menuItem m={'avatar'}>
-              <Avatar size='m' username={accountName} fullName={accountName} email={accountEmail} />
-            </bem.AccountBox__menuItem>
-
-            <OrganizationBadge color='light-blue' />
-
-            {/*
-              There is no UI we can show to a user who sees a router blocker, so
-              we don't allow any in-app navigation.
-            */}
-            {!isAnyRouteBlockerActive() && (
-              <bem.AccountBox__menuItem m={'settings'}>
-                <Button
-                  type='primary'
-                  size='l'
-                  isFullWidth
-                  onClick={openAccountSettings}
-                  label={t('Account Settings')}
-                />
+      <Menu opened={isMenuOpen} onChange={setIsMenuOpen}>
+        <Menu.Target>
+          <button type='button' className='account-menu-trigger'>
+            <Avatar size='m' username={accountName} />
+          </button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <bem.AccountBox__menu>
+            <bem.AccountBox__menuLI key='1'>
+              <bem.AccountBox__menuItem m={'avatar'}>
+                <Avatar size='m' username={accountName} fullName={accountName} email={accountEmail} />
               </bem.AccountBox__menuItem>
-            )}
-          </bem.AccountBox__menuLI>
 
-          {shouldDisplayUrls && (
-            <bem.AccountBox__menuLI key='2' className='environment-links'>
-              {envStore.data.terms_of_service_url && (
-                <a href={envStore.data.terms_of_service_url} target='_blank'>
-                  {t('Terms of Service')}
-                </a>
-              )}
-              {envStore.data.privacy_policy_url && (
-                <a href={envStore.data.privacy_policy_url} target='_blank'>
-                  {t('Privacy Policy')}
-                </a>
+              <OrganizationBadge color='light-blue' />
+
+              {/*
+                There is no UI we can show to a user who sees a router blocker, so
+                we don't allow any in-app navigation.
+              */}
+              {!isAnyRouteBlockerActive() && (
+                <bem.AccountBox__menuItem m={'settings'}>
+                  <Button
+                    type='primary'
+                    size='l'
+                    isFullWidth
+                    onClick={openAccountSettings}
+                    label={t('Account Settings')}
+                  />
+                </bem.AccountBox__menuItem>
               )}
             </bem.AccountBox__menuLI>
-          )}
 
-          <bem.AccountBox__menuLI m={'lang'} key='3'>
-            <ButtonNew
-              leftIcon={IconWorldFilled}
-              variant='transparent'
-              onClick={toggleLanguageSelector}
-              tabIndex={0}
-              data-popover-menu-stop-blur
-            >
-              {t('Language')}
-            </ButtonNew>
+            {shouldDisplayUrls && (
+              <bem.AccountBox__menuLI key='2' className='environment-links'>
+                {envStore.data.terms_of_service_url && (
+                  <a href={envStore.data.terms_of_service_url} target='_blank'>
+                    {t('Terms of Service')}
+                  </a>
+                )}
+                {envStore.data.privacy_policy_url && (
+                  <a href={envStore.data.privacy_policy_url} target='_blank'>
+                    {t('Privacy Policy')}
+                  </a>
+                )}
+              </bem.AccountBox__menuLI>
+            )}
 
-            {isLanguageSelectorVisible && <ul>{langs.map(renderLangItem)}</ul>}
-          </bem.AccountBox__menuLI>
+            <bem.AccountBox__menuLI m={'lang'} key='3'>
+              <ButtonNew leftIcon={IconWorldFilled} variant='transparent' onClick={toggleLanguageSelector} tabIndex={0}>
+                {t('Language')}
+              </ButtonNew>
 
-          <bem.AccountBox__menuLI m={'logout'} key='4'>
-            <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={sessionStore.logOut}>
-              {t('Logout')}
-            </ButtonNew>
-          </bem.AccountBox__menuLI>
-        </bem.AccountBox__menu>
-      </PopoverMenu>
+              {isLanguageSelectorVisible && <ul>{langs.map(renderLangItem)}</ul>}
+            </bem.AccountBox__menuLI>
+
+            <bem.AccountBox__menuLI m={'logout'} key='4'>
+              <ButtonNew leftIcon={IconLogout} variant='transparent' onClick={sessionStore.logOut}>
+                {t('Logout')}
+              </ButtonNew>
+            </bem.AccountBox__menuLI>
+          </bem.AccountBox__menu>
+        </Menu.Dropdown>
+      </Menu>
     </bem.AccountBox>
   )
 }
