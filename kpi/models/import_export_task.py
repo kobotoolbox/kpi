@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.db import models, transaction
 from django.db.models import CharField, F, Value
-from django.db.models.functions import Coalesce, Concat
+from django.db.models.functions import Cast, Coalesce, Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
@@ -595,13 +595,19 @@ class AccessLogExportTask(ExportTaskMixin, AuditLogExportTaskMixin, ImportExport
         filtered_queryset = self.filter_queryset_by_lookback_limit(
             filtered_queryset, self.user
         )
-        return filtered_queryset.annotate(
+        annotations = {
             **self.common_fields,
-            username=Coalesce(F('user__username'), F('metadata__attempted_username')),
-            auth_type=F('metadata__auth_type'),
-            initial_superusername=F('metadata__initial_user_username'),
-            initial_superuseruid=F('metadata__initial_user_uid'),
-            authorized_application=F('metadata__authorized_app_name'),
+            'username': Coalesce(
+                F('user__username'),
+                Cast(F('metadata__attempted_username'), output_field=CharField()),
+            ),
+            'auth_type': F('metadata__auth_type'),
+            'initial_superusername': F('metadata__initial_user_username'),
+            'initial_superuseruid': F('metadata__initial_user_uid'),
+            'authorized_application': F('metadata__authorized_app_name'),
+        }
+        return filtered_queryset.annotate(
+            **annotations
         ).values(*ACCESS_LOGS_EXPORT_FIELDS)
 
     def _run_task(self, messages: list) -> None:
