@@ -37,6 +37,7 @@ from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSeriali
 from kobo.apps.kobo_scim.utils import (
     apply_scim_user_metadata,
     generate_unique_scim_username,
+    get_scim_extension_schemas,
 )
 
 
@@ -213,7 +214,10 @@ class ScimUserViewSet(
 
                 # First, check if user exists via SocialAccount linkage
                 social_account = (
-                    SocialAccount.objects.filter(provider=self.idp_provider_id, uid=uid)
+                    SocialAccount.objects.filter(
+                        provider=self.idp_provider_id,
+                        uid=uid,
+                    )
                     .select_related('user')
                     .first()
                 )
@@ -223,8 +227,8 @@ class ScimUserViewSet(
                 # Fallback to email matching if not linked yet
                 if not user:
                     # The provisioning requirement is to abort if the incoming email
-                    # already belongs to any Kobo account, unless the account is already
-                    # linked to this IdP and is being reactivated.
+                    # already belongs to any Kobo account, unless the account
+                    # is already linked to this IdP and is being reactivated.
                     existing_email_users = (
                         User.objects.filter(email__iexact=email)
                         if email
@@ -247,8 +251,8 @@ class ScimUserViewSet(
                             {
                                 'schemas': [SCIM_SCHEMA_ERROR],
                                 'detail': (
-                                    'Email address already exists on one or more Kobo '
-                                    'accounts.'
+                                    'Email address already exists on one or more '
+                                    'Kobo accounts.'
                                 ),
                                 'status': '409',
                             },
@@ -284,7 +288,11 @@ class ScimUserViewSet(
                 else:
                     # If the IdP provisions the user as deactivated, or links to an
                     # existing user but specifies active=False, deactivate them.
-                    apply_scim_user_metadata(user, data)
+                    apply_scim_user_metadata(
+                        user,
+                        data,
+                        enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                    )
 
                     audit_action = (
                         AuditAction.REPROVISIONING
@@ -311,7 +319,11 @@ class ScimUserViewSet(
                     serializer = self.get_serializer(user)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-                apply_scim_user_metadata(user, data)
+                apply_scim_user_metadata(
+                    user,
+                    data,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                )
 
                 if reactivated_users:
                     for reactivated_user in reactivated_users:
@@ -442,7 +454,11 @@ class ScimUserViewSet(
                         ),
                     )
 
-            apply_scim_user_metadata(instance, self.request.data)
+            apply_scim_user_metadata(
+                instance,
+                self.request.data,
+                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
+            )
 
     def _reactivate_sso_linked_accounts(self, email, current_user=None):
         """
@@ -616,7 +632,11 @@ class ScimUserViewSet(
                         )
 
             if scim_patch_data:
-                metadata_processed = apply_scim_user_metadata(instance, scim_patch_data)
+                metadata_processed = apply_scim_user_metadata(
+                    instance,
+                    scim_patch_data,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                )
 
         if metadata_processed or active_status is not None:
             # SCIM expects the updated resource returned on successful PATCH
@@ -747,8 +767,6 @@ class ScimSchemasView(APIView):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
             'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
-            'totalResults': 2,
-            'itemsPerPage': 2,
             'startIndex': 1,
             'Resources': [
                 {
@@ -940,6 +958,18 @@ class ScimSchemasView(APIView):
                 },
             ],
         }
+
+        extension_schemas = get_scim_extension_schemas()
+        for ext_schema in extension_schemas:
+            ext_schema['meta'] = {
+                'resourceType': 'Schema',
+                'location': f"{location}/{ext_schema['id']}",
+            }
+            payload['Resources'].append(ext_schema)
+
+        payload['totalResults'] = len(payload['Resources'])
+        payload['itemsPerPage'] = len(payload['Resources'])
+
         return Response(payload, status=status.HTTP_200_OK)
 
 
@@ -995,6 +1025,18 @@ class ScimResourceTypesView(APIView):
                 },
             ],
         }
+
+        extension_schemas = get_scim_extension_schemas()
+        schema_extensions = [
+            {'schema': ext['id'], 'required': False} for ext in extension_schemas
+        ]
+
+        user_resource = next(
+            (r for r in payload['Resources'] if r['id'] == 'User'), None
+        )
+        if user_resource:
+            user_resource['schemaExtensions'] = schema_extensions
+
         return Response(payload, status=status.HTTP_200_OK)
 
 

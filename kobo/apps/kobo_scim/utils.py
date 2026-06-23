@@ -1,12 +1,14 @@
 from constance import config
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
-def apply_scim_user_metadata(user, scim_data):
+def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     """
     Applies custom IdP metadata from the SCIM payload to the Kobo user profile.
     It reads `constance.config.USER_METADATA_FIELDS` for mapping definitions.
@@ -27,11 +29,13 @@ def apply_scim_user_metadata(user, scim_data):
     }
 
     extra_details_updated = False
-    updated_profile_fields = set()
+    profile_updates = {}
+    profile_field_to_metadata_key = {}
     matched_any = False
 
     extra_user_detail = None
     metadata = {}
+    original_metadata = {}
     profile = None
 
     for field_def in metadata_fields:
@@ -93,6 +97,8 @@ def apply_scim_user_metadata(user, scim_data):
         if extra_user_detail is None:
             extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
             metadata = extra_user_detail.data or {}
+            # Snapshot original metadata to safely recover previously valid fields
+            original_metadata = dict(metadata)
 
         if profile is None:
             profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -105,29 +111,58 @@ def apply_scim_user_metadata(user, scim_data):
         # Determine where to save the field in UserProfile
         if field_name == 'bio':
             profile.description = value
-            updated_profile_fields.add('description')
+            profile_updates['description'] = value
+            profile_field_to_metadata_key['description'] = field_name
         elif field_name == 'organization_website':
             profile.home_page = value
-            updated_profile_fields.add('home_page')
+            profile_updates['home_page'] = value
+            profile_field_to_metadata_key['home_page'] = field_name
         elif field_name == 'phone_number':
             profile.phonenumber = value
-            updated_profile_fields.add('phonenumber')
+            profile_updates['phonenumber'] = value
+            profile_field_to_metadata_key['phonenumber'] = field_name
         elif field_name in user_profile_fields:
             setattr(profile, field_name, value)
-            updated_profile_fields.add(field_name)
+            profile_updates[field_name] = value
+            profile_field_to_metadata_key[field_name] = field_name
 
         # Always save to ExtraUserDetail.data for a complete metadata source
         metadata[field_name] = value
         extra_details_updated = True
 
-    if extra_details_updated or updated_profile_fields:
+    if extra_details_updated or profile_updates:
         with transaction.atomic():
+            if profile_updates:
+                try:
+                    profile.full_clean()
+                    profile.save(update_fields=list(profile_updates.keys()))
+                except DjangoValidationError as e:
+                    if enforce_strict_validation:
+                        raise DRFValidationError(e.message_dict)
+                    else:
+                        # Gracefully discard invalid fields and save the rest
+                        profile.refresh_from_db()
+                        valid_fields = []
+                        for field, val in profile_updates.items():
+                            if field not in e.error_dict:
+                                setattr(profile, field, val)
+                                valid_fields.append(field)
+                            else:
+                                metadata_key = profile_field_to_metadata_key.get(field)
+                                if metadata_key and metadata_key in metadata:
+                                    if metadata_key in original_metadata:
+                                        metadata[metadata_key] = original_metadata[
+                                            metadata_key
+                                        ]
+                                    else:
+                                        del metadata[metadata_key]
+
+                        if valid_fields:
+                            profile.save(update_fields=valid_fields)
+
             if extra_details_updated:
                 extra_user_detail.data = metadata
                 extra_user_detail.save(update_fields=['data'])
-
-            if updated_profile_fields:
-                profile.save(update_fields=list(updated_profile_fields))
 
     return matched_any
 
@@ -156,3 +191,52 @@ def generate_unique_scim_username(base_username, idp_slug):
         if not User.objects.filter(username__iexact=username).exists():
             return username
         counter += 1
+
+
+def get_scim_extension_schemas():
+    """
+    Parses constance.config.USER_METADATA_FIELDS and dynamically builds
+    SCIM extension schemas for the API to advertise.
+    """
+    metadata_fields = getattr(config, 'USER_METADATA_FIELDS', None)
+    if not isinstance(metadata_fields, list):
+        return []
+
+    schemas = {}
+    for field in metadata_fields:
+        scim_mapping = field.get('scim_mapping')
+        if not scim_mapping:
+            continue
+
+        if '.' in scim_mapping:
+            urn, attr_name = scim_mapping.rsplit('.', 1)
+        elif ':' in scim_mapping:
+            urn, attr_name = scim_mapping.rsplit(':', 1)
+        else:
+            continue
+
+        if urn not in schemas:
+            urn_name = urn.rsplit(':', 1)[-1] if ':' in urn else 'User'
+            schemas[urn] = {
+                'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+                'id': urn,
+                'name': f'{urn_name} Extension',
+                'description': f'Custom {urn_name} attributes mapped from Kobo USER_METADATA_FIELDS',  # noqa E501
+                'attributes': [],
+            }
+
+        schemas[urn]['attributes'].append(
+            {
+                'name': attr_name,
+                'type': 'string',
+                'description': field.get('name', ''),
+                'multiValued': False,
+                'required': bool(field.get('required', False)),
+                'caseExact': False,
+                'mutability': 'readWrite',
+                'returned': 'default',
+                'uniqueness': 'none',
+            }
+        )
+
+    return list(schemas.values())
