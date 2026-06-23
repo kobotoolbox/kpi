@@ -103,7 +103,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
                 const delay = 2 ** (attempt - 1) * 1000
                 await new Promise((resolve) => setTimeout(resolve, delay))
               } else {
-                // if attempt == 3 → abort, surface error
                 notify.error(t('Failed to calculate audio duration after multiple attempts. Please try again.'))
                 setIsAudioDurationLoading(false)
                 return
