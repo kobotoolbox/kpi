@@ -43,7 +43,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const [audioDuration, setAudioDuration] = useState<number>(0)
-  const [isAudioDurationLoading, setIsAudioDurationLoading] = useState<boolean>(false)
+  const [isAudioDurationLoading, setIsAudioDurationLoading] = useState<boolean>(true)
   const queryClient = useQueryClient()
 
   // Derive values from selectedSubmissions
