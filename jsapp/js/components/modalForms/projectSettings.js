@@ -9,8 +9,9 @@ import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
-import { archiveAsset, deleteAsset, unarchiveAsset } from '#/assetQuickActions'
+import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
+import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -39,9 +40,10 @@ const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-
 /**
  * This is used for multiple different purposes:
  *
- * 1. When creating new project
- * 2. When replacing project with new one
- * 3. When editing project in /settings
+ * 1. When creating new project from scratch
+ * 2. When creating new project from template
+ * 3. When replacing project with new one
+ * 4. When editing project in /settings
  *
  * Identifying the purpose is done by checking `context` and `formAsset`.
  *
@@ -84,7 +86,8 @@ class ProjectSettings extends React.Component {
       // template
       isApplyTemplatePending: false,
       applyTemplateButton: t('Next'),
-      chosenTemplateUid: null,
+      chosenTemplateUid: this.props.initialTemplateUid || null,
+      pendingTemplateCloneUid: null,
       // upload files
       isUploadFilePending: false,
       // archive flow
@@ -101,6 +104,10 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep()
+    // If an initial template is provided, apply it immediately
+    if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
+      this.cloneTemplateAsSurvey(this.props.initialTemplateUid)
+    }
     when(
       () => sessionStore.isInitialLoadComplete,
       () => {
@@ -111,8 +118,6 @@ class ProjectSettings extends React.Component {
       actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),
       actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
-      actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
-      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
       router.subscribe(this.onRouteChange.bind(this)),
@@ -168,6 +173,11 @@ class ProjectSettings extends React.Component {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
+        // If an initial template is provided, keep currentStep null to show spinner
+        // until the clone completes, then onCloneAssetCompleted will show PROJECT_DETAILS
+        if (this.props.initialTemplateUid && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) {
+          return
+        }
         return this.displayStep(this.STEPS.FORM_SOURCE)
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
         return this.displayStep(this.STEPS.PROJECT_DETAILS)
@@ -299,7 +309,7 @@ class ProjectSettings extends React.Component {
   deleteProject(evt) {
     evt.preventDefault()
 
-    deleteAsset(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
+    openDeleteAssetModal(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
   }
 
   // archive flow
@@ -458,30 +468,6 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onCloneAssetCompleted(asset) {
-    if (
-      (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
-        this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) &&
-      this.state.currentStep === this.STEPS.CHOOSE_TEMPLATE
-    ) {
-      this.setState({
-        formAsset: asset,
-        fields: this.getInitialFieldsFromAsset(asset),
-      })
-      this.resetApplyTemplateButton()
-      this.displayStep(this.STEPS.PROJECT_DETAILS)
-    }
-  }
-
-  onCloneAssetFailed() {
-    if (
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
-      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
-    ) {
-      this.resetApplyTemplateButton()
-    }
-  }
-
   getOrCreateFormAsset() {
     const assetPromise = new Promise((resolve, reject) => {
       if (this.state.formAsset) {
@@ -537,24 +523,61 @@ class ProjectSettings extends React.Component {
     })
   }
 
-  applyTemplate(evt) {
-    evt.preventDefault()
-
+  cloneTemplateAsSurvey(templateUid) {
     this.setState({
       isApplyTemplatePending: true,
       applyTemplateButton: t('Please wait…'),
+      pendingTemplateCloneUid: templateUid,
     })
 
+    // Use dataInterface directly with promise to avoid race with global listeners
+    dataInterface
+      .cloneAsset({
+        uid: templateUid,
+        new_asset_type: 'survey',
+      })
+      .done((asset) => {
+        // Only process if we're still waiting for this specific template
+        if (this.state.pendingTemplateCloneUid === templateUid) {
+          this.setState({
+            formAsset: asset,
+            fields: this.getInitialFieldsFromAsset(asset),
+            pendingTemplateCloneUid: null,
+          })
+          this.resetApplyTemplateButton()
+          this.displayStep(this.STEPS.PROJECT_DETAILS)
+        }
+      })
+      .fail(() => {
+        if (this.state.pendingTemplateCloneUid === templateUid) {
+          this.setState({ pendingTemplateCloneUid: null })
+          this.resetApplyTemplateButton()
+          notify.error(t('Failed to apply template.'))
+          // If auto-cloning from initialTemplateUid failed, close the modal
+          // since the user was sent here specifically for that template
+          if (this.props.initialTemplateUid === templateUid) {
+            pageState.hideModal()
+          }
+        }
+      })
+  }
+
+  applyTemplate(evt) {
+    evt.preventDefault()
+
+    const templateUid = this.state.chosenTemplateUid
+
     if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      this.setState({
+        isApplyTemplatePending: true,
+        applyTemplateButton: t('Please wait…'),
+      })
       actions.resources.updateAsset(this.state.formAsset.uid, {
-        clone_from: this.state.chosenTemplateUid,
+        clone_from: templateUid,
         name: this.state.formAsset.name,
       })
     } else {
-      actions.resources.cloneAsset({
-        uid: this.state.chosenTemplateUid,
-        new_asset_type: 'survey',
-      })
+      this.cloneTemplateAsSurvey(templateUid)
     }
   }
 
@@ -1138,20 +1161,28 @@ class ProjectSettings extends React.Component {
       )
     }
 
+    let content
     switch (this.state.currentStep) {
       case this.STEPS.FORM_SOURCE:
-        return this.renderStepFormSource()
+        content = this.renderStepFormSource()
+        break
       case this.STEPS.CHOOSE_TEMPLATE:
-        return this.renderStepChooseTemplate()
+        content = this.renderStepChooseTemplate()
+        break
       case this.STEPS.UPLOAD_FILE:
-        return this.renderStepUploadFile()
+        content = this.renderStepUploadFile()
+        break
       case this.STEPS.IMPORT_URL:
-        return this.renderStepImportUrl()
+        content = this.renderStepImportUrl()
+        break
       case this.STEPS.PROJECT_DETAILS:
-        return this.renderStepProjectDetails()
+        content = this.renderStepProjectDetails()
+        break
       default:
         throw new Error(`Unknown step: ${this.state.currentStep}!`)
     }
+
+    return <>{content}</>
   }
 }
 

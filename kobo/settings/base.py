@@ -363,12 +363,16 @@ CONSTANCE_CONFIG = {
             ' variable `GS_BUCKET_NAME`.'
         ),
     ),
-    'ASR_MT_GOOGLE_TRANSLATION_LOCATION': (
-        env.str('CONSTANCE_ASR_MT_GOOGLE_TRANSLATION_LOCATION', 'us-central1'),
+    'ASR_MT_GOOGLE_REGION': (
+        env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'global'),
         (
-            'Google Cloud location to use for large translation tasks. It'
-            ' cannot be `global`, and Google only allows certain locations.'
+            'Google Cloud region for ASR/MT data residency. '
+            'global (default): maximum language support, per-language routing '
+            'to the best available Google endpoint for each model. '
+            'eu: restrict all processing to EU-hosted Google endpoints; '
+            'languages only available outside the EU become unsupported.'
         ),
+        'google_region_choice',
     ),
     'ASR_MT_GOOGLE_CREDENTIALS': (
         '',
@@ -646,16 +650,6 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
-    'PROJECT_HISTORY_LOG_LIFESPAN': (
-        60,
-        'Length of time days to keep project history logs.',
-        'positive_int',
-    ),
-    'ACCESS_LOG_LIFESPAN': (
-        60,
-        'Length of time in days to keep access logs.',
-        'positive_int',
-    ),
     'USE_TEAM_LABEL': (
         True,
         'Use the term "Team" instead of "Organization" when Stripe is not enabled',
@@ -706,6 +700,15 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     'positive_int': ['django.forms.fields.IntegerField', {'min_value': 0}],
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {'min_value': -1}],
     'natural_int': ['django.forms.fields.IntegerField', {'min_value': 1}],
+    'google_region_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': (
+                ('global', 'Global'),
+                ('eu', 'Europe'),
+            ),
+        },
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -728,8 +731,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
-        'ACCESS_LOG_LIFESPAN',
-        'PROJECT_HISTORY_LOG_LIFESPAN',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
@@ -744,7 +745,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_INVITEE_USERNAMES',
         'ASR_MT_GOOGLE_PROJECT_ID',
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
+        'ASR_MT_GOOGLE_REGION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
         'AUTOMATIC_QA_REQUESTS_PER_SECOND'
@@ -1057,6 +1058,7 @@ SPECTACULAR_SETTINGS = {
         'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
         'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
         'AssetDeploymentStatusEnum': 'kpi.serializers.v2.asset.DEPLOYMENT_STATUS_ENUM',
+        'BulkActionResponseStatusEnum': 'kpi.schema_extensions.v2.subsequences.serializers.BULK_ACTION_STATUS_CHOICES',  # noqa
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -1263,6 +1265,56 @@ def dj_stripe_request_callback_method():
     # https://github.com/dj-stripe/dj-stripe/issues/1900
     pass
 
+
+BULK_ACTION_RATE_LIMITS = {
+    'automatic_google_transcription': {
+        'max_jobs_per_minute': 120,
+    },
+    'automatic_google_translation': {
+        'max_jobs_per_minute': 300,
+    },
+}
+
+# These limits restrict the maximum number of Google Cloud requests per minute
+# across the entire platform. They are intentionally set lower than Google
+# project quotas to leave headroom for window skew, manual retries, and services
+# that share the same Google project outside this process.
+GOOGLE_SERVICE_RATE_LIMITS = {
+    'speech_v2_batch_recognize': {
+        'max_requests': env.int(
+            'GOOGLE_SPEECH_V2_BATCH_RECOGNIZE_MAX_REQUESTS_PER_MINUTE',
+            140,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            2000,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_batch_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_BATCH_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            3000,
+        ),
+        'period_seconds': 60,
+    },
+}
+GOOGLE_SERVICE_QUOTA_RETRY_AFTER = env.int(
+    'GOOGLE_SERVICE_QUOTA_RETRY_AFTER',
+    100,
+)
+
+BULK_ACTION_STATUS_POLL_INTERVAL = env.int(
+    'BULK_ACTION_STATUS_POLL_INTERVAL',
+    30,
+)
+BULK_ACTION_STUCK_THRESHOLD = env.int(
+    'BULK_ACTION_STUCK_THRESHOLD',
+    BULK_ACTION_STATUS_POLL_INTERVAL * 10,
+)
 
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
@@ -1595,6 +1647,11 @@ CELERY_BEAT_SCHEDULE = {
     'mark-zombie-submissions': {
         'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'resume-stuck-subsequence-bulk-actions': {
+        'task': 'kobo.apps.subsequences.tasks.resume_stuck_bulk_actions',
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
@@ -2286,3 +2343,7 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
     'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
 )
+
+# 24 months x 31 days/month = 744 default
+PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
+ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)

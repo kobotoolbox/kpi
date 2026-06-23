@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 from django import forms
@@ -12,8 +11,9 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
-from .assignment import AssignmentProjectViewM2MInline
+
 from ..fields import ChoiceArrayField
+from .assignment import AssignmentProjectViewM2MInline
 
 
 class ProjectView(models.Model):
@@ -26,7 +26,22 @@ class ProjectView(models.Model):
 
     uid = KpiUidField(uid_prefix='pv')
     name = models.CharField(max_length=200)
-    countries = models.CharField(max_length=1000)
+    countries = models.CharField(
+        max_length=1000,
+        help_text=(
+            'Enter comma-separated country codes to filter by (e.g., "ESP, FRA"). '
+            'Use "*" to include all countries'
+        ),
+    )
+    organizations = models.ManyToManyField(
+        'organizations.Organization',
+        related_name='project_views',
+        blank=True,
+        help_text=(
+            'Select specific organizations to filter by. '
+            'Leave empty to include all organizations.'
+        )
+    )
     permissions = ChoiceArrayField(
         base_field=models.CharField(
             max_length=25,
@@ -68,3 +83,4 @@ class ProjectViewAdmin(admin.ModelAdmin):
     list_display = ('name', 'countries', 'permissions')
     exclude = ('uid',)
     inlines = (AssignmentProjectViewM2MInline,)
+    autocomplete_fields = ('organizations',)

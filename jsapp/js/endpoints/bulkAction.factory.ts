@@ -9,6 +9,8 @@ export default function bulkActionFactory(
   languageCode: LanguageCode,
   overrides: Partial<BulkActionResponse> = {},
 ): BulkActionResponse {
+  const { progress = 0, ...restOverrides } = overrides
+
   return {
     uid: 'bulk-action-uid',
     status: BulkActionResponseStatusEnum.in_progress,
@@ -19,16 +21,18 @@ export default function bulkActionFactory(
       {
         uuid: submissionUuid,
         status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+        error: null,
       },
     ],
     params: {
       language: languageCode,
     },
+    progress,
     created_by: {
       username: 'zefir',
     },
     date_created: '2026-01-01T00:00:00Z',
     date_modified: '2026-01-01T00:00:00Z',
-    ...overrides,
+    ...restOverrides,
   }
 }

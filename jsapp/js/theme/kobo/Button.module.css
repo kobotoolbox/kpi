@@ -27,6 +27,10 @@
       background-color: var(--button-bg);
       border-color: var(--mantine-color-gray-5);
     }
+
+    &[data-disabled] {
+      border: 1px solid var(--mantine-color-gray-6);
+    }
   }
 }
 
@@ -37,5 +41,16 @@
 
   &[data-position='right'] {
     margin-inline-start: calc(var(--button-height) * 0.2);
+  }
+}
+
+.root:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+
+  &[data-variant='danger'],
+  &[data-variant='danger-secondary'],
+  &[data-variant='danger-transparent'] {
+    outline-color: var(--kobo-focus-ring-color-danger);
   }
 }

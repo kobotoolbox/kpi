@@ -12,6 +12,7 @@ from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_METADATA_ASSET,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -163,6 +164,11 @@ class AssetPermission(
         ) or (
             method == 'GET'
             and user_has_project_view_asset_perm(obj, user, PERM_VIEW_ASSET)
+        ) or (
+            method == 'DELETE'
+            and obj.has_perm(user, PERM_MANAGE_ASSET)
+            and (not obj.has_deployment or obj.deployment.submission_count == 0)
+            and obj.created_by == user.username
         ):
             return True
 
@@ -451,6 +457,18 @@ class AttachmentDeletionPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'DELETE': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
+class AttachmentAudioDurationPermission(SubmissionPermission):
+    """
+    Permissions for querying audio duration of attachments.
+    Retrieving audio duration is a read-only operation gated on view_submissions.
+    """
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.view_%(model_name)s'],
     }
 
 

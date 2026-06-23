@@ -14,7 +14,9 @@ export function replaceSupportEmail(str: string): string {
   }
 }
 
-// returns an HTML string where [bracket] notation is replaced with a hyperlink
+/**
+ * Returns an HTML string where [bracket] notation is replaced with a hyperlink
+ */
 export function replaceBracketsWithLink(str: string, url?: string): string {
   const bracketRegex = /\[([^\]]+)\]/g
   if (!url) {

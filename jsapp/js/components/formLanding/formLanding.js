@@ -1,7 +1,6 @@
-import React from 'react'
-
 import { Group, Stack } from '@mantine/core'
 import { IconWorldFilled } from '@tabler/icons-react'
+import React from 'react'
 import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
@@ -13,6 +12,7 @@ import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickA
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
+import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -24,7 +24,6 @@ import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } fr
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
-import PopoverMenu from '#/popoverMenu'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
@@ -451,52 +450,53 @@ class FormLanding extends React.Component {
           />
         )}
 
-        <PopoverMenu
-          type='formLanding-menu'
-          triggerLabel={
-            <Button type='text' size='m' startIcon='more' tooltip={t('More actions')} tooltipPosition='right' />
-          }
-        >
-          {downloads.map((dl) => (
-            <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url} key={`dl-${dl.format}`}>
-              <i className={`k-icon k-icon-file-${dl.format}`} />
-              {t('Download')}&nbsp;
-              {dl.format.toString().toUpperCase()}
-            </bem.PopoverMenu__link>
-          ))}
+        <Menu>
+          <Menu.Target>
+            <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
+          </Menu.Target>
+          <Menu.Dropdown>
+            {downloads.map((dl) => (
+              <Menu.Item
+                component='a'
+                href={dl.url}
+                key={`dl-${dl.format}`}
+                leftSection={<i className={`k-icon k-icon-file-${dl.format}`} />}
+              >
+                {t('Download')}&nbsp;
+                {dl.format.toString().toUpperCase()}
+              </Menu.Item>
+            ))}
 
-          {userCanEdit && (
-            <bem.PopoverMenu__link onClick={this.showSharingModal}>
-              <i className='k-icon k-icon-user-share' />
-              {t('Share this project')}
-            </bem.PopoverMenu__link>
-          )}
+            {userCanEdit && (
+              <Menu.Item onClick={this.showSharingModal} leftSection={<i className='k-icon k-icon-user-share' />}>
+                {t('Share this project')}
+              </Menu.Item>
+            )}
 
-          {isLoggedIn && userCanRemoveSharedProject(this.state) && (
-            <bem.PopoverMenu__link onClick={this.nonOwnerSelfRemoval}>
-              <i className='k-icon k-icon-trash' />
-              {t('Remove shared project')}
-            </bem.PopoverMenu__link>
-          )}
+            {isLoggedIn && userCanRemoveSharedProject(this.state) && (
+              <Menu.Item onClick={this.nonOwnerSelfRemoval} leftSection={<i className='k-icon k-icon-trash' />}>
+                {t('Remove shared project')}
+              </Menu.Item>
+            )}
 
-          {isLoggedIn && (
-            <bem.PopoverMenu__link onClick={() => this.saveCloneAs()}>
-              <i className='k-icon k-icon-duplicate' />
-              {t('Clone this project')}
-            </bem.PopoverMenu__link>
-          )}
+            {isLoggedIn && (
+              <Menu.Item onClick={() => this.saveCloneAs()} leftSection={<i className='k-icon k-icon-duplicate' />}>
+                {t('Clone this project')}
+              </Menu.Item>
+            )}
 
-          {isLoggedIn && (
-            <bem.PopoverMenu__link
-              onClick={() => {
-                cloneAssetAsTemplate(this.state.uid, this.state.name)
-              }}
-            >
-              <i className='k-icon k-icon-template' />
-              {t('Create template')}
-            </bem.PopoverMenu__link>
-          )}
-        </PopoverMenu>
+            {isLoggedIn && (
+              <Menu.Item
+                onClick={() => {
+                  cloneAssetAsTemplate(this.state.uid, this.state.name)
+                }}
+                leftSection={<i className='k-icon k-icon-template' />}
+              >
+                {t('Create template')}
+              </Menu.Item>
+            )}
+          </Menu.Dropdown>
+        </Menu>
       </React.Fragment>
     )
   }

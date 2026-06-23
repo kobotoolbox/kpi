@@ -1,13 +1,11 @@
 import './assetsTable.scss'
-
 import React from 'react'
-
 import ReactDOM from 'react-dom'
 import bem, { makeBem } from '#/bem'
+import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse, MetadataResponse } from '#/dataInterface'
-import PopoverMenu from '#/popoverMenu'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { getScrollbarWidth, hasVerticalScrollbar } from '#/utils'
 import { ASSETS_TABLE_COLUMNS, ASSETS_TABLE_CONTEXTS, ORDER_DIRECTIONS } from './assetsTableConstants'
@@ -66,8 +64,6 @@ interface AssetsTableProps {
 }
 
 interface AssetsTableState {
-  shouldHidePopover: boolean
-  isPopoverVisible: boolean
   scrollbarWidth: number | null
   isFullscreen: boolean
 }
@@ -89,8 +85,6 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
   constructor(props: AssetsTableProps) {
     super(props)
     this.state = {
-      shouldHidePopover: false,
-      isPopoverVisible: false,
       scrollbarWidth: null,
       isFullscreen: false,
     }
@@ -194,10 +188,6 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
     }
   }
 
-  onPopoverSetVisible() {
-    this.setState({ isPopoverVisible: true })
-  }
-
   getColumnMetadata(columnDef: AssetsTableColumn) {
     switch (columnDef.filterByMetadataName) {
       case 'languages':
@@ -231,40 +221,38 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
 
     return (
       <bem.AssetsTableRow__column m={columnDef.id}>
-        <PopoverMenu
-          type='assets-table'
-          triggerLabel={
-            <span>
+        <Menu>
+          <Menu.Target>
+            <button type='button' className='assets-table-filter-button'>
               {columnDef.label} {icon}
-            </span>
-          }
-          clearPopover={this.state.shouldHidePopover}
-          popoverSetVisible={this.onPopoverSetVisible.bind(this)}
-        >
-          {options.map((option, index) => {
-            let optionValue
-            let optionLabel
+            </button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            {options.map((option, index) => {
+              let optionValue
+              let optionLabel
 
-            if (typeof option === 'string') {
-              optionValue = option
-              optionLabel = option
-            }
-            if (Array.isArray(option)) {
-              optionValue = option[0]
-              optionLabel = option[1]
-            }
+              if (typeof option === 'string') {
+                optionValue = option
+                optionLabel = option
+              }
+              if (Array.isArray(option)) {
+                optionValue = option[0]
+                optionLabel = option[1]
+              }
 
-            return (
-              <bem.PopoverMenu__link
-                onClick={this.onChangeFilter.bind(this, columnDef.id, optionValue)}
-                key={`option-${index}`}
-              >
-                {optionLabel}
-                {optionValue === this.props.filterValue && <i className='k-icon k-icon-check' />}
-              </bem.PopoverMenu__link>
-            )
-          })}
-        </PopoverMenu>
+              return (
+                <Menu.Item
+                  onClick={this.onChangeFilter.bind(this, columnDef.id, optionValue)}
+                  key={`option-${index}`}
+                  rightSection={optionValue === this.props.filterValue ? <i className='k-icon k-icon-check' /> : null}
+                >
+                  {optionLabel}
+                </Menu.Item>
+              )
+            })}
+          </Menu.Dropdown>
+        </Menu>
       </bem.AssetsTableRow__column>
     )
   }

@@ -101,7 +101,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             ),
             'open_rosa_server': settings.KOBOCAT_URL,
             'terms_of_service__sitewidemessage__exists': False,
-            'project_history_log_lifespan': (config.PROJECT_HISTORY_LOG_LIFESPAN),
+            'project_history_log_lifespan': (settings.PROJECT_HISTORY_LOG_LIFESPAN),
             'use_team_label': config.USE_TEAM_LABEL,
             'usage_limit_enforcement': config.USAGE_LIMIT_ENFORCEMENT,
             'allow_self_account_deletion': config.ALLOW_SELF_ACCOUNT_DELETION,
