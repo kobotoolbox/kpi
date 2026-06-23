@@ -2,19 +2,28 @@ import uuid
 from datetime import timedelta
 
 from ddt import data, ddt, unpack
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import now
+from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_active_users, get_inactive_users
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    remove_uuid_prefix,
+    add_uuid_prefix,
+)
+from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.trash_bin.utils import move_to_trash
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 
 
 @ddt
@@ -77,22 +86,42 @@ class UserActivityQueryTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         return response
 
-    def _create_submission(self, user, asset, created_at, modified_at):
+    def _post_submission(self, user, asset, submission_dict):
         """
-        Helper function to create a submission (Instance) for a given Asset
+        POST a raw submission dict to the OpenRosa endpoint as the given user.
+
+        Builds a valid OpenRosa XML document and POSTs it to the authenticated
+        submission endpoint so the full middleware stack runs and
+        ExtraUserDetail.update_last_project_activity() is called naturally.
         """
-        uuid_ = uuid.uuid4()
-        submission_data = {
-            'q1': 'answer',
-            'meta/instanceID': f'uuid:{uuid_}',
-            '_submitted_by': user.username,
-        }
-        asset.deployment.mock_submissions([submission_data])
-        Instance.objects.filter(uuid=uuid_).update(
-            date_created=created_at, date_modified=modified_at
+        xml = fromstring_preserve_root_xmlns(
+            dict2xform(submission_dict, asset.deployment.xform.id_string)
         )
-        instance = Instance.objects.get(uuid=uuid_)
-        return instance
+        xml.tag = asset.uid
+        xml.attrib = {'id': asset.uid, 'version': asset.latest_version.uid}
+        data = {
+            'xml_submission_file': SimpleUploadedFile(
+                'submission.xml', xml_tostring(xml).encode()
+            )
+        }
+        self.client.force_authenticate(user=user)
+        self.client.force_login(user)
+        response = self.client.post(reverse('submissions'), data=data)
+        return response
+
+    def _create_submission(self, user, asset, submitted_at):
+        """
+        Helper function to create a submission (Instance) for a given Asset.
+        """
+        uuid_ = str(uuid.uuid4())
+        submission_dict = {
+            'q1': 'answer',
+            'meta': {'instanceID': add_uuid_prefix(uuid_)},
+            'formhub': {'uuid': asset.deployment.xform.uuid},
+        }
+        with freeze_time(submitted_at):
+            self._post_submission(user, asset, submission_dict)
+        return Instance.objects.get(root_uuid=remove_uuid_prefix(uuid_))
 
     @data(
         ('user_old_login', 'old_date', 'old_date', True, False),
@@ -149,20 +178,21 @@ class UserActivityQueryTests(BaseTestCase):
 
         # Ensure the user is inactive with an old asset and submission
         asset = self._create_asset(user, self.old_date, self.old_date)
-        instance = self._create_submission(user, asset, self.old_date, self.old_date)
+        instance = self._create_submission(user, asset, self.old_date)
         inactive_users = get_inactive_users()
         active_users = get_active_users()
         self.assertTrue(user in inactive_users)
         self.assertFalse(user in active_users)
 
         # Update the submission and ensure the user is no longer inactive
-        submission_data = {
+        self._post_submission(user, asset, {
             'q1': 'new_answer',
-            'meta/instanceID': f'uuid:{uuid.uuid4()}',
-            'meta/deprecatedID': f'uuid:{instance.uuid}',
-            '_submitted_by': user.username,
-        }
-        asset.deployment.mock_submissions([submission_data], create_uuids=False)
+            'meta': {
+                'instanceID': f'uuid:{uuid.uuid4()}',
+                'deprecatedID': f'uuid:{instance.uuid}',
+            },
+            'formhub': {'uuid': asset.deployment.xform.uuid},
+        })
         inactive_users = get_inactive_users()
         active_users = get_active_users()
         self.assertFalse(user in inactive_users)
@@ -177,51 +207,122 @@ class UserActivityQueryTests(BaseTestCase):
 
         # Ensure the user is inactive with an old asset and submission
         asset = self._create_asset(user, self.old_date, self.old_date)
-        self._create_submission(user, asset, self.old_date, self.old_date)
+        self._create_submission(user, asset, self.old_date)
         inactive_users = get_inactive_users()
         active_users = get_active_users()
         self.assertTrue(user in inactive_users)
         self.assertFalse(user in active_users)
 
         # Create a new submission and ensure the user is no longer inactive
-        self._create_submission(user, asset, self.recent_date, self.recent_date)
+        self._create_submission(user, asset, self.recent_date)
         inactive_users = get_inactive_users()
         active_users = get_active_users()
         self.assertFalse(user in inactive_users)
         self.assertTrue(user in active_users)
 
+    def test_owner_becomes_active_after_collaborator_edits_submission(self):
+        """
+        Test that editing a submission (by any user with change_submissions)
+        marks the form owner as active via ExtraUserDetail.last_project_activity.
+        """
+        owner = self._create_user('owner', self.old_date)
+        collaborator = User.objects.create_user(username='collaborator')
+
+        asset = self._create_asset(owner, self.old_date, self.old_date)
+        asset.assign_perm(collaborator, 'change_submissions')
+        instance = self._create_submission(owner, asset, self.old_date)
+
+        inactive_users = get_inactive_users()
+        active_users = get_active_users()
+        assert owner in inactive_users
+        assert owner not in active_users
+
+        # Collaborator edits the submission
+        response = self._post_submission(collaborator, asset, {
+            'q1': 'corrected_answer',
+            'meta': {
+                'instanceID': f'uuid:{uuid.uuid4()}',
+                'deprecatedID': f'uuid:{instance.uuid}',
+            },
+            'formhub': {'uuid': asset.deployment.xform.uuid},
+        })
+        assert response.status_code == status.HTTP_201_CREATED
+
+        inactive_users = get_inactive_users()
+        active_users = get_active_users()
+        assert owner not in inactive_users
+        assert owner in active_users
+
     def test_user_becomes_active_after_submitting_to_another_users_form(self):
         """
-        Test that a user who submits data to another user's form
-        is considered active, even if they don't own any assets
+        Test that both the submitter and the form owner are marked active when
+        a submission is added to another user's form, even if the submitter
+        doesn't own any assets.
         """
-        # Create asset with a different owner
-        asset_owner = User.objects.create_user(username='asset_owner')
-        asset = self._create_asset(asset_owner)
+        asset_owner = self._create_user('asset_owner', self.old_date)
+        asset = self._create_asset(asset_owner, self.old_date, self.old_date)
 
         # Create submitter with old login and no assets of their own
         submitter = self._create_user('submitter', self.old_date)
+        asset.assign_perm(submitter, PERM_ADD_SUBMISSIONS)
 
-        # Initially the submitter should be inactive
+        # Initially both should be inactive
         inactive_users = get_inactive_users()
         active_users = get_active_users()
-        self.assertTrue(submitter in inactive_users)
-        self.assertFalse(submitter in active_users)
+        assert submitter in inactive_users
+        assert submitter not in active_users
+        assert asset_owner in inactive_users
+        assert asset_owner not in active_users
 
         # Create a submission to the asset owner's form
-        uuid_ = uuid.uuid4()
-        submission_data = {
-            'q1': 'answer',
-            'meta/instanceID': f'uuid:{uuid_}',
-            '_submitted_by': submitter.username,
-        }
-        asset.deployment.mock_submissions([submission_data])
+        self._create_submission(submitter, asset, self.recent_date)
 
-        # Now the submitter should be active
+        # Now both submitter and form owner should be active
         inactive_users = get_inactive_users()
         active_users = get_active_users()
-        self.assertFalse(submitter in inactive_users)
-        self.assertTrue(submitter in active_users)
+        assert submitter not in inactive_users
+        assert submitter in active_users
+        assert asset_owner not in inactive_users
+        assert asset_owner in active_users
+
+    def test_last_project_activity_set_when_collaborator_modifies_asset(self):
+        """
+        Verify that modifying another user's asset sets last_project_activity
+        for both the collaborator and the asset owner.
+        """
+        owner = self._create_user('lpa_asset_owner', self.old_date)
+        collaborator = User.objects.create_user(username='lpa_asset_collab')
+        asset = self._create_asset(owner, self.old_date, self.old_date)
+        asset.assign_perm(collaborator, 'change_asset')
+
+        assert owner.extra_details.last_project_activity is None
+        assert collaborator.extra_details.last_project_activity is None
+
+        self._update_asset(asset, {'name': 'Collaborator rename'}, collaborator)
+
+        owner.extra_details.refresh_from_db()
+        collaborator.extra_details.refresh_from_db()
+        assert owner.extra_details.last_project_activity is not None
+        assert collaborator.extra_details.last_project_activity is not None
+
+    def test_last_project_activity_set_on_asset_creation(self):
+        """
+        Verify that creating a new asset via the API sets last_project_activity
+        for the owner.
+        """
+        user = self._create_user('lpa_asset_creator', self.old_date)
+        assert user.extra_details.last_project_activity is None
+
+        asset_list_url = reverse(self._get_endpoint('asset-list'))
+        self.client.force_login(user)
+        response = self.client.post(
+            asset_list_url,
+            data={'asset_type': 'survey', 'name': 'New project'},
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        user.extra_details.refresh_from_db()
+        assert user.extra_details.last_project_activity is not None
 
     def test_users_in_trash_excluded_from_inactive_user_query(self):
         user = self._create_user('active_submission', self.old_date)
@@ -229,7 +330,7 @@ class UserActivityQueryTests(BaseTestCase):
 
         # Ensure the user is inactive with an old asset and submission
         asset = self._create_asset(user, self.old_date, self.old_date)
-        self._create_submission(user, asset, self.old_date, self.old_date)
+        self._create_submission(user, asset, self.old_date)
         inactive_users = get_inactive_users()
         active_users = get_active_users()
         self.assertTrue(user in inactive_users)

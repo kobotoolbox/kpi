@@ -700,7 +700,17 @@ class ProjectHistoryLog(AuditLog):
                     metadata=metadata,
                 )
             )
+        # No transaction.atomic(): update_last_project_activity is a
+        # supplementary write — wrapping it with bulk_create would roll back
+        # audit entries if the activity update fails.
         ProjectHistoryLog.objects.bulk_create(logs)
+
+        # Track activity for the submitter/editor and the form owner so that
+        # inactivity queries can detect cross-user submission activity without
+        # querying the Instance table (which lives in a separate database).
+        if logs:
+            user_ids = {user.id, request.asset.owner.id}
+            ExtraUserDetail.update_last_project_activity(user_ids)
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
