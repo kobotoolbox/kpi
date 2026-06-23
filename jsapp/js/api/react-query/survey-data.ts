@@ -49,6 +49,10 @@ import type { AssetsPairedDataListParams } from '../models/assetsPairedDataListP
 
 import type { AttachmentRetrieveParams } from '../models/attachmentRetrieveParams'
 
+import type { BulkAcceptRequest } from '../models/bulkAcceptRequest'
+
+import type { BulkAcceptResponse } from '../models/bulkAcceptResponse'
+
 import type { BulkActionCreateRequest } from '../models/bulkActionCreateRequest'
 
 import type { BulkActionCreateResponse } from '../models/bulkActionCreateResponse'
@@ -558,6 +562,149 @@ export const useAssetsAdvancedFeaturesPartialUpdate = <
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsAdvancedFeaturesPartialUpdateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Bulk accept NLP results
+
+Accepts transcription or translation results for multiple submissions in a
+single request. This is the bulk counterpart of the per-submission acceptance
+flow: instead of visiting each submission individually, users can select
+multiple submissions and approve all of them at once.
+
+### Transcription example
+
+```json
+{
+    "submission_uids": ["<uuid-1>", "<uuid-2>"],
+    "question_xpath": "group_name/audio_question",
+    "action_id": "automatic_google_transcription"
+}
+```
+
+### Translation example
+
+For translation actions the `language` field is **required**:
+
+```json
+{
+    "submission_uids": ["<uuid-1>", "<uuid-2>"],
+    "question_xpath": "group_name/audio_question",
+    "action_id": "automatic_google_translation",
+    "language": "fr"
+}
+```
+
+### Response
+
+Returns the number of submission records that were successfully accepted.
+Submissions without a completed NLP result for the given question/action are
+silently skipped and excluded from the count.
+
+```json
+{
+    "accepted_count": 472
+}
+```
+
+ */
+export type assetsAdvancedFeaturesAcceptCreateResponse200 = {
+  data: BulkAcceptResponse
+  status: 200
+}
+
+export type assetsAdvancedFeaturesAcceptCreateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsAdvancedFeaturesAcceptCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesAcceptCreateResponseComposite =
+  | assetsAdvancedFeaturesAcceptCreateResponse200
+  | assetsAdvancedFeaturesAcceptCreateResponse400
+  | assetsAdvancedFeaturesAcceptCreateResponse404
+
+export type assetsAdvancedFeaturesAcceptCreateResponse = assetsAdvancedFeaturesAcceptCreateResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsAdvancedFeaturesAcceptCreateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/accept/`
+}
+
+export const assetsAdvancedFeaturesAcceptCreate = async (
+  uidAsset: string,
+  bulkAcceptRequest: BulkAcceptRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesAcceptCreateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesAcceptCreateResponse>(getAssetsAdvancedFeaturesAcceptCreateUrl(uidAsset), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(bulkAcceptRequest),
+  })
+}
+
+export const getAssetsAdvancedFeaturesAcceptCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesAcceptCreate>>,
+    TError,
+    { uidAsset: string; data: BulkAcceptRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesAcceptCreate>>,
+  TError,
+  { uidAsset: string; data: BulkAcceptRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesAcceptCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesAcceptCreate>>,
+    { uidAsset: string; data: BulkAcceptRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsAdvancedFeaturesAcceptCreate(uidAsset, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsAdvancedFeaturesAcceptCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesAcceptCreate>>
+>
+export type AssetsAdvancedFeaturesAcceptCreateMutationBody = BulkAcceptRequest
+export type AssetsAdvancedFeaturesAcceptCreateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsAdvancedFeaturesAcceptCreate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesAcceptCreate>>,
+    TError,
+    { uidAsset: string; data: BulkAcceptRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesAcceptCreateMutationOptions(options)
 
   return useMutation(mutationOptions)
 }

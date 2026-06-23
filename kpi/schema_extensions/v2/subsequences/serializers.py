@@ -156,6 +156,29 @@ BulkActionPatchRequest = inline_serializer_class(
     },
 )
 
+BulkAcceptRequest = inline_serializer_class(
+    name='BulkAcceptRequest',
+    fields={
+        'submission_uids': serializers.ListField(child=serializers.CharField()),
+        'question_xpath': serializers.CharField(),
+        'action_id': BulkActionActionIdField(),
+        'language': serializers.CharField(
+            required=False,
+            help_text='Required for translation actions.',
+        ),
+    },
+)
+
+BulkAcceptResponse = inline_serializer_class(
+    name='BulkAcceptResponse',
+    fields={
+        'accepted_count': serializers.IntegerField(
+            min_value=0,
+            help_text='Number of submission records that were accepted.',
+        ),
+    },
+)
+
 BulkActionListResponse = extend_schema_serializer(many=False)(
     inline_serializer_class(
         name='BulkActionListResponse',

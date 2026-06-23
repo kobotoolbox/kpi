@@ -701,6 +701,41 @@ def get_bulk_action_list_response_examples() -> list[OpenApiExample]:
     ]
 
 
+def get_bulk_accept_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'Bulk accept transcription results',
+            value={
+                'submission_uids': [
+                    '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+                    '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+                ],
+                'question_xpath': 'q1_audio',
+                'action_id': 'automatic_google_transcription',
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Bulk accept translation results',
+            value={
+                'submission_uids': [
+                    '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+                    '0ca3624a-6f22-451e-8d0a-c4 0978fd6fe2',
+                ],
+                'question_xpath': 'q1_audio',
+                'action_id': 'automatic_google_translation',
+                'language': 'fr',
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Bulk accept response',
+            value={'accepted_count': 472},
+            response_only=True,
+        ),
+    ]
+
+
 def get_bulk_action_patch_examples() -> list[OpenApiExample]:
     return [
         OpenApiExample(

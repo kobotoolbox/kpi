@@ -1942,6 +1942,123 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+  /api/v2/assets/{uid_asset}/advanced-features/accept/:
+    post:
+      operationId: api_v2_assets_advanced_features_accept_create
+      description: |
+        ## Bulk accept NLP results
+
+        Accepts transcription or translation results for multiple submissions in a
+        single request. This is the bulk counterpart of the per-submission acceptance
+        flow: instead of visiting each submission individually, users can select
+        multiple submissions and approve all of them at once.
+
+        ### Transcription example
+
+        ```json
+        {
+            "submission_uids": ["<uuid-1>", "<uuid-2>"],
+            "question_xpath": "group_name/audio_question",
+            "action_id": "automatic_google_transcription"
+        }
+        ```
+
+        ### Translation example
+
+        For translation actions the `language` field is **required**:
+
+        ```json
+        {
+            "submission_uids": ["<uuid-1>", "<uuid-2>"],
+            "question_xpath": "group_name/audio_question",
+            "action_id": "automatic_google_translation",
+            "language": "fr"
+        }
+        ```
+
+        ### Response
+
+        Returns the number of submission records that were successfully accepted.
+        Submissions without a completed NLP result for the given question/action are
+        silently skipped and excluded from the count.
+
+        ```json
+        {
+            "accepted_count": 472
+        }
+        ```
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Survey data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkAcceptRequest'
+            examples:
+              BulkAcceptTranscriptionResults:
+                value:
+                  submission_uids:
+                  - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                  - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                  question_xpath: q1_audio
+                  action_id: automatic_google_transcription
+                summary: Bulk accept transcription results
+              BulkAcceptTranslationResults:
+                value:
+                  submission_uids:
+                  - 3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f
+                  - 0ca3624a-6f22-451e-8d0a-c40978fd6fe2
+                  question_xpath: q1_audio
+                  action_id: automatic_google_translation
+                  language: fr
+                summary: Bulk accept translation results
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkAcceptResponse'
+              examples:
+                BulkAcceptResponse:
+                  value:
+                    accepted_count: 472
+                  summary: Bulk accept response
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/assets/{uid_asset}/advanced-features/bulk-actions/:
     get:
       operationId: api_v2_assets_advanced_features_bulk_actions_list
@@ -16144,6 +16261,33 @@ components:
     BlankEnum:
       enum:
       - ''
+    BulkAcceptRequest:
+      type: object
+      properties:
+        submission_uids:
+          type: array
+          items:
+            type: string
+        question_xpath:
+          type: string
+        action_id:
+          $ref: '#/components/schemas/ActionIdEnum'
+        language:
+          type: string
+          description: Required for translation actions.
+      required:
+      - action_id
+      - question_xpath
+      - submission_uids
+    BulkAcceptResponse:
+      type: object
+      properties:
+        accepted_count:
+          type: integer
+          minimum: 0
+          description: Number of submission records that were accepted.
+      required:
+      - accepted_count
     BulkActionCreateRequest:
       type: object
       properties:
