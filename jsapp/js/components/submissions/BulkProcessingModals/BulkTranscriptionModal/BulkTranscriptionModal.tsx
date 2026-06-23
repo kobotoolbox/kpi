@@ -46,36 +46,78 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const [audioDuration, setAudioDuration] = useState<number>(0)
+  const [isAudioDurationLoading, setIsAudioDurationLoading] = useState<boolean>(false)
   const queryClient = useQueryClient()
 
   // Extract audio attachment uuids from submissions
   const attachmentUids = props.selectedSubmissions.map((submission) => submission._attachments[0].uid)
-  // Create batches of 200 (do it with 10s for now)
+  // Create batches of 200 (with limiting the submissions to 1 page, the biggest number of batches possible is 3)
   const attachmentUidBatches: string[][] = []
   for (let i = 0; i < attachmentUids.length; i += MAXIMUM_AUDIO_DURATION_BATCH_SIZE) {
     attachmentUidBatches.push(attachmentUids.slice(i, i + MAXIMUM_AUDIO_DURATION_BATCH_SIZE))
   }
-  // Perform the logic needed w/ exp backoff per batch
-  const { mutate: getAudioDurations, isPending: isAudioDurationLoading } = useAssetsAttachmentsAudioDurationCreate({
-    mutation: {
-      onSuccess: (response) => {
-        setAudioDuration((prev) => prev + response.data.total)
-      },
-    },
-  })
+
+  const { mutate: getAudioDurations } = useAssetsAttachmentsAudioDurationCreate()
 
   const processBatches = async () => {
-    for (let i = 0; i < attachmentUidBatches.length; i++) {
-      const delay = Math.pow(2, i) * 1000 // Exponential backoff: 1s, 2s, 4s, 8s...
-      await new Promise((resolve) => setTimeout(resolve, delay))
+    setIsAudioDurationLoading(true)
 
-      getAudioDurations({
-        uidAsset: props.assetUid,
-        data: {
-          attachment_uids: attachmentUidBatches[i],
-        },
-      })
+    for (const batch of attachmentUidBatches) {
+      let attempt = 0
+
+      // We attempt 2 more times if we get a 504
+      while (attempt < 3) {
+        try {
+          const result = await new Promise<{ success: boolean; total?: number; error?: ServerError }>((resolve) => {
+            getAudioDurations(
+              {
+                uidAsset: props.assetUid,
+                data: {
+                  attachment_uids: batch,
+                },
+              },
+              {
+                onSuccess: (response) => {
+                  resolve({ success: true, total: response.data.total })
+                },
+                onError: (error) => {
+                  const serverError = error as ServerError
+                  resolve({ success: false, error: serverError })
+                },
+              },
+            )
+          })
+
+          if (result.success && result.total !== undefined) {
+            const total = result.total
+            setAudioDuration((prev) => prev + total)
+            break
+          } else if (result.error?.response?.status === 504) {
+            attempt++
+            if (attempt < 3) {
+              const delay = 2 ** (attempt - 1) * 1000
+              await new Promise((resolve) => setTimeout(resolve, delay))
+            } else {
+              // if attempt == 3 → abort, surface error
+              notify.error(t('Failed to calculate audio duration after multiple attempts. Please try again.'))
+              setIsAudioDurationLoading(false)
+              return
+            }
+          } else {
+            const errorMessage = result.error?.toString() || t('Failed to calculate audio duration.')
+            notify.error(errorMessage)
+            setIsAudioDurationLoading(false)
+            return
+          }
+        } catch (error) {
+          notify.error(t('An unexpected error occurred while calculating audio duration.'))
+          setIsAudioDurationLoading(false)
+          return
+        }
+      }
     }
+
+    setIsAudioDurationLoading(false)
   }
 
   useEffect(() => {
@@ -174,18 +216,13 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           handleWarningContinue={handleWarningContinue}
         />
       )}
+
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t(
-              'Your ##count## audio files is a total of ##duration## minutes. This may take some time to complete.',
-            ).replace(
-              '##count##',
-              String(props.selectedRowsCount).replace(
-                '##duration##',
-                String(secondsToTranscriptionEstimate(audioDuration)),
-              ),
-            )}
+            {t('Your ##count## audio files is a total of ##duration##. This may take some time to complete.')
+              .replace('##count##', String(props.selectedRowsCount))
+              .replace('##duration##', isAudioDurationLoading ? t('…') : secondsToTranscriptionEstimate(audioDuration))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
