@@ -19,7 +19,6 @@ from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
 from kobo.apps.kobo_scim.constants import (
-    SCIM_SCHEMA_ERROR,
     SCIM_SCHEMA_GROUP,
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_RESOURCE_TYPE,
@@ -39,6 +38,12 @@ from kobo.apps.kobo_scim.utils import (
     generate_unique_scim_username,
     get_scim_extension_schemas,
 )
+from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
+
+
+class ScimExceptionHandlerMixin:
+    def get_exception_handler(self):
+        return scim_exception_handler
 
 
 def normalize_scim_patch_operations(operations):
@@ -113,6 +118,7 @@ def scim_extend_schema(**kwargs):
     ),
 )
 class ScimUserViewSet(
+    ScimExceptionHandlerMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
@@ -157,15 +163,11 @@ class ScimUserViewSet(
         Handle POST requests (user provisioning from IdP).
         """
         if not self.idp or not self.idp.social_app:
-            self._create_provisioning_audit_log(
-                action=AuditAction.PROVISIONING_ERROR,
+            raise ScimException(
+                detail='IdP not configured for user provisioning',
                 status_code=status.HTTP_400_BAD_REQUEST,
-                error='idp_not_configured',
+                error_code='idp_not_configured',
                 reason='SCIM provisioning aborted because the IdP is not configured',
-            )
-            return Response(
-                {'detail': 'IdP not configured for user provisioning'},
-                status=status.HTTP_400_BAD_REQUEST,
             )
 
         data = request.data
@@ -184,15 +186,11 @@ class ScimUserViewSet(
                 email = emails[0].get('value', '')
 
         if not username:
-            self._create_provisioning_audit_log(
-                action=AuditAction.PROVISIONING_ERROR,
-                email=email,
+            raise ScimException(
+                detail='userName is required',
                 status_code=status.HTTP_400_BAD_REQUEST,
-                error='missing_username',
+                error_code='missing_username',
                 reason='SCIM provisioning aborted because userName is required',
-            )
-            return Response(
-                {'detail': 'userName is required'}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # If no explicit email was provided but userName looks like an email, use it
@@ -203,183 +201,152 @@ class ScimUserViewSet(
         first_name = name_dict.get('givenName', '')
         last_name = name_dict.get('familyName', '')
         uid = data.get('externalId') or username
-        active = data.get('active', True)
+        active = str(data.get('active', True)).lower() == 'true'
 
-        try:
-            with transaction.atomic():
-                # Lock the IdentityProvider row to prevent concurrent provisioning
-                # race conditions for the same IdP
+        with transaction.atomic():
+            # Lock the IdentityProvider row to prevent concurrent provisioning
+            # race conditions for the same IdP
 
-                IdentityProvider.objects.select_for_update().get(pk=self.idp.pk)
+            IdentityProvider.objects.select_for_update().get(pk=self.idp.pk)
+            # First, check if user exists via SocialAccount linkage
+            social_account = (
+                SocialAccount.objects.filter(
+                    provider=self.idp_provider_id,
+                    uid=uid,
+                )
+                .select_related('user')
+                .first()
+            )
 
-                # First, check if user exists via SocialAccount linkage
-                social_account = (
-                    SocialAccount.objects.filter(
-                        provider=self.idp_provider_id,
-                        uid=uid,
-                    )
-                    .select_related('user')
-                    .first()
+            user = social_account.user if social_account else None
+
+            # Fallback to email matching if not linked yet
+            if not user:
+                # The provisioning requirement is to abort if the incoming email
+                # already belongs to any Kobo account, unless the account is already
+                # linked to this IdP and is being reactivated.
+                existing_email_users = (
+                    User.objects.filter(email__iexact=email)
+                    if email
+                    else User.objects.none()
                 )
 
-                user = social_account.user if social_account else None
-
-                # Fallback to email matching if not linked yet
-                if not user:
-                    # The provisioning requirement is to abort if the incoming email
-                    # already belongs to any Kobo account, unless the account
-                    # is already linked to this IdP and is being reactivated.
-                    existing_email_users = (
-                        User.objects.filter(email__iexact=email)
-                        if email
-                        else User.objects.none()
+                if existing_email_users.exists():
+                    raise ScimException(
+                        detail=(
+                            'Email address already exists on one or more '
+                            'Kobo accounts.'
+                        ),
+                        status_code=status.HTTP_409_CONFLICT,
+                        error_code='email_already_exists',
+                        reason=(
+                            'SCIM provisioning aborted because the email address '
+                            'already exists on one or more Kobo accounts'
+                        ),
                     )
 
-                    if existing_email_users.exists():
-                        self._create_provisioning_audit_log(
-                            action=AuditAction.PROVISIONING_ERROR,
-                            email=email,
-                            username=username,
-                            status_code=status.HTTP_409_CONFLICT,
-                            error='email_already_exists',
-                            reason=(
-                                'SCIM provisioning aborted because the email address '
-                                'already exists on one or more Kobo accounts'
-                            ),
-                        )
-                        return Response(
-                            {
-                                'schemas': [SCIM_SCHEMA_ERROR],
-                                'detail': (
-                                    'Email address already exists on one or more '
-                                    'Kobo accounts.'
-                                ),
-                                'status': '409',
-                            },
-                            status=status.HTTP_409_CONFLICT,
-                        )
-
-                    # Create the user natively
-                    unique_username = generate_unique_scim_username(
-                        username, self.idp.slug
-                    )
-                    user = User.objects.create_user(
-                        username=unique_username,
-                        email=email,
-                        first_name=first_name,
-                        last_name=last_name,
-                        is_active=active,
-                    )
-
-                # Ensure the SocialAccount link exists so SSO works flawlessly.
-                # We catch IntegrityError here just in case another IdP already
-                # has this exact uid linked.
-                social_account_existed = social_account is not None
-
-                SocialAccount.objects.get_or_create(
-                    user=user, provider=self.idp_provider_id, uid=uid
+                # Create the user natively
+                unique_username = generate_unique_scim_username(
+                    username, self.idp.slug
+                )
+                user = User.objects.create_user(
+                    username=unique_username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_active=active,
                 )
 
-                reactivated_users = []
-                if active:
-                    reactivated_users = self._reactivate_sso_linked_accounts(
-                        user.email, user
-                    )
-                else:
-                    # If the IdP provisions the user as deactivated, or links to an
-                    # existing user but specifies active=False, deactivate them.
-                    apply_scim_user_metadata(
-                        user,
-                        data,
-                        enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
-                    )
+            # Ensure the SocialAccount link exists so SSO works flawlessly.
+            # We catch IntegrityError here just in case another IdP already
+            # has this exact uid linked.
+            social_account_existed = social_account is not None
 
-                    audit_action = (
-                        AuditAction.REPROVISIONING
-                        if social_account_existed
-                        else AuditAction.PROVISIONING
-                    )
-                    audit_reason = (
-                        'Automated account re-provisioning via Identity Provider'
-                        if social_account_existed
-                        else 'Automated account provisioning via Identity Provider'
-                    )
+            SocialAccount.objects.get_or_create(
+                user=user, provider=self.idp_provider_id, uid=uid
+            )
 
-                    self._create_provisioning_audit_log(
-                        user=user,
-                        action=audit_action,
-                        email=email,
-                        username=user.username,
-                        status_code=status.HTTP_201_CREATED,
-                        reason=audit_reason,
-                    )
-
-                    self.perform_destroy(user)
-
-                    serializer = self.get_serializer(user)
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+            reactivated_users = []
+            if active:
+                reactivated_users = self._reactivate_sso_linked_accounts(
+                    user.email, user
+                )
+            else:
+                # If the IdP provisions the user as deactivated, or links to an
+                # existing user but specifies active=False, deactivate them.
                 apply_scim_user_metadata(
                     user,
                     data,
                     enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
                 )
 
-                if reactivated_users:
-                    for reactivated_user in reactivated_users:
-                        self._create_provisioning_audit_log(
-                            user=reactivated_user,
-                            action=AuditAction.REPROVISIONING,
-                            email=reactivated_user.email,
-                            username=reactivated_user.username,
-                            status_code=status.HTTP_201_CREATED,
-                            reason=(
-                                'Automated account re-provisioning via Identity '
-                                'Provider'
-                            ),
-                        )
-                elif social_account_existed:
-                    self._create_provisioning_audit_log(
-                        user=user,
-                        action=AuditAction.REPROVISIONING,
-                        email=email,
-                        username=user.username,
-                        status_code=status.HTTP_201_CREATED,
-                        reason=(
-                            'Automated account re-provisioning via Identity Provider'
-                        ),
-                    )
-                else:
-                    self._create_provisioning_audit_log(
-                        user=user,
-                        action=AuditAction.PROVISIONING,
-                        email=email,
-                        username=user.username,
-                        status_code=status.HTTP_201_CREATED,
-                        reason='Automated account provisioning via Identity Provider',
-                    )
+                audit_action = (
+                    AuditAction.REPROVISIONING
+                    if social_account_existed
+                    else AuditAction.PROVISIONING
+                )
+                audit_reason = (
+                    'Automated account re-provisioning via Identity Provider'
+                    if social_account_existed
+                    else 'Automated account provisioning via Identity Provider'
+                )
+
+                self._create_provisioning_audit_log(
+                    user=user,
+                    action=audit_action,
+                    email=email,
+                    username=user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason=audit_reason,
+                )
+
+                self.perform_destroy(user)
 
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        except IntegrityError as e:
-            # This is a safe fallback for edge cases like duplicate SocialAccount UIDs
-            self._create_provisioning_audit_log(
-                action=AuditAction.PROVISIONING_ERROR,
-                email=email,
-                username=username,
-                status_code=status.HTTP_409_CONFLICT,
-                error='integrity_error',
-                reason=str(e),
+            apply_scim_user_metadata(
+                user,
+                data,
+                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
             )
-            return Response(
-                {
-                    'schemas': [SCIM_SCHEMA_ERROR],
-                    'detail': 'One or more attributes in the resource already exists.',
-                    'status': '409',
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
+
+            if reactivated_users:
+                for reactivated_user in reactivated_users:
+                    self._create_provisioning_audit_log(
+                        user=reactivated_user,
+                        action=AuditAction.REPROVISIONING,
+                        email=reactivated_user.email,
+                        username=reactivated_user.username,
+                        status_code=status.HTTP_201_CREATED,
+                        reason=(
+                            'Automated account re-provisioning via Identity '
+                            'Provider'
+                        ),
+                    )
+            elif social_account_existed:
+                self._create_provisioning_audit_log(
+                    user=user,
+                    action=AuditAction.REPROVISIONING,
+                    email=email,
+                    username=user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason=(
+                        'Automated account re-provisioning via Identity Provider'
+                    ),
+                )
+            else:
+                self._create_provisioning_audit_log(
+                    user=user,
+                    action=AuditAction.PROVISIONING,
+                    email=email,
+                    username=user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason='Automated account provisioning via Identity Provider',
+                )
+
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         responses=scim_responses(
@@ -396,38 +363,7 @@ class ScimUserViewSet(
         update a user to have a username or email that already exists on another
         account, we intercept the IntegrityError and return a SCIM 409 Conflict.
         """
-        try:
-            return super().update(request, *args, **kwargs)
-        except IntegrityError as exc:
-            # If the SCIM client attempts to force an update that violates DB unique
-            # constraints (e.g. changing the username to one that already exists),
-            # return SCIM 409 format.
-            user = self.get_object()
-            data = request.data
-            email = data.get('email', user.email) if data else user.email
-            username = data.get('userName', user.username) if data else user.username
-
-            self._create_provisioning_audit_log(
-                user=user,
-                action=AuditAction.PROVISIONING_ERROR,
-                email=email,
-                username=username,
-                status_code=status.HTTP_409_CONFLICT,
-                error='integrity_error',
-                reason=(
-                    f'SCIM PUT update aborted due to constraint violation: '
-                    f'{str(exc)}'
-                ),
-            )
-
-            return Response(
-                {
-                    'schemas': [SCIM_SCHEMA_ERROR],
-                    'detail': 'One or more attributes in the resource already exists.',
-                    'status': '409',
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
+        return super().update(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         with transaction.atomic():
@@ -437,6 +373,18 @@ class ScimUserViewSet(
             if was_active and not instance.is_active:
                 self.perform_destroy(instance)
             elif not was_active and instance.is_active:
+                self._create_provisioning_audit_log(
+                    user=instance,
+                    action=AuditAction.REPROVISIONING,
+                    email=instance.email,
+                    username=instance.username,
+                    status_code=status.HTTP_200_OK,
+                    reason=(
+                        'Automated account re-provisioning via SCIM PUT '
+                        'request from Identity Provider.'
+                    ),
+                )
+
                 reactivated_users = self._reactivate_sso_linked_accounts(
                     instance.email, instance
                 )
@@ -472,7 +420,7 @@ class ScimUserViewSet(
                 email__iexact=email,
                 is_active=False,
                 socialaccount__provider=self.idp_provider_id,
-            )
+            ).distinct()
 
             for target in targets:
                 target.is_active = True
@@ -536,6 +484,7 @@ class ScimUserViewSet(
             users = list(targets.select_related('extra_details'))
 
             targets.update(is_active=False)
+            instance.is_active = False
 
             # Create audit logs as System-initiated events
             idp_slug = self.kwargs.get('idp_slug')
@@ -703,7 +652,7 @@ class ScimUserViewSet(
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM Service Provider Configuration.'),
 )
-class ScimServiceProviderConfigView(APIView):
+class ScimServiceProviderConfigView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant ServiceProviderConfig endpoint.
     - GET /ServiceProviderConfig
@@ -749,7 +698,7 @@ class ScimServiceProviderConfigView(APIView):
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM supported Schemas.'),
 )
-class ScimSchemasView(APIView):
+class ScimSchemasView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant Schemas endpoint.
     NOTE: The schemas returned by this view are limited to the fields we handle in
@@ -977,7 +926,7 @@ class ScimSchemasView(APIView):
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM supported ResourceTypes.'),
 )
-class ScimResourceTypesView(APIView):
+class ScimResourceTypesView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant ResourceTypes endpoint.
     - GET /ResourceTypes
@@ -1067,7 +1016,7 @@ class ScimResourceTypesView(APIView):
         responses=scim_responses({200: ScimGroupSerializer}),
     ),
 )
-class ScimGroupViewSet(viewsets.ModelViewSet):
+class ScimGroupViewSet(ScimExceptionHandlerMixin, viewsets.ModelViewSet):
     """
     SCIM 2.0 compliant Groups API endpoint.
     - GET /Groups

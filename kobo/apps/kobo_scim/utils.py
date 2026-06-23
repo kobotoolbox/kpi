@@ -1,10 +1,12 @@
 from constance import config
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.kobo_scim.exceptions import ScimException
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
@@ -185,12 +187,25 @@ def generate_unique_scim_username(base_username, idp_slug):
         return base_with_suffix
 
     # Attempt 3+: {prefix}_{idp_slug}_{counter}
+    max_attempts = 1000
     counter = 1
-    while True:
+    while counter <= max_attempts:
         username = f'{base_with_suffix}_{counter}'
         if not User.objects.filter(username__iexact=username).exists():
             return username
         counter += 1
+    raise ScimException(
+        detail=(
+            f'Could not generate a unique username for {base_username!r} after '
+            f'{max_attempts} attempts.'
+        ),
+        status_code=status.HTTP_409_CONFLICT,
+        error_code='unique_username_failed',
+        reason=(
+            'SCIM provisioning aborted because a unique username '
+            'could not be generated'
+        ),
+    )
 
 
 def get_scim_extension_schemas():
