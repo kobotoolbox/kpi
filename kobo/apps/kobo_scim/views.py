@@ -208,7 +208,6 @@ class ScimUserViewSet(
             # race conditions for the same IdP
 
             IdentityProvider.objects.select_for_update().get(pk=self.idp.pk)
-
             # First, check if user exists via SocialAccount linkage
             social_account = (
                 SocialAccount.objects.filter(
