@@ -69,6 +69,7 @@ def scim_exception_handler(exc, context):
                 if not email and len(emails) > 0:
                     email = emails[0].get('value', '')
 
+            user = None
             # If doing an update, fallback to existing user's attributes
             if hasattr(view, 'get_object') and getattr(view, 'kwargs', {}).get(
                 getattr(view, 'lookup_field', 'pk')
@@ -81,6 +82,7 @@ def scim_exception_handler(exc, context):
                     pass
 
             view._create_provisioning_audit_log(
+                user=user,
                 action=AuditAction.PROVISIONING_ERROR,
                 email=email,
                 username=username,
