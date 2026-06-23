@@ -720,7 +720,7 @@ def get_bulk_accept_examples() -> list[OpenApiExample]:
             value={
                 'submission_uids': [
                     '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
-                    '0ca3624a-6f22-451e-8d0a-c4 0978fd6fe2',
+                    '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
                 ],
                 'question_xpath': 'q1_audio',
                 'action_id': 'automatic_google_translation',

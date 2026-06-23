@@ -50,7 +50,9 @@ def _transcription_supplement(uuid_, language='en', include_date_accepted=False)
 
 
 def _translation_supplement(uuid_, language='fr', include_date_accepted=False):
-    """Return a minimal SubmissionSupplement content dict for a translation."""
+    """
+    Return a minimal SubmissionSupplement content dict for a translation
+    """
     version = dict(TRANSLATION_VERSION)
     version['_data'] = dict(version['_data'], language=language)
     if include_date_accepted:
