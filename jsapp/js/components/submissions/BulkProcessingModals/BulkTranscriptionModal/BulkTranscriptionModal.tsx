@@ -50,79 +50,80 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const selectedSubmissionUuids = props.selectedSubmissions.map((submission) => submission._uuid)
   const selectedRowsCount = props.selectedSubmissions.length
 
-  // Extract audio attachment uuids from submissions
-  const attachmentUids = props.selectedSubmissions.map((submission) => submission._attachments[0].uid)
-  // Create batches of 200 (with limiting the submissions to 1 page, the biggest number of batches possible is 3)
-  const attachmentUidBatches: string[][] = []
-  for (let i = 0; i < attachmentUids.length; i += MAXIMUM_AUDIO_DURATION_BATCH_SIZE) {
-    attachmentUidBatches.push(attachmentUids.slice(i, i + MAXIMUM_AUDIO_DURATION_BATCH_SIZE))
-  }
-
   const { mutate: getAudioDurations } = useAssetsAttachmentsAudioDurationCreate()
 
-  const processBatches = async () => {
-    setIsAudioDurationLoading(true)
+  useEffect(() => {
+    // Extract audio attachment uids from submissions
+    const attachmentUids = props.selectedSubmissions
+      .flatMap((submission) => submission._attachments || [])
+      .filter((attachment) => attachment.question_xpath === props.fieldId)
+      .map((attachment) => attachment.uid)
 
-    for (const batch of attachmentUidBatches) {
-      let attempt = 0
+    // Create batches of 200 (with limiting the submissions to 1 page, the biggest number of batches possible is 3)
+    const attachmentUidBatches: string[][] = []
+    for (let i = 0; i < attachmentUids.length; i += MAXIMUM_AUDIO_DURATION_BATCH_SIZE) {
+      attachmentUidBatches.push(attachmentUids.slice(i, i + MAXIMUM_AUDIO_DURATION_BATCH_SIZE))
+    }
+    ;(async () => {
+      setIsAudioDurationLoading(true)
 
-      // We attempt 2 more times if we get a 504
-      while (attempt < 3) {
-        try {
-          const result = await new Promise<{ success: boolean; total?: number; error?: ServerError }>((resolve) => {
-            getAudioDurations(
-              {
-                uidAsset: props.assetUid,
-                data: {
-                  attachment_uids: batch,
-                },
-              },
-              {
-                onSuccess: (response) => {
-                  resolve({ success: true, total: response.data.total })
-                },
-                onError: (error) => {
-                  const serverError = error as ServerError
-                  resolve({ success: false, error: serverError })
-                },
-              },
-            )
-          })
+      for (const batch of attachmentUidBatches) {
+        let attempt = 0
 
-          if (result.success && result.total !== undefined) {
-            const total = result.total
-            setAudioDuration((prev) => prev + total)
-            break
-          } else if (result.error?.response?.status === 504) {
-            attempt++
-            if (attempt < 3) {
-              const delay = 2 ** (attempt - 1) * 1000
-              await new Promise((resolve) => setTimeout(resolve, delay))
+        // We attempt 2 more times if we get a 504
+        while (attempt < 3) {
+          try {
+            const result = await new Promise<{ success: boolean; total?: number; error?: ServerError }>((resolve) => {
+              getAudioDurations(
+                {
+                  uidAsset: props.assetUid,
+                  data: {
+                    attachment_uids: batch,
+                  },
+                },
+                {
+                  onSuccess: (response) => {
+                    resolve({ success: true, total: response.data.total })
+                  },
+                  onError: (error) => {
+                    const serverError = error as ServerError
+                    resolve({ success: false, error: serverError })
+                  },
+                },
+              )
+            })
+
+            if (result.success && result.total !== undefined) {
+              const total = result.total
+              setAudioDuration((prev) => prev + total)
+              break
+            } else if (result.error?.response?.status === 504) {
+              attempt++
+              if (attempt < 3) {
+                const delay = 2 ** (attempt - 1) * 1000
+                await new Promise((resolve) => setTimeout(resolve, delay))
+              } else {
+                // if attempt == 3 → abort, surface error
+                notify.error(t('Failed to calculate audio duration after multiple attempts. Please try again.'))
+                setIsAudioDurationLoading(false)
+                return
+              }
             } else {
-              // if attempt == 3 → abort, surface error
-              notify.error(t('Failed to calculate audio duration after multiple attempts. Please try again.'))
+              const errorMessage = result.error?.toString() || t('Failed to calculate audio duration.')
+              notify.error(errorMessage)
               setIsAudioDurationLoading(false)
               return
             }
-          } else {
-            const errorMessage = result.error?.toString() || t('Failed to calculate audio duration.')
-            notify.error(errorMessage)
+          } catch (error) {
+            notify.error(t('An unexpected error occurred while calculating audio duration.'))
             setIsAudioDurationLoading(false)
             return
           }
-        } catch (error) {
-          notify.error(t('An unexpected error occurred while calculating audio duration.'))
-          setIsAudioDurationLoading(false)
-          return
         }
       }
-    }
 
-    setIsAudioDurationLoading(false)
-  }
-
-  useEffect(() => {
-    processBatches()
+      setIsAudioDurationLoading(false)
+    })()
   }, [])
 
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
