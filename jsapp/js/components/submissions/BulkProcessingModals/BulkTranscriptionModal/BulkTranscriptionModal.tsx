@@ -34,8 +34,6 @@ export interface BulkTranscriptionModalProps {
   fieldId: string
   assetUid: string
   selectedSubmissions: SubmissionResponse[]
-  selectedSubmissionUuids: string[]
-  selectedRowsCount: number
   showWarningModal: boolean
   onRequestClose: () => void
   onSuccess: () => void
@@ -48,6 +46,10 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [audioDuration, setAudioDuration] = useState<number>(0)
   const [isAudioDurationLoading, setIsAudioDurationLoading] = useState<boolean>(false)
   const queryClient = useQueryClient()
+
+  // Derive values from selectedSubmissions
+  const selectedSubmissionUuids = props.selectedSubmissions.map((submission) => submission._uuid)
+  const selectedRowsCount = props.selectedSubmissions.length
 
   // Extract audio attachment uuids from submissions
   const attachmentUids = props.selectedSubmissions.map((submission) => submission._attachments[0].uid)
@@ -189,7 +191,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       data: {
         action_id: ActionIdEnum.automatic_google_transcription,
         question_xpath: props.fieldId,
-        submission_uuids: props.selectedSubmissionUuids,
+        submission_uuids: selectedSubmissionUuids,
         params: {
           language: selectedLanguage!,
           locale: selectedRegion || undefined,
@@ -211,7 +213,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     <>
       {showWarningModal && (
         <BulkProcessingWarningModal
-          selectedRowsCount={props.selectedRowsCount}
+          selectedRowsCount={selectedRowsCount}
           onRequestClose={props.onRequestClose}
           handleWarningContinue={handleWarningContinue}
         />
@@ -221,7 +223,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         <Stack gap='md'>
           <Text size='sm'>
             {t('Your ##count## audio files is a total of ##duration##. This may take some time to complete.')
-              .replace('##count##', String(props.selectedRowsCount))
+              .replace('##count##', String(selectedRowsCount))
               .replace('##duration##', isAudioDurationLoading ? t('…') : secondsToTranscriptionEstimate(audioDuration))}
           </Text>
 
