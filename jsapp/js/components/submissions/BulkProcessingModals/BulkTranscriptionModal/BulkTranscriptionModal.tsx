@@ -27,8 +27,7 @@ import type { LanguageCode } from '../../../languages/languagesStore'
 import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
-// TODO: change this to 200 when done testing
-const MAXIMUM_AUDIO_DURATION_BATCH_SIZE = 20
+const MAXIMUM_AUDIO_DURATION_BATCH_SIZE = 200
 
 export interface BulkTranscriptionModalProps {
   fieldId: string
