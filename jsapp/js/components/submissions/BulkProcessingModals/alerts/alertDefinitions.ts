@@ -37,7 +37,7 @@ export function getAlertDefinitions(actionType: ActionType): AlertDefinition[] {
       priority: 2,
       validator: validateNearLimit,
       messageTemplate: (values) => {
-        const remaining = isTranscription ? values.remainingMinutes ?? '0' : values.remainingCharacters ?? '0'
+        const remaining = isTranscription ? (values.remainingMinutes ?? '0') : (values.remainingCharacters ?? '0')
         return isTranscription
           ? t(
               '##remainingMinutes## minutes of automated transcription left, that is not enough to process all selected submissions. Please select fewer files, purchase an add-on, or upgrade your plan.',
@@ -62,7 +62,10 @@ export function getAlertDefinitions(actionType: ActionType): AlertDefinition[] {
       messageTemplate: ({ count = 0 }) =>
         isTranscription
           ? t('##count## submissions are missing audio file and will be ignored').replace('##count##', String(count))
-          : t('##count## submissions are missing transcription and will be ignored').replace('##count##', String(count)),
+          : t('##count## submissions are missing transcription and will be ignored').replace(
+              '##count##',
+              String(count),
+            ),
     },
     {
       id: isTranscription ? 'already-transcribed' : 'already-translated',
