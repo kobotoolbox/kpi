@@ -124,7 +124,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
   const handleStartTranscription = () => {
     // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
-    // that have been flagged by warning validators (e.g., already transcribed, no source)
+    // that have been flagged by warning evaluators (e.g., already transcribed, no source)
     createBulkTranscription({
       uidAsset: props.assetUid,
       data: {
@@ -191,7 +191,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
           <BulkProcessingAlerts activeAlerts={activeAlerts} />
 
-          {/* Legacy alert - will be removed once validators are implemented */}
+          {/* Legacy alert - will be removed once evaluators are implemented */}
           {hasExceededLimit && activeAlerts.length === 0 && (
             <Alert type='warning' iconName='information' mt={12} mb={12}>
               {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}

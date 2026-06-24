@@ -4,7 +4,7 @@ import type { ServiceUsageResponse } from '#/api/models/serviceUsageResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { SubmissionResponse } from '#/dataInterface'
 import { getAlertDefinitions } from './alertDefinitions'
-import type { ActiveAlert, AlertValidationContext, BulkActionType } from './types'
+import type { ActiveAlert, AlertEvaluationContext, BulkActionType } from './types'
 
 interface UseBulkProcessingAlertsProps {
   actionType: BulkActionType
@@ -28,10 +28,10 @@ interface UseBulkProcessingAlertsReturn {
 }
 
 /**
- * Custom hook for bulk processing alerts validation
+ * Custom hook for bulk processing alerts evaluation
  *
- * This hook evaluates all alert validators for the given action type, tracks which submissions are filtered
- * by warnings, and returns the active alerts along with validation state.
+ * This hook evaluates all alert evaluators for the given action type, tracks which submissions are filtered
+ * by warnings, and returns the active alerts along with evaluation state.
  */
 export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): UseBulkProcessingAlertsReturn {
   const {
@@ -46,16 +46,16 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
 
   const alertDefinitions = useMemo(() => getAlertDefinitions(actionType), [actionType])
 
-  // Evaluate all validators and compute active alerts
-  const validationResult = useMemo(() => {
-    // Track filtered submissions across all validators
+  // Evaluate all evaluators and compute active alerts
+  const evaluationResult = useMemo(() => {
+    // Track filtered submissions across all evaluators
     const filteredSubmissionUuids = new Set<string>()
 
     // Track active alerts
     const activeAlerts: ActiveAlert[] = []
 
-    // Build validation context
-    const context: AlertValidationContext = {
+    // Build evaluation context
+    const context: AlertEvaluationContext = {
       submissions: selectedSubmissions,
       fieldXpath,
       selectedLanguage,
@@ -66,9 +66,9 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
       previouslyFilteredSubmissionUuids: filteredSubmissionUuids,
     }
 
-    // Evaluate each validator in priority order
+    // Evaluate each evaluator in priority order
     for (const alertDef of alertDefinitions) {
-      const result = alertDef.validator(context)
+      const result = alertDef.evaluator(context)
 
       if (result.shouldShow) {
         // Add filtered submission uuids to the set (for warnings)
@@ -100,7 +100,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
 
     const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
 
-    // Compute validation state
+    // Compute evaluation state
     const hasErrors = activeAlerts.some((alert) => alert.type === 'error')
     const hasWarnings = activeAlerts.some((alert) => alert.type === 'warning')
 
@@ -122,5 +122,5 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     alertDefinitions,
   ])
 
-  return validationResult
+  return evaluationResult
 }

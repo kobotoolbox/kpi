@@ -114,7 +114,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
 
   const handleStartTranslation = () => {
     // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
-    // that have been flagged by warning validators (e.g., already translated, no source)
+    // that have been flagged by warning evaluators (e.g., already translated, no source)
     createBulkTranslation({
       uidAsset: props.assetUid,
       data: {
@@ -173,7 +173,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
 
           <BulkProcessingAlerts activeAlerts={activeAlerts} />
 
-          {/* Legacy alert - will be removed once validators are implemented */}
+          {/* Legacy alert - will be removed once evaluators are implemented */}
           {hasExceededLimit && activeAlerts.length === 0 && (
             <Alert type='warning' iconName='information' mt={12} mb={12}>
               {t("You've reached your automatic translation limit. Please purchase an add‑on to continue.")}

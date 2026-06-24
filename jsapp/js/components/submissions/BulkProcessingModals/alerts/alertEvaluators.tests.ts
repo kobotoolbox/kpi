@@ -1,16 +1,16 @@
 import { expect } from 'chai'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import { validateNoEligibleSubmissions } from './alertValidators'
-import type { AlertValidationContext } from './types'
+import { evaluateNoEligibleSubmissions } from './alertEvaluators'
+import type { AlertEvaluationContext } from './types'
 
-describe('validateNoEligibleSubmissions', () => {
+describe('evaluateNoEligibleSubmissions', () => {
   const mockSubmissions = [
     assetDataFactory(1, { _uuid: 'uuid-1' }),
     assetDataFactory(2, { _uuid: 'uuid-2' }),
     assetDataFactory(3, { _uuid: 'uuid-3' }),
   ]
 
-  const baseContext: AlertValidationContext = {
+  const baseContext: AlertEvaluationContext = {
     submissions: mockSubmissions,
     fieldXpath: 'question_1',
     actionType: 'transcript',
@@ -19,12 +19,12 @@ describe('validateNoEligibleSubmissions', () => {
   }
 
   it('should show alert when all submissions are filtered', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       previouslyFilteredSubmissionUuids: new Set(['uuid-1', 'uuid-2', 'uuid-3']),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('error')
@@ -36,12 +36,12 @@ describe('validateNoEligibleSubmissions', () => {
   })
 
   it('should not show alert when some submissions remain eligible', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       previouslyFilteredSubmissionUuids: new Set(['uuid-1', 'uuid-2']),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('error')
@@ -53,12 +53,12 @@ describe('validateNoEligibleSubmissions', () => {
   })
 
   it('should not show alert when no submissions are filtered', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       previouslyFilteredSubmissionUuids: new Set(),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('error')
@@ -70,13 +70,13 @@ describe('validateNoEligibleSubmissions', () => {
   })
 
   it('should handle empty submissions array', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       submissions: [],
       previouslyFilteredSubmissionUuids: new Set(),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('error')

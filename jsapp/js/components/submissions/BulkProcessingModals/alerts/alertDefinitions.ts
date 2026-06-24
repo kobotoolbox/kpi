@@ -1,12 +1,12 @@
 import {
-  validateAlreadyTranscribed,
-  validateAlreadyTranslated,
-  validateConflictingJob,
-  validateNearLimit,
-  validateNoEligibleSubmissions,
-  validateNoSource,
-  validateReachedLimit,
-} from './alertValidators'
+  evaluateAlreadyTranscribed,
+  evaluateAlreadyTranslated,
+  evaluateConflictingJob,
+  evaluateNearLimit,
+  evaluateNoEligibleSubmissions,
+  evaluateNoSource,
+  evaluateReachedLimit,
+} from './alertEvaluators'
 import type { AlertDefinition, BulkActionType } from './types'
 
 /**
@@ -20,7 +20,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'reached-limit',
       type: 'error',
-      validator: validateReachedLimit,
+      evaluator: evaluateReachedLimit,
       messageTemplate: () =>
         isTranscription
           ? t(
@@ -33,7 +33,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'near-limit',
       type: 'error',
-      validator: validateNearLimit,
+      evaluator: evaluateNearLimit,
       messageTemplate: (values) => {
         const remaining = isTranscription ? (values.remainingMinutes ?? '0') : (values.remainingCharacters ?? '0')
         return isTranscription
@@ -48,13 +48,13 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'conflicting-job',
       type: 'warning',
-      validator: validateConflictingJob,
+      evaluator: evaluateConflictingJob,
       messageTemplate: () => t('Another bulk process is already in progress, please let it finish first'),
     },
     {
       id: 'no-source',
       type: 'warning',
-      validator: validateNoSource,
+      evaluator: evaluateNoSource,
       messageTemplate: ({ count = 0 }) =>
         isTranscription
           ? t('##count## submissions are missing audio file and will be ignored').replace('##count##', String(count))
@@ -66,7 +66,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: isTranscription ? 'already-transcribed' : 'already-translated',
       type: 'warning',
-      validator: isTranscription ? validateAlreadyTranscribed : validateAlreadyTranslated,
+      evaluator: isTranscription ? evaluateAlreadyTranscribed : evaluateAlreadyTranslated,
       messageTemplate: (values) =>
         isTranscription
           ? t('##count## audio files totaling ##minutes## minutes already transcribed and will be ignored')
@@ -79,7 +79,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'no-eligible-submissions',
       type: 'error',
-      validator: validateNoEligibleSubmissions,
+      evaluator: evaluateNoEligibleSubmissions,
       messageTemplate: () => t('No submissions to process, see alerts above.'),
     },
   ]

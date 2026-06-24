@@ -62,7 +62,7 @@ export const NoAlerts: Story = {
   },
   render: (args) => (
     <Stack gap='md'>
-      <Text size='sm'>No alerts to display - all validations passed</Text>
+      <Text size='sm'>No alerts to display - all evaluators passed</Text>
       <BulkProcessingAlerts {...args} />
     </Stack>
   ),
