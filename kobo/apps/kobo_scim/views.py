@@ -308,34 +308,37 @@ class ScimUserViewSet(
             apply_scim_user_metadata(
                 user,
                 data,
-                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
             )
 
-            if reactivated_users:
-                for reactivated_user in reactivated_users:
-                    self._create_provisioning_audit_log(
-                        user=reactivated_user,
-                        action=AuditAction.REPROVISIONING,
-                        email=reactivated_user.email,
-                        username=reactivated_user.username,
-                        status_code=status.HTTP_201_CREATED,
-                        reason=(
-                            'Automated account re-provisioning via Identity '
-                            'Provider'
-                        ),
-                    )
-            elif social_account_existed:
+            # Always log the primary user if this is a reprovisioning event
+            if social_account_existed:
                 self._create_provisioning_audit_log(
                     user=user,
                     action=AuditAction.REPROVISIONING,
                     email=email,
                     username=user.username,
                     status_code=status.HTTP_201_CREATED,
-                    reason=(
-                        'Automated account re-provisioning via Identity Provider'
-                    ),
+                    reason='Automated account re-provisioning via Identity Provider',
                 )
-            else:
+
+            # Additionally log any other reactivated users
+            for reactivated_user in reactivated_users:
+                # Avoid double-logging the primary user
+                if reactivated_user.pk == user.pk:
+                    continue
+
+                self._create_provisioning_audit_log(
+                    user=reactivated_user,
+                    action=AuditAction.REPROVISIONING,
+                    email=reactivated_user.email,
+                    username=reactivated_user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason='Automated account re-provisioning via Identity Provider',
+                )
+
+            # If this is a brand-new user (no social account existed)
+            if not social_account_existed:
                 self._create_provisioning_audit_log(
                     user=user,
                     action=AuditAction.PROVISIONING,
