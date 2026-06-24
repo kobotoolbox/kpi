@@ -37,14 +37,14 @@ export function getAlertDefinitions(actionType: ActionType): AlertDefinition[] {
       priority: 2,
       validator: validateNearLimit,
       messageTemplate: (values) => {
-        const remaining = isTranscription ? values.remainingMinutes : values.remainingCharacters
+        const remaining = isTranscription ? values.remainingMinutes ?? '0' : values.remainingCharacters ?? '0'
         return isTranscription
           ? t(
               '##remainingMinutes## minutes of automated transcription left, that is not enough to process all selected submissions. Please select fewer files, purchase an add-on, or upgrade your plan.',
-            ).replace('##remainingMinutes##', remaining)
+            ).replace('##remainingMinutes##', String(remaining))
           : t(
               '##remainingCharacters## characters of automated translation left, that is not enough to process all selected submissions. Please select fewer files, purchase an add-on, or upgrade your plan.',
-            ).replace('##remainingCharacters##', remaining)
+            ).replace('##remainingCharacters##', String(remaining))
       },
     },
     {
@@ -59,10 +59,10 @@ export function getAlertDefinitions(actionType: ActionType): AlertDefinition[] {
       type: 'warning',
       priority: 4,
       validator: validateNoSource,
-      messageTemplate: ({ count }) =>
+      messageTemplate: ({ count = 0 }) =>
         isTranscription
-          ? t('##count## submissions are missing audio file and will be ignored').replace('##count##', count)
-          : t('##count## submissions are missing transcription and will be ignored').replace('##count##', count),
+          ? t('##count## submissions are missing audio file and will be ignored').replace('##count##', String(count))
+          : t('##count## submissions are missing transcription and will be ignored').replace('##count##', String(count)),
     },
     {
       id: isTranscription ? 'already-transcribed' : 'already-translated',
@@ -72,11 +72,11 @@ export function getAlertDefinitions(actionType: ActionType): AlertDefinition[] {
       messageTemplate: (values) =>
         isTranscription
           ? t('##count## audio files totaling ##minutes## minutes already transcribed and will be ignored')
-              .replace('##count##', values.count)
-              .replace('##minutes##', values.minutes)
+              .replace('##count##', String(values.count ?? 0))
+              .replace('##minutes##', String(values.minutes ?? 0))
           : t('##count## transcripts totaling ##characters## characters already translated and will be ignored')
-              .replace('##count##', values.count)
-              .replace('##characters##', values.characters),
+              .replace('##count##', String(values.count ?? 0))
+              .replace('##characters##', String(values.characters ?? 0)),
     },
     {
       id: 'no-eligible-submissions',
