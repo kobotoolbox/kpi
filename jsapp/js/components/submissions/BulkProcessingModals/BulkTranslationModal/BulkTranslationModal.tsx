@@ -98,7 +98,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
     fieldXpath: props.fieldXpath,
-    assetUid: props.assetUid,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })

@@ -13,7 +13,6 @@ interface UseBulkProcessingAlertsProps {
   /** Selected region (transcription only) */
   selectedRegion?: string
   fieldXpath: string
-  assetUid: string
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
 }
@@ -48,7 +47,6 @@ interface UseBulkProcessingAlertsReturn {
  *   selectedSubmissions: submissions,
  *   selectedLanguage: 'en',
  *   fieldXpath: 'audio_question',
- *   assetUid: 'abc123',
  *   serviceUsageData: usageData,
  *   activeBulkActions: bulkActions,
  * });
@@ -61,7 +59,6 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     fieldXpath,
-    // assetUid,
     serviceUsageData,
     activeBulkActions,
   } = props

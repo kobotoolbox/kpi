@@ -107,7 +107,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     selectedLanguage: selectedLanguage || undefined,
     selectedRegion: selectedRegion || undefined,
     fieldXpath: props.fieldXpath,
-    assetUid: props.assetUid,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })
