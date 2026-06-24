@@ -3,17 +3,17 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import bulkActionFactory from '#/endpoints/bulkAction.factory'
-import { validateConflictingJob, validateNoEligibleSubmissions } from './alertValidators'
-import type { AlertValidationContext } from './types'
+import { evaluateConflictingJob, evaluateNoEligibleSubmissions } from './alertEvaluators'
+import type { AlertEvaluationContext } from './types'
 
-describe('validateNoEligibleSubmissions', () => {
+describe('evaluateNoEligibleSubmissions', () => {
   const mockSubmissions = [
     assetDataFactory(1, { _uuid: 'uuid-1' }),
     assetDataFactory(2, { _uuid: 'uuid-2' }),
     assetDataFactory(3, { _uuid: 'uuid-3' }),
   ]
 
-  const baseContext: AlertValidationContext = {
+  const baseContext: AlertEvaluationContext = {
     submissions: mockSubmissions,
     fieldXpath: 'question_1',
     actionType: 'transcript',
@@ -22,12 +22,12 @@ describe('validateNoEligibleSubmissions', () => {
   }
 
   it('should show alert when all submissions are filtered', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       previouslyFilteredSubmissionUuids: new Set(['uuid-1', 'uuid-2', 'uuid-3']),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('error')
@@ -39,12 +39,12 @@ describe('validateNoEligibleSubmissions', () => {
   })
 
   it('should not show alert when some submissions remain eligible', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       previouslyFilteredSubmissionUuids: new Set(['uuid-1', 'uuid-2']),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('error')
@@ -56,12 +56,12 @@ describe('validateNoEligibleSubmissions', () => {
   })
 
   it('should not show alert when no submissions are filtered', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       previouslyFilteredSubmissionUuids: new Set(),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('error')
@@ -73,13 +73,13 @@ describe('validateNoEligibleSubmissions', () => {
   })
 
   it('should handle empty submissions array', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       submissions: [],
       previouslyFilteredSubmissionUuids: new Set(),
     }
 
-    const result = validateNoEligibleSubmissions(context)
+    const result = evaluateNoEligibleSubmissions(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('error')
@@ -90,14 +90,14 @@ describe('validateNoEligibleSubmissions', () => {
   })
 })
 
-describe('validateConflictingJob', () => {
+describe('evaluateConflictingJob', () => {
   const mockSubmissions = [
     assetDataFactory(1, { _uuid: 'uuid-1' }),
     assetDataFactory(2, { _uuid: 'uuid-2' }),
     assetDataFactory(3, { _uuid: 'uuid-3' }),
   ]
 
-  const baseContext: AlertValidationContext = {
+  const baseContext: AlertEvaluationContext = {
     submissions: mockSubmissions,
     fieldXpath: 'audio_question',
     actionType: 'transcript',
@@ -106,12 +106,12 @@ describe('validateConflictingJob', () => {
   }
 
   it('should not show alert when no ongoing jobs exist', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       activeBulkActions: [],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('warning')
@@ -119,7 +119,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should not show alert when ongoing jobs are for different field', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
@@ -130,7 +130,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('warning')
@@ -138,7 +138,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should not show alert when jobs are completed', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
@@ -149,7 +149,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('warning')
@@ -157,7 +157,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should show alert for transcription when ongoing transcription job conflicts', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
@@ -169,7 +169,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('warning')
@@ -181,7 +181,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should show alert for transcription when pending job conflicts', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       activeBulkActions: [
         bulkActionFactory('uuid-3', 'en', {
@@ -193,7 +193,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('warning')
@@ -202,7 +202,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should show alert for translation when ongoing translation job conflicts', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       actionType: 'translation',
       activeBulkActions: [
@@ -215,7 +215,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('warning')
@@ -223,7 +223,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should show alert for translation when ongoing transcription job conflicts', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       actionType: 'translation',
       activeBulkActions: [
@@ -236,7 +236,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('warning')
@@ -244,7 +244,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should handle multiple conflicting jobs', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
@@ -262,7 +262,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(true)
     expect(result.type).to.equal('warning')
@@ -274,7 +274,7 @@ describe('validateConflictingJob', () => {
   })
 
   it('should not show alert when no selected submissions overlap with ongoing jobs', () => {
-    const context: AlertValidationContext = {
+    const context: AlertEvaluationContext = {
       ...baseContext,
       activeBulkActions: [
         bulkActionFactory('uuid-other', 'en', {
@@ -286,7 +286,7 @@ describe('validateConflictingJob', () => {
       ],
     }
 
-    const result = validateConflictingJob(context)
+    const result = evaluateConflictingJob(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('warning')

@@ -12,7 +12,7 @@ interface BulkProcessingAlertsProps {
  * Bulk Processing Alerts Display Component
  *
  * Pure presentation component that renders active alerts.
- * No validation logic - that's handled by the `useBulkProcessingAlerts` hook.
+ * No evaluation logic - that's handled by the `useBulkProcessingAlerts` hook.
  *
  * @example
  * ```tsx

@@ -13,10 +13,10 @@ export type AlertSeverity = 'error' | 'warning'
 export type BulkActionType = 'transcript' | 'translation'
 
 /**
- * Context passed to alert validators
+ * Context passed to alert evaluators
  */
-export interface AlertValidationContext {
-  /** Submissions to validate */
+export interface AlertEvaluationContext {
+  /** Submissions to evaluate */
   submissions: SubmissionResponse[]
   fieldXpath: string
   selectedLanguage?: LanguageCode
@@ -29,13 +29,13 @@ export interface AlertValidationContext {
 }
 
 /**
- * Result returned by alert validators
+ * Result returned by alert evaluators
  */
-export interface AlertValidationResult {
+export interface AlertEvaluationResult {
   /** Whether this alert should be displayed */
   shouldShow: boolean
   type: AlertSeverity
-  /** Submission Uuids filtered out by this validator */
+  /** Submission Uuids filtered out by this evaluator */
   filteredSubmissionUuids: string[]
   /** Computed values for messages */
   computedValues: Record<string, any>
@@ -43,13 +43,13 @@ export interface AlertValidationResult {
 
 /**
  * Alert definition configuration
+ * Alerts are evaluated in array order - first alert has highest priority
  */
 export interface AlertDefinition {
   /** Unique alert identifier */
   id: string
   type: AlertSeverity
-  priority: number
-  validator: (context: AlertValidationContext) => AlertValidationResult
+  evaluator: (context: AlertEvaluationContext) => AlertEvaluationResult
   messageTemplate: (values: Record<string, any>) => string
 }
 
