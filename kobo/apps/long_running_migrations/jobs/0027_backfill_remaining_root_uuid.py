@@ -1,4 +1,4 @@
-# Generated on 2025-01-16 11:58
+# Generated on 2026-06-23
 from django.conf import settings
 from django.core.management import call_command
 from django.db import IntegrityError, connections
@@ -11,14 +11,21 @@ from kpi.utils.database import use_db
 from kpi.utils.log import logging
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
+FAILED_TAG = 'kobo-root-uuid-failed-0026'
 
 
 def run():
     """
-    Backfills the `root_uuid` field on all `Instance` records that are missing
-    it, processing xforms in batches.
-    """
+    Backfills `root_uuid` and `meta/rootUuid` for any Instance records missed
+    by LRM 0005 (e.g. due to the taggit multi-DB routing bug).
 
+    Tracking strategy:
+    - No success tag: the absence of null `root_uuid` instances proves completion.
+    - A `kobo-root-uuid-failed` tag (written directly to the kobocat DB) marks
+      XForms with unrecoverable errors so they are permanently skipped.
+
+    Safe to run concurrently with or after LRM 0005.
+    """
     _check_root_uuid_unique_index_ready()
 
     last_xform_id = 0
@@ -26,7 +33,7 @@ def run():
         while xforms := get_xforms_queryset(last_xform_id):
             for xform in xforms:
                 logging.info(
-                    f'[LRM 0005] - XForm #{xform.pk} ({xform.id_string}) - In Progress'
+                    f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - In Progress'
                 )
                 error = False
                 while instances := get_instances_queryset(xform.pk):
@@ -35,11 +42,10 @@ def run():
                         break
 
                 if not error:
-                    xform.tags.add('kobo-root-uuid-success')
+                    logging.info(
+                        f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - Done'
+                    )
 
-                logging.info(
-                    f'[LRM 0005] - XForm #{xform.pk} ({xform.id_string}) - Done'
-                )
                 last_xform_id = xform.pk
 
         # Clean up tags while retaining failed entries for future manual review
@@ -58,13 +64,24 @@ def get_instances_queryset(xform_id: int) -> QuerySet:
 
 
 def get_xforms_queryset(xform_id: int) -> QuerySet:
-    # `order_by('pk')` is inexpensive here because `pk` is the primary key and
-    # already indexed. Combined with the `CHUNK_SIZE` limit, each batch is
-    # fetched quickly without scanning the full table.
+    """
+    Returns up to CHUNK_SIZE XForm pks that still have null root_uuid instances
+    and have not been permanently marked as failed.
+
+    Both the null-check and the failed-tag exclusion run within the kobocat DB
+    connection, avoiding cross-DB routing issues.
+    """
+    xform_ids = list(
+        Instance.objects.filter(root_uuid__isnull=True)
+        .values_list('xform_id', flat=True)
+        .filter(xform_id__gt=xform_id)
+        .distinct().order_by('xform_id')[:CHUNK_SIZE]
+    )
+
     return (
         XForm.objects.only('pk', 'id_string')
-        .filter(pk__gt=xform_id)
-        .exclude(tags__name__contains='kobo-root-uuid')
+        .filter(pk__in=xform_ids)
+        .exclude(tags__name__contains=FAILED_TAG)
         .order_by('pk')[:CHUNK_SIZE]
     )
 
@@ -78,17 +95,15 @@ def _check_root_uuid_unique_index_ready():
             JOIN pg_class c ON c.relname = i.indexname
             JOIN pg_index ix ON ix.indexrelid = c.oid
             WHERE i.tablename = %s AND i.indexname = %s
-        """,
+            """,
             ['logger_instance', 'unique_root_uuid_per_xform'],
         )
         row = cursor.fetchone()
         if not (row is not None and row[0]):
             raise RootUUIDConstraintNotEnforced(
-                'The unique index on "root_uuid" is missing or invalid.\n'
-                'Make sure the migration `logger.0041_add_root_uuid_field_to_instance` '
-                'has been applied and that the constraint was successfully created. '
-                'Once that is done, re-run this migration (by setting its status back '
-                'to "CREATED" in the admin interface).'
+                'The unique index on "root_uuid" is missing or invalid. '
+                'Make sure migration `logger.0041_add_root_uuid_field_to_instance` '
+                'has been applied before running this migration.'
             )
 
 
@@ -120,9 +135,9 @@ def _process_instances_batch(
                 )
             except Exception as e:
                 logging.error(
-                    f'[LRM 0005] - Failed to clean duplicated submissions: {str(e)}'
+                    f'[LRM 0027] - Failed to clean duplicated submissions: {str(e)}'
                 )
-                xform.tags.add('kobo-root-uuid-failed')
+                xform.tags.add(FAILED_TAG)
                 return False
 
             # Need to reload instance_batch to get new uuids
@@ -133,7 +148,7 @@ def _process_instances_batch(
                 xform, instance_batch_retry, first_try=False
             )
         else:
-            xform.tags.add('kobo-root-uuid-failed')
+            xform.tags.add(FAILED_TAG)
             return False
     else:
         return True
