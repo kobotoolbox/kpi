@@ -208,7 +208,7 @@ describe('evaluateConflictingJob', () => {
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
           status: BulkActionResponseStatusEnum.in_progress,
-          question_xpath: 'audio_question',
+          question_xpath: '_supplementalDetails/audio_question/transcript_en',
           action_id: ActionIdEnum.automatic_google_translation,
           submission_uuids: ['uuid-1'],
         }),
@@ -282,6 +282,27 @@ describe('evaluateConflictingJob', () => {
           question_xpath: 'audio_question',
           action_id: ActionIdEnum.automatic_google_transcription,
           submission_uuids: ['uuid-other-1', 'uuid-other-2'],
+        }),
+      ],
+    }
+
+    const result = evaluateConflictingJob(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('warning')
+    expect(result.filteredSubmissionUuids).to.deep.equal([])
+  })
+
+  it('should not show alert for translation when ongoing translation job is for different field', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      actionType: 'translation',
+      activeBulkActions: [
+        bulkActionFactory('uuid-1', 'en', {
+          status: BulkActionResponseStatusEnum.in_progress,
+          question_xpath: '_supplementalDetails/different_question/transcript_en',
+          action_id: ActionIdEnum.automatic_google_translation,
+          submission_uuids: ['uuid-1'],
         }),
       ],
     }

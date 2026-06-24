@@ -1,5 +1,6 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 import { createInactiveResult } from './utils'
 
@@ -61,14 +62,20 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
         action.action_id === ActionIdEnum.automatic_google_transcription && action.question_xpath === fieldXpath,
     )
   } else {
-    // For translation: check for ongoing translation jobs on the same field
-    // OR ongoing transcription jobs on the input field (since translation reads from transcripts)
-    conflictingJobs = ongoingJobs.filter(
-      (action) =>
-        action.question_xpath === fieldXpath &&
-        (action.action_id === ActionIdEnum.automatic_google_translation ||
-          action.action_id === ActionIdEnum.automatic_google_transcription),
-    )
+    // For translation: check for ongoing jobs that would conflict
+    conflictingJobs = ongoingJobs.filter((action) => {
+      // Translation jobs have xpath: _supplementalDetails/<field>/transcript_<lang>
+      // Check if this translation job is for the same field
+      if (action.action_id === ActionIdEnum.automatic_google_translation) {
+        const pathParts = getSupplementalPathParts(action.question_xpath)
+        return pathParts.sourceRowPath === fieldXpath && pathParts.type === 'transcript'
+      }
+      // Transcription jobs on the same field also conflict (they write to the input transcript)
+      if (action.action_id === ActionIdEnum.automatic_google_transcription) {
+        return action.question_xpath === fieldXpath
+      }
+      return false
+    })
   }
 
   if (conflictingJobs.length === 0) {
