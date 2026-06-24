@@ -12,7 +12,7 @@ interface BulkProcessingAlertsProps {
  * Bulk Processing Alerts Display Component
  *
  * Pure presentation component that renders active alerts.
- * No validation logic - that's handled by the useBulkProcessingAlerts hook.
+ * No validation logic - that's handled by the `useBulkProcessingAlerts` hook.
  *
  * @example
  * ```tsx
@@ -23,7 +23,6 @@ interface BulkProcessingAlertsProps {
 export default function BulkProcessingAlerts(props: BulkProcessingAlertsProps) {
   const { activeAlerts } = props
 
-  // Don't render anything if no alerts
   if (activeAlerts.length === 0) {
     return null
   }

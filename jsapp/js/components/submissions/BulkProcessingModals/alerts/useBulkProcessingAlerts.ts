@@ -25,32 +25,13 @@ interface UseBulkProcessingAlertsReturn {
   eligibleSubmissions: SubmissionResponse[]
   /** UUIDs of eligible submissions */
   eligibleSubmissionUuids: string[]
-  /** Whether validation is in progress */
-  isValidating: boolean
 }
 
 /**
  * Custom hook for bulk processing alerts validation
  *
- * This hook evaluates all alert validators for the given action type,
- * tracks which submissions are filtered by warnings, and returns the
- * active alerts along with validation state.
- *
- * @example
- * ```tsx
- * const {
- *   activeAlerts,
- *   hasErrors,
- *   eligibleSubmissions
- * } = useBulkProcessingAlerts({
- *   actionType: 'transcript',
- *   selectedSubmissions: submissions,
- *   selectedLanguage: 'en',
- *   fieldXpath: 'audio_question',
- *   serviceUsageData: usageData,
- *   activeBulkActions: bulkActions,
- * });
- * ```
+ * This hook evaluates all alert validators for the given action type, tracks which submissions are filtered
+ * by warnings, and returns the active alerts along with validation state.
  */
 export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): UseBulkProcessingAlertsReturn {
   const {
@@ -129,7 +110,6 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
       hasWarnings,
       eligibleSubmissions,
       eligibleSubmissionUuids,
-      isValidating: false, // Not async for now
     }
   }, [
     selectedSubmissions,
