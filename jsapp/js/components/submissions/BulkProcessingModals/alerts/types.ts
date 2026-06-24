@@ -8,7 +8,7 @@ import type { SubmissionResponse } from '#/dataInterface'
  * - error: Blocks requesting bulk action (e.g., quota exceeded, no eligible submissions)
  * - warning: Informational, some submissions were filtered out (e.g., already transcribed)
  */
-export type AlertType = 'error' | 'warning'
+export type AlertSeverity = 'error' | 'warning'
 
 /**
  * Action type for bulk processing
@@ -37,7 +37,7 @@ export interface AlertValidationContext {
 export interface AlertValidationResult {
   /** Whether this alert should be displayed */
   shouldShow: boolean
-  type: AlertType
+  type: AlertSeverity
   /** Submission Uuids filtered out by this validator (for warnings) */
   filteredSubmissionUuids: string[]
   /** Computed values for messages */
@@ -60,7 +60,7 @@ export type AlertValidator = (context: AlertValidationContext) => AlertValidatio
 export interface AlertDefinition {
   /** Unique alert identifier */
   id: string
-  type: AlertType
+  type: AlertSeverity
   priority: number
   validator: AlertValidator
   messageTemplate: MessageTemplate
@@ -72,7 +72,7 @@ export interface AlertDefinition {
 export interface ActiveAlert {
   /** Alert ID */
   id: string
-  type: AlertType
+  type: AlertSeverity
   message: string
   computedValues: Record<string, any>
 }
