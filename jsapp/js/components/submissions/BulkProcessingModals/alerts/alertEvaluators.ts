@@ -64,7 +64,7 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
   } else {
     // For translation: check for ongoing jobs that would conflict
     conflictingJobs = ongoingJobs.filter((action) => {
-      // Translation jobs have xpath: _supplementalDetails/<field>/transcript_<lang>
+      // Translation jobs have xpath that points to transcript inside `_supplementalDetails`.
       // Check if this translation job is for the same field
       if (action.action_id === ActionIdEnum.automatic_google_translation) {
         const pathParts = getSupplementalPathParts(action.question_xpath)
