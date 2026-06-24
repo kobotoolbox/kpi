@@ -75,9 +75,8 @@ export function validateAlreadyTranslated(context: AlertValidationContext): Aler
 }
 
 /**
- * Validator for DEV-1398: No Eligible Submissions
+ * Validator for no eligible submissions
  * Checks if all submissions have been filtered out by previous validators
- * This validator is fully implemented as it only checks the filtered count
  */
 export function validateNoEligibleSubmissions(context: AlertValidationContext): AlertValidationResult {
   const eligibleCount = context.submissions.length - context.previouslyFilteredSubmissionUuids.size
