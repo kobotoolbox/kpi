@@ -130,6 +130,17 @@ module.exports = do ->
         # list for in-session edits (so the choice editor works correctly)
         row.get('type').set('listName', uniqueListName)
         row.get('type').set('list', newList)
+
+        # Also update the separate select_from_list_name attribute if it exists.
+        # Library items fetched from the API use a separated format:
+        #   {type: "select_one", select_from_list_name: "fruits"}
+        # rather than the combined format: {type: "select_one fruits"}.
+        # The separated format creates a standalone select_from_list_name RowDetail
+        # on the row. If we don't update it here, toJSON2() will overwrite the
+        # correct uniqueListName (set from type.listName) with the stale old name
+        # when it iterates all row attributes, causing the choices to be lost on save.
+        if row.get('select_from_list_name')
+          row.get('select_from_list_name').set('value', uniqueListName, {silent: true})
       return
 
     # Inserts library items (questions or groups) into the form.

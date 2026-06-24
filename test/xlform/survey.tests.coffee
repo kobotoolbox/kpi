@@ -354,3 +354,33 @@ do ->
       expect(choiceList.options.length).toBe(2)
       expect(choiceList.options.at(0).get('name')).toBe('red')
       expect(choiceList.options.at(1).get('name')).toBe('blue')
+
+    it 'preserves options when library item uses separated type/select_from_list_name (API format)', () ->
+      # The API stores select questions in separated format:
+      #   {type: "select_one", select_from_list_name: "fruits"}
+      # rather than the combined format {type: "select_one fruits"}.
+      # This test ensures options are preserved through save/reload in that case.
+      apiFormatSurvey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one', select_from_list_name: 'fruits', name: 'fruit', label: 'Pick a fruit'}
+        ],
+        choices: [
+          {list_name: 'fruits', name: 'tomato', label: 'Tomato'},
+          {list_name: 'fruits', name: 'cucumber', label: 'Cucumber'},
+          {list_name: 'fruits', name: 'corn', label: 'Corn'}
+        ]
+      })
+
+      @targetSurvey.insertSurvey(apiFormatSurvey, 0)
+
+      # Serialize to flat JSON (same as surveyToValidJson does) and reload
+      surveyJSON = @targetSurvey.toFlatJSON()
+      reloadedSurvey = $model.Survey.loadDict(JSON.parse(JSON.stringify(surveyJSON)))
+
+      reloadedRow = reloadedSurvey.rows.at(0)
+      choiceList = reloadedRow.getList()
+      expect(choiceList).toBeDefined()
+      expect(choiceList.options.length).toBe(3)
+      expect(choiceList.options.at(0).get('name')).toBe('tomato')
+      expect(choiceList.options.at(1).get('name')).toBe('cucumber')
+      expect(choiceList.options.at(2).get('name')).toBe('corn')
