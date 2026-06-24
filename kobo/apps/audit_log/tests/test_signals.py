@@ -1,15 +1,13 @@
-import contextlib
 from unittest.mock import Mock, patch
 
 from allauth.account.models import EmailAddress
 from constance.signals import config_updated
 from ddt import data, ddt
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth.signals import user_logged_in
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
-from rest_framework import status
 from freezegun import freeze_time
+from rest_framework import status
 
 from kobo.apps.accounts.mfa.tests.utils import (
     activate_mfa_for_user,
@@ -17,7 +15,7 @@ from kobo.apps.accounts.mfa.tests.utils import (
 )
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
-from kobo.apps.audit_log.signals import create_access_log
+from kobo.apps.audit_log.tests.utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.constants import (
@@ -35,19 +33,6 @@ from kpi.utils.object_permission import (
     post_remove_partial_perms,
     post_remove_perm,
 )
-
-
-@contextlib.contextmanager
-def skip_login_access_log():
-    """
-    Context manager for skipping the creation of an access log on login
-
-    Disconnects the method that creates access logs from the user_logged_in signal within the contextmanager block.
-    Useful when you want full control over the audit logs produced in a test.
-    """
-    user_logged_in.disconnect(create_access_log)
-    yield
-    user_logged_in.connect(create_access_log)
 
 
 class AccessLogsSignalsTestCase(BaseTestCase):
@@ -91,6 +76,34 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         # AuditLogs are tested more fully elsewhere, just make sure one was created
         self.assertEqual(audit_log.user.id, user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+
+    def test_audit_log_created_on_failed_login(self):
+        count = AuditLog.objects.count()
+        self.assertEqual(count, 0)
+        data = {
+            'login': 'user',
+            'password': 'wrongpassword',
+        }
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
+        audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
+        self.assertIsNotNone(audit_log)
+        self.assertEqual(audit_log.user.id, self.user.id)
+        self.assertEqual(audit_log.metadata.get('attempted_username'), 'user')
+
+    def test_audit_log_created_on_failed_login_for_non_existent_user(self):
+        count = AuditLog.objects.count()
+        self.assertEqual(count, 0)
+        data = {
+            'login': 'invalidusername',
+            'password': 'somepassword',
+        }
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
+        audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
+        self.assertIsNotNone(audit_log)
+        self.assertIsNone(audit_log.user)
+        self.assertEqual(
+            audit_log.metadata.get('attempted_username'), 'invalidusername'
+        )
 
     def test_login_with_email_verification(self):
         user = AccessLogsSignalsTestCase.user

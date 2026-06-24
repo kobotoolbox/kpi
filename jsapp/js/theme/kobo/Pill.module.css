@@ -1,3 +1,25 @@
-.root {
+.root[data-variant='gray-light'] {
   background-color: var(--mantine-color-gray-7);
+  color: var(--mantine-color-gray-2);
+
+  .remove {
+    color: var(--mantine-color-gray-2);
+
+    &:hover {
+      color: var(--mantine-color-gray-1);
+    }
+  }
+}
+
+.root[data-variant='amber-light'] {
+  background-color: var(--mantine-color-amber-8);
+  color: var(--mantine-color-amber-1);
+
+  .remove {
+    color: var(--mantine-color-amber-1);
+
+    &:hover {
+      color: var(--mantine-color-amber-0);
+    }
+  }
 }

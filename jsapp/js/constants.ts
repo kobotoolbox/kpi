@@ -82,7 +82,6 @@ export const MODAL_TYPES = {
   REPLACE_PROJECT: 'replace-project',
   TABLE_SETTINGS: 'table-settings',
   REST_SERVICES: 'rest-services',
-  ASSET_TAGS: 'asset-tags',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
@@ -382,6 +381,23 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.audit,
   MetaQuestionTypeName['start-geopoint'],
 ]) as { [P in MetaQuestionTypeName]: MetaQuestionTypeName }
+
+/**
+ * Question types that contain geopoint data that can be displayed on the map.
+ */
+export const MAP_DISPLAYABLE_GEOPOINT_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.geopoint,
+  MetaQuestionTypeName['start-geopoint'],
+]
+
+/**
+ * Type predicate to check if a question type is a map-displayable geopoint type.
+ */
+export function isMapDisplayableGeopointType(
+  type: AnyRowTypeName | undefined,
+): type is (typeof MAP_DISPLAYABLE_GEOPOINT_TYPES)[number] {
+  return type !== undefined && MAP_DISPLAYABLE_GEOPOINT_TYPES.includes(type)
+}
 
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260

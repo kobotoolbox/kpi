@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { ComponentProps } from 'react'
 import { expect, fn, userEvent, within } from 'storybook/test'
+import { withMinHeightWrapper } from '#/storybookUtils'
 import ActionIcon from './ActionIcon'
+import ButtonNew from './ButtonNew'
 import Menu from './Menu'
 import Icon from './icon'
-import '@mantine/core/styles.css'
-import ButtonNew from './ButtonNew'
 
 type StoryArgs = ComponentProps<typeof Menu> & {
   onDeleteClick?: () => void
@@ -14,18 +14,16 @@ type StoryArgs = ComponentProps<typeof Menu> & {
 
 type Story = StoryObj<StoryArgs>
 
-// We need the story demo area to be bigger to accomodate for opened menu
-const storyAreaStyle = {
-  minHeight: 360,
-  padding: 'var(--mantine-spacing-lg)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'flex-start',
-}
-
 const meta = {
   title: 'Design system/Menu',
   component: Menu,
+  decorators: [
+    withMinHeightWrapper(360, {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+    }),
+  ],
   argTypes: {
     width: {
       control: 'number',
@@ -61,20 +59,18 @@ export const Default: Story = {
   },
   render: (args) => {
     return (
-      <div style={storyAreaStyle}>
-        <Menu {...args}>
-          <Menu.Target>
-            <ActionIcon iconName='more' size='md' variant='transparent' aria-label='Open menu' />
-          </Menu.Target>
+      <Menu {...args}>
+        <Menu.Target>
+          <ActionIcon iconName='more' size='md' variant='transparent' aria-label='Open menu' />
+        </Menu.Target>
 
-          <Menu.Dropdown>
-            <Menu.Item leftSection={<Icon name='edit' size='s' />}>Edit</Menu.Item>
-            <Menu.Item leftSection={<Icon name='document' size='s' />}>Duplicate</Menu.Item>
-            <Menu.Divider />
-            <Menu.Item leftSection={<Icon name='close' size='s' />}>Delete</Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-      </div>
+        <Menu.Dropdown>
+          <Menu.Item leftSection={<Icon name='edit' size='s' />}>Edit</Menu.Item>
+          <Menu.Item leftSection={<Icon name='document' size='s' />}>Duplicate</Menu.Item>
+          <Menu.Divider />
+          <Menu.Item leftSection={<Icon name='close' size='s' />}>Delete</Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     )
   },
 }
@@ -89,31 +85,29 @@ export const TestDangerAction: Story = {
   },
   render: ({ onDeleteClick, 'data-testid': testId, ...args }) => {
     return (
-      <div style={storyAreaStyle}>
-        <Menu {...args}>
-          <Menu.Target>
-            <ButtonNew leftIcon='angle-down' size='md' variant='danger-secondary'>
-              Test me now
-            </ButtonNew>
-          </Menu.Target>
+      <Menu {...args}>
+        <Menu.Target>
+          <ButtonNew leftIcon='angle-down' size='md' variant='danger-secondary'>
+            Test me now
+          </ButtonNew>
+        </Menu.Target>
 
-          <Menu.Dropdown>
-            <Menu.Item leftSection={<Icon name='help' size='s' />}>Maybe delete</Menu.Item>
-            <Menu.Divider />
-            <Menu.Item leftSection={<Icon name='close' size='s' />} variant='danger'>
-              Maybe possibly delete
-            </Menu.Item>
-            <Menu.Item
-              leftSection={<Icon name='trash' size='s' />}
-              onClick={onDeleteClick}
-              data-testid={testId}
-              variant='danger'
-            >
-              Delete
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-      </div>
+        <Menu.Dropdown>
+          <Menu.Item leftSection={<Icon name='help' size='s' />}>Maybe delete</Menu.Item>
+          <Menu.Divider />
+          <Menu.Item leftSection={<Icon name='close' size='s' />} variant='danger'>
+            Maybe possibly delete
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<Icon name='trash' size='s' />}
+            onClick={onDeleteClick}
+            data-testid={testId}
+            variant='danger'
+          >
+            Delete
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     )
   },
   play: async ({ args, canvasElement }) => {

@@ -677,7 +677,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         ('someuser', False, status.HTTP_403_FORBIDDEN),
         ('anotheruser', True, status.HTTP_204_NO_CONTENT),
         ('anotheruser', False, status.HTTP_404_NOT_FOUND),
-        ('alice', True, status.HTTP_403_FORBIDDEN),
+        ('alice', True, status.HTTP_204_NO_CONTENT),
         ('alice', False, status.HTTP_404_NOT_FOUND),
         ('bob', True, status.HTTP_404_NOT_FOUND),
         ('bob', False, status.HTTP_204_NO_CONTENT),

@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 import dateutil.parser
-from ddt import data, ddt
+from ddt import data, ddt, unpack
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -62,6 +62,7 @@ class PermissionsTestMixin:
         return {p['user'].split('/')[-2] for p in permissions}
 
 
+@ddt
 class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
     fixtures = ['test_data']
 
@@ -329,6 +330,11 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
 
         result_uids_float = [r['uid'] for r in resp_float.data.get('results', [])]
         self.assertIn(asset_float.uid, result_uids_float)
+
+    def test_nonexistent_parent(self):
+        res = self.client.get(self.list_url, data={'q': 'parent__uid:bad'})
+        assert res.status_code == status.HTTP_200_OK
+        assert res.data['results'] == []
 
     def test_assets_ordering(self):
 
@@ -695,6 +701,60 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert shared_asset.uid not in result_uids
         # Anotheruser's own asset must still appear
         assert own_asset.uid in result_uids
+
+    @data(
+        # is creator, has manage_asset, is empty, can delete
+        (True, True, True, True),
+        (True, True, False, False),
+        (True, False, True, False),
+        (True, False, False, False),
+        (False, True, True, False),
+        (False, True, False, False),
+        (False, False, True, False),
+        (False, False, False, False),
+    )
+    @unpack
+    def test_creators_can_delete_assets_with_no_submissions(
+        self, is_creator, has_manage_asset, is_empty, can_delete
+    ):
+        org_owner = User.objects.create_user(username='orgowner', password='')
+        org = org_owner.organization
+        org.mmo_override = True
+        org.save()
+
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        org.add_user(someuser)
+        org.add_user(anotheruser)
+
+        creator = someuser if is_creator else anotheruser
+
+        self.client.force_login(creator)
+
+        data = {'content': '{}', 'asset_type': ASSET_TYPE_SURVEY, 'name': 'Test'}
+
+        list_url = reverse(self._get_endpoint('asset-list'))
+        response = self.client.post(list_url, data, format='json')
+        asset = Asset.objects.get(uid=response.data['uid'])
+        asset.deploy(backend='mock')
+        if not has_manage_asset:
+            asset.remove_perm(someuser, PERM_MANAGE_ASSET)
+        if not is_empty:
+            asset.deployment.mock_submissions([{}])
+        self.client.force_login(someuser)
+        response = self.client.delete(
+            reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
+        )
+        asset.refresh_from_db()
+        if can_delete:
+            assert response.status_code == status.HTTP_204_NO_CONTENT
+            assert asset.pending_delete
+        elif is_creator:
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert not asset.pending_delete
+        else:
+            assert response.status_code == status.HTTP_404_NOT_FOUND
+            assert not asset.pending_delete
 
     def _setup_current_user_permissions_only(self):
         """

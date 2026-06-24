@@ -4,6 +4,8 @@ import alertify from 'alertifyjs'
 import { actions } from '#/actions'
 import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 import bem from '#/bem'
+import ButtonNew from '#/components/common/ButtonNew'
+import Menu from '#/components/common/Menu'
 import Badge from '#/components/common/badge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -21,7 +23,6 @@ import type {
 import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '#/dataInterface'
 import pageState from '#/pageState.store'
-import PopoverMenu from '#/popoverMenu'
 import { recordKeys, renderCheckbox } from '#/utils'
 import { buildFilterQuery } from './tableUtils'
 
@@ -224,18 +225,22 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
         )}
 
         {recordKeys(this.props.selectedRows).length > 0 && (
-          <PopoverMenu
-            type='bulkUpdate-menu'
-            triggerLabel={<Button type='secondary' size='s' label={t('Change status')} endIcon='angle-down' />}
-          >
-            {(userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
-              userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)) &&
-              VALIDATION_STATUS_OPTIONS.map((item, n) => (
-                <bem.PopoverMenu__link onClick={this.onUpdateStatus.bind(this, item.value)} key={n}>
-                  {t('Set status: ##status##').replace('##status##', item.label)}
-                </bem.PopoverMenu__link>
-              ))}
-          </PopoverMenu>
+          <Menu>
+            <Menu.Target>
+              <ButtonNew variant='light' size='sm' rightIcon='angle-down'>
+                {t('Change status')}
+              </ButtonNew>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {(userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+                userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)) &&
+                VALIDATION_STATUS_OPTIONS.map((item, n) => (
+                  <Menu.Item onClick={this.onUpdateStatus.bind(this, item.value)} key={n}>
+                    {t('Set status: ##status##').replace('##status##', item.label)}
+                  </Menu.Item>
+                ))}
+            </Menu.Dropdown>
+          </Menu>
         )}
 
         {recordKeys(this.props.selectedRows).length > 0 &&

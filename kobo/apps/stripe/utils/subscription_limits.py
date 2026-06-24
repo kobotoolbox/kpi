@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 
-from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -14,15 +14,19 @@ from kobo.apps.stripe.utils.import_management import requires_stripe
 
 
 def _get_default_usage_limits():
-    return {f'{usage_type}_limit': inf for usage_type, _ in UsageType.choices}
+    limits = {f'{usage_type}_limit': inf for usage_type, _ in USAGE_TYPES_WITH_COUNTERS}
+    limits['log_lookback_days_limit'] = min(
+        settings.PROJECT_HISTORY_LOG_LIFESPAN, settings.ACCESS_LOG_LIFESPAN
+    )
+    return limits
 
 
-def _get_limit_key(usage_type: UsageType):
+def get_limit_key(usage_type: UsageType) -> str:
     return f'{usage_type}_limit'
 
 
 def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
-    limit_key = _get_limit_key(usage_type)
+    limit_key = get_limit_key(usage_type)
     return (
         f'items__price__metadata__{limit_key}',
         f'items__price__product__metadata__{limit_key}',
@@ -35,6 +39,7 @@ def get_default_add_on_limits():
         f'{UsageType.ASR_SECONDS}_limit': 0,
         f'{UsageType.MT_CHARACTERS}_limit': 0,
         f'{UsageType.LLM_REQUESTS}_limit': 0,
+        f'{UsageType.LOG_LOOKBACK_DAYS}_limit': 0,
     }
 
 
@@ -121,11 +126,12 @@ def get_organizations_subscription_limits(
             row_limits['addon_storage_limit'] = row[f'{UsageType.STORAGE_BYTES}_limit']
         subscription_limits_by_org_id[row['org_id']] = row_limits
 
-    storage_limit = _get_limit_key(UsageType.STORAGE_BYTES)
-    submission_limit = _get_limit_key(UsageType.SUBMISSION)
-    characters_limit = _get_limit_key(UsageType.MT_CHARACTERS)
-    seconds_limit = _get_limit_key(UsageType.ASR_SECONDS)
-    requests_limit = _get_limit_key(UsageType.LLM_REQUESTS)
+    storage_limit = get_limit_key(UsageType.STORAGE_BYTES)
+    submission_limit = get_limit_key(UsageType.SUBMISSION)
+    characters_limit = get_limit_key(UsageType.MT_CHARACTERS)
+    seconds_limit = get_limit_key(UsageType.ASR_SECONDS)
+    requests_limit = get_limit_key(UsageType.LLM_REQUESTS)
+    log_access_limit = get_limit_key(UsageType.LOG_LOOKBACK_DAYS)
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
         Product.objects.filter(metadata__default_free_plan='true')
@@ -135,6 +141,7 @@ def get_organizations_subscription_limits(
             mt_characters_limit=F(f'metadata__{characters_limit}'),
             asr_seconds_limit=F(f'metadata__{seconds_limit}'),
             llm_requests_limit=F(f'metadata__{requests_limit}'),
+            log_lookback_days_limit=F(f'metadata__{log_access_limit}'),
         )
         .first()
     ) or {}
@@ -142,8 +149,12 @@ def get_organizations_subscription_limits(
     for usage_type, _ in UsageType.choices:
         limit_key = f'{usage_type}_limit'
         default_limit = default_plan.get(limit_key)
-        if default_limit is None:
+        if default_limit is None and usage_type != UsageType.LOG_LOOKBACK_DAYS:
             default_plan_limits[limit_key] = 'unlimited'
+        elif default_limit is None and usage_type == UsageType.LOG_LOOKBACK_DAYS:
+            default_plan_limits[limit_key] = min(
+                settings.ACCESS_LOG_LIFESPAN, settings.PROJECT_HISTORY_LOG_LIFESPAN
+            )
         else:
             default_plan_limits[limit_key] = default_limit
 
@@ -241,6 +252,9 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
     price_requests_key, product_requests_key = (
         _get_subscription_metadata_fields_for_usage_type(UsageType.LLM_REQUESTS)
     )
+    price_lookback_days_key, product_lookback_days_key = (
+        _get_subscription_metadata_fields_for_usage_type(UsageType.LOG_LOOKBACK_DAYS)
+    )
 
     # Get organizations we care about (either those in the 'organizations' param or all)
     org_filter = Q(customer__subscriber_id__in=[org_id for org_id in organization_ids])
@@ -263,6 +277,9 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
                 F(price_characters_key), F(product_characters_key)
             ),
             llm_requests_limit=Coalesce(F(price_requests_key), F(product_requests_key)),
+            log_lookback_days_limit=Coalesce(
+                F(price_lookback_days_key), F(product_lookback_days_key)
+            ),
             sub_start_date=F('start_date'),
             product_type=F('items__price__product__metadata__product_type'),
         )

@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from constance import config
 from django.conf import settings
 from django.utils import timezone
 from more_itertools import chunked
@@ -13,7 +12,7 @@ from kobo.apps.audit_log.models import (
 from kobo.celery import celery_app
 from kpi.models.import_export_task import (
     AccessLogExportTask,
-    ProjectHistoryLogExportTask
+    ProjectHistoryLogExportTask,
 )
 from kpi.utils.export_cleanup import delete_expired_exports
 from kpi.utils.log import logging
@@ -53,8 +52,8 @@ def spawn_logs_cleaning_tasks():
     """
     Enqueue tasks to delete logs older than the configured lifespan
     """
-    enqueue_logs_for_deletion(AccessLog, config.ACCESS_LOG_LIFESPAN)
-    enqueue_logs_for_deletion(ProjectHistoryLog, config.PROJECT_HISTORY_LOG_LIFESPAN)
+    enqueue_logs_for_deletion(AccessLog, settings.ACCESS_LOG_LIFESPAN)
+    enqueue_logs_for_deletion(ProjectHistoryLog, settings.PROJECT_HISTORY_LOG_LIFESPAN)
 
 
 @celery_app.task

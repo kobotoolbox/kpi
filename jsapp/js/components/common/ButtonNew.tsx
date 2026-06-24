@@ -76,5 +76,6 @@ Button.displayName = 'Button'
  * Custom ones are:
  * - "danger"
  * - "danger-secondary"
+ * - "danger-transparent"
  */
 export default createPolymorphicComponent<'button', ButtonProps>(Button)

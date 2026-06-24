@@ -2,7 +2,7 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import { findRowByXpath, getRowName } from '#/assetUtils'
 import { getMediaAttachment, getRowData } from '#/components/submissions/submissionUtils'
 import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
-import { convertSecondsToMinutes } from '#/utils'
+import { convertSecondsToMinutes, getEstimatedTranscriptionDurationSeconds } from '#/utils'
 
 function getQuestionName(asset: AssetResponse, xpath: string) {
   if (!asset?.content) return undefined
@@ -42,7 +42,7 @@ export function getAttachmentForProcessing(
  * rough estimate of how long would it take to transcribe it.
  */
 export function secondsToTranscriptionEstimate(sourceSeconds: number): string {
-  const durationSeconds = Math.round(sourceSeconds * 0.5 + 10)
+  const durationSeconds = getEstimatedTranscriptionDurationSeconds(sourceSeconds)
   if (durationSeconds < 45) {
     return t('less than a minute')
   } else if (durationSeconds >= 45 && durationSeconds < 75) {

@@ -217,7 +217,6 @@ export default function FormGallery(props: FormGalleryProps) {
           title={`Image ${currentModalImageIndex + 1} of ${totalSubmissions}`}
           size='lg'
           centered
-          overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
         >
           <Flex align='center' gap='md' p='sm'>
             {/* Previous button */}

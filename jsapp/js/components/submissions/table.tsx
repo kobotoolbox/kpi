@@ -1,4 +1,5 @@
 import './table.scss'
+import { Stack } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import React from 'react'
@@ -9,9 +10,8 @@ import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { SurveyFlatPaths } from '#/assetUtils'
-import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
+import { getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
-import DebouncedTextInput from '#/components/common/DebouncedTextInput'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -21,7 +21,12 @@ import { userCan, userCanPartially, userHasPermForSubmission } from '#/component
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
-import { isBulkProcessingCellInProgress } from '#/components/submissions/bulkProcessingUtils'
+import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
+import TableTextFilter from '#/components/submissions/TableTextFilter'
+import {
+  getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  isBulkProcessingCellInProgress,
+} from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import type {
   DataTableSelectedRows,
@@ -85,20 +90,24 @@ import type {
   SurveyRow,
   ValidationStatusResponse,
 } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { recordKeys } from '#/utils'
+import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
+import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
 
 const DEFAULT_PAGE_SIZE = 30
+const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
 
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
-  hasActiveBulkActionsCreatedByAnotherUser?: boolean
+  hasActiveBulkActionsCreatedByCurrentUser?: boolean
   currentUsername?: string
 }
 
@@ -146,6 +155,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   /** We store it for future checks. */
   previousOverrides: AssetTableSettings = {}
+
+  private lastRowRefreshErrorNotifiedAt = 0
 
   private unlisteners: Function[] = []
 
@@ -238,10 +249,103 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // transcript or translations, thus we need to display more columns.
       this._prepColumns(this.state.submissions)
     } else if (!isEqual(prevActiveBulkActions, newActiveBulkActions)) {
+      // Keep `table.tsx` focused on orchestration: utility computes which rows
+      // need refresh, then this component dispatches one-row fetches.
+      const submissionUuidsToRefresh = getVisibleBulkProcessingSubmissionUuidsToRefresh(
+        prevActiveBulkActions || [],
+        newActiveBulkActions || [],
+        this.state.submissions,
+      )
+
+      this.refreshSubmissionsByUuids(submissionUuidsToRefresh)
+
       // If bulk actions have changed, it means they might've just gotten loaded
       // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
+  }
+
+  refreshSubmissionsByUuids(submissionUuids: string[]) {
+    if (submissionUuids.length === 0) {
+      return
+    }
+
+    // TODO: When DataTable is migrated to a functional component, replace this
+    // `dataInterface.getSubmissions` bridge with the Orval/react-query path.
+    // Hooks are not available in this legacy class component.
+
+    const uniqueSubmissionUuids = [...new Set(submissionUuids)]
+    const query = {
+      $or: [
+        {
+          'meta/rootUuid': { $in: uniqueSubmissionUuids.map((submissionUuid) => addDefaultUuidPrefix(submissionUuid)) },
+        },
+        { _uuid: { $in: uniqueSubmissionUuids } },
+      ],
+    }
+
+    dataInterface
+      .getSubmissions(
+        this.props.asset.uid,
+        uniqueSubmissionUuids.length,
+        0,
+        [],
+        [],
+        `&query=${encodeURIComponent(JSON.stringify(query))}`,
+      )
+      .done((response: PaginatedResponse<SubmissionResponse>) => {
+        this.onBulkProcessingSubmissionsRefreshCompleted(response.results)
+      })
+      .fail((response: FailResponse) => {
+        this.notifyRowRefreshFailure(response)
+      })
+  }
+
+  notifyRowRefreshFailure(response?: FailResponse) {
+    // TODO: Move this failure reporting to the Orval query error handling layer
+    // once this component uses hook-based data fetching.
+    const now = Date.now()
+    if (now - this.lastRowRefreshErrorNotifiedAt < ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS) {
+      return
+    }
+
+    this.lastRowRefreshErrorNotifiedAt = now
+    notify.error(
+      t('Could not refresh some processing rows. Table data may be temporarily out of date.'),
+      { id: 'datatable-row-refresh-failed' },
+      response?.responseText || response?.statusText || t('Bulk processing row refresh failed.'),
+    )
+  }
+
+  onBulkProcessingSubmissionsRefreshCompleted(updatedSubmissions: SubmissionResponse[]) {
+    if (!updatedSubmissions.length) {
+      return
+    }
+
+    const submissions = [...this.state.submissions]
+
+    updatedSubmissions.forEach((updatedSubmission) => {
+      const submissionIndex = submissions.findIndex(
+        (submission) =>
+          matchUuid(submission['meta/rootUuid'], updatedSubmission['meta/rootUuid']) ||
+          matchUuid(submission._uuid, updatedSubmission._uuid) ||
+          submission._id === updatedSubmission._id,
+      )
+
+      if (submissionIndex !== -1) {
+        submissions[submissionIndex] = updatedSubmission
+      }
+    })
+
+    if (isEqual(submissions, this.state.submissions)) {
+      return
+    }
+
+    // Rebuild columns because new supplemental values can introduce/show
+    // dynamic transcript/translation columns.
+    this.setState({ submissions }, () => {
+      this._prepColumns(submissions)
+    })
   }
 
   /**
@@ -404,22 +508,52 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   onTranscribeSelectedAudioFiles(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
-    console.log('Bulk processing - Transcribe selected audio files', {
+    const selectedSubmissions = this.state.submissions.filter((submission) =>
+      selectedSubmissionIds.includes(String(submission._id)),
+    )
+
+    const selectedSubmissionUuids = selectedSubmissions.map((submission) => submission._uuid)
+
+    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
+    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
+
+    openBulkTranscriptionModal({
       fieldId,
-      selectedSubmissionIds,
+      assetUid: this.props.asset.uid,
+      selectedSubmissionUuids,
       selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
+      showWarningModal: showWarningModal,
+      onSuccess: () => {
+        this.setState({
+          selectedRows: {},
+          selectAll: false,
+        })
+      },
     })
   }
 
   onTranslateSelectedTranscriptions(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
-    console.log('Bulk processing - Translate selected transcriptions', {
+    const selectedSubmissions = this.state.submissions.filter((submission) =>
+      selectedSubmissionIds.includes(String(submission._id)),
+    )
+
+    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
+    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
+
+    openBulkTranslationModal({
       fieldId,
-      selectedSubmissionIds,
+      assetUid: this.props.asset.uid,
       selectedRowsCount: selectedSubmissionIds.length,
-      selectedAllPages: this.state.selectAll,
+      showWarningModal: showWarningModal,
+      onSuccess: () => {
+        this.setState({
+          selectedRows: {},
+          selectAll: false,
+        })
+      },
+      selectedSubmissions: selectedSubmissions,
     })
   }
 
@@ -914,39 +1048,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // We set filters here, so they apply for all columns
       if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true
-        const DropdownFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
-          <select
-            onChange={(event) => onChange(event.target.value)}
-            style={{ width: '100%' }}
-            value={filter ? filter.value : ''}
-          >
-            <option value=''>{t('Show All')}</option>
-            {choices
-              .filter((choiceItem) => choiceItem.list_name === columnQuestion?.select_from_list_name)
-              .map((item, n) => {
-                const displayName = getQuestionOrChoiceDisplayName(item, translationIndex)
-                return (
-                  <option value={item.name} key={n}>
-                    {displayName}
-                  </option>
-                )
-              })}
-          </select>
-        )
-        DropdownFilter.displayName = 'DropdownFilter'
-        col.Filter = DropdownFilter
+        // Attach column-specific data to the column object so TableDropdownFilter
+        // can read it from the column prop that React-Table passes in
+        col.choices = choices
+        col.selectFromListName = columnQuestion?.select_from_list_name
+        col.translationIndex = translationIndex
+        col.Filter = TableDropdownFilter
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
-        const TextInputFilter = ({ filter, onChange }: { filter: any; onChange: (value: any) => void }) => (
-          <DebouncedTextInput
-            value={filter ? filter.value : undefined}
-            onChange={onChange}
-            placeholder={t('Search')}
-            size='xs'
-          />
-        )
-        TextInputFilter.displayName = 'TextInputFilter'
-        col.Filter = TextInputFilter
+        col.Filter = TableTextFilter
       }
 
       // Ensure frozen columns stay correctly aligned to the left, even after
@@ -1332,15 +1442,16 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        <bem.FormView__item m='banner-container'>
+        <Stack gap='sm' className='table-banner-container'>
           <LimitNotifications />
           <BulkProcessingBanner
             assetUid={this.props.asset.uid}
             currentUsername={this.props.currentUsername}
-            activeBulkActionsCount={this.props.activeBulkActions?.length || 0}
-            hasActiveBulkActionsCreatedByAnotherUser={Boolean(this.props.hasActiveBulkActionsCreatedByAnotherUser)}
+            activeBulkActions={this.props.activeBulkActions || []}
+            hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
-        </bem.FormView__item>
+        </Stack>
+
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
             <ColumnsHideDropdown

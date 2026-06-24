@@ -16,6 +16,7 @@ from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
@@ -249,14 +250,80 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
+            if objects_count != len(asset_uids):
+                raise exceptions.PermissionDenied()
         else:
-            objects_count = Asset.objects.filter(
-                owner__in=user_filter,
-                uid__in=asset_uids,
-            ).count()
+            user_filter_as_ids = [user.id for user in user_filter]
+            all_assets = (
+                Asset.objects.filter(uid__in=asset_uids)
+                .only('uid', 'created_by', '_deployment_data', 'asset_type', 'owner')
+                .select_related('owner')  # useful for has_perm
+            )
 
-        if objects_count != len(asset_uids):
-            raise exceptions.PermissionDenied()
+            owned_assets = []
+            unowned_assets = []
+            for a in all_assets:
+                if a.owner.id in user_filter_as_ids:
+                    owned_assets.append(a)
+                else:
+                    unowned_assets.append(a)
+
+            if len(owned_assets) == len(asset_uids):
+                # user has ownership permissions on all assets,
+                # so they can delete all of them
+                return
+            all_asset_uids = [a.uid for a in all_assets]
+            if sorted(all_asset_uids) != sorted(asset_uids):
+                # at least one of the asset uids doesn't exist.
+                # technically this should probably raise a 404 but since it raises a
+                # 403 if all other assets are owned by the requester, keep it consistent
+                raise exceptions.PermissionDenied()
+
+            # special case: non-owners can delete assets
+            # 1. They created the asset
+            # 2. They still have manage_asset
+            # 3. The asset has no submissions
+
+            # check 1: did the non-owning user create the assets?
+            if any(a.created_by != self.__user.username for a in unowned_assets):
+                raise exceptions.PermissionDenied()
+
+            # check 2: does the user have manage_asset?
+            all_perms = [
+                o
+                for o in ObjectPermission.objects.filter(
+                    asset__uid__in=asset_uids, user__in=user_filter
+                )
+                .values(
+                    'asset_id',
+                    'permission_id',
+                    'permission__codename',
+                    'deny',
+                    'user_id',
+                )
+            ]
+
+            if any(
+                not asset.has_perm(
+                    self.__user,
+                    PERM_MANAGE_ASSET,
+                    prefetched_object_permissions=all_perms,
+                )
+                for asset in unowned_assets
+            ):
+                raise exceptions.PermissionDenied()
+
+            # check 3: are all unowned assets empty (no submissions)?
+            formids = [  # retrieve XForm.pks from backend response
+                a._deployment_data.get('backend_response', {}).get('formid')
+                for a in unowned_assets
+                if 'backend' in a._deployment_data
+            ]
+            if formids:
+                if XForm.all_objects.filter(
+                    pk__in=formids, num_of_submissions__gt=0
+                ).exists():
+                    raise exceptions.PermissionDenied()
 
     def _toggle_trash(self, asset_uids: list[str], put_back_: bool):
         # The main goal of the annotation below is to pass always the same
