@@ -1,4 +1,4 @@
-import type { AlertSeverity, AlertEvaluationResult } from './types'
+import type { AlertEvaluationResult, AlertSeverity } from './types'
 
 /**
  * Helper function to create an inactive alert result
