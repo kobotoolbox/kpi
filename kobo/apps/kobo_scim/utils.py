@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_SCHEMA
 from kobo.apps.kobo_scim.exceptions import ScimException
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
@@ -233,7 +234,7 @@ def get_scim_extension_schemas():
         if urn not in schemas:
             urn_name = urn.rsplit(':', 1)[-1] if ':' in urn else 'User'
             schemas[urn] = {
-                'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+                'schemas': [SCIM_SCHEMA_SCHEMA],
                 'id': urn,
                 'name': f'{urn_name} Extension',
                 'description': f'Custom {urn_name} attributes mapped from Kobo USER_METADATA_FIELDS',  # noqa E501
