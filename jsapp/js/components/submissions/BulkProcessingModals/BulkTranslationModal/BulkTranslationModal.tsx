@@ -98,7 +98,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
     fieldXpath: props.fieldXpath,
-    assetUid: props.assetUid,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })
@@ -156,7 +155,8 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
             )
               .replace('##total_selected##', String(eligibleSubmissions.length))
               .replace('##total_characters##', String(totalCharacters))
-              .replace('##estimated_time##', 'some time')}
+              // TODO: this will be done after DEV-2255 is done
+              .replace('##estimated_time##', t('some time'))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>

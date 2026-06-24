@@ -1,10 +1,11 @@
 import { Stack, Text } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
 import BulkProcessingAlerts from './BulkProcessingAlerts'
+import { getAlertDefinitions } from './alertDefinitions'
 import type { ActiveAlert } from './types'
 
 const meta = {
-  title: 'Submissions/BulkProcessingAlerts',
+  title: 'Components/BulkProcessingAlerts',
   component: BulkProcessingAlerts,
   parameters: {
     layout: 'padded',
@@ -15,50 +16,42 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-// Mock alerts for demonstration
-const mockErrorAlert: ActiveAlert = {
-  id: 'reached-limit',
-  type: 'error',
-  message:
-    'You have reached your transcription limit. Please select fewer files, purchase an add-on, or upgrade your plan.',
-  computedValues: {},
+// Get alert definitions for creating realistic mock alerts
+const transcriptionAlerts = getAlertDefinitions('transcript')
+const translationAlerts = getAlertDefinitions('translation')
+
+// Helper to create mock alert from definition
+function createMockAlert(
+  alertId: string,
+  computedValues: Record<string, any>,
+  actionType: 'transcript' | 'translation' = 'transcript',
+): ActiveAlert {
+  const alerts = actionType === 'transcript' ? transcriptionAlerts : translationAlerts
+  const definition = alerts.find((a) => a.id === alertId)
+  if (!definition) {
+    throw new Error(`Alert definition not found: ${alertId}`)
+  }
+  return {
+    id: definition.id,
+    type: definition.type,
+    message: definition.messageTemplate(computedValues),
+    computedValues,
+  }
 }
 
-const mockNearLimitAlert: ActiveAlert = {
-  id: 'near-limit',
-  type: 'error',
-  message:
-    '5 minutes of automated transcription left, that is not enough to process all selected submissions. Please select fewer files, purchase an add-on, or upgrade your plan.',
-  computedValues: { remainingMinutes: 5 },
-}
-
-const mockWarningAlreadyTranscribed: ActiveAlert = {
-  id: 'already-transcribed',
-  type: 'warning',
-  message: '3 audio files totaling 15 minutes already transcribed and will be ignored',
-  computedValues: { count: 3, minutes: 15 },
-}
-
-const mockWarningNoSource: ActiveAlert = {
-  id: 'no-source',
-  type: 'warning',
-  message: '2 submissions are missing audio file and will be ignored',
-  computedValues: { count: 2 },
-}
-
-const mockWarningConflicting: ActiveAlert = {
-  id: 'conflicting-job',
-  type: 'warning',
-  message: 'Another bulk process is already in progress, please let it finish first',
-  computedValues: {},
-}
-
-const mockErrorNoEligible: ActiveAlert = {
-  id: 'no-eligible-submissions',
-  type: 'error',
-  message: 'No submissions to process, see alerts above.',
-  computedValues: { totalCount: 5, filteredCount: 5 },
-}
+// Mock alerts
+const mockErrorAlert = createMockAlert('reached-limit', {})
+const mockNearLimitAlert = createMockAlert('near-limit', { remainingMinutes: 5 })
+const mockWarningAlreadyTranscribed = createMockAlert('already-transcribed', { count: 3, minutes: 15 })
+const mockWarningNoSource = createMockAlert('no-source', { count: 2 })
+const mockWarningConflicting = createMockAlert('conflicting-job', {})
+const mockErrorNoEligible = createMockAlert('no-eligible-submissions', { totalCount: 5, filteredCount: 5 })
+const mockWarningAlreadyTranslated = createMockAlert(
+  'already-translated',
+  { count: 4, characters: 1250 },
+  'translation',
+)
+const mockWarningNoSourceTranslation = createMockAlert('no-source', { count: 1 }, 'translation')
 
 /**
  * Default state with no alerts
@@ -143,20 +136,7 @@ export const NoEligibleSubmissions: Story = {
  */
 export const TranslationAlerts: Story = {
   args: {
-    activeAlerts: [
-      {
-        id: 'already-translated',
-        type: 'warning',
-        message: '4 transcripts totaling 1,250 characters already translated and will be ignored',
-        computedValues: { count: 4, characters: 1250 },
-      },
-      {
-        id: 'no-source',
-        type: 'warning',
-        message: '1 submission is missing transcription and will be ignored',
-        computedValues: { count: 1 },
-      },
-    ],
+    activeAlerts: [mockWarningAlreadyTranslated, mockWarningNoSourceTranslation],
   },
 }
 

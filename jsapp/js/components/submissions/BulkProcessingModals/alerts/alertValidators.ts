@@ -1,9 +1,9 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { AlertValidationContext, AlertValidationResult } from './types'
+import { createInactiveResult } from './utils'
 
 /**
- * Validator for DEV-1417: Reached Limit
  * Checks if user has reached their quota limit (0 remaining)
  * TODO: DEV-1417 - Implement this validator
  */
@@ -11,16 +11,10 @@ export function validateReachedLimit(context: AlertValidationContext): AlertVali
   console.log('[BulkProcessingAlerts] Validator validateReachedLimit - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'error',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('error')
 }
 
 /**
- * Validator for DEV-1399: Near Limit
  * Checks if remaining quota is less than required but greater than 0
  * TODO: DEV-1399 - Implement this validator (depends on DEV-2255 for audio duration)
  */
@@ -28,16 +22,10 @@ export function validateNearLimit(context: AlertValidationContext): AlertValidat
   console.log('[BulkProcessingAlerts] Validator validateNearLimit - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'error',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('error')
 }
 
 /**
- * Validator for DEV-1405: Conflicting Ongoing Job
  * Checks if there are conflicting bulk actions in progress
  *
  * For transcription: checks for ongoing transcription jobs on the same field (write-locked output)
@@ -122,7 +110,6 @@ export function validateConflictingJob(context: AlertValidationContext): AlertVa
 }
 
 /**
- * Validator for DEV-1404: No Source
  * Checks for submissions missing audio attachments (transcription)
  * or missing transcripts (translation)
  * TODO: DEV-1404 - Implement this validator
@@ -131,16 +118,10 @@ export function validateNoSource(context: AlertValidationContext): AlertValidati
   console.log('[BulkProcessingAlerts] Validator validateNoSource - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('warning')
 }
 
 /**
- * Validator for DEV-1410: Already Transcribed
  * Checks for submissions with existing transcripts
  * TODO: DEV-1410 - Implement this validator (full duration calc depends on DEV-2255)
  */
@@ -148,16 +129,10 @@ export function validateAlreadyTranscribed(context: AlertValidationContext): Ale
   console.log('[BulkProcessingAlerts] Validator validateAlreadyTranscribed - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('warning')
 }
 
 /**
- * Validator for DEV-1403: Already Translated
  * Checks for submissions with existing translations in the selected language
  * TODO: DEV-1403 - Implement this validator
  */
@@ -165,18 +140,11 @@ export function validateAlreadyTranslated(context: AlertValidationContext): Aler
   console.log('[BulkProcessingAlerts] Validator validateAlreadyTranslated - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('warning')
 }
 
 /**
- * Validator for DEV-1398: No Eligible Submissions
  * Checks if all submissions have been filtered out by previous validators
- * This validator is fully implemented as it only checks the filtered count
  */
 export function validateNoEligibleSubmissions(context: AlertValidationContext): AlertValidationResult {
   const eligibleCount = context.submissions.length - context.previouslyFilteredSubmissionUuids.size

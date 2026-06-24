@@ -8,12 +8,9 @@ import type { SubmissionResponse } from '#/dataInterface'
  * - error: Blocks requesting bulk action (e.g., quota exceeded, no eligible submissions)
  * - warning: Informational, some submissions were filtered out (e.g., already transcribed)
  */
-export type AlertType = 'error' | 'warning'
+export type AlertSeverity = 'error' | 'warning'
 
-/**
- * Action type for bulk processing
- */
-export type ActionType = 'transcript' | 'translation'
+export type BulkActionType = 'transcript' | 'translation'
 
 /**
  * Context passed to alert validators
@@ -25,7 +22,7 @@ export interface AlertValidationContext {
   selectedLanguage?: LanguageCode
   /** For transcription only */
   selectedRegion?: string
-  actionType: ActionType
+  actionType: BulkActionType
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
   previouslyFilteredSubmissionUuids: Set<string>
@@ -37,22 +34,12 @@ export interface AlertValidationContext {
 export interface AlertValidationResult {
   /** Whether this alert should be displayed */
   shouldShow: boolean
-  type: AlertType
-  /** Submission Uuids filtered out by this validator (for warnings) */
+  type: AlertSeverity
+  /** Submission Uuids filtered out by this validator */
   filteredSubmissionUuids: string[]
   /** Computed values for messages */
   computedValues: Record<string, any>
 }
-
-/**
- * Message template function
- */
-export type MessageTemplate = (values: Record<string, any>) => string
-
-/**
- * Alert validator function type
- */
-export type AlertValidator = (context: AlertValidationContext) => AlertValidationResult
 
 /**
  * Alert definition configuration
@@ -60,10 +47,10 @@ export type AlertValidator = (context: AlertValidationContext) => AlertValidatio
 export interface AlertDefinition {
   /** Unique alert identifier */
   id: string
-  type: AlertType
+  type: AlertSeverity
   priority: number
-  validator: AlertValidator
-  messageTemplate: MessageTemplate
+  validator: (context: AlertValidationContext) => AlertValidationResult
+  messageTemplate: (values: Record<string, any>) => string
 }
 
 /**
@@ -72,7 +59,7 @@ export interface AlertDefinition {
 export interface ActiveAlert {
   /** Alert ID */
   id: string
-  type: AlertType
+  type: AlertSeverity
   message: string
   computedValues: Record<string, any>
 }
