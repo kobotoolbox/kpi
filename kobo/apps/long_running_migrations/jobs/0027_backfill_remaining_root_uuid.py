@@ -3,10 +3,11 @@ from django.conf import settings
 from django.core.management import call_command
 from django.db import IntegrityError, connections
 from django.db.models.query import QuerySet
-from taggit.models import TaggedItem
+from pymongo import UpdateOne
 
 from kobo.apps.openrosa.apps.logger.exceptions import RootUUIDConstraintNotEnforced
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.utils.database import use_db
 from kpi.utils.log import logging
 
@@ -26,6 +27,7 @@ def run():
 
     Safe to run concurrently with or after LRM 0005.
     """
+
     _check_root_uuid_unique_index_ready()
 
     last_xform_id = 0
@@ -47,9 +49,6 @@ def run():
                     )
 
                 last_xform_id = xform.pk
-
-        # Clean up tags while retaining failed entries for future manual review
-        TaggedItem.objects.filter(tag__name='kobo-root-uuid-success').delete()
 
 
 def get_instances_queryset(xform_id: int) -> QuerySet:
@@ -151,4 +150,17 @@ def _process_instances_batch(
             xform.tags.add(FAILED_TAG)
             return False
     else:
+        _update_mongo_batch(instance_batch)
         return True
+
+
+def _update_mongo_batch(instances: list):
+    mongo_updates = [
+        UpdateOne(
+            {'_id': instance.pk},
+            {'$set': {'meta/rootUuid': add_uuid_prefix(instance.root_uuid)}},
+        )
+        for instance in instances
+    ]
+    if mongo_updates:
+        settings.MONGO_DB.instances.bulk_write(mongo_updates, ordered=False)
