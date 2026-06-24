@@ -65,8 +65,9 @@ export function validateConflictingJob(context: AlertValidationContext): AlertVa
     // OR ongoing transcription jobs on the input field (since translation reads from transcripts)
     conflictingJobs = ongoingJobs.filter(
       (action) =>
-        (action.action_id === ActionIdEnum.automatic_google_translation && action.question_xpath === fieldXpath) ||
-        (action.action_id === ActionIdEnum.automatic_google_transcription && action.question_xpath === fieldXpath),
+        action.question_xpath === fieldXpath &&
+        (action.action_id === ActionIdEnum.automatic_google_translation ||
+          action.action_id === ActionIdEnum.automatic_google_transcription),
     )
   }
 
