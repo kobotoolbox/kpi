@@ -75,6 +75,8 @@ class LongRunningMigration(AbstractTimeStampedModel):
             # A required predecessor migration is not yet complete; retry on
             # the next Celery beat cycle without marking this one as failed.
             logging.warning(f'LongRunningMigration.execute(): dependency not met — {e}')
+            self.attempts -= 1
+            self.save(update_fields=['attempts', 'date_modified'])
             return
         except Exception as e:
             # Log the error and update the status to 'failed'
