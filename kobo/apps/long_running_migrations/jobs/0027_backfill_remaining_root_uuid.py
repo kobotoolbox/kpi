@@ -1,5 +1,4 @@
 # Generated on 2026-06-23
-import time
 
 from django.conf import settings
 from django.core.management import call_command
@@ -63,10 +62,9 @@ def get_instances_queryset(xform_id: int) -> QuerySet:
     # `xform_id` filter can be applied, making each batch extremely slow.
     # Since we just need to exhaust all instances with a null `root_uuid` for a
     # given xform, their retrieval order does not matter.
-    return (
-        Instance.objects.only('pk', 'uuid', 'xml', 'root_uuid')
-        .filter(root_uuid__isnull=True, xform_id=xform_id)[:CHUNK_SIZE]
-    )
+    return Instance.objects.only('pk', 'uuid', 'xml', 'root_uuid').filter(
+        root_uuid__isnull=True, xform_id=xform_id
+    )[:CHUNK_SIZE]
 
 
 def get_xforms_queryset(xform_id: int) -> QuerySet:
@@ -82,7 +80,8 @@ def get_xforms_queryset(xform_id: int) -> QuerySet:
         Instance.objects.filter(root_uuid__isnull=True)
         .values_list('xform_id', flat=True)
         .filter(xform_id__gt=xform_id)
-        .distinct().order_by('xform_id')[:CHUNK_SIZE]
+        .distinct()
+        .order_by('xform_id')[:CHUNK_SIZE]
     )
 
     return (

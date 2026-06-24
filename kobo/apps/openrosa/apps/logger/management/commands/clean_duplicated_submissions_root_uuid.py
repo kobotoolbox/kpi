@@ -55,9 +55,8 @@ class Command(BaseCommand):
                 f'with errors: {error}'
             )
 
-        queryset = (
-            Instance.objects.only('pk', 'uuid', 'xml')
-            .filter(xform__id_string=xform_id_string, root_uuid__isnull=True)
+        queryset = Instance.objects.only('pk', 'uuid', 'xml').filter(
+            xform__id_string=xform_id_string, root_uuid__isnull=True
         )
 
         while True:
@@ -85,8 +84,7 @@ class Command(BaseCommand):
                 break
 
             stubs = [
-                Instance(pk=pk, root_uuid=root_uuid)
-                for pk, root_uuid in update_data
+                Instance(pk=pk, root_uuid=root_uuid) for pk, root_uuid in update_data
             ]
             try:
                 Instance.objects.bulk_update(stubs, ['root_uuid'])
@@ -95,9 +93,7 @@ class Command(BaseCommand):
                 for pk, root_uuid in update_data:
                     self._resolve_conflict_by_pk(pk, root_uuid, xform_id_string)
 
-    def _resolve_conflict_by_pk(
-        self, pk: int, root_uuid: str, xform_id_string: str
-    ):
+    def _resolve_conflict_by_pk(self, pk: int, root_uuid: str, xform_id_string: str):
         try:
             Instance.objects.filter(pk=pk).update(root_uuid=root_uuid)
             settings.MONGO_DB.instances.update_one(
@@ -135,8 +131,7 @@ class Command(BaseCommand):
             instance.xml_hash = instance.get_hash(instance.xml)
             if self._verbosity >= 2:
                 self.stdout.write(
-                    f'\tOld root_uuid: {old_uuid}, '
-                    f'New root_uuid: {new_root_uuid}'
+                    f'\tOld root_uuid: {old_uuid}, ' f'New root_uuid: {new_root_uuid}'
                 )
             Instance.objects.filter(pk=pk).update(
                 xml=instance.xml,
