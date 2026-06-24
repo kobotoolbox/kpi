@@ -105,7 +105,7 @@ def _process_instances_batch(
                 # fallback on `uuid` to back-fill `root_uuid`
                 instance.root_uuid = instance.uuid
             else:
-                raise from e
+                raise
 
         instance_batch_ids.append(instance.pk)
         instance_batch.append(instance)

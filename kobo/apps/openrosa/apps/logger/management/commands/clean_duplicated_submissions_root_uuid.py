@@ -107,14 +107,6 @@ class Command(BaseCommand):
             # Load XML only now, when we actually need it for conflict resolution
             instance = Instance.objects.only('pk', 'uuid', 'xml', 'xml_hash').get(pk=pk)
 
-            conflicting_xml_hash = Instance.objects.values_list(
-                'xml_hash', flat=True
-            ).get(root_uuid=root_uuid)
-
-            # Same hash means clean_duplicated_submissions should have handled it
-            if conflicting_xml_hash == instance.xml_hash:
-                return
-
             old_uuid = instance.uuid
             now = int(time.time() * 1000)
             new_root_uuid = f'CONFLICT-{now}-{xform_id_string}-{old_uuid}'
