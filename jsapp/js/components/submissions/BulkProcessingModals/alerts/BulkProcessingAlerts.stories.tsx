@@ -1,7 +1,7 @@
 import { Stack, Text } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
-import { getAlertDefinitions } from './alertDefinitions'
 import BulkProcessingAlerts from './BulkProcessingAlerts'
+import { getAlertDefinitions } from './alertDefinitions'
 import type { ActiveAlert } from './types'
 
 const meta = {
@@ -21,7 +21,11 @@ const transcriptionAlerts = getAlertDefinitions('transcript')
 const translationAlerts = getAlertDefinitions('translation')
 
 // Helper to create mock alert from definition
-function createMockAlert(alertId: string, computedValues: Record<string, any>, actionType: 'transcript' | 'translation' = 'transcript'): ActiveAlert {
+function createMockAlert(
+  alertId: string,
+  computedValues: Record<string, any>,
+  actionType: 'transcript' | 'translation' = 'transcript',
+): ActiveAlert {
   const alerts = actionType === 'transcript' ? transcriptionAlerts : translationAlerts
   const definition = alerts.find((a) => a.id === alertId)
   if (!definition) {
@@ -37,15 +41,10 @@ function createMockAlert(alertId: string, computedValues: Record<string, any>, a
 
 // Mock alerts using actual alert definitions
 const mockErrorAlert = createMockAlert('reached-limit', {})
-
 const mockNearLimitAlert = createMockAlert('near-limit', { remainingMinutes: 5 })
-
 const mockWarningAlreadyTranscribed = createMockAlert('already-transcribed', { count: 3, minutes: 15 })
-
 const mockWarningNoSource = createMockAlert('no-source', { count: 2 })
-
 const mockWarningConflicting = createMockAlert('conflicting-job', {})
-
 const mockErrorNoEligible = createMockAlert('no-eligible-submissions', { totalCount: 5, filteredCount: 5 })
 
 /**
