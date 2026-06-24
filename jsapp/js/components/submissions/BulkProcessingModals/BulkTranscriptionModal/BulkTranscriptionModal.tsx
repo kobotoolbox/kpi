@@ -165,8 +165,9 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               'Your ##total_files## audio files is a total of ##total_length##. This should take approximately ##estimated_time## to complete.',
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
-              .replace('##total_length##', 'some time')
-              .replace('##estimated_time##', 'some time')}
+              // TODO: this will be done after DEV-2255 is done
+              .replace('##total_length##', t('some time'))
+              .replace('##estimated_time##', t('some time'))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>

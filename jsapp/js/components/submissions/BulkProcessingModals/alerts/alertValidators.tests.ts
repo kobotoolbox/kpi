@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import type { AlertValidationContext } from './types'
 import { validateNoEligibleSubmissions } from './alertValidators'
+import type { AlertValidationContext } from './types'
 
 describe('validateNoEligibleSubmissions', () => {
   const mockSubmissions = [

@@ -7,21 +7,14 @@ import { getAlertDefinitions } from './alertDefinitions'
 import type { ActionType, ActiveAlert, AlertValidationContext } from './types'
 
 interface UseBulkProcessingAlertsProps {
-  /** Type of bulk action */
   actionType: ActionType
-  /** Selected submissions */
   selectedSubmissions: SubmissionResponse[]
-  /** Selected language */
   selectedLanguage?: LanguageCode
   /** Selected region (transcription only) */
   selectedRegion?: string
-  /** Field xpath */
   fieldXpath: string
-  /** Asset UID */
   assetUid: string
-  /** Service usage data */
   serviceUsageData?: ServiceUsageResponse
-  /** Active bulk actions */
   activeBulkActions: BulkActionResponse[]
 }
 
@@ -68,7 +61,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     fieldXpath,
-    assetUid,
+    // assetUid,
     serviceUsageData,
     activeBulkActions,
   } = props
