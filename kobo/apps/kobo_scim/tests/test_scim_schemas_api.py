@@ -4,7 +4,11 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_GROUP, SCIM_SCHEMA_USER
+from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_EXTENSION_USER,
+    SCIM_SCHEMA_GROUP,
+    SCIM_SCHEMA_USER,
+)
 from kobo.apps.kobo_scim.models import IdentityProvider
 from kobo.apps.kobo_scim.utils import get_scim_extension_schemas
 
@@ -43,15 +47,15 @@ class ScimSchemasAPITests(APITestCase):
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.organization',  # noqa E501
             },
             {
                 'name': 'country',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.country',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',  # noqa E501
             },
             {
                 'name': 'bio',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.bio',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.bio',  # noqa E501
             },
         ]
     )
@@ -60,7 +64,7 @@ class ScimSchemasAPITests(APITestCase):
         self.assertEqual(len(schemas), 1)
         schema = schemas[0]
         self.assertEqual(
-            schema['id'], 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User'
+            schema['id'], SCIM_SCHEMA_EXTENSION_USER
         )
         self.assertEqual(len(schema['attributes']), 3)
 
@@ -92,7 +96,7 @@ class ScimSchemasAPITests(APITestCase):
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.organization',  # noqa E501
             }
         ]
     )
@@ -109,14 +113,14 @@ class ScimSchemasAPITests(APITestCase):
         self.assertIn(SCIM_SCHEMA_USER, schema_ids)
         self.assertIn(SCIM_SCHEMA_GROUP, schema_ids)
         self.assertIn(
-            'urn:ietf:params:scim:schemas:extension:kobo:2.0:User', schema_ids
+            SCIM_SCHEMA_EXTENSION_USER, schema_ids
         )
 
     @override_config(
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': 'urn:ietf:params:scim:schemas:extension:kobo:2.0:User.organization',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.organization',  # noqa E501
             }
         ]
     )
@@ -134,5 +138,5 @@ class ScimSchemasAPITests(APITestCase):
         self.assertEqual(len(user_resource['schemaExtensions']), 1)
         self.assertEqual(
             user_resource['schemaExtensions'][0]['schema'],
-            'urn:ietf:params:scim:schemas:extension:kobo:2.0:User',
+            SCIM_SCHEMA_EXTENSION_USER,
         )

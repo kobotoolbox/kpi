@@ -9,7 +9,7 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.constants import (
-    SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER,
+    SCIM_SCHEMA_EXTENSION_USER,
     SCIM_SCHEMA_LIST_RESPONSE,
     SCIM_SCHEMA_PATCH_OP,
     SCIM_SCHEMA_USER,
@@ -744,13 +744,13 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
                 'scim_value_mapping': {'United States': 'US'},
             },
             {
                 'name': 'bio',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.bio',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.bio',
             },
             {
                 'name': 'organization',
@@ -767,7 +767,7 @@ class ScimUsersAPITests(APITestCase):
             'emails': [{'primary': True, 'value': 'meta@example.com'}],
             'active': True,
             'org': 'Acme Corp',
-            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
+            SCIM_SCHEMA_EXTENSION_USER: {
                 'country': 'United States',
                 'bio': 'Test bio',
             },
@@ -800,7 +800,7 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
             }
         ]
     )
@@ -813,7 +813,7 @@ class ScimUsersAPITests(APITestCase):
             'Operations': [
                 {
                     'op': 'replace',
-                    'path': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                    'path': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
                     'value': 'CA',
                 }
             ],
@@ -835,7 +835,7 @@ class ScimUsersAPITests(APITestCase):
             'Operations': [
                 {
                     'op': 'replace',
-                    'value': {SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {'country': 'GB'}},
+                    'value': {SCIM_SCHEMA_EXTENSION_USER: {'country': 'GB'}},
                 }
             ],
         }
@@ -855,7 +855,7 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
             }
         ]
     )
@@ -867,7 +867,7 @@ class ScimUsersAPITests(APITestCase):
             'Operations': [
                 {
                     'op': 'add',
-                    'path': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                    'path': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
                     'value': 'CA',
                 }
             ],
@@ -912,7 +912,7 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
             }
         ]
     )
@@ -925,7 +925,7 @@ class ScimUsersAPITests(APITestCase):
             'userName': 'bad_country_user',
             'emails': [{'primary': True, 'value': 'bad_country@example.com'}],
             'active': True,
-            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
+            SCIM_SCHEMA_EXTENSION_USER: {
                 'country': 'USA',  # Country max length is 2
             },
         }
@@ -946,12 +946,12 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
             },
             {
                 'name': 'organization',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.organization',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.organization',
             },
         ]
     )
@@ -963,7 +963,7 @@ class ScimUsersAPITests(APITestCase):
             'userName': 'partial_sync_user',
             'emails': [{'primary': True, 'value': 'partial_sync@example.com'}],
             'active': True,
-            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
+            SCIM_SCHEMA_EXTENSION_USER: {
                 'country': 'USA',  # Invalid, max length is 2
                 'organization': 'Valid Org',  # Valid
             },
@@ -996,7 +996,7 @@ class ScimUsersAPITests(APITestCase):
             {
                 'name': 'country',
                 'required': False,
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',
             }
         ]
     )
@@ -1011,7 +1011,7 @@ class ScimUsersAPITests(APITestCase):
             'userName': 'existing_metadata_user',
             'emails': [{'primary': True, 'value': 'existing_metadata@example.com'}],
             'active': True,
-            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {
+            SCIM_SCHEMA_EXTENSION_USER: {
                 'country': 'US',
             },
         }
@@ -1032,7 +1032,7 @@ class ScimUsersAPITests(APITestCase):
                 {
                     'op': 'replace',
                     'value': {
-                        SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER: {'country': 'USA'}
+                        SCIM_SCHEMA_EXTENSION_USER: {'country': 'USA'}
                     },
                 }
             ],
