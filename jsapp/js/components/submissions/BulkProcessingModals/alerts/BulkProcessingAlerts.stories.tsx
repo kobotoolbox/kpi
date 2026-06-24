@@ -39,13 +39,19 @@ function createMockAlert(
   }
 }
 
-// Mock alerts using actual alert definitions
+// Mock alerts
 const mockErrorAlert = createMockAlert('reached-limit', {})
 const mockNearLimitAlert = createMockAlert('near-limit', { remainingMinutes: 5 })
 const mockWarningAlreadyTranscribed = createMockAlert('already-transcribed', { count: 3, minutes: 15 })
 const mockWarningNoSource = createMockAlert('no-source', { count: 2 })
 const mockWarningConflicting = createMockAlert('conflicting-job', {})
 const mockErrorNoEligible = createMockAlert('no-eligible-submissions', { totalCount: 5, filteredCount: 5 })
+const mockWarningAlreadyTranslated = createMockAlert(
+  'already-translated',
+  { count: 4, characters: 1250 },
+  'translation',
+)
+const mockWarningNoSourceTranslation = createMockAlert('no-source', { count: 1 }, 'translation')
 
 /**
  * Default state with no alerts
@@ -130,20 +136,7 @@ export const NoEligibleSubmissions: Story = {
  */
 export const TranslationAlerts: Story = {
   args: {
-    activeAlerts: [
-      {
-        id: 'already-translated',
-        type: 'warning',
-        message: '4 transcripts totaling 1,250 characters already translated and will be ignored',
-        computedValues: { count: 4, characters: 1250 },
-      },
-      {
-        id: 'no-source',
-        type: 'warning',
-        message: '1 submission is missing transcription and will be ignored',
-        computedValues: { count: 1 },
-      },
-    ],
+    activeAlerts: [mockWarningAlreadyTranslated, mockWarningNoSourceTranslation],
   },
 }
 
