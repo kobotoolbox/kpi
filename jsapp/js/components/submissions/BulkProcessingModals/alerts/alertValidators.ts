@@ -1,3 +1,5 @@
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
+import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { AlertValidationContext, AlertValidationResult } from './types'
 
 /**
@@ -37,17 +39,85 @@ export function validateNearLimit(context: AlertValidationContext): AlertValidat
 /**
  * Validator for DEV-1405: Conflicting Ongoing Job
  * Checks if there are conflicting bulk actions in progress
- * TODO: DEV-1405 - Implement this validator
+ *
+ * For transcription: checks for ongoing transcription jobs on the same field (write-locked output)
+ * For translation: checks for:
+ *   - Ongoing translation jobs on the same field (write-locked output)
+ *   - Ongoing transcription jobs on the input transcript field (write-locked input)
  */
 export function validateConflictingJob(context: AlertValidationContext): AlertValidationResult {
-  console.log('[BulkProcessingAlerts] Validator validateConflictingJob - STUBBED, returning no alerts', context)
+  const { activeBulkActions, fieldXpath, actionType, submissions } = context
 
-  // STUB: Return inactive result
+  // Filter to only ongoing jobs (pending or in_progress)
+  const ongoingJobs = activeBulkActions.filter(
+    (action) =>
+      action.status === BulkActionResponseStatusEnum.pending ||
+      action.status === BulkActionResponseStatusEnum.in_progress,
+  )
+
+  if (ongoingJobs.length === 0) {
+    return {
+      shouldShow: false,
+      type: 'warning',
+      filteredSubmissionUuids: [],
+      computedValues: {},
+    }
+  }
+
+  // Find conflicting jobs based on action type
+  let conflictingJobs
+  if (actionType === 'transcript') {
+    // For transcription: check for ongoing transcription jobs on the same field
+    conflictingJobs = ongoingJobs.filter(
+      (action) =>
+        action.action_id === ActionIdEnum.automatic_google_transcription && action.question_xpath === fieldXpath,
+    )
+  } else {
+    // For translation: check for ongoing translation jobs on the same field
+    // OR ongoing transcription jobs on the input field (since translation reads from transcripts)
+    conflictingJobs = ongoingJobs.filter(
+      (action) =>
+        (action.action_id === ActionIdEnum.automatic_google_translation && action.question_xpath === fieldXpath) ||
+        (action.action_id === ActionIdEnum.automatic_google_transcription && action.question_xpath === fieldXpath),
+    )
+  }
+
+  if (conflictingJobs.length === 0) {
+    return {
+      shouldShow: false,
+      type: 'warning',
+      filteredSubmissionUuids: [],
+      computedValues: {},
+    }
+  }
+
+  // Collect all submission UUIDs from conflicting jobs
+  const conflictingUuids = new Set<string>()
+  conflictingJobs.forEach((job) => {
+    job.submission_uuids.forEach((uuid) => conflictingUuids.add(uuid))
+  })
+
+  // Filter out submissions that are in conflicting jobs
+  const filteredSubmissionUuids = submissions
+    .filter((submission) => conflictingUuids.has(submission._uuid))
+    .map((submission) => submission._uuid)
+
+  const shouldShow = filteredSubmissionUuids.length > 0
+
+  if (shouldShow) {
+    console.info(
+      `[BulkProcessingAlerts] Alert "conflicting-job": Found ${filteredSubmissionUuids.length} submissions with ongoing jobs`,
+    )
+  }
+
   return {
-    shouldShow: false,
+    shouldShow,
     type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
+    filteredSubmissionUuids,
+    computedValues: {
+      count: filteredSubmissionUuids.length,
+      conflictingJobCount: conflictingJobs.length,
+    },
   }
 }
 
