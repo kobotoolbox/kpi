@@ -159,8 +159,7 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
   }
 
   // columns get very narrow
-  .assets-table-row__header-label,
-  &.assets-table-row--header .assets-table-row__column .popover-menu__toggle {
+  .assets-table-row__header-label {
     font-size: 0.9rem;
   }
 
@@ -192,33 +191,26 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
       }
     }
 
-    .popover-menu {
+    // Menu component button styles
+    .assets-table-filter-button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: currentcolor;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.9rem;
       display: block;
+      width: 100%;
+      text-align: left;
 
-      .popover-menu__toggle {
-        display: block;
+      &:hover {
         color: currentcolor;
-
-        &:hover {
-          color: currentcolor;
-        }
-
-        .k-icon {
-          margin: -2px;
-        }
       }
 
-      .popover-menu__content {
-        top: 30px - 2px;
-        z-index: z-indexes.$z-table-row-header;
-        padding: 10px;
-        max-width: calc(100% + 20px);
-        min-width: auto;
-        left: -10px;
-
-        .k-icon {
-          margin: 1px;
-        }
+      .k-icon {
+        margin: -2px;
       }
     }
   }

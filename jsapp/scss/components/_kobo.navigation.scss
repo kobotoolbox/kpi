@@ -2,6 +2,7 @@
 @use 'scss/_variables';
 @use 'scss/z-indexes';
 @use 'scss/colors';
+@use 'scss/mixins';
 @use 'scss/libs/_mdl';
 @use 'sass:color';
 
@@ -72,6 +73,15 @@
     max-width: 100%;
   }
 
+  // New Menu component button styles
+  .account-menu-trigger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: block;
+  }
+
   .mdl-layout__header-searchers {
     flex-grow: 1;
   }
@@ -126,13 +136,6 @@
       cursor: pointer;
       right: 12px;
     }
-  }
-}
-
-.popover-menu--account-menu {
-  .popover-menu__content {
-    min-width: 240px;
-    z-index: z-indexes.$z-account-menu;
   }
 }
 
@@ -276,9 +279,8 @@
         border-bottom: 1px solid colors.$kobo-blue;
       }
 
-      &:focus {
-        background: rgba(colors.$kobo-white, 0.05);
-        border-bottom: 1px solid colors.$kobo-blue;
+      &:focus-visible {
+        @include mixins.default-ui-focus;
       }
     }
   }

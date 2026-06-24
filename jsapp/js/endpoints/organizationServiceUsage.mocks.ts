@@ -9,11 +9,26 @@ import { meMockResponse } from './me.mocks'
  *
  * Property `id` is used to generate the URL and populate other response fields that depend on it.
  * Default value is coming from `meMockResponse`.
+ *
+ * @param overrideId - Organization ID override
+ * @param overrideData - Partial override for the service usage response
  */
-const organizationServiceUsageMock = (overrideId?: string) => {
+const organizationServiceUsageMock = (overrideId?: string, overrideData?: Partial<UserReportsServiceUsageResponse>) => {
   const id = overrideId ?? meMockResponse.organization!.uid
+  const baseResponse = mockServiceUsageResponse()
+
+  // Deep merge balances if provided
+  const mergedResponse: UserReportsServiceUsageResponse = {
+    ...baseResponse,
+    ...overrideData,
+    balances: {
+      ...baseResponse.balances,
+      ...(overrideData?.balances || {}),
+    },
+  }
+
   return http.get<never, never, UserReportsServiceUsageResponse>(getOrganizationsServiceUsageRetrieveUrl(id), () =>
-    HttpResponse.json(mockServiceUsageResponse()),
+    HttpResponse.json(mergedResponse),
   )
 }
 export default organizationServiceUsageMock

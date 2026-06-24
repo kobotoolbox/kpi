@@ -1,36 +1,53 @@
-import type { FlexProps } from '@mantine/core'
-import { ActionIcon, Flex, Group, Loader, Select, Text, TextInput } from '@mantine/core'
-import { IconLanguage, IconX } from '@tabler/icons-react'
+import type { MantineSize } from '@mantine/core'
+import { Group, Loader, Text } from '@mantine/core'
+import { IconInfoCircleFilled } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useLanguagesRetrieve } from '#/api/react-query/other'
+import { getLanguagesRetrieveQueryKey, useLanguagesRetrieve } from '#/api/react-query/other'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import KoboIcon from '../common/KoboIcon'
+import Select from '../common/Select'
 import type { LanguageCode, TransxServiceCode } from './languagesStore'
 
-interface RegionSelectorProps extends Omit<FlexProps, 'onChange'> {
-  disabled?: boolean
-  /** The root language code of a language that possibly has regions. */
+interface RegionSelectorProps {
   rootLanguage: LanguageCode
+  disabled?: boolean
   /** We display regions only from selected provider of given type. */
   serviceCode: TransxServiceCode
   serviceType: 'transcription' | 'translation'
   /** Callback for a region is being selected. */
   onRegionChange: (selectedRegion: LanguageCode | null) => void
-  /** Callback for clicking "x" next to the root language. */
-  onCancel: () => void
+  titleOverride?: string
+  size?: MantineSize
 }
 
-const RegionSelector = (props: RegionSelectorProps) => {
-  const { data, isLoading, isError } = useLanguagesRetrieve(props.rootLanguage)
+/** Dropdown only region selector for automated transcriptions */
+const RegionSelector = ({
+  rootLanguage,
+  serviceCode,
+  serviceType,
+  onRegionChange,
+  titleOverride,
+  disabled,
+  size,
+}: RegionSelectorProps) => {
+  const { data, isLoading, isError } = useLanguagesRetrieve(rootLanguage, {
+    query: {
+      // Same key as the RegionSelector hook
+      queryKey: getLanguagesRetrieveQueryKey(rootLanguage),
+      enabled: rootLanguage !== '',
+    },
+  })
   const language = data?.status === 200 ? data.data : undefined
+
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
 
   const regionOptions = useMemo(() => {
     const outcome = []
     let serviceRegions
-    if (props.serviceType === 'transcription') {
-      serviceRegions = language?.transcription_services[props.serviceCode]
-    } else if (props.serviceType === 'translation') {
-      serviceRegions = language?.translation_services[props.serviceCode]
+    if (serviceType === 'transcription') {
+      serviceRegions = language?.transcription_services[serviceCode]
+    } else if (serviceType === 'translation') {
+      serviceRegions = language?.translation_services[serviceCode]
     }
 
     if (serviceRegions) {
@@ -49,8 +66,8 @@ const RegionSelector = (props: RegionSelectorProps) => {
 
     // We return the options sorted by their labels.
     return outcome.sort((a, b) => {
-      const labelA = a.label.toLowerCase() // ignore upper and lowercase
-      const labelB = b.label.toLowerCase() // ignore upper and lowercase
+      const labelA = a.label.toLowerCase()
+      const labelB = b.label.toLowerCase()
       if (labelA < labelB) {
         return -1
       }
@@ -59,72 +76,54 @@ const RegionSelector = (props: RegionSelectorProps) => {
       }
       return 0 // happens when labels are equal (should not happen in real life)
     })
-  }, [language, props.serviceCode, props.serviceType])
+  }, [language, serviceCode, serviceType])
 
   // Needed to populate the Select value after getting data
   useEffect(() => {
     if (regionOptions.length > 0) {
       const initialOption = regionOptions[0].value
       setSelectedRegion(initialOption)
-      props.onRegionChange?.(initialOption)
+      onRegionChange(initialOption)
     } else {
       setSelectedRegion(null)
-      props.onRegionChange?.(null)
+      onRegionChange(null)
     }
   }, [regionOptions])
 
   const handleRegionChange = (newRegion: string | null) => {
     setSelectedRegion(newRegion)
-    props.onRegionChange(newRegion)
-  }
-
-  if (isLoading) {
-    return <Loader size='xs' mb={props?.mb} />
+    onRegionChange(newRegion)
   }
 
   if (isError) {
     return (
-      <Text c='var(--mantine-color-red-5)' size='sm' mb={props?.mb}>
+      <Text c='var(--mantine-color-red-5)' size='sm'>
         {t('Failed to load regions')}
       </Text>
     )
   }
 
   return (
-    <Flex component='section' direction='row' align='center' justify='center' mb={props?.mb}>
-      <Group gap='xs'>
-        <TextInput
-          readOnly
-          value={language?.name || ''}
-          size='sm'
-          leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
-          w={220}
-          rightSection={
-            <ActionIcon
-              aria-label={t('Close')}
-              variant='transparent'
-              size='sm'
-              onClick={props.onCancel}
-              disabled={props.disabled}
-            >
-              <KoboIcon icon={IconX} size='xs' />
-            </ActionIcon>
-          }
-        />
-
-        {regionOptions.length > 0 && (
-          <Select
-            w={220}
-            data={regionOptions}
-            value={selectedRegion}
-            size='sm'
-            onChange={handleRegionChange}
-            disabled={props.disabled}
-            placeholder={t('Select a region...')}
-          />
-        )}
-      </Group>
-    </Flex>
+    <Select
+      label={titleOverride ?? ''}
+      data={regionOptions}
+      value={selectedRegion}
+      onChange={handleRegionChange}
+      disabled={disabled || isLoading}
+      placeholder={t('Select a region...')}
+      // Needed so the dropdown doesn't appear behind mantine modals
+      comboboxProps={{ zIndex: KOBO_Z_INDEX.dropdown }}
+      rightSection={isLoading ? <Loader size='xs' /> : undefined}
+      nothingFoundMessage={
+        isLoading ? undefined : (
+          <Group gap={'xs'} align='center' style={{ cursor: 'pointer' }} c='var(--mantine-color-blue-5)'>
+            <KoboIcon icon={IconInfoCircleFilled} size='sm' />
+            <Text>{t('No language regions available')}</Text>
+          </Group>
+        )
+      }
+      size={size}
+    />
   )
 }
 

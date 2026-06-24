@@ -492,7 +492,7 @@ def get_bulk_actions_create_examples() -> list[OpenApiExample]:
             'Bulk transcription job',
             value={
                 'action_id': 'automatic_google_transcription',
-                'question_xpath': 'q1',
+                'question_xpath': 'q1_audio',
                 'submission_uuids': [
                     '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
                     '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
@@ -502,13 +502,17 @@ def get_bulk_actions_create_examples() -> list[OpenApiExample]:
                     'locale': 'en-US',
                 },
             },
+            description=(
+                'Starts Google transcription for the selected audio question '
+                'across the listed submissions. `locale` is optional.'
+            ),
             request_only=True,
         ),
         OpenApiExample(
             'Bulk translation job',
             value={
                 'action_id': 'automatic_google_translation',
-                'question_xpath': 'q1',
+                'question_xpath': 'q1_transcript',
                 'submission_uuids': [
                     '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
                     '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
@@ -517,64 +521,180 @@ def get_bulk_actions_create_examples() -> list[OpenApiExample]:
                     'language': 'fr',
                 },
             },
+            description=(
+                'Starts Google translation for the selected question across '
+                'the listed submissions. `language` is the target language.'
+            ),
             request_only=True,
         ),
     ]
 
 
-def _bulk_action_response_value() -> dict:
-    return {
-        'uid': 'ba123456789AbCdEfGhIjklm',
-        'status': 'in_progress',
-        'action_id': 'automatic_google_transcription',
-        'question_xpath': 'q1',
-        'submission_uuids': [
-            '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
-            '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
-        ],
-        'submission_statuses': [
+def _bulk_action_response_value(
+    *,
+    action_id: str,
+    cancelled: bool = False,
+    skipped_uuids: list | None = None,
+) -> dict:
+    if action_id == 'automatic_google_transcription':
+        question_xpath = 'q1_audio'
+        params = {'language': 'en', 'locale': 'en-US'}
+    else:
+        question_xpath = 'q1_transcript'
+        params = {'language': 'fr'}
+
+    submission_uuids = [
+        '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+        '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+        '5d4958d6-b2e8-4d4b-a51f-63f91b459e26',
+    ]
+    submission_statuses = [
+        {
+            'uuid': '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
+            'status': 'complete',
+            'error': None,
+        },
+        {
+            'uuid': '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
+            'status': 'in_progress',
+            'error': None,
+        },
+        {
+            'uuid': '5d4958d6-b2e8-4d4b-a51f-63f91b459e26',
+            'status': 'failed',
+            'error': 'Google quota exceeded',
+        },
+    ]
+    status = 'in_progress'
+    progress = 66
+    cancelled_by = None
+
+    if cancelled:
+        status = 'cancelled'
+        progress = 100
+        cancelled_by = {'username': 'someuser'}
+        submission_statuses = [
             {
                 'uuid': '3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f',
                 'status': 'complete',
+                'error': None,
             },
             {
                 'uuid': '0ca3624a-6f22-451e-8d0a-c40978fd6fe2',
-                'status': 'in_progress',
+                'status': 'cancelled',
+                'error': None,
             },
-        ],
-        'params': {
-            'language': 'en',
-            'locale': 'en-US',
-        },
+            {
+                'uuid': '5d4958d6-b2e8-4d4b-a51f-63f91b459e26',
+                'status': 'failed',
+                'error': 'Google quota exceeded',
+            },
+        ]
+
+    result = {
+        'uid': 'ba123456789AbCdEfGhIjklm',
+        'status': status,
+        'action_id': action_id,
+        'question_xpath': question_xpath,
+        'submission_uuids': submission_uuids,
+        'submission_statuses': submission_statuses,
+        'params': params,
+        'progress': progress,
         'created_by': {
             'username': 'someuser',
         },
         'date_created': '2026-05-05T09:00:00Z',
         'date_modified': '2026-05-05T09:02:00Z',
-        'cancelled_by': None,
+        'cancelled_by': cancelled_by,
     }
+    if skipped_uuids is not None:
+        result['skipped_uuids'] = skipped_uuids
+    return result
 
 
 def get_bulk_action_response_examples() -> list[OpenApiExample]:
     return [
         OpenApiExample(
-            'Bulk action response',
-            value=_bulk_action_response_value(),
+            'Bulk transcription job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_transcription',
+                skipped_uuids=[],
+            ),
+            description=(
+                'Bulk transcription responses include the action params used '
+                'to start the job. `locale` appears when it was supplied.'
+            ),
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk translation job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_translation',
+                skipped_uuids=[],
+            ),
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk action response (with skipped submissions)',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_transcription',
+                skipped_uuids=['7a1b2c3d-e4f5-6789-abcd-ef0123456789'],
+            ),
+            description=(
+                'When some submitted UUIDs were already processed or currently '
+                'being processed, they are excluded from the new bulk action '
+                'and listed in `skipped_uuids`. The job proceeds for the '
+                'remaining eligible submissions.'
+            ),
+            response_only=True,
+        ),
+    ]
+
+
+def get_bulk_action_retrieve_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'Bulk transcription job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_transcription',
+            ),
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk translation job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_translation',
+            ),
             response_only=True,
         ),
     ]
 
 
 def get_bulk_action_list_response_examples() -> list[OpenApiExample]:
-    response_value = _bulk_action_response_value()
+    transcription_response = _bulk_action_response_value(
+        action_id='automatic_google_transcription',
+    )
+    translation_response = _bulk_action_response_value(
+        action_id='automatic_google_translation',
+    )
     return [
         OpenApiExample(
-            'Bulk action list response',
+            'Bulk transcription job list response',
             value={
                 'count': 1,
                 'next': None,
                 'previous': None,
-                'results': [response_value],
+                'results': [transcription_response],
+            },
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Bulk translation job list response',
+            value={
+                'count': 1,
+                'next': None,
+                'previous': None,
+                'results': [translation_response],
             },
             response_only=True,
         ),
@@ -590,5 +710,28 @@ def get_bulk_action_patch_examples() -> list[OpenApiExample]:
             },
             request_only=True,
         ),
-        *get_bulk_action_response_examples(),
+        OpenApiExample(
+            'Cancelled bulk transcription job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_transcription',
+                cancelled=True,
+            ),
+            description=(
+                'The cancelled response shows active child items moved to '
+                '`cancelled`; terminal child items remain unchanged.'
+            ),
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Cancelled bulk translation job response',
+            value=_bulk_action_response_value(
+                action_id='automatic_google_translation',
+                cancelled=True,
+            ),
+            description=(
+                'The cancelled response includes the user who cancelled the '
+                'job in `cancelled_by`.'
+            ),
+            response_only=True,
+        ),
     ]

@@ -12,6 +12,7 @@ from django.utils import timezone
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
+    GoogleQuotaExceededError,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
 )
@@ -961,11 +962,41 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
 
-        service_data = service.process_data(
-            self.source_question_xpath,
-            action_data,
-            bulk_action_uid=bulk_action_uid,
-        )
+        quota_poll_scheduled = False
+        try:
+            service_data = service.process_data(
+                self.source_question_xpath,
+                action_data,
+                bulk_action_uid=bulk_action_uid,
+            )
+        except GoogleQuotaExceededError as err:
+            if celery_app.current_worker_task:
+                raise
+
+            if self.action_class_config.allow_async:
+                celery_action_data = deepcopy(action_data)
+                celery_action_data.pop(self.DEPENDENCY_FIELD, None)
+
+                poll_run_external_process.apply_async(
+                    kwargs={
+                        'submission': submission,
+                        'action_data': celery_action_data,
+                        'action_id': self.ID,
+                        'asset_id': self.asset.pk,
+                        'question_xpath': self.source_question_xpath,
+                    },
+                    countdown=err.retry_after,
+                )
+                quota_poll_scheduled = True
+                service_data = {'status': 'in_progress'}
+            else:
+                return {
+                    'status': 'failed',
+                    'error': (
+                        'Google quota exceeded. Please retry later. '
+                        f'Retry after {err.retry_after} seconds.'
+                    ),
+                }
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
@@ -976,7 +1007,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 # Make Celery update in the background.
                 # Since Celery is calling the same code, we want to ensure
                 #  it does not recall itself.
-                if not celery_app.current_worker_task:
+                if not celery_app.current_worker_task and not quota_poll_scheduled:
 
                     celery_action_data = deepcopy(action_data)
                     celery_action_data.pop(self.DEPENDENCY_FIELD, None)

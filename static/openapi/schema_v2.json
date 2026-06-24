@@ -2841,7 +2841,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_list",
-                "description": "## List bulk processing jobs on an asset\n\nReturns all bulk processing jobs associated with the specified asset. Each job\nis organized around one question and many submissions.\n",
+                "description": "## List bulk processing jobs on an asset\n\nReturns paginated bulk processing jobs associated with the specified asset. Each\njob is organized around one action, one question, and many submissions.\n\nUse this endpoint to monitor recently-created bulk transcription and translation\njobs. Each result includes the parent job status, per-submission statuses, the\noriginal deterministic params, the user who created the job, cancellation\nmetadata, and integer `progress` from `0` to `100`.\n\nJob statuses:\n\n* `pending`: the job exists but has not started.\n* `in_progress`: one or more child submissions are still active.\n* `complete`: every child submission has reached a terminal state.\n* `cancelled`: the job was cancelled.\n\nChild submission statuses:\n\n* `pending`\n* `in_progress`\n* `complete`\n* `failed`\n* `cancelled`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -2899,7 +2899,7 @@
                                     "$ref": "#/components/schemas/BulkActionListResponse"
                                 },
                                 "examples": {
-                                    "BulkActionListResponse": {
+                                    "BulkTranscriptionJobListResponse": {
                                         "value": {
                                             "count": 1,
                                             "next": null,
@@ -2909,25 +2909,34 @@
                                                     "uid": "ba123456789AbCdEfGhIjklm",
                                                     "status": "in_progress",
                                                     "action_id": "automatic_google_transcription",
-                                                    "question_xpath": "q1",
+                                                    "question_xpath": "q1_audio",
                                                     "submission_uuids": [
                                                         "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                        "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                                        "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                        "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
                                                     ],
                                                     "submission_statuses": [
                                                         {
                                                             "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                            "status": "complete"
+                                                            "status": "complete",
+                                                            "error": null
                                                         },
                                                         {
                                                             "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
-                                                            "status": "in_progress"
+                                                            "status": "in_progress",
+                                                            "error": null
+                                                        },
+                                                        {
+                                                            "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                            "status": "failed",
+                                                            "error": "Google quota exceeded"
                                                         }
                                                     ],
                                                     "params": {
                                                         "language": "en",
                                                         "locale": "en-US"
                                                     },
+                                                    "progress": 66,
                                                     "created_by": {
                                                         "username": "someuser"
                                                     },
@@ -2937,7 +2946,55 @@
                                                 }
                                             ]
                                         },
-                                        "summary": "Bulk action list response"
+                                        "summary": "Bulk transcription job list response"
+                                    },
+                                    "BulkTranslationJobListResponse": {
+                                        "value": {
+                                            "count": 1,
+                                            "next": null,
+                                            "previous": null,
+                                            "results": [
+                                                {
+                                                    "uid": "ba123456789AbCdEfGhIjklm",
+                                                    "status": "in_progress",
+                                                    "action_id": "automatic_google_translation",
+                                                    "question_xpath": "q1_transcript",
+                                                    "submission_uuids": [
+                                                        "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                        "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                        "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
+                                                    ],
+                                                    "submission_statuses": [
+                                                        {
+                                                            "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                            "status": "complete",
+                                                            "error": null
+                                                        },
+                                                        {
+                                                            "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                            "status": "in_progress",
+                                                            "error": null
+                                                        },
+                                                        {
+                                                            "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                            "status": "failed",
+                                                            "error": "Google quota exceeded"
+                                                        }
+                                                    ],
+                                                    "params": {
+                                                        "language": "fr"
+                                                    },
+                                                    "progress": 66,
+                                                    "created_by": {
+                                                        "username": "someuser"
+                                                    },
+                                                    "date_created": "2026-05-05T09:00:00Z",
+                                                    "date_modified": "2026-05-05T09:02:00Z",
+                                                    "cancelled_by": null
+                                                }
+                                            ]
+                                        },
+                                        "summary": "Bulk translation job list response"
                                     }
                                 }
                             }
@@ -2966,7 +3023,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_create",
-                "description": "## Create a bulk processing job\n\nCreates a placeholder bulk transcription or bulk translation job for a single\nquestion across multiple submissions.\n",
+                "description": "## Create a bulk processing job\n\nCreates and starts a bulk processing job for one question across multiple\nsubmissions.\n\nSupported actions:\n\n* `automatic_google_transcription`\n* `automatic_google_translation`\n\nThe request must include the target `question_xpath`, the submission root UUIDs\nto process, and deterministic `params`. `params.language` is required. For\ntranscription, `params.locale` may also be supplied when a more specific Google\nSpeech locale is needed.\n\nCreation is atomic. If any selected submission is unknown, already has matching\nresults, or already has an active matching bulk action, no job or child items are\ncreated.\n\nThe response is the created job. Its initial status is `in_progress` because\ncreation immediately starts background processing.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -2991,7 +3048,7 @@
                                 "BulkTranscriptionJob": {
                                     "value": {
                                         "action_id": "automatic_google_transcription",
-                                        "question_xpath": "q1",
+                                        "question_xpath": "q1_audio",
                                         "submission_uuids": [
                                             "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                             "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3001,12 +3058,13 @@
                                             "locale": "en-US"
                                         }
                                     },
-                                    "summary": "Bulk transcription job"
+                                    "summary": "Bulk transcription job",
+                                    "description": "Starts Google transcription for the selected audio question across the listed submissions. `locale` is optional."
                                 },
                                 "BulkTranslationJob": {
                                     "value": {
                                         "action_id": "automatic_google_translation",
-                                        "question_xpath": "q1",
+                                        "question_xpath": "q1_transcript",
                                         "submission_uuids": [
                                             "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
                                             "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
@@ -3015,7 +3073,8 @@
                                             "language": "fr"
                                         }
                                     },
-                                    "summary": "Bulk translation job"
+                                    "summary": "Bulk translation job",
+                                    "description": "Starts Google translation for the selected question across the listed submissions. `language` is the target language."
                                 }
                             }
                         }
@@ -3035,41 +3094,140 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/BulkActionResponse"
+                                    "$ref": "#/components/schemas/BulkActionCreateResponse"
                                 },
                                 "examples": {
-                                    "BulkActionResponse": {
+                                    "BulkTranscriptionJobResponse": {
                                         "value": {
                                             "uid": "ba123456789AbCdEfGhIjklm",
                                             "status": "in_progress",
                                             "action_id": "automatic_google_transcription",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_audio",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
                                             ],
                                             "submission_statuses": [
                                                 {
                                                     "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                    "status": "complete"
+                                                    "status": "complete",
+                                                    "error": null
                                                 },
                                                 {
                                                     "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
-                                                    "status": "in_progress"
+                                                    "status": "in_progress",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "failed",
+                                                    "error": "Google quota exceeded"
                                                 }
                                             ],
                                             "params": {
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
                                             },
                                             "date_created": "2026-05-05T09:00:00Z",
                                             "date_modified": "2026-05-05T09:02:00Z",
-                                            "cancelled_by": null
+                                            "cancelled_by": null,
+                                            "skipped_uuids": []
                                         },
-                                        "summary": "Bulk action response"
+                                        "summary": "Bulk transcription job response",
+                                        "description": "Bulk transcription responses include the action params used to start the job. `locale` appears when it was supplied."
+                                    },
+                                    "BulkTranslationJobResponse": {
+                                        "value": {
+                                            "uid": "ba123456789AbCdEfGhIjklm",
+                                            "status": "in_progress",
+                                            "action_id": "automatic_google_translation",
+                                            "question_xpath": "q1_transcript",
+                                            "submission_uuids": [
+                                                "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
+                                            ],
+                                            "submission_statuses": [
+                                                {
+                                                    "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                    "status": "complete",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                    "status": "in_progress",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "failed",
+                                                    "error": "Google quota exceeded"
+                                                }
+                                            ],
+                                            "params": {
+                                                "language": "fr"
+                                            },
+                                            "progress": 66,
+                                            "created_by": {
+                                                "username": "someuser"
+                                            },
+                                            "date_created": "2026-05-05T09:00:00Z",
+                                            "date_modified": "2026-05-05T09:02:00Z",
+                                            "cancelled_by": null,
+                                            "skipped_uuids": []
+                                        },
+                                        "summary": "Bulk translation job response"
+                                    },
+                                    "BulkActionResponse(withSkippedSubmissions)": {
+                                        "value": {
+                                            "uid": "ba123456789AbCdEfGhIjklm",
+                                            "status": "in_progress",
+                                            "action_id": "automatic_google_transcription",
+                                            "question_xpath": "q1_audio",
+                                            "submission_uuids": [
+                                                "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
+                                            ],
+                                            "submission_statuses": [
+                                                {
+                                                    "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                    "status": "complete",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                    "status": "in_progress",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "failed",
+                                                    "error": "Google quota exceeded"
+                                                }
+                                            ],
+                                            "params": {
+                                                "language": "en",
+                                                "locale": "en-US"
+                                            },
+                                            "progress": 66,
+                                            "created_by": {
+                                                "username": "someuser"
+                                            },
+                                            "date_created": "2026-05-05T09:00:00Z",
+                                            "date_modified": "2026-05-05T09:02:00Z",
+                                            "cancelled_by": null,
+                                            "skipped_uuids": [
+                                                "7a1b2c3d-e4f5-6789-abcd-ef0123456789"
+                                            ]
+                                        },
+                                        "summary": "Bulk action response (with skipped submissions)",
+                                        "description": "When some submitted UUIDs were already processed or currently being processed, they are excluded from the new bulk action and listed in `skipped_uuids`. The job proceeds for the remaining eligible submissions."
                                     }
                                 }
                             }
@@ -3122,7 +3280,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{action_uid}/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_retrieve",
-                "description": "## Retrieve a bulk processing job\n\nReturns detailed information about a single bulk processing job, including its\ncurrent status and processing metadata.\n\nThe response shape is identical to the item returned by the bulk job creation\nendpoint.\n",
+                "description": "## Retrieve a bulk processing job\n\nReturns detailed information about a single bulk processing job, including its\ncurrent status, per-submission status, processing params, creator, cancellation\nmetadata, timestamps, and integer `progress` from `0` to `100`.\n\nThe response shape is identical to the item returned by the bulk job creation\nendpoint and to each item in the paginated list response.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3162,30 +3320,39 @@
                                     "$ref": "#/components/schemas/BulkActionResponse"
                                 },
                                 "examples": {
-                                    "BulkActionResponse": {
+                                    "BulkTranscriptionJobResponse": {
                                         "value": {
                                             "uid": "ba123456789AbCdEfGhIjklm",
                                             "status": "in_progress",
                                             "action_id": "automatic_google_transcription",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_audio",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
                                             ],
                                             "submission_statuses": [
                                                 {
                                                     "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                    "status": "complete"
+                                                    "status": "complete",
+                                                    "error": null
                                                 },
                                                 {
                                                     "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
-                                                    "status": "in_progress"
+                                                    "status": "in_progress",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "failed",
+                                                    "error": "Google quota exceeded"
                                                 }
                                             ],
                                             "params": {
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "progress": 66,
                                             "created_by": {
                                                 "username": "someuser"
                                             },
@@ -3193,7 +3360,48 @@
                                             "date_modified": "2026-05-05T09:02:00Z",
                                             "cancelled_by": null
                                         },
-                                        "summary": "Bulk action response"
+                                        "summary": "Bulk transcription job response"
+                                    },
+                                    "BulkTranslationJobResponse": {
+                                        "value": {
+                                            "uid": "ba123456789AbCdEfGhIjklm",
+                                            "status": "in_progress",
+                                            "action_id": "automatic_google_translation",
+                                            "question_xpath": "q1_transcript",
+                                            "submission_uuids": [
+                                                "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
+                                            ],
+                                            "submission_statuses": [
+                                                {
+                                                    "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                    "status": "complete",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                    "status": "in_progress",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "failed",
+                                                    "error": "Google quota exceeded"
+                                                }
+                                            ],
+                                            "params": {
+                                                "language": "fr"
+                                            },
+                                            "progress": 66,
+                                            "created_by": {
+                                                "username": "someuser"
+                                            },
+                                            "date_created": "2026-05-05T09:00:00Z",
+                                            "date_modified": "2026-05-05T09:02:00Z",
+                                            "cancelled_by": null
+                                        },
+                                        "summary": "Bulk translation job response"
                                     }
                                 }
                             }
@@ -3222,7 +3430,7 @@
             },
             "patch": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_partial_update",
-                "description": "## Update a bulk processing job\n\nCancels a single bulk processing job for an asset.\n\nThe `PATCH` endpoint is used for bulk action cancellation.\n\nThe request body sets the job status to `cancelled`.\n",
+                "description": "## Update a bulk processing job\n\nCancels a single bulk processing job for an asset. This endpoint currently only\nsupports cancellation.\n\nRequest body:\n\n```json\n{\n  \"status\": \"cancelled\"\n}\n```\n\nCancellation is idempotent. Cancelling an already-cancelled job returns the\ncurrent cancelled job. Completed jobs cannot be cancelled.\n\nWhen a job is cancelled, pending and in-progress child items are marked\n`cancelled`; terminal child items are not modified. The response is the updated\njob, including `cancelled_by`.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -3279,38 +3487,94 @@
                                     "$ref": "#/components/schemas/BulkActionResponse"
                                 },
                                 "examples": {
-                                    "BulkActionResponse": {
+                                    "CancelledBulkTranscriptionJobResponse": {
                                         "value": {
                                             "uid": "ba123456789AbCdEfGhIjklm",
-                                            "status": "in_progress",
+                                            "status": "cancelled",
                                             "action_id": "automatic_google_transcription",
-                                            "question_xpath": "q1",
+                                            "question_xpath": "q1_audio",
                                             "submission_uuids": [
                                                 "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2"
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
                                             ],
                                             "submission_statuses": [
                                                 {
                                                     "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
-                                                    "status": "complete"
+                                                    "status": "complete",
+                                                    "error": null
                                                 },
                                                 {
                                                     "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
-                                                    "status": "in_progress"
+                                                    "status": "cancelled",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "failed",
+                                                    "error": "Google quota exceeded"
                                                 }
                                             ],
                                             "params": {
                                                 "language": "en",
                                                 "locale": "en-US"
                                             },
+                                            "progress": 100,
                                             "created_by": {
                                                 "username": "someuser"
                                             },
                                             "date_created": "2026-05-05T09:00:00Z",
                                             "date_modified": "2026-05-05T09:02:00Z",
-                                            "cancelled_by": null
+                                            "cancelled_by": {
+                                                "username": "someuser"
+                                            }
                                         },
-                                        "summary": "Bulk action response"
+                                        "summary": "Cancelled bulk transcription job response",
+                                        "description": "The cancelled response shows active child items moved to `cancelled`; terminal child items remain unchanged."
+                                    },
+                                    "CancelledBulkTranslationJobResponse": {
+                                        "value": {
+                                            "uid": "ba123456789AbCdEfGhIjklm",
+                                            "status": "cancelled",
+                                            "action_id": "automatic_google_translation",
+                                            "question_xpath": "q1_transcript",
+                                            "submission_uuids": [
+                                                "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                "5d4958d6-b2e8-4d4b-a51f-63f91b459e26"
+                                            ],
+                                            "submission_statuses": [
+                                                {
+                                                    "uuid": "3c3f8e07-d660-4f5d-bb0d-7f7a54f02f8f",
+                                                    "status": "complete",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "0ca3624a-6f22-451e-8d0a-c40978fd6fe2",
+                                                    "status": "cancelled",
+                                                    "error": null
+                                                },
+                                                {
+                                                    "uuid": "5d4958d6-b2e8-4d4b-a51f-63f91b459e26",
+                                                    "status": "failed",
+                                                    "error": "Google quota exceeded"
+                                                }
+                                            ],
+                                            "params": {
+                                                "language": "fr"
+                                            },
+                                            "progress": 100,
+                                            "created_by": {
+                                                "username": "someuser"
+                                            },
+                                            "date_created": "2026-05-05T09:00:00Z",
+                                            "date_modified": "2026-05-05T09:02:00Z",
+                                            "cancelled_by": {
+                                                "username": "someuser"
+                                            }
+                                        },
+                                        "summary": "Cancelled bulk translation job response",
+                                        "description": "The cancelled response includes the user who cancelled the job in `cancelled_by`."
                                     }
                                 }
                             }
@@ -3412,6 +3676,56 @@
                                         },
                                         "summary": "Bad request"
                                     }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/assets/{uid_asset}/attachments/audio-duration/": {
+            "post": {
+                "operationId": "api_v2_assets_attachments_audio_duration_create",
+                "description": "## Get total audio duration for a list of attachments\n\n```curl\n  curl -X POST https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/attachments/audio-duration/\n```\n\n> **Payload**\n>\n>        {\n>           \"attachment_uids\": [\n>               \"attXXXXXXXXXXXXXXXXX\",\n>               \"attYYYYYYYYYYYYYYYYY\"\n>           ]\n>        }\n\n* Where: `attachment_uids` (required) is a list of attachment UIDs whose audio duration to retrieve. Maximum 200 UIDs per request.\n\n\n> **Response**\n>\n>        {\n>           \"attachments\": [\n>               { \"uid\": \"attXXXXXXXXXXXXXXXXX\", \"seconds\": 42 },\n>               { \"uid\": \"attYYYYYYYYYYYYYYYYY\", \"seconds\": null }\n>           ],\n>           \"total\": 42\n>        }\n\n* `attachments` - one entry per recognised, accessible UID in the order submitted.\n  Unrecognised or inaccessible UIDs are silently omitted.\n* `seconds` - integer duration, or `null` when `ffprobe` could not determine the duration (corrupt file, unsupported format, etc.).\n* `total` - sum of all non-null `seconds` values.\n\n\n### Batching and timeouts\n\n`ffprobe` takes approximately 0.5 s per file. With a 120 s nginx timeout, sending more\nthan ~200 files per request risks a **504 Gateway Timeout**.\n\n* Submit files in small batches from the front-end.\n* Retry on 504 - already-processed attachments will be served from the db, so\n  subsequent attempts complete faster.\n* Requests exceeding 200 UIDs are rejected immediately with **400 Bad Request**.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetAttachmentAudioDurationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetAttachmentAudioDurationResponse"
                                 }
                             }
                         },
@@ -7539,6 +7853,15 @@
                 "description": "## Retrieve current asset files\n\nResults can be narrowed down with a filter by type:\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/?collections_first=true&ordering=-name\n```\n",
                 "parameters": [
                     {
+                        "name": "file_type",
+                        "required": false,
+                        "in": "query",
+                        "description": "Filter files by type (e.g., \"form_media\")",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "limit",
                         "required": false,
                         "in": "query",
@@ -7643,20 +7966,16 @@
                             "examples": {
                                 "CreatingAFileWithBinaryContent": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                                         "description": "Description of the file",
-                                        "file_type": "image/png",
+                                        "file_type": "form_media",
                                         "content": "<binary>"
                                     },
                                     "summary": "Creating a file with binary content"
                                 },
                                 "CreatingAFileWithBase64Content": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                                         "description": "Description of the file",
-                                        "file_type": "image/png",
+                                        "file_type": "form_media",
                                         "base64Encoded": "SGVsbG8sIFdvcmxkIQ",
                                         "metadata": {
                                             "filename": "string"
@@ -7666,10 +7985,8 @@
                                 },
                                 "CreatingAFileWithARemoteUrl": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                                         "description": "Description of the file",
-                                        "file_type": "image/png",
+                                        "file_type": "form_media",
                                         "metadata": {
                                             "redirect_url": "string"
                                         }
@@ -20544,9 +20861,13 @@
                     },
                     "count": {
                         "type": "integer"
+                    },
+                    "action": {
+                        "type": "string"
                     }
                 },
                 "required": [
+                    "action",
                     "count",
                     "date_created",
                     "metadata",
@@ -21190,6 +21511,55 @@
                     "version_id",
                     "xform_link",
                     "xls_link"
+                ]
+            },
+            "AssetAttachmentAudioDurationItem": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "seconds": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "seconds",
+                    "uid"
+                ]
+            },
+            "AssetAttachmentAudioDurationRequest": {
+                "type": "object",
+                "properties": {
+                    "attachment_uids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "List of attachment UIDs whose audio duration to retrieve"
+                    }
+                },
+                "required": [
+                    "attachment_uids"
+                ]
+            },
+            "AssetAttachmentAudioDurationResponse": {
+                "type": "object",
+                "properties": {
+                    "attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AssetAttachmentAudioDurationItem"
+                        }
+                    },
+                    "total": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "attachments",
+                    "total"
                 ]
             },
             "AssetBulkRequest": {
@@ -22082,6 +22452,50 @@
                                     }
                                 }
                             },
+                            "bulk_action": {
+                                "type": "object",
+                                "properties": {
+                                    "uid": {
+                                        "type": "string"
+                                    },
+                                    "action_id": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "question_xpath": {
+                                        "type": "string"
+                                    },
+                                    "params": {
+                                        "type": "object"
+                                    },
+                                    "created_by": {
+                                        "type": "string"
+                                    },
+                                    "cancelled_by": {
+                                        "type": "string"
+                                    },
+                                    "total_count": {
+                                        "type": "integer"
+                                    },
+                                    "processed_count": {
+                                        "type": "integer"
+                                    },
+                                    "completed_count": {
+                                        "type": "integer"
+                                    },
+                                    "failed_count": {
+                                        "type": "integer"
+                                    },
+                                    "cancelled_count": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
                             "name": {
                                 "type": "object",
                                 "properties": {
@@ -22211,6 +22625,82 @@
                     "submission_uuids"
                 ]
             },
+            "BulkActionCreateResponse": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/BulkActionResponseStatusEnum"
+                    },
+                    "action_id": {
+                        "$ref": "#/components/schemas/ActionIdEnum"
+                    },
+                    "question_xpath": {
+                        "type": "string"
+                    },
+                    "submission_uuids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "submission_statuses": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BulkActionSubmissionStatusResponse"
+                        }
+                    },
+                    "params": {
+                        "$ref": "#/components/schemas/BulkActionParamsResponse"
+                    },
+                    "progress": {
+                        "type": "integer",
+                        "maximum": 100,
+                        "minimum": 0
+                    },
+                    "created_by": {
+                        "$ref": "#/components/schemas/BulkActionUserResponse"
+                    },
+                    "date_created": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "date_modified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "cancelled_by": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/BulkActionUserResponse"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "skipped_uuids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "action_id",
+                    "created_by",
+                    "date_created",
+                    "date_modified",
+                    "params",
+                    "progress",
+                    "question_xpath",
+                    "skipped_uuids",
+                    "status",
+                    "submission_statuses",
+                    "submission_uuids",
+                    "uid"
+                ]
+            },
             "BulkActionListResponse": {
                 "type": "object",
                 "properties": {
@@ -22302,6 +22792,11 @@
                     "params": {
                         "$ref": "#/components/schemas/BulkActionParamsResponse"
                     },
+                    "progress": {
+                        "type": "integer",
+                        "maximum": 100,
+                        "minimum": 0
+                    },
                     "created_by": {
                         "$ref": "#/components/schemas/BulkActionUserResponse"
                     },
@@ -22328,6 +22823,7 @@
                     "date_created",
                     "date_modified",
                     "params",
+                    "progress",
                     "question_xpath",
                     "status",
                     "submission_statuses",
@@ -22353,9 +22849,14 @@
                     },
                     "status": {
                         "$ref": "#/components/schemas/BulkActionSubmissionStatusResponseStatusEnum"
+                    },
+                    "error": {
+                        "type": "string",
+                        "nullable": true
                     }
                 },
                 "required": [
+                    "error",
                     "status",
                     "uuid"
                 ]
@@ -22462,119 +22963,92 @@
             "CreateFilePayload": {
                 "oneOf": [
                     {
-                        "type": "object",
-                        "properties": {
-                            "user": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
-                            },
-                            "asset": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
-                            },
-                            "description": {
-                                "type": "string"
-                            },
-                            "file_type": {
-                                "type": "string"
-                            },
-                            "content": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "asset",
-                            "content",
-                            "description",
-                            "file_type",
-                            "user"
-                        ]
+                        "$ref": "#/components/schemas/CreateFilePayloadBinary"
                     },
                     {
-                        "type": "object",
-                        "properties": {
-                            "user": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
-                            },
-                            "asset": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
-                            },
-                            "description": {
-                                "type": "string"
-                            },
-                            "file_type": {
-                                "type": "string"
-                            },
-                            "base64Encoded": {
-                                "type": "string"
-                            },
-                            "metadata": {
-                                "type": "object",
-                                "properties": {
-                                    "filename": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "filename"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "asset",
-                            "base64Encoded",
-                            "description",
-                            "file_type",
-                            "metadata",
-                            "user"
-                        ]
+                        "$ref": "#/components/schemas/CreateFilePayloadBase64"
                     },
                     {
-                        "type": "object",
-                        "properties": {
-                            "user": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
-                            },
-                            "asset": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
-                            },
-                            "description": {
-                                "type": "string"
-                            },
-                            "file_type": {
-                                "type": "string"
-                            },
-                            "metadata": {
-                                "type": "object",
-                                "properties": {
-                                    "redirect_url": {
-                                        "type": "string",
-                                        "format": "uri"
-                                    }
-                                },
-                                "required": [
-                                    "redirect_url"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "asset",
-                            "description",
-                            "file_type",
-                            "metadata",
-                            "user"
-                        ]
+                        "$ref": "#/components/schemas/CreateFilePayloadURL"
                     }
+                ]
+            },
+            "CreateFilePayloadBase64": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "file_type": {
+                        "type": "string"
+                    },
+                    "base64Encoded": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "required": [
+                            "filename"
+                        ],
+                        "properties": {
+                            "filename": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "base64Encoded",
+                    "description",
+                    "file_type",
+                    "metadata"
+                ]
+            },
+            "CreateFilePayloadBinary": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "file_type": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "content",
+                    "description",
+                    "file_type"
+                ]
+            },
+            "CreateFilePayloadURL": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "file_type": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "required": [
+                            "redirect_url"
+                        ],
+                        "properties": {
+                            "redirect_url": {
+                                "type": "string",
+                                "format": "uri"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "description",
+                    "file_type",
+                    "metadata"
                 ]
             },
             "CreateResponseAutomaticQualActionParams": {
@@ -24562,6 +25036,50 @@
                                     },
                                     "endpoint": {
                                         "type": "boolean"
+                                    }
+                                }
+                            },
+                            "bulk_action": {
+                                "type": "object",
+                                "properties": {
+                                    "uid": {
+                                        "type": "string"
+                                    },
+                                    "action_id": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "question_xpath": {
+                                        "type": "string"
+                                    },
+                                    "params": {
+                                        "type": "object"
+                                    },
+                                    "created_by": {
+                                        "type": "string"
+                                    },
+                                    "cancelled_by": {
+                                        "type": "string"
+                                    },
+                                    "total_count": {
+                                        "type": "integer"
+                                    },
+                                    "processed_count": {
+                                        "type": "integer"
+                                    },
+                                    "completed_count": {
+                                        "type": "integer"
+                                    },
+                                    "failed_count": {
+                                        "type": "integer"
+                                    },
+                                    "cancelled_count": {
+                                        "type": "integer"
                                     }
                                 }
                             },
@@ -27627,6 +28145,17 @@
                             "enabled",
                             "fields"
                         ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "tag_string": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "tag_string"
+                        ]
                     }
                 ]
             },
@@ -28947,6 +29476,50 @@
                                     },
                                     "endpoint": {
                                         "type": "boolean"
+                                    }
+                                }
+                            },
+                            "bulk_action": {
+                                "type": "object",
+                                "properties": {
+                                    "uid": {
+                                        "type": "string"
+                                    },
+                                    "action_id": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "question_xpath": {
+                                        "type": "string"
+                                    },
+                                    "params": {
+                                        "type": "object"
+                                    },
+                                    "created_by": {
+                                        "type": "string"
+                                    },
+                                    "cancelled_by": {
+                                        "type": "string"
+                                    },
+                                    "total_count": {
+                                        "type": "integer"
+                                    },
+                                    "processed_count": {
+                                        "type": "integer"
+                                    },
+                                    "completed_count": {
+                                        "type": "integer"
+                                    },
+                                    "failed_count": {
+                                        "type": "integer"
+                                    },
+                                    "cancelled_count": {
+                                        "type": "integer"
                                     }
                                 }
                             },
@@ -30615,9 +31188,13 @@
                     },
                     "count": {
                         "type": "integer"
+                    },
+                    "action": {
+                        "type": "string"
                     }
                 },
                 "required": [
+                    "action",
                     "count",
                     "date_created",
                     "metadata",

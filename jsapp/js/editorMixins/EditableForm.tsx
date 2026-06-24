@@ -173,6 +173,7 @@ export default function EditableForm(props: EditableFormProps) {
 
   const formWrapRef = useRef<HTMLDivElement>(null)
   const cascadeRef = useRef<HTMLTextAreaElement>(null)
+  const appRef = useRef<SurveyApp | undefined>(undefined)
 
   const onSurveyChangeDebounced = debounce(onSurveyChange, 200)
 
@@ -195,17 +196,27 @@ export default function EditableForm(props: EditableFormProps) {
 
   useEffect(() => {
     const assetData = assetQuery.data?.data
+    if (assetQuery.isFetching) {
+      // Wait for the fetch to settle before seeding local state.
+      // Otherwise Form Builder can initialize from stale cached content and
+      // carry outdated translation metadata into save payloads.
+      return
+    }
     if (assetData && 'uid' in assetData) {
       // TODO: stop casting this as AssetResponse after backend openAPI task DEV-1727 is done
       const assetDataCast = assetData as unknown as AssetResponse
-      setState((currentState) => ({
-        ...currentState,
-        // TODO: storing asset that we already have in `assetQuery` is not nice. I left it like this to avoid requiring
-        // too much refactor in here.
-        asset: assetDataCast,
-      }))
+      setState((currentState) => {
+        return {
+          ...currentState,
+          // Deep clone the react-query cache reference to prevent mutations to survey.availableFiles
+          // from corrupting the cache. Form Builder code mutates asset properties during initialization.
+          // TODO: storing asset that we already have in `assetQuery` is not nice. I left it like this to avoid requiring
+          // too much refactor in here.
+          asset: clonedeep(assetDataCast),
+        }
+      })
     }
-  }, [assetQuery.data?.data])
+  }, [assetQuery.data?.data, assetQuery.isFetching])
 
   useEffect(() => {
     if (state.asset) {
@@ -585,10 +596,12 @@ export default function EditableForm(props: EditableFormProps) {
    * Cleanup some things in the rendered app
    */
   function cleanupAppForSurveyContent() {
-    if (app?.survey) {
-      app.survey.off('change')
-      app.survey.rows.off('change')
-      app.survey.rows.off('sort')
+    // Use appRef to access the current app instance, not the closure-captured app value
+    const currentApp = appRef.current
+    if (currentApp?.survey) {
+      currentApp.survey.off('change')
+      currentApp.survey.rows.off('change')
+      currentApp.survey.rows.off('sort')
     }
   }
 
@@ -600,7 +613,8 @@ export default function EditableForm(props: EditableFormProps) {
   function launchAppForSurveyContent(assetContent?: AssetContent, _state?: LaunchAppData) {
     // If we already rendered the app in the formWrapRef container, there is no need to do it again. Without this check
     // we would end up adding copies of the app in HTML
-    if (app !== undefined) {
+    // Use appRef to check for existing app - state may not have updated yet if called during rapid re-renders
+    if (appRef.current !== undefined) {
       return
     }
 
@@ -651,6 +665,8 @@ export default function EditableForm(props: EditableFormProps) {
         ngScope: skp,
       })
 
+      // Store in both state and ref - ref ensures cleanup always has access to current app
+      appRef.current = newApp
       setApp(newApp)
 
       const formWrapEl = formWrapRef.current

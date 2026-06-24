@@ -16,6 +16,11 @@ import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime } from '#/utils'
 
+export enum AccessLogAction {
+  AUTH = 'auth',
+  AUTH_FAILED = 'auth-failed',
+}
+
 export default function AccessLogsSection() {
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
@@ -72,6 +77,13 @@ export default function AccessLogsSection() {
         columns={[
           // The `key`s of these columns are matching the `AccessLog` interface
           // properties (from `accessLogs.query.ts` file) using dot notation.
+          {
+            key: 'action',
+            label: t('Action'),
+            cellFormatter: (log: AccessLogResponse) => {
+              return log.action === AccessLogAction.AUTH_FAILED ? t('Failed') : t('Success')
+            },
+          },
           {
             key: 'metadata.source',
             label: t('Source'),
