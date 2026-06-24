@@ -1,4 +1,5 @@
 import type { AlertValidationContext, AlertValidationResult } from './types'
+import { createInactiveResult } from './utils'
 
 /**
  * Validator for DEV-1417: Reached Limit
@@ -9,12 +10,7 @@ export function validateReachedLimit(context: AlertValidationContext): AlertVali
   console.log('[BulkProcessingAlerts] Validator validateReachedLimit - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'error',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('error')
 }
 
 /**
@@ -26,12 +22,7 @@ export function validateNearLimit(context: AlertValidationContext): AlertValidat
   console.log('[BulkProcessingAlerts] Validator validateNearLimit - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'error',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('error')
 }
 
 /**
@@ -43,12 +34,7 @@ export function validateConflictingJob(context: AlertValidationContext): AlertVa
   console.log('[BulkProcessingAlerts] Validator validateConflictingJob - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('warning')
 }
 
 /**
@@ -61,12 +47,7 @@ export function validateNoSource(context: AlertValidationContext): AlertValidati
   console.log('[BulkProcessingAlerts] Validator validateNoSource - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('warning')
 }
 
 /**
@@ -78,12 +59,7 @@ export function validateAlreadyTranscribed(context: AlertValidationContext): Ale
   console.log('[BulkProcessingAlerts] Validator validateAlreadyTranscribed - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('warning')
 }
 
 /**
@@ -95,12 +71,7 @@ export function validateAlreadyTranslated(context: AlertValidationContext): Aler
   console.log('[BulkProcessingAlerts] Validator validateAlreadyTranslated - STUBBED, returning no alerts', context)
 
   // STUB: Return inactive result
-  return {
-    shouldShow: false,
-    type: 'warning',
-    filteredSubmissionUuids: [],
-    computedValues: {},
-  }
+  return createInactiveResult('warning')
 }
 
 /**
