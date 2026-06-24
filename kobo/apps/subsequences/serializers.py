@@ -425,46 +425,51 @@ class BulkAcceptSerializer(serializers.Serializer):
         language = self.validated_data.get('language')
         now_str = utc_datetime_to_js_str(timezone.now())
 
-        supplements = list(
-            SubmissionSupplement.objects.filter(
-                asset=asset,
-                submission_uuid__in=submission_uids,
+        with transaction.atomic():
+            supplements = list(
+                SubmissionSupplement.objects.filter(
+                    asset=asset,
+                    submission_uuid__in=submission_uids,
+                )
             )
-        )
 
-        to_update = []
-        for supplement in supplements:
-            content = supplement.content
-            if not content:
-                continue
-            question_data = content.get(question_xpath)
-            if not question_data:
-                continue
-            action_data = question_data.get(action_id)
-            if not action_data:
-                continue
+            to_update = []
+            for supplement in supplements:
+                content = supplement.content
+                if not content:
+                    continue
 
-            # For translation actions the result is keyed by language code
-            target = action_data.get(language) if language else action_data
-            if not target:
-                continue
+                question_data = content.get(question_xpath)
+                if not question_data:
+                    continue
 
-            versions = target.get('_versions', [])
-            if not versions:
-                continue
+                action_data = question_data.get(action_id)
+                if not action_data:
+                    continue
 
-            latest_version = versions[0]
-            version_data = latest_version.get('_data', {})
-            # Only accept versions that have actual content
-            if version_data.get('value') is None:
-                continue
+                # For translation actions the result is keyed by language code
+                target = action_data.get(language) if language else action_data
+                if not target:
+                    continue
 
-            latest_version['_dateAccepted'] = now_str
-            target['_dateModified'] = now_str
-            to_update.append(supplement)
+                versions = target.get('_versions', [])
+                if not versions:
+                    continue
 
-        if to_update:
-            SubmissionSupplement.objects.bulk_update(to_update, ['content'])
+                latest_version = versions[0]
+                version_data = latest_version.get('_data', {})
+
+                # Only accept versions that have actual content
+                if version_data.get('value') is None:
+                    continue
+
+                latest_version['_dateAccepted'] = now_str
+                target['_dateModified'] = now_str
+
+                to_update.append(supplement)
+
+            if to_update:
+                SubmissionSupplement.objects.bulk_update(to_update, ['content'])
 
         return len(to_update)
 
