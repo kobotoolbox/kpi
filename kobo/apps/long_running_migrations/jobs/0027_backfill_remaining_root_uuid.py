@@ -17,7 +17,7 @@ from kpi.utils.database import use_db
 from kpi.utils.log import logging
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
-FAILED_TAG = 'kobo-root-uuid-failed-0026'
+FAILED_TAG = 'kobo-root-uuid-failed-0027'
 
 
 def run():

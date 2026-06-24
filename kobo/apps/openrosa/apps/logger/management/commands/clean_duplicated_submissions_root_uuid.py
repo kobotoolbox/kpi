@@ -139,8 +139,9 @@ class Command(BaseCommand):
                 root_uuid=new_root_uuid,
             )
             doc = settings.MONGO_DB.instances.find_one({'_id': pk})
-            doc['meta/rootUuid'] = add_uuid_prefix(new_root_uuid)
-            settings.MONGO_DB.instances.replace_one({'_id': pk}, doc, upsert=True)
+            if doc is not None:
+                doc['meta/rootUuid'] = add_uuid_prefix(new_root_uuid)
+                settings.MONGO_DB.instances.replace_one({'_id': pk}, doc)
 
     @staticmethod
     def _update_mongo_batch(update_data: list):
