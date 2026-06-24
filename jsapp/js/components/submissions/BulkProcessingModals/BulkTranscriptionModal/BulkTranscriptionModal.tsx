@@ -16,7 +16,6 @@ import {
 } from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
 import RegionSelector from '#/components/languages/RegionSelector'
-import { secondsToTranscriptionEstimate } from '#/components/processing/SingleProcessingContent/TabTranscript/transcript.utils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
@@ -221,9 +220,9 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t('Your ##count## audio files are a total of ##duration##. This may take some time to complete.')
+            {t('Your ##count## audio files are a total of ##duration## minutes. Please note this may take longer to process.')
               .replace('##count##', String(selectedRowsCount))
-              .replace('##duration##', isAudioDurationLoading ? t('…') : secondsToTranscriptionEstimate(audioDuration))}
+              .replace('##duration##', isAudioDurationLoading ? t('…') : String(Math.ceil(audioDuration / 60)))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
