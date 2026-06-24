@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kobo.apps.kobo_scim.constants import (
-    SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER,
+    SCIM_SCHEMA_EXTENSION_USER,
     SCIM_SCHEMA_GROUP,
     SCIM_SCHEMA_USER,
 )
@@ -47,15 +47,15 @@ class ScimSchemasAPITests(APITestCase):
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.organization',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.organization',  # noqa E501
             },
             {
                 'name': 'country',
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.country',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.country',  # noqa E501
             },
             {
                 'name': 'bio',
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.bio',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.bio',  # noqa E501
             },
         ]
     )
@@ -64,7 +64,7 @@ class ScimSchemasAPITests(APITestCase):
         self.assertEqual(len(schemas), 1)
         schema = schemas[0]
         self.assertEqual(
-            schema['id'], SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER
+            schema['id'], SCIM_SCHEMA_EXTENSION_USER
         )
         self.assertEqual(len(schema['attributes']), 3)
 
@@ -96,7 +96,7 @@ class ScimSchemasAPITests(APITestCase):
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.organization',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.organization',  # noqa E501
             }
         ]
     )
@@ -113,14 +113,14 @@ class ScimSchemasAPITests(APITestCase):
         self.assertIn(SCIM_SCHEMA_USER, schema_ids)
         self.assertIn(SCIM_SCHEMA_GROUP, schema_ids)
         self.assertIn(
-            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER, schema_ids
+            SCIM_SCHEMA_EXTENSION_USER, schema_ids
         )
 
     @override_config(
         USER_METADATA_FIELDS=[
             {
                 'name': 'organization',
-                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER}.organization',  # noqa E501
+                'scim_mapping': f'{SCIM_SCHEMA_EXTENSION_USER}.organization',  # noqa E501
             }
         ]
     )
@@ -138,5 +138,5 @@ class ScimSchemasAPITests(APITestCase):
         self.assertEqual(len(user_resource['schemaExtensions']), 1)
         self.assertEqual(
             user_resource['schemaExtensions'][0]['schema'],
-            SCIM_SCHEMA_EXTENSION_ENTERPRISE_USER,
+            SCIM_SCHEMA_EXTENSION_USER,
         )
