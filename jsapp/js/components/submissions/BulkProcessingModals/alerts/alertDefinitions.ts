@@ -11,7 +11,7 @@ import type { AlertDefinition, BulkActionType } from './types'
 
 /**
  * Get alert definitions for the given action type
- * Ordered by priority (1 is the highest priority)
+ * Alerts are evaluated in array order - first alert has highest priority
  */
 export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition[] {
   const isTranscription = actionType === 'transcript'
@@ -20,7 +20,6 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'reached-limit',
       type: 'error',
-      priority: 1,
       validator: validateReachedLimit,
       messageTemplate: () =>
         isTranscription
@@ -34,7 +33,6 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'near-limit',
       type: 'error',
-      priority: 2,
       validator: validateNearLimit,
       messageTemplate: (values) => {
         const remaining = isTranscription ? (values.remainingMinutes ?? '0') : (values.remainingCharacters ?? '0')
@@ -50,14 +48,12 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'conflicting-job',
       type: 'warning',
-      priority: 3,
       validator: validateConflictingJob,
       messageTemplate: () => t('Another bulk process is already in progress, please let it finish first'),
     },
     {
       id: 'no-source',
       type: 'warning',
-      priority: 4,
       validator: validateNoSource,
       messageTemplate: ({ count = 0 }) =>
         isTranscription
@@ -70,7 +66,6 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: isTranscription ? 'already-transcribed' : 'already-translated',
       type: 'warning',
-      priority: 5,
       validator: isTranscription ? validateAlreadyTranscribed : validateAlreadyTranslated,
       messageTemplate: (values) =>
         isTranscription
@@ -84,7 +79,6 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
     {
       id: 'no-eligible-submissions',
       type: 'error',
-      priority: 6,
       validator: validateNoEligibleSubmissions,
       messageTemplate: () => t('No submissions to process, see alerts above.'),
     },

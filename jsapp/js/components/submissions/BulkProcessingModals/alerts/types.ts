@@ -43,12 +43,12 @@ export interface AlertValidationResult {
 
 /**
  * Alert definition configuration
+ * Alerts are evaluated in array order - first alert has highest priority
  */
 export interface AlertDefinition {
   /** Unique alert identifier */
   id: string
   type: AlertSeverity
-  priority: number
   validator: (context: AlertValidationContext) => AlertValidationResult
   messageTemplate: (values: Record<string, any>) => string
 }
