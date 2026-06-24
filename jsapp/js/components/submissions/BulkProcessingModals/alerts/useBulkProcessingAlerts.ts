@@ -4,10 +4,10 @@ import type { ServiceUsageResponse } from '#/api/models/serviceUsageResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { SubmissionResponse } from '#/dataInterface'
 import { getAlertDefinitions } from './alertDefinitions'
-import type { ActionType, ActiveAlert, AlertValidationContext } from './types'
+import type { ActiveAlert, AlertValidationContext, BulkActionType } from './types'
 
 interface UseBulkProcessingAlertsProps {
-  actionType: ActionType
+  actionType: BulkActionType
   selectedSubmissions: SubmissionResponse[]
   selectedLanguage?: LanguageCode
   /** Selected region (transcription only) */

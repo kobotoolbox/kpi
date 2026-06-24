@@ -10,10 +10,7 @@ import type { SubmissionResponse } from '#/dataInterface'
  */
 export type AlertSeverity = 'error' | 'warning'
 
-/**
- * Action type for bulk processing
- */
-export type ActionType = 'transcript' | 'translation'
+export type BulkActionType = 'transcript' | 'translation'
 
 /**
  * Context passed to alert validators
@@ -25,7 +22,7 @@ export interface AlertValidationContext {
   selectedLanguage?: LanguageCode
   /** For transcription only */
   selectedRegion?: string
-  actionType: ActionType
+  actionType: BulkActionType
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
   previouslyFilteredSubmissionUuids: Set<string>
@@ -38,21 +35,11 @@ export interface AlertValidationResult {
   /** Whether this alert should be displayed */
   shouldShow: boolean
   type: AlertSeverity
-  /** Submission Uuids filtered out by this validator (for warnings) */
+  /** Submission Uuids filtered out by this validator */
   filteredSubmissionUuids: string[]
   /** Computed values for messages */
   computedValues: Record<string, any>
 }
-
-/**
- * Message template function
- */
-export type MessageTemplate = (values: Record<string, any>) => string
-
-/**
- * Alert validator function type
- */
-export type AlertValidator = (context: AlertValidationContext) => AlertValidationResult
 
 /**
  * Alert definition configuration
@@ -62,8 +49,8 @@ export interface AlertDefinition {
   id: string
   type: AlertSeverity
   priority: number
-  validator: AlertValidator
-  messageTemplate: MessageTemplate
+  validator: (context: AlertValidationContext) => AlertValidationResult
+  messageTemplate: (values: Record<string, any>) => string
 }
 
 /**

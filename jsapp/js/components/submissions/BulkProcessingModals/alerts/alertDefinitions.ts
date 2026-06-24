@@ -7,13 +7,13 @@ import {
   validateNoSource,
   validateReachedLimit,
 } from './alertValidators'
-import type { ActionType, AlertDefinition } from './types'
+import type { AlertDefinition, BulkActionType } from './types'
 
 /**
  * Get alert definitions for the given action type
  * Ordered by priority (1 is the highest priority)
  */
-export function getAlertDefinitions(actionType: ActionType): AlertDefinition[] {
+export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition[] {
   const isTranscription = actionType === 'transcript'
 
   return [
