@@ -1,11 +1,17 @@
 # Generated on 2026-06-23
+import time
+
 from django.conf import settings
 from django.core.management import call_command
-from django.db import IntegrityError, connections
+from django.db import IntegrityError
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from pymongo import UpdateOne
 
-from kobo.apps.openrosa.apps.logger.exceptions import RootUUIDConstraintNotEnforced
+from kobo.apps.long_running_migrations.exceptions import (
+    LongRunningMigrationDependencyError,
+)
+from kobo.apps.long_running_migrations.models import LongRunningMigration
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.utils.database import use_db
@@ -20,15 +26,16 @@ def run():
     Backfills `root_uuid` and `meta/rootUuid` for any Instance records missed
     by LRM 0005 (e.g. due to the taggit multi-DB routing bug).
 
+    Requires LRM 0005 to be in a terminal state (completed or failed) before
+    starting; retries on the next Celery beat cycle otherwise.
+
     Tracking strategy:
     - No success tag: the absence of null `root_uuid` instances proves completion.
-    - A `kobo-root-uuid-failed` tag (written directly to the kobocat DB) marks
-      XForms with unrecoverable errors so they are permanently skipped.
-
-    Safe to run concurrently with or after LRM 0005.
+    - A `kobo-root-uuid-failed-0026` tag (written directly to the KoboCAT DB)
+      marks XForms with unrecoverable errors so they are permanently skipped.
     """
 
-    _check_root_uuid_unique_index_ready()
+    _check_lrm_0005_is_completed()
 
     last_xform_id = 0
     with use_db(settings.OPENROSA_DB_ALIAS):
@@ -70,6 +77,7 @@ def get_xforms_queryset(xform_id: int) -> QuerySet:
     Both the null-check and the failed-tag exclusion run within the kobocat DB
     connection, avoiding cross-DB routing issues.
     """
+
     xform_ids = list(
         Instance.objects.filter(root_uuid__isnull=True)
         .values_list('xform_id', flat=True)
@@ -85,25 +93,21 @@ def get_xforms_queryset(xform_id: int) -> QuerySet:
     )
 
 
-def _check_root_uuid_unique_index_ready():
-    with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT ix.indisvalid
-            FROM pg_indexes i
-            JOIN pg_class c ON c.relname = i.indexname
-            JOIN pg_index ix ON ix.indexrelid = c.oid
-            WHERE i.tablename = %s AND i.indexname = %s
-            """,
-            ['logger_instance', 'unique_root_uuid_per_xform'],
+def _check_lrm_0005_is_completed():
+    """
+    Raises `LongRunningMigrationDependencyError` if LRM 0005 has not yet
+    reached a terminal state (completed or failed). The caller's `execute()`
+    catches this exception and retries on the next Celery beat cycle instead
+    of marking this migration as failed.
+    """
+
+    if not LongRunningMigration.objects.filter(
+        Q(status='completed') | Q(status='failed'),
+        name__startswith='0005',
+    ).exists():
+        raise LongRunningMigrationDependencyError(
+            'LRM 0005 has not reached a terminal state yet'
         )
-        row = cursor.fetchone()
-        if not (row is not None and row[0]):
-            raise RootUUIDConstraintNotEnforced(
-                'The unique index on "root_uuid" is missing or invalid. '
-                'Make sure migration `logger.0041_add_root_uuid_field_to_instance` '
-                'has been applied before running this migration.'
-            )
 
 
 def _process_instances_batch(
@@ -139,7 +143,7 @@ def _process_instances_batch(
                 xform.tags.add(FAILED_TAG)
                 return False
 
-            # Need to reload instance_batch to get new uuids
+            # Need to reload instance_batch to get updated root_uuids
             instance_batch_retry = Instance.objects.only(
                 'pk', 'uuid', 'xml', 'root_uuid'
             ).filter(pk__in=instance_batch_ids)

@@ -6,6 +6,9 @@ from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
 
+from kobo.apps.long_running_migrations.exceptions import (
+    LongRunningMigrationDependencyError,
+)
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
 
@@ -67,6 +70,11 @@ class LongRunningMigration(AbstractTimeStampedModel):
         except (SoftTimeLimitExceeded, TimeLimitExceeded):
             # Let's continue in the next round — this task took too long to
             # complete in a single run.
+            return
+        except LongRunningMigrationDependencyError as e:
+            # A required predecessor migration is not yet complete; retry on
+            # the next Celery beat cycle without marking this one as failed.
+            logging.warning(f'LongRunningMigration.execute(): dependency not met — {e}')
             return
         except Exception as e:
             # Log the error and update the status to 'failed'
