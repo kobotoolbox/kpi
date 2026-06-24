@@ -220,7 +220,9 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       {!showWarningModal && (
         <Stack gap='md'>
           <Text size='sm'>
-            {t('Your ##count## audio files are a total of ##duration## minutes. Please note this may take longer to process.')
+            {t(
+              'Your ##count## audio files are a total of ##duration## minutes. Please note this may take longer to process.',
+            )
               .replace('##count##', String(selectedRowsCount))
               .replace('##duration##', isAudioDurationLoading ? t('…') : String(Math.ceil(audioDuration / 60)))}
           </Text>
