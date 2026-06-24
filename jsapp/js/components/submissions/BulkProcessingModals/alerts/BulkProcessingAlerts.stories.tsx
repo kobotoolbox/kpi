@@ -4,7 +4,7 @@ import BulkProcessingAlerts from './BulkProcessingAlerts'
 import type { ActiveAlert } from './types'
 
 const meta = {
-  title: 'Submissions/BulkProcessingAlerts',
+  title: 'Components/BulkProcessingAlerts',
   component: BulkProcessingAlerts,
   parameters: {
     layout: 'padded',

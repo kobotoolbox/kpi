@@ -31,7 +31,7 @@ export default function BulkProcessingAlerts(props: BulkProcessingAlertsProps) {
   return (
     <Stack gap='sm'>
       {activeAlerts.map((alert) => (
-        <Alert key={alert.id} type={alert.type} iconName='warning'>
+        <Alert key={alert.id} type={alert.type} iconName={alert.type === 'error' ? 'alert' : 'warning'}>
           {alert.message}
         </Alert>
       ))}
