@@ -104,6 +104,8 @@ def _process_instances_batch(
             if 'root_uuid should not be empty' in str(e):
                 # fallback on `uuid` to back-fill `root_uuid`
                 instance.root_uuid = instance.uuid
+            else:
+                raise from e
 
         instance_batch_ids.append(instance.pk)
         instance_batch.append(instance)
