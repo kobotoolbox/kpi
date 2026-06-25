@@ -1,3 +1,4 @@
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 import { createInactiveResult } from './utils'
 
@@ -60,7 +61,8 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
     } else {
       // For translation: check if there's a transcript
       // Note: we assume here that there can be only one transcript
-      const transcript = submission._supplementalDetails?.[fieldXpath]?.transcript
+      const transcript =
+        submission._supplementalDetails?.[getSupplementalPathParts(fieldXpath).sourceRowPath]?.transcript
       hasSource = Boolean(transcript?.value)
     }
 
