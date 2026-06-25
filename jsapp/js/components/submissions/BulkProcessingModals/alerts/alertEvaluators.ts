@@ -98,16 +98,8 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
     .filter((submission) => conflictingUuids.has(submission._uuid))
     .map((submission) => submission._uuid)
 
-  const shouldShow = filteredSubmissionUuids.length > 0
-
-  if (shouldShow) {
-    console.info(
-      `[BulkProcessingAlerts] Alert "conflicting-job": Found ${filteredSubmissionUuids.length} submissions with ongoing jobs`,
-    )
-  }
-
   return {
-    shouldShow,
+    shouldShow: filteredSubmissionUuids.length > 0,
     type: 'warning',
     filteredSubmissionUuids,
     computedValues: {
