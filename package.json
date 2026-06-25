@@ -173,7 +173,7 @@
     "path": "^0.12.7",
     "playwright": "^1.59.1",
     "postcss": "^8.5.13",
-    "postcss-loader": "^7.3.4",
+    "postcss-loader": "^8.2.1",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "react-docgen-typescript-plugin": "^1.0.8",
