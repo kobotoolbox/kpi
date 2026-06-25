@@ -161,7 +161,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         <Stack gap='md'>
           <Text size='sm'>
             {t(
-              'Your ##total_files## audio files is a total of ##total_length##. This should take approximately ##estimated_time## to complete.',
+              'Your ##total_files## audio files is a total of ##total_length##. This may take longer to complete than the total duration of your files.',
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
               // TODO: this will be done after DEV-2255 is done
@@ -171,7 +171,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
             <LanguageSelector
-              disabled={hasExceededLimit}
+              disabled={hasExceededLimit || isLoadingUsage || hasErrors}
               onLanguageChange={handleLanguageChange}
               value={selectedLanguage}
               required
@@ -180,7 +180,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               nothingFoundMessage={t('I cannot find my language')}
             />
             <RegionSelector
-              disabled={!selectedLanguage || hasExceededLimit}
+              disabled={!selectedLanguage || hasExceededLimit || isLoadingUsage || hasErrors}
               rootLanguage={selectedLanguage || ''}
               serviceCode={serviceCode}
               serviceType='transcription'

@@ -151,7 +151,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
         <Stack gap='md'>
           <Text size='sm'>
             {t(
-              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This should take ##estimated_time## to complete.',
+              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This may take some time to complete.',
             )
               .replace('##total_selected##', String(eligibleSubmissions.length))
               .replace('##total_characters##', String(totalCharacters))
@@ -161,7 +161,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
             <LanguageSelector
-              disabled={hasExceededLimit}
+              disabled={hasExceededLimit || isLoadingUsage || hasErrors}
               onLanguageChange={handleLanguageChange}
               value={selectedLanguage}
               required
