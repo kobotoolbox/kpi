@@ -63,8 +63,8 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
       // Note 1: we assume here that there can be only one transcript
       // Note 2: `fieldXpath` can be question xpath for transcript case, but for translation case it would be path to
       // supplementalDetails, but we need to compare it to question xpath, so we use utility function
-      const transcript =
-        submission._supplementalDetails?.[getSupplementalPathParts(fieldXpath).sourceRowPath]?.transcript
+      const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
+      const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
       hasSource = Boolean(transcript?.value)
     }
 
