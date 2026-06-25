@@ -1,6 +1,6 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
@@ -8,7 +8,6 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import {
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsCreate,
-  useAssetsAttachmentsAudioDurationCreate,
 } from '#/api/react-query/survey-data'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
@@ -18,6 +17,7 @@ import Alert from '#/components/common/alert'
 import RegionSelector from '#/components/languages/RegionSelector'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { useCalculateAudioDuration } from '#/hooks/useCalculateAudioDuration.hook'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
 import ButtonNew from '../../../common/ButtonNew'
@@ -26,7 +26,6 @@ import type { LanguageCode } from '../../../languages/languagesStore'
 import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
-const MAXIMUM_AUDIO_DURATION_BATCH_SIZE = 200
 
 export interface BulkTranscriptionModalProps {
   fieldId: string
@@ -49,80 +48,14 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const selectedSubmissionUuids = props.selectedSubmissions.map((submission) => submission._uuid)
   const selectedRowsCount = props.selectedSubmissions.length
 
-  const { mutate: getAudioDurations } = useAssetsAttachmentsAudioDurationCreate()
-
-  useEffect(() => {
-    // Extract audio attachment uids from submissions
-    const attachmentUids = props.selectedSubmissions
-      .flatMap((submission) => submission._attachments || [])
-      .filter((attachment) => attachment.question_xpath === props.fieldId)
-      .map((attachment) => attachment.uid)
-
-    // Create batches of 200 (with limiting the submissions to 1 page, the biggest number of batches possible is 3)
-    const attachmentUidBatches: string[][] = []
-    for (let i = 0; i < attachmentUids.length; i += MAXIMUM_AUDIO_DURATION_BATCH_SIZE) {
-      attachmentUidBatches.push(attachmentUids.slice(i, i + MAXIMUM_AUDIO_DURATION_BATCH_SIZE))
-    }
-    ;(async () => {
-      setIsAudioDurationLoading(true)
-
-      for (const batch of attachmentUidBatches) {
-        let attempt = 0
-
-        // We attempt 2 more times if we get a 504
-        while (attempt < 3) {
-          try {
-            const result = await new Promise<{ success: boolean; total?: number; error?: ServerError }>((resolve) => {
-              getAudioDurations(
-                {
-                  uidAsset: props.assetUid,
-                  data: {
-                    attachment_uids: batch,
-                  },
-                },
-                {
-                  onSuccess: (response) => {
-                    resolve({ success: true, total: response.data.total })
-                  },
-                  onError: (error) => {
-                    const serverError = error as ServerError
-                    resolve({ success: false, error: serverError })
-                  },
-                },
-              )
-            })
-
-            if (result.success && result.total !== undefined) {
-              const total = result.total
-              setAudioDuration((prev) => prev + total)
-              break
-            } else if (result.error?.response?.status === 504) {
-              attempt++
-              if (attempt < 3) {
-                const delay = 2 ** (attempt - 1) * 1000
-                await new Promise((resolve) => setTimeout(resolve, delay))
-              } else {
-                notify.error(t('Failed to calculate audio duration after multiple attempts. Please try again.'))
-                setIsAudioDurationLoading(false)
-                return
-              }
-            } else {
-              const errorMessage = result.error?.toString() || t('Failed to calculate audio duration.')
-              notify.error(errorMessage)
-              setIsAudioDurationLoading(false)
-              return
-            }
-          } catch (error) {
-            notify.error(t('An unexpected error occurred while calculating audio duration.'))
-            setIsAudioDurationLoading(false)
-            return
-          }
-        }
-      }
-
-      setIsAudioDurationLoading(false)
-    })()
-  }, [])
+  useCalculateAudioDuration({
+    selectedSubmissions: props.selectedSubmissions,
+    fieldId: props.fieldId,
+    assetUid: props.assetUid,
+    onLoadingChange: setIsAudioDurationLoading,
+    onDurationAdd: (duration) => setAudioDuration((prev) => prev + duration),
+    onError: (message) => notify.error(message),
+  })
 
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
