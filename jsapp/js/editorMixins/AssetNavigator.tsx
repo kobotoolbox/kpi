@@ -104,7 +104,14 @@ export default function AssetNavigator() {
     ordering: '-date_modified',
   })
 
-  // Step 4. Setup drag and drop of found assets
+  // Step 4. Setup drag and drop for library assets
+  //
+  // Makes library items draggable into FormBuilder. Drop targets are .survey-editor__list
+  // (main survey) and .group__rows (groups). The receive handlers in view.surveyApp.coffee
+  // catch the drop and call surveyScope.handleItem() to fetch and insert the asset.
+  //
+  // We call sortable('cancel') on deactivate so the item stays in the library after dragging
+  // (it's a copy operation, not a move).
   const assetsListRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const foundEl = ReactDOM.findDOMNode(assetsListRef.current)
