@@ -93,7 +93,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
   // Use bulk processing alerts hook
-  const { activeAlerts, hasErrors, eligibleSubmissions } = useBulkProcessingAlerts({
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'translation',
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
@@ -101,11 +101,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })
-
-  // Allow language selection even when the only error is 'no-eligible-submissions'
-  // since changing the language might reveal eligible submissions
-  const hasBlockingError =
-    hasErrors && activeAlerts.some((alert) => alert.type === 'error' && alert.id !== 'no-eligible-submissions')
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)

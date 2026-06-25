@@ -101,7 +101,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
-  const { activeAlerts, hasErrors, eligibleSubmissions } = useBulkProcessingAlerts({
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'transcript',
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
@@ -112,11 +112,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   })
 
   const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
-
-  // Allow language selection even when the only error is 'no-eligible-submissions'
-  // since changing the language might reveal eligible submissions
-  const hasBlockingError =
-    hasErrors && activeAlerts.some((alert) => alert.type === 'error' && alert.id !== 'no-eligible-submissions')
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)

@@ -21,6 +21,8 @@ interface UseBulkProcessingAlertsReturn {
   activeAlerts: ActiveAlert[]
   hasErrors: boolean
   hasWarnings: boolean
+  /** True if there are errors other than 'no-eligible-submissions' */
+  hasBlockingError: boolean
   /** Submissions eligible after filtering */
   eligibleSubmissions: SubmissionResponse[]
   /** UUIDs of eligible submissions */
@@ -97,11 +99,16 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     // Compute evaluation state
     const hasErrors = activeAlerts.some((alert) => alert.type === 'error')
     const hasWarnings = activeAlerts.some((alert) => alert.type === 'warning')
+    // This allows language selection even when only no-eligible-submissions error is present. We want users to be able
+    // to select different language, as it could mean there will be eligible submissions.
+    const hasBlockingError =
+      hasErrors && activeAlerts.some((alert) => alert.type === 'error' && alert.id !== 'no-eligible-submissions')
 
     return {
       activeAlerts,
       hasErrors,
       hasWarnings,
+      hasBlockingError,
       eligibleSubmissions,
       eligibleSubmissionUuids,
     }
