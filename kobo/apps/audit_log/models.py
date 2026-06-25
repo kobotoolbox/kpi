@@ -1,4 +1,5 @@
 import copy
+from typing import Optional
 
 import jsonschema
 from django.conf import settings
@@ -168,20 +169,32 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
         # remove any attempt to set fields that should
         # always be the same on an access log
         self.remove_common_fields_and_warn('access', kwargs)
-        action = kwargs.pop('action', None)
-        if action is not None:
+        action = kwargs.pop('action', AuditAction.AUTH)
+        if action not in [AuditAction.AUTH, AuditAction.AUTH_FAILED]:
             logging.warning(f'Ignoring attempt to set {action=} on access log')
-        user = kwargs.pop('user')
+            action = AuditAction.AUTH
+
+        object_id = None
+        user_uid = ''
+        if user := kwargs.pop('user', None):
+            object_id = user.pk
+            user_uid = (
+                ExtraUserDetail.objects.values_list('uid', flat=True)
+                .filter(user=user)
+                .first()
+                or ''
+            )
+
         return super().create(
             # set the fields that are always the same for access logs,
             # pass along the rest to the original constructor
             app_label=User._meta.app_label,
             model_name=User._meta.model_name,
-            action=AuditAction.AUTH,
+            action=action,
             log_type=AuditType.ACCESS,
             user=user,
-            object_id=user.id,
-            user_uid=user.extra_details.uid,
+            object_id=object_id,
+            user_uid=user_uid,
             **kwargs,
         )
 
@@ -233,7 +246,13 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
                     Cast('object_id_legacy', output_field=models.CharField()),
                 ),
             )
-            .values('user__username', 'effective_object_id', 'user_uid', 'group_key')
+            .values(
+                'user__username',
+                'effective_object_id',
+                'user_uid',
+                'group_key',
+                'action',
+            )
             .annotate(
                 # include the number of submissions per group
                 # will be '1' for everything else
@@ -263,21 +282,12 @@ class AccessLog(AuditLog):
         proxy = True
 
     @staticmethod
-    def create_from_request(
+    def _get_auth_metadata(
         request,
-        user=None,
-        authentication_type: str = None,
-        extra_metadata: dict = None,
+        authentication_type: Optional[str],
+        logged_in_user: Optional[User],
+        is_successful: bool,
     ):
-        """
-        Create an access log for a request, assigned to either the given user or
-        request.user if not supplied
-
-        Note: Data passed in extra_metadata will override default values for the
-        same key
-        """
-        logged_in_user = user or request.user
-
         # django-loginas will keep the superuser as the _cached_user while request.user
         # is set to the new one sometimes there won't be a cached user at all,
         # mostly in tests
@@ -293,7 +303,8 @@ class AccessLog(AuditLog):
         )
         # a regular login may have an anonymous user as _cached_user, ignore that
         user_changed = (
-            initial_user
+            is_successful
+            and initial_user
             and initial_user.is_authenticated
             and initial_user.id != logged_in_user.id
         )
@@ -308,7 +319,11 @@ class AccessLog(AuditLog):
         elif is_loginas:
             # third option: loginas
             auth_type = ACCESS_LOG_LOGINAS_AUTH_TYPE
-        elif hasattr(logged_in_user, 'backend') and logged_in_user.backend is not None:
+        elif (
+            is_successful
+            and hasattr(logged_in_user, 'backend')
+            and logged_in_user.backend is not None
+        ):
             # fourth option: the backend that authenticated the user
             auth_type = logged_in_user.backend
         else:
@@ -327,10 +342,63 @@ class AccessLog(AuditLog):
         if is_loginas:
             metadata['initial_user_uid'] = initial_user.extra_details.uid
             metadata['initial_user_username'] = initial_user.username
+
+        return metadata
+
+    @staticmethod
+    def create_from_request(
+        request,
+        user=None,
+        authentication_type: str = None,
+        extra_metadata: dict = None,
+    ):
+        """
+        Create an access log for a request, assigned to either the given user or
+        request.user if not supplied
+
+        Note: Data passed in extra_metadata will override default values for the
+        same key
+        """
+        logged_in_user = user or request.user
+        metadata = AccessLog._get_auth_metadata(
+            request, authentication_type, logged_in_user, is_successful=True
+        )
         # add any other metadata the caller may want
         if extra_metadata is not None:
             metadata.update(extra_metadata)
         return AccessLog.objects.create(user=logged_in_user, metadata=metadata)
+
+    @staticmethod
+    def create_failed_from_request(
+        request,
+        username,
+    ):
+        """
+        Create an access log for a failed login request
+        """
+        if request is None:
+            return
+
+        metadata = AccessLog._get_auth_metadata(
+            request,
+            authentication_type=None,
+            logged_in_user=None,
+            is_successful=False,
+        )
+        metadata['attempted_username'] = username
+        user_id = (
+            User.objects.filter(username=username)
+            .exclude(pk=settings.ANONYMOUS_USER_ID)
+            .values_list('id', flat=True).first()
+            if username
+            else None
+        )
+
+        return AccessLog.objects.create(
+            user_id=user_id,
+            metadata=metadata,
+            action=AuditAction.AUTH_FAILED,
+        )
 
 
 class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
@@ -700,7 +768,17 @@ class ProjectHistoryLog(AuditLog):
                     metadata=metadata,
                 )
             )
+        # No transaction.atomic(): update_last_project_activity is a
+        # supplementary write — wrapping it with bulk_create would roll back
+        # audit entries if the activity update fails.
         ProjectHistoryLog.objects.bulk_create(logs)
+
+        # Track activity for the submitter/editor and the form owner so that
+        # inactivity queries can detect cross-user submission activity without
+        # querying the Instance table (which lives in a separate database).
+        if logs:
+            user_ids = {user.id, request.asset.owner.id}
+            ExtraUserDetail.update_last_project_activity(user_ids)
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
