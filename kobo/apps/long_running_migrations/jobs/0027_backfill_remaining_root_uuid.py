@@ -38,7 +38,10 @@ def run():
 
     last_xform_id = 0
     with use_db(settings.OPENROSA_DB_ALIAS):
-        while xforms := get_xforms_queryset(last_xform_id):
+        while True:
+            xforms, last_xform_id = get_xforms_queryset(last_xform_id)
+            if last_xform_id == -1:
+                break
             for xform in xforms:
                 logging.info(
                     f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - In Progress'
@@ -54,8 +57,6 @@ def run():
                         f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - Done'
                     )
 
-                last_xform_id = xform.pk
-
 
 def get_instances_queryset(xform_id: int) -> QuerySet:
     # No `order_by` here: ordering would force a full table scan before the
@@ -67,10 +68,13 @@ def get_instances_queryset(xform_id: int) -> QuerySet:
     )[:CHUNK_SIZE]
 
 
-def get_xforms_queryset(xform_id: int) -> QuerySet:
+def get_xforms_queryset(xform_id: int) -> tuple[QuerySet, int]:
     """
-    Returns up to CHUNK_SIZE XForm pks that still have null root_uuid instances
-    and have not been permanently marked as failed.
+    Returns `(queryset, next_xform_id)` where `next_xform_id` is the highest
+    candidate XForm PK seen (including failed ones), or -1 if there is no more
+    work. The caller must use `next_xform_id` — not `queryset` results — to
+    advance the pagination cursor, so that permanently-failed XForms at lower
+    PKs never block XForms with higher PKs.
 
     Both the null-check and the failed-tag exclusion run within the kobocat DB
     connection, avoiding cross-DB routing issues.
@@ -84,11 +88,15 @@ def get_xforms_queryset(xform_id: int) -> QuerySet:
         .order_by('xform_id')[:CHUNK_SIZE]
     )
 
+    if not xform_ids:
+        return XForm.objects.none(), -1
+
     return (
         XForm.objects.only('pk', 'id_string')
         .filter(pk__in=xform_ids)
         .exclude(tags__name__contains=FAILED_TAG)
-        .order_by('pk')[:CHUNK_SIZE]
+        .order_by('pk')[:CHUNK_SIZE],
+        max(xform_ids),
     )
 
 
