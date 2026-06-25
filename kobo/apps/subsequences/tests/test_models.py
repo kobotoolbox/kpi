@@ -238,13 +238,21 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset, submission_root_uuid=None, prefetched_supplement=None
             )
 
-    def test_retrieve_data_for_output_does_not_return_unaccepted_answer(self):
+    def test_retrieve_data_for_output_returns_pending_review_for_unaccepted_answer(self):
+        """
+        Unaccepted NLP results are no longer suppressed from the output
+
+        When a transcription or translation version has a value but no
+        `_dateAccepted`, `retrieve_data(for_output=True)` must include it
+        with `pendingReview: True` so the FE can render the "Review" button.
+        `value` is intentionally absent from the pending payload.
+        """
         self._add_manual_nlp_action('transcription', 'en', 'Hello')
         self._add_manual_nlp_action('translation', 'es', 'Hola')
         ss = SubmissionSupplement.objects.get(
             asset=self.asset, submission_uuid=self.submission_root_uuid
         )
-        # clear date accepted
+        # Clear _dateAccepted to simulate an unaccepted result
         ss.content[self.xpath]['manual_transcription']['_versions'][0][
             '_dateAccepted'
         ] = None
@@ -258,8 +266,18 @@ class SubmissionSupplementTestCase(TestCase):
         )
         transcription_data = output[self.xpath].get('transcript')
         translation_data = output[self.xpath].get('translation')
-        assert transcription_data is None
-        assert translation_data is None
+
+        # Pending transcription: pendingReview present, value absent
+        assert transcription_data is not None
+        assert transcription_data.get('pendingReview') is True
+        assert 'value' not in transcription_data
+        assert transcription_data['languageCode'] == 'en'
+
+        # Pending translation: pendingReview present, value absent
+        assert translation_data is not None
+        assert translation_data['es'].get('pendingReview') is True
+        assert 'value' not in translation_data['es']
+        assert translation_data['es']['languageCode'] == 'es'
 
     def test_retrieve_data_for_output_selects_most_recent_transcript(self):
         # Enable manual transcriptions in French
@@ -300,6 +318,116 @@ class SubmissionSupplementTestCase(TestCase):
         assert translations['es']['value'] == 'Hola automatico'
         assert translations['fr']['value'] == 'Bonjour'
         assert translations['de']['value'] == 'Guten tag'
+
+    def test_retrieve_data_for_output_deleted_latest_version_returns_empty(self):
+        """
+        When the latest transcription version is deleted (value is None / status
+        'deleted'), the question must be omitted from the output entirely even
+        if an older non-deleted version exists
+        """
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+        # Add a completed transcription first
+        self._add_automatic_nlp_action('transcription', 'en', 'Hello', accept=True)
+
+        # Now simulate a deletion by writing a null-value version on top
+        ss = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_root_uuid
+        )
+        deleted_version = {
+            '_data': {'language': 'en', 'status': 'deleted', 'value': None},
+            '_dateCreated': '2099-01-01T00:00:00.000000Z',
+            '_uuid': 'aaaaaaaa-0000-0000-0000-000000000000',
+        }
+        ss.content[self.xpath]['automatic_google_transcription']['_versions'].insert(
+            0, deleted_version
+        )
+        ss.save()
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        assert output[self.xpath].get('transcript') is None
+
+    def test_retrieve_data_for_output_auto_pending_beats_manual_accepted(self):
+        """
+        An unaccepted automatic transcription (pending review) with a more recent
+        creation date must win over an older accepted manual transcription
+
+        The FE should see `pendingReview: True` so it can prompt the user to
+        review the new automatic result, regardless of the earlier manual accept
+        """
+        self._enable_nlp_action('manual_transcription', ['en'])
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+
+        # Add an accepted manual transcription first (older creation date)
+        self._add_manual_nlp_action('transcription', 'en', 'Manual Hello')
+
+        # Add an automatic transcription (newer)
+        self._add_automatic_nlp_action('transcription', 'en', 'Auto Hello', accept=False)
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        transcript = output[self.xpath].get('transcript')
+
+        assert transcript is not None
+        assert transcript.get('pendingReview') is True
+        assert 'value' not in transcript
+        assert transcript['languageCode'] == 'en'
+
+    def test_retrieve_data_for_output_accepted_transcript_has_no_pending_review(self):
+        """
+        An accepted transcription must not include `pendingReview` and must
+        include `value`, the existing behaviour must remain intact
+        """
+        self._add_manual_nlp_action('transcription', 'en', 'Hello World')
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        transcript = output[self.xpath].get('transcript')
+
+        assert transcript is not None
+        assert 'pendingReview' not in transcript
+        assert transcript['value'] == 'Hello World'
+        assert transcript['languageCode'] == 'en'
+
+    def test_retrieve_data_for_output_in_progress_version_returns_empty(self):
+        """
+        A transcription whose latest version is still in-progress (`value`
+        absent from `_data`) must be omitted from the output
+        """
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+        ss_content = {
+            '_version': '20250820',
+            self.xpath: {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-01T00:00:00.000000Z',
+                    '_dateModified': '2026-01-01T00:00:00.000000Z',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2026-01-01T00:00:00.000000Z',
+                            '_uuid': 'bbbbbbbb-0000-0000-0000-000000000000',
+                            '_data': {
+                                'language': 'en',
+                                'status': 'in_progress',
+                                # no 'value' key, still processing
+                            },
+                        }
+                    ],
+                }
+            },
+        }
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_root_uuid,
+            content=ss_content,
+        )
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        assert output[self.xpath].get('transcript') is None
 
     # skip until we actually fill out or delete this test
     @pytest.mark.skip()
