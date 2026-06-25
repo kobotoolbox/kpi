@@ -8,13 +8,11 @@ from django.utils import timezone
 
 from hub.models import V1UserTracker
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits,
 )
-from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_nlp_usage_for_current_billing_period_by_user_id,
     get_storage_usage_by_user_id,
@@ -27,10 +25,13 @@ def get_active_users(days: int = 365) -> QuerySet:
     Retrieve users who have been active within specified number of days.
 
     A user is considered active if:
-    - They have logged in or were recently created
-    - An asset they own has been modified or created
-    - An asset they own has had submissions
-    - They have submitted data to any asset
+    - They have logged in within the given period, or were recently created and never
+      logged in
+    - They have modified or created an asset within the given period
+    - An asset they own has been modified or created by a manager or org admin within
+      the given period
+    - An asset they own has had new or modified submissions within the given period
+    - They have submitted data to any asset within the given period
 
     :param days: int: Threshold number of days (default: 365 days)
 
@@ -42,8 +43,10 @@ def get_active_users(days: int = 365) -> QuerySet:
     recent_login_filter = Q(last_login__gt=inactivity_threshold) | (
         Q(last_login__isnull=True) & Q(date_joined__gt=inactivity_threshold)
     )
-    active_users = get_users_with_recent_activity(days=days)
-    return User.objects.filter(recent_login_filter | Q(id__in=active_users)).exclude(
+    recently_active = Q(
+        extra_details__last_project_activity__gt=inactivity_threshold
+    )
+    return User.objects.filter(recent_login_filter | recently_active).exclude(
         pk=settings.ANONYMOUS_USER_ID
     )
 
@@ -55,6 +58,8 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     A user is considered inactive if:
     - They have not logged in within the given period (or never logged in).
     - They have not modified or created an asset within the given period.
+    - No asset they own has been modified or created by a manager or org
+      admin within the given period.
     - No asset they own has had new or modified submissions within the given period.
     - They have not submitted data to any asset within the given period.
 
@@ -66,15 +71,14 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     :return: A queryset of inactive users
     """
     inactivity_threshold = timezone.now() - timedelta(days=days)
-    inactive_users = User.objects.filter(
+    return User.objects.filter(
         Q(last_login__lt=inactivity_threshold)
         | (Q(last_login__isnull=True) & Q(date_joined__lt=inactivity_threshold))
-    )
-    active_user_ids = get_users_with_recent_activity(days=days)
-    trashed_user_ids = get_users_inactive_or_in_trash()
-    excluded_users = active_user_ids | trashed_user_ids
-    return inactive_users.exclude(
-        Q(id__in=excluded_users) | Q(username='AnonymousUser')
+    ).exclude(
+        Q(extra_details__last_project_activity__gt=inactivity_threshold)
+        | Q(is_active=False)
+        | Q(trash__isnull=False)
+        | Q(username='AnonymousUser')
     )
 
 
@@ -83,46 +87,6 @@ def get_users_inactive_or_in_trash() -> set[int]:
         Q(is_active=False) | Q(trash__isnull=False)
     ).values_list('pk', flat=True)
     return set(results)
-
-
-def get_users_with_recent_activity(days: int = 365) -> set[int]:
-    """
-    Retrieve ids of users with recent activity.
-
-    Recent activity includes:
-    - An asset they owned being modified
-    - An asset they own having submissions added or modified
-    - Submitting data to any asset
-
-    :param days: int: Number of days to determine inactivity (default: 365 days)
-
-    :return: A set of user ids
-    """
-    # Find created/modified assets
-    inactivity_threshold = timezone.now() - timedelta(days=days)
-    active_asset_owners = Asset.objects.filter(
-        Q(date_modified__gt=inactivity_threshold)
-        | Q(date_created__gt=inactivity_threshold)
-    ).values_list('owner_id', flat=True)
-
-    # Find users whose projects have active submissions within the given period
-    active_submission_owners = Instance.objects.filter(
-        Q(date_modified__gt=inactivity_threshold)
-        | Q(date_created__gt=inactivity_threshold)
-    ).values_list('xform__user_id', flat=True)
-
-    # Find users who have submitted data within the given period
-    active_submitters = Instance.objects.filter(
-        Q(date_modified__gt=inactivity_threshold)
-        | Q(date_created__gt=inactivity_threshold),
-        user__isnull=False,
-    ).values_list('user_id', flat=True)
-
-    return (
-        set(active_asset_owners)
-        | set(active_submission_owners)
-        | set(active_submitters)
-    )
 
 
 def get_users_within_range_of_usage_limit(
