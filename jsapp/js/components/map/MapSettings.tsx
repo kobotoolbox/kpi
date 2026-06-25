@@ -9,7 +9,7 @@ import Button from '#/components/common/button'
 import Modal from '#/components/common/modal'
 import MapColorPicker from '#/components/map/MapColorPicker'
 import { userCan } from '#/components/permissions/utils'
-import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT } from '#/constants'
+import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT, isMapDisplayableGeopointType } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
   AssetFileResponse,
@@ -105,7 +105,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     const geoQuestions: LabelValuePair[] = []
     props.asset.content?.survey?.forEach((question: any) => {
-      if (question.type && question.type === 'geopoint') {
+      if (isMapDisplayableGeopointType(question.type)) {
         geoQuestions.push({
           value: getRowName(question),
           label: getQuestionOrChoiceDisplayName(question, 0),
@@ -290,6 +290,8 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     var modalTabs = tabsToDisplay.map((tabId) => (
       <button
+        role='tab'
+        aria-selected={activeTab === tabId}
         className={cx({
           'legacy-modal-tab-button': true,
           'legacy-modal-tab-button--active': activeTab === tabId,

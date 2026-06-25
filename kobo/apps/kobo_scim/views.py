@@ -1,9 +1,10 @@
-import re
 import json
+import re
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.utils.functional import cached_property
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
@@ -17,13 +18,32 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
-from kobo.apps.kobo_scim.models import ScimGroup
+from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_GROUP,
+    SCIM_SCHEMA_LIST_RESPONSE,
+    SCIM_SCHEMA_RESOURCE_TYPE,
+    SCIM_SCHEMA_SCHEMA,
+    SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
+    SCIM_SCHEMA_USER,
+)
+from kobo.apps.kobo_scim.models import IdentityProvider, ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
     ScimErrorSerializer,
 )
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
+from kobo.apps.kobo_scim.utils import (
+    apply_scim_user_metadata,
+    generate_unique_scim_username,
+    get_scim_extension_schemas,
+)
+from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
+
+
+class ScimExceptionHandlerMixin:
+    def get_exception_handler(self):
+        return scim_exception_handler
 
 
 def normalize_scim_patch_operations(operations):
@@ -98,6 +118,7 @@ def scim_extend_schema(**kwargs):
     ),
 )
 class ScimUserViewSet(
+    ScimExceptionHandlerMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
@@ -118,6 +139,16 @@ class ScimUserViewSet(
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
+    @cached_property
+    def idp(self):
+        return getattr(self.request, 'auth', None)
+
+    @cached_property
+    def idp_provider_id(self):
+        if self.idp and self.idp.social_app:
+            return self.idp.social_app.provider_id
+        return None
+
     @extend_schema(
         responses=scim_responses(
             {
@@ -131,11 +162,12 @@ class ScimUserViewSet(
         """
         Handle POST requests (user provisioning from IdP).
         """
-        idp = request.auth
-        if not idp or not idp.social_app:
-            return Response(
-                {'detail': 'IdP not configured for user provisioning'},
-                status=status.HTTP_400_BAD_REQUEST,
+        if not self.idp or not self.idp.social_app:
+            raise ScimException(
+                detail='IdP not configured for user provisioning',
+                status_code=status.HTTP_400_BAD_REQUEST,
+                error_code='idp_not_configured',
+                reason='SCIM provisioning aborted because the IdP is not configured',
             )
 
         data = request.data
@@ -154,8 +186,11 @@ class ScimUserViewSet(
                 email = emails[0].get('value', '')
 
         if not username:
-            return Response(
-                {'detail': 'userName is required'}, status=status.HTTP_400_BAD_REQUEST
+            raise ScimException(
+                detail='userName is required',
+                status_code=status.HTTP_400_BAD_REQUEST,
+                error_code='missing_username',
+                reason='SCIM provisioning aborted because userName is required',
             )
 
         # If no explicit email was provided but userName looks like an email, use it
@@ -166,69 +201,155 @@ class ScimUserViewSet(
         first_name = name_dict.get('givenName', '')
         last_name = name_dict.get('familyName', '')
         uid = data.get('externalId') or username
+        active = str(data.get('active', True)).lower() == 'true'
 
-        try:
-            with transaction.atomic():
-                # First, check if user exists via SocialAccount linkage
-                social_account = (
-                    SocialAccount.objects.filter(
-                        provider=idp.social_app.provider_id, uid=uid
-                    )
-                    .select_related('user')
-                    .first()
+        with transaction.atomic():
+            # Lock the IdentityProvider row to prevent concurrent provisioning
+            # race conditions for the same IdP
+
+            IdentityProvider.objects.select_for_update().get(pk=self.idp.pk)
+            # First, check if user exists via SocialAccount linkage
+            social_account = (
+                SocialAccount.objects.filter(
+                    provider=self.idp_provider_id,
+                    uid=uid,
+                )
+                .select_related('user')
+                .first()
+            )
+
+            user = social_account.user if social_account else None
+
+            # Fallback to email matching if not linked yet
+            if not user:
+                # The provisioning requirement is to abort if the incoming email
+                # already belongs to any Kobo account, unless the account is already
+                # linked to this IdP and is being reactivated.
+                existing_email_users = (
+                    User.objects.filter(email__iexact=email)
+                    if email
+                    else User.objects.none()
                 )
 
-                user = social_account.user if social_account else None
-
-                # Fallback to username/email matching if not linked yet
-                if not user:
-                    user_by_username = User.objects.filter(
-                        username__iexact=username
-                    ).first()
-                    user_by_email = (
-                        User.objects.filter(email__iexact=email).first()
-                        if email
-                        else None
+                if existing_email_users.exists():
+                    raise ScimException(
+                        detail=(
+                            'Email address already exists on one or more '
+                            'Kobo accounts.'
+                        ),
+                        status_code=status.HTTP_409_CONFLICT,
+                        error_code='email_already_exists',
+                        reason=(
+                            'SCIM provisioning aborted because the email address '
+                            'already exists on one or more Kobo accounts'
+                        ),
                     )
-                    user = user_by_username or user_by_email
 
-                if not user:
-                    # Create the user natively
-                    user = User.objects.create_user(
-                        username=username,
-                        email=email,
-                        first_name=first_name,
-                        last_name=last_name,
-                        is_active=data.get('active', True),
-                    )
-                else:
-                    # If they exist, optionally reactivate them if the IdP sends
-                    # active=True. (A deprovisioned user in Kobo is not deleted
-                    # but deactivated).
-                    if not user.is_active and data.get('active', True):
-                        user.is_active = True
-                        user.save(update_fields=['is_active'])
-
-                # Ensure the SocialAccount link exists so SSO works flawlessly.
-                # We catch IntegrityError here just in case another IdP already
-                # has this exact uid linked.
-                SocialAccount.objects.get_or_create(
-                    user=user, provider=idp.social_app.provider_id, uid=uid
+                # Create the user natively
+                unique_username = generate_unique_scim_username(
+                    username, self.idp.slug
                 )
+                user = User.objects.create_user(
+                    username=unique_username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_active=active,
+                )
+
+            # Ensure the SocialAccount link exists so SSO works flawlessly.
+            # We catch IntegrityError here just in case another IdP already
+            # has this exact uid linked.
+            social_account_existed = social_account is not None
+
+            SocialAccount.objects.get_or_create(
+                user=user, provider=self.idp_provider_id, uid=uid
+            )
+
+            reactivated_users = []
+            if active:
+                reactivated_users = self._reactivate_sso_linked_accounts(
+                    user.email, user
+                )
+            else:
+                # If the IdP provisions the user as deactivated, or links to an
+                # existing user but specifies active=False, deactivate them.
+                apply_scim_user_metadata(
+                    user,
+                    data,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                )
+
+                audit_action = (
+                    AuditAction.REPROVISIONING
+                    if social_account_existed
+                    else AuditAction.PROVISIONING
+                )
+                audit_reason = (
+                    'Automated account re-provisioning via Identity Provider'
+                    if social_account_existed
+                    else 'Automated account provisioning via Identity Provider'
+                )
+
+                self._create_provisioning_audit_log(
+                    user=user,
+                    action=audit_action,
+                    email=email,
+                    username=user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason=audit_reason,
+                )
+
+                self.perform_destroy(user)
 
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        except IntegrityError:
-            # This is a safe fallback for edge cases like duplicate SocialAccount UIDs
-            return Response(
-                {
-                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
-                    'detail': 'One or more attributes in the resource already exists.',
-                    'status': '409',
-                },
-                status=status.HTTP_409_CONFLICT,
+            apply_scim_user_metadata(
+                user,
+                data,
+                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
             )
+
+            # Always log the primary user if this is a reprovisioning event
+            if social_account_existed:
+                self._create_provisioning_audit_log(
+                    user=user,
+                    action=AuditAction.REPROVISIONING,
+                    email=email,
+                    username=user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason='Automated account re-provisioning via Identity Provider',
+                )
+
+            # Additionally log any other reactivated users
+            for reactivated_user in reactivated_users:
+                # Avoid double-logging the primary user
+                if reactivated_user.pk == user.pk:
+                    continue
+
+                self._create_provisioning_audit_log(
+                    user=reactivated_user,
+                    action=AuditAction.REPROVISIONING,
+                    email=reactivated_user.email,
+                    username=reactivated_user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason='Automated account re-provisioning via Identity Provider',
+                )
+
+            # If this is a brand-new user (no social account existed)
+            if not social_account_existed:
+                self._create_provisioning_audit_log(
+                    user=user,
+                    action=AuditAction.PROVISIONING,
+                    email=email,
+                    username=user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason='Automated account provisioning via Identity Provider',
+                )
+
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         responses=scim_responses(
@@ -245,25 +366,85 @@ class ScimUserViewSet(
         update a user to have a username or email that already exists on another
         account, we intercept the IntegrityError and return a SCIM 409 Conflict.
         """
-        try:
-            return super().update(request, *args, **kwargs)
-        except IntegrityError:
-            # If the SCIM client attempts to force an update that violates DB unique
-            # constraints (e.g. changing the username to one that already exists),
-            # return SCIM 409 format.
-            return Response(
-                {
-                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
-                    'detail': 'One or more attributes in the resource already exists.',
-                    'status': '409',
-                },
-                status=status.HTTP_409_CONFLICT,
+        return super().update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            was_active = serializer.instance.is_active
+            instance = serializer.save()
+
+            if was_active and not instance.is_active:
+                self.perform_destroy(instance)
+            elif not was_active and instance.is_active:
+                self._create_provisioning_audit_log(
+                    user=instance,
+                    action=AuditAction.REPROVISIONING,
+                    email=instance.email,
+                    username=instance.username,
+                    status_code=status.HTTP_200_OK,
+                    reason=(
+                        'Automated account re-provisioning via SCIM PUT '
+                        'request from Identity Provider.'
+                    ),
+                )
+
+                reactivated_users = self._reactivate_sso_linked_accounts(
+                    instance.email, instance
+                )
+
+                for user in reactivated_users:
+                    self._create_provisioning_audit_log(
+                        user=user,
+                        action=AuditAction.REPROVISIONING,
+                        email=user.email,
+                        username=user.username,
+                        status_code=status.HTTP_200_OK,
+                        reason=(
+                            'Automated account re-provisioning via SCIM PUT '
+                            'request from Identity Provider.'
+                        ),
+                    )
+
+            apply_scim_user_metadata(
+                instance,
+                self.request.data,
+                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
             )
+
+    def _reactivate_sso_linked_accounts(self, email, current_user=None):
+        """
+        Reactivate inactive SSO-linked accounts with the same email.
+        Returns a list of reactivated users.
+        """
+        reactivated_users = []
+        # Handle users with the same email:
+        if email:
+            targets = User.objects.filter(
+                email__iexact=email,
+                is_active=False,
+                socialaccount__provider=self.idp_provider_id,
+            ).distinct()
+
+            for target in targets:
+                target.is_active = True
+                target.save(update_fields=['is_active'])
+                reactivated_users.append(target)
+
+                # Update in-memory instance to prevent the fallback block below
+                # from firing an extra, redundant save() call.
+                if current_user and current_user.pk == target.pk:
+                    current_user.is_active = True
+
+        if current_user and not current_user.is_active:
+            current_user.is_active = True
+            current_user.save(update_fields=['is_active'])
+            reactivated_users.append(current_user)
+
+        return reactivated_users
 
     def get_queryset(self):
         # The idp_slug in the URL MUST match the authenticated IdP
-        idp = self.request.auth
-        if not idp or idp.slug != self.kwargs.get('idp_slug'):
+        if not self.idp or self.idp.slug != self.kwargs.get('idp_slug'):
             # Return empty if cross-tenant or missing
             return User.objects.none()
 
@@ -271,10 +452,8 @@ class ScimUserViewSet(
         queryset = super().get_queryset().exclude(id=settings.ANONYMOUS_USER_ID)
 
         # Only include users that are linked to this IdP's SocialApp.
-        if idp.social_app:
-            queryset = queryset.filter(
-                socialaccount__provider=idp.social_app.provider_id
-            )
+        if self.idp.social_app:
+            queryset = queryset.filter(socialaccount__provider=self.idp_provider_id)
         else:
             # If the IdP doesn't have a SocialApp, it can't be mapped to any users
             return User.objects.none()
@@ -297,58 +476,61 @@ class ScimUserViewSet(
         return queryset
 
     def perform_destroy(self, instance):
-        # Kobo should automatically disable all accounts linked
-        # to the same email address
-        email_target = instance.email
-        if email_target:
-            targets = User.objects.filter(email__iexact=email_target)
-        else:
-            targets = User.objects.filter(pk=instance.pk)
-        users = list(targets.select_related('extra_details'))
+        with transaction.atomic():
+            # Kobo should automatically disable all accounts linked
+            # to the same email address
+            email_target = instance.email
+            if email_target:
+                targets = User.objects.filter(email__iexact=email_target)
+            else:
+                targets = User.objects.filter(pk=instance.pk)
+            users = list(targets.select_related('extra_details'))
 
-        targets.update(is_active=False)
+            targets.update(is_active=False)
+            instance.is_active = False
 
-        # Create audit logs as System-initiated events
-        idp_slug = self.kwargs.get('idp_slug')
-        audit_logs = []
+            # Create audit logs as System-initiated events
+            idp_slug = self.kwargs.get('idp_slug')
+            audit_logs = []
 
-        for user in users:
-            metadata = {
-                'idp_slug': idp_slug,
-                'deactivated_email': email_target,
-                'username': user.username,
-                'initiated_via': 'SCIM_API',
-                'info': 'Automated deactivation via Identity Provider',
-            }
+            for user in users:
+                metadata = {
+                    'idp_slug': idp_slug,
+                    'deactivated_email': email_target,
+                    'username': user.username,
+                    'initiated_via': 'SCIM_API',
+                    'info': 'Automated deactivation via Identity Provider',
+                }
 
-            user_uid = getattr(
-                getattr(user, 'extra_details', None), 'uid', None
-            ) or str(user.id)
+                user_uid = getattr(
+                    getattr(user, 'extra_details', None), 'uid', None
+                ) or str(user.id)
 
-            log = AuditLog(
-                user=user,
-                user_uid=user_uid,
-                app_label=user._meta.app_label,
-                model_name=user._meta.model_name,
-                object_id=user.id,
-                action=AuditAction.DEACTIVATION,
-                log_type=AuditType.USER_MANAGEMENT,
-                metadata=metadata,
-            )
-            audit_logs.append(log)
+                log = AuditLog(
+                    user=user,
+                    user_uid=user_uid,
+                    app_label=user._meta.app_label,
+                    model_name=user._meta.model_name,
+                    object_id=user.id,
+                    action=AuditAction.DEACTIVATION,
+                    log_type=AuditType.USER_MANAGEMENT,
+                    metadata=metadata,
+                )
+                audit_logs.append(log)
 
-        if audit_logs:
-            # bulk_create bypasses save(), so we must set user_uid
-            # explicitly (done above)
-            AuditLog.objects.bulk_create(audit_logs)
+            if audit_logs:
+                # bulk_create bypasses save(), so we must set user_uid
+                # explicitly (done above)
+                AuditLog.objects.bulk_create(audit_logs)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         operations = normalize_scim_patch_operations(request.data.get('Operations', []))
 
         active_status = None
+        scim_patch_data = {}
         for op in operations:
-            if op.get('op', '').lower() == 'replace':
+            if op.get('op', '').lower() in ('replace', 'add'):
                 path = op.get('path')
                 value = op.get('value')
 
@@ -357,18 +539,58 @@ class ScimUserViewSet(
                     active_status = str(value).lower() == 'true'
 
                 # Case 2: path is omitted, value is an object (or stringified object)
-                elif not path and isinstance(value, dict) and 'active' in value:
-                    active_status = str(value['active']).lower() == 'true'
+                elif not path and isinstance(value, dict):
+                    if 'active' in value:
+                        active_status = str(value['active']).lower() == 'true'
+                    # Merge for metadata mapping
+                    for k, v in value.items():
+                        if (
+                            isinstance(v, dict)
+                            and k in scim_patch_data
+                            and isinstance(scim_patch_data[k], dict)
+                        ):
+                            scim_patch_data[k].update(v)
+                        else:
+                            scim_patch_data[k] = v
 
-        if active_status is not None:
-            if active_status is False:
-                # Disabling the user
-                self.perform_destroy(instance)
-            else:
-                # Re-enabling the user
-                instance.is_active = True
-                instance.save(update_fields=['is_active'])
+                # Case 3: other path
+                elif path:
+                    scim_patch_data[path] = value
 
+        metadata_processed = False
+        with transaction.atomic():
+            if active_status is not None:
+                if active_status is False:
+                    # Disabling the user
+                    self.perform_destroy(instance)
+                else:
+                    # Re-enabling the user
+                    reactivated_users = self._reactivate_sso_linked_accounts(
+                        instance.email, instance
+                    )
+
+                    # Log re-provisioning for each reactivated user
+                    for user in reactivated_users:
+                        self._create_provisioning_audit_log(
+                            user=user,
+                            action=AuditAction.REPROVISIONING,
+                            email=user.email,
+                            username=user.username,
+                            status_code=status.HTTP_200_OK,
+                            reason=(
+                                'Automated account re-provisioning via SCIM PATCH '
+                                'request from Identity Provider.'
+                            ),
+                        )
+
+            if scim_patch_data:
+                metadata_processed = apply_scim_user_metadata(
+                    instance,
+                    scim_patch_data,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                )
+
+        if metadata_processed or active_status is not None:
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
             serializer = self.get_serializer(instance)
@@ -382,12 +604,58 @@ class ScimUserViewSet(
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    def _create_provisioning_audit_log(
+        self,
+        *,
+        user=None,
+        action,
+        email='',
+        username='',
+        status_code=None,
+        error='',
+        reason='',
+    ):
+        metadata = {
+            'idp_slug': self.kwargs.get('idp_slug'),
+            'email': email,
+            'username': username,
+            'initiated_via': 'SCIM_API',
+            'reason': reason,
+        }
+
+        if status_code:
+            metadata['status_code'] = status_code
+        if error:
+            metadata['error'] = error
+
+        user_uid = None
+        object_id = None
+        app_label = User._meta.app_label
+        model_name = User._meta.model_name
+
+        if user:
+            object_id = user.id
+            user_uid = getattr(
+                getattr(user, 'extra_details', None), 'uid', None
+            ) or str(user.id)
+
+        AuditLog.objects.create(
+            user=user,
+            user_uid=user_uid,
+            app_label=app_label,
+            model_name=model_name,
+            object_id=object_id,
+            action=action,
+            log_type=AuditType.USER_MANAGEMENT,
+            metadata=metadata,
+        )
+
 
 @scim_extend_schema()
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM Service Provider Configuration.'),
 )
-class ScimServiceProviderConfigView(APIView):
+class ScimServiceProviderConfigView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant ServiceProviderConfig endpoint.
     - GET /ServiceProviderConfig
@@ -402,7 +670,7 @@ class ScimServiceProviderConfigView(APIView):
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig'],
+            'schemas': [SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG],
             'patch': {'supported': True},
             'bulk': {'supported': False},
             'filter': {'supported': True, 'maxResults': 100},
@@ -433,7 +701,7 @@ class ScimServiceProviderConfigView(APIView):
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM supported Schemas.'),
 )
-class ScimSchemasView(APIView):
+class ScimSchemasView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant Schemas endpoint.
     NOTE: The schemas returned by this view are limited to the fields we handle in
@@ -450,21 +718,17 @@ class ScimSchemasView(APIView):
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
-            'totalResults': 2,
-            'itemsPerPage': 2,
+            'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
             'startIndex': 1,
             'Resources': [
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
-                    'id': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schemas': [SCIM_SCHEMA_SCHEMA],
+                    'id': SCIM_SCHEMA_USER,
                     'name': 'User',
                     'description': 'User Account',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:User'
-                        ),
+                        'location': (f'{location}/{SCIM_SCHEMA_USER}'),
                     },
                     'attributes': [
                         {
@@ -570,15 +834,13 @@ class ScimSchemasView(APIView):
                     ],
                 },
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
-                    'id': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schemas': [SCIM_SCHEMA_SCHEMA],
+                    'id': SCIM_SCHEMA_GROUP,
                     'name': 'Group',
                     'description': 'Group',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group'
-                        ),
+                        'location': (f'{location}/{SCIM_SCHEMA_GROUP}'),
                     },
                     'attributes': [
                         {
@@ -648,6 +910,18 @@ class ScimSchemasView(APIView):
                 },
             ],
         }
+
+        extension_schemas = get_scim_extension_schemas()
+        for ext_schema in extension_schemas:
+            ext_schema['meta'] = {
+                'resourceType': 'Schema',
+                'location': f"{location}/{ext_schema['id']}",
+            }
+            payload['Resources'].append(ext_schema)
+
+        payload['totalResults'] = len(payload['Resources'])
+        payload['itemsPerPage'] = len(payload['Resources'])
+
         return Response(payload, status=status.HTTP_200_OK)
 
 
@@ -655,7 +929,7 @@ class ScimSchemasView(APIView):
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM supported ResourceTypes.'),
 )
-class ScimResourceTypesView(APIView):
+class ScimResourceTypesView(ScimExceptionHandlerMixin, APIView):
     """
     SCIM 2.0 compliant ResourceTypes endpoint.
     - GET /ResourceTypes
@@ -670,18 +944,18 @@ class ScimResourceTypesView(APIView):
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
             'totalResults': 2,
             'itemsPerPage': 2,
             'startIndex': 1,
             'Resources': [
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'schemas': [SCIM_SCHEMA_RESOURCE_TYPE],
                     'id': 'User',
                     'name': 'User',
                     'endpoint': '/Users',
                     'description': 'User Account',
-                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schema': SCIM_SCHEMA_USER,
                     'schemaExtensions': [],
                     'meta': {
                         'resourceType': 'ResourceType',
@@ -689,12 +963,12 @@ class ScimResourceTypesView(APIView):
                     },
                 },
                 {
-                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'schemas': [SCIM_SCHEMA_RESOURCE_TYPE],
                     'id': 'Group',
                     'name': 'Group',
                     'endpoint': '/Groups',
                     'description': 'Group',
-                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schema': SCIM_SCHEMA_GROUP,
                     'schemaExtensions': [],
                     'meta': {
                         'resourceType': 'ResourceType',
@@ -703,6 +977,18 @@ class ScimResourceTypesView(APIView):
                 },
             ],
         }
+
+        extension_schemas = get_scim_extension_schemas()
+        schema_extensions = [
+            {'schema': ext['id'], 'required': False} for ext in extension_schemas
+        ]
+
+        user_resource = next(
+            (r for r in payload['Resources'] if r['id'] == 'User'), None
+        )
+        if user_resource:
+            user_resource['schemaExtensions'] = schema_extensions
+
         return Response(payload, status=status.HTTP_200_OK)
 
 
@@ -733,7 +1019,7 @@ class ScimResourceTypesView(APIView):
         responses=scim_responses({200: ScimGroupSerializer}),
     ),
 )
-class ScimGroupViewSet(viewsets.ModelViewSet):
+class ScimGroupViewSet(ScimExceptionHandlerMixin, viewsets.ModelViewSet):
     """
     SCIM 2.0 compliant Groups API endpoint.
     - GET /Groups

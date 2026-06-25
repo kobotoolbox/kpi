@@ -24,8 +24,10 @@ export function DeleteAssetModal({ asset, name, onDeleted, modalId, onRequestClo
   const [isConfirmDeletePending, setIsConfirmDeletePending] = useState(false)
 
   useEffect(() => {
+    // Updates the modal to prevent closing while the delete request is being processed
     modals.updateModal({
       modalId,
+      withCloseButton: !isConfirmDeletePending,
       closeOnEscape: !isConfirmDeletePending,
       closeOnClickOutside: !isConfirmDeletePending,
     })
@@ -43,6 +45,7 @@ export function DeleteAssetModal({ asset, name, onDeleted, modalId, onRequestClo
       },
       () => {
         setIsConfirmDeletePending(false)
+        onRequestClose()
       },
     )
   }

@@ -25,6 +25,7 @@ AccessLogResponse = inline_serializer_class(
         'metadata': AccessLogMetadataField(),
         'user_uid': serializers.CharField(),
         'count': serializers.IntegerField(),
+        'action': serializers.CharField(),
     },
 )
 

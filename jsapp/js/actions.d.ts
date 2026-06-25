@@ -419,7 +419,6 @@ export declare const actions: {
   }
   submissions: {
     getSubmission: GetSubmissionDefinition
-    getSubmissionByUuid: GetSubmissionDefinition
     getSubmissions: GetSubmissionsDefinition
     getProcessingSubmissions: GetProcessingSubmissionsDefinition
     bulkDeleteStatus: GenericDefinition

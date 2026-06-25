@@ -207,6 +207,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
       project_ownership: null,
       owner_label: "zefir's MMO organization",
       last_modified_by: 'zefir',
+      created_by: null,
     },
     {
       url: 'http://kf.kobo.local/api/v2/assets/abam8JiJ3hHTW3EYp6Tpb4/',
@@ -384,6 +385,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
       project_ownership: null,
       owner_label: "zefir's MMO organization",
       last_modified_by: 'zefir',
+      created_by: null,
     },
   ],
 }
