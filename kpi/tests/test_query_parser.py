@@ -1,6 +1,10 @@
+import pytest
 from django.test import TestCase
 
-from kpi.utils.query_parser.query_parser import QueryParseActions
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.exceptions import QueryParserNotSupportedFieldLookup
+from kpi.models.asset import Asset
+from kpi.utils.query_parser.query_parser import QueryParseActions, parse
 
 
 class TestQueryParseActionsProcessValue(TestCase):
@@ -61,3 +65,66 @@ class TestQueryParseActionsProcessValue(TestCase):
         # Test null value
         result = self.query_parse_actions.process_value('field', 'null')
         self.assertIsNone(result)
+
+
+# Field-qualified `q` terms whose lookup path reaches a sensitive model (or
+# column) must be rejected, whatever the root model and relation chain used.
+BLOCKED_QUERIES = [
+    (Asset, 'owner__auth_token__key__startswith:abcdef'),
+    (Asset, 'owner__password:somehash'),
+    (Asset, 'owner__mfa_methods_wrapper__secret:x'),
+    (Asset, 'owner__authenticator__data:x'),
+    (Asset, 'owner__partialdigest__partial_digest:x'),
+    (Asset, 'owner__socialaccount__socialtoken__token:x'),
+    (Asset, 'owner__emailaddress__emailconfirmation__key:x'),
+    (Asset, 'parent__owner__auth_token__key:x'),  # multi-hop, different prefix
+    (User, 'auth_token__key:x'),  # direct lookup, no `owner__`/`user__` prefix
+    (User, 'password:x'),
+    (User, 'authenticator__data:x'),
+]
+
+# Legitimate field-qualified terms that must keep working.
+ALLOWED_QUERIES = [
+    (Asset, 'owner__username:meg'),
+    (Asset, 'owner__email:meg@example.com'),
+    (Asset, 'parent__uid:aTJ3vi2KRGYj'),
+    (Asset, 'parent:null'),
+    (Asset, 'settings__sector__iexact:health'),
+    (Asset, 'settings__description__icontains:water'),
+    (Asset, 'tags__name__icontains:health'),
+    (Asset, 'date_created__gte:2022-11-15'),
+    (Asset, 'asset_type:survey'),
+    (Asset, 'uid__in:abc'),
+    (User, 'username:foo'),
+    (User, 'extra_details__data__name:foo'),
+]
+
+
+@pytest.mark.parametrize('model, query', BLOCKED_QUERIES)
+def test_secret_lookup_paths_are_rejected(model, query):
+    with pytest.raises(QueryParserNotSupportedFieldLookup):
+        parse(query, default_field_lookups=['name__icontains'], model=model)
+
+
+@pytest.mark.parametrize('model, query', ALLOWED_QUERIES)
+def test_legitimate_lookup_paths_are_allowed(model, query):
+    # Should build a `Q` object without raising
+    assert (
+        parse(query, default_field_lookups=['name__icontains'], model=model)
+        is not None
+    )
+
+
+def test_parse_requires_a_model():
+    # `model` is mandatory: forgetting it must fail loudly at the call site
+    # rather than silently skipping the lookup validation
+    with pytest.raises(TypeError):
+        parse('owner__username:meg', default_field_lookups=['name__icontains'])
+
+
+def test_field_term_without_model_is_rejected():
+    # Without a model the lookup cannot be proven safe, so it is rejected
+    # (fail-closed) instead of allowed
+    actions = QueryParseActions(['name__icontains'], 3, model=None)
+    with pytest.raises(QueryParserNotSupportedFieldLookup):
+        actions._validate_field('owner__username')
