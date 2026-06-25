@@ -365,8 +365,9 @@ class BulkActionCreateSerializer(serializers.Serializer):
             return
 
         action = feature.to_action()
+        params_before_update = list(feature.params)
         action.update_params(feature_params)
-        if action.params != feature.params:
+        if action.params != params_before_update:
             feature.params = action.params
             feature.save(update_fields=['params'])
 
