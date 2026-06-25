@@ -91,16 +91,8 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     }
   })
 
-  const shouldShow = alreadyTranslated.length > 0
-
-  if (shouldShow) {
-    console.info(
-      `[BulkProcessingAlerts] Alert "already-translated": Found ${alreadyTranslated.length} submissions with existing translations (${totalCharacters} characters)`,
-    )
-  }
-
   return {
-    shouldShow,
+    shouldShow: alreadyTranslated.length > 0,
     type: 'warning',
     filteredSubmissionUuids: alreadyTranslated,
     computedValues: {
