@@ -93,7 +93,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
   // Use bulk processing alerts hook
-  const { activeAlerts, hasErrors, eligibleSubmissions } = useBulkProcessingAlerts({
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'translation',
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
@@ -151,17 +151,15 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
         <Stack gap='md'>
           <Text size='sm'>
             {t(
-              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This should take ##estimated_time## to complete.',
+              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This may take some time to complete.',
             )
               .replace('##total_selected##', String(eligibleSubmissions.length))
-              .replace('##total_characters##', String(totalCharacters))
-              // TODO: this will be done after DEV-2255 is done
-              .replace('##estimated_time##', t('some time'))}
+              .replace('##total_characters##', String(totalCharacters))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
             <LanguageSelector
-              disabled={hasExceededLimit}
+              disabled={hasExceededLimit || isLoadingUsage || hasBlockingError}
               onLanguageChange={handleLanguageChange}
               value={selectedLanguage}
               required

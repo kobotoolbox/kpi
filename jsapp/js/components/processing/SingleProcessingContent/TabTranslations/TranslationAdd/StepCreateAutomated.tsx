@@ -215,7 +215,7 @@ export default function StepCreateAutomated({
 
       {errorMessage && (
         <div>
-          <Alert iconName='alert' type='error'>
+          <Alert iconName='alert' type='error' mt='md'>
             {errorMessage}
           </Alert>
         </div>

@@ -101,7 +101,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
-  const { activeAlerts, hasErrors, eligibleSubmissions } = useBulkProcessingAlerts({
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'transcript',
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
@@ -161,17 +161,16 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         <Stack gap='md'>
           <Text size='sm'>
             {t(
-              'Your ##total_files## audio files is a total of ##total_length##. This should take approximately ##estimated_time## to complete.',
+              'Your ##total_files## audio files is a total of ##total_length##. This may take longer to complete than the total duration of your files.',
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
               // TODO: this will be done after DEV-2255 is done
-              .replace('##total_length##', t('some time'))
-              .replace('##estimated_time##', t('some time'))}
+              .replace('##total_length##', t('some time'))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
             <LanguageSelector
-              disabled={hasExceededLimit}
+              disabled={hasExceededLimit || isLoadingUsage || hasBlockingError}
               onLanguageChange={handleLanguageChange}
               value={selectedLanguage}
               required
@@ -180,7 +179,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               nothingFoundMessage={t('I cannot find my language')}
             />
             <RegionSelector
-              disabled={!selectedLanguage || hasExceededLimit}
+              disabled={!selectedLanguage || hasExceededLimit || isLoadingUsage || hasBlockingError}
               rootLanguage={selectedLanguage || ''}
               serviceCode={serviceCode}
               serviceType='transcription'
