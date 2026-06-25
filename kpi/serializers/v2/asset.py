@@ -16,6 +16,7 @@ from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.reverse import reverse
 
+from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
@@ -565,6 +566,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             validated_data['is_excluded_from_projects_list'] = False
             instance = super().create(validated_data)
 
+        ExtraUserDetail.update_last_project_activity(
+            {current_owner.pk, instance.owner_id}
+        )
         return instance
 
     def update(self, asset, validated_data):
@@ -583,7 +587,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 _validated_data['settings'] = settings_
             if name := validated_data.get('name'):
                 _validated_data['name'] = name
-            return super().update(asset, _validated_data)
+
+            result = super().update(asset, _validated_data)
+            ExtraUserDetail.update_last_project_activity({user.pk, asset.owner_id})
+            return result
 
         asset_content = asset.content
         _req_data = request.data
@@ -599,6 +606,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 })
             validated_data['content'] = asset_content
         asset = super().update(asset, validated_data)
+        ExtraUserDetail.update_last_project_activity({user.pk, asset.owner_id})
 
         # Restore submission related permissions to the creator of the form
         if (
