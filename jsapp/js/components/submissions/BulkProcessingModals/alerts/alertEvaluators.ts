@@ -1,3 +1,4 @@
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 import { createInactiveResult } from './utils'
 
@@ -68,6 +69,8 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     return createInactiveResult('warning')
   }
 
+  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
+
   // Find submissions that already have translations in the selected language
   const alreadyTranslated: string[] = []
   let totalCharacters = 0
@@ -79,7 +82,7 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     }
 
     // Check if translation exists for this field and language
-    const supplementalDetails = submission._supplementalDetails?.[fieldXpath]
+    const supplementalDetails = submission._supplementalDetails?.[sourceRowPath]
     const translation = supplementalDetails?.translation?.[selectedLanguage]
 
     if (translation?.value) {

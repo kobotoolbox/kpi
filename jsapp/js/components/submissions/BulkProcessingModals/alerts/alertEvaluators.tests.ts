@@ -90,7 +90,7 @@ describe('evaluateNoEligibleSubmissions', () => {
 describe('evaluateAlreadyTranslated', () => {
   const baseContext: AlertEvaluationContext = {
     submissions: [],
-    fieldXpath: 'audio_question',
+    fieldXpath: '_supplementalDetails/audio_question/transcript_en',
     actionType: 'translation',
     selectedLanguage: 'fr',
     activeBulkActions: [],
@@ -313,5 +313,35 @@ describe('evaluateAlreadyTranslated', () => {
 
     expect(result.shouldShow).to.equal(false)
     expect(result.filteredSubmissionUuids).to.deep.equal([])
+  })
+
+  it('should work with direct field xpath (not transcript column xpath)', () => {
+    const mockSubmissions = [
+      assetDataFactory(1, {
+        _uuid: 'uuid-1',
+        _supplementalDetails: {
+          audio_question: {
+            translation: {
+              fr: { languageCode: 'fr', value: 'Bonjour' },
+            },
+          },
+        },
+      }),
+    ]
+
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      fieldXpath: 'audio_question',
+      submissions: mockSubmissions,
+    }
+
+    const result = evaluateAlreadyTranslated(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+    expect(result.computedValues).to.deep.equal({
+      count: 1,
+      characters: 7,
+    })
   })
 })
