@@ -1,6 +1,7 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
+import type { Mixin } from 'create-react-class'
 import { removeAssetSharing } from '#/assetQuickActions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
@@ -20,16 +21,64 @@ import { notify, recordKeys } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES } from './constants'
 
+interface ContextRouterMixin extends Mixin<any, any> {
+  isFormList: () => boolean
+  isLibrary: () => boolean
+  isMyLibrary: () => boolean
+  isPublicCollections: () => boolean
+  isLibrarySingle: () => boolean
+  isFormSingle: () => boolean
+  currentAssetID: () => string | undefined
+  currentAsset: () => AssetResponse | undefined
+  isActiveRoute: (path: string) => boolean
+  isFormBuilder: () => boolean
+}
+
+interface DmixProps {
+  params?: {
+    assetid?: string
+    uid?: string
+  }
+  formAsset?: AssetResponse
+  uid?: string
+  initialAssetLoadNotNeeded?: boolean
+}
+
+interface DmixState {
+  historyExpanded?: boolean
+  asset_type?: string
+  summary?: any
+  name?: string
+  [key: string]: any
+}
+
+// Helper interface for the component context when this mixin is applied
+interface DmixContext {
+  props: DmixProps
+  state: DmixState
+  setState: (state: Partial<DmixState>) => void
+}
+
+// Note: This mixin assumes it will be mixed into a React.Component,
+// so props/state/setState will be available at runtime
+interface DmixMixin extends Mixin<DmixProps, DmixState> {
+  afterCopy: (this: DmixMixin & DmixContext) => void
+  saveCloneAs: (this: DmixMixin & DmixContext, versionId?: string) => void
+  toggleDeploymentHistory: (this: DmixMixin & DmixContext) => void
+  summaryDetails: (this: DmixMixin & DmixContext) => JSX.Element
+  asJson: (this: DmixMixin & DmixContext) => JSX.Element
+  dmixAssetStoreChange: (this: DmixMixin & DmixContext, data: { [uid: string]: AssetResponse }) => void
+  _getAssetUid: (this: DmixMixin & DmixContext) => string | null | undefined
+  componentWillUpdate: (this: DmixMixin & DmixContext, newProps: DmixProps) => void
+  componentDidMount: (this: DmixMixin & DmixContext) => void
+  componentWillUnmount: (this: DmixMixin & DmixContext) => void
+  removeSharing: (this: DmixMixin & DmixContext) => void
+  dmixAssetStoreCancelListener?: () => void
+}
+
 interface MixinsObject {
-  contextRouter: {
-    [functionName: string]: Function
-    context?: any
-  }
-  dmix: {
-    [functionName: string]: Function
-    state?: any
-    props?: any
-  }
+  contextRouter: ContextRouterMixin
+  dmix: DmixMixin
 }
 
 /**
@@ -51,11 +100,12 @@ interface MixinsObject {
  */
 const mixins: MixinsObject = {
   dmix: {
-    afterCopy() {
+    // props, state, and setState are added by react-mixin when mixed into a component
+    afterCopy(this: DmixMixin & DmixContext) {
       notify(t('copied to clipboard'))
     },
 
-    saveCloneAs(versionId?: string) {
+    saveCloneAs(this: DmixMixin & DmixContext, versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`
 
       const dialog = alertify.dialog('prompt')
@@ -68,7 +118,7 @@ const mixins: MixinsObject = {
         value: name,
         labels: { ok: t('Ok'), cancel: t('Cancel') },
         onok: ({}, value: string) => {
-          const uid = this.props.params.assetid || this.props.params.uid
+          const uid = this.props.params?.assetid || this.props.params?.uid
           actions.resources.cloneAsset(
             {
               uid: uid,
@@ -93,12 +143,12 @@ const mixins: MixinsObject = {
       dialog.set(opts).show()
     },
     // TODO: move this one shot function to formLanding or formHistory and remove from mixins
-    toggleDeploymentHistory() {
+    toggleDeploymentHistory(this: DmixMixin & DmixContext) {
       this.setState({
         historyExpanded: !this.state.historyExpanded,
       })
     },
-    summaryDetails() {
+    summaryDetails(this: DmixMixin & DmixContext) {
       return (
         <pre>
           <code>
@@ -111,21 +161,23 @@ const mixins: MixinsObject = {
         </pre>
       )
     },
-    asJson() {
+    asJson(this: DmixMixin & DmixContext) {
       return (
         <pre>
           <code>{JSON.stringify(this.state, null, 4)}</code>
         </pre>
       )
     },
-    dmixAssetStoreChange(data: { [uid: string]: AssetResponse }) {
+    dmixAssetStoreChange(this: DmixMixin & DmixContext, data: { [uid: string]: AssetResponse }) {
       const uid = this._getAssetUid()
-      const asset = data[uid]
-      if (asset) {
-        this.setState(Object.assign({}, asset))
+      if (uid) {
+        const asset = data[uid]
+        if (asset) {
+          this.setState(Object.assign({}, asset))
+        }
       }
     },
-    _getAssetUid() {
+    _getAssetUid(this: DmixMixin & DmixContext) {
       if (this.props.params) {
         return this.props.params.assetid || this.props.params.uid
       } else if (this.props.formAsset) {
@@ -143,39 +195,44 @@ const mixins: MixinsObject = {
     // handle loading of the asset in all necessary cases in a way that all
     // interested parties could use without duplication or confusion and with
     // indication when the loading starts and when ends.
-    componentWillUpdate(newProps: any) {
+    componentWillUpdate(this: DmixMixin & DmixContext, newProps: DmixProps) {
       if (this.props.params?.uid !== newProps.params?.uid) {
         // This case is used by other components (header.js is one such component)
         // in a not clear way to gain a data on new asset.
-        actions.resources.loadAsset({ id: newProps.params.uid })
+        if (newProps.params?.uid) {
+          actions.resources.loadAsset({ id: newProps.params.uid })
+        }
       }
     },
 
-    componentDidMount() {
+    componentDidMount(this: DmixMixin & DmixContext) {
       this.dmixAssetStoreCancelListener = assetStore.listen((data: AssetStoreData) => {
         this.dmixAssetStoreChange(data)
-      }, this)
+      }, this) as () => void
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
       // call to get asset, as it is being already made. Ideally we want to have
       // this nice SSOT as described in TODO comment above.
       const uid = this._getAssetUid()
-      if (uid && this.props.initialAssetLoadNotNeeded) {
+      if (uid && this.props.initialAssetLoadNotNeeded && assetStore.data[uid]) {
         this.setState(Object.assign({}, assetStore.data[uid]))
       } else if (uid) {
         actions.resources.loadAsset({ id: uid }, true)
       }
     },
 
-    componentWillUnmount() {
+    componentWillUnmount(this: DmixMixin & DmixContext) {
       if (typeof this.dmixAssetStoreCancelListener === 'function') {
         this.dmixAssetStoreCancelListener()
       }
     },
 
-    removeSharing: function () {
-      removeAssetSharing(this.props.params.uid)
+    removeSharing(this: DmixMixin & DmixContext) {
+      const uid = this.props.params?.uid
+      if (uid) {
+        removeAssetSharing(uid)
+      }
     },
   },
   /**
@@ -204,7 +261,8 @@ const mixins: MixinsObject = {
       return getRouteAssetUid() ?? undefined
     },
     currentAsset() {
-      return assetStore.data[this.currentAssetID()]
+      const assetId = this.currentAssetID()
+      return assetId ? assetStore.data[assetId] : undefined
     },
     isActiveRoute(path: string) {
       return getCurrentPath().startsWith(path)

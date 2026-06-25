@@ -1,12 +1,10 @@
-import React from 'react'
-
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import { when } from 'mobx'
+import React from 'react'
 import autoBind from 'react-autobind'
 import Dropzone from 'react-dropzone'
 import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
@@ -24,18 +22,64 @@ import styles from '#/components/modalForms/projectSettings.module.scss'
 import { userCan } from '#/components/permissions/utils'
 import TemplatesList from '#/components/templatesList'
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES, NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import type { AssetResponse, LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { router, withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
 import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
 const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
+
+type ProjectSettingsContext = (typeof PROJECT_SETTINGS_CONTEXTS)[keyof typeof PROJECT_SETTINGS_CONTEXTS]
+
+interface ProjectSettingsFields {
+  name: string
+  description: string
+  sector: LabelValuePair | null
+  country: LabelValuePair[] | null
+  operational_purpose: LabelValuePair | null
+  collects_pii: LabelValuePair | null
+  extra_metadata_fields: Record<string, string | string[] | null>
+}
+
+interface ProjectSettingsProps extends WithRouterProps {
+  context: ProjectSettingsContext
+  formAsset?: AssetResponse
+  initialTemplateUid?: string | null
+  onProjectDetailsChange?: (data: {
+    fieldName: string
+    fieldValue: string | string[] | LabelValuePair | LabelValuePair[] | null
+  }) => void
+  onSetModalTitle?: (title: string) => void
+}
+
+interface ProjectSettingsState {
+  isSessionLoaded: boolean
+  isSubmitPending: boolean
+  formAsset?: AssetResponse
+  fields: ProjectSettingsFields
+  fieldsWithErrors: string[]
+  currentStep: string | null
+  previousStep: string | null
+  isImportFromURLPending: boolean
+  importUrl: string
+  importUrlButtonEnabled: boolean
+  importUrlButton: string
+  isApplyTemplatePending: boolean
+  applyTemplateButton: string
+  chosenTemplateUid: string | null
+  pendingTemplateCloneUid: string | null
+  isUploadFilePending: boolean
+  isAwaitingArchiveCompleted: boolean
+  isAwaitingUnarchiveCompleted: boolean
+}
 
 /**
  * This is used for multiple different purposes:
@@ -54,8 +98,18 @@ const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-
  * - AccountSettingsRoute
  * - LibraryAssetForm
  */
-class ProjectSettings extends React.Component {
-  constructor(props) {
+class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSettingsState> {
+  private STEPS: {
+    FORM_SOURCE: string
+    CHOOSE_TEMPLATE: string
+    UPLOAD_FILE: string
+    IMPORT_URL: string
+    PROJECT_DETAILS: string
+  }
+
+  private unlisteners: Function[] = []
+
+  constructor(props: ProjectSettingsProps) {
     super(props)
 
     this.STEPS = {
@@ -120,7 +174,7 @@ class ProjectSettings extends React.Component {
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
-      router.subscribe(this.onRouteChange.bind(this)),
+      router!.subscribe(this.onRouteChange.bind(this)),
     )
   }
 
@@ -130,16 +184,35 @@ class ProjectSettings extends React.Component {
     })
   }
 
-  getInitialFieldsFromAsset(asset) {
-    const fields = {}
+  getInitialFieldsFromAsset(asset?: AssetResponse): ProjectSettingsFields {
+    const fields: ProjectSettingsFields = {
+      name: '',
+      description: '',
+      sector: null,
+      country: null,
+      operational_purpose: null,
+      collects_pii: null,
+      extra_metadata_fields: {},
+    }
 
     fields.name = asset ? asset.name : ''
-    fields.description = asset?.settings ? asset.settings.description : ''
+    fields.description = asset?.settings?.description ?? ''
 
-    fields.sector = asset?.settings?.sector?.value ? asset.settings.sector : null
-    fields.country = asset?.settings ? asset.settings.country : null
-    fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null
-    fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null
+    const sectorValue = asset?.settings?.sector
+    fields.sector =
+      sectorValue && typeof sectorValue === 'object' && 'value' in sectorValue ? (sectorValue as LabelValuePair) : null
+
+    const countryValue = asset?.settings?.country
+    if (countryValue && Array.isArray(countryValue)) {
+      fields.country = countryValue
+    } else if (countryValue && typeof countryValue === 'object' && 'value' in countryValue) {
+      fields.country = [countryValue as LabelValuePair]
+    } else {
+      fields.country = null
+    }
+
+    fields.operational_purpose = asset?.settings?.operational_purpose ?? null
+    fields.collects_pii = asset?.settings?.collects_pii ?? null
     fields.extra_metadata_fields = {}
 
     envStore.data.extra_project_metadata_fields.forEach((field) => {
@@ -160,7 +233,7 @@ class ProjectSettings extends React.Component {
   /**
    * Function used whenever some endpoint calls return an asset.
    */
-  applyAssetToState(asset) {
+  applyAssetToState(asset: AssetResponse) {
     this.setState({
       fields: this.getInitialFieldsFromAsset(asset),
       isUploadFilePending: false,
@@ -198,7 +271,7 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  getStepTitle(step) {
+  getStepTitle(step: string) {
     switch (step) {
       case this.STEPS.FORM_SOURCE:
         return t('Choose a source')
@@ -215,8 +288,8 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  getFilenameFromURI(url) {
-    return decodeURIComponent(new URL(url).pathname.split('/').pop().split('.')[0])
+  getFilenameFromURI(url: string) {
+    return decodeURIComponent(new URL(url).pathname.split('/').pop()!.split('.')[0])
   }
 
   isLoading() {
@@ -232,7 +305,7 @@ class ProjectSettings extends React.Component {
   isReplacingFormLocked() {
     return (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-      this.state.formAsset.content &&
+      this.state.formAsset?.content &&
       hasAssetRestriction(this.state.formAsset.content, LockingRestrictionName.form_replace)
     )
   }
@@ -241,14 +314,28 @@ class ProjectSettings extends React.Component {
    * handling user input
    */
 
-  onAnyFieldChange(fieldName, newFieldValue) {
-    const newStateObj = clonedeep(this.state)
+  onAnyFieldChange(fieldName: string, newFieldValue: string | string[] | LabelValuePair | LabelValuePair[] | null) {
+    const newStateObj: ProjectSettingsState = clonedeep(this.state) as ProjectSettingsState
 
     // Set Value
     if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {
-      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue
+      newStateObj.fields.extra_metadata_fields[fieldName] = newFieldValue as string | string[] | null
     } else {
-      newStateObj.fields[fieldName] = newFieldValue
+      // Type-safe field assignment by field name
+      switch (fieldName) {
+        case 'name':
+        case 'description':
+          newStateObj.fields[fieldName] = newFieldValue as string
+          break
+        case 'sector':
+        case 'operational_purpose':
+        case 'collects_pii':
+          newStateObj.fields[fieldName] = newFieldValue as LabelValuePair | null
+          break
+        case 'country':
+          newStateObj.fields[fieldName] = newFieldValue as LabelValuePair[] | null
+          break
+      }
     }
 
     // If given field has error and user starts to edit it, we can remove
@@ -269,15 +356,15 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onNameChange(newValue) {
+  onNameChange(newValue: string) {
     this.onAnyFieldChange('name', assetUtils.removeInvalidChars(newValue).slice(0, NAME_MAX_LENGTH))
   }
 
-  onDescriptionChange(newValue) {
+  onDescriptionChange(newValue: string) {
     this.onAnyFieldChange('description', assetUtils.removeInvalidChars(newValue))
   }
 
-  onImportUrlChange(value) {
+  onImportUrlChange(value: string) {
     this.setState({
       importUrl: value,
       importUrlButtonEnabled: isAValidUrl(value),
@@ -285,7 +372,7 @@ class ProjectSettings extends React.Component {
     })
   }
 
-  onTemplateChange(templateUid) {
+  onTemplateChange(templateUid: string) {
     this.setState({
       chosenTemplateUid: templateUid,
     })
@@ -306,31 +393,31 @@ class ProjectSettings extends React.Component {
     })
   }
 
-  deleteProject(evt) {
+  deleteProject(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
-    openDeleteAssetModal(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
+    openDeleteAssetModal(this.state.formAsset!, this.state.formAsset!.name, this.goToProjectsList.bind(this))
   }
 
   // archive flow
 
   isArchivable() {
-    return this.state.formAsset.deployment_status === 'deployed'
+    return this.state.formAsset?.deployment_status === 'deployed'
   }
 
   isArchived() {
-    return this.state.formAsset.deployment_status === 'archived'
+    return this.state.formAsset?.deployment_status === 'archived'
   }
 
-  archiveProject(evt) {
+  archiveProject(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
-    archiveAsset(this.state.formAsset)
+    archiveAsset(this.state.formAsset!)
     this.setState({ isAwaitingArchiveCompleted: true })
   }
 
-  unarchiveProject(evt) {
+  unarchiveProject(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
-    unarchiveAsset(this.state.formAsset)
+    unarchiveAsset(this.state.formAsset!)
     this.setState({ isAwaitingUnarchiveCompleted: true })
   }
 
@@ -367,7 +454,7 @@ class ProjectSettings extends React.Component {
    * routes navigation
    */
 
-  goToFormBuilder(assetUid) {
+  goToFormBuilder(assetUid: string) {
     pageState.hideModal()
     this.props.router.navigate(`/forms/${assetUid}/edit`)
   }
@@ -400,7 +487,7 @@ class ProjectSettings extends React.Component {
    * modal steps navigation
    */
 
-  displayStep(targetStep) {
+  displayStep(targetStep: string) {
     const currentStep = this.state.currentStep
     const previousStep = this.state.previousStep
 
@@ -435,13 +522,13 @@ class ProjectSettings extends React.Component {
    * handling asset creation
    */
 
-  onLoadAssetCompleted(response) {
+  onLoadAssetCompleted(response: AssetResponse) {
     if (this.state.formAsset?.uid === response.uid) {
       this.setState({ formAsset: response })
     }
   }
 
-  onUpdateAssetCompleted(response) {
+  onUpdateAssetCompleted(response: AssetResponse) {
     if (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
       this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
@@ -469,7 +556,7 @@ class ProjectSettings extends React.Component {
   }
 
   getOrCreateFormAsset() {
-    const assetPromise = new Promise((resolve, reject) => {
+    const assetPromise = new Promise<AssetResponse>((resolve, reject) => {
       if (this.state.formAsset) {
         resolve(this.state.formAsset)
       } else {
@@ -477,10 +564,10 @@ class ProjectSettings extends React.Component {
           .createResource({
             asset_type: 'empty',
           })
-          .done((asset) => {
+          .done((asset: AssetResponse) => {
             resolve(asset)
           })
-          .fail((r) => {
+          .fail((r: JQuery.jqXHR) => {
             reject(t('Error: asset could not be created.') + ` (code: ${r.statusText})`)
           })
       }
@@ -508,22 +595,22 @@ class ProjectSettings extends React.Component {
         settings: this.getSettingsForEndpoint(),
         asset_type: 'survey',
       })
-      .done((asset) => {
+      .done((asset: AssetResponse) => {
         this.goToFormBuilder(asset.uid)
       })
-      .fail((r) => {
+      .fail((r: JQuery.jqXHR) => {
         notify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`)
       })
   }
 
   updateAndOpenAsset() {
-    actions.resources.updateAsset(this.state.formAsset.uid, {
+    actions.resources.updateAsset(this.state.formAsset!.uid, {
       name: this.state.fields.name,
       settings: this.getSettingsForEndpoint(),
     })
   }
 
-  cloneTemplateAsSurvey(templateUid) {
+  cloneTemplateAsSurvey(templateUid: string) {
     this.setState({
       isApplyTemplatePending: true,
       applyTemplateButton: t('Please wait…'),
@@ -536,7 +623,7 @@ class ProjectSettings extends React.Component {
         uid: templateUid,
         new_asset_type: 'survey',
       })
-      .done((asset) => {
+      .done((asset: AssetResponse) => {
         // Only process if we're still waiting for this specific template
         if (this.state.pendingTemplateCloneUid === templateUid) {
           this.setState({
@@ -562,7 +649,7 @@ class ProjectSettings extends React.Component {
       })
   }
 
-  applyTemplate(evt) {
+  applyTemplate(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
     const templateUid = this.state.chosenTemplateUid
@@ -572,16 +659,16 @@ class ProjectSettings extends React.Component {
         isApplyTemplatePending: true,
         applyTemplateButton: t('Please wait…'),
       })
-      actions.resources.updateAsset(this.state.formAsset.uid, {
-        clone_from: templateUid,
-        name: this.state.formAsset.name,
+      actions.resources.updateAsset(this.state.formAsset!.uid, {
+        clone_from: templateUid!,
+        name: this.state.formAsset!.name,
       })
     } else {
-      this.cloneTemplateAsSurvey(templateUid)
+      this.cloneTemplateAsSurvey(templateUid!)
     }
   }
 
-  importFromURL(evt) {
+  importFromURL(evt: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
     if (isAValidUrl(this.state.importUrl)) {
@@ -600,7 +687,7 @@ class ProjectSettings extends React.Component {
             (data) => {
               dataInterface
                 .getAsset({ id: data.uid })
-                .done((finalAsset) => {
+                .done((finalAsset: AssetResponse) => {
                   if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                     // when replacing, we omit PROJECT_DETAILS step
                     this.goToFormLanding()
@@ -627,28 +714,30 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  notifyImportFailure(response, sourceName) {
+  notifyImportFailure(response: any, sourceName: string | null) {
     const messages = response?.messages || response?.responseJSON?.messages
     const errorType = messages?.error_type
     const importError = messages?.error
 
     if (importError) {
-      const errLines = [t('Import Failed!')]
+      const errLines: Array<string | JSX.Element> = [t('Import Failed!')]
       if (sourceName) {
-        errLines.push(<code>Name: {sourceName}</code>)
+        errLines.push(<code key='name'>Name: {sourceName}</code>)
       }
       errLines.push(
-        <code>
+        <code key='error'>
           {errorType}: {escapeHtml(importError)}
         </code>,
       )
-      notify.error(join(errLines, <br />))
+      // join returns an array of React nodes (strings and JSX elements with <br /> separators)
+      const message = <>{join(errLines, <br />)}</>
+      notify.error(message)
     } else {
       handleApiFail(response, t('Import Failed!'))
     }
   }
 
-  onFileDrop(files) {
+  onFileDrop(files: File[]) {
     if (files.length >= 1) {
       this.setState({ isUploadFilePending: true })
 
@@ -658,7 +747,7 @@ class ProjectSettings extends React.Component {
             (data) => {
               dataInterface
                 .getAsset({ id: data.uid })
-                .done((finalAsset) => {
+                .done((finalAsset: AssetResponse) => {
                   // TODO: Getting asset outside of actions.resources.loadAsset
                   // is not going to notify all the listeners, causing some hard
                   // to identify bugs.
@@ -694,14 +783,14 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  hasFieldError(fieldName) {
+  hasFieldError(fieldName: string) {
     return this.state.fieldsWithErrors.includes(fieldName)
   }
 
-  handleSubmit(evt) {
+  handleSubmit(evt: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
-    const fieldsWithErrors = []
+    const fieldsWithErrors: string[] = []
 
     // simple non-empty name validation
     if (!this.state.fields.name.trim()) {
@@ -709,22 +798,49 @@ class ProjectSettings extends React.Component {
     }
 
     // superuser-configured metadata
-    if (envStore.data.getProjectMetadataField('description').required && !this.state.fields.description.trim()) {
+    const descriptionFieldMeta = envStore.data.getProjectMetadataField('description')
+    if (
+      descriptionFieldMeta &&
+      typeof descriptionFieldMeta !== 'boolean' &&
+      descriptionFieldMeta.required &&
+      !this.state.fields.description.trim()
+    ) {
       fieldsWithErrors.push('description')
     }
-    if (envStore.data.getProjectMetadataField('sector').required && !this.state.fields.sector) {
+    const sectorFieldMeta = envStore.data.getProjectMetadataField('sector')
+    if (
+      sectorFieldMeta &&
+      typeof sectorFieldMeta !== 'boolean' &&
+      sectorFieldMeta.required &&
+      !this.state.fields.sector
+    ) {
       fieldsWithErrors.push('sector')
     }
-    if (envStore.data.getProjectMetadataField('country').required && !this.state.fields.country?.length) {
+    const countryFieldMeta = envStore.data.getProjectMetadataField('country')
+    if (
+      countryFieldMeta &&
+      typeof countryFieldMeta !== 'boolean' &&
+      countryFieldMeta.required &&
+      !this.state.fields.country?.length
+    ) {
       fieldsWithErrors.push('country')
     }
+    const operationalPurposeFieldMeta = envStore.data.getProjectMetadataField('operational_purpose')
     if (
-      envStore.data.getProjectMetadataField('operational_purpose').required &&
+      operationalPurposeFieldMeta &&
+      typeof operationalPurposeFieldMeta !== 'boolean' &&
+      operationalPurposeFieldMeta.required &&
       !this.state.fields.operational_purpose
     ) {
       fieldsWithErrors.push('operational_purpose')
     }
-    if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.fields.collects_pii) {
+    const collectsPiiFieldMeta = envStore.data.getProjectMetadataField('collects_pii')
+    if (
+      collectsPiiFieldMeta &&
+      typeof collectsPiiFieldMeta !== 'boolean' &&
+      collectsPiiFieldMeta.required &&
+      !this.state.fields.collects_pii
+    ) {
       fieldsWithErrors.push('collects_pii')
     }
 
@@ -748,7 +864,7 @@ class ProjectSettings extends React.Component {
       }
 
       // Default to text fields
-      if (!val?.trim()) {
+      if (typeof val !== 'string' || !val.trim()) {
         fieldsWithErrors.push(field.name)
       }
     })
@@ -774,10 +890,10 @@ class ProjectSettings extends React.Component {
    * rendering
    */
 
-  getNameInputLabel(nameVal) {
+  getNameInputLabel(nameVal: string) {
     let label = t('Project Name')
     if (nameVal.length >= NAME_MAX_LENGTH - 99) {
-      label += ` (${t('##count## characters left').replace('##count##', NAME_MAX_LENGTH - nameVal.length)})`
+      label += ` (${t('##count## characters left').replace('##count##', String(NAME_MAX_LENGTH - nameVal.length))})`
     }
     return label
   }
@@ -797,7 +913,7 @@ class ProjectSettings extends React.Component {
 
   renderStepFormSource() {
     return (
-      <form className={this.checkModalStyle()}>
+      <form className={this.checkModalStyle() || undefined}>
         {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE && (
           <div className={styles.modalSubheader}>
             {t(
@@ -854,7 +970,7 @@ class ProjectSettings extends React.Component {
 
   renderStepUploadFile() {
     return (
-      <form className={this.checkModalStyle()}>
+      <form className={this.checkModalStyle() || undefined}>
         <div className={styles.modalSubheader}>{t('Import an XLSForm from your computer.')}</div>
 
         {!this.state.isUploadFilePending && (
@@ -885,7 +1001,7 @@ class ProjectSettings extends React.Component {
 
   renderStepImportUrl() {
     return (
-      <form className={this.checkModalStyle()}>
+      <form className={this.checkModalStyle() || undefined}>
         <div className={styles.uploadInstructions}>
           {t('Enter a valid XLSForm URL in the field below.')}
           <br />
@@ -923,16 +1039,28 @@ class ProjectSettings extends React.Component {
     )
   }
 
+  onProjectDetailsFormChange = () => {}
+
   renderStepProjectDetails() {
-    const sectorField = envStore.data.getProjectMetadataField('sector')
+    const sectorFieldResult = envStore.data.getProjectMetadataField('sector')
+    const sectorField = sectorFieldResult && typeof sectorFieldResult !== 'boolean' ? sectorFieldResult : null
     const sectors = envStore.data.sector_choices
-    const countryField = envStore.data.getProjectMetadataField('country')
+    const countryFieldResult = envStore.data.getProjectMetadataField('country')
+    const countryField = countryFieldResult && typeof countryFieldResult !== 'boolean' ? countryFieldResult : null
     const countries = envStore.data.country_choices
     const bothCountryAndSector = sectorField && countryField
-    const operationalPurposeField = envStore.data.getProjectMetadataField('operational_purpose')
+    const operationalPurposeFieldResult = envStore.data.getProjectMetadataField('operational_purpose')
+    const operationalPurposeField =
+      operationalPurposeFieldResult && typeof operationalPurposeFieldResult !== 'boolean'
+        ? operationalPurposeFieldResult
+        : null
     const operationalPurposes = envStore.data.operational_purpose_choices
-    const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii')
-    const descriptionField = envStore.data.getProjectMetadataField('description')
+    const collectsPiiFieldResult = envStore.data.getProjectMetadataField('collects_pii')
+    const collectsPiiField =
+      collectsPiiFieldResult && typeof collectsPiiFieldResult !== 'boolean' ? collectsPiiFieldResult : null
+    const descriptionFieldResult = envStore.data.getProjectMetadataField('description')
+    const descriptionField =
+      descriptionFieldResult && typeof descriptionFieldResult !== 'boolean' ? descriptionFieldResult : null
 
     return (
       <form
@@ -977,12 +1105,12 @@ class ProjectSettings extends React.Component {
               <WrappedSelect
                 label={addRequiredToLabel(sectorField.label, sectorField.required)}
                 value={this.state.fields.sector}
-                onChange={this.onAnyFieldChange.bind(this, 'sector')}
+                onChange={(newValue) => this.onAnyFieldChange('sector', newValue as LabelValuePair | null)}
                 options={sectors}
                 isLimitedHeight
                 menuPlacement='top'
                 isClearable
-                error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
+                error={this.hasFieldError('sector') ? t('Please choose a sector') : undefined}
               />
             </div>
           )}
@@ -994,12 +1122,12 @@ class ProjectSettings extends React.Component {
                 label={addRequiredToLabel(countryField.label, countryField.required)}
                 isMulti
                 value={this.state.fields.country}
-                onChange={this.onAnyFieldChange.bind(this, 'country')}
+                onChange={(newValue) => this.onAnyFieldChange('country', newValue as LabelValuePair[] | null)}
                 options={countries}
                 isLimitedHeight
                 menuPlacement='top'
                 isClearable
-                error={this.hasFieldError('country') ? t('Please select at least one country') : false}
+                error={this.hasFieldError('country') ? t('Please select at least one country') : undefined}
               />
             </div>
           )}
@@ -1010,14 +1138,14 @@ class ProjectSettings extends React.Component {
               <WrappedSelect
                 label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
                 value={this.state.fields.operational_purpose}
-                onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
+                onChange={(newValue) => this.onAnyFieldChange('operational_purpose', newValue as LabelValuePair | null)}
                 options={operationalPurposes}
                 isLimitedHeight
                 isClearable
                 error={
                   this.hasFieldError('operational_purpose')
                     ? t('Please specify the operational purpose of your project')
-                    : false
+                    : undefined
                 }
               />
             </div>
@@ -1029,7 +1157,7 @@ class ProjectSettings extends React.Component {
               <WrappedSelect
                 label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
                 value={this.state.fields.collects_pii}
-                onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
+                onChange={(newValue) => this.onAnyFieldChange('collects_pii', newValue as LabelValuePair | null)}
                 options={[
                   { value: 'Yes', label: t('Yes') },
                   { value: 'No', label: t('No') },
@@ -1038,7 +1166,7 @@ class ProjectSettings extends React.Component {
                 error={
                   this.hasFieldError('collects_pii')
                     ? t('Please indicate whether or not your project collects personally identifiable information')
-                    : false
+                    : undefined
                 }
               />
             </div>
@@ -1112,7 +1240,7 @@ class ProjectSettings extends React.Component {
                   type='danger'
                   size='l'
                   label={
-                    this.state.formAsset.deployment__submission_count > 0
+                    this.state.formAsset!.deployment__submission_count > 0
                       ? t('Delete Project and Data')
                       : t('Delete Project')
                   }
@@ -1186,7 +1314,6 @@ class ProjectSettings extends React.Component {
   }
 }
 
-reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin)
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix)
 
