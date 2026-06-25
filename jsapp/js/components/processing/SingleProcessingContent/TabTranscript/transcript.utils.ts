@@ -1,40 +1,26 @@
+import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { findRowByXpath, getRowName } from '#/assetUtils'
-import { getMediaAttachment, getRowData } from '#/components/submissions/submissionUtils'
-import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
+import { getMediaAttachment } from '#/components/submissions/submissionUtils'
+import type { SubmissionAttachment } from '#/dataInterface'
 import { convertSecondsToMinutes } from '#/utils'
-
-function getQuestionName(asset: AssetResponse, xpath: string) {
-  if (!asset?.content) return undefined
-  const foundRow = findRowByXpath(asset.content, xpath)
-  return foundRow ? getRowName(foundRow) : undefined
-}
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function
  * over `getMediaAttachment` for DRY purposes.
  */
 export function getAttachmentForProcessing(
-  asset: AssetResponse,
   questionXPath: string,
   submissionData?: DataResponse,
 ): string | SubmissionAttachment {
   const errorMessage = 'Insufficient data'
-
-  const currentQuestionName = getQuestionName(asset, questionXPath)
-  // We need `assetContent` with survey, submission data, and question name to
-  // go further.
-  if (!asset?.content?.survey || !submissionData || !currentQuestionName) {
+  const fileName = submissionData?._attachments?.find(
+    (attachment: _DataResponseAttachmentsItem) => attachment.question_xpath === questionXPath,
+  )?.filename
+  if (!fileName) {
     return errorMessage
   }
 
-  const rowData = getRowData(currentQuestionName, asset.content.survey, submissionData)
-  // We need row data to go further. And we are expecting a string (filename).
-  if (!rowData || typeof rowData !== 'string') {
-    return errorMessage
-  }
-
-  return getMediaAttachment(submissionData, rowData, questionXPath)
+  return getMediaAttachment(submissionData, fileName, questionXPath)
 }
 
 /**
