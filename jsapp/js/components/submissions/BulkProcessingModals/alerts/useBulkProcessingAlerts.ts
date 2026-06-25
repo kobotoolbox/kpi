@@ -74,12 +74,6 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
         // Add filtered submission uuids to the set (for warnings)
         if (result.type === 'warning') {
           result.filteredSubmissionUuids.forEach((uuid) => filteredSubmissionUuids.add(uuid))
-
-          // Debug logging
-          console.info(
-            `[BulkProcessingAlerts] Alert "${alertDef.id}" filtered ${result.filteredSubmissionUuids.length} submissions:`,
-            result.filteredSubmissionUuids,
-          )
         }
 
         // Create active alert

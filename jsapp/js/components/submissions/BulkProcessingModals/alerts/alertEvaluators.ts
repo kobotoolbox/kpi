@@ -73,15 +73,8 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
  */
 export function evaluateNoEligibleSubmissions(context: AlertEvaluationContext): AlertEvaluationResult {
   const eligibleCount = context.submissions.length - context.previouslyFilteredSubmissionUuids.size
-
-  const shouldShow = eligibleCount === 0
-
-  if (shouldShow) {
-    console.info('[BulkProcessingAlerts] Alert "no-eligible-submissions": All submissions filtered out')
-  }
-
   return {
-    shouldShow,
+    shouldShow: eligibleCount === 0,
     type: 'error',
     filteredSubmissionUuids: [],
     computedValues: {
