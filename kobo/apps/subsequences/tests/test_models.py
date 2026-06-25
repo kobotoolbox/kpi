@@ -238,7 +238,7 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset, submission_root_uuid=None, prefetched_supplement=None
             )
 
-    def test_retrieve_data_for_output_returns_pending_review_for_unaccepted_answer(self):
+    def test_retrieve_data_output_returns_pending_review_for_unaccepted_answer(self):
         """
         Unaccepted NLP results are no longer suppressed from the output
 
@@ -363,7 +363,9 @@ class SubmissionSupplementTestCase(TestCase):
         self._add_manual_nlp_action('transcription', 'en', 'Manual Hello')
 
         # Add an automatic transcription (newer)
-        self._add_automatic_nlp_action('transcription', 'en', 'Auto Hello', accept=False)
+        self._add_automatic_nlp_action(
+            'transcription', 'en', 'Auto Hello', accept=False
+        )
 
         output = SubmissionSupplement.retrieve_data(
             self.asset, self.submission_root_uuid, for_output=True

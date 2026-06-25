@@ -1518,7 +1518,9 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
         # The automatic transcription is newer but unaccepted (pending), so it
         # beats the older accepted manual transcription
-        transcript = response.data['results'][0]['_supplementalDetails']['q1']['transcript']
+        transcript = (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript']
+        )
         assert transcript.get('pendingReview') is True
         assert 'value' not in transcript
 
