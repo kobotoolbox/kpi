@@ -71,6 +71,7 @@ ACCESS_LOGS_EXPORT_FIELDS = (
     'user_uid',
     'username',
     'auth_type',
+    'action',
     'date_created',
     'source',
     'ip_address',
