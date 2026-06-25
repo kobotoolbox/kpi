@@ -113,6 +113,11 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
   const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
 
+  // Allow language selection even when the only error is 'no-eligible-submissions'
+  // since changing the language might reveal eligible submissions
+  const hasBlockingError =
+    hasErrors && activeAlerts.some((alert) => alert.type === 'error' && alert.id !== 'no-eligible-submissions')
+
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
     setSelectedRegion(null)
@@ -171,7 +176,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
             <LanguageSelector
-              disabled={hasExceededLimit || isLoadingUsage || hasErrors}
+              disabled={hasExceededLimit || isLoadingUsage || hasBlockingError}
               onLanguageChange={handleLanguageChange}
               value={selectedLanguage}
               required
@@ -180,7 +185,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               nothingFoundMessage={t('I cannot find my language')}
             />
             <RegionSelector
-              disabled={!selectedLanguage || hasExceededLimit || isLoadingUsage || hasErrors}
+              disabled={!selectedLanguage || hasExceededLimit || isLoadingUsage || hasBlockingError}
               rootLanguage={selectedLanguage || ''}
               serviceCode={serviceCode}
               serviceType='transcription'

@@ -80,7 +80,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       id: 'no-eligible-submissions',
       type: 'error',
       evaluator: evaluateNoEligibleSubmissions,
-      messageTemplate: () => t('There are no submissions to process.'),
+      messageTemplate: () => t('There are no eligible submissions to process.'),
     },
   ]
 }

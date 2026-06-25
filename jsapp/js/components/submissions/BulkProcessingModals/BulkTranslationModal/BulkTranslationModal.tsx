@@ -102,6 +102,11 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     activeBulkActions: props.activeBulkActions,
   })
 
+  // Allow language selection even when the only error is 'no-eligible-submissions'
+  // since changing the language might reveal eligible submissions
+  const hasBlockingError =
+    hasErrors && activeAlerts.some((alert) => alert.type === 'error' && alert.id !== 'no-eligible-submissions')
+
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
   }
@@ -161,7 +166,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
             <LanguageSelector
-              disabled={hasExceededLimit || isLoadingUsage || hasErrors}
+              disabled={hasExceededLimit || isLoadingUsage || hasBlockingError}
               onLanguageChange={handleLanguageChange}
               value={selectedLanguage}
               required
