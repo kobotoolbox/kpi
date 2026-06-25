@@ -452,3 +452,58 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['skipped_uuids'] == []
+
+    def test_create_bulk_action_allowed_after_deleting_transcription_with_locale(self):
+        """
+        Test that a deleted transcription does not prevent creating a new
+        bulk transcription, even when the deleted transcription history
+        contains locale-specific versions
+        """
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content={
+                '_version': '20250820',
+                'q1': {
+                    'automatic_google_transcription': {
+                        '_dateCreated': '2026-05-14T10:00:00Z',
+                        '_dateModified': '2026-05-14T10:01:00Z',
+                        '_versions': [
+                            {
+                                # The deletion version: no locale, newer timestamp
+                                '_dateCreated': '2026-05-14T10:01:00Z',
+                                '_uuid': '22222222-2222-2222-2222-222222222222',
+                                '_data': {
+                                    'language': 'en',
+                                    'status': 'deleted',
+                                    'value': None,
+                                },
+                            },
+                            {
+                                # The original complete version with locale
+                                '_dateCreated': '2026-05-14T10:00:00Z',
+                                '_uuid': '11111111-1111-1111-1111-111111111111',
+                                '_data': {
+                                    'language': 'en',
+                                    'locale': 'en-US',
+                                    'status': 'complete',
+                                    'value': 'hello world',
+                                },
+                            },
+                        ],
+                    }
+                },
+            },
+        )
+
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(
+                submission_uuids=[self.submission_uuid]
+            ),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert self.submission_uuid in response.data['submission_uuids']
+        assert response.data['skipped_uuids'] == []
