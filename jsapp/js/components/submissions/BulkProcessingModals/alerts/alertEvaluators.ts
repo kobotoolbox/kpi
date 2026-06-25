@@ -3,13 +3,25 @@ import { createInactiveResult } from './utils'
 
 /**
  * Checks if user has reached their quota limit (0 remaining)
- * TODO: DEV-1417 - Implement this evaluator
  */
 export function evaluateReachedLimit(context: AlertEvaluationContext): AlertEvaluationResult {
-  console.log('[BulkProcessingAlerts] Evaluator evaluateReachedLimit - STUBBED, returning no alerts', context)
+  const { actionType, serviceUsageData } = context
 
-  // STUB: Return inactive result
-  return createInactiveResult('error')
+  // Can't evaluate without service usage data
+  if (!serviceUsageData?.balances) {
+    return createInactiveResult('error')
+  }
+
+  // Check the appropriate balance based on action type
+  const balance =
+    actionType === 'transcript' ? serviceUsageData.balances.asr_seconds : serviceUsageData.balances.mt_characters
+
+  return {
+    shouldShow: balance?.exceeded || false,
+    type: 'error',
+    filteredSubmissionUuids: [],
+    computedValues: {},
+  }
 }
 
 /**
