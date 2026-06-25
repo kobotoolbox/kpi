@@ -73,16 +73,8 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
     }
   })
 
-  const shouldShow = missingSource.length > 0
-
-  if (shouldShow) {
-    console.info(
-      `[BulkProcessingAlerts] Alert "no-source": Found ${missingSource.length} submissions without ${actionType === 'transcript' ? 'audio file' : 'transcript'}`,
-    )
-  }
-
   return {
-    shouldShow,
+    shouldShow: missingSource.length > 0,
     type: 'warning',
     filteredSubmissionUuids: missingSource,
     computedValues: {
