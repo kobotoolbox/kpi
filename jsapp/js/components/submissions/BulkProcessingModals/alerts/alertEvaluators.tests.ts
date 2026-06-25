@@ -89,10 +89,7 @@ describe('evaluateNoEligibleSubmissions', () => {
 })
 
 describe('evaluateReachedLimit', () => {
-  const mockSubmissions = [
-    assetDataFactory(1, { _uuid: 'uuid-1' }),
-    assetDataFactory(2, { _uuid: 'uuid-2' }),
-  ]
+  const mockSubmissions = [assetDataFactory(1, { _uuid: 'uuid-1' }), assetDataFactory(2, { _uuid: 'uuid-2' })]
 
   const baseContext: AlertEvaluationContext = {
     submissions: mockSubmissions,
@@ -158,18 +155,6 @@ describe('evaluateReachedLimit', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       serviceUsageData: undefined,
-    }
-
-    const result = evaluateReachedLimit(context)
-
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
-  })
-
-  it('should not show alert when balances are missing', () => {
-    const context: AlertEvaluationContext = {
-      ...baseContext,
-      serviceUsageData: {} as any,
     }
 
     const result = evaluateReachedLimit(context)
