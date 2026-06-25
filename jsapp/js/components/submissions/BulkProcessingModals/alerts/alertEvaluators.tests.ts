@@ -124,10 +124,7 @@ describe('evaluateAlreadyTranslated', () => {
   })
 
   it('should not show alert when no submissions have translations', () => {
-    const mockSubmissions = [
-      assetDataFactory(1, { _uuid: 'uuid-1' }),
-      assetDataFactory(2, { _uuid: 'uuid-2' }),
-    ]
+    const mockSubmissions = [assetDataFactory(1, { _uuid: 'uuid-1' }), assetDataFactory(2, { _uuid: 'uuid-2' })]
 
     const context: AlertEvaluationContext = {
       ...baseContext,

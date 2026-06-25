@@ -4,6 +4,11 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.kobo_scim.constants import (
+    SCIM_SCHEMA_GROUP,
+    SCIM_SCHEMA_PATCH_OP,
+    SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
+)
 from kobo.apps.kobo_scim.models import IdentityProvider, ScimGroup
 
 
@@ -74,7 +79,7 @@ class ScimGroupsAPITests(APITestCase):
 
         data = response.json()
         self.assertIn(
-            'urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig',
+            SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
             data['schemas'],
         )
         self.assertTrue(data['patch']['supported'])
@@ -89,7 +94,7 @@ class ScimGroupsAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            'schemas': [SCIM_SCHEMA_GROUP],
             'displayName': 'Engineers',
             'externalId': 'sys-eng-group-id',
             'members': [
@@ -180,7 +185,7 @@ class ScimGroupsAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+            'schemas': [SCIM_SCHEMA_GROUP],
             'displayName': 'New Name',
             'externalId': 'new-id',
             'members': [{'value': str(self.user2.id)}],  # Replacing user1 with user2
@@ -208,7 +213,7 @@ class ScimGroupsAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [
                 {
                     'op': 'add',
@@ -242,7 +247,7 @@ class ScimGroupsAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [
                 {
                     'op': 'add',
@@ -273,7 +278,7 @@ class ScimGroupsAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [
                 {
                     'op': 'remove',
@@ -303,7 +308,7 @@ class ScimGroupsAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
-            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [
                 {'op': 'remove', 'path': f'members[value eq "{self.user2.id}"]'}
             ],

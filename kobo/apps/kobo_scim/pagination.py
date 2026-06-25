@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 
+from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_LIST_RESPONSE
 from kpi.paginators import DefaultPagination
 
 
@@ -34,7 +35,7 @@ class ScimPagination(DefaultPagination):
 
         return Response(
             {
-                'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+                'schemas': [SCIM_SCHEMA_LIST_RESPONSE],
                 'totalResults': self.count,
                 'itemsPerPage': len(data),
                 'startIndex': start_index,
@@ -56,7 +57,7 @@ class ScimPagination(DefaultPagination):
                 'schemas': {
                     'type': 'array',
                     'items': {'type': 'string'},
-                    'example': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+                    'example': [SCIM_SCHEMA_LIST_RESPONSE],
                 },
                 'totalResults': {'type': 'integer', 'example': 100},
                 'itemsPerPage': {'type': 'integer', 'example': 10},

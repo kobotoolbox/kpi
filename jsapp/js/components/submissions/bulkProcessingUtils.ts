@@ -53,3 +53,70 @@ export function isBulkProcessingCellInProgress(
     )
   })
 }
+
+/**
+ * Computes which visible submission uuids should be refreshed when the active
+ * bulk-actions snapshot changes.
+ *
+ * Rules implemented:
+ * - refresh a visible row when its per-submission status transitions to `complete`
+ * - when an action disappears from active list (job became terminal), refresh
+ *   all still-visible rows that were `pending`, `in_progress`, or `complete`
+ */
+export function getVisibleBulkProcessingSubmissionUuidsToRefresh(
+  prevActiveBulkActions: BulkActionResponse[],
+  nextActiveBulkActions: BulkActionResponse[],
+  visibleSubmissions: SubmissionResponse[],
+): string[] {
+  if (visibleSubmissions.length === 0) {
+    return []
+  }
+
+  const previousActionsByUid = new Map(prevActiveBulkActions.map((bulkAction) => [bulkAction.uid, bulkAction]))
+
+  const visibleSubmissionUuids = new Set<string>()
+  visibleSubmissions.forEach((submission) => {
+    visibleSubmissionUuids.add(removeDefaultUuidPrefix(submission._uuid))
+    visibleSubmissionUuids.add(removeDefaultUuidPrefix(submission['meta/rootUuid']))
+  })
+
+  const uuidsToRefresh = new Set<string>()
+
+  nextActiveBulkActions.forEach((bulkAction) => {
+    const previousBulkAction = previousActionsByUid.get(bulkAction.uid)
+    const previousStatuses = new Map(
+      (previousBulkAction?.submission_statuses || []).map((submissionStatus) => [
+        removeDefaultUuidPrefix(submissionStatus.uuid),
+        submissionStatus.status,
+      ]),
+    )
+
+    bulkAction.submission_statuses.forEach((submissionStatus) => {
+      const submissionUuid = removeDefaultUuidPrefix(submissionStatus.uuid)
+      const previousStatus = previousStatuses.get(submissionUuid)
+
+      if (
+        submissionStatus.status === BulkActionSubmissionStatusResponseStatusEnum.complete &&
+        previousStatus !== BulkActionSubmissionStatusResponseStatusEnum.complete
+      ) {
+        uuidsToRefresh.add(submissionUuid)
+      }
+    })
+
+    previousActionsByUid.delete(bulkAction.uid)
+  })
+
+  previousActionsByUid.forEach((bulkAction) => {
+    bulkAction.submission_statuses.forEach((submissionStatus) => {
+      if (
+        submissionStatus.status === BulkActionSubmissionStatusResponseStatusEnum.pending ||
+        submissionStatus.status === BulkActionSubmissionStatusResponseStatusEnum.in_progress ||
+        submissionStatus.status === BulkActionSubmissionStatusResponseStatusEnum.complete
+      ) {
+        uuidsToRefresh.add(removeDefaultUuidPrefix(submissionStatus.uuid))
+      }
+    })
+  })
+
+  return [...uuidsToRefresh].filter((submissionUuid) => visibleSubmissionUuids.has(submissionUuid))
+}
