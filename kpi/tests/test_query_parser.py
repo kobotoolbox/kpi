@@ -81,6 +81,10 @@ BLOCKED_QUERIES = [
     (User, 'auth_token__key:x'),  # direct lookup, no `owner__`/`user__` prefix
     (User, 'password:x'),
     (User, 'authenticator__data:x'),
+    # sensitive column on a model that stays searchable for its other columns;
+    # blocked even with a trailing lookup, since the walk stops at the column
+    (User, 'extra_details__private_data__last_tos_accept_time:x'),
+    (Asset, 'owner__extra_details__private_data__icontains:x'),
 ]
 
 # Legitimate field-qualified terms that must keep working.

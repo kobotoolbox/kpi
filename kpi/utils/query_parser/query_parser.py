@@ -56,12 +56,27 @@ SENSITIVE_LOOKUP_MODELS = frozenset(
     }
 )
 
-# Concrete (non-relational) columns that must never be read through a `q`
-# lookup. These are matched by column name on *any* model the path reaches —
-# unlike `SENSITIVE_LOOKUP_MODELS`, which targets specific models. Adding a name
-# here blocks that column from search everywhere it appears, including on models
-# added later.
-SENSITIVE_LOOKUP_COLUMNS = frozenset({'password'})
+# Non-relational columns that must never be read through a `q` lookup. They are
+# matched by column name on any model the path reaches (not only blocked ones),
+# so a column named like one of these is rejected wherever it appears, now or on
+# a model added later.
+#
+# This is the *exception* mechanism; `SENSITIVE_LOOKUP_MODELS` is the primary
+# one. A model whose purpose is to hold secrets should be blocked there, which
+# covers all of its columns at once. Use this set only for a sensitive column
+# that lives on a model which must stay searchable for its other columns — e.g.
+# `password` on `User` (still traversed for `owner__username`), or `private_data`
+# on `ExtraUserDetail` (still traversed for `extra_details__data`). The remaining
+# names are defensive: a column literally named `secret` or `token` added to a
+# searchable model is then rejected without a change here.
+SENSITIVE_LOOKUP_COLUMNS = frozenset(
+    {
+        'password',
+        'private_data',
+        'secret',
+        'token',
+    }
+)
 
 
 class QueryParseActions:
