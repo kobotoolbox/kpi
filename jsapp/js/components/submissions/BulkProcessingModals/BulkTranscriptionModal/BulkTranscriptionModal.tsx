@@ -170,8 +170,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
               // TODO: this will be done after DEV-2255 is done
-              .replace('##total_length##', t('some time'))
-              .replace('##estimated_time##', t('some time'))}
+              .replace('##total_length##', t('some time'))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>

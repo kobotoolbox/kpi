@@ -159,9 +159,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               'Your ##total_selected## transcripts is a total of ##total_characters## characters. This may take some time to complete.',
             )
               .replace('##total_selected##', String(eligibleSubmissions.length))
-              .replace('##total_characters##', String(totalCharacters))
-              // TODO: this will be done after DEV-2255 is done
-              .replace('##estimated_time##', t('some time'))}
+              .replace('##total_characters##', String(totalCharacters))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
