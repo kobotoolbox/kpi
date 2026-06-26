@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { fetchPost, handleApiFail } from '#/api'
+import { endpoints } from '#/api.endpoints'
 import ButtonNew from '#/components/common/ButtonNew'
 import Checkbox from '#/components/common/checkbox'
 import customViewStore from '#/projects/customViewStore'
@@ -40,7 +41,9 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
       action: 'delete',
     }
 
-    fetchPost<AssetsBulkResponse>('/api/v2/assets/bulk/', { payload: payload })
+    // Using notifyAboutError = false to avoid double toast.
+    // Calling handleApiFail in catch block to handle all errors unconditionally (error 400 is excluded by default in fetchPost)
+    fetchPost<AssetsBulkResponse>(endpoints.ASSETS_BULK_URL, { payload: payload }, { notifyAboutError: false })
       .then((response) => {
         // Ensure sidebar will refresh after bulk deletion is done.
         // In future we will use react-query for bulk deletion and then this invalidation will be done elsewhere.
@@ -48,8 +51,10 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
         customViewStore.handleAssetsDeleted(assetUids)
         notify(response.detail)
       })
-      .catch((error) => {
-        handleApiFail(error)
+      .catch((err) => {
+        handleApiFail(err)
+        invalidateSidebarQueries(orgUid)
+        customViewStore.fetchAssets()
       })
       .finally(() => {
         setIsConfirmDeletePending(false)
