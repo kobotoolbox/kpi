@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { fetchPost, handleApiFail } from '#/api'
+import { endpoints } from '#/api.endpoints'
 import ButtonNew from '#/components/common/ButtonNew'
 import Checkbox from '#/components/common/checkbox'
 import customViewStore from '#/projects/customViewStore'
@@ -42,7 +43,7 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
 
     // Using notifyAboutError = false to avoid double toast.
     // Calling handleApiFail in catch block to handle all errors unconditionally (error 400 is excluded by default in fetchPost)
-    fetchPost<AssetsBulkResponse>('/api/v2/assets/bulk/', { payload: payload }, { notifyAboutError: false })
+    fetchPost<AssetsBulkResponse>(endpoints.ASSETS_BULK_URL, { payload: payload }, { notifyAboutError: false })
       .then((response) => {
         // Ensure sidebar will refresh after bulk deletion is done.
         // In future we will use react-query for bulk deletion and then this invalidation will be done elsewhere.
