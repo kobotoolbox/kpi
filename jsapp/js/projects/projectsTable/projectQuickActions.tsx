@@ -47,6 +47,8 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
         customViewStore.handleAssetsDeleted([deletedAssetUid])
       },
       () => {
+        // On fail, lets update project list so the user has a feedback of fail reason.
+        // e.g: a last minute submission, or the project was deleted by someone else.
         customViewStore.fetchAssets()
       },
     )
