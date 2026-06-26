@@ -4,7 +4,6 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import { actions } from '#/actions'
-import { handleApiFail } from '#/api'
 import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
@@ -15,7 +14,7 @@ import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse, LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
-import { applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
+import { type ImportErrorResponse, applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import { router, withRouter } from '#/router/legacy'
@@ -54,8 +53,6 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
 
   constructor(props: ProjectSettingsProps) {
     super(props)
-
-    this.unlisteners = []
 
     this.state = {
       isSessionLoaded: !!sessionStore.isLoggedIn,
@@ -578,7 +575,7 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
     }
   }
 
-  notifyImportFailure(response: any, sourceName: string | null) {
+  notifyImportFailure(response: ImportErrorResponse, sourceName: string | null) {
     const messages = response?.messages || response?.responseJSON?.messages
     const errorType = messages?.error_type
     const importError = messages?.error
@@ -597,7 +594,9 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
       const message = <>{join(errLines, <br />)}</>
       notify.error(message)
     } else {
-      handleApiFail(response, t('Import Failed!'))
+      // Fallback for responses without structured error messages
+      // ImportErrorResponse doesn't have status/statusText, so we use a generic error
+      notify.error(t('Import Failed!'))
     }
   }
 
@@ -615,8 +614,7 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
                   // WORKAROUND: dataInterface.getAsset() bypasses the action/store pattern,
                   // so components listening to assetStore won't be notified of the new asset.
                   // We manually trigger the action listener here to maintain consistency.
-                  // TODO: Refactor to use actions.resources.loadAsset throughout this flow.
-                  // See: https://github.com/kobotoolbox/kpi/issues/3919
+                  // TODO: Refactor component to use react-query
                   actions.resources.loadAsset.completed(finalAsset)
 
                   if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {

@@ -28,6 +28,27 @@ describe('validateProjectFields', () => {
     extra_metadata_fields: {},
   })
 
+  /**
+   * Helper to configure a single field's metadata in envStore
+   */
+  const mockFieldMetadata = (fieldName: string, metadata: { required: boolean; label: string }) => {
+    ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((name) => {
+      if (name === fieldName) {
+        return metadata
+      }
+      return false
+    })
+  }
+
+  /**
+   * Helper to configure multiple fields' metadata at once
+   */
+  const mockMultipleFieldMetadata = (configs: Record<string, { required: boolean; label: string }>) => {
+    ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
+      return configs[fieldName] || false
+    })
+  }
+
   describe('name field validation', () => {
     it('should return error for empty name', () => {
       const fields = createValidFields()
@@ -59,10 +80,7 @@ describe('validateProjectFields', () => {
 
   describe('description field validation', () => {
     it('should return error if description is required and empty', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockReturnValue({
-        required: true,
-        label: 'Description',
-      })
+      mockFieldMetadata('description', { required: true, label: 'Description' })
 
       const fields = createValidFields()
       fields.description = ''
@@ -73,10 +91,7 @@ describe('validateProjectFields', () => {
     })
 
     it('should return error if description is required and whitespace-only', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockReturnValue({
-        required: true,
-        label: 'Description',
-      })
+      mockFieldMetadata('description', { required: true, label: 'Description' })
 
       const fields = createValidFields()
       fields.description = '   '
@@ -87,10 +102,7 @@ describe('validateProjectFields', () => {
     })
 
     it('should pass if description is not required and empty', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockReturnValue({
-        required: false,
-        label: 'Description',
-      })
+      mockFieldMetadata('description', { required: false, label: 'Description' })
 
       const fields = createValidFields()
       fields.description = ''
@@ -101,10 +113,7 @@ describe('validateProjectFields', () => {
     })
 
     it('should pass if description is required and has content', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockReturnValue({
-        required: true,
-        label: 'Description',
-      })
+      mockFieldMetadata('description', { required: true, label: 'Description' })
 
       const fields = createValidFields()
       fields.description = 'Valid description'
@@ -117,12 +126,7 @@ describe('validateProjectFields', () => {
 
   describe('sector field validation', () => {
     it('should return error if sector is required and null', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
-        if (fieldName === 'sector') {
-          return { required: true, label: 'Sector' }
-        }
-        return false
-      })
+      mockFieldMetadata('sector', { required: true, label: 'Sector' })
 
       const fields = createValidFields()
       fields.sector = null
@@ -133,12 +137,7 @@ describe('validateProjectFields', () => {
     })
 
     it('should pass if sector is not required and null', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
-        if (fieldName === 'sector') {
-          return { required: false, label: 'Sector' }
-        }
-        return false
-      })
+      mockFieldMetadata('sector', { required: false, label: 'Sector' })
 
       const fields = createValidFields()
       fields.sector = null
@@ -151,12 +150,7 @@ describe('validateProjectFields', () => {
 
   describe('country field validation', () => {
     it('should return error if country is required and empty array', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
-        if (fieldName === 'country') {
-          return { required: true, label: 'Country' }
-        }
-        return false
-      })
+      mockFieldMetadata('country', { required: true, label: 'Country' })
 
       const fields = createValidFields()
       fields.country = []
@@ -167,12 +161,7 @@ describe('validateProjectFields', () => {
     })
 
     it('should return error if country is required and null', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
-        if (fieldName === 'country') {
-          return { required: true, label: 'Country' }
-        }
-        return false
-      })
+      mockFieldMetadata('country', { required: true, label: 'Country' })
 
       const fields = createValidFields()
       fields.country = null
@@ -183,12 +172,7 @@ describe('validateProjectFields', () => {
     })
 
     it('should pass if country is required and has values', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
-        if (fieldName === 'country') {
-          return { required: true, label: 'Country' }
-        }
-        return false
-      })
+      mockFieldMetadata('country', { required: true, label: 'Country' })
 
       const fields = createValidFields()
       fields.country = [{ value: 'us', label: 'United States' }]
@@ -320,14 +304,9 @@ describe('validateProjectFields', () => {
 
   describe('comprehensive validation', () => {
     it('should return multiple errors when multiple fields are invalid', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
-        if (fieldName === 'description') {
-          return { required: true, label: 'Description' }
-        }
-        if (fieldName === 'sector') {
-          return { required: true, label: 'Sector' }
-        }
-        return false
+      mockMultipleFieldMetadata({
+        description: { required: true, label: 'Description' },
+        sector: { required: true, label: 'Sector' },
       })
 
       const fields = createValidFields()
@@ -344,17 +323,10 @@ describe('validateProjectFields', () => {
     })
 
     it('should return empty array when all required fields are valid', () => {
-      ;(envStore.data.getProjectMetadataField as jest.Mock).mockImplementation((fieldName) => {
-        if (fieldName === 'description') {
-          return { required: true, label: 'Description' }
-        }
-        if (fieldName === 'sector') {
-          return { required: true, label: 'Sector' }
-        }
-        if (fieldName === 'country') {
-          return { required: true, label: 'Country' }
-        }
-        return false
+      mockMultipleFieldMetadata({
+        description: { required: true, label: 'Description' },
+        sector: { required: true, label: 'Sector' },
+        country: { required: true, label: 'Country' },
       })
 
       const fields = createValidFields()

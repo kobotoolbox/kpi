@@ -49,13 +49,13 @@ export function getInitialFieldsFromAsset(asset?: AssetResponse): ProjectSetting
   fields.extra_metadata_fields = {}
   envStore.data.extra_project_metadata_fields.forEach((field) => {
     const value = asset?.settings?.extra_metadata?.[field.name]
-    // Default values must match field type: array for multi-select, null for single-select, empty string for text
+    // Default values must match field type to prevent runtime errors:
     const defaultValue =
       field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.MULTI_SELECT
-        ? []
+        ? [] // Multi-select needs empty array (avoids "undefined is not an array" errors)
         : field.type === EXTRA_PROJECT_METADATA_FIELD_TYPES.SINGLE_SELECT
-          ? null
-          : ''
+          ? null // Single-select uses null for "no selection" (matches react-select API)
+          : '' // Text fields use empty string for controlled input components
 
     fields.extra_metadata_fields[field.name] = value !== undefined ? value : defaultValue
   })
@@ -68,7 +68,12 @@ export function getInitialFieldsFromAsset(asset?: AssetResponse): ProjectSetting
  * Used when importing XLSForm via URL to suggest a project name.
  */
 export function getFilenameFromURI(url: string): string {
-  return decodeURIComponent(new URL(url).pathname.split('/').pop()!.split('.')[0])
+  const pathname = new URL(url).pathname
+  const lastSegment = pathname.split('/').pop()
+  if (!lastSegment) {
+    return 'imported-form'
+  }
+  return decodeURIComponent(lastSegment.split('.')[0])
 }
 
 export function getSettingsForEndpoint(fields: ProjectSettingsFields): string {
