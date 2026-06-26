@@ -1262,19 +1262,19 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
             )}
 
           {this.userCanViewDeleteButton() && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
-              <div className={styles.input}>
-                <Button
-                  type='danger'
-                  size='l'
-                  label={
-                    this.state.formAsset!.deployment__submission_count > 0
-                      ? t('Delete Project and Data')
-                      : t('Delete Project')
-                  }
-                  onClick={this.deleteProject}
-                />
-              </div>
-            )}
+            <div className={styles.input}>
+              <Button
+                type='danger'
+                size='l'
+                label={
+                  this.state.formAsset!.deployment__submission_count > 0
+                    ? t('Delete Project and Data')
+                    : t('Delete Project')
+                }
+                onClick={this.deleteProject}
+              />
+            </div>
+          )}
         </div>
       </form>
     )
