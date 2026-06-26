@@ -430,7 +430,8 @@ class BulkAcceptSerializer(serializers.Serializer):
 
         with transaction.atomic():
             supplements = list(
-                SubmissionSupplement.objects.filter(
+                SubmissionSupplement.objects.select_for_update()
+                .filter(
                     asset=asset,
                     submission_uuid__in=submission_uids,
                 )
