@@ -11,7 +11,7 @@ import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachme
 import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
-import ProjectSettings from '#/components/modalForms/projectSettings'
+import { ProjectSettings } from '#/project/ProjectSettings'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import TableMediaPreview from '#/components/submissions/tableMediaPreview'

@@ -14,7 +14,7 @@ import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
 import mixins from '../mixins'
 import RESTServices from './RESTServices'
 import FormMapWrapper from './map/formMapWrapper'
-import ProjectSettings from './modalForms/projectSettings'
+import { ProjectSettings } from '#/project/ProjectSettings'
 import SharingForm from './permissions/sharingForm.component'
 import LimitNotifications from './usageLimits/limitNotifications.component'
 
