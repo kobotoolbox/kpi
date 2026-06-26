@@ -1,5 +1,7 @@
 import cx from 'classnames'
 import React from 'react'
+import { queryClient } from '#/api/queryClient'
+import { getOrganizationsRetrieveQueryKey } from '#/api/react-query/user-team-organization-usage'
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import WrappedSelect from '#/components/common/wrappedSelect'
@@ -8,6 +10,7 @@ import { userCan } from '#/components/permissions/utils'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse, LabelValuePair } from '#/dataInterface'
 import envStore from '#/envStore'
+import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
 import styles from '../ProjectSettings.module.scss'
 import BackButton from '../components/BackButton'
@@ -33,7 +36,6 @@ interface StepProjectDetailsProps {
   onDeleteProject: (evt: React.MouseEvent<HTMLButtonElement>) => void
   isArchivable: () => boolean
   isArchived: () => boolean
-  userCanViewDeleteButton: () => boolean
   previousStep: StepName | null
   onBack: () => void
   modalStyle: string | null
@@ -54,7 +56,6 @@ export default function StepProjectDetails({
   onDeleteProject,
   isArchivable,
   isArchived,
-  userCanViewDeleteButton,
   previousStep,
   onBack,
   modalStyle,
@@ -68,6 +69,23 @@ export default function StepProjectDetails({
   const operationalPurposes = envStore.data.operational_purpose_choices
   const collectsPiiField = getFieldMetadata('collects_pii')
   const descriptionField = getFieldMetadata('description')
+
+  // Check if user is in a Multi-Member Organization (MMO)
+  // MMO members should always see the delete button, even without delete_asset permission,
+  // so they can click it and see the error explaining why they can't delete
+  const isMMO = () => {
+    const account = sessionStore.currentAccount
+    const orgUid = 'organization' in account ? account.organization?.uid : undefined
+    if (orgUid) {
+      const orgResponse = queryClient.getQueryData(getOrganizationsRetrieveQueryKey(orgUid)) as any
+      if (orgResponse?.status === 200 && orgResponse.data?.is_mmo) {
+        return true
+      }
+    }
+    return false
+  }
+
+  const userCanViewDeleteButton = isMMO() || userCan('delete_asset', formAsset)
 
   return (
     <form onSubmit={onSubmit} className={cx(styles.projectDetails, modalStyle ?? styles.projectDetailsView)}>
@@ -230,7 +248,7 @@ export default function StepProjectDetails({
           </div>
         )}
 
-        {userCanViewDeleteButton() && context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+        {userCanViewDeleteButton && context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
           <div className={styles.input}>
             <Button
               type='danger'

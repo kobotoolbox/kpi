@@ -4,8 +4,6 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import { actions } from '#/actions'
-import { queryClient } from '#/api/queryClient'
-import { getOrganizationsRetrieveQueryKey } from '#/api/react-query/user-team-organization-usage'
 import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
@@ -13,7 +11,6 @@ import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
-import { userCan } from '#/components/permissions/utils'
 import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse, LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
@@ -265,22 +262,6 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
     evt.preventDefault()
 
     openDeleteAssetModal(this.state.formAsset!, this.state.formAsset!.name, this.goToProjectsList.bind(this))
-  }
-
-  isMMO() {
-    const account = sessionStore.currentAccount
-    const orgUid = 'organization' in account ? account.organization?.uid : undefined
-    if (orgUid) {
-      const orgResponse = queryClient.getQueryData(getOrganizationsRetrieveQueryKey(orgUid)) as any
-      if (orgResponse?.status === 200 && orgResponse.data?.is_mmo) {
-        return true
-      }
-    }
-    return false
-  }
-
-  userCanViewDeleteButton() {
-    return this.isMMO() || userCan('delete_asset', this.state.formAsset)
   }
 
   // archive flow
@@ -782,7 +763,6 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
             onDeleteProject={this.deleteProject.bind(this)}
             isArchivable={this.isArchivable.bind(this)}
             isArchived={this.isArchived.bind(this)}
-            userCanViewDeleteButton={this.userCanViewDeleteButton.bind(this)}
             previousStep={this.state.previousStep}
             onBack={this.displayPreviousStep.bind(this)}
             modalStyle={modalStyle}
