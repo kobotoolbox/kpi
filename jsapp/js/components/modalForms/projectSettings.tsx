@@ -7,6 +7,8 @@ import Dropzone from 'react-dropzone'
 import reactMixin from 'react-mixin'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
+import { queryClient } from '#/api/queryClient'
+import { getOrganizationsRetrieveQueryKey } from '#/api/react-query/user-team-organization-usage'
 import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
@@ -397,6 +399,22 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
     evt.preventDefault()
 
     openDeleteAssetModal(this.state.formAsset!, this.state.formAsset!.name, this.goToProjectsList.bind(this))
+  }
+
+  isMMO() {
+    const account = sessionStore.currentAccount
+    const orgUid = 'organization' in account ? account.organization?.uid : undefined
+    if (orgUid) {
+      const orgResponse = queryClient.getQueryData(getOrganizationsRetrieveQueryKey(orgUid)) as any
+      if (orgResponse?.status === 200 && orgResponse.data?.is_mmo) {
+        return true
+      }
+    }
+    return false
+  }
+
+  userCanViewDeleteButton() {
+    return this.isMMO() || userCan('delete_asset', this.state.formAsset)
   }
 
   // archive flow
@@ -1233,8 +1251,7 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
               </div>
             )}
 
-          {userCan('delete_asset', this.state.formAsset) &&
-            this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+          {this.userCanViewDeleteButton() && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
               <div className={styles.input}>
                 <Button
                   type='danger'
