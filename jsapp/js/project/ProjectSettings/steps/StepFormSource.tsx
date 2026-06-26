@@ -30,7 +30,7 @@ export default function StepFormSource({ context, modalStyle, onSelectStep }: St
       <div className={styles.sourceButtons}>
         {/* "Build from scratch" only available when creating new project */}
         {context === PROJECT_SETTINGS_CONTEXTS.NEW && (
-          <button onClick={() => onSelectStep(STEPS.PROJECT_DETAILS)}>
+          <button type='button' onClick={() => onSelectStep(STEPS.PROJECT_DETAILS)}>
             <i className='k-icon k-icon-edit' />
             {t('Build from scratch')}
           </button>
@@ -38,25 +38,25 @@ export default function StepFormSource({ context, modalStyle, onSelectStep }: St
 
         {/* Template button position changes based on context */}
         {context === PROJECT_SETTINGS_CONTEXTS.NEW && (
-          <button onClick={() => onSelectStep(STEPS.CHOOSE_TEMPLATE)}>
+          <button type='button' onClick={() => onSelectStep(STEPS.CHOOSE_TEMPLATE)}>
             <i className='k-icon k-icon-template' />
             {t('Use a template')}
           </button>
         )}
 
-        <button onClick={() => onSelectStep(STEPS.UPLOAD_FILE)}>
+        <button type='button' onClick={() => onSelectStep(STEPS.UPLOAD_FILE)}>
           <i className='k-icon k-icon-upload' />
           {t('Upload an XLSForm')}
         </button>
 
-        <button onClick={() => onSelectStep(STEPS.IMPORT_URL)}>
+        <button type='button' onClick={() => onSelectStep(STEPS.IMPORT_URL)}>
           <i className='k-icon k-icon-link' />
           {t('Import an XLSForm via URL')}
         </button>
 
         {/* Template button shown at bottom for REPLACE context */}
         {context !== PROJECT_SETTINGS_CONTEXTS.NEW && (
-          <button onClick={() => onSelectStep(STEPS.CHOOSE_TEMPLATE)}>
+          <button type='button' onClick={() => onSelectStep(STEPS.CHOOSE_TEMPLATE)}>
             <i className='k-icon k-icon-template' />
             {t('Use a template')}
           </button>
