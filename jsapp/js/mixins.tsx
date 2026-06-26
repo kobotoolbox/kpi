@@ -217,8 +217,11 @@ const mixins: MixinsObject = {
       const uid = this._getAssetUid()
       if (uid && this.props.initialAssetLoadNotNeeded) {
         // When initialAssetLoadNotNeeded=true, the asset is already being loaded by PermProtectedRoute
-        // We set state from assetStore if available, but don't trigger another load call
-        this.setState(Object.assign({}, assetStore.data[uid]))
+        // Only set state if the asset data is actually available in the store
+        // Otherwise, the listener will handle it when the data arrives
+        if (assetStore.data[uid]) {
+          this.setState(Object.assign({}, assetStore.data[uid]))
+        }
       } else if (uid) {
         actions.resources.loadAsset({ id: uid }, true)
       }
