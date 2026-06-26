@@ -167,6 +167,7 @@ export const ModalStep_BuildFromScratch: StoryObj = {
         onDeleteProject={fn()}
         isArchivable={() => false}
         isArchived={() => false}
+        userCanViewDeleteButton={() => false}
         previousStep={STEPS.FORM_SOURCE}
         onBack={fn()}
         modalStyle={null}
@@ -305,6 +306,7 @@ export const SettingsRoute_EditProject: StoryObj = {
         onDeleteProject={fn()}
         isArchivable={() => true}
         isArchived={() => false}
+        userCanViewDeleteButton={() => true}
         previousStep={null}
         onBack={fn()}
         modalStyle={null}

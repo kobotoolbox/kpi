@@ -33,6 +33,7 @@ interface StepProjectDetailsProps {
   onDeleteProject: (evt: React.MouseEvent<HTMLButtonElement>) => void
   isArchivable: () => boolean
   isArchived: () => boolean
+  userCanViewDeleteButton: () => boolean
   previousStep: StepName | null
   onBack: () => void
   modalStyle: string | null
@@ -53,6 +54,7 @@ export default function StepProjectDetails({
   onDeleteProject,
   isArchivable,
   isArchived,
+  userCanViewDeleteButton,
   previousStep,
   onBack,
   modalStyle,
@@ -228,7 +230,7 @@ export default function StepProjectDetails({
           </div>
         )}
 
-        {userCan('delete_asset', formAsset) && context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+        {userCanViewDeleteButton() && context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
           <div className={styles.input}>
             <Button
               type='danger'
