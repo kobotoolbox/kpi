@@ -392,6 +392,8 @@ class BulkAcceptSerializer(serializers.Serializer):
         'automatic_google_translation',
     )
 
+    BULK_OPERATION_CHOICES = ('accept',)
+
     submission_uids = serializers.ListField(
         child=serializers.CharField(),
         allow_empty=False,
@@ -399,6 +401,7 @@ class BulkAcceptSerializer(serializers.Serializer):
     question_xpath = serializers.CharField(max_length=2000)
     action_id = serializers.ChoiceField(choices=ACTION_CHOICES)
     language = serializers.CharField(required=False, allow_blank=False)
+    operation = serializers.ChoiceField(choices=BULK_OPERATION_CHOICES)
 
     def validate(self, attrs):
         attrs = super().validate(attrs)

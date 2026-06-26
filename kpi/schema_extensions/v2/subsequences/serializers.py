@@ -156,6 +156,15 @@ BulkActionPatchRequest = inline_serializer_class(
     },
 )
 
+class BulkAcceptOperationField(serializers.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            choices=['accept'],
+            *args,
+            **kwargs,
+        )
+
+
 BulkAcceptRequest = inline_serializer_class(
     name='BulkAcceptRequest',
     fields={
@@ -165,6 +174,9 @@ BulkAcceptRequest = inline_serializer_class(
         'language': serializers.CharField(
             required=False,
             help_text='Required for translation actions.',
+        ),
+        'operation': BulkAcceptOperationField(
+            help_text='The operation to apply to the supplement data.',
         ),
     },
 )

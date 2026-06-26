@@ -74,7 +74,7 @@ def _translation_supplement(uuid_, language='fr', include_date_accepted=False):
 class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
     """
     Tests for the bulk-accept endpoint:
-    POST /api/v2/assets/{uid_asset}/advanced-features/accept/
+    POST /api/v2/assets/{uid_asset}/data/supplements/bulk/
     """
 
     def setUp(self):
@@ -90,7 +90,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
             ]
         )
         self.accept_url = reverse(
-            self._get_endpoint('advanced-features-accept-list'),
+            self._get_endpoint('data-supplements-bulk-list'),
             args=[self.asset.uid],
         )
 
@@ -136,6 +136,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 ],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         assert response.status_code == status.HTTP_200_OK
@@ -154,6 +155,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 ],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         for sub_uuid in [self.submission_uuid, self.second_submission_uuid]:
@@ -180,6 +182,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 ],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         assert response.data['accepted_count'] == 2
@@ -194,6 +197,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'submission_uids': [self.submission_uuid],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         assert response.status_code == status.HTTP_200_OK
@@ -214,6 +218,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_translation',
                 'language': 'fr',
+                'operation': 'accept',
             }
         )
         for sub_uuid in [self.submission_uuid, self.second_submission_uuid]:
@@ -245,6 +250,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 ],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         assert response.status_code == status.HTTP_200_OK
@@ -285,6 +291,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'submission_uids': [self.submission_uuid],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         assert response.status_code == status.HTTP_200_OK
@@ -302,6 +309,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'submission_uids': [self.submission_uuid],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         supp_before = SubmissionSupplement.objects.get(
@@ -317,6 +325,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'submission_uids': [self.submission_uuid],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         assert response.data['accepted_count'] == 1
@@ -336,6 +345,36 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'submission_uids': [],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
+            }
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_accept_missing_action_returns_400(self):
+        """
+        Test that omitting the `action` field returns HTTP 400
+        """
+        self._create_transcription_supplements()
+        response = self._post_accept(
+            {
+                'submission_uids': [self.submission_uuid],
+                'question_xpath': 'q1',
+                'action_id': 'automatic_google_transcription',
+            }
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_accept_invalid_action_returns_400(self):
+        """
+        Test that an unsupported `action` value returns HTTP 400
+        """
+        self._create_transcription_supplements()
+        response = self._post_accept(
+            {
+                'submission_uids': [self.submission_uuid],
+                'question_xpath': 'q1',
+                'action_id': 'automatic_google_transcription',
+                'operation': 'delete',
             }
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -346,6 +385,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'submission_uids': [self.submission_uuid],
                 'question_xpath': 'q1',
                 'action_id': 'manual_transcription',
+                'operation': 'accept',
             }
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -357,6 +397,7 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'submission_uids': [self.submission_uuid],
                 'question_xpath': 'q1',
                 'action_id': 'automatic_google_transcription',
+                'operation': 'accept',
             }
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND

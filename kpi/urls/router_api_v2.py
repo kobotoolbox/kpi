@@ -164,16 +164,16 @@ asset_routes.register(
 )
 
 asset_routes.register(
-    r'advanced-features/accept',
-    BulkAcceptViewSet,
-    basename='advanced-features-accept',
+    r'advanced-features',
+    QuestionAdvancedFeatureViewSet,
+    basename='advanced-features',
     parents_query_lookups=['asset'],
 )
 
 asset_routes.register(
-    r'advanced-features',
-    QuestionAdvancedFeatureViewSet,
-    basename='advanced-features',
+    r'data/supplements/bulk',
+    BulkAcceptViewSet,
+    basename='data-supplements-bulk',
     parents_query_lookups=['asset'],
 )
 

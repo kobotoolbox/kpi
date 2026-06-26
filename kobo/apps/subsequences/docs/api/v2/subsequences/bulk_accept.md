@@ -5,13 +5,17 @@ single request. This is the bulk counterpart of the per-submission acceptance
 flow: instead of visiting each submission individually, users can select
 multiple submissions and approve all of them at once.
 
+The `operation` field declares the operation to perform. Currently only `"accept"`
+is supported.
+
 ### Transcription example
 
 ```json
 {
     "submission_uids": ["<uuid-1>", "<uuid-2>"],
     "question_xpath": "group_name/audio_question",
-    "action_id": "automatic_google_transcription"
+    "action_id": "automatic_google_transcription",
+    "operation": "accept"
 }
 ```
 
@@ -24,7 +28,8 @@ For translation actions the `language` field is **required**:
     "submission_uids": ["<uuid-1>", "<uuid-2>"],
     "question_xpath": "group_name/audio_question",
     "action_id": "automatic_google_translation",
-    "language": "fr"
+    "language": "fr",
+    "operation": "accept"
 }
 ```
 

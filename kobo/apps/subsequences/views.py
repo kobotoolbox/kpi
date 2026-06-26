@@ -350,7 +350,7 @@ class BulkAcceptViewSet(
     NestedViewSetMixin, AssetNestedObjectViewsetMixin, viewsets.GenericViewSet
 ):
     """
-    POST /api/v2/assets/{uid_asset}/advanced-features/accept/
+    POST /api/v2/assets/{uid_asset}/data/supplements/bulk/
 
     Accepts NLP results (transcription or translation) in bulk for the given
     submission UUIDs. Returns the count of records that were successfully

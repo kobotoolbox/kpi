@@ -9,17 +9,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { ActionIdEnum } from './actionIdEnum'
-import type { OperationEnum } from './operationEnum'
 
-export interface BulkAcceptRequest {
-  submission_uids: string[]
-  question_xpath: string
-  action_id: ActionIdEnum
-  /** Required for translation actions. */
-  language?: string
-  /** The operation to apply to the supplement data.
+/**
+ * * `accept` - accept
+ */
+export type OperationEnum = (typeof OperationEnum)[keyof typeof OperationEnum]
 
-* `accept` - accept */
-  operation: OperationEnum
-}
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OperationEnum = {
+  accept: 'accept',
+} as const
