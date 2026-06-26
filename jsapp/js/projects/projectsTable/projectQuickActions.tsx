@@ -40,9 +40,16 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   const canOpenDeleteFlow = isAdmin || (isMmoMember ? userCan('manage_asset', asset) : userCan('delete_asset', asset))
 
   function handleDelete() {
-    openDeleteAssetModal(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
-      customViewStore.handleAssetsDeleted([deletedAssetUid])
-    })
+    openDeleteAssetModal(
+      asset,
+      getAssetDisplayName(asset).final,
+      (deletedAssetUid: string) => {
+        customViewStore.handleAssetsDeleted([deletedAssetUid])
+      },
+      () => {
+        customViewStore.fetchAssets()
+      },
+    )
   }
 
   return (

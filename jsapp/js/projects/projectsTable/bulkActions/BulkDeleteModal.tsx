@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { Group, Stack, Text } from '@mantine/core'
 import { modals } from '@mantine/modals'
-import { fetchPost, handleApiFail } from '#/api'
+import { fetchPost } from '#/api'
 import ButtonNew from '#/components/common/ButtonNew'
 import Checkbox from '#/components/common/checkbox'
 import customViewStore from '#/projects/customViewStore'
@@ -48,8 +48,9 @@ export function BulkDeleteModal({ assetUids, modalId, onRequestClose }: BulkDele
         customViewStore.handleAssetsDeleted(assetUids)
         notify(response.detail)
       })
-      .catch((error) => {
-        handleApiFail(error)
+      .catch(() => {
+        invalidateSidebarQueries(orgUid)
+        customViewStore.fetchAssets()
       })
       .finally(() => {
         setIsConfirmDeletePending(false)
