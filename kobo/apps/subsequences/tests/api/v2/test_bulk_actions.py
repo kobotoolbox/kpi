@@ -507,3 +507,160 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         assert self.submission_uuid in response.data['submission_uuids']
         assert response.data['skipped_uuids'] == []
+
+
+class EnsureQuestionAdvancedFeatureTestCase(SubsequenceBaseTestCase):
+    """
+    Tests that bulk transcription and translation actions correctly remember
+    every language a user has requested, even when different languages are used
+    across separate bulk runs.
+
+    Previously, when a user ran a bulk action with one language and then ran
+    another bulk action with a different language, the system failed to save the
+    new language, so the second request would be rejected. These tests verify
+    that each language is properly recorded and that switching languages between
+    bulk runs always succeeds.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.list_url = reverse(
+            self._get_endpoint('advanced-features-bulk-actions-list'),
+            args=[self.asset.uid],
+        )
+
+    def _call_ensure_feature(self, action_id, question_xpath, params):
+        from kobo.apps.subsequences.serializers import BulkActionCreateSerializer
+
+        serializer = BulkActionCreateSerializer(
+            context={'asset': self.asset, 'request': self.client}
+        )
+        serializer._ensure_question_advanced_feature(
+            asset=self.asset,
+            action_id=action_id,
+            question_xpath=question_xpath,
+            params=params,
+        )
+
+    def test_first_language_creates_feature_with_correct_params(self):
+        """
+        Test that calling _ensure_question_advanced_feature for the first time
+        creates a QuestionAdvancedFeature row with the requested language in params
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        assert feature.params == [{'language': 'en'}]
+
+    def test_second_language_is_persisted_to_db(self):
+        """
+        Test that calling _ensure_question_advanced_feature with a second
+        language saves both languages to the DB so subsequent bulk jobs have
+        an up-to-date schema that accepts the new language
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'fr'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        languages = [p['language'] for p in feature.params]
+        assert 'en' in languages
+        assert 'fr' in languages
+
+    def test_duplicate_language_does_not_add_extra_entry(self):
+        """
+        Test that calling _ensure_question_advanced_feature twice with the same
+        language does not create duplicate entries in the feature params list
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        assert feature.params == [{'language': 'en'}]
+
+    def test_bulk_action_succeeds_after_switching_language(self):
+        """
+        Test that a bulk transcription request succeeds after a previous bulk
+        action was created with a different language, verifying that the feature
+        params are correctly updated in the DB so the new language is accepted
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+        )
+
+        payload = {
+            'action_id': 'automatic_google_transcription',
+            'question_xpath': 'q1',
+            'submission_uuids': [self.submission_uuid],
+            'params': {'language': 'fr', 'locale': 'fr-FR'},
+        }
+        response = self.client.post(self.list_url, data=payload, format='json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+        )
+        languages = [p['language'] for p in feature.params]
+        assert 'en' in languages
+        assert 'fr' in languages
+
+    def test_translation_second_language_persisted_to_db(self):
+        """
+        Test that calling _ensure_question_advanced_feature twice with different
+        translation target languages saves both languages, confirming the fix
+        applies equally to translation actions
+        """
+        self._call_ensure_feature(
+            action_id='automatic_google_translation',
+            question_xpath='q1',
+            params={'language': 'de'},
+        )
+        self._call_ensure_feature(
+            action_id='automatic_google_translation',
+            question_xpath='q1',
+            params={'language': 'fr'},
+        )
+
+        feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_translation',
+        )
+        languages = [p['language'] for p in feature.params]
+        assert 'de' in languages
+        assert 'fr' in languages

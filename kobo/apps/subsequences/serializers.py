@@ -1,4 +1,5 @@
 import jsonschema.exceptions
+from copy import deepcopy
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
@@ -369,7 +370,7 @@ class BulkActionCreateSerializer(serializers.Serializer):
             return
 
         action = feature.to_action()
-        params_before_update = list(feature.params)
+        params_before_update = deepcopy(feature.params)
         action.update_params(feature_params)
         if action.params != params_before_update:
             feature.params = action.params
