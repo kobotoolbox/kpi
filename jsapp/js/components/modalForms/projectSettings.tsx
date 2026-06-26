@@ -337,6 +337,16 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
         case 'country':
           newStateObj.fields[fieldName] = newFieldValue as LabelValuePair[] | null
           break
+        default:
+          // Unrecognized field name - log warning in development
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn(
+              `onAnyFieldChange called with unrecognized fieldName: "${fieldName}". ` +
+                `Expected one of: name, description, sector, country, operational_purpose, collects_pii, ` +
+                `or a key in extra_metadata_fields.`,
+            )
+          }
+          break
       }
     }
 
