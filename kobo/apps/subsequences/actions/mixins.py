@@ -119,28 +119,43 @@ class TranscriptionActionMixin:
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
-        # get the most recently accepted transcript
         versions = action_data.get('_versions', [])
-        # they should already be in order but there's no way to guarantee it, so
-        # sort just in case
+        if not versions:
+            return {}
+
+        # Sort by _dateCreated (newest first) so we always evaluate the latest
+        # version, whether it is accepted or still pending review
         versions_sorted = sorted(
             versions,
-            key=lambda x: self._get_date_field_value(x),
+            key=lambda x: x.get(self.DATE_CREATED_FIELD, ''),
             reverse=True,
         )
 
-        version_data = versions_sorted[0]
-        date_field_value = self._get_date_field_value(version_data) or None
+        latest = versions_sorted[0]
+        version_data = latest.get(self.VERSION_DATA_FIELD, {})
 
-        # return a simplified representation
-        return {
-            self.col_type: {
-                'languageCode': version_data['_data']['language'],
-                'value': version_data['_data'].get('value'),
-                'regionCode': version_data['_data'].get('locale'),
-                SORT_BY_DATE_FIELD: date_field_value,
-            }
+        # Skip results with a missing or None value, as they represent deleted
+        # or in-progress transcriptions. Google "no speech detected" results
+        # use an empty string and are returned normally
+        if version_data.get('value') is None:
+            return {}
+
+        date_accepted = latest.get(self.DATE_ACCEPTED_FIELD)
+        pending_review = not bool(date_accepted)
+        sort_by_date = date_accepted or latest.get(self.DATE_CREATED_FIELD)
+
+        entry = {
+            'languageCode': version_data['language'],
+            'regionCode': version_data.get('locale'),
+            SORT_BY_DATE_FIELD: sort_by_date,
         }
+
+        if pending_review:
+            entry['pendingReview'] = True
+        else:
+            entry['value'] = version_data.get('value')
+
+        return {self.col_type: entry}
 
     @property
     def result_schema(self):
@@ -302,22 +317,36 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
         result = {}
         for language, language_data in action_data.items():
             versions = language_data.get('_versions', [])
-            # order by date accepted
+            if not versions:
+                continue
+
             versions_sorted = sorted(
                 versions,
-                key=lambda x: self._get_date_field_value(x),
+                key=lambda x: x.get(self.DATE_CREATED_FIELD, ''),
                 reverse=True,
             )
-            version_data = versions_sorted[0]
-            date_field_value = self._get_date_field_value(version_data) or None
+            latest = versions_sorted[0]
+            version_data = latest.get(self.VERSION_DATA_FIELD, {})
 
-            # a translation column is identified by 'translation' + language
+            # Skip deleted or in-progress versions
+            if version_data.get('value') is None:
+                continue
+
+            date_accepted = latest.get(self.DATE_ACCEPTED_FIELD)
+            pending_review = not bool(date_accepted)
+            sort_by_date = date_accepted or latest.get(self.DATE_CREATED_FIELD)
+
             key = (self.col_type, language)
-
-            # return a simplified representation
-            result[key] = {
-                'languageCode': version_data['_data']['language'],
-                'value': version_data['_data'].get('value'),
-                SORT_BY_DATE_FIELD: date_field_value,
+            entry = {
+                'languageCode': version_data['language'],
+                SORT_BY_DATE_FIELD: sort_by_date,
             }
+
+            if pending_review:
+                entry['pendingReview'] = True
+            else:
+                entry['value'] = version_data.get('value')
+
+            result[key] = entry
+
         return result
