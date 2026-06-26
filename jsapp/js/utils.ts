@@ -665,5 +665,5 @@ export function getErrorMessage(err: FailResponse): string {
   if (err.responseText) {
     return `<pre style='max-height: 200px;'>${err.responseText}</pre>`
   }
-  return t('please check your connection and try again.')
+  return t('Please check your connection and try again.')
 }
