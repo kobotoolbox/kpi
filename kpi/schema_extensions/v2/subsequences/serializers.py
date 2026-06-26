@@ -156,6 +156,7 @@ BulkActionPatchRequest = inline_serializer_class(
     },
 )
 
+
 class BulkAcceptOperationField(serializers.ChoiceField):
     def __init__(self, *args, **kwargs):
         super().__init__(
