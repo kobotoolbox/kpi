@@ -314,7 +314,7 @@ class ProjectSettings extends React.Component {
     openDeleteAssetModal(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
   }
 
-  isMMOOrganization() {
+  isMMO() {
     const account = sessionStore.currentAccount
     const orgUid = 'organization' in account ? account.organization?.uid : undefined
     if (orgUid) {
@@ -326,8 +326,8 @@ class ProjectSettings extends React.Component {
     return false
   }
 
-  canOpenDeleteFlow() {
-    return this.isMMOOrganization() || userCan('delete_asset', this.state.formAsset)
+  userCanViewDeleteButton() {
+    return this.isMMO() || userCan('delete_asset', this.state.formAsset)
   }
 
   // archive flow
@@ -1123,7 +1123,7 @@ class ProjectSettings extends React.Component {
               </div>
             )}
 
-          {this.canOpenDeleteFlow() && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+          {this.userCanViewDeleteButton() && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
             <div className={styles.input}>
               <Button
                 type='danger'
