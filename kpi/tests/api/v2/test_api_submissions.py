@@ -1447,11 +1447,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
+        # The automatic transcription is accepted and wins over the deleted manual
+        # transcription, so the accepted value should be returned
         assert (
             response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
                 'value'
             ]
-            is None
+            == 'Bonjour le monde!'
         )
 
     def test_simplified_supplemental_detail_for_acceptance(self):
@@ -1514,12 +1516,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
-        assert (
-            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
-                'value'
-            ]
-            == 'Bonjour la foule!'
+        # The automatic transcription is newer but unaccepted (pending), so it
+        # beats the older accepted manual transcription
+        transcript = (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript']
         )
+        assert transcript.get('pendingReview') is True
+        assert 'value' not in transcript
 
         transcription_data['q1']['automatic_google_transcription']['_versions'][0][
             '_dateAccepted'
