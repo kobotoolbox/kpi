@@ -3,12 +3,7 @@
 
 import { generatePath, matchPath } from 'react-router-dom'
 import { router } from '#/router/legacy'
-import {
-  PROCESSING_ROUTES,
-  PROCESSING_ROUTE_GENERIC,
-  PROCESSING_ROUTE_TRANSLATION_DETAIL,
-  ROUTES,
-} from '#/router/routerConstants'
+import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
 import { recordValues } from '#/utils'
 
@@ -50,7 +45,7 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
   const targetPath = path.split('?')[0]
 
   // Step 2. Try to match against translation detail route first (most specific)
-  let matchProfile = matchPath(PROCESSING_ROUTE_TRANSLATION_DETAIL, targetPath)
+  let matchProfile = matchPath(PROCESSING_ROUTES.TRANSLATION_DETAIL, targetPath)
 
   // Step 3. If not a translation detail, try generic tab route
   if (!matchProfile) {

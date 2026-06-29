@@ -58,10 +58,9 @@ export const PROJECTS_ROUTES: { readonly [key: string]: string } = {
 }
 
 export const PROCESSING_ROUTE_GENERIC = ROUTES.FORM_PROCESSING_ROOT + '/:tabName'
-export const PROCESSING_ROUTE_TRANSLATION_DETAIL = ROUTES.FORM_PROCESSING_ROOT + '/translations/:languageCode'
 export const PROCESSING_ROUTES: { readonly [key: string]: string } = {
   TRANSCRIPT: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'transcript'),
   TRANSLATIONS: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'translations'),
-  TRANSLATION_DETAIL: PROCESSING_ROUTE_TRANSLATION_DETAIL,
+  TRANSLATION_DETAIL: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'translations') + '/:languageCode',
   ANALYSIS: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'analysis'),
 }
