@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -35,7 +35,10 @@ export default function TranslationTab({
   supplement,
   advancedFeatures,
 }: Props) {
-  const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath, false)
+  const translationVersions = useMemo(
+    () => getAllTranslationsFromSupplementData(supplement, questionXpath, false),
+    [supplement, questionXpath],
+  )
 
   // Read languageCode from URL params if available (for direct navigation to specific translation)
   const params = useParams<{ languageCode?: string }>()
@@ -63,8 +66,15 @@ export default function TranslationTab({
       setLanguageCode(null)
       return
     }
-    setLanguageCode(latestTranslation?._data.language ?? null)
-  }, [translationVersion, setLanguageCode, supplement, questionXpath, urlLanguageCode, translationVersions])
+    const fallbackLanguage = latestTranslation._data.language
+    setLanguageCode(fallbackLanguage)
+
+    // If URL had a language code that doesn't exist in this submission, update URL to match the fallback
+    if (urlLanguageCode && fallbackLanguage) {
+      const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+      goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, fallbackLanguage)
+    }
+  }, [translationVersion, setLanguageCode, supplement, questionXpath, urlLanguageCode, translationVersions, asset.uid, submission])
 
   const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
   const mode = (() => {
@@ -97,14 +107,14 @@ export default function TranslationTab({
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
-          onCreate={(languageCode: LanguageCode, context: 'automated' | 'manual') => {
+          onCreate={(newLanguageCode: LanguageCode, context: 'automated' | 'manual') => {
             // After creating automated translation, go straight into 'edit' mode
             if (context === 'automated') {
               setMode('edit')
             } else {
               setMode('view')
             }
-            setLanguageCode(languageCode)
+            setLanguageCode(newLanguageCode)
           }}
           onBack={() => {
             // This ensures we don't get back to "begin" step when abandoning the creation of new translation if we
