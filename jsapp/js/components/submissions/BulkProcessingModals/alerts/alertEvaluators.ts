@@ -38,13 +38,49 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
 /**
  * Checks for submissions missing audio attachments (transcription)
  * or missing transcripts (translation)
- * TODO: DEV-1404 - Implement this evaluator
  */
 export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluationResult {
-  console.log('[BulkProcessingAlerts] Evaluator evaluateNoSource - STUBBED, returning no alerts', context)
+  const { submissions, fieldXpath, actionType, previouslyFilteredSubmissionUuids } = context
 
-  // STUB: Return inactive result
-  return createInactiveResult('warning')
+  const missingSource: string[] = []
+
+  submissions.forEach((submission) => {
+    // Skip if already filtered by previous evaluators
+    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+      return
+    }
+
+    let hasSource = false
+
+    if (actionType === 'transcript') {
+      // For transcription: check if there's an audio attachment for this field
+      hasSource =
+        submission._attachments?.some(
+          (attachment) => attachment.question_xpath === fieldXpath && !attachment.is_deleted,
+        ) ?? false
+    } else {
+      // For translation: check if there's a transcript
+      // Note 1: we assume here that there can be only one transcript
+      // Note 2: `fieldXpath` can be question xpath for transcript case, but for translation case it would be path to
+      // supplementalDetails, but we need to compare it to question xpath, so we use utility function
+      const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
+      const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+      hasSource = Boolean(transcript?.value)
+    }
+
+    if (!hasSource) {
+      missingSource.push(submission._uuid)
+    }
+  })
+
+  return {
+    shouldShow: missingSource.length > 0,
+    type: 'warning',
+    filteredSubmissionUuids: missingSource,
+    computedValues: {
+      count: missingSource.length,
+    },
+  }
 }
 
 /**
