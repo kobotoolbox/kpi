@@ -297,6 +297,8 @@ class QATagTracker(models.Model):
     value = models.CharField(max_length=255)
 
     class Meta:
+        verbose_name = 'QA tag tracker'
+        verbose_name_plural = 'QA tag trackers'
         constraints = [
             models.UniqueConstraint(
                 fields=['asset', 'question_uuid', 'value'],
@@ -305,7 +307,7 @@ class QATagTracker(models.Model):
         ]
 
     def __str__(self):
-        return self.value
+        return f'{self.value} (asset={self.asset_id}, question={self.question_uuid})'
 
 
 class BulkActionStatus(models.TextChoices):
