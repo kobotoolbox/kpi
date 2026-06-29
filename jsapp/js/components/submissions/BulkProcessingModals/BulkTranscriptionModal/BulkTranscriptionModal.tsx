@@ -46,21 +46,22 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
-  const [audioDuration, setAudioDuration] = useState<number>(0)
-  const [isAudioDurationLoading, setIsAudioDurationLoading] = useState<boolean>(true)
   const queryClient = useQueryClient()
 
   // Derive values from selectedSubmissions
-  const selectedSubmissionUuids = props.selectedSubmissions.map((submission) => submission._uuid)
   const selectedRowsCount = props.selectedSubmissions.length
 
-  useCalculateAudioDuration({
+  const {
+    duration: audioDuration,
+    isLoading: isAudioDurationLoading,
+    isError: isAudioDurationError,
+    // TODO: For DEV-1399, we probably will want to incorporate an error message to the user telling them that we
+    // couldn't calculate their ASR time remaining.
+    errorMessage: audioDurationErrorMesssage,
+  } = useCalculateAudioDuration({
     selectedSubmissions: props.selectedSubmissions,
     fieldId: props.fieldXpath,
     assetUid: props.assetUid,
-    onLoadingChange: setIsAudioDurationLoading,
-    onDurationAdd: (duration) => setAudioDuration((prev) => prev + duration),
-    onError: (message) => notify.error(message),
   })
 
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
@@ -170,14 +171,16 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     if (hours && !minutes) {
       return t('##hours## hours').replace('##hours##', String(hours))
     } else if (hours && minutes) {
-      return t('##hours## hours, ##minutes## minutes').replace('##hours##', String(hours)).replace('##minutes##', String(minutes))
+      return t('##hours## hours, ##minutes## minutes')
+        .replace('##hours##', String(hours))
+        .replace('##minutes##', String(minutes))
     } else if (!hours && minutes) {
       return t('##minutes## minutes').replace('##minutes##', String(minutes))
     } else if (!hours && !minutes) {
       return t('##seconds## seconds').replace('##seconds##', String(seconds))
     } else {
-      // Use rounded minutes instead of total seconds for better UI. Falback for typescript, should never happen.
-      return t('##minutes## minutes').replace('##minutes##', String(Math.ceil(seconds/60)))
+      // Fallback for typescript, should never happen.
+      return '…'
     }
   }
 
@@ -193,12 +196,22 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
       {!showWarningModal && (
         <Stack gap='md'>
+          {/* Legacy alert - will be removed once audio duration evaluators are implemented see DEV-1399 */}
+          {isAudioDurationError && audioDurationErrorMesssage && (
+            <Alert type='warning' iconName='information'>
+              {audioDurationErrorMesssage}
+            </Alert>
+          )}
+
           <Text size='sm'>
             {t(
               'Your ##total_files## audio files is a total of ##total_length##. This may take longer to complete than the total duration of your files.',
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
-              .replace('##total_length##', formatDuration(audioDuration))}
+              .replace(
+                '##total_length##',
+                isAudioDurationLoading || isAudioDurationError ? '…' : formatDuration(audioDuration),
+              )}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>

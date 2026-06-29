@@ -1,15 +1,19 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { ServerError } from '#/api/ServerError'
 import { useAssetsAttachmentsAudioDurationCreate } from '#/api/react-query/survey-data'
 import type { SubmissionResponse } from '#/dataInterface'
+
+interface UseCalculateAudioDurationReturn {
+  duration: number
+  isLoading: boolean
+  isError: boolean
+  errorMessage: string | null
+}
 
 interface UseCalculateAudioDurationParams {
   selectedSubmissions: SubmissionResponse[]
   fieldId: string
   assetUid: string
-  onLoadingChange: (isLoading: boolean) => void
-  onDurationAdd: (duration: number) => void
-  onError: (message: string) => void
 }
 
 const MAXIMUM_AUDIO_DURATION_BATCH_SIZE = 200
@@ -18,10 +22,12 @@ export function useCalculateAudioDuration({
   selectedSubmissions,
   fieldId,
   assetUid,
-  onLoadingChange,
-  onDurationAdd,
-  onError,
-}: UseCalculateAudioDurationParams) {
+}: UseCalculateAudioDurationParams): UseCalculateAudioDurationReturn {
+  const [duration, setDuration] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
   const { mutate: getAudioDurations } = useAssetsAttachmentsAudioDurationCreate()
 
   useEffect(() => {
@@ -37,7 +43,7 @@ export function useCalculateAudioDuration({
       attachmentUidBatches.push(attachmentUids.slice(i, i + MAXIMUM_AUDIO_DURATION_BATCH_SIZE))
     }
     ;(async () => {
-      onLoadingChange(true)
+      setIsLoading(true)
 
       // We accumulate locally to avoid sending an incorrect duration to the user if this process fails mid-batch
       let totalDuration = 0
@@ -77,26 +83,32 @@ export function useCalculateAudioDuration({
                 const delay = 2 ** (attempt - 1) * 1000
                 await new Promise((resolve) => setTimeout(resolve, delay))
               } else {
-                onError(t('Failed to calculate audio duration after multiple attempts. Please try again.'))
-                onLoadingChange(false)
+                setIsError(true)
+                setErrorMessage(t('Failed to calculate audio duration after multiple attempts. Please try again.'))
+                setIsLoading(false)
                 return
               }
             } else {
-              const errorMessage = result.error?.toString() || t('Failed to calculate audio duration.')
-              onError(errorMessage)
-              onLoadingChange(false)
+              const responseErrorMessage = result.error?.toString() || t('Failed to calculate audio duration.')
+              setIsError(true)
+              setErrorMessage(responseErrorMessage)
+              setIsLoading(false)
               return
             }
           } catch (error) {
-            onError(t('An unexpected error occurred while calculating audio duration.'))
-            onLoadingChange(false)
+            setIsError(true)
+            setErrorMessage(t('An unexpected error occurred while calculating audio duration.'))
+            setIsLoading(false)
             return
           }
         }
       }
 
-      onLoadingChange(false)
-      onDurationAdd(totalDuration)
+      setIsError(false)
+      setIsLoading(false)
+      setDuration(totalDuration)
     })()
   }, [])
+
+  return { duration, isLoading, isError, errorMessage }
 }
