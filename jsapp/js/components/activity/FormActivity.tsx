@@ -76,9 +76,9 @@ export default function FormActivity() {
         return false
       }
 
-      // Poll every 10 seconds when there are ongoing items
+      // Poll every 5 seconds when there are ongoing items
       // This is a reasonable interval that balances responsiveness with server load
-      return 10000
+      return 5000
     },
     // Only poll while the tab is foregrounded
     refetchIntervalInBackground: false,
