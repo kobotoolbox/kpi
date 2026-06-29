@@ -49,7 +49,11 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       id: 'conflicting-job',
       type: 'warning',
       evaluator: evaluateConflictingJob,
-      messageTemplate: () => t('Another bulk process is already in progress, please let it finish first'),
+      messageTemplate: ({ count = 0 }) =>
+        t('##count## submissions are already being processed by another job and will be ignored').replace(
+          '##count##',
+          String(count),
+        ),
     },
     {
       id: 'no-source',
