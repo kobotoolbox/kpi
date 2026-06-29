@@ -124,6 +124,9 @@ export default function TranslationTab({
               setMode('view')
             }
             setLanguageCode(newLanguageCode)
+            // Update URL to reflect the newly created translation language
+            const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+            goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
           }}
           onBack={() => {
             // This ensures we don't get back to "begin" step when abandoning the creation of new translation if we
