@@ -142,8 +142,32 @@ const meta: Meta<typeof FormMapWrapper> = {
       routing: { path: ROUTES.FORM_DATA },
     }),
     a11y: { test: 'todo' },
+    chromatic: {
+      delay: 1000,
+    },
   },
-  decorators: [withRouter, queryClientDecorator, withMinHeightWrapper(400, { height: 400 })],
+  decorators: [
+    withRouter,
+    queryClientDecorator,
+    withMinHeightWrapper(400, { height: 400 }),
+    // Hide map tiles for Chromatic tests - prevents flakiness from map images rendering differently (we had tiny
+    // differences causing tests to fail)
+    (Story) => (
+      <>
+        <style>
+          {`
+            .leaflet-tile-pane {
+              opacity: 0 !important;
+            }
+            #data-map {
+              background: #a8e4f0 !important;
+            }
+          `}
+        </style>
+        <Story />
+      </>
+    ),
+  ],
 }
 
 export default meta
