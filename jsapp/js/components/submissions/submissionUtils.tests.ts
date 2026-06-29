@@ -479,10 +479,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       },
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/transcript_en',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
     chai.expect(result).to.be.true
   })
@@ -500,10 +497,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       },
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/transcript_en',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
     chai.expect(result).to.be.false
   })
@@ -523,10 +517,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       },
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/translation_es',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_es')
 
     chai.expect(result).to.be.true
   })
@@ -546,10 +537,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       },
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/translation_fr',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
 
     chai.expect(result).to.be.false
   })
@@ -567,10 +555,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       },
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/123-uuid',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/123-uuid')
 
     chai.expect(result).to.be.false
   })
@@ -588,10 +573,7 @@ describe('hasUnacceptedAutomaticContent', () => {
   it('should return false when supplemental details are missing', () => {
     const submission: any = {}
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/transcript_en',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
     chai.expect(result).to.be.false
   })
@@ -601,10 +583,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       _supplementalDetails: {},
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/transcript_en',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
     chai.expect(result).to.be.false
   })
@@ -616,10 +595,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       },
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/transcript_en',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
     chai.expect(result).to.be.false
   })
@@ -638,10 +614,7 @@ describe('hasUnacceptedAutomaticContent', () => {
       },
     }
 
-    const result = hasUnacceptedAutomaticContent(
-      submission,
-      '_supplementalDetails/audio_question/translation_fr',
-    )
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
 
     chai.expect(result).to.be.false
   })

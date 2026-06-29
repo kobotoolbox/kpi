@@ -1,9 +1,9 @@
 import { Box } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { CellInfo } from 'react-table'
-import assetDataFactory from '#/endpoints/assetData.factory'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
+import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   simpleSurvey,
   simpleSurveyAsset,

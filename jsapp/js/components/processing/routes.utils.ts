@@ -184,12 +184,7 @@ export function goToTabRoute(targetTabRoute: string) {
  * @param submissionEditId - The submission edit ID
  * @param targetTab - Optional specific tab to navigate to. If not provided, navigates to root (letting routes decide)
  */
-export function goToProcessing(
-  assetUid: string,
-  xpath: string,
-  submissionEditId: string,
-  targetTab?: ProcessingTab
-) {
+export function goToProcessing(assetUid: string, xpath: string, submissionEditId: string, targetTab?: ProcessingTab) {
   let targetRoute: string = ROUTES.FORM_PROCESSING_ROOT
 
   // If specific tab is provided, use it

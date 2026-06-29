@@ -80,14 +80,24 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
   const goPrev = () => {
     if (!queryPrev.data) return
     protectorHelpers.safeExecute(hasUnsavedWork, () =>
-      goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryPrev.data!.submission['meta/rootUuid']), getActiveTab()),
+      goToProcessing(
+        assetUid,
+        xpath,
+        removeDefaultUuidPrefix(queryPrev.data!.submission['meta/rootUuid']),
+        getActiveTab(),
+      ),
     )
   }
 
   const goNext = () => {
     if (!queryNext.data) return
     protectorHelpers.safeExecute(hasUnsavedWork, () =>
-      goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryNext.data!.submission['meta/rootUuid']), getActiveTab()),
+      goToProcessing(
+        assetUid,
+        xpath,
+        removeDefaultUuidPrefix(queryNext.data!.submission['meta/rootUuid']),
+        getActiveTab(),
+      ),
     )
   }
 
