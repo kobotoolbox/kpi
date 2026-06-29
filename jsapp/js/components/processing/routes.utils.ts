@@ -3,7 +3,12 @@
 
 import { generatePath, matchPath } from 'react-router-dom'
 import { router } from '#/router/legacy'
-import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, PROCESSING_ROUTE_TRANSLATION_DETAIL, ROUTES } from '#/router/routerConstants'
+import {
+  PROCESSING_ROUTES,
+  PROCESSING_ROUTE_GENERIC,
+  PROCESSING_ROUTE_TRANSLATION_DETAIL,
+  ROUTES,
+} from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
 import { recordValues } from '#/utils'
 
@@ -210,7 +215,7 @@ export function goToProcessing(
   xpath: string,
   submissionEditId: string,
   targetTab?: ProcessingTab,
-  languageCode?: string
+  languageCode?: string,
 ) {
   let targetRoute: string = ROUTES.FORM_PROCESSING_ROOT
 

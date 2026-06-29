@@ -4,7 +4,7 @@ import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureRespon
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { goToProcessing, ProcessingTab } from '#/components/processing/routes.utils'
+import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'

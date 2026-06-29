@@ -43,7 +43,7 @@ export default function SupplementalDetailsCell(props: SupplementalDetailsCellPr
       pathParts.sourceRowPath,
       submissionEditId,
       targetTab,
-      pathParts.type === 'translation' ? pathParts.languageCode : undefined
+      pathParts.type === 'translation' ? pathParts.languageCode : undefined,
     )
   }
 
