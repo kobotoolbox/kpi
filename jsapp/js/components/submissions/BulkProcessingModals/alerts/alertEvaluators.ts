@@ -1,6 +1,5 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
-import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 import { createInactiveResult } from './utils'
 
@@ -64,11 +63,9 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
   } else {
     // For translation: check for ongoing jobs that would conflict
     conflictingJobs = ongoingJobs.filter((action) => {
-      // Translation jobs have xpath that points to transcript inside `_supplementalDetails`.
-      // Check if this translation job is for the same field
+      // Translation jobs on the same field conflict (write-locked output)
       if (action.action_id === ActionIdEnum.automatic_google_translation) {
-        const pathParts = getSupplementalPathParts(action.question_xpath)
-        return pathParts.sourceRowPath === fieldXpath && pathParts.type === 'transcript'
+        return action.question_xpath === fieldXpath
       }
       // Transcription jobs on the same field also conflict (they write to the input transcript)
       if (action.action_id === ActionIdEnum.automatic_google_transcription) {

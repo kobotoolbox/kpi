@@ -208,7 +208,7 @@ describe('evaluateConflictingJob', () => {
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
           status: BulkActionResponseStatusEnum.in_progress,
-          question_xpath: '_supplementalDetails/audio_question/transcript_en',
+          question_xpath: 'audio_question',
           action_id: ActionIdEnum.automatic_google_translation,
           submission_uuids: ['uuid-1'],
         }),
@@ -300,7 +300,7 @@ describe('evaluateConflictingJob', () => {
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
           status: BulkActionResponseStatusEnum.in_progress,
-          question_xpath: '_supplementalDetails/different_question/transcript_en',
+          question_xpath: 'different_question',
           action_id: ActionIdEnum.automatic_google_translation,
           submission_uuids: ['uuid-1'],
         }),
