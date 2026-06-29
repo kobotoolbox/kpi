@@ -2,6 +2,7 @@ import {
   getMediaAttachment,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
+  hasUnacceptedAutomaticContent,
   removeEmptyFromSupplementalDetails,
   removeEmptyObjects,
 } from './submissionUtils'
@@ -461,5 +462,187 @@ describe('removeEmptyFromSupplementalDetails', () => {
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
     chai.expect(result).to.eql({})
+  })
+})
+
+describe('hasUnacceptedAutomaticContent', () => {
+  it('should return true for transcript with pendingReview flag', () => {
+    const submission: any = {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            languageCode: 'en',
+            pendingReview: true,
+            _sortByDate: '2026-01-01T00:00:00.000000Z',
+          },
+        },
+      },
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/transcript_en',
+    )
+
+    chai.expect(result).to.be.true
+  })
+
+  it('should return false for accepted transcript (no pendingReview flag)', () => {
+    const submission: any = {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            value: 'Hello world',
+            languageCode: 'en',
+            _sortByDate: '2026-01-01T00:00:00.000000Z',
+          },
+        },
+      },
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/transcript_en',
+    )
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return true for translation with pendingReview flag', () => {
+    const submission: any = {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            es: {
+              languageCode: 'es',
+              pendingReview: true,
+              _sortByDate: '2026-01-01T00:00:00.000000Z',
+            },
+          },
+        },
+      },
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/translation_es',
+    )
+
+    chai.expect(result).to.be.true
+  })
+
+  it('should return false for accepted translation (no pendingReview flag)', () => {
+    const submission: any = {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            fr: {
+              value: 'Bonjour le monde',
+              languageCode: 'fr',
+              _sortByDate: '2026-01-01T00:00:00.000000Z',
+            },
+          },
+        },
+      },
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/translation_fr',
+    )
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false for qual questions (not transcript/translation)', () => {
+    const submission: any = {
+      _supplementalDetails: {
+        audio_question: {
+          qual: {
+            '123-uuid': {
+              value: 'Some analysis',
+            },
+          },
+        },
+      },
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/123-uuid',
+    )
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false for non-supplemental-details columns', () => {
+    const submission: any = {
+      regular_question: 'some answer',
+    }
+
+    const result = hasUnacceptedAutomaticContent(submission, 'regular_question')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when supplemental details are missing', () => {
+    const submission: any = {}
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/transcript_en',
+    )
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when source row data is missing', () => {
+    const submission: any = {
+      _supplementalDetails: {},
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/transcript_en',
+    )
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when transcript data is missing', () => {
+    const submission: any = {
+      _supplementalDetails: {
+        audio_question: {},
+      },
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/transcript_en',
+    )
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when translation language is missing', () => {
+    const submission: any = {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            es: {
+              value: 'Hola',
+              languageCode: 'es',
+            },
+          },
+        },
+      },
+    }
+
+    const result = hasUnacceptedAutomaticContent(
+      submission,
+      '_supplementalDetails/audio_question/translation_fr',
+    )
+
+    chai.expect(result).to.be.false
   })
 })
