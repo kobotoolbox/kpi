@@ -74,7 +74,16 @@ export default function TranslationTab({
       const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
       goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, fallbackLanguage)
     }
-  }, [translationVersion, setLanguageCode, supplement, questionXpath, urlLanguageCode, translationVersions, asset.uid, submission])
+  }, [
+    translationVersion,
+    setLanguageCode,
+    supplement,
+    questionXpath,
+    urlLanguageCode,
+    translationVersions,
+    asset.uid,
+    submission,
+  ])
 
   const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
   const mode = (() => {
