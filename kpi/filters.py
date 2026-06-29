@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import FieldError
+from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDictKeyError
@@ -33,7 +33,6 @@ from kpi.utils.object_permission import (
 )
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
-
 from .models import Asset, ObjectPermission
 
 
@@ -328,9 +327,12 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         except KeyError:
             return queryset
 
-        # `self.__get_parsed_parameters()` returns a list for each parameters
-        # but we should only search only with one parent uid
-        parent_obj = queryset.get(uid=parent_uids[0])
+        # `self.__get_parsed_parameters()` returns a list for each parameter
+        # but we should only search with one parent uid
+        try:
+            parent_obj = queryset.get(uid=parent_uids[0])
+        except (ObjectDoesNotExist, Asset.MultipleObjectsReturned):
+            return queryset
 
         if not isinstance(parent_obj, Asset):
             return queryset
@@ -387,8 +389,16 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
             return {}
 
         try:
-            q_obj = parse(q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
-        except (ParseError, SearchQueryTooShortException):
+            q_obj = parse(
+                q,
+                default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
+                model=Asset,
+            )
+        except (
+            ParseError,
+            QueryParserNotSupportedFieldLookup,
+            SearchQueryTooShortException,
+        ):
             # Let's `SearchFilter` handle errors
             return {}
         else:
@@ -447,7 +457,10 @@ class SearchFilter(filters.BaseFilterBackend):
             q_obj = parse(
                 q,
                 default_field_lookups=view.search_default_field_lookups,
-                min_search_characters=getattr(view, 'min_search_characters', None),
+                min_search_characters=getattr(
+                    view, 'min_search_characters', None
+                ),
+                model=queryset.model,
             )
         except ParseError:
             return queryset.model.objects.none()

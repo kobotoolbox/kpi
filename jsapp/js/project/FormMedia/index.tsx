@@ -210,7 +210,7 @@ export default function FormMedia(props: FormMediaProps) {
     <div className='form-view form-view--form-media'>
       <div className='form-media'>
         {props.asset.deployment__active && (
-          <Alert iconName='alert' type='warning'>
+          <Alert iconName='alert' type='warning' mb='md'>
             {t('You must redeploy this form to see media changes.')}
           </Alert>
         )}

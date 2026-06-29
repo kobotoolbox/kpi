@@ -10,6 +10,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
@@ -29,6 +30,13 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
+import {
+  getPollingUpdateStoryHandlers,
+  getPollingUpdateStoryState,
+  getPollingUpdateStoryTimeoutMs,
+  pollingAsset,
+  resetPollingUpdateStoryHandlers,
+} from './DataTableWrapperPollingStoriesUtils'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
@@ -349,6 +357,9 @@ const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/r
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
   component: DataTableWrapper,
+  async beforeEach() {
+    resetPollingUpdateStoryHandlers()
+  },
   args: {
     asset: minimalAsset,
   },
@@ -426,6 +437,41 @@ export const ProcessingColumnAndBanner: Story = {
   loaders: [loadAssetForStory],
 }
 
+export const ProcessingPollingRefreshesTranslatedCell: Story = {
+  args: {
+    asset: pollingAsset,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Starts with a Processing placeholder and updates that row after polling (about 8 seconds) when the mocked bulk action item transitions to complete.',
+      },
+    },
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(pollingAsset.uid),
+    msw: {
+      handlers: getPollingUpdateStoryHandlers(),
+    },
+  },
+  loaders: [loadAssetForStory],
+  play: async ({ step }) => {
+    // We intentionally avoid asserting rendered translated text here.
+    // We tried multiple DOM-based variants (including intermediate
+    // "Processing" checks), but they remained flaky in CI across browsers.
+    // This play test focuses on stable polling/refresh behavior via mock state.
+    await step('Wait for polling to refresh one submission row', async () => {
+      await waitFor(
+        async () => {
+          const storyState = getPollingUpdateStoryState()
+          await expect(storyState.pollingBulkActionsCalls).toBeGreaterThanOrEqual(2)
+          await expect(storyState.pollingSubmissionRefreshCalls).toBeGreaterThanOrEqual(1)
+        },
+        { timeout: getPollingUpdateStoryTimeoutMs() },
+      )
+    })
+  },
+}
 export const ProcessingAndLimitsBannersTogether: Story = {
   args: {
     asset: processingAsset,

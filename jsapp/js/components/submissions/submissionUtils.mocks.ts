@@ -80,6 +80,7 @@ export const simpleSurveyAsset = {
   owner__username: '',
   owner_label: '',
   last_modified_by: null,
+  created_by: null,
   date_created: '',
   summary: {},
   date_modified: '',
@@ -299,6 +300,7 @@ export const repeatSurveyAsset = {
   owner__username: '',
   owner_label: '',
   last_modified_by: null,
+  created_by: null,
   date_created: '',
   summary: {},
   date_modified: '',
@@ -497,6 +499,7 @@ export const nestedRepeatSurveyAsset = {
   owner__username: '',
   owner_label: '',
   last_modified_by: null,
+  created_by: null,
   date_created: '',
   summary: {},
   date_modified: '',
@@ -790,6 +793,7 @@ export const matrixSurveyAsset = {
   owner__username: '',
   owner_label: '',
   last_modified_by: null,
+  created_by: null,
   date_created: '',
   summary: {},
   date_modified: '',
@@ -1091,6 +1095,7 @@ export const groupsSurveyAsset = {
   owner__username: '',
   owner_label: '',
   last_modified_by: null,
+  created_by: null,
   date_created: '',
   summary: {},
   date_modified: '',
@@ -1671,6 +1676,7 @@ export const everythingSurveyAsset = {
   owner__username: '',
   owner_label: '',
   last_modified_by: null,
+  created_by: null,
   date_created: '',
   summary: {},
   date_modified: '',
@@ -2123,6 +2129,7 @@ export const matrixRepeatSurveyAsset = {
   owner__username: '',
   owner_label: '',
   last_modified_by: null,
+  created_by: null,
   date_created: '',
   summary: {},
   date_modified: '',
@@ -2371,6 +2378,7 @@ export const assetWithSupplementalDetails = {
   owner__username: 'kobo',
   owner_label: 'kobo',
   last_modified_by: null,
+  created_by: null,
   deployment_status: 'deployed',
   effective_permissions: [
     {
@@ -3451,6 +3459,7 @@ export const assetWithNestedSupplementalDetails = {
   project_ownership: null,
   owner_label: "uu's organization",
   last_modified_by: 'uu',
+  created_by: null,
 } as const satisfies AssetResponse
 
 export const submissionWithNestedSupplementalDetails = {
@@ -4023,6 +4032,7 @@ export const assetWithAllQual = {
   project_ownership: null,
   owner_label: "uu's organization",
   last_modified_by: 'uu',
+  created_by: null,
 } as const satisfies AssetResponse
 
 export const submissionWithAllQual = {

@@ -242,6 +242,7 @@ export const defaultMockResponse: AssetResponse = {
   project_ownership: null,
   owner_label: "zefir's MMO organization",
   last_modified_by: 'zefir',
+  created_by: null,
 }
 
 export default assetMock

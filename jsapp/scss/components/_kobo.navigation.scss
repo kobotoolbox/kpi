@@ -73,6 +73,15 @@
     max-width: 100%;
   }
 
+  // New Menu component button styles
+  .account-menu-trigger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: block;
+  }
+
   .mdl-layout__header-searchers {
     flex-grow: 1;
   }
@@ -127,13 +136,6 @@
       cursor: pointer;
       right: 12px;
     }
-  }
-}
-
-.popover-menu--account-menu {
-  .popover-menu__content {
-    min-width: 240px;
-    z-index: z-indexes.$z-account-menu;
   }
 }
 
