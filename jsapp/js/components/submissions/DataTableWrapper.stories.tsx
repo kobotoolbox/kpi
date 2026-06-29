@@ -13,6 +13,7 @@ import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-r
 import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
 import assetFactory from '#/endpoints/asset.factory'
@@ -260,53 +261,24 @@ const processingSubmissions = [
     _supplementalDetails: {
       Record_a_sound: {
         // Unaccepted automatic transcript (English) - shows Review button
-        automatic_google_transcription: {
-          _versions: [
-            {
-              _uuid: 'transcript-version-1',
-              _dateCreated: '2024-01-15T10:30:00Z',
-              _dateAccepted: undefined, // Not accepted - shows Review button
-              _data: {
-                language: 'en',
-                value: 'This is an automatic transcript that has not been accepted yet.',
-                status: 'complete',
-              },
-            },
-          ],
+        transcript: {
+          languageCode: 'en',
+          pendingReview: true,
+          regionCode: null,
         },
-        // Automatic translations (French and Spanish)
-        automatic_google_translation: {
+        // Automatic translations (French accepted, Spanish pending)
+        translation: {
           fr: {
-            _versions: [
-              {
-                _uuid: 'translation-fr-version-1',
-                _dateCreated: '2024-01-15T10:31:00Z',
-                _dateAccepted: '2024-01-15T11:00:00Z', // Accepted - shows text content
-                _data: {
-                  language: 'fr',
-                  value: 'Ceci est une traduction automatique acceptée.',
-                  status: 'complete',
-                },
-              },
-            ],
+            languageCode: 'fr',
+            value: 'Ceci est une traduction automatique acceptée.',
           },
           es: {
-            _versions: [
-              {
-                _uuid: 'translation-es-version-1',
-                _dateCreated: '2024-01-15T10:32:00Z',
-                _dateAccepted: undefined, // Not accepted - shows Review button
-                _data: {
-                  language: 'es',
-                  value: 'Esta es una traducción automática sin aceptar.',
-                  status: 'complete',
-                },
-              },
-            ],
+            languageCode: 'es',
+            pendingReview: true,
           },
         },
       },
-    } as any, // Type assertion needed
+    }
   }),
   assetDataFactory(2, {
     Record_a_sound: 'test2.mp3',
@@ -339,7 +311,7 @@ const processingSubmissions = [
 ]
 const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/rootUuid'], 'fr', {
   status: BulkActionResponseStatusEnum.complete,
-  action_id: 'automatic_google_translation' as any, // Translation, not transcription
+  action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   created_by: {
     username: 'zefir',
@@ -347,7 +319,7 @@ const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/ro
 })
 const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/rootUuid'], 'es', {
   status: BulkActionResponseStatusEnum.in_progress,
-  action_id: 'automatic_google_translation' as any, // Translation, not transcription
+  action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   created_by: {
     username: 'other-user',

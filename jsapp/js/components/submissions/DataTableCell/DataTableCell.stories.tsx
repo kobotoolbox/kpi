@@ -40,22 +40,13 @@ const supplementalSubmission = {
 const unacceptedTranscriptSubmission = assetDataFactory(1, {
   [SUPPLEMENTAL_DETAILS_PROP]: {
     What_is_your_opinion: {
-      automatic_google_transcription: {
-        _versions: [
-          {
-            _uuid: 'version-uuid-1',
-            _dateCreated: '2024-01-15T10:30:00Z',
-            _dateAccepted: undefined, // Not accepted - triggers Review button
-            _data: {
-              language: 'fr',
-              value: 'Ceci est une transcription automatique générée par Google.',
-              status: 'complete',
-            },
-          },
-        ],
+      transcript: {
+        languageCode: 'fr',
+        pendingReview: true,
+        regionCode: null,
       },
     },
-  } as any, // Type assertion needed as automatic_google_transcription isn't in the base interface
+  },
 })
 
 const meta: Meta<typeof DataTableCell> = {
