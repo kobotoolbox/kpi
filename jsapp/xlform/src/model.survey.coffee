@@ -77,29 +77,78 @@ module.exports = do ->
           choiceList.__cascadedList = @choices.get(overlapping_choice_keys[0])
       return
 
+    # Called when duplicating a question via the Duplicate button.
+    # The row should already be cloned (via row.clone()), which generates a unique
+    # $kuid and unique choice list. This just adds it to the survey.
     insert_row: (row, index) ->
-      # TODO: why? `_isCloned` is being used only once, in `ScoreRankMixin`'s `clone` function.
+      # Rank/score questions set _isCloned to preserve object references
       if row._isCloned
         @rows.add(row, at: index)
       else
+        # Regular select questions: serialize to JSON (includes the unique list name)
         @rows.add(row.toJSON(), at: index)
       new_row = @rows.at(index)
       survey = @getSurvey()
+
+      # TODO: This looks redundant - row.clone() already added the list to survey.choices
+      # and toJSON() includes the correct list name. Leaving it in case some edge case
+      # depends on it, but it probably creates orphaned data.
       if rowlist = row.getList()
         survey.choices.add(options: rowlist.options.toJSON())
         new_row.get('type').set('list', rowlist)
+
+      # Make sure the question name is unique (e.g. "select_one" -> "select_one_001")
       name_detail = new_row.get('name')
       return name_detail.set 'value', name_detail.deduplicate(survey)
 
+    # Gives each library select question its own choice list.
+    # Without this, adding the same select from the library multiple times would
+    # make all copies share one list_name, so editing one changes all the others.
     _ensure_row_list_is_copied: (row)->
+      # Only handle select_one/select_multiple questions (not groups)
       if !row.rows && rowlist = row.getList()
-        @choices.add(name: rowlist.get("name"), options: rowlist.options.toJSON())
+        # Generate unique list name
+        uniqueListName = txtid()
+
+        # Manually copy the options (can't use rowlist.clone() because it has a
+        # collection reference bug - it assigns the source collection to the cloned
+        # list, which would point to the library survey instead of this survey)
+        optionsData = []
+        for opt in rowlist.options.models
+          optData = opt.toJSON()
+          delete optData['$kuid']  # Strip $kuid so options are treated as new
+          optionsData.push(optData)
+
+        # Create new ChoiceList with unique name and copied options
+        newList = new $choices.ChoiceList({name: uniqueListName, options: optionsData})
+
+        # Add to this survey's choices collection
+        @choices.add(newList)
+
+        # Update both the list name and the list object reference.
+        # Both are needed: listName for serialization/XLSForm export,
+        # list for in-session edits (so the choice editor works correctly)
+        row.get('type').set('listName', uniqueListName)
+        row.get('type').set('list', newList)
+
+        # Also update the separate select_from_list_name attribute if it exists.
+        # Library items fetched from the API use a separated format:
+        #   {type: "select_one", select_from_list_name: "fruits"}
+        # rather than the combined format: {type: "select_one fruits"}.
+        # The separated format creates a standalone select_from_list_name RowDetail
+        # on the row. If we don't update it here, toJSON2() will overwrite the
+        # correct uniqueListName (set from type.listName) with the stale old name
+        # when it iterates all row attributes, causing the choices to be lost on save.
+        if row.get('select_from_list_name')
+          row.get('select_from_list_name').set('value', uniqueListName, {silent: true})
       return
 
+    # Inserts library items (questions or groups) into the form.
+    # Called from surveyScope.addExternalItemAtPosition() after fetching the asset.
     insertSurvey: (survey, index=-1, targetGroupId)->
       index = @rows.length if index is -1
       for row, row_i in survey.rows.models
-        # if target is a group, not root list of rows, we need to switch
+        # Find the target (root survey or a specific group)
         target = @
         if targetGroupId
           foundGroup = @findRowByCid(targetGroupId, {includeGroups: true})
@@ -110,9 +159,10 @@ module.exports = do ->
 
         index_incr = index + row_i
 
-        # inserting a group
+        # Groups (blocks from library)
         if row.rows
           if row.forEachRow
+            # Make sure nested select questions each get their own choice list
             row.forEachRow(
               (r) => @_ensure_row_list_is_copied(r),
               {includeGroups: true}
@@ -127,14 +177,17 @@ module.exports = do ->
             }
           )
 
-          # inserting a group (block from Library) doesn't trigger change event
-          # anywhere else, so we do it here manually
+          # Groups don't trigger change events automatically
           @trigger('change')
-        # inserting a question
+        # Single questions
         else
+          # Give select questions unique choice lists
           @_ensure_row_list_is_copied(row)
+
+          # Make the name unique if needed
           name_detail = row.get('name')
           name_detail.set 'value', name_detail.deduplicate(@)
+
           target.rows.add(
             row.toJSON(),
             at: index_incr

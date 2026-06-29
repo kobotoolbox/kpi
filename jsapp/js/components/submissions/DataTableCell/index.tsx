@@ -72,10 +72,12 @@ export default function DataTableCell(props: DataTableCellProps) {
         props.question.type === QUESTION_TYPES['background-audio'].id
       ) {
         if (mediaAttachment !== null && props.question.$xpath !== undefined) {
+          const audioXpath =
+            typeof mediaAttachment === 'string' ? props.question.$xpath : mediaAttachment.question_xpath
           return (
             <AudioCell
               assetUid={props.asset.uid}
-              xpath={props.question.$xpath}
+              xpath={audioXpath}
               submissionData={submission}
               mediaAttachment={mediaAttachment}
             />

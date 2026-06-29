@@ -107,6 +107,8 @@ export default class Modal extends React.Component<ModalProps> {
     return (
       <bem.Modal__backdrop onClick={this.backdropClick.bind(this)}>
         <div
+          role='dialog'
+          aria-label={this.props.title}
           className={classNames(
             'modal',
             this.props.className,

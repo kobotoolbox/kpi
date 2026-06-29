@@ -10,8 +10,10 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
 import assetFactory from '#/endpoints/asset.factory'
@@ -29,6 +31,13 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
+import {
+  getPollingUpdateStoryHandlers,
+  getPollingUpdateStoryState,
+  getPollingUpdateStoryTimeoutMs,
+  pollingAsset,
+  resetPollingUpdateStoryHandlers,
+} from './DataTableWrapperPollingStoriesUtils'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
@@ -252,53 +261,24 @@ const processingSubmissions = [
     _supplementalDetails: {
       Record_a_sound: {
         // Unaccepted automatic transcript (English) - shows Review button
-        automatic_google_transcription: {
-          _versions: [
-            {
-              _uuid: 'transcript-version-1',
-              _dateCreated: '2024-01-15T10:30:00Z',
-              _dateAccepted: undefined, // Not accepted - shows Review button
-              _data: {
-                language: 'en',
-                value: 'This is an automatic transcript that has not been accepted yet.',
-                status: 'complete',
-              },
-            },
-          ],
+        transcript: {
+          languageCode: 'en',
+          pendingReview: true,
+          regionCode: null,
         },
-        // Automatic translations (French and Spanish)
-        automatic_google_translation: {
+        // Automatic translations (French accepted, Spanish pending)
+        translation: {
           fr: {
-            _versions: [
-              {
-                _uuid: 'translation-fr-version-1',
-                _dateCreated: '2024-01-15T10:31:00Z',
-                _dateAccepted: '2024-01-15T11:00:00Z', // Accepted - shows text content
-                _data: {
-                  language: 'fr',
-                  value: 'Ceci est une traduction automatique acceptée.',
-                  status: 'complete',
-                },
-              },
-            ],
+            languageCode: 'fr',
+            value: 'Ceci est une traduction automatique acceptée.',
           },
           es: {
-            _versions: [
-              {
-                _uuid: 'translation-es-version-1',
-                _dateCreated: '2024-01-15T10:32:00Z',
-                _dateAccepted: undefined, // Not accepted - shows Review button
-                _data: {
-                  language: 'es',
-                  value: 'Esta es una traducción automática sin aceptar.',
-                  status: 'complete',
-                },
-              },
-            ],
+            languageCode: 'es',
+            pendingReview: true,
           },
         },
       },
-    } as any, // Type assertion needed
+    },
   }),
   assetDataFactory(2, {
     Record_a_sound: 'test2.mp3',
@@ -331,7 +311,7 @@ const processingSubmissions = [
 ]
 const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/rootUuid'], 'fr', {
   status: BulkActionResponseStatusEnum.complete,
-  action_id: 'automatic_google_translation' as any, // Translation, not transcription
+  action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   created_by: {
     username: 'zefir',
@@ -339,7 +319,7 @@ const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/ro
 })
 const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/rootUuid'], 'es', {
   status: BulkActionResponseStatusEnum.in_progress,
-  action_id: 'automatic_google_translation' as any, // Translation, not transcription
+  action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   created_by: {
     username: 'other-user',
@@ -349,6 +329,9 @@ const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/r
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
   component: DataTableWrapper,
+  async beforeEach() {
+    resetPollingUpdateStoryHandlers()
+  },
   args: {
     asset: minimalAsset,
   },
@@ -426,6 +409,41 @@ export const ProcessingColumnAndBanner: Story = {
   loaders: [loadAssetForStory],
 }
 
+export const ProcessingPollingRefreshesTranslatedCell: Story = {
+  args: {
+    asset: pollingAsset,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Starts with a Processing placeholder and updates that row after polling (about 8 seconds) when the mocked bulk action item transitions to complete.',
+      },
+    },
+    a11y: { test: 'todo' },
+    reactRouter: getRouterParams(pollingAsset.uid),
+    msw: {
+      handlers: getPollingUpdateStoryHandlers(),
+    },
+  },
+  loaders: [loadAssetForStory],
+  play: async ({ step }) => {
+    // We intentionally avoid asserting rendered translated text here.
+    // We tried multiple DOM-based variants (including intermediate
+    // "Processing" checks), but they remained flaky in CI across browsers.
+    // This play test focuses on stable polling/refresh behavior via mock state.
+    await step('Wait for polling to refresh one submission row', async () => {
+      await waitFor(
+        async () => {
+          const storyState = getPollingUpdateStoryState()
+          await expect(storyState.pollingBulkActionsCalls).toBeGreaterThanOrEqual(2)
+          await expect(storyState.pollingSubmissionRefreshCalls).toBeGreaterThanOrEqual(1)
+        },
+        { timeout: getPollingUpdateStoryTimeoutMs() },
+      )
+    })
+  },
+}
 export const ProcessingAndLimitsBannersTogether: Story = {
   args: {
     asset: processingAsset,

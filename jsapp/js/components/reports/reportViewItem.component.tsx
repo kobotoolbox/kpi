@@ -40,6 +40,7 @@ function getPreparedTable(data: ReportsResponseData): PreparedTable | undefined 
 export interface ReportViewItemProps extends ReportsResponse {
   label: string
   triggerQuestionSettings: (questionName: string) => void
+  isMenuDisabled?: boolean
 }
 
 /**
@@ -324,6 +325,7 @@ export class ReportViewItem extends React.Component<ReportViewItemProps> {
                 onClick={() => this.props.triggerQuestionSettings(this.props.name)}
                 tooltip={t('Override Graph Style')}
                 tooltipPosition='right'
+                isDisabled={this.props.isMenuDisabled}
               />
             </span>
           )}

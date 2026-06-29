@@ -15,7 +15,8 @@ import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { MongoQuery, SurveyRow } from './dataInterface'
+import { isMapDisplayableGeopointType } from './constants'
+import type { FailResponse, MongoQuery, SurveyRow } from './dataInterface'
 
 /**
  * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
@@ -299,7 +300,7 @@ export function parseLatLng(submission: DataResponse, selectedQuestion: string |
 }
 
 export function findFirstGeopoint(survey: SurveyRow[]) {
-  return survey.find((question) => question.type && question.type === 'geopoint')
+  return survey.find((question) => isMapDisplayableGeopointType(question.type))
 }
 
 /**
@@ -427,6 +428,11 @@ export const truncateNumber = (decimal: number, decimalPlaces = 2) => Number.par
  * Standard method for converting seconds to minutes for billing purposes
  */
 export const convertSecondsToMinutes = (seconds: number) => Math.floor(truncateNumber(seconds / 60, 1))
+
+/**
+ * Rough estimate used for automatic transcription completion timing.
+ */
+export const getEstimatedTranscriptionDurationSeconds = (sourceSeconds: number) => Math.round(sourceSeconds * 0.5 + 10)
 
 /**
  * Generates a simple lowercase, underscored version of a string. Useful for
@@ -644,3 +650,20 @@ export function createDateQuery(startDate: string, endDate: string): MongoQuery[
 }
 
 export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) => setTimeout(() => resolve(), ms))
+
+/**
+ * Parses a jQuery XHR / FailResponse error and returns an HTML snippet
+ * describing the error, suitable for embedding in an alertify message.
+ */
+export function getErrorMessage(err: FailResponse): string {
+  if (err.responseJSON?.detail) {
+    return `<pre>${err.responseJSON.detail}</pre>`
+  }
+  if (err.responseJSON?.error) {
+    return `<pre>${err.responseJSON.error}</pre>`
+  }
+  if (err.responseText) {
+    return `<pre style='max-height: 200px;'>${err.responseText}</pre>`
+  }
+  return t('please check your connection and try again.')
+}

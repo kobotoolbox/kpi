@@ -46,8 +46,6 @@ function ColorSchemeWrapper({ children }: { children: JSX.Element }) {
   return <>{children}</>
 }
 
-window.t = (str) => str
-
 const preview: Preview = {
   decorators: [
     (Story) => <ColorSchemeWrapper>{Story()}</ColorSchemeWrapper>,
