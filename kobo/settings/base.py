@@ -177,7 +177,6 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
     'author.middlewares.AuthorDefaultBackendMiddleware',
-    'hub.middleware.V1AccessLoggingMiddleware',
 ]
 
 
@@ -2347,3 +2346,9 @@ AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
 # 24 months x 31 days/month = 744 default
 PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
 ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
+
+# Minimum gap between two ExtraUserDetail.last_project_activity writes for the same
+# user. Prevents write storms when a user submits many forms in a short window.
+LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
+    'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
+)

@@ -516,10 +516,16 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
 
     openBulkTranscriptionModal({
-      fieldId,
+      fieldXpath: fieldId,
       assetUid: this.props.asset.uid,
       selectedSubmissions,
+<<<<<<< HEAD
       showWarningModal,
+=======
+      selectedRowsCount: selectedSubmissionIds.length,
+      showWarningModal: showWarningModal,
+      activeBulkActions: this.props.activeBulkActions || [],
+>>>>>>> main
       onSuccess: () => {
         this.setState({
           selectedRows: {},
@@ -540,10 +546,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
 
     openBulkTranslationModal({
-      fieldId,
+      fieldXpath: fieldId,
       assetUid: this.props.asset.uid,
       selectedRowsCount: selectedSubmissionIds.length,
       showWarningModal: showWarningModal,
+      activeBulkActions: this.props.activeBulkActions || [],
       onSuccess: () => {
         this.setState({
           selectedRows: {},

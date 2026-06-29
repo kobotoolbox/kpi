@@ -39,6 +39,9 @@ export function useCalculateAudioDuration({
     ;(async () => {
       onLoadingChange(true)
 
+      // We accumulate locally to avoid sending an incorrect duration to the user if this process fails mid-batch
+      let totalDuration = 0
+
       for (const batch of attachmentUidBatches) {
         let attempt = 0
 
@@ -66,7 +69,7 @@ export function useCalculateAudioDuration({
             })
 
             if (result.success && result.total !== undefined) {
-              onDurationAdd(result.total)
+              totalDuration += result.total
               break
             } else if (result.error?.response?.status === 504) {
               attempt++
@@ -93,6 +96,7 @@ export function useCalculateAudioDuration({
       }
 
       onLoadingChange(false)
+      onDurationAdd(totalDuration)
     })()
   }, [])
 }

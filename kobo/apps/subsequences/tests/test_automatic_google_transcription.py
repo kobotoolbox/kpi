@@ -495,10 +495,10 @@ def test_transform_data_for_output():
     result = action.transform_data_for_output(retrieved_data)
     assert result == {
         'transcript': {
-            'value': 'bonjour',
             'languageCode': 'fr',
             'regionCode': None,
-            '_sortByDate': None,
+            '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
+            'pendingReview': True,
         },
     }
 
@@ -528,14 +528,7 @@ def test_transform_data_for_output_with_delete():
 
     retrieved_data = action.retrieve_data(mock_sup_det)
     result = action.transform_data_for_output(retrieved_data)
-    assert result == {
-        'transcript': {
-            'value': None,
-            'languageCode': 'en',
-            'regionCode': None,
-            '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
-        },
-    }
+    assert result == {}
 
 
 @ddt

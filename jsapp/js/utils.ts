@@ -16,7 +16,7 @@ import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { isMapDisplayableGeopointType } from './constants'
-import type { MongoQuery, SurveyRow } from './dataInterface'
+import type { FailResponse, MongoQuery, SurveyRow } from './dataInterface'
 
 /**
  * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
@@ -650,3 +650,20 @@ export function createDateQuery(startDate: string, endDate: string): MongoQuery[
 }
 
 export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) => setTimeout(() => resolve(), ms))
+
+/**
+ * Parses a jQuery XHR / FailResponse error and returns an HTML snippet
+ * describing the error, suitable for embedding in an alertify message.
+ */
+export function getErrorMessage(err: FailResponse): string {
+  if (err.responseJSON?.detail) {
+    return `<pre>${err.responseJSON.detail}</pre>`
+  }
+  if (err.responseJSON?.error) {
+    return `<pre>${err.responseJSON.error}</pre>`
+  }
+  if (err.responseText) {
+    return `<pre style='max-height: 200px;'>${err.responseText}</pre>`
+  }
+  return t('please check your connection and try again.')
+}
