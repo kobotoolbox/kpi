@@ -54,7 +54,7 @@ export default function StepUploadFile({
       )}
 
       <footer className={styles.modalFooter}>
-        <BackButton previousStep={previousStep} isDisabled={false} onClick={onBack} />
+        <BackButton previousStep={previousStep} isDisabled={isUploadFilePending} onClick={onBack} />
       </footer>
     </form>
   )
