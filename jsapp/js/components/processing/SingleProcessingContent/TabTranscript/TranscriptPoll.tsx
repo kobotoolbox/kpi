@@ -68,7 +68,7 @@ export default function AutomaticTranscriptionInProgress({ asset, questionXpath,
   }, [querySupplement, mutationPending])
 
   useEffect(() => {
-    const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
+    const attachment = getAttachmentForProcessing(questionXpath, submission)
     if (typeof attachment !== 'string') {
       getAudioDuration(attachment.download_url).then((length: number) => {
         setEstimate(secondsToTranscriptionEstimate(length))
