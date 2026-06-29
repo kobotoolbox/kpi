@@ -99,13 +99,13 @@ const assetWithBothGeopointTypes = assetFactory({
 const submissionsWithStartGeopoint: SubmissionResponse[] = [
   assetDataFactory(1, {
     your_name: 'Alice',
-    'start-geopoint': '42.3601 -71.0589 0 0', // Boston coordinates
-    _geolocation: [42.3601, -71.0589],
+    'start-geopoint': '30.0087, 31.2484 0 0', // The National Museum of Egyptian Civilization
+    _geolocation: [30.0087, -31.2484],
   }),
   assetDataFactory(2, {
     your_name: 'Bob',
-    'start-geopoint': '40.7128 -74.0060 0 0', // NYC coordinates
-    _geolocation: [40.7128, -74.006],
+    'start-geopoint': '29.9733, 31.1315 0 0', // Pyramid of Menkaure
+    _geolocation: [29.9733, 31.1315],
   }),
 ]
 
@@ -113,15 +113,15 @@ const submissionsWithStartGeopoint: SubmissionResponse[] = [
 const submissionsWithBothGeopointTypes: SubmissionResponse[] = [
   assetDataFactory(1, {
     your_name: 'Alice',
-    location: '43.3615 -72.0575 0 0', // slightly off the start
-    'start-geopoint': '42.3601 -71.0589 0 0',
-    _geolocation: [43.3615, -72.0575],
+    location: '-34.3536 18.4939 0 0', // slightly off the start
+    'start-geopoint': '-34.3566, 18.4969 0 0', // New Cape Point Lighthouse
+    _geolocation: [-34.3536, 18.4939],
   }),
   assetDataFactory(2, {
     your_name: 'Bob',
-    location: '41.7145 -75.0045 0 0', // slightly off the start
-    'start-geopoint': '40.7128 -74.0060 0 0',
-    _geolocation: [41.7145, -75.0045],
+    location: '-34.3757 18.8248 0 0', // slightly off the start
+    'start-geopoint': '-34.3787, 18.8278 0 0', // Moonlight Beach
+    _geolocation: [-34.3757, 18.8248],
   }),
 ]
 
