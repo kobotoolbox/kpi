@@ -12,6 +12,7 @@ from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
 from .constants import (
+    QUESTION_TYPE_TAGS,
     SCHEMA_VERSIONS,
     SORT_BY_DATE_FIELD,
     SUBMISSION_UUID_FIELD,
@@ -117,6 +118,11 @@ class SubmissionSupplement(AbstractTimeStampedModel):
 
                 question_supplemental_data[action_id] = action_supplemental_data
 
+                if action_id == Action.MANUAL_QUAL:
+                    SubmissionSupplement._sync_qual_tag_trackers(
+                        asset, feature.params, action_data
+                    )
+
                 # 2025-09-24 oleger: What are the 3 lines below for?
                 # retrieved_supplemental_data.setdefault(question_xpath, {})[
                 #    action_id
@@ -129,6 +135,39 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         ).update(content=supplemental_data)
 
         return supplemental_data
+
+    @staticmethod
+    def _sync_qual_tag_trackers(
+        asset: 'kpi.Asset', params: list, action_data: dict
+    ) -> None:
+        """
+        Create QATagTracker rows for any new tags submitted on a qualTags question
+
+        Called after a successful `manual_qual.revise_data` operation so tags are
+        tracked only after the save is committed. Uses `bulk_create` with
+        `ignore_conflicts=True` to silently skip duplicate records.
+        """
+        question_uuid = action_data.get('uuid')
+        tag_values = action_data.get('value')
+
+        if not question_uuid or not tag_values:
+            return
+
+        question_type = next(
+            (q['type'] for q in params if q.get('uuid') == question_uuid),
+            None,
+        )
+
+        if question_type != QUESTION_TYPE_TAGS:
+            return
+
+        QATagTracker.objects.bulk_create(
+            [
+                QATagTracker(asset=asset, question_uuid=question_uuid, value=tag)
+                for tag in tag_values
+            ],
+            ignore_conflicts=True,
+        )
 
     @staticmethod
     def retrieve_data(

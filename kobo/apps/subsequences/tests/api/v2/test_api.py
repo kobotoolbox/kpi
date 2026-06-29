@@ -18,10 +18,16 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.automatic_google_transcription import (
     AutomaticGoogleTranscriptionAction,
 )
-from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
+from kobo.apps.subsequences.models import (
+    QATagTracker,
+    QuestionAdvancedFeature,
+    SubmissionSupplement,
+)
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kobo.apps.subsequences.tests.constants import (
     API_TEST_TRANSCRIPTION_UUID,
+    FIX_QUAL_TAGS_UUID,
+    FIX_QUAL_TEXT_UUID,
     QUESTION_SUPPLEMENT,
 )
 from kpi.utils.xml import (
@@ -1248,3 +1254,140 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
                         self.supplement_details_url, data=payload, format='json'
                     )
                     assert response.status_code == expected_result_code
+
+
+class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_qual',
+            params=[
+                {
+                    'type': 'qualTags',
+                    'uuid': FIX_QUAL_TAGS_UUID,
+                    'labels': {'_default': 'Themes'},
+                },
+                {
+                    'type': 'qualText',
+                    'uuid': FIX_QUAL_TEXT_UUID,
+                    'labels': {'_default': 'Notes'},
+                },
+            ]
+        )
+
+    def _patch_tags(self, tags: list, submission_uuid: str | None = None):
+        url = (
+            self.supplement_details_url
+            if submission_uuid is None
+            else reverse(
+                self._get_endpoint('submission-supplement'),
+                args=[self.asset.uid, submission_uuid],
+            )
+        )
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_qual': {
+                    'uuid': FIX_QUAL_TAGS_UUID,
+                    'value': tags,
+                },
+            },
+        }
+        return self.client.patch(url, data=payload, format='json')
+
+    def test_tags_are_tracked_when_qual_tags_answer_is_saved(self):
+        """
+        Test that a QATagTracker row is created for each tag when a
+        qualTags answer is successfully saved via the supplement endpoint
+        """
+        response = self._patch_tags(['poverty', 'health'])
+
+        assert response.status_code == status.HTTP_200_OK
+        trackers = QATagTracker.objects.filter(
+            asset=self.asset, question_uuid=FIX_QUAL_TAGS_UUID
+        )
+        assert trackers.count() == 2
+        assert set(trackers.values_list('value', flat=True)) == {'poverty', 'health'}
+
+    def test_duplicate_tags_across_submissions_are_not_duplicated_in_tracker(self):
+        """
+        Test that submitting the same tag for the same question on a second
+        submission does not create a duplicate QATagTracker row
+        """
+        self._patch_tags(['poverty'])
+
+        second_submission_uuid = str(uuid.uuid4())
+        self.asset.deployment.mock_submissions([
+            {
+                'q1': 'answer',
+                '_uuid': second_submission_uuid,
+                '_submitted_by': 'someuser',
+            }
+        ])
+        self._patch_tags(['poverty', 'health'], submission_uuid=second_submission_uuid)
+
+        trackers = QATagTracker.objects.filter(
+            asset=self.asset, question_uuid=FIX_QUAL_TAGS_UUID
+        )
+        assert trackers.count() == 2
+        assert set(trackers.values_list('value', flat=True)) == {'poverty', 'health'}
+
+    def test_new_tags_from_subsequent_submissions_are_added_to_tracker(self):
+        """
+        Test that a tag appearing for the first time on a later submission
+        is appended to the pool of tracked tags for that question
+        """
+        self._patch_tags(['poverty'])
+
+        second_submission_uuid = str(uuid.uuid4())
+        self.asset.deployment.mock_submissions([
+            {
+                'q1': 'answer',
+                '_uuid': second_submission_uuid,
+                '_submitted_by': 'someuser',
+            }
+        ])
+        self._patch_tags(['resilience'], submission_uuid=second_submission_uuid)
+
+        tracked_values = set(
+            QATagTracker.objects.filter(
+                asset=self.asset, question_uuid=FIX_QUAL_TAGS_UUID
+            ).values_list('value', flat=True)
+        )
+        assert tracked_values == {'poverty', 'resilience'}
+
+    def test_non_tag_question_types_do_not_create_trackers(self):
+        """
+        Test that saving an answer to a qualText question does not create
+        any QATagTracker rows, even though it shares the same manual_qual action
+        """
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_qual': {
+                    'uuid': FIX_QUAL_TEXT_UUID,
+                    'value': 'some free text answer',
+                },
+            },
+        }
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert not QATagTracker.objects.filter(asset=self.asset).exists()
+
+    def test_tags_are_scoped_to_their_question_uuid(self):
+        """
+        Test that tags saved for one qualTags question are not visible
+        under a different question's UUID in QATagTracker
+        """
+        other_question_uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        self._patch_tags(['poverty'])
+
+        assert not QATagTracker.objects.filter(
+            asset=self.asset, question_uuid=other_question_uuid
+        ).exists()
