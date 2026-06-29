@@ -96,13 +96,46 @@ export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): Ale
 
 /**
  * Checks for submissions with existing translations in the selected language
- * TODO: DEV-1403 - Implement this evaluator
  */
 export function evaluateAlreadyTranslated(context: AlertEvaluationContext): AlertEvaluationResult {
-  console.log('[BulkProcessingAlerts] Evaluator evaluateAlreadyTranslated - STUBBED, returning no alerts', context)
+  const { submissions, fieldXpath, selectedLanguage, previouslyFilteredSubmissionUuids } = context
 
-  // STUB: Return inactive result
-  return createInactiveResult('warning')
+  // Can't evaluate without a selected language
+  if (!selectedLanguage) {
+    return createInactiveResult('warning')
+  }
+
+  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
+
+  // Find submissions that already have translations in the selected language
+  const alreadyTranslated: string[] = []
+  let totalCharacters = 0
+
+  submissions.forEach((submission) => {
+    // Skip if already filtered by previous evaluators
+    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+      return
+    }
+
+    // Check if translation exists for this field and language
+    const supplementalDetails = submission._supplementalDetails?.[sourceRowPath]
+    const translation = supplementalDetails?.translation?.[selectedLanguage]
+
+    if (translation?.value) {
+      alreadyTranslated.push(submission._uuid)
+      totalCharacters += translation.value.length
+    }
+  })
+
+  return {
+    shouldShow: alreadyTranslated.length > 0,
+    type: 'warning',
+    filteredSubmissionUuids: alreadyTranslated,
+    computedValues: {
+      count: alreadyTranslated.length,
+      characters: totalCharacters,
+    },
+  }
 }
 
 /**
