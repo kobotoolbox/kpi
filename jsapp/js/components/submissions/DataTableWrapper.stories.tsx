@@ -278,7 +278,7 @@ const processingSubmissions = [
           },
         },
       },
-    }
+    },
   }),
   assetDataFactory(2, {
     Record_a_sound: 'test2.mp3',

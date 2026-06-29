@@ -1,3 +1,4 @@
+import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   getMediaAttachment,
   getSubmissionDisplayData,
@@ -467,17 +468,16 @@ describe('removeEmptyFromSupplementalDetails', () => {
 
 describe('hasUnacceptedAutomaticContent', () => {
   it('should return true for transcript with pendingReview flag', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {
         audio_question: {
           transcript: {
             languageCode: 'en',
             pendingReview: true,
-            _sortByDate: '2026-01-01T00:00:00.000000Z',
           },
         },
       },
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
@@ -485,17 +485,16 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false for accepted transcript (no pendingReview flag)', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {
         audio_question: {
           transcript: {
             value: 'Hello world',
             languageCode: 'en',
-            _sortByDate: '2026-01-01T00:00:00.000000Z',
           },
         },
       },
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
@@ -503,19 +502,18 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return true for translation with pendingReview flag', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {
         audio_question: {
           translation: {
             es: {
               languageCode: 'es',
               pendingReview: true,
-              _sortByDate: '2026-01-01T00:00:00.000000Z',
             },
           },
         },
       },
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_es')
 
@@ -523,19 +521,18 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false for accepted translation (no pendingReview flag)', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {
         audio_question: {
           translation: {
             fr: {
               value: 'Bonjour le monde',
               languageCode: 'fr',
-              _sortByDate: '2026-01-01T00:00:00.000000Z',
             },
           },
         },
       },
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
 
@@ -543,17 +540,23 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false for qual questions (not transcript/translation)', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {
         audio_question: {
           qual: {
             '123-uuid': {
               value: 'Some analysis',
+              type: 'qualText',
+              uuid: '123-uuid',
+              labels: { _default: 'Analysis' },
+              xpath: 'audio_question',
+              verified: false,
+              source: 'manual',
             },
           },
         },
       },
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/123-uuid')
 
@@ -561,9 +564,9 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false for non-supplemental-details columns', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       regular_question: 'some answer',
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, 'regular_question')
 
@@ -571,7 +574,7 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false when supplemental details are missing', () => {
-    const submission: any = {}
+    const submission = assetDataFactory(1)
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
@@ -579,9 +582,9 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false when source row data is missing', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {},
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
@@ -589,11 +592,11 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false when transcript data is missing', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {
         audio_question: {},
       },
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
 
@@ -601,7 +604,7 @@ describe('hasUnacceptedAutomaticContent', () => {
   })
 
   it('should return false when translation language is missing', () => {
-    const submission: any = {
+    const submission = assetDataFactory(1, {
       _supplementalDetails: {
         audio_question: {
           translation: {
@@ -612,7 +615,7 @@ describe('hasUnacceptedAutomaticContent', () => {
           },
         },
       },
-    }
+    })
 
     const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
 
