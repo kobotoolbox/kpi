@@ -1,7 +1,12 @@
 import { expect } from 'chai'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { asrExceeded, mtExceeded, withinLimits } from '#/endpoints/serviceUsage.factory'
-import { evaluateAlreadyTranslated, evaluateNoEligibleSubmissions, evaluateNoSource, evaluateReachedLimit } from './alertEvaluators'
+import {
+  evaluateAlreadyTranslated,
+  evaluateNoEligibleSubmissions,
+  evaluateNoSource,
+  evaluateReachedLimit,
+} from './alertEvaluators'
 import type { AlertEvaluationContext } from './types'
 
 describe('evaluateNoEligibleSubmissions', () => {
