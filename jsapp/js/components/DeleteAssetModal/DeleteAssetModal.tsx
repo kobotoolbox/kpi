@@ -12,11 +12,12 @@ export interface DeleteAssetModalProps {
   asset: AssetResponse | ProjectViewAsset
   name: string
   onDeleted?: (deletedAssetUid: string) => void
+  onFailed?: () => void
   modalId: string
   onRequestClose: () => void
 }
 
-export function DeleteAssetModal({ asset, name, onDeleted, modalId, onRequestClose }: DeleteAssetModalProps) {
+export function DeleteAssetModal({ asset, name, onDeleted, onFailed, modalId, onRequestClose }: DeleteAssetModalProps) {
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
   const [isDataChecked, setIsDataChecked] = useState(false)
   const [isFormChecked, setIsFormChecked] = useState(false)
@@ -24,8 +25,10 @@ export function DeleteAssetModal({ asset, name, onDeleted, modalId, onRequestClo
   const [isConfirmDeletePending, setIsConfirmDeletePending] = useState(false)
 
   useEffect(() => {
+    // Updates the modal to prevent closing while the delete request is being processed
     modals.updateModal({
       modalId,
+      withCloseButton: !isConfirmDeletePending,
       closeOnEscape: !isConfirmDeletePending,
       closeOnClickOutside: !isConfirmDeletePending,
     })
@@ -43,6 +46,8 @@ export function DeleteAssetModal({ asset, name, onDeleted, modalId, onRequestClo
       },
       () => {
         setIsConfirmDeletePending(false)
+        onFailed?.()
+        onRequestClose()
       },
     )
   }

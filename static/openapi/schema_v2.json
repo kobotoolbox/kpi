@@ -20986,9 +20986,13 @@
                     },
                     "count": {
                         "type": "integer"
+                    },
+                    "action": {
+                        "type": "string"
                     }
                 },
                 "required": [
+                    "action",
                     "count",
                     "date_created",
                     "metadata",
@@ -31364,9 +31368,13 @@
                     },
                     "count": {
                         "type": "integer"
+                    },
+                    "action": {
+                        "type": "string"
                     }
                 },
                 "required": [
+                    "action",
                     "count",
                     "date_created",
                     "metadata",
