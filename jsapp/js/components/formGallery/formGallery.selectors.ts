@@ -3,7 +3,14 @@ import type { Json } from '#/components/common/common.interfaces'
 import type { MongoQuery, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import { createDateQuery } from '#/utils'
 
-const IMAGE_MIMETYPES = ['image/png', 'image/gif', 'image/jpeg', 'image/svg+xml']
+const IMAGE_MIMETYPES = [
+  'image/png',
+  'image/gif',
+  'image/jpeg',
+  'image/svg+xml',
+  'image/heic',
+  'image/heif',
+]
 
 /**
  * Data api does not return the exact file name
