@@ -1,4 +1,5 @@
 import { Group } from '@mantine/core'
+import { IconArrowUpRight } from '@tabler/icons-react'
 import ButtonNew from '#/components/common/ButtonNew'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
@@ -50,7 +51,7 @@ export default function SupplementalDetailsCell(props: SupplementalDetailsCellPr
   // If this cell has unaccepted automatic content, show Review button
   if (hasUnacceptedContent) {
     return (
-      <ButtonNew variant='light' size='sm' onClick={handleReviewClick}>
+      <ButtonNew variant='light' size='sm' onClick={handleReviewClick} rightIcon={IconArrowUpRight}>
         {t('Review')}
       </ButtonNew>
     )
