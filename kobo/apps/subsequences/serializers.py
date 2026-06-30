@@ -1,4 +1,5 @@
 import jsonschema.exceptions
+from copy import deepcopy
 from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
@@ -264,7 +265,11 @@ class BulkActionCreateSerializer(serializers.Serializer):
                 continue
             requested_locale = params.get('locale')
             if requested_locale and data.get('locale') != requested_locale:
-                continue
+                # Deleted versions may have no locale; always include them so a
+                # deletion can clear eligibility regardless of which locale was
+                # originally stored
+                if data.get('status') != 'deleted':
+                    continue
             matching_versions.append(version)
 
         if not matching_versions:
@@ -365,8 +370,9 @@ class BulkActionCreateSerializer(serializers.Serializer):
             return
 
         action = feature.to_action()
+        params_before_update = deepcopy(feature.params)
         action.update_params(feature_params)
-        if action.params != feature.params:
+        if action.params != params_before_update:
             feature.params = action.params
             feature.save(update_fields=['params'])
 
