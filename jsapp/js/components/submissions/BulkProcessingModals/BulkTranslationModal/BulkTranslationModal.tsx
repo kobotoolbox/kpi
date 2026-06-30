@@ -1,4 +1,5 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
@@ -6,6 +7,7 @@ import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import {
+  getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsCreate,
   useAssetsAdvancedFeaturesList,
 } from '#/api/react-query/survey-data'
@@ -44,12 +46,19 @@ export interface BulkTranslationModalProps {
 export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
+  const queryClient = useQueryClient()
+
   const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
       onSuccess: () => {
         notify.success(t('Bulk translation request submitted successfully'))
 
-        // TODO: implement @mantine/notifications system, see DEV-2211
+        // Invalidate the bulk actions list so React Query refetches it.
+        // This triggers BulkProcessingBanner to appear (or update its count if already visible).
+        queryClient.invalidateQueries({
+          queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(props.assetUid),
+        })
+
         props.onRequestClose()
         props.onSuccess()
       },
