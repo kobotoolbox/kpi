@@ -16,7 +16,7 @@ interface UseCalculateAudioDurationParams {
   assetUid: string
 }
 
-const MAXIMUM_AUDIO_DURATION_BATCH_SIZE = 200
+const MAXIMUM_AUDIO_DURATION_BATCH_SIZE = 50
 
 export function useCalculateAudioDuration({
   selectedSubmissions,
