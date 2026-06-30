@@ -460,6 +460,21 @@ export function findRowByXpath(assetContent: AssetContent, xpath: string) {
   return assetContent?.survey?.find((row) => row.$xpath === xpath)
 }
 
+/**
+ * Like `findRowByXpath`, but falls back to matching by leaf name when the
+ * xpath doesn't exist in the current schema (e.g. after a group rename).
+ * Note that this will return the first match by leaf name,
+ * which may not be the correct one.
+ */
+export function findRowByXpathOrLeafName(assetContent: AssetContent, xpath: string) {
+  const exactMatch = findRowByXpath(assetContent, xpath)
+  if (exactMatch) {
+    return exactMatch
+  }
+  const leafName = xpath.includes('/') ? xpath.split('/').at(-1) : xpath
+  return leafName ? findRow(assetContent, leafName) : undefined
+}
+
 export function getRowType(assetContent: AssetContent, rowName: string) {
   const foundRow = findRow(assetContent, rowName)
   return foundRow?.type

@@ -611,14 +611,14 @@ def test_transform_data_for_output():
     result = action.transform_data_for_output(retrieved_data)
     assert result == {
         ('translation', 'es'): {
-            'value': 'Hola otra vez',
+            'pendingReview': True,
             'languageCode': 'es',
-            '_sortByDate': None,
+            '_sortByDate': retrieved_data['es']['_versions'][0]['_dateCreated'],
         },
         ('translation', 'fr'): {
-            'value': 'bonjour',
+            'pendingReview': True,
             'languageCode': 'fr',
-            '_sortByDate': None,
+            '_sortByDate': retrieved_data['fr']['_versions'][0]['_dateCreated'],
         },
     }
 
@@ -650,15 +650,10 @@ def test_transform_data_for_output_with_delete():
     retrieved_data = action.retrieve_data(mock_sup_det)
     result = action.transform_data_for_output(retrieved_data)
     assert result == {
-        ('translation', 'es'): {
-            'value': None,
-            'languageCode': 'es',
-            '_sortByDate': retrieved_data['es']['_versions'][0]['_dateCreated'],
-        },
         ('translation', 'fr'): {
-            'value': 'bonjour',
+            'pendingReview': True,
             'languageCode': 'fr',
-            '_sortByDate': None,
+            '_sortByDate': retrieved_data['fr']['_versions'][0]['_dateCreated'],
         },
     }
 

@@ -10,6 +10,7 @@ export function openDeleteAssetModal(
   asset: AssetResponse | ProjectViewAsset,
   name: string,
   onDeleted?: (deletedAssetUid: string) => void,
+  onFailed?: () => void,
 ) {
   const modalId = `delete-asset-${generateUuid()}`
   const [deleteCheck] = userCanDeleteAssets([asset])
@@ -26,6 +27,7 @@ export function openDeleteAssetModal(
           asset={asset}
           name={name}
           onDeleted={onDeleted}
+          onFailed={onFailed}
           modalId={modalId}
           onRequestClose={() => modals.close(modalId)}
         />

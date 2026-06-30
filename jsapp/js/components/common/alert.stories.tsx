@@ -1,3 +1,4 @@
+import { Stack } from '@mantine/core'
 import Alert from './alert'
 
 export default { title: 'Design system/Alert' }
@@ -6,7 +7,7 @@ export function Demo() {
   const message =
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam'
   return (
-    <div>
+    <Stack gap='md'>
       <Alert type='default'>{message}</Alert>
       <Alert iconName='alert' type='default'>
         {message}
@@ -23,6 +24,6 @@ export function Demo() {
       <Alert iconName='alert' type='warning'>
         {message}
       </Alert>
-    </div>
+    </Stack>
   )
 }

@@ -1,7 +1,7 @@
 import alertify from 'alertifyjs'
 import Reflux from 'reflux'
 import { replaceSupportEmail } from '#/textUtils'
-import { notify } from '#/utils'
+import { getErrorMessage, notify } from '#/utils'
 import exportsActions from './actions/exportsActions'
 import libraryActions from './actions/library'
 import { permissionsActions } from './actions/permissions'
@@ -156,19 +156,9 @@ actions.resources.deployAsset.failed.listen((data, redeployment) => {
 
   if (!data.responseJSON || (!data.responseJSON.xform_id_string && !data.responseJSON.detail)) {
     // failed to retrieve a valid response from the server
-    // setContent() removes the input box, but the value is retained
-    var msg
-    const has_error_code = data.status == 500 || data.status == 400
-    if (has_error_code && data.responseJSON && data.responseJSON.error) {
-      msg = `<pre>${data.responseJSON.error}</pre>`
-    } else if (has_error_code && data.responseText) {
-      msg = `<pre>${data.responseText}</pre>`
-    } else {
-      msg = t('please check your connection and try again.')
-    }
     failure_message = `
       <p>${replaceSupportEmail(t('if this problem persists, contact help@kobotoolbox.org'))}</p>
-      <p>${msg}</p>
+      <p>${getErrorMessage(data)}</p>
     `
   } else if (!!data.responseJSON.xform_id_string) {
     // TODO: now that the id_string is automatically generated, this failure
@@ -313,10 +303,10 @@ actions.resources.deleteAsset.listen((details, params = {}) => {
     })
     .fail((err) => {
       actions.resources.deleteAsset.failed(details)
-      alertify.alert(
-        t('Unable to delete asset!'),
-        `<p>${t('Error details:')}</p><pre style='max-height: 200px;'>${err.responseText}</pre>`,
-      )
+      alertify.alert(t('Unable to delete asset!'), `<p>${t('Error details:')}</p>${getErrorMessage(err)}`)
+      if (typeof params.onFail === 'function') {
+        params.onFail(err)
+      }
     })
 })
 

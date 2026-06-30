@@ -40,9 +40,18 @@ const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   const canOpenDeleteFlow = isAdmin || (isMmoMember ? userCan('manage_asset', asset) : userCan('delete_asset', asset))
 
   function handleDelete() {
-    openDeleteAssetModal(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
-      customViewStore.handleAssetsDeleted([deletedAssetUid])
-    })
+    openDeleteAssetModal(
+      asset,
+      getAssetDisplayName(asset).final,
+      (deletedAssetUid: string) => {
+        customViewStore.handleAssetsDeleted([deletedAssetUid])
+      },
+      () => {
+        // On fail, lets update project list so the user has a feedback of fail reason.
+        // e.g: a last minute submission, or the project was deleted by someone else.
+        customViewStore.fetchAssets()
+      },
+    )
   }
 
   return (
