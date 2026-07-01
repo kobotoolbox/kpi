@@ -293,7 +293,7 @@ class QATagTracker(models.Model):
         related_name='qa_tag_trackers',
         on_delete=models.CASCADE,
     )
-    question_uuid = models.CharField(max_length=36, db_index=True)
+    question_uuid = models.CharField(max_length=36)
     value = models.CharField(max_length=255)
 
     class Meta:
