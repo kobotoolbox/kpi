@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ServerError } from '#/api/ServerError'
 import { useAssetsAttachmentsAudioDurationCreate } from '#/api/react-query/survey-data'
 import type { SubmissionResponse } from '#/dataInterface'
+import { useQueries } from '@tanstack/react-query'
 
 interface UseCalculateAudioDurationReturn {
   duration: number
@@ -42,6 +43,18 @@ export function useCalculateAudioDuration({
     for (let i = 0; i < attachmentUids.length; i += MAXIMUM_AUDIO_DURATION_BATCH_SIZE) {
       attachmentUidBatches.push(attachmentUids.slice(i, i + MAXIMUM_AUDIO_DURATION_BATCH_SIZE))
     }
+
+    const queryOptions = attachmentUidBatches.map((batch) => {
+      return {
+        queryKey: ['audioDurations', assetUid, batch],
+        queryFn: () => getAudioDurations({ uidAsset: assetUid, data: { attachment_uids: batch } })
+      }
+    })
+
+    const results = useQueries({ queries: queryOptions })
+
+    console.log(results)
+
     ;(async () => {
       setIsLoading(true)
 
