@@ -1,4 +1,5 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
@@ -6,6 +7,7 @@ import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import {
+  getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsCreate,
   useAssetsAdvancedFeaturesList,
 } from '#/api/react-query/survey-data'
@@ -13,17 +15,18 @@ import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
+import LanguageSelector from '#/components/languages/LanguageSelector'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcessingModals/BulkProcessingWarningModal'
+import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
-import ButtonNew from '../../../common/ButtonNew'
-import LanguageSelector from '../../../languages/LanguageSelector'
-import type { LanguageCode } from '../../../languages/languagesStore'
-import { getSuggestedLanguages } from '../../../processing/common/utils'
-import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
-import { getSupplementalDetailsContent } from '../../submissionUtils'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
@@ -43,12 +46,19 @@ export interface BulkTranslationModalProps {
 export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
+  const queryClient = useQueryClient()
+
   const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
       onSuccess: () => {
         notify.success(t('Bulk translation request submitted successfully'))
 
-        // TODO: implement @mantine/notifications system, see DEV-2211
+        // Invalidate the bulk actions list so React Query refetches it.
+        // This triggers BulkProcessingBanner to appear (or update its count if already visible).
+        queryClient.invalidateQueries({
+          queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(props.assetUid),
+        })
+
         props.onRequestClose()
         props.onSuccess()
       },
@@ -113,13 +123,17 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const eligibleSubmissionUuids = eligibleSubmissions.map((submission) => submission._uuid)
 
   const handleStartTranslation = () => {
+    // Extract the source row path from the transcript column path
+    // e.g., "_supplementalDetails/q1/transcript_en" -> "q1"
+    const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
     // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
     // that have been flagged by warning evaluators (e.g., already translated, no source)
     createBulkTranslation({
       uidAsset: props.assetUid,
       data: {
         action_id: ActionIdEnum.automatic_google_translation,
-        question_xpath: props.fieldXpath,
+        question_xpath: sourceRowPath,
         submission_uuids: eligibleSubmissionUuids,
         params: {
           language: selectedLanguage!,

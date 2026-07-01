@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { CellInfo } from 'react-table'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
+import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   simpleSurvey,
   simpleSurveyAsset,
@@ -34,6 +35,19 @@ const supplementalSubmission = {
     },
   },
 } as SubmissionResponse
+
+// Submission with unaccepted automatic transcript - shows Review button
+const unacceptedTranscriptSubmission = assetDataFactory(1, {
+  [SUPPLEMENTAL_DETAILS_PROP]: {
+    What_is_your_opinion: {
+      transcript: {
+        languageCode: 'fr',
+        pendingReview: true,
+        regionCode: null,
+      },
+    },
+  },
+})
 
 const meta: Meta<typeof DataTableCell> = {
   title: 'Components/DataTableCell',
@@ -91,5 +105,25 @@ export const BulkProcessingInProgress: Story = {
     translationIndex: 0,
     submissionCount: 2,
     isBulkProcessingInProgress: true,
+  },
+}
+
+export const UnacceptedAutomaticTranscript: Story = {
+  args: {
+    asset: simpleSurveyAsset,
+    reactTableRow: buildReactTableRow(unacceptedTranscriptSubmission, undefined),
+    columnKey: transcriptColumnKey,
+    question: undefined,
+    choices: simpleSurveyChoices as unknown as [],
+    showGroupName: false,
+    translationIndex: 0,
+    submissionCount: 2,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Shows a "Review" button when there is unaccepted automatic transcript content',
+      },
+    },
   },
 }
