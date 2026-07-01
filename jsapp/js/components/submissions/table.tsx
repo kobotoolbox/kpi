@@ -98,6 +98,7 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import { openBulkAcceptModal } from './BulkProcessingModals/BulkAcceptModal'
 import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
 import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
 
@@ -557,6 +558,31 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     })
   }
 
+  onAcceptSelectedSubmissions(fieldId: string) {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+
+    const selectedSubmissions = this.state.submissions.filter((submission) =>
+      selectedSubmissionIds.includes(String(submission._id)),
+    )
+
+    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
+    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
+
+    openBulkAcceptModal({
+      fieldXpath: fieldId,
+      assetUid: this.props.asset.uid,
+      selectedRowsCount: selectedSubmissionIds.length,
+      showWarningModal: showWarningModal,
+      onSuccess: () => {
+        this.setState({
+          selectedRows: {},
+          selectAll: false,
+        })
+      },
+      selectedSubmissions: selectedSubmissions,
+    })
+  }
+
   // We need to distinguish between repeated groups with nested values
   // and other question types that use a flat nested key (i.e. with '/').
   // If submission response contains the parent key, we should use that.
@@ -971,6 +997,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 fieldId={key}
                 isAudioQuestionColumn={q?.type === QUESTION_TYPES.audio.id}
                 isTranscriptColumn={getSupplementalPathParts(key).type === 'transcript'}
+                isTranslationColumn={getSupplementalPathParts(key).type === 'translation'}
                 sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange.bind(this)}
                 onHide={this.onHideField.bind(this)}
@@ -978,6 +1005,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
+                onAcceptSelectedSubmissions={this.onAcceptSelectedSubmissions.bind(this)}
                 isBulkProcessingDisabled={
                   !(
                     userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
