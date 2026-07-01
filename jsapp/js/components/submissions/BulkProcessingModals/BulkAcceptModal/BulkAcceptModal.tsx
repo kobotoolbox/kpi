@@ -1,6 +1,7 @@
 import { Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { actions } from '#/actions'
 import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { OperationEnum } from '#/api/models/operationEnum'
@@ -49,6 +50,9 @@ export function BulkAcceptModal(props: BulkAcceptModalProps) {
         queryClient.invalidateQueries({
           queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(props.assetUid),
         })
+
+        // Trigger table refresh to show updated acceptance status
+        actions.resources.refreshTableSubmissions()
 
         props.onRequestClose()
         props.onSuccess()
