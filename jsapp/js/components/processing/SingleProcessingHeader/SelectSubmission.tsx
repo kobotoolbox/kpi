@@ -7,7 +7,7 @@ import {
   useAssetsDataList,
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
-import { goToProcessing } from '#/components/processing/routes.utils'
+import { getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { removeDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
@@ -80,14 +80,24 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
   const goPrev = () => {
     if (!queryPrev.data) return
     protectorHelpers.safeExecute(hasUnsavedWork, () =>
-      goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryPrev.data!.submission['meta/rootUuid']), true),
+      goToProcessing(
+        assetUid,
+        xpath,
+        removeDefaultUuidPrefix(queryPrev.data!.submission['meta/rootUuid']),
+        getActiveTab(),
+      ),
     )
   }
 
   const goNext = () => {
     if (!queryNext.data) return
     protectorHelpers.safeExecute(hasUnsavedWork, () =>
-      goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryNext.data!.submission['meta/rootUuid']), true),
+      goToProcessing(
+        assetUid,
+        xpath,
+        removeDefaultUuidPrefix(queryNext.data!.submission['meta/rootUuid']),
+        getActiveTab(),
+      ),
     )
   }
 

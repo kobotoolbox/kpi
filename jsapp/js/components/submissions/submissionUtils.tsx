@@ -942,3 +942,70 @@ export function getBackgroundAudioAttachment(
 
   return undefined
 }
+
+/**
+ * Checks if a supplemental details column contains unaccepted automatic content
+ * (transcript or translation that was auto-generated but not yet accepted by user).
+ *
+ * Uses the `pendingReview` flag from the backend API endpoint, which is set to `true`
+ * when the latest version of a transcript/translation lacks a `_dateAccepted` timestamp.
+ *
+ * @param submission - The submission data
+ * @param columnKey - The supplemental details column key (e.g., '_supplementalDetails/audio_question/transcript_en')
+ * @returns true if the column has unaccepted automatic content, false otherwise
+ */
+export function hasUnacceptedAutomaticContent(
+  submission: DataResponse | SubmissionResponse,
+  columnKey: string,
+): boolean {
+  if (!columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+    return false
+  }
+
+  const pathParts = getSupplementalPathParts(columnKey)
+
+  // Only transcript and translation can have unaccepted automatic content
+  if (pathParts.type !== 'transcript' && pathParts.type !== 'translation') {
+    return false
+  }
+
+  // Check if submission has supplemental details
+  if (!submission._supplementalDetails || typeof submission._supplementalDetails !== 'object') {
+    return false
+  }
+
+  const sourceRowData = get(submission._supplementalDetails, pathParts.sourceRowPath, null)
+
+  if (!sourceRowData || typeof sourceRowData !== 'object') {
+    return false
+  }
+
+  // Check for pending review flag in transcripts
+  if (pathParts.type === 'transcript') {
+    const transcriptData = sourceRowData.transcript
+    if (!transcriptData || typeof transcriptData !== 'object') {
+      return false
+    }
+
+    // The backend returns pendingReview: true when content is awaiting acceptance
+    return Boolean(transcriptData.pendingReview)
+  }
+
+  // Check for pending review flag in translations
+  if (pathParts.type === 'translation') {
+    const translationData = sourceRowData.translation
+    if (!translationData || typeof translationData !== 'object') {
+      return false
+    }
+
+    const languageTranslation = translationData[pathParts.languageCode || '']
+    if (!languageTranslation || typeof languageTranslation !== 'object') {
+      return false
+    }
+
+    // The backend returns pendingReview: true when content is awaiting acceptance
+    return Boolean(languageTranslation.pendingReview)
+  }
+
+  return false
+}
