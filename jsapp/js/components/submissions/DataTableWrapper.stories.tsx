@@ -7,9 +7,9 @@
 
 import { Box } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import type { DecoratorFunction } from 'storybook/internal/types'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import type { DecoratorFunction } from 'storybook/internal/types'
 import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
