@@ -204,7 +204,7 @@ export default function StepProjectDetails({
         {(context === PROJECT_SETTINGS_CONTEXTS.NEW || context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
           <div className={styles.modalFooter}>
             {/* Don't allow going back if asset already exist */}
-            {!formAsset && <BackButton previousStep={previousStep} isDisabled={false} onClick={onBack} />}
+            {!formAsset && <BackButton previousStep={previousStep} isDisabled={isSubmitPending} onClick={onBack} />}
 
             <Button
               type='primary'
