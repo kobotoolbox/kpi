@@ -27,6 +27,17 @@ export default function routes() {
         }
       />
 
+      {/* Translation detail route with specific language - must come before generic TRANSLATIONS route */}
+      <Route
+        path={PROCESSING_ROUTES.TRANSLATION_DETAIL}
+        element={
+          <PermProtectedRoute
+            requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
+            protectedComponent={SingleProcessingRoute}
+          />
+        }
+      />
+
       <Route
         path={PROCESSING_ROUTES.TRANSLATIONS}
         element={

@@ -7,7 +7,7 @@ import {
   useAssetsDataList,
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
-import { getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
+import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { removeDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
@@ -85,6 +85,7 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
         xpath,
         removeDefaultUuidPrefix(queryPrev.data!.submission['meta/rootUuid']),
         getActiveTab(),
+        getActiveLanguageCode(),
       ),
     )
   }
@@ -97,6 +98,7 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
         xpath,
         removeDefaultUuidPrefix(queryNext.data!.submission['meta/rootUuid']),
         getActiveTab(),
+        getActiveLanguageCode(),
       ),
     )
   }
