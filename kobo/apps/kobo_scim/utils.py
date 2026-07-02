@@ -72,6 +72,15 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     """
     matched_any = False
 
+    extra_details_updated = False
+    profile_updates = {}
+    profile_field_to_metadata_key = {}
+
+    extra_user_detail = None
+    metadata = {}
+    original_metadata = {}
+    profile = None
+
     first_name = get_scim_value(scim_data, 'name.givenName')
     last_name = get_scim_value(scim_data, 'name.familyName')
     formatted = get_scim_value(scim_data, 'name.formatted')
@@ -79,10 +88,10 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     if first_name is not None or last_name is not None or formatted is not None:
         matched_any = True
         update_fields = []
-        if first_name is not None:
+        if first_name is not None and user.first_name != first_name:
             user.first_name = first_name
             update_fields.append('first_name')
-        if last_name is not None:
+        if last_name is not None and user.last_name != last_name:
             user.last_name = last_name
             update_fields.append('last_name')
         if update_fields:
@@ -91,9 +100,9 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         if formatted is not None:
             extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
             metadata = extra_user_detail.data or {}
+            original_metadata = dict(metadata)
             metadata['name'] = formatted
-            extra_user_detail.data = metadata
-            extra_user_detail.save(update_fields=['data'])
+            extra_details_updated = True
 
     metadata_fields = getattr(config, 'USER_METADATA_FIELDS', None)
 
@@ -110,15 +119,6 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         'address',
     }
 
-    extra_details_updated = False
-    profile_updates = {}
-    profile_field_to_metadata_key = {}
-
-    extra_user_detail = None
-    metadata = {}
-    original_metadata = {}
-    profile = None
-
     for field_def in metadata_fields:
         field_name = field_def.get('name')
         scim_mapping = field_def.get('scim_mapping')
@@ -129,6 +129,11 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         value = get_scim_value(scim_data, scim_mapping)
 
         if value is None:
+            continue
+
+        if field_name == 'name' and formatted is not None:
+            # Skip if name.formatted was natively provided, because standard core
+            # schemas take precedence over custom extension configurations
             continue
 
         matched_any = True

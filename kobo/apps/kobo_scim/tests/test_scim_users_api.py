@@ -549,6 +549,27 @@ class ScimUsersAPITests(APITestCase):
         self.user1.refresh_from_db()
         self.assertEqual(self.user1.last_name, 'Smith')
 
+    def test_patch_unsupported_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {'op': 'replace', 'path': 'unknownField', 'value': 'x'}
+            ],
+        }
+
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.json()
+        self.assertEqual(data.get('detail'), 'Operation not supported or invalid')
+
     def test_put_name_operation(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
