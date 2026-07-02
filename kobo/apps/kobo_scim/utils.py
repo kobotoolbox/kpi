@@ -119,7 +119,6 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         'address',
     }
 
-
     for field_def in metadata_fields:
         field_name = field_def.get('name')
         scim_mapping = field_def.get('scim_mapping')
@@ -133,7 +132,7 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
             continue
 
         if field_name == 'name' and formatted is not None:
-            # Skip if name.formatted was natively provided, because standard core 
+            # Skip if name.formatted was natively provided, because standard core
             # schemas take precedence over custom extension configurations
             continue
 
