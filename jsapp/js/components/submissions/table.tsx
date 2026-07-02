@@ -98,7 +98,7 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
-import { openBulkAcceptModal } from './BulkProcessingModals/BulkAcceptModal'
+import { openBulkApproveModal } from './BulkProcessingModals/BulkApproveModal'
 import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
 import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
 
@@ -558,7 +558,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     })
   }
 
-  onAcceptSelectedSubmissions(fieldId: string) {
+  onApproveSelectedSubmissions(fieldId: string) {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
     const selectedSubmissions = this.state.submissions.filter((submission) =>
@@ -568,7 +568,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
 
-    openBulkAcceptModal({
+    openBulkApproveModal({
       fieldXpath: fieldId,
       assetUid: this.props.asset.uid,
       selectedRowsCount: selectedSubmissionIds.length,
@@ -1005,7 +1005,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
-                onAcceptSelectedSubmissions={this.onAcceptSelectedSubmissions.bind(this)}
+                onApproveSelectedSubmissions={this.onApproveSelectedSubmissions.bind(this)}
                 isBulkProcessingDisabled={
                   !(
                     userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||

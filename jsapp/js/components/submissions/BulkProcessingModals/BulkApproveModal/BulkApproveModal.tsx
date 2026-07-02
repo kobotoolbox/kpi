@@ -16,7 +16,7 @@ import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcess
 import type { SubmissionResponse } from '#/dataInterface'
 import { notify } from '#/utils'
 
-export interface BulkAcceptModalProps {
+export interface BulkApproveModalProps {
   fieldXpath: string
   assetUid: string
   selectedRowsCount: number
@@ -26,7 +26,7 @@ export interface BulkAcceptModalProps {
   selectedSubmissions: SubmissionResponse[]
 }
 
-export function BulkAcceptModal(props: BulkAcceptModalProps) {
+export function BulkApproveModal(props: BulkApproveModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const queryClient = useQueryClient()
 
@@ -35,15 +35,15 @@ export function BulkAcceptModal(props: BulkAcceptModalProps) {
   const isTranslationColumn = supplementalPathParts.type === 'translation'
   const language = supplementalPathParts.languageCode
 
-  const { mutate: bulkAccept, isPending } = useAssetsDataSupplementsBulkCreate({
+  const { mutate: bulkApprove, isPending } = useAssetsDataSupplementsBulkCreate({
     mutation: {
       onSuccess: (response) => {
         const acceptedCount = response.status === 200 ? response.data.accepted_count : 0
 
         if (acceptedCount > 0) {
-          notify.success(t('Successfully accepted ##count## submission(s)').replace('##count##', String(acceptedCount)))
+          notify.success(t('Successfully approved ##count## submission(s)').replace('##count##', String(acceptedCount)))
         } else {
-          notify.warning(t('No submissions were accepted. They may already be accepted or have no data.'))
+          notify.warning(t('No submissions were approved. They may already be approved or have no data.'))
         }
 
         // Invalidate the bulk actions list so React Query refetches it.
@@ -70,14 +70,14 @@ export function BulkAcceptModal(props: BulkAcceptModalProps) {
 
         // Use the submission_uids error message if available, otherwise show a generic fallback
         const errorMessage =
-          errorResponse?.submission_uids?.join(', ') || t('Failed to accept submissions. Please try again.')
+          errorResponse?.submission_uids?.join(', ') || t('Failed to approve submissions. Please try again.')
 
         notify.error(errorMessage)
       },
     },
   })
 
-  const handleAcceptSubmissions = () => {
+  const handleApproveSubmissions = () => {
     // Extract the source row path from the transcript/translation column path
     // e.g., "_supplementalDetails/q1/transcript_en" -> "q1"
     // or "_supplementalDetails/q1/translation_fr" -> "q1"
@@ -91,7 +91,7 @@ export function BulkAcceptModal(props: BulkAcceptModalProps) {
       ? ActionIdEnum.automatic_google_translation
       : ActionIdEnum.automatic_google_transcription
 
-    bulkAccept({
+    bulkApprove({
       uidAsset: props.assetUid,
       data: {
         submission_uids: submissionUids,
@@ -149,7 +149,7 @@ export function BulkAcceptModal(props: BulkAcceptModalProps) {
             <ButtonNew onClick={props.onRequestClose} variant='light' disabled={isPending}>
               {t('Cancel')}
             </ButtonNew>
-            <ButtonNew loading={isPending} onClick={handleAcceptSubmissions}>
+            <ButtonNew loading={isPending} onClick={handleApproveSubmissions}>
               {t('Approve')}
             </ButtonNew>
           </Group>

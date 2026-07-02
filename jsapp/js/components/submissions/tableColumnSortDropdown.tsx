@@ -27,7 +27,7 @@ interface TableColumnSortDropdownProps {
   onFrozenChange: (fieldId: string, isFrozen: boolean) => void
   onTranscribeSelectedAudioFiles?: (fieldId: string) => void
   onTranslateSelectedTranscriptions?: (fieldId: string) => void
-  onAcceptSelectedSubmissions?: (fieldId: string) => void
+  onApproveSelectedSubmissions?: (fieldId: string) => void
   isBulkProcessingDisabled?: boolean
   /**
    * To be put inside trigger, before the predefined content. Please note that
@@ -50,12 +50,12 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     isBulkProcessingEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
   const canTranslateSelectedTranscriptions =
     isBulkProcessingEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
-  const canAcceptSelectedSubmissions =
+  const canApproveSelectedSubmissions =
     isBulkProcessingEnabled &&
     (props.isTranscriptColumn || props.isTranslationColumn) &&
-    Boolean(props.onAcceptSelectedSubmissions)
+    Boolean(props.onApproveSelectedSubmissions)
   const shouldRenderBulkProcessingButtons =
-    canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions || canAcceptSelectedSubmissions
+    canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions || canApproveSelectedSubmissions
 
   function renderTrigger() {
     let sortIconName: 'sort-ascending' | 'sort-descending' | null = null
@@ -92,8 +92,8 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     props.onTranslateSelectedTranscriptions?.(props.fieldId)
   }
 
-  function acceptSelectedSubmissions() {
-    props.onAcceptSelectedSubmissions?.(props.fieldId)
+  function approveSelectedSubmissions() {
+    props.onApproveSelectedSubmissions?.(props.fieldId)
   }
 
   function renderSortButton(buttonSortValue: SortValues) {
@@ -172,11 +172,11 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
                 </Menu.Item>
               )}
 
-              {canAcceptSelectedSubmissions && (
+              {canApproveSelectedSubmissions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
                   disabled={props.isBulkProcessingDisabled}
-                  onClick={acceptSelectedSubmissions}
+                  onClick={approveSelectedSubmissions}
                   leftSection={<Icon name='check' size='inherit' />}
                 >
                   {t('Approve all selected')}
