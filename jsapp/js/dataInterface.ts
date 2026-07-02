@@ -199,9 +199,14 @@ export interface SubmissionAttachment {
 
 interface TransxObject {
   languageCode: LanguageCode
-  value: string | null
+  value?: string | null
   /** transcripts only */
   regionCode?: string | null
+  /**
+   * When true, indicates the transcript/translation is complete but hasn't been
+   * manually accepted yet. When pendingReview is true, the value field is omitted.
+   */
+  pendingReview?: boolean
 
   // TODO: see if these below should be removed
   dateCreated?: string
@@ -682,6 +687,7 @@ export interface AssetResponse extends AssetRequestObject {
   owner_label: string
   date_created: string
   last_modified_by: string | null
+  created_by: string | null
   summary: AssetSummary
   date_modified: string
   date_deployed?: string
@@ -808,6 +814,7 @@ export interface ProjectViewAsset {
   date_created: string
   date_deployed: string | null
   last_modified_by: string | null
+  created_by: string | null
   owner: string
   owner__username: string
   owner_label: string

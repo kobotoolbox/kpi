@@ -1,32 +1,43 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
-import { useAssetsAdvancedFeaturesBulkActionsCreate } from '#/api/react-query/survey-data'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
+import {
+  getAssetsAdvancedFeaturesBulkActionsListQueryKey,
+  useAssetsAdvancedFeaturesBulkActionsCreate,
+  useAssetsAdvancedFeaturesList,
+} from '#/api/react-query/survey-data'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
+import LanguageSelector from '#/components/languages/LanguageSelector'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { BulkProcessingWarningModal } from '#/components/submissions/BulkProcessingModals/BulkProcessingWarningModal'
+import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
-import ButtonNew from '../../../common/ButtonNew'
-import LanguageSelector from '../../../languages/LanguageSelector'
-import type { LanguageCode } from '../../../languages/languagesStore'
-import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
-import { getSupplementalDetailsContent } from '../../submissionUtils'
+import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
+import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 export interface BulkTranslationModalProps {
-  fieldId: string
+  fieldXpath: string
   assetUid: string
   selectedRowsCount: number
   showWarningModal: boolean
+  activeBulkActions: BulkActionResponse[]
   onRequestClose: () => void
   onSuccess: () => void
   selectedSubmissions: SubmissionResponse[]
@@ -35,12 +46,19 @@ export interface BulkTranslationModalProps {
 export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
+  const queryClient = useQueryClient()
+
   const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
       onSuccess: () => {
         notify.success(t('Bulk translation request submitted successfully'))
 
-        // TODO: implement @mantine/notifications system, see DEV-2211
+        // Invalidate the bulk actions list so React Query refetches it.
+        // This triggers BulkProcessingBanner to appear (or update its count if already visible).
+        queryClient.invalidateQueries({
+          queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(props.assetUid),
+        })
+
         props.onRequestClose()
         props.onSuccess()
       },
@@ -79,25 +97,44 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const userMtBalance = serviceUsageData?.balances?.mt_characters ?? null
   const hasExceededLimit = userMtBalance?.exceeded ?? false
 
+  // Fetch advanced features to get suggested languages
+  const { data: advancedFeaturesData } = useAssetsAdvancedFeaturesList(props.assetUid)
+  const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
+  const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
+
+  // Use bulk processing alerts hook
+  const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
+    actionType: 'translation',
+    selectedSubmissions: props.selectedSubmissions,
+    selectedLanguage: selectedLanguage || undefined,
+    fieldXpath: props.fieldXpath,
+    serviceUsageData: serviceUsageData || undefined,
+    activeBulkActions: props.activeBulkActions,
+  })
+
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
   }
 
-  const totalCharacters = props.selectedSubmissions.reduce((sum, sub) => {
-    const supplementalValue = getSupplementalDetailsContent(sub, props.fieldId) || ''
+  const totalCharacters = eligibleSubmissions.reduce((sum, sub) => {
+    const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
     return sum + supplementalValue.length
   }, 0)
-  const selectedSubmissionUuids = props.selectedSubmissions.map((submission) => submission._uuid)
+  const eligibleSubmissionUuids = eligibleSubmissions.map((submission) => submission._uuid)
 
   const handleStartTranslation = () => {
-    // We pass all of the submissions without filtering out the ones that have translations already. Currently the
-    // backend skips the submissions that already have a translation.
+    // Extract the source row path from the transcript column path
+    // e.g., "_supplementalDetails/q1/transcript_en" -> "q1"
+    const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
+    // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
+    // that have been flagged by warning evaluators (e.g., already translated, no source)
     createBulkTranslation({
       uidAsset: props.assetUid,
       data: {
         action_id: ActionIdEnum.automatic_google_translation,
-        question_xpath: props.fieldId,
-        submission_uuids: selectedSubmissionUuids,
+        question_xpath: sourceRowPath,
+        submission_uuids: eligibleSubmissionUuids,
         params: {
           language: selectedLanguage!,
         },
@@ -128,24 +165,28 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
         <Stack gap='md'>
           <Text size='sm'>
             {t(
-              '##count## transcripts selected, totalling ##totalCharacters## characters. This will take some time to complete.',
+              'Your ##total_selected## transcripts is a total of ##total_characters## characters. This may take some time to complete.',
             )
-              .replace('##count##', String(props.selectedRowsCount))
-              .replace('##totalCharacters##', String(totalCharacters))}
+              .replace('##total_selected##', String(eligibleSubmissions.length))
+              .replace('##total_characters##', String(totalCharacters))}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
             <LanguageSelector
-              disabled={hasExceededLimit}
+              disabled={hasExceededLimit || isLoadingUsage || hasBlockingError}
               onLanguageChange={handleLanguageChange}
               value={selectedLanguage}
               required
+              suggestedLanguages={suggestedLanguages}
               // Smaller message to fit in the modal
               nothingFoundMessage={t('I cannot find my language')}
             />
           </Group>
 
-          {hasExceededLimit && (
+          <BulkProcessingAlerts activeAlerts={activeAlerts} />
+
+          {/* Legacy alert - will be removed once evaluators are implemented */}
+          {hasExceededLimit && activeAlerts.length === 0 && (
             <Alert type='warning' iconName='information' mt={12} mb={12}>
               {t("You've reached your automatic translation limit. Please purchase an add‑on to continue.")}
             </Alert>
@@ -171,7 +212,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               <ButtonNew
                 loading={isPending}
                 onClick={handleStartTranslation}
-                disabled={!selectedLanguage || isLoadingUsage}
+                disabled={!selectedLanguage || isLoadingUsage || hasErrors}
               >
                 {t('Create translations')}
               </ButtonNew>

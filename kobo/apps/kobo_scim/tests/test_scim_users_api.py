@@ -120,7 +120,11 @@ class ScimUsersAPITests(APITestCase):
         payload = {
             'schemas': [SCIM_SCHEMA_USER],
             'userName': 'newscimuser',
-            'name': {'givenName': 'New', 'familyName': 'Scim'},
+            'name': {
+                'givenName': 'New',
+                'familyName': 'Scim',
+                'formatted': 'New Scim User',
+            },
             'emails': [
                 {'primary': True, 'value': 'newscimuser@example.com', 'type': 'work'}
             ],
@@ -139,11 +143,18 @@ class ScimUsersAPITests(APITestCase):
         )
         data = response.json()
         self.assertEqual(data['userName'], 'newscimuser')
+        self.assertEqual(data['name']['formatted'], 'New Scim User')
+        self.assertEqual(data['name']['givenName'], 'New')
+        self.assertEqual(data['name']['familyName'], 'Scim')
 
         # Verify in DB
         user = User.objects.get(username='newscimuser')
         self.assertEqual(user.email, 'newscimuser@example.com')
         self.assertEqual(user.first_name, 'New')
+        self.assertEqual(user.last_name, 'Scim')
+
+        extra_user_detail = ExtraUserDetail.objects.get(user=user)
+        self.assertEqual(extra_user_detail.data.get('name'), 'New Scim User')
 
         # Verify SocialAccount link
         social_account = SocialAccount.objects.get(
@@ -516,7 +527,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertFalse(self.user1.is_active)
         self.assertFalse(user3.is_active)
 
-    def test_patch_unsupported_operation(self):
+    def test_patch_name_operation(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
@@ -533,10 +544,41 @@ class ScimUsersAPITests(APITestCase):
             HTTP_ACCEPT='application/scim+json',
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.user1.refresh_from_db()
-        self.assertTrue(self.user1.is_active)
+        self.assertEqual(self.user1.last_name, 'Smith')
+
+    def test_put_name_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'jdoe',
+            'name': {
+                'givenName': 'Johnny',
+                'familyName': 'Doeseph',
+                'formatted': 'Johnny Doeseph',
+            },
+            'emails': [{'primary': True, 'value': 'jdoe@example.com', 'type': 'work'}],
+            'active': True,
+        }
+
+        response = self.client.put(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.first_name, 'Johnny')
+        self.assertEqual(self.user1.last_name, 'Doeseph')
+
+        extra_user_detail = ExtraUserDetail.objects.get(user=self.user1)
+        self.assertEqual(extra_user_detail.data.get('name'), 'Johnny Doeseph')
 
     def test_manual_reactivation_after_scim_deprovisioning(self):
         """
@@ -1031,9 +1073,7 @@ class ScimUsersAPITests(APITestCase):
             'Operations': [
                 {
                     'op': 'replace',
-                    'value': {
-                        SCIM_SCHEMA_EXTENSION_USER: {'country': 'USA'}
-                    },
+                    'value': {SCIM_SCHEMA_EXTENSION_USER: {'country': 'USA'}},
                 }
             ],
         }

@@ -26,6 +26,7 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
     SCIM_SCHEMA_USER,
 )
+from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
 from kobo.apps.kobo_scim.models import IdentityProvider, ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
@@ -38,7 +39,6 @@ from kobo.apps.kobo_scim.utils import (
     generate_unique_scim_username,
     get_scim_extension_schemas,
 )
-from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
 
 
 class ScimExceptionHandlerMixin:
@@ -246,8 +246,13 @@ class ScimUserViewSet(
                     )
 
                 # Create the user natively
-                unique_username = generate_unique_scim_username(
-                    username, self.idp.slug
+                unique_username = generate_unique_scim_username(username, self.idp.slug)
+                user = User.objects.create_user(
+                    username=unique_username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_active=active,
                 )
                 user = User.objects.create_user(
                     username=unique_username,
@@ -302,40 +307,89 @@ class ScimUserViewSet(
 
                 self.perform_destroy(user)
 
+            # Ensure the SocialAccount link exists so SSO works flawlessly.
+            # We catch IntegrityError here just in case another IdP already
+            # has this exact uid linked.
+            social_account_existed = social_account is not None
+
+            SocialAccount.objects.get_or_create(
+                user=user, provider=self.idp_provider_id, uid=uid
+            )
+
+            reactivated_users = []
+            if active:
+                reactivated_users = self._reactivate_sso_linked_accounts(
+                    user.email, user
+                )
+            else:
+                # If the IdP provisions the user as deactivated, or links to an
+                # existing user but specifies active=False, deactivate them.
+                apply_scim_user_metadata(
+                    user,
+                    data,
+                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                )
+
+                audit_action = (
+                    AuditAction.REPROVISIONING
+                    if social_account_existed
+                    else AuditAction.PROVISIONING
+                )
+                audit_reason = (
+                    'Automated account re-provisioning via Identity Provider'
+                    if social_account_existed
+                    else 'Automated account provisioning via Identity Provider'
+                )
+
+                self._create_provisioning_audit_log(
+                    user=user,
+                    action=audit_action,
+                    email=email,
+                    username=user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason=audit_reason,
+                )
+
+                self.perform_destroy(user)
+
+                user.refresh_from_db()
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             apply_scim_user_metadata(
                 user,
                 data,
-                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
+                enforce_strict_validation=self.idp.enforce_strict_metadata_validation,
             )
 
-            if reactivated_users:
-                for reactivated_user in reactivated_users:
-                    self._create_provisioning_audit_log(
-                        user=reactivated_user,
-                        action=AuditAction.REPROVISIONING,
-                        email=reactivated_user.email,
-                        username=reactivated_user.username,
-                        status_code=status.HTTP_201_CREATED,
-                        reason=(
-                            'Automated account re-provisioning via Identity '
-                            'Provider'
-                        ),
-                    )
-            elif social_account_existed:
+            # Always log the primary user if this is a reprovisioning event
+            if social_account_existed:
                 self._create_provisioning_audit_log(
                     user=user,
                     action=AuditAction.REPROVISIONING,
                     email=email,
                     username=user.username,
                     status_code=status.HTTP_201_CREATED,
-                    reason=(
-                        'Automated account re-provisioning via Identity Provider'
-                    ),
+                    reason='Automated account re-provisioning via Identity Provider',
                 )
-            else:
+
+            # Additionally log any other reactivated users
+            for reactivated_user in reactivated_users:
+                # Avoid double-logging the primary user
+                if reactivated_user.pk == user.pk:
+                    continue
+
+                self._create_provisioning_audit_log(
+                    user=reactivated_user,
+                    action=AuditAction.REPROVISIONING,
+                    email=reactivated_user.email,
+                    username=reactivated_user.username,
+                    status_code=status.HTTP_201_CREATED,
+                    reason='Automated account re-provisioning via Identity Provider',
+                )
+
+            # If this is a brand-new user (no social account existed)
+            if not social_account_existed:
                 self._create_provisioning_audit_log(
                     user=user,
                     action=AuditAction.PROVISIONING,
@@ -345,6 +399,7 @@ class ScimUserViewSet(
                     reason='Automated account provisioning via Identity Provider',
                 )
 
+            user.refresh_from_db()
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 

@@ -146,7 +146,7 @@ class InactiveUsersAsOfFilter(SimpleListFilter):
             return queryset
 
         inactive_qs = get_inactive_users(days)
-        return queryset.filter(pk__in=inactive_qs.values_list('pk', flat=True))
+        return queryset.filter(pk__in=inactive_qs)
 
 
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
