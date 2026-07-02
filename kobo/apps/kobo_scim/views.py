@@ -38,6 +38,7 @@ from kobo.apps.kobo_scim.utils import (
     apply_scim_user_metadata,
     generate_unique_scim_username,
     get_scim_extension_schemas,
+    get_scim_value,
 )
 
 
@@ -197,9 +198,8 @@ class ScimUserViewSet(
         if not email and '@' in username:
             email = username
 
-        name_dict = data.get('name', {})
-        first_name = name_dict.get('givenName', '')
-        last_name = name_dict.get('familyName', '')
+        first_name = get_scim_value(data, 'name.givenName') or ''
+        last_name = get_scim_value(data, 'name.familyName') or ''
         uid = data.get('externalId') or username
         active = str(data.get('active', True)).lower() == 'true'
 
