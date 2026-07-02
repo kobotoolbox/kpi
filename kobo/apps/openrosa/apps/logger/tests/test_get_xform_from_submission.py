@@ -16,7 +16,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
 SHARED_ID = 'shared_id'
 
 
-def _xform_xml(title: str, instance_body: str) -> str:
+def _xform_xml(title: str, instance_body: str, id_string: str = SHARED_ID) -> str:
     return (
         '<?xml version="1.0" encoding="utf-8"?>'
         '<h:html xmlns="http://www.w3.org/2002/xforms"'
@@ -26,14 +26,14 @@ def _xform_xml(title: str, instance_body: str) -> str:
         f'<h:title>{title}</h:title>'
         '<model>'
         '<instance>'
-        f'<{SHARED_ID} id="{SHARED_ID}" version="1">'
+        f'<{id_string} id="{id_string}" version="1">'
         '<formhub><uuid/></formhub>'
         f'{instance_body}'
         '<__version__/>'
         '<meta><instanceID/></meta>'
-        f'</{SHARED_ID}>'
+        f'</{id_string}>'
         '</instance>'
-        f'<bind nodeset="/{SHARED_ID}/meta/instanceID" type="string"/>'
+        f'<bind nodeset="/{id_string}/meta/instanceID" type="string"/>'
         '</model>'
         '</h:head>'
         '<h:body/>'
@@ -41,15 +41,15 @@ def _xform_xml(title: str, instance_body: str) -> str:
     )
 
 
-def _submission_xml(instance_body: str) -> str:
+def _submission_xml(instance_body: str, id_string: str = SHARED_ID) -> str:
     return (
-        f'<{SHARED_ID} id="{SHARED_ID}" version="1">'
+        f'<{id_string} id="{id_string}" version="1">'
         '<formhub><uuid>7117fdf814234f5ea0c9f5801b022293</uuid></formhub>'
         f'{instance_body}'
         '<__version__>v1</__version__>'
         '<meta><instanceID>uuid:55d873b2-3a25-4370-8cd9-c41ed4156d07'
         '</instanceID></meta>'
-        f'</{SHARED_ID}>'
+        f'</{id_string}>'
     )
 
 
@@ -189,3 +189,36 @@ class TestGetXFormFromSubmissionCollision(TestCase):
         )
         with self.assertRaises(Http404):
             get_xform_from_submission(unknown_submission, self.alice.username)
+
+
+class TestGetXFormFromSubmissionSingleMatch(TestCase):
+    """
+    The common path: a uniquely-named form resolves for any authorized
+    submitter, including non-owners (the core fix — the fallback no longer
+    filters on the submitter's username).
+    """
+
+    UNIQUE_ID = 'unique_form_id'
+
+    def setUp(self):
+        self.owner = User.objects.create(username='owner_user')
+        self.collector = User.objects.create(username='collector_user')
+        self.xform = XForm.objects.create(
+            xml=_xform_xml('Unique', '<name/>', id_string=self.UNIQUE_ID),
+            user=self.owner,
+            require_auth=False,
+        )
+        assert self.xform.id_string == self.UNIQUE_ID
+
+    def test_non_owner_resolves_uniquely_named_form(self):
+        # Before the fix, filtering on `user__username=<submitter>` made this
+        # 404 for a non-owner. Authorization is now left to
+        # `check_submission_permissions`, so resolution succeeds.
+        submission = _submission_xml('<name>Bob</name>', id_string=self.UNIQUE_ID)
+        resolved = get_xform_from_submission(submission, self.collector.username)
+        assert resolved.pk == self.xform.pk
+
+    def test_owner_resolves_uniquely_named_form(self):
+        submission = _submission_xml('<name>Bob</name>', id_string=self.UNIQUE_ID)
+        resolved = get_xform_from_submission(submission, self.owner.username)
+        assert resolved.pk == self.xform.pk

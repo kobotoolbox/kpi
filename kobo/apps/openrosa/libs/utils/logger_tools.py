@@ -997,11 +997,19 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     return soft_deleted_attachments
 
 
-# Metadata nodes (form-level bookkeeping and ODK `jr:preload` fields) that carry
-# no distinguishing power when routing a submission to the right form, so they
-# are stripped before comparing schemas. Matching is done on the first path
-# segment, which also drops their descendants (e.g. `formhub/uuid`,
-# `meta/instanceID`).
+# Metadata nodes that carry no distinguishing power when routing a submission to
+# the right form, so they are stripped before comparing schemas. Matching is done
+# on the first path segment, which also drops their descendants (e.g.
+# `formhub/uuid`, `meta/instanceID`).
+#
+# The list is intentionally limited to structural nodes (`formhub`, `meta`,
+# `__version__`) and the `jr:preload` names that pyxform reserves as metadata
+# types (`start`, `end`, `today`, `deviceid`) — none of which can be a
+# user-defined question, so stripping them cannot hide a real field. Other
+# preload fields (e.g. `username`, `email`, `phonenumber`) are deliberately NOT
+# listed: they are plausible question names, and keeping them is harmless since a
+# node shared by every form appears in both the template and the submission and
+# therefore never affects the subset comparison.
 _COMMON_INSTANCE_FIELDS = frozenset(
     {
         'formhub',
