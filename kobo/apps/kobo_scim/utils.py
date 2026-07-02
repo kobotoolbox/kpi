@@ -113,7 +113,6 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     extra_details_updated = False
     profile_updates = {}
     profile_field_to_metadata_key = {}
-    matched_any = False
 
     extra_user_detail = None
     metadata = {}

@@ -26,6 +26,7 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
     SCIM_SCHEMA_USER,
 )
+from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
 from kobo.apps.kobo_scim.models import IdentityProvider, ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
@@ -38,7 +39,6 @@ from kobo.apps.kobo_scim.utils import (
     generate_unique_scim_username,
     get_scim_extension_schemas,
 )
-from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
 
 
 class ScimExceptionHandlerMixin:
@@ -246,9 +246,7 @@ class ScimUserViewSet(
                     )
 
                 # Create the user natively
-                unique_username = generate_unique_scim_username(
-                    username, self.idp.slug
-                )
+                unique_username = generate_unique_scim_username(username, self.idp.slug)
                 user = User.objects.create_user(
                     username=unique_username,
                     email=email,
@@ -302,6 +300,7 @@ class ScimUserViewSet(
 
                 self.perform_destroy(user)
 
+                user.refresh_from_db()
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -348,6 +347,7 @@ class ScimUserViewSet(
                     reason='Automated account provisioning via Identity Provider',
                 )
 
+            user.refresh_from_db()
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
