@@ -11,15 +11,94 @@ from kobo.apps.kobo_scim.exceptions import ScimException
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
+def get_scim_value(data, path):
+    """
+    Extracts a value from a SCIM data dictionary using a dotted path.
+    Handles SCIM extension URNs which may contain periods.
+    """
+    if not path or not data:
+        return None
+
+    # First check if exact path string is a key in data
+    # (useful for flat patch operations)
+    if path in data:
+        return data[path]
+
+    # Try to match a top-level key first (like an extension URN)
+    matched_key = None
+    if isinstance(data, dict):
+        for key in data.keys():
+            if (
+                path == key
+                or path.startswith(f'{key}.')
+                or path.startswith(f'{key}:')
+            ):
+                # Ensure we match the longest prefix to avoid partial matches
+                if matched_key is None or len(key) > len(matched_key):
+                    matched_key = key
+
+    if matched_key:
+        remainder = path[len(matched_key):]
+        if remainder.startswith('.') or remainder.startswith(':'):
+            remainder = remainder[1:]
+
+        value = data[matched_key]
+        if remainder:
+            keys = remainder.replace(':', '.').split('.')
+            for k in keys:
+                if isinstance(value, dict):
+                    value = value.get(k)
+                else:
+                    return None
+        return value
+
+    # Fallback to simple dot splitting if no top-level key matched
+    keys = path.split('.')
+    value = data
+    for key in keys:
+        if isinstance(value, dict):
+            value = value.get(key)
+        else:
+            return None
+
+    return value
+
+
 def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     """
     Applies custom IdP metadata from the SCIM payload to the Kobo user profile.
     It reads `constance.config.USER_METADATA_FIELDS` for mapping definitions.
+    It also natively maps standard SCIM core schema attributes.
     """
+    matched_any = False
+
+    first_name = get_scim_value(scim_data, 'name.givenName')
+    last_name = get_scim_value(scim_data, 'name.familyName')
+    formatted = get_scim_value(scim_data, 'name.formatted')
+
+    if first_name is not None or last_name is not None or formatted is not None:
+        matched_any = True
+        update_fields = []
+        if first_name is not None:
+            user.first_name = first_name
+            update_fields.append('first_name')
+        if last_name is not None:
+            user.last_name = last_name
+            update_fields.append('last_name')
+        if update_fields:
+            user.save(update_fields=update_fields)
+
+        if formatted is not None:
+            extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
+            metadata = extra_user_detail.data or {}
+            metadata['name'] = formatted
+            extra_user_detail.data = metadata
+            extra_user_detail.save(update_fields=['data'])
+
     metadata_fields = getattr(config, 'USER_METADATA_FIELDS', None)
 
     if not isinstance(metadata_fields, list):
-        return False
+        return matched_any
 
     # Fields that map directly to UserProfile model attributes
     user_profile_fields = {
@@ -48,49 +127,7 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         if not field_name or not scim_mapping:
             continue
 
-        # First check if exact scim_mapping string is a key in scim_data
-        # (useful for flat patch operations)
-        if scim_mapping in scim_data:
-            value = scim_data[scim_mapping]
-        else:
-            value = None
-            # Try to match a top-level key first (like an extension URN)
-            matched_key = None
-            if isinstance(scim_data, dict):
-                for key in scim_data.keys():
-                    if (
-                        scim_mapping == key
-                        or scim_mapping.startswith(f'{key}.')
-                        or scim_mapping.startswith(f'{key}:')
-                    ):
-                        # Ensure we match the longest prefix to avoid partial matches
-                        if matched_key is None or len(key) > len(matched_key):
-                            matched_key = key
-
-            if matched_key:
-                remainder = scim_mapping[len(matched_key):]
-                if remainder.startswith('.') or remainder.startswith(':'):
-                    remainder = remainder[1:]
-
-                value = scim_data[matched_key]
-                if remainder:
-                    keys = remainder.replace(':', '.').split('.')
-                    for k in keys:
-                        if isinstance(value, dict):
-                            value = value.get(k)
-                        else:
-                            value = None
-                            break
-            else:
-                # Fallback to simple dot splitting if no top-level key matched
-                keys = scim_mapping.split('.')
-                value = scim_data
-                for key in keys:
-                    if isinstance(value, dict):
-                        value = value.get(key)
-                    else:
-                        value = None
-                        break
+        value = get_scim_value(scim_data, scim_mapping)
 
         if value is None:
             continue
