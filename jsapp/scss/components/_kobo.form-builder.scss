@@ -13,7 +13,7 @@ $s-form-builder-content-width: 1024px;
 // FORM BUILDER MAIN LAYOUT
 
 .form-builder {
-  background-color: colors.$kobo-white;
+  background-color: #f8fafc;
 }
 
 .form-builder__contents {
@@ -94,15 +94,16 @@ $s-form-builder-content-width: 1024px;
       height: 75px;
       position: relative;
       z-index: 2;
-      box-shadow: 0 0 3px 0 rgba(colors.$kobo-gray-800, 0.2), 0 0 10px 0 rgba(colors.$kobo-gray-800, 0.1);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
     }
 
     &.form-builder-header__row--secondary {
-      background: colors.$kobo-gray-200;
+      background: #f8fafc;
       height: 50px;
       position: relative;
       z-index: 1;
-      box-shadow: 0 0 3px 0 rgba(colors.$kobo-gray-800, 0.2), 0 0 10px 0 rgba(colors.$kobo-gray-800, 0.1);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
       padding: 0 20px;
     }
   }
@@ -110,20 +111,21 @@ $s-form-builder-content-width: 1024px;
   .form-builder-header__cell {
     &.form-builder-header__cell--logo {
       position: relative;
-      background-color: colors.$kobo-teal;
+      background: linear-gradient(135deg, var(--color-primary, colors.$kobo-blue) 0%, var(--color-primary-dark, colors.$kobo-dark-blue) 100%);
       width: 75px;
       text-align: center;
       vertical-align: middle;
       height: 75px;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.2s ease;
 
       &:hover {
-        background-color: color.adjust(colors.$kobo-teal, $lightness: -10%);
+        opacity: 0.95;
+        background: var(--color-primary-dark, colors.$kobo-dark-blue);
       }
 
       &:focus {
-        background-color: color.adjust(colors.$kobo-teal, $lightness: -10%);
+        background: var(--color-primary-dark, colors.$kobo-dark-blue);
 
         .k-icon {
           font-size: 40px;
@@ -134,10 +136,10 @@ $s-form-builder-content-width: 1024px;
 
       .k-icon {
         color: colors.$kobo-white;
-        font-size: 36px;
+        font-size: 32px;
         position: absolute;
-        top: calc(50% - 17px);
-        left: calc(50% - 17px);
+        top: calc(50% - 16px);
+        left: calc(50% - 16px);
 
         &::before {
           margin-right: 0;
@@ -148,14 +150,28 @@ $s-form-builder-content-width: 1024px;
     &.form-builder-header__cell--name {
       flex: 1;
 
-      label::first-letter {
+      label {
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--color-text-muted, colors.$kobo-gray-600);
       }
 
       input {
-        border-radius: 0;
-        padding-left: 0;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 4px 8px;
         font-size: 16px;
+        font-weight: 700;
+        color: var(--color-text-main, colors.$kobo-gray-900);
+        background: transparent;
+        transition: all 0.2s ease;
+
+        &:focus {
+          border-color: rgba(15, 23, 42, 0.1);
+          background: rgba(15, 23, 42, 0.02);
+        }
       }
     }
 
@@ -180,8 +196,31 @@ $s-form-builder-content-width: 1024px;
     &.form-builder-header__cell--buttonsTopRight {
       display: flex;
       flex-direction: row;
-      gap: 10px;
-      padding-right: 10px;
+      align-items: center;
+      gap: 12px;
+      padding-right: 15px;
+
+      :global(.k-button) {
+        border-radius: 30px !important;
+        padding: 6px 20px !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        letter-spacing: 0.5px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 10px rgba(41, 185, 242, 0.2) !important;
+        background: linear-gradient(135deg, var(--color-primary, colors.$kobo-blue) 0%, var(--color-primary-dark, colors.$kobo-dark-blue) 100%) !important;
+        border: none !important;
+        color: colors.$kobo-white !important;
+
+        &:hover:not([disabled]) {
+          transform: translateY(-1px) !important;
+          box-shadow: 0 6px 14px rgba(6, 136, 186, 0.3) !important;
+        }
+
+        &:active:not([disabled]) {
+          transform: translateY(0) !important;
+        }
+      }
     }
 
     &.form-builder-header__cell--close {
@@ -189,12 +228,73 @@ $s-form-builder-content-width: 1024px;
       text-align: right;
       padding: 5px;
       margin-left: 5px;
+
+      button,
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        color: var(--color-text-muted, colors.$kobo-gray-600);
+        transition: all 0.2s ease;
+        cursor: pointer;
+
+        &:hover {
+          background-color: rgba(15, 23, 42, 0.05);
+          color: var(--color-text-main, colors.$kobo-gray-900);
+          transform: rotate(90deg);
+        }
+      }
     }
 
-    // second row
+    // second row tools buttons
     &.form-builder-header__cell--toolsButtons {
       @include mixins.centerRowFlex;
-      gap: 10px;
+      gap: 8px;
+
+      button,
+      a,
+      :global(.k-button) {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 32px !important;
+        padding: 0 16px !important;
+        border-radius: 30px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(15, 23, 42, 0.08) !important;
+        background-color: colors.$kobo-white !important;
+        color: var(--color-text-muted, colors.$kobo-gray-700) !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+        cursor: pointer !important;
+
+        .k-icon {
+          font-size: 16px !important;
+          margin-right: 6px !important;
+          color: inherit !important;
+          vertical-align: middle !important;
+        }
+
+        &:hover:not([disabled]) {
+          border-color: var(--color-primary, colors.$kobo-blue) !important;
+          color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+          background-color: var(--color-primary-light, rgba(41, 185, 242, 0.04)) !important;
+        }
+
+        &.active,
+        &[data-active='true'],
+        &:global(.active),
+        &:global(.k-button--active) {
+          border-color: var(--color-primary, colors.$kobo-blue) !important;
+          color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+          background-color: var(--color-primary-light, rgba(41, 185, 242, 0.08)) !important;
+          font-weight: 700 !important;
+        }
+      }
     }
 
     &.form-builder-header__cell--spacer {
@@ -204,7 +304,7 @@ $s-form-builder-content-width: 1024px;
 
     &.form-builder-header__cell--verticalRule {
       width: 1px;
-      background: colors.$kobo-gray-300;
+      background: rgba(15, 23, 42, 0.08);
       height: 100%;
     }
   }
@@ -218,9 +318,10 @@ $s-form-builder-content-width: 1024px;
   bottom: 0;
   top: $s-form-builder-header;
   width: $s-form-builder-aside;
-  background-color: colors.$kobo-gray-200;
+  background-color: colors.$kobo-white;
   transition: right $t-form-builder-aside-open;
-  box-shadow: 0 0 3px 0 rgba(colors.$kobo-gray-800, 0.2), 0 0 10px 0 rgba(colors.$kobo-gray-800, 0.1);
+  box-shadow: -4px 0 20px rgba(15, 23, 42, 0.05);
+  border-left: 1px solid rgba(15, 23, 42, 0.08);
   z-index: z-indexes.$z-form-builder-aside;
 
   &:not(.form-builder-aside--visible) {
@@ -239,14 +340,18 @@ $s-form-builder-content-width: 1024px;
 
   .form-builder-aside__header {
     margin: 0;
-    font-size: 20px;
-    line-height: 28px;
+    font-size: 16px;
+    line-height: 24px;
     font-weight: 700;
+    color: var(--color-text-main, colors.$kobo-gray-900);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 
     .k-icon {
-      font-size: 20px;
+      font-size: 16px;
       margin-left: 3px;
-      vertical-align: top;
+      vertical-align: middle;
+      color: var(--color-primary, colors.$kobo-blue);
     }
   }
 

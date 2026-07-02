@@ -387,17 +387,11 @@ CONSTANCE_CONFIG = {
     'USER_METADATA_FIELDS': (
         [
             {'name': 'name', 'required': True},
-            {'name': 'organization', 'required': False},
-            {'name': 'organization_type', 'required': False},
-            {'name': 'organization_website', 'required': False},
-            {'name': 'sector', 'required': False},
             {'name': 'bio', 'required': False},
             {'name': 'city', 'required': False},
-            {'name': 'country', 'required': False},
             {'name': 'twitter', 'required': False},
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
-            {'name': 'newsletter_subscription', 'required': False},
         ],
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
@@ -867,37 +861,7 @@ django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
 DJANGO_LANGUAGE_CODES = env.str(
     'DJANGO_LANGUAGE_CODES',
-    default=(
-        'am '  # Amharic
-        'ar '  # Arabic
-        'bn '  # Bengali
-        'cs '  # Czech
-        'de '  # German
-        'en '  # English
-        'es '  # Spanish
-        'fa '  # Persian/Farsi
-        'fr '  # French
-        'hi '  # Hindi
-        'hu '  # Hungarian
-        'id '  # Indonesian
-        'ja '  # Japanese
-        'km '  # Khmer
-        'ku '  # Kurdish
-        'ln '  # Lingala
-        'my '  # Burmese/Myanmar
-        'ny '  # Chewa/Chichewa/Nyanja
-        'ne '  # Nepali
-        'pl '  # Polish
-        'pt '  # Portuguese
-        'ru '  # Russian
-        'sw '  # Swahili
-        'th '  # Thai
-        'tr '  # Turkish
-        'uk '  # Ukrainian
-        'vi '  # Vietnamese
-        'yo '  # Yoruba
-        'zh-hans'  # Chinese Simplified
-    )
+    default='en es'
 )
 LANGUAGES = [
     (lang_code, get_language_info(lang_code)['name_local'])
@@ -1715,6 +1679,8 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
+    'reset_password': 'kobo.apps.accounts.forms.ResetPasswordForm',
+    'reset_password_from_key': 'kobo.apps.accounts.forms.ResetPasswordKeyForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False

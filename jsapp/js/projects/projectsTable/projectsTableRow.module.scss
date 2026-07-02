@@ -5,29 +5,25 @@
 @use 'scss/z-indexes';
 
 $projects-table-hover-bg: colors.$kobo-gray-100;
-$projects-table-row-padding: 8px;
-// The shared height of a row: project rows are bigger due to padding, but
-// header rows use this size without paddings
-$projects-table-row-height: 36px;
+$projects-table-row-padding: 10px 8px;
+$projects-table-row-height: 40px;
 
 .row {
   display: flex;
   flex-direction: row;
   position: relative;
-  align-items: stretch;
+  align-items: center;
   cursor: pointer;
-  margin: 0 8px;
-
+  margin: 0 16px;
   user-select: none;
 }
 
 .cell {
-  border-bottom: 1px solid colors.$kobo-gray-300;
   padding: $projects-table-row-padding;
-  color: colors.$kobo-gray-700;
+  color: var(--color-text-main, colors.$kobo-gray-800);
   flex: 1 0 auto;
-  // ensures the table columns are same width for all rows (default value)
   width: 10%;
+  font-size: 14px;
 
   > * {
     cursor: inherit;
@@ -42,8 +38,8 @@ $projects-table-row-height: 36px;
   }
 
   &[data-field='checkbox'] {
-    max-width: $projects-table-row-padding + 20px + $projects-table-row-padding;
-    width: $projects-table-row-padding + 20px + $projects-table-row-padding;
+    max-width: 40px;
+    width: 40px;
     @include mixins.centerRowFlex;
   }
 
@@ -59,31 +55,27 @@ $projects-table-row-height: 36px;
   }
 
   &[data-field='name'] {
-    color: colors.$kobo-dark-blue;
-    font-weight: 600;
-
-    // Handling the fact that the cell content is a link
+    color: var(--color-primary-dark, colors.$kobo-dark-blue);
+    font-weight: 700;
     padding: 0;
 
     :global a {
       @include mixins.textEllipsis;
       color: inherit;
       display: block;
-      padding: $projects-table-row-padding;
+      padding: 10px 8px;
+      transition: color 0.15s ease;
 
-      // Keyboard-focus ring for links
       &:focus-visible .asset-name {
         @include mixins.default-ui-focus;
-        border-radius: 2px;
+        border-radius: 4px;
         outline-offset: 4px;
       }
+      
+      &:hover {
+        color: var(--color-primary, colors.$kobo-blue);
+      }
     }
-
-    // Setup for underlining the Project Name on row hover.
-    // This clarifies the size of the checkbox touch-target
-    // and makes full-navigation a little more predictable.
-    text-decoration: 1px solid underline color.change(colors.$kobo-mid-blue, $alpha: 0);
-    text-underline-offset: 3px;
   }
 }
 
@@ -119,125 +111,119 @@ $projects-table-row-height: 36px;
 }
 
 .row.rowTypeProject {
+  background-color: colors.$kobo-white;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 10px;
+  margin: 8px 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
   .cell {
     @include mixins.textEllipsis;
-    line-height: $projects-table-row-height;
-
-    // performance hints for resizing
+    line-height: normal;
     contain: inline-size layout paint style;
 
-    // don't show ellipsis by badges
     &[data-field='status'],
     &[data-field='countries'],
     &[data-field='submissions'] {
       text-overflow: clip;
     }
 
-    // To make a more forgiving checkbox interaction, make this cell
-    // much wider than it otherwise would be.
     &[data-field='checkbox'] {
       position: relative;
-      line-height: unset;
-      // create hanging pseudo-elements to expand touch targets
-      &::after,
-      &::before {
-        display: inline-block;
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        z-index: 2;
-      }
-      // right: cover whitespace up to the project name link
-      &::after {
-        right: 0 - $projects-table-row-padding;
-        width: $projects-table-row-padding;
-      }
-      // left: cover whitespace left of project table
-      &::before {
-        left: 0 - 32px;
-        width: 32px;
-      }
-      // uncrop element
       overflow: visible;
       contain: inline-size style;
     }
   }
 
-  &:hover .cell {
-    background-color: $projects-table-hover-bg;
+  // Custom status badge refinement
+  .cell[data-field='status'] {
+    > div {
+      font-weight: 600 !important;
+      border-radius: 20px !important;
+      padding: 0 12px !important;
+      height: 24px !important;
+      line-height: 24px !important;
+      border: none !important;
+      box-shadow: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      
+      &[class*='color-light-teal'] {
+        background-color: rgba(82, 197, 208, 0.12) !important;
+        color: colors.$kobo-dark-teal !important;
+      }
+      
+      &[class*='color-light-blue'] {
+        background-color: rgba(41, 185, 242, 0.12) !important;
+        color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+      }
+      
+      &[class*='color-light-amber'] {
+        background-color: rgba(255, 190, 128, 0.15) !important;
+        color: colors.$kobo-dark-amber !important;
+      }
+    }
+  }
 
-    &.cellHighlighted {
-      background-color: color.change(colors.$kobo-bg-blue, $alpha: 0.6);
+  // Custom submissions count badge refinement
+  .cell[data-field='submissions'] {
+    > div {
+      font-weight: 700 !important;
+      border-radius: 20px !important;
+      background-color: rgba(15, 23, 42, 0.07) !important;
+      color: var(--color-text-main, colors.$kobo-gray-900) !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 10px !important;
+      height: 24px !important;
+      line-height: 24px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+  }
+
+  &:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.02);
+    border-color: rgba(41, 185, 242, 0.35);
+    background-color: rgba(41, 185, 242, 0.015);
+
+    .cell {
+      background-color: transparent !important;
     }
 
-    // Various hover rules to tell the user what will happen:
-    // - click project cell  ->  navigate to project
-    // - click other cell    ->  toggle the checkbox for project
-
-    // Hovering any cell  ->  Outline the checkbox
     &[data-field='checkbox'] {
       :global .checkbox__input {
-        outline: 2px solid colors.$kobo-mid-blue;
-        outline-offset: 0 - 1px;
-      }
-
-      &:hover {
-        // Do an even bigger outline if you're actually near the checkbox
-        :global .checkbox__input {
-          outline-width: 3px;
-          outline-offset: 0 - 1px;
-
-          // Override checkbox hover states to reduce flashing
-          &:hover {
-            background-color: colors.$kobo-white;
-
-            &:checked {
-              background-color: colors.$kobo-blue;
-            }
-          }
-        }
-      }
-    }
-    // Specificity: Keep the keyboard focus styles, despite the pointer
-    &[data-field='checkbox'] :global .checkbox__input:focus-visible,
-    &[data-field='checkbox']:hover :global .checkbox__input:focus-visible {
-      @include mixins.default-ui-focus;
-    }
-
-    // Hovering 'Project name' cell…
-    //  ->  Underline project name (link)
-    &[data-field='name']:hover {
-      text-decoration-color: colors.$kobo-mid-blue;
-    }
-    //  ->  De-emphasize the checkbox
-    &[data-field='checkbox']:has(~ [data-field='name']:hover) {
-      //  (Uses :has(), so not supported in Firefox yet)
-      :global .checkbox__input {
-        outline: none;
+        box-shadow: 0 0 0 4px rgba(41, 185, 242, 0.12);
+        border-color: var(--color-primary, colors.$kobo-blue);
       }
     }
   }
 }
 
 .row.rowTypeHeader {
+  margin: 0 16px;
+  background-color: transparent;
+  border-bottom: 2px solid rgba(15, 23, 42, 0.05);
+
   .cell {
     @include mixins.centerRowFlex;
-    color: colors.$kobo-gray-700;
+    color: var(--color-text-muted, colors.$kobo-gray-700);
     border-top: 0;
     cursor: pointer;
     height: $projects-table-row-height;
-    padding: 0; // dropdown does the padding
-    background-color: colors.$kobo-white;
-
-    // performance hints for resizing
-    contain: inline-size style;
+    padding: 0;
+    background-color: transparent;
+    font-weight: 700;
+    font-size: 13px;
 
     &:hover {
-      color: colors.$kobo-gray-900 !important;
+      color: var(--color-text-main, colors.$kobo-gray-900) !important;
     }
 
-    // checkbox header not clickable - use default cursor
     &[data-field='checkbox'] {
       cursor: default;
     }
@@ -257,13 +243,11 @@ $projects-table-row-height: 36px;
   font-size: 13px;
 }
 
-// Highlighted columns:
-
 .row.rowTypeProject .cell.cellHighlighted {
-  background-color: color.change(colors.$kobo-bg-blue, $alpha: 0.3);
+  background-color: rgba(41, 185, 242, 0.05);
 }
 
 .row.rowTypeHeader .cell.cellHighlighted {
-  background-color: colors.$kobo-bg-blue;
-  color: colors.$kobo-dark-blue;
+  background-color: rgba(41, 185, 242, 0.08);
+  color: var(--color-primary-dark, colors.$kobo-dark-blue);
 }

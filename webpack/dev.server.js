@@ -31,7 +31,7 @@ let devConfig = WebpackCommon({
     library: 'KPI',
     path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
-    filename: '[name]-[contenthash].js',
+    filename: '[name].js',
   },
   devServer: {
     devMiddleware: {

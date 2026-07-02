@@ -5,12 +5,16 @@
 .root {
   display: inline-block;
   vertical-align: top;
+  position: relative;
 }
 
 .root.isMenuVisible .trigger {
+  color: var(--color-primary-dark, colors.$kobo-dark-blue);
+  
   :global {
     .k-icon {
-      color: colors.$kobo-blue;
+      color: var(--color-primary, colors.$kobo-blue);
+      transform: rotate(180deg);
     }
   }
 }
@@ -18,27 +22,42 @@
 .trigger {
   @include mixins.buttonReset;
   @include mixins.centerRowFlex;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
-  color: colors.$kobo-gray-800;
-  padding: 2px 16px;
-  // we want it to be 32px height
+  color: var(--color-text-main, colors.$kobo-gray-900);
+  padding: 4px 16px;
   line-height: 28px;
   max-width: 400px;
+  transition: all 0.2s ease;
+  border-radius: 8px;
 
   :global {
     label {
       @include mixins.textEllipsis;
       pointer-events: none;
+      cursor: pointer;
     }
 
     .k-icon {
-      margin-left: 5px;
+      margin-left: 8px;
+      color: var(--color-text-muted, colors.$kobo-gray-600);
+      transition: transform 0.25s ease, color 0.2s ease;
+    }
+  }
+
+  &:hover:not(.triggerSimple) {
+    color: var(--color-primary-dark, colors.$kobo-dark-blue);
+    background-color: rgba(41, 185, 242, 0.06);
+    
+    :global {
+      .k-icon {
+        color: var(--color-primary-dark, colors.$kobo-dark-blue);
+      }
     }
   }
 
   &:active {
-    transform: none;
+    transform: scale(0.98);
   }
 }
 
@@ -47,26 +66,53 @@
 }
 
 .menu {
-  @include mixins.floatingRoundedBox;
   display: block;
   width: 100%;
-  min-width: 300px;
-  max-height: 200px;
-  max-width: 300px;
-  overflow-x: auto;
-  padding: 20px 0;
+  min-width: 280px;
+  max-height: 280px;
+  max-width: 320px;
+  overflow-y: auto;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  margin-top: 6px;
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .menuOption {
   @include mixins.buttonReset;
   @include mixins.textEllipsis;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 10px 30px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-main, colors.$kobo-gray-800);
+  padding: 10px 16px;
+  margin: 2px 0;
   width: 100%;
   text-align: initial;
+  border-radius: 8px;
+  transition: all 0.15s ease;
 
   &:hover {
-    color: colors.$kobo-blue;
+    color: var(--color-primary-dark, colors.$kobo-dark-blue);
+    background-color: rgba(41, 185, 242, 0.08);
+  }
+  
+  &:active {
+    transform: scale(0.99);
   }
 }
+

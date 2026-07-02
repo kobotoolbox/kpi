@@ -1,98 +1,239 @@
-{% extends "account/base.html" %}
+{% extends "account/base_split.html" %}
 {% load static %}
 {% load i18n %}
 {% load account get_provider_appname socialaccount %}
 
-{% block content %}
-<form action="." method="post" class="registration registration--register">
-  <div class="registration--logo">
-    <a href="/">
-      {% block logo %}{{ block.super }}{% endblock %}
-    </a>
+{% block status_badge %}
+  <div class="status-badge">
+    {% if LANGUAGE_CODE == 'es' %}
+      ● Portal Académico UMSA
+    {% else %}
+      ● UMSA Academic Portal
+    {% endif %}
   </div>
-  <div class="registration__first-half">
-    <h1>{% trans "Create an account" %}</h1>
-      {% csrf_token %}
-      {% for field in form %}
-        <div class="field {{ field.name }}">
-          {% if field.name == 'password1' %}
-            {% if custom_guidance_text %}
-              <div class="field">{{ custom_guidance_text|safe }}</div>
-            {% endif %}
-          {% endif %}
-          {{ field.label_tag }}
-          {% if field.field.required %}
-            <span class="required">*</span>
-          {% endif %}
+{% endblock %}
 
-          {{ field }}
-          {% if field.help_text %}
-            <p class="help">{{ field.help_text|safe }}</p>
+{% block header_text %}
+  <h1 class="title-text">
+    {% if LANGUAGE_CODE == 'es' %}
+      Crear tu cuenta
+    {% else %}
+      Create your account
+    {% endif %}
+  </h1>
+  <p class="subtitle">
+    {% if LANGUAGE_CODE == 'es' %}
+      Únete a DATAUMSA para diseñar encuestas, recopilar datos y gestionar tus proyectos de investigación.
+    {% else %}
+      Join DATAUMSA to design surveys, collect data and manage your research projects.
+    {% endif %}
+  </p>
+{% endblock %}
+
+{% block content %}
+  {# Errores generales del formulario (Non-field errors) #}
+  {% if form.non_field_errors %}
+    <ul class="non-field-errors">
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form action="." method="post" class="registration registration--register">
+    {% csrf_token %}
+
+    {% for field in form %}
+      {% if field.name != 'terms_of_service' %}
+        {% if field.name == 'password1' %}
+          {% if custom_guidance_text %}
+            <div class="field">{{ custom_guidance_text|safe }}</div>
           {% endif %}
-          {{ field.errors }}
-        </div>
+        {% endif %}
+
+        {% if field.name == 'terms_of_service' or field.name == 'newsletter_subscription' %}
+          {# Checkbox Layout #}
+          <div class="checkbox-group {{ field.name }}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% elif field.name == 'gender' %}
+          {# Radio Button Layout #}
+          <div class="radio-group {{ field.name }}">
+            <label class="group-label">
+              {{ field.label }}
+              {% if field.field.required %}<span class="required">*</span>{% endif %}
+            </label>
+            <div class="radio-options">
+              {{ field }}
+            </div>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% elif field.name == 'country' or field.name == 'sector' or field.name == 'organization_type' %}
+          {# Select Box Layout #}
+          <div class="input-group has-select {{ field.name }}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+              {% if field.field.required %}<span class="required">*</span>{% endif %}
+            </label>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% else %}
+          {# Text/Email/Password floating label layout #}
+          <div class="input-group {{ field.name }}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+              {% if field.field.required %}<span class="required">*</span>{% endif %}
+            </label>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% endif %}
 
         {% if field.name == 'password1' %}
           <div class="field" id="registration-password-app"></div>
         {% endif %}
-      {% endfor %}
+      {% endif %}
+    {% endfor %}
 
-      <script src="{% static 'js/organization_type_skiplogic.js' %}"></script>
+    <script src="{% static 'js/organization_type_skiplogic.js' %}"></script>
 
-      <button
-        type="submit"
-        name="Create Account"
-        class="kobo-button kobo-button--blue kobo-button--fullwidth"
-      >
-        {% trans "Create Account" %}
-      </button>
-
-      <div class="registration__orlogin">
-        {% trans "or" %} <a href="{{ login_url }}">{% trans "login" %}</a>
+    {% if form.terms_of_service %}
+      <div class="checkbox-group terms_of_service" style="margin-bottom: 1.5rem;">
+        {{ form.terms_of_service }}
+        <label for="{{ form.terms_of_service.id_for_label }}">
+          {{ form.terms_of_service.label }}
+        </label>
+        {% if form.terms_of_service.help_text %}
+          <p class="help">{{ form.terms_of_service.help_text|safe }}</p>
+        {% endif %}
+        {% if form.terms_of_service.errors %}
+          {% for error in form.terms_of_service.errors %}
+            <div class="error-message">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
       </div>
-  </div>
+    {% endif %}
 
-  <div class="registration__second-half">
-      {# SSO section #}
+    <button
+      type="submit"
+      name="Create Account"
+      class="login-button"
+    >
+      {% trans "Create Account" %}
+    </button>
 
-      {% get_social_apps as social_apps %}
-      {% if social_apps %}
+    <div class="action-links" style="justify-content: center; margin-top: 1.5rem;">
+      <a href="{{ login_url }}">
+        {% if LANGUAGE_CODE == 'es' %}
+          ¿Ya tienes una cuenta? <span>Iniciar sesión</span>
+        {% else %}
+          Already have an account? <span>Login</span>
+        {% endif %}
+      </a>
+    </div>
+
+    {# SSO section #}
+    {% get_social_apps as social_apps %}
+    {% if social_apps %}
       <div class="registration__sso registration__sso--signup">
-        <h2>{% trans "Register using SSO" %}</h2>
-        <p>
+        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;">
+        <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: var(--color-text-main);">
+          {% trans "Register using SSO" %}
+        </h2>
+        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem; line-height: 1.4; text-align: center;">
           {% trans "If you set up Single Sign On in your account settings, you will only be able to log in through this method." %}
-          {# TODO: Link to documentation #}
-          {# <a href="#">{% trans "Learn more" %}</a> #}
         </p>
         <div class="registration__sso-buttons">
-          {# SSO Provider buttons #}
-          <ul class="socialaccount_providers">
+          <ul class="socialaccount_providers" style="list-style: none; padding: 0; margin: 0;">
             {% for social_app in social_apps %}
-              <li>
+              <li style="margin-bottom: 0.5rem;">
                 <a title="{{ social_app.name }}"
-                  class="socialaccount_provider {{ social_app.provider_id }} kobo-button kobo-button--sso kobo-button--fullwidth"
+                  class="socialaccount_provider {{ social_app.provider_id }} kobo-button--sso"
                   href="{% provider_login_url social_app.provider_id process='login' scope=scope auth_params=auth_params %}"
-                  >{% trans "Register with SSO" %}</a>
-                  {# "Register with {{social_app.name}}" when supporting social_apps|length>1 #}
+                  >{{ social_app.name }}</a>
               </li>
             {% endfor %}
           </ul>
-          {# for stability with upstream #}
           {% include "socialaccount/snippets/login_extra.html" %}
         </div>
       </div>
       <script src="{% static 'js/sso_buttons.js' %}"></script>
-      {% endif %}
+    {% endif %}
 
-      {% if welcome_message %} {{ welcome_message|safe }} {% else %}
-      <p>KoboToolbox is an integrated set of tools for building forms and collecting interview responses. It is built for easy and reliable use in difficult field settings, such as humanitarian emergencies or
-          post-conflict environments. <a href="http://www.kobotoolbox.org">Read more</a></p>
+    {% include "../legal/registration_legal.html" with config=config %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+    {% endif %}
+  </form>
+{% endblock %}
+
+{% block brand_content %}
+  {% if welcome_message %}
+    {{ welcome_message|safe }}
+  {% else %}
+    <div class="account-illustration">
+      <div class="profile-card">
+        <div class="avatar-circle"></div>
+        <div class="ui-line"></div>
+        <div class="ui-line short"></div>
+      </div>
+      <div class="success-badge"></div>
+    </div>
+
+    <h2>
+      {% if LANGUAGE_CODE == 'es' %}
+        Tu investigación, respaldada.
+      {% else %}
+        Your research, backed up.
       {% endif %}
-  </div>
-  <div style="clear:both;"></div>
-  {% include "../legal/registration_legal.html" with config=config %}
-  {% if redirect_field_value %}
-    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+    </h2>
+    <p>
+      {% if LANGUAGE_CODE == 'es' %}
+        Accede a la herramienta definitiva de recolección de datos en campo, estructurada de manera segura para la comunidad universitaria.
+      {% else %}
+        Access the ultimate field data collection tool, securely structured for the university community.
+      {% endif %}
+    </p>
+    
+    <div class="stats-badge">
+      {% if LANGUAGE_CODE == 'es' %}
+        Gestión de Proyectos • Trabajo de Campo • Soberanía
+      {% else %}
+        Project Management • Field Work • Sovereignty
+      {% endif %}
+    </div>
   {% endif %}
-</form>
 {% endblock %}

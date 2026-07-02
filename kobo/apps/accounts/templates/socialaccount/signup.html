@@ -1,49 +1,182 @@
-{% extends "account/base.html" %}
+{% extends "account/base_split.html" %}
 {% load static %}
 {% load i18n %}
 {% load get_provider_appname %}
 
-{% block content %}
+{% block status_badge %}
+  <div class="status-badge">
+    {% if LANGUAGE_CODE == 'es' %}
+      ● Portal Académico UMSA (SSO)
+    {% else %}
+      ● UMSA Academic Portal (SSO)
+    {% endif %}
+  </div>
+{% endblock %}
 
-<form class="registration registration--social" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
-  {# Friendly welcome message #}
+{% block header_text %}
   {% if form.username and form.username.value %}
-  <h1>{% blocktrans with username=form.username.value %}Welcome to KoboToolbox, {{username}}!{% endblocktrans %}</h1>
+    <h1 class="title-text">{% blocktrans with username=form.username.value %}Welcome, {{username}}!{% endblocktrans %}</h1>
   {% else %}
-  <h1>{% blocktrans trimmed %}Welcome to KoboToolbox!{% endblocktrans %}</h1>
+    <h1 class="title-text">{% trans "Welcome to DATAUMSA!" %}</h1>
   {% endif %}
-
-  {# Helptext #}
+  
   {% get_provider_appname account.get_provider as appname %}
-  <p>{% blocktrans trimmed %}You are about to use your {{ appname }} account to login to KoboToolbox.{% endblocktrans %} {% trans "As a final step, please complete the following form" %}:</p>
+  <p class="subtitle">
+    {% blocktrans trimmed %}You are about to use your {{ appname }} account to login. As a final step, please complete the following form{% endblocktrans %}:
+  </p>
+{% endblock %}
 
-  {% csrf_token %}
-
-  {% for field in form %}
-    <p class="field-social--{{ field.name }}">
-      {{ field.label_tag }}
-      {% if field.field.required %}
-        <span class="required">*</span>
-      {% endif %}
-      {{ field }}
-      {% if field.help_text %}
-        <p class="help">{{ field.help_text|safe }}</p>
-      {% endif %}
-      {{ field.errors }}
-    </p>
-  {% endfor %}
-
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+{% block content %}
+  {# Errores generales del formulario (Non-field errors) #}
+  {% if form.non_field_errors %}
+    <ul class="non-field-errors">
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
   {% endif %}
-  <script src="{% static 'js/organization_type_skiplogic.js' %}"></script>
-  <button
-    type="submit"
-    class="kobo-button kobo-button--blue kobo-button--fullwidth"
-  >
-    {% trans "Save and Access" %}
-  </button>
-  {% include "../legal/registration_legal.html" with config=config %}
-</form>
 
+  <form class="registration registration--social" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+    {% csrf_token %}
+
+    {% for field in form %}
+      {% if field.name != 'terms_of_service' %}
+        {% if field.name == 'terms_of_service' or field.name == 'newsletter_subscription' %}
+          {# Checkbox Layout #}
+          <div class="checkbox-group {{ field.name }}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% elif field.name == 'gender' %}
+          {# Radio Button Layout #}
+          <div class="radio-group {{ field.name }}">
+            <label class="group-label">
+              {{ field.label }}
+              {% if field.field.required %}<span class="required">*</span>{% endif %}
+            </label>
+            <div class="radio-options">
+              {{ field }}
+            </div>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% elif field.name == 'country' or field.name == 'sector' or field.name == 'organization_type' %}
+          {# Select Box Layout #}
+          <div class="input-group has-select {{ field.name }}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+              {% if field.field.required %}<span class="required">*</span>{% endif %}
+            </label>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% else %}
+          {# Text/Email/Password floating label layout #}
+          <div class="input-group {{ field.name }}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+              {% if field.field.required %}<span class="required">*</span>{% endif %}
+            </label>
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+
+    <script src="{% static 'js/organization_type_skiplogic.js' %}"></script>
+
+    {% if form.terms_of_service %}
+      <div class="checkbox-group terms_of_service" style="margin-bottom: 1.5rem;">
+        {{ form.terms_of_service }}
+        <label for="{{ form.terms_of_service.id_for_label }}">
+          {{ form.terms_of_service.label }}
+        </label>
+        {% if form.terms_of_service.help_text %}
+          <p class="help">{{ form.terms_of_service.help_text|safe }}</p>
+        {% endif %}
+        {% if form.terms_of_service.errors %}
+          {% for error in form.terms_of_service.errors %}
+            <div class="error-message">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <button
+      type="submit"
+      class="login-button"
+    >
+      {% trans "Save and Access" %}
+    </button>
+    {% include "../legal/registration_legal.html" with config=config %}
+  </form>
+{% endblock %}
+
+{% block brand_content %}
+  <div class="account-illustration">
+    <div class="profile-card">
+      <div class="avatar-circle"></div>
+      <div class="ui-line"></div>
+      <div class="ui-line short"></div>
+    </div>
+    <div class="success-badge"></div>
+  </div>
+
+  <h2>
+    {% if LANGUAGE_CODE == 'es' %}
+      Tu investigación, respaldada.
+    {% else %}
+      Your research, backed up.
+    {% endif %}
+  </h2>
+  <p>
+    {% if LANGUAGE_CODE == 'es' %}
+      Accede a la herramienta definitiva de recolección de datos en campo, estructurada de manera segura para la comunidad universitaria.
+    {% else %}
+      Access the ultimate field data collection tool, securely structured for the university community.
+    {% endif %}
+  </p>
+  
+  <div class="stats-badge">
+    {% if LANGUAGE_CODE == 'es' %}
+      Gestión de Proyectos • Trabajo de Campo • Soberanía
+    {% else %}
+      Project Management • Field Work • Sovereignty
+    {% endif %}
+  </div>
 {% endblock %}

@@ -77,7 +77,7 @@ export default function Drawer() {
         {!isLibrary && !isAccount && (
           <bem.FormSidebarWrapper>
             {/* For CSS flex's sake */}
-            <div>
+            <div className='form-sidebar__new-btn-wrapper'>
               <Button size='lg' fullWidth disabled={!sessionStore.isLoggedIn} onClick={openNewFormModal}>
                 {t('new').toUpperCase()}
               </Button>
@@ -89,13 +89,7 @@ export default function Drawer() {
       </bem.KDrawer__sidebar>
 
       <bem.KDrawer__secondaryIcons>
-        {sessionStore.isLoggedIn && <HelpBubble username={username} userFullName={userFullName} userUid={userUid} />}
-
-        {envStore.isReady && envStore.data.source_code_url && (
-          <a href={envStore.data.source_code_url} className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-            <Icon name='logo-github' />
-          </a>
-        )}
+        {/* Help and GitHub links removed for DATAUMSA theme */}
       </bem.KDrawer__secondaryIcons>
     </bem.KDrawer>
   )

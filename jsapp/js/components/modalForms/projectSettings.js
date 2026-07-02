@@ -712,12 +712,6 @@ class ProjectSettings extends React.Component {
     if (envStore.data.getProjectMetadataField('description').required && !this.state.fields.description.trim()) {
       fieldsWithErrors.push('description')
     }
-    if (envStore.data.getProjectMetadataField('sector').required && !this.state.fields.sector) {
-      fieldsWithErrors.push('sector')
-    }
-    if (envStore.data.getProjectMetadataField('country').required && !this.state.fields.country?.length) {
-      fieldsWithErrors.push('country')
-    }
     if (
       envStore.data.getProjectMetadataField('operational_purpose').required &&
       !this.state.fields.operational_purpose
@@ -971,38 +965,7 @@ class ProjectSettings extends React.Component {
             </div>
           )}
 
-          {/* Sector */}
-          {sectorField && (
-            <div className={cx(styles.input, bothCountryAndSector ? styles.sector : null)}>
-              <WrappedSelect
-                label={addRequiredToLabel(sectorField.label, sectorField.required)}
-                value={this.state.fields.sector}
-                onChange={this.onAnyFieldChange.bind(this, 'sector')}
-                options={sectors}
-                isLimitedHeight
-                menuPlacement='top'
-                isClearable
-                error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
-              />
-            </div>
-          )}
-
-          {/* Country */}
-          {countryField && (
-            <div className={cx(styles.input, bothCountryAndSector ? styles.country : null)}>
-              <WrappedSelect
-                label={addRequiredToLabel(countryField.label, countryField.required)}
-                isMulti
-                value={this.state.fields.country}
-                onChange={this.onAnyFieldChange.bind(this, 'country')}
-                options={countries}
-                isLimitedHeight
-                menuPlacement='top'
-                isClearable
-                error={this.hasFieldError('country') ? t('Please select at least one country') : false}
-              />
-            </div>
-          )}
+          {/* Sector and Country fields removed as requested */}
 
           {/* Operational Purpose of Data */}
           {operationalPurposeField && (

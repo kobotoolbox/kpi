@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { IconBooks, IconWorld } from '@tabler/icons-react'
 import { NavLink } from 'react-router-dom'
 import bem from '#/bem'
 import Button from '#/components/common/button'
@@ -53,21 +54,23 @@ export default class LibrarySidebar extends React.Component<{}, LibrarySidebarSt
 
     return (
       <>
-        <Button
-          type='primary'
-          size='l'
-          isFullWidth
-          isUpperCase
-          isDisabled={!sessionStore.isLoggedIn}
-          onClick={this.showLibraryNewModal.bind(this)}
-          label={t('new')}
-        />
+        <div className='form-sidebar__new-btn-wrapper'>
+          <Button
+            type='primary'
+            size='l'
+            isFullWidth
+            isUpperCase
+            isDisabled={!sessionStore.isLoggedIn}
+            onClick={this.showLibraryNewModal.bind(this)}
+            label={t('new')}
+          />
+        </div>
 
         <bem.FormSidebar m={sidebarModifier}>
           <NavLink className='form-sidebar__navlink' to='/library/my-library'>
             {({ isActive }) => (
               <bem.FormSidebar__label m={{ selected: isActive }}>
-                <i className='k-icon k-icon-library' />
+                <IconBooks size={18} style={{ marginRight: '8px', color: 'inherit', flexShrink: 0 }} />
                 <bem.FormSidebar__labelText>{t('My Library')}</bem.FormSidebar__labelText>
                 <bem.FormSidebar__labelCount>{this.state.myLibraryCount}</bem.FormSidebar__labelCount>
               </bem.FormSidebar__label>
@@ -77,7 +80,7 @@ export default class LibrarySidebar extends React.Component<{}, LibrarySidebarSt
           <NavLink className='form-sidebar__navlink' to='/library/public-collections'>
             {({ isActive }) => (
               <bem.FormSidebar__label m={{ selected: isActive }}>
-                <i className='k-icon k-icon-library-public' />
+                <IconWorld size={18} style={{ marginRight: '8px', color: 'inherit', flexShrink: 0 }} />
                 <bem.FormSidebar__labelText>{t('Public Collections')}</bem.FormSidebar__labelText>
               </bem.FormSidebar__label>
             )}

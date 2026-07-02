@@ -78,37 +78,61 @@
   a,
   button {
     cursor: pointer;
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
     border: 0;
     background: transparent;
-    padding: 6px 10px;
-    color: colors.$kobo-gray-700;
-    border-bottom: 1px solid colors.$kobo-gray-300;
+    padding: 12px 20px;
+    color: var(--color-text-muted, colors.$kobo-gray-700);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.05);
     position: relative;
     text-align: initial;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
 
     &:last-child {
       border-bottom: none;
     }
 
     &:hover {
-      color: colors.$kobo-gray-800;
+      color: var(--color-primary-dark, colors.$kobo-dark-blue);
+      background-color: rgba(41, 185, 242, 0.04);
     }
 
     .k-icon:not(.k-icon-angle-right) {
-      font-size: 24px;
-      width: 24px;
-      margin: 4px 10px 4px 4px;
+      font-size: 20px;
+      width: 20px;
+      margin-right: 12px;
       display: inline-block;
       vertical-align: middle;
+      color: inherit;
     }
 
+    :global(.k-icon):not(.k-icon-angle-right) {
+      font-size: 20px;
+      width: 20px;
+      margin-right: 12px;
+      display: inline-block;
+      vertical-align: middle;
+      color: inherit;
+    }
+
+    svg {
+      margin-right: 12px;
+      color: inherit;
+    }
+
+    :global(.k-icon.k-icon-angle-right),
     .k-icon.k-icon-angle-right {
       position: absolute;
-      right: 10px;
+      right: 20px;
       top: 50%;
       transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--color-text-muted, colors.$kobo-gray-500);
+      margin: 0;
     }
   }
 }
@@ -120,7 +144,7 @@
     display: flex;
     justify-content: flex-start;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
   }
 
   .user-row {
@@ -131,17 +155,19 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: colors.$kobo-gray-700;
+    color: var(--color-text-muted, colors.$kobo-gray-700);
     position: absolute;
     right: 0;
     top: -2px;
+    transition: all 0.2s ease;
 
     .k-icon {
-      font-size: 24px;
+      font-size: 22px;
     }
 
     &:hover {
-      color: colors.$kobo-blue;
+      color: var(--color-primary, colors.$kobo-blue);
+      transform: scale(1.05);
     }
   }
 }

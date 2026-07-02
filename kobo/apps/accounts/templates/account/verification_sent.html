@@ -1,14 +1,42 @@
-{% extends "account/base.html" %}
+{% extends "account/base_split.html" %}
 {% load static %}
 {% load i18n %}
-{% block content %}
-<form action="." method="post" class="registration registration--complete">
-  <div class="registration--logo">
-    <a href="/">{% block logo %}{{ block.super }}{% endblock %}</a>
-    <h1>{% trans "Confirm your email address" %}</h1>
+
+{% block status_badge %}
+  <div class="status-badge">
+    {% if LANGUAGE_CODE == 'es' %}
+      ● Verificación de cuenta
+    {% else %}
+      ● Account verification
+    {% endif %}
   </div>
-  <p class="registration__message registration__message--complete">
-    {% trans "We have sent you an activation link. Please check your inbox (and spam folder) and click the link to activate your account." %}
+{% endblock %}
+
+{% block header_text %}
+  <h1 class="title-text">{% trans "Confirm your email address" %}</h1>
+  <p class="subtitle">
+    {% if LANGUAGE_CODE == 'es' %}
+      Verificación de cuenta de DATAUMSA.
+    {% else %}
+      DATAUMSA account verification.
+    {% endif %}
   </p>
-</form>
+{% endblock %}
+
+{% block content %}
+  <div class="registration registration--complete">
+    <p class="registration__message registration__message--complete" style="font-size: 1.1rem; line-height: 1.6; color: var(--color-text-main); margin-bottom: 2rem;">
+      {% trans "We have sent you an activation link. Please check your inbox (and spam folder) and click the link to activate your account." %}
+    </p>
+
+    <div class="action-links" style="justify-content: center; margin-top: 2rem;">
+      <a href="{% url 'account_login' %}">
+        {% if LANGUAGE_CODE == 'es' %}
+          ¿Ya activaste tu cuenta? <span>Iniciar sesión</span>
+        {% else %}
+          Already activated? <span>Login</span>
+        {% endif %}
+      </a>
+    </div>
+  </div>
 {% endblock %}

@@ -10,9 +10,10 @@ $s-gray-row-spacing: 10px;
 .form-modal--sharing-form {
   h2 {
     margin: 0;
-    font-size: variables.$base-font-size;
-    color: colors.$kobo-gray-800;
-    font-weight: 500;
+    font-size: 15px;
+    color: var(--color-text-main, colors.$kobo-gray-900);
+    font-weight: 700;
+    letter-spacing: 0.2px;
   }
 
   .user-row + button {
@@ -27,9 +28,9 @@ $s-gray-row-spacing: 10px;
 }
 
 .user-row {
-  border-bottom: 1px solid colors.$kobo-gray-300;
-  padding-bottom: 5px;
-  padding-top: 5px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  padding-bottom: 8px;
+  padding-top: 8px;
 
   &.user-row--deleted {
     display: none;
@@ -111,8 +112,10 @@ $s-gray-row-spacing: 10px;
 
 .user-row__editor,
 .form-modal__item--gray-row {
-  background: colors.$kobo-gray-200;
-  padding: 15px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  border-radius: 8px;
+  padding: 16px;
 }
 
 .form-modal__item--flexed-row {

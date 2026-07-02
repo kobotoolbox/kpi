@@ -14,31 +14,32 @@
 
 .periodToggle {
   @include mixins.buttonReset;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 30px;
   background-color: colors.$kobo-white;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: var(--color-text-muted, colors.$kobo-gray-700);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-primary, colors.$kobo-blue);
+    color: var(--color-primary-dark, colors.$kobo-dark-blue);
+    background-color: var(--color-primary-light, rgba(41, 185, 242, 0.04));
+  }
 
   &[disabled] {
-    opacity: 1;
+    cursor: default;
   }
 }
 
 .periodToggleActive {
-  color: colors.$kobo-dark-teal;
-  background-color: colors.$kobo-light-teal;
-
-  &::after {
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid colors.$kobo-light-teal;
-    content: '';
-    position: absolute;
-    bottom: -1 * 10px;
-    left: 50%;
-    margin-left: -1 * 10px;
-  }
+  color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+  background-color: var(--color-primary-light, rgba(41, 185, 242, 0.08)) !important;
+  border-color: var(--color-primary, colors.$kobo-blue) !important;
+  font-weight: 700;
 }
 
 .graph {
@@ -72,18 +73,30 @@
 
 .stats {
   flex: 1;
-  border: 1px solid colors.$kobo-gray-300;
-  padding: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 8px;
+  padding: 16px 20px;
+  background-color: rgba(15, 23, 42, 0.012);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(15, 23, 42, 0.15);
+    background-color: rgba(15, 23, 42, 0.02);
+  }
 }
 
 .statsCount {
   display: block;
   font-size: 32px;
-  font-weight: 600;
-  color: colors.$kobo-teal;
+  font-weight: 700;
+  color: var(--color-primary-dark, colors.$kobo-dark-blue);
 }
 
 .statsDateRange {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, colors.$kobo-gray-600);
 }
+

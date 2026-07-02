@@ -8,7 +8,7 @@ $projects-table-min-width: 820px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: colors.$kobo-white;
+  background-color: #f8fafc;
   overflow: auto;
 }
 
@@ -26,6 +26,8 @@ $projects-table-min-width: 820px;
 
 .body {
   flex: 1;
+  padding-top: 8px;
+  padding-bottom: 24px;
 
   :global {
     // The loading message of the ProjectsTable component

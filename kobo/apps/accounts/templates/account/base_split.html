@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block head_end %}
+  <script src="{% static 'js/redirect_obsolete_browsers.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+  {% get_current_language as LANGUAGE_CODE %}
+  <div class="main-container">
+    {# Selector de idioma #}
+    <div class="language-switcher-container">
+      {% block language_selector %}{{ block.super }}{% endblock %}
+    </div>
+
+    <div class="login-panel">
+      <div class="login-wrapper">
+        
+        {% block status_badge %}
+          <div class="status-badge">
+            {% if LANGUAGE_CODE == 'es' %}
+              ● Privacidad universitaria en cada dato
+            {% else %}
+              ● University privacy in every data
+            {% endif %}
+          </div>
+        {% endblock %}
+
+        <div class="brand-header">
+          <div class="registration--logo">
+            <a href="/">
+              {% block logo %}
+                {% if config.logo %}
+                  <img src="{{ config.logo }}"/>
+                {% else %}
+                  <img src="{% static 'kobologo.svg' %}"/>
+                {% endif %}
+              {% endblock %}
+            </a>
+          </div>
+          {% block header_text %}
+            <p class="subtitle">
+              {% if LANGUAGE_CODE == 'es' %}
+                Plataforma institucional de la UMSA para crear encuestas, censos y recolectar datos de forma segura, potente y soberana.
+              {% else %}
+                UMSA's institutional platform to create surveys, censuses and collect data securely, powerfully and sovereignly.
+              {% endif %}
+            </p>
+          {% endblock %}
+        </div>
+
+        {# Contenido dinámico (Formulario o Mensajes de estado) #}
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+
+    {# Panel Derecho: Ilustración y Mensaje de Marca #}
+    <div class="brand-panel">
+      <div class="brand-content">
+        {% block brand_content %}
+        <!-- Ilustración animada: Celular y Candado -->
+        <div class="privacy-illustration">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="form-line title"></div>
+              <div class="form-line short"></div>
+              <div class="form-line long"></div>
+              <div class="form-line long"></div>
+              <div class="form-line short"></div>
+              <div class="form-btn"></div>
+            </div>
+          </div>
+          <div class="padlock">
+            <div class="lock-shackle"></div>
+            <div class="lock-body">
+              <div class="lock-keyhole"></div>
+            </div>
+          </div>
+        </div>
+
+        <h2>
+          {% if LANGUAGE_CODE == 'es' %}
+            Recolecta con confianza. Analiza con poder.
+          {% else %}
+            Collect with confidence. Analyze with power.
+          {% endif %}
+        </h2>
+        <p>
+          {% if LANGUAGE_CODE == 'es' %}
+            La plataforma de recolección de datos de la UMSA.<br>Más potente que Google Forms y sin que tus datos sean usados por terceros.
+          {% else %}
+            UMSA's data collection platform. More powerful than Google Forms and without your data being used by third parties.
+          {% endif %}
+        </p>
+        
+        <div class="stats-badge">
+          {% if LANGUAGE_CODE == 'es' %}
+            Precisión • Innovación • Academia
+          {% else %}
+            Precision • Innovation • Academia
+          {% endif %}
+        </div>
+        {% endblock %}
+      </div>
+    </div>
+  </div>
+
+  {# Scripts de desarrollo/livereload y Google Analytics #}
+  {% if livereload_address %}
+    <script src="{{livereload_address}}"></script>
+  {% endif %}
+
+  {% block extra_javascript %}{% endblock %}
+
+  {% if google_analytics_token %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
+  {% endif %}
+{% endblock %}

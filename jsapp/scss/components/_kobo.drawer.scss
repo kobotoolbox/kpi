@@ -11,20 +11,19 @@
 }
 
 .k-drawer {
-  @include mdl.box-shadow-mid;
-
   position: fixed;
   z-index: z-indexes.$z-kobo-drawer;
   // We need some pxs more as there is shadow on the drawer.
   left: -1 * variables.$s-drawer-width - 10px;
-  transition: left 0.5s;
-  background-color: colors.$kobo-white;
+  transition: left var(--transition-smooth);
+  background-color: var(--color-surface);
   height: calc(100% - #{mdl.$layout-desktop-header-height});
   top: mdl.$layout-desktop-header-height;
   width: variables.$s-drawer-width;
   display: flex;
   flex-direction: row;
-  border-right: 2px solid colors.$kobo-gray-300;
+  border-right: 1px solid var(--color-border);
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.04);
 }
 
 .k-drawer__primary-icons {
@@ -32,28 +31,30 @@
   flex-direction: column;
   width: variables.$drawer-icons-width;
   height: 100%;
-  background-color: variables.$drawer-background;
+  background-color: var(--color-text-main);
+  border-right: 1px solid rgba(colors.$kobo-white, 0.08);
 }
 
 .k-drawer__link {
-  font-size: 26px;
-  margin: 6px 0;
+  font-size: 24px;
+  margin: 8px 0;
   text-align: center;
-  color: colors.$kobo-gray-700;
-  padding: 0;
+  color: var(--color-text-muted);
+  padding: 10px 0;
   border-left: 3px solid transparent;
+  transition: all var(--transition-fast);
 
   &:first-child {
-    margin-top: 26px;
+    margin-top: 24px;
   }
 
   &:hover {
-    color: colors.$kobo-teal;
+    color: var(--color-primary);
   }
 
   &.active {
-    color: colors.$kobo-teal;
-    border-left: 3px solid colors.$kobo-teal;
+    color: var(--color-primary);
+    border-left: 3px solid var(--color-primary);
   }
 }
 
@@ -64,16 +65,16 @@
   width: variables.$drawer-icons-width;
 
   .k-drawer__link {
-    padding: 0;
-    margin-bottom: 5px;
+    padding: 10px 0;
+    margin-bottom: 8px;
     display: block;
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: colors.$kobo-gray-700;
+    color: var(--color-text-muted);
 
     &:hover {
-      color: colors.$kobo-teal;
+      color: var(--color-primary);
     }
 
     i {
@@ -90,6 +91,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  background-color: var(--color-surface);
 }
 
 @media screen and (min-width: breakpoints.$bMobileMenu) {

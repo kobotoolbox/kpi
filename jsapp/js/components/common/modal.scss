@@ -19,12 +19,11 @@ $z-modal-x: 10;
   z-index: $z-modal-backdrop;
   top: 0;
   left: 0;
-  background-color: rgba(colors.$kobo-gray-800, 0.4) !important;
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(5px);
 }
 
 .modal {
-  @include mdl.box-shadow-top;
-
   align-items: stretch;
   display: flex;
   position: absolute;
@@ -35,6 +34,10 @@ $z-modal-x: 10;
   max-height: 95%;
   overflow-x: auto;
   visibility: hidden;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
   &.modal--open {
     visibility: visible;
@@ -96,44 +99,61 @@ $z-modal-x: 10;
   overflow: auto;
   background-color: colors.$kobo-white;
   width: 100%;
+  border-radius: 16px;
 }
 
 .modal__tabs {
-  background: colors.$kobo-blue;
+  background: var(--color-text-main, colors.$kobo-gray-900);
   color: colors.$kobo-white;
 }
 
 .modal__header {
-  min-height: 70px;
-  background: colors.$kobo-blue;
+  min-height: 64px;
+  background: var(--color-text-main, colors.$kobo-gray-900);
   color: colors.$kobo-white;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .modal__title {
   margin: 0;
-  padding: 24px 30px;
+  padding: 18px 24px;
   font-size: 18px;
   line-height: 22px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
 }
 
 .modal__x {
   z-index: $z-modal-x;
-  color: colors.$kobo-white;
-  background-color: inherit;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: transparent;
   padding: 8px;
-  margin: 11px 15px 11px 11px;
+  margin: 0 16px 0 0;
   border-radius: 50%;
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
 
   i {
     display: block;
-    font-size: 24px;
+    font-size: 20px;
+    transition: transform 0.25s ease;
   }
 
-  &:hover {opacity: 0.7;}
+  &:hover {
+    color: colors.$kobo-white;
+    background-color: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+    
+    i {
+      transform: rotate(90deg);
+    }
+  }
 
   // Some modals have light background for the header, so we need some other
   // color than white
@@ -141,6 +161,11 @@ $z-modal-x: 10;
   .modal--media-preview &,
   .modal--mfa-setup & {
     color: colors.$kobo-gray-600;
+    
+    &:hover {
+      background-color: rgba(15, 23, 42, 0.06);
+      color: var(--color-text-main, colors.$kobo-gray-900);
+    }
   }
 }
 

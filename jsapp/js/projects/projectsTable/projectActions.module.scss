@@ -4,4 +4,61 @@
 .root {
   @include mixins.centerRowFlex;
   gap: 10px;
+
+  :global(.k-button) {
+    border-radius: 50% !important; // Circle buttons for quick actions
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border: 1px solid rgba(15, 23, 42, 0.12) !important;
+    background-color: colors.$kobo-white !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+
+    :global(.k-icon) {
+      margin: 0 !important;
+      color: var(--color-text-muted, colors.$kobo-gray-700) !important;
+    }
+
+    &:hover:not([disabled]) {
+      border-color: var(--color-primary, colors.$kobo-blue) !important;
+      background-color: rgba(41, 185, 242, 0.06) !important;
+      transform: scale(1.05) translateY(-1px) !important;
+      box-shadow: 0 3px 8px rgba(41, 185, 242, 0.15) !important;
+
+      :global(.k-icon) {
+        color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+      }
+    }
+
+    &:active:not([disabled]) {
+      transform: scale(0.96) !important;
+    }
+
+    &[disabled] {
+      opacity: 0.45 !important;
+      background-color: rgba(15, 23, 42, 0.02) !important;
+      border-color: rgba(15, 23, 42, 0.06) !important;
+      box-shadow: none !important;
+
+      :global(.k-icon) {
+        color: colors.$kobo-gray-500 !important;
+      }
+    }
+  }
+
+  // Delete button should have a red hover highlight
+  :global(.k-button--type-secondary-danger) {
+    &:hover:not([disabled]) {
+      border-color: colors.$kobo-red !important;
+      background-color: rgba(157, 0, 0, 0.06) !important;
+      box-shadow: 0 3px 8px rgba(157, 0, 0, 0.15) !important;
+
+      :global(.k-icon) {
+        color: colors.$kobo-red !important;
+      }
+    }
+  }
 }

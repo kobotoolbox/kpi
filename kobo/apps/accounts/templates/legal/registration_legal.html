@@ -1,7 +1,6 @@
 {% load i18n %}
 {% if config.TERMS_OF_SERVICE_URL or config.PRIVACY_POLICY_URL %}
 <div class="registration__legal">
-  <hr>
   <div class="links">
     {% if config.TERMS_OF_SERVICE_URL %}
     <a href="{{config.TERMS_OF_SERVICE_URL}}" target="_blank">

@@ -1,65 +1,178 @@
-{% extends "account/base.html" %}
+{% extends "account/base_split.html" %}
 {% load static %}
 {% load i18n %}
 {% load account get_provider_appname socialaccount %}
+
+{% block status_badge %}
+  <div class="status-badge">
+    {% if LANGUAGE_CODE == 'es' %}
+      Confidencialidad académica garantizada
+    {% else %}
+      Guaranteed academic confidentiality
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block header_text %}
+  <p class="subtitle">
+    {% if LANGUAGE_CODE == 'es' %}
+      Plataforma oficial para la recolección de datos, diseño de encuestas y gestión de proyectos de investigación.
+    {% else %}
+      Official platform for data collection, survey design, and research project management.
+    {% endif %}
+  </p>
+{% endblock %}
+
+{% block brand_content %}
+  <!-- Ilustración animada: Celular y Candado -->
+  <div class="privacy-illustration">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="form-line title"></div>
+        <div class="form-line short"></div>
+        <div class="form-line long"></div>
+        <div class="form-line long"></div>
+        <div class="form-line short"></div>
+        <div class="form-btn"></div>
+      </div>
+    </div>
+    <div class="padlock">
+      <div class="lock-shackle"></div>
+      <div class="lock-body">
+        <div class="lock-keyhole"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>
+    {% if LANGUAGE_CODE == 'es' %}
+      Rigurosidad científica y protección absoluta de datos.
+    {% else %}
+      Scientific rigor and absolute data protection.
+    {% endif %}
+  </h2>
+  <p>
+    {% if LANGUAGE_CODE == 'es' %}
+      Un entorno formal desarrollado para la investigación avanzada. Gestione encuestas avanzadas y proyectos especializados con la certeza de que su información permanece bajo estricta reserva, libre del uso comercial de plataformas comunes y optimizada para el análisis de múltiples disciplinas.
+    {% else %}
+      A formal environment developed for advanced research. Manage advanced surveys and specialized projects with the certainty that your information remains strictly confidential, free from the commercial use of common platforms, and optimized for the analysis of multiple disciplines.
+    {% endif %}
+  </p>
+  
+  <div class="stats-badge">
+    {% if LANGUAGE_CODE == 'es' %}
+      Precisión • Rigor • Academia
+    {% else %}
+      Precision • Rigor • Academia
+    {% endif %}
+  </div>
+{% endblock %}
+
 {% block content %}
+  {# Errores generales del formulario (Non-field errors) #}
+  {% if form.non_field_errors %}
+    <ul class="non-field-errors">
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 
-
-  <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
-    {#  KoboToolbox Logo #}
-    <div class="registration--logo"><a href="/">
-      {% block logo %}{{ block.super }}{% endblock %}
-    </a></div>
-
+  <form method="post" action="{% url 'account_login' %}">
     {% csrf_token %}
-
-    {# Username and Password #}
-    {{ form.as_p }}
 
     {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
     {% endif %}
 
-    {# Login Button #}
-    <button
-      type="submit"
-      name="Login"
-      class="kobo-button kobo-button--blue kobo-button--fullwidth"
-    >
-      {% trans "Login" %}
-    </button>
-
-    {# Create an account, Forgot Password? #}
-    <div class="registration__create-or-forgot">
-      {% if config.REGISTRATION_OPEN %}
-        <a href="{{ signup_url }}" class="registration__create-account">
-          {% trans "Create an account" %}
-        </a>
+    {# Campo de Entrada: Usuario #}
+    <div class="input-group">
+      {{ form.login }}
+      <label for="{{ form.login.id_for_label }}">
+        {% if LANGUAGE_CODE == 'es' %}
+          Usuario o correo electrónico
+        {% else %}
+          Username or e-mail
+        {% endif %}
+      </label>
+      {% if form.login.errors %}
+        {% for error in form.login.errors %}
+          <div class="error-message">{{ error }}</div>
+        {% endfor %}
       {% endif %}
-
-      <a href="{% url 'account_reset_password' %}" class="registration__forgot-password">
-        {% trans "Forgot password?" %}
-      </a>
     </div>
 
-    {# SSO section #}
+    {# Campo de Entrada: Contraseña #}
+    <div class="input-group">
+      {{ form.password }}
+      <label for="{{ form.password.id_for_label }}">
+        {% if LANGUAGE_CODE == 'es' %}
+          Contraseña
+        {% else %}
+          Password
+        {% endif %}
+      </label>
+      {% if form.password.errors %}
+        {% for error in form.password.errors %}
+          <div class="error-message">{{ error }}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {# Botón de Ingreso #}
+    <button type="submit" name="Login" class="login-button">
+      {% if LANGUAGE_CODE == 'es' %}
+        Iniciar sesión
+      {% else %}
+        Login
+      {% endif %}
+    </button>
+
+    {# Enlaces de Acción #}
+    <div class="action-links">
+      <a href="{% url 'account_reset_password' %}">
+        {% if LANGUAGE_CODE == 'es' %}
+          ¿Olvidaste tu contraseña?
+        {% else %}
+          Forgot password?
+        {% endif %}
+      </a>
+      {% if config.REGISTRATION_OPEN %}
+        <a href="{{ signup_url }}">
+          {% if LANGUAGE_CODE == 'es' %}
+            Crear una cuenta
+          {% else %}
+            Create an account
+          {% endif %}
+        </a>
+      {% endif %}
+    </div>
+
+    {# Sección de Inicio de Sesión Único (SSO) #}
     {% get_social_apps as social_apps %}
     {% if social_apps %}
       <div class="registration__sso registration__sso--login">
         <hr>
-        <h2>{% trans "Log in using SSO" %}</h2>
+        <h2>
+          {% if LANGUAGE_CODE == 'es' %}
+            Inicia sesión con SSO
+          {% else %}
+            Log in using SSO
+          {% endif %}
+        </h2>
         <p>
-          {% trans "If you set up Single Sign On in your account settings, you will only be able to log in through this method." %}
-          {# TODO: Link to documentation #}
-          {# <a href="#">{% trans "Learn more" %}</a> #}
+          {% if LANGUAGE_CODE == 'es' %}
+            Si configuraste el inicio de sesión único en la configuración de la cuenta, solo podrás iniciar sesión mediante este método.
+          {% else %}
+            If you set up Single Sign On in your account settings, you will only be able to log in through this method.
+          {% endif %}
         </p>
         <div class="registration__sso-buttons">
-          {# SSO Provider buttons #}
           <ul class="socialaccount_providers">
             {% for social_app in social_apps %}
               <li>
                 <a title="{{ social_app.name }}"
-                   class="socialaccount_provider {{ social_app.provider_id }} kobo-button kobo-button--sso kobo-button--fullwidth"
+                   class="socialaccount_provider {{ social_app.provider_id }} kobo-button--sso"
                    href="{% provider_login_url social_app.provider_id process='login' scope=scope auth_params=auth_params %}"
                 >
                   {{ social_app.name }}
@@ -67,12 +180,14 @@
               </li>
             {% endfor %}
           </ul>
-          {# for stability with upstream #}
+          {# para estabilidad con upstream #}
           {% include "socialaccount/snippets/login_extra.html" %}
         </div>
       </div>
       <script src="{% static 'js/sso_buttons.js' %}"></script>
     {% endif %}
+
+    {# Términos y condiciones legales #}
     {% include "../legal/registration_legal.html" with config=config %}
   </form>
 {% endblock %}

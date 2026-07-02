@@ -1,6 +1,39 @@
+@use 'scss/colors';
+
 .root {
   display: inline-block;
   vertical-align: top;
+
+  :global(.k-button) {
+    border: 1px solid rgba(15, 23, 42, 0.12) !important;
+    border-radius: 30px !important;
+    padding: 6px 16px !important;
+    height: 34px !important;
+    background-color: colors.$kobo-white !important;
+    color: var(--color-text-main, colors.$kobo-gray-800) !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+
+    :global(.k-icon) {
+      color: var(--color-text-muted, colors.$kobo-gray-600) !important;
+      transition: color 0.2s ease !important;
+    }
+
+    &:hover {
+      border-color: var(--color-primary, colors.$kobo-blue) !important;
+      background-color: rgba(41, 185, 242, 0.05) !important;
+      color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+
+      :global(.k-icon) {
+        color: var(--color-primary, colors.$kobo-blue) !important;
+      }
+    }
+
+    &:active {
+      transform: scale(0.97) !important;
+    }
+  }
 }
 
 .fields {

@@ -47,7 +47,7 @@ $side-tabs-width-mobile: 70px;
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: colors.$kobo-gray-200;
+  background: #f8fafc;
 
   &.form-view--fullscreen {
     // We force the position to avoid problems with stronger specificity
@@ -89,7 +89,8 @@ $side-tabs-width-mobile: 70px;
   overflow-y: auto;
   float: left;
   background: colors.$kobo-white;
-  border-right: 1px solid colors.$kobo-gray-300;
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  padding-top: 20px;
 
   & + .form-view,
   & + .report-view,
@@ -115,53 +116,46 @@ $side-tabs-width-mobile: 70px;
   a.form-view__tab {
     background: transparent;
     border: none;
-    padding: 6px;
-    border-left: 2px solid transparent;
-    font-size: variables.$base-font-size;
+    padding: 10px 14px;
+    margin: 4px 12px;
+    border-radius: 8px;
+    font-size: 14px;
     cursor: pointer;
     position: relative;
-    color: colors.$kobo-gray-700;
-    font-weight: normal;
+    color: var(--color-text-muted, colors.$kobo-gray-700);
+    font-weight: 600;
     letter-spacing: -0.01em;
     display: flex;
     align-items: center;
-    margin-left: 10px;
+    transition: all 0.2s ease;
 
-    &:hover,
-    &.active {
-      color: colors.$kobo-gray-800;
+    &:hover {
+      color: var(--color-primary-dark, colors.$kobo-dark-blue);
+      background-color: var(--color-primary-light, rgba(41, 185, 242, 0.06));
     }
 
     &.active {
       font-weight: 700;
-
-      // left border is detached from horizontal lines,
-      // so we need to make it a separate element
-      &::before {
-        content: '';
-        position: absolute;
-        width: 4px;
-        height: 100%;
-        top: 0;
-        left: -10px;
-        background-color: colors.$kobo-teal;
-      }
+      color: var(--color-primary-dark, colors.$kobo-dark-blue);
+      background-color: var(--color-primary-light, rgba(41, 185, 242, 0.08)) !important;
     }
 
     &.form-view__tab--disabled {
       pointer-events: none;
-      opacity: 0.5;
+      opacity: 0.4;
     }
 
     .k-icon {
-      font-size: 26px;
-      vertical-align: -7px;
-      line-height: 36px;
-      margin: 0 9px 0 5px;
+      font-size: 20px;
+      line-height: 1;
+      margin: 0 10px 0 0;
+      color: inherit;
+      flex-shrink: 0;
     }
 
     span {
       vertical-align: middle;
+      display: inline-block;
     }
   }
 }
@@ -205,10 +199,14 @@ $side-tabs-width-mobile: 70px;
 .form-view__cell {
   &.form-view__cell--box {
     background-color: colors.$kobo-white;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02), 0 1px 2px rgba(15, 23, 42, 0.02);
+    overflow: hidden;
   }
 
   &.form-view__cell--bordered {
-    border: 1px solid colors.$kobo-gray-300;
+    border: 1px solid rgba(15, 23, 42, 0.08);
   }
 
   &.form-view__cell--page-title {
@@ -266,11 +264,11 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid colors.$kobo-gray-300;
+    border-top: 1px solid rgba(15, 23, 42, 0.07);
   }
 
   &.form-view__cell--padding {
-    padding: var(--mantine-spacing-lg);
+    padding: 24px;
   }
 
   &.form-view__cell--full-width {
@@ -279,14 +277,16 @@ $side-tabs-width-mobile: 70px;
 
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
-    font-size: variables.$base-font-size;
-    color: colors.$kobo-gray-800;
-    font-weight: 500;
+    font-size: 16px;
+    color: var(--color-text-main, colors.$kobo-gray-900);
+    font-weight: 700;
 
     span {
       display: block;
-      color: colors.$kobo-gray-700;
+      color: var(--color-text-muted, colors.$kobo-gray-700);
       font-size: 12px;
+      font-weight: 500;
+      margin-top: 2px;
     }
 
     &::first-letter {
@@ -295,7 +295,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--first {
-    padding-bottom: var(--mantine-spacing-lg);
+    padding-bottom: 24px;
     position: relative;
 
     .form-view__group {
@@ -309,15 +309,49 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--buttons {
     text-align: right;
+
+    :global(.k-button) {
+      border-radius: 30px !important;
+      padding: 8px 24px !important;
+      font-weight: 700 !important;
+      font-size: 14px !important;
+      transition: all 0.2s ease !important;
+      box-shadow: 0 4px 10px rgba(41, 185, 242, 0.2) !important;
+      background: linear-gradient(135deg, var(--color-primary, colors.$kobo-blue) 0%, var(--color-primary-dark, colors.$kobo-dark-blue) 100%) !important;
+      border: none !important;
+      color: colors.$kobo-white !important;
+
+      &:hover:not([disabled]) {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 6px 16px rgba(6, 136, 186, 0.3) !important;
+      }
+
+      &:active:not([disabled]) {
+        transform: translateY(0) !important;
+      }
+    }
   }
 
   &.form-view__cell--version {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--color-text-main, colors.$kobo-gray-900);
     display: inline-block;
+    vertical-align: middle;
   }
 
   &.form-view__cell--undeployed {
+    font-size: 11px;
+    font-weight: 600;
+    color: colors.$kobo-dark-red;
+    background-color: colors.$kobo-light-red;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
     display: inline-block;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   &.form-view__cell--back-button {
@@ -350,29 +384,165 @@ $side-tabs-width-mobile: 70px;
 
   &.form-view__cell--action-buttons {
     @include mixins.centerRowFlex;
+    gap: 8px;
+
+    :global(.k-button) {
+      border: 1px solid rgba(15, 23, 42, 0.1) !important;
+      background-color: colors.$kobo-white !important;
+      border-radius: 50% !important; // Circle buttons matching quick actions
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+      justify-content: center !important;
+      align-items: center !important;
+      transition: all 0.2s ease !important;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+
+      :global(.k-icon) {
+        margin: 0 !important;
+        color: var(--color-text-muted, colors.$kobo-gray-700) !important;
+      }
+
+      &:hover:not([disabled]) {
+        border-color: var(--color-primary, colors.$kobo-blue) !important;
+        background-color: rgba(41, 185, 242, 0.06) !important;
+        transform: scale(1.05) translateY(-1px) !important;
+        box-shadow: 0 3px 8px rgba(41, 185, 242, 0.15) !important;
+
+        :global(.k-icon) {
+          color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+        }
+      }
+
+      &:active:not([disabled]) {
+        transform: scale(0.96) !important;
+      }
+
+      &[disabled] {
+        opacity: 0.45 !important;
+        background-color: rgba(15, 23, 42, 0.02) !important;
+        border-color: rgba(15, 23, 42, 0.06) !important;
+        box-shadow: none !important;
+
+        :global(.k-icon) {
+          color: colors.$kobo-gray-500 !important;
+        }
+      }
+    }
+    
+    // Style for the Mantine ButtonNew dropdown target button
+    :global(button.mantine-UnstyledButton-root) {
+      border: 1px solid rgba(15, 23, 42, 0.1) !important;
+      background-color: colors.$kobo-white !important;
+      border-radius: 50% !important;
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      transition: all 0.2s ease !important;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+      color: var(--color-text-muted, colors.$kobo-gray-700) !important;
+
+      i, svg, .k-icon {
+        margin: 0 !important;
+        font-size: 20px !important;
+        color: var(--color-text-muted, colors.$kobo-gray-700) !important;
+      }
+
+      &:hover {
+        border-color: var(--color-primary, colors.$kobo-blue) !important;
+        background-color: rgba(41, 185, 242, 0.06) !important;
+        transform: scale(1.05) translateY(-1px) !important;
+        box-shadow: 0 3px 8px rgba(41, 185, 242, 0.15) !important;
+        color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+
+        i, svg, .k-icon {
+          color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+        }
+      }
+    }
   }
 
   &.form-view__cell--date {
     font-weight: normal;
-    opacity: 0.8;
+    color: var(--color-text-muted, colors.$kobo-gray-700);
     display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
 
     &:not(:first-child) {
+      margin-left: 12px;
+    }
+
+    .question-count {
+      font-weight: 600;
+      color: var(--color-text-main, colors.$kobo-gray-800);
+      background-color: rgba(15, 23, 42, 0.05);
+      padding: 2px 8px;
+      border-radius: 12px;
       margin-left: 6px;
+      font-size: 12px;
+      display: inline-block;
     }
   }
 
   &.form-view__cell--translation-list {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
+    color: var(--color-text-muted, colors.$kobo-gray-700);
+
+    strong {
+      color: var(--color-text-main, colors.$kobo-gray-900);
+      font-weight: 700;
+    }
+
     ul {
       list-style: none;
-      display: inline;
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      vertical-align: middle;
+      margin-left: 8px;
 
       li {
-        display: inline;
+        display: inline-block;
+        background-color: rgba(15, 23, 42, 0.05);
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-text-main, colors.$kobo-gray-800);
+        margin: 0;
+      }
+    }
+  }
 
-        &:not(:last-child)::after {
-          content: ', ';
-        }
+  // Manage languages button
+  &.form-view__cell--translation-list + & {
+    :global(button.mantine-Button-root) {
+      border: 1px solid rgba(15, 23, 42, 0.12) !important;
+      background-color: colors.$kobo-white !important;
+      color: var(--color-text-main, colors.$kobo-gray-800) !important;
+      border-radius: 30px !important;
+      padding: 6px 16px !important;
+      height: 34px !important;
+      font-weight: 600 !important;
+      transition: all 0.2s ease !important;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+
+      &:hover {
+        border-color: var(--color-primary, colors.$kobo-blue) !important;
+        background-color: rgba(41, 185, 242, 0.05) !important;
+        color: var(--color-primary-dark, colors.$kobo-dark-blue) !important;
+      }
+
+      &:active {
+        transform: scale(0.97) !important;
       }
     }
   }
@@ -465,11 +635,11 @@ $side-tabs-width-mobile: 70px;
 }
 
 .form-view--form-settings {
-  background: colors.$kobo-white;
+  background: #f8fafc;
 }
 
 .form-view--settings-sharing {
-  background: colors.$kobo-white;
+  background: #f8fafc;
   padding: 40px;
 }
 
@@ -481,10 +651,15 @@ $side-tabs-width-mobile: 70px;
 }
 
 .form-view.form-view--form-settings-sharing {
-  background: colors.$kobo-white;
+  background: #f8fafc;
 
   .form-modal {
-    padding: 40px 40px 16px;
+    background-color: colors.$kobo-white;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02), 0 1px 2px rgba(15, 23, 42, 0.02);
+    margin: 40px;
+    padding: 32px;
     overflow: auto;
   }
 }

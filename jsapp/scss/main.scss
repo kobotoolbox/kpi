@@ -1,4 +1,5 @@
 @use 'sass:meta';
+// Rebuild trigger for webpack-dev-server v2
 
 @import '~select2/select2.css';
 
@@ -23,6 +24,7 @@
 @include meta.load-css('stylesheets/partials/misc');
 @include meta.load-css('stylesheets/partials/content');
 @include meta.load-css('stylesheets/partials/registration');
+@include meta.load-css('stylesheets/partials/login_redesign');
 @include meta.load-css('stylesheets/partials/mfa_token');
 @include meta.load-css('stylesheets/pages/form_builder');
 @include meta.load-css('stylesheets/partials/helpers');

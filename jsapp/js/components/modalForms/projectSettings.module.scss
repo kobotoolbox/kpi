@@ -16,7 +16,12 @@
 
 // `.modal` has it's own padding, we don't need it
 .projectDetails:not(.modal) {
-  padding: 40px;
+  background-color: colors.$kobo-white;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02), 0 1px 2px rgba(15, 23, 42, 0.02);
+  margin: 40px;
+  padding: 32px;
 }
 
 .projectDetails .inputWrapper {
@@ -64,55 +69,73 @@
 }
 
 .modalSubheader {
-  background: colors.$kobo-gray-200;
-  padding: 20px 30px;
-  margin: -30px -30px 20px;
-  color: colors.$kobo-gray-700;
+  background: rgba(15, 23, 42, 0.02);
+  padding: 16px 30px;
+  margin: -30px -30px 24px;
+  color: var(--color-text-muted, colors.$kobo-gray-700);
+  font-size: 14px;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 
   i {
-    margin: 5px 10px 10px 3px;
-    font-size: 24px;
+    margin: 3px 10px 3px 0;
+    font-size: 20px;
     float: left;
+    color: var(--color-primary, colors.$kobo-blue);
   }
 }
 
-$buttons-spacing: 10px;
-
 .sourceButtons {
-  margin: 0 auto;
-  max-width: 500px;
+  margin: 10px auto 20px;
+  max-width: 540px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
 
   button {
-    display: inline-block;
-    vertical-align: top;
-    border: none;
-    background: colors.$kobo-gray-200;
-    border-radius: 6px;
-    color: colors.$kobo-gray-700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: colors.$kobo-white;
+    border-radius: 12px;
+    color: var(--color-text-main, colors.$kobo-gray-800);
+    font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
-    margin: 0.5 * $buttons-spacing;
-    padding: $buttons-spacing;
-    width: calc(50% - #{$buttons-spacing});
-    min-height: 120px;
-    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%);
+    margin: 0;
+    padding: 24px 16px;
+    width: calc(50% - 8px);
+    min-height: 140px;
+    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.02), 0 1px 2px rgba(15, 23, 42, 0.02);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     i {
       display: block;
-      margin: 3px auto;
-      font-size: 34px;
-      color: currentcolor;
+      margin-bottom: 12px;
+      font-size: 36px;
+      color: var(--color-primary, colors.$kobo-blue);
+      transition: transform 0.25s ease, color 0.25s ease;
     }
 
     &:hover {
-      color: colors.$kobo-gray-800;
-      background-color: colors.$kobo-gray-300;
+      color: var(--color-primary-dark, colors.$kobo-dark-blue);
+      background-color: rgba(41, 185, 242, 0.04);
+      border-color: var(--color-primary, colors.$kobo-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.02);
+
+      i {
+        transform: scale(1.08);
+        color: var(--color-primary-dark, colors.$kobo-dark-blue);
+      }
     }
 
     &:active {
-      // makes the shadow smaller and moves button down by small bit
-      // to make it look pressed-in
-      transform: translateY(1px);
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 25%);
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
     }
   }
 }
@@ -128,7 +151,28 @@ $buttons-spacing: 10px;
 
 .saveChanges {
   text-align: right;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+
+  :global(.k-button) {
+    border-radius: 30px !important;
+    padding: 8px 24px !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 10px rgba(41, 185, 242, 0.2) !important;
+    background: linear-gradient(135deg, var(--color-primary, colors.$kobo-blue) 0%, var(--color-primary-dark, colors.$kobo-dark-blue) 100%) !important;
+    border: none !important;
+    color: colors.$kobo-white !important;
+
+    &:hover:not([disabled]) {
+      transform: translateY(-1.5px) !important;
+      box-shadow: 0 6px 16px rgba(6, 136, 186, 0.3) !important;
+    }
+
+    &:active:not([disabled]) {
+      transform: translateY(0) !important;
+    }
+  }
 }
 
 @media screen and (min-width: breakpoints.$b768) {
@@ -137,10 +181,14 @@ $buttons-spacing: 10px;
     max-width: 750px;
   }
 
-  .sourceButtons button {
-    margin: $buttons-spacing;
-    padding: 2 * $buttons-spacing;
-    width: calc(50% - #{2 * $buttons-spacing});
+  .sourceButtons {
+    gap: 16px;
+
+    button {
+      margin: 0;
+      padding: 24px 20px;
+      width: calc(50% - 8px);
+    }
   }
 }
 

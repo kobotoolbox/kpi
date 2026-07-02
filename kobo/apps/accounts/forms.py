@@ -3,6 +3,8 @@ from allauth.account import app_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as BaseLoginForm
 from allauth.account.forms import SignupForm as BaseSignupForm
+from allauth.account.forms import ResetPasswordForm as BaseResetPasswordForm
+from allauth.account.forms import ResetPasswordKeyForm as BaseResetPasswordKeyForm
 from allauth.account.utils import (
     get_user_model,
     user_email,
@@ -35,8 +37,23 @@ CONFIGURABLE_METADATA_FIELDS = (
 class LoginForm(BaseLoginForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['login'].widget.attrs['placeholder'] = ''
-        self.fields['password'].widget.attrs['placeholder'] = ''
+        self.fields['login'].widget.attrs['placeholder'] = ' '
+        self.fields['password'].widget.attrs['placeholder'] = ' '
+        self.label_suffix = ''
+
+
+class ResetPasswordForm(BaseResetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs['placeholder'] = ' '
+        self.label_suffix = ''
+
+
+class ResetPasswordKeyForm(BaseResetPasswordKeyForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].widget.attrs['placeholder'] = ' '
+        self.fields['password2'].widget.attrs['placeholder'] = ' '
         self.label_suffix = ''
 
 
@@ -134,10 +151,10 @@ class KoboSignupMixin(forms.Form):
             .replace('##privacy_policy##', privacy_policy_link)
         )
 
-        # Remove upstream placeholders
+        # Remove upstream placeholders and set blank space for floating labels
         for field_name in ['username', 'email', 'password1', 'password2']:
             if field_name in self.fields:
-                self.fields[field_name].widget.attrs['placeholder'] = ''
+                self.fields[field_name].widget.attrs['placeholder'] = ' '
         if 'password1' in self.fields:
             # Remove `help_text` on purpose since some guidance is provided by
             # Constance setting. Moreover it is redundant with error messages.
@@ -145,7 +162,12 @@ class KoboSignupMixin(forms.Form):
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
         if 'email' in self.fields:
-            self.fields['email'].widget.attrs['placeholder'] = t('name@organization.org')
+            self.fields['email'].widget.attrs['placeholder'] = ' '
+
+        # Ensure all text/input fields have a single space placeholder for CSS floating labels
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, (forms.TextInput, forms.EmailInput, forms.PasswordInput, forms.URLInput)):
+                field.widget.attrs['placeholder'] = ' '
 
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
@@ -198,7 +220,7 @@ class KoboSignupMixin(forms.Form):
                 # Any other field, require based on metadata
                 field.required = desired_field.get('required', False)
             self.fields[field_name].label = desired_field['label']
-        if not SitewideMessage.objects.filter(slug='terms_of_service').exists():
+        if not constance.config.TERMS_OF_SERVICE_URL and not SitewideMessage.objects.filter(slug='terms_of_service').exists():
             self.fields.pop('terms_of_service')
 
     def clean(self):

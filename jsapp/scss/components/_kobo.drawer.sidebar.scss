@@ -1,23 +1,46 @@
 @use 'scss/colors';
 
 .form-sidebar-wrapper {
-  padding: 20px 14px;
+  padding: 24px 16px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-lg)
+  gap: var(--mantine-spacing-lg);
+
+  // Modern styling for the "NEW" form button
+  .form-sidebar__new-btn-wrapper button {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
+    border: none !important;
+    border-radius: var(--radius-md) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: var(--color-surface) !important;
+    height: 48px !important;
+    box-shadow: 0 4px 12px rgba(41, 185, 242, 0.2) !important;
+    transition: var(--transition-smooth) !important;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(6, 136, 186, 0.35) !important;
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
 }
 
 .form-sidebar__navlink {
   color: inherit;
+  text-decoration: none;
 }
 
 .form-sidebar {
-  margin-top: 10px;
+  margin-top: 12px;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
-  color: colors.$kobo-gray-700;
+  color: var(--color-text-muted);
 
   &.form-sidebar--loading {
     pointer-events: none;
@@ -38,33 +61,53 @@
   }
 
   .form-sidebar__navlink {
-    color: colors.$kobo-gray-700;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
   }
 
   .active {
-    color: colors.$kobo-gray-800;
+    color: var(--color-primary-dark);
   }
 
   .form-sidebar__label {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 3px 0;
+    width: 100%;
+    padding: 10px 14px;
+    margin: 4px 0;
+    border-radius: var(--radius-md);
     position: relative;
-    color: inherit;
+    color: var(--color-text-main);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    text-decoration: none;
 
     &:hover {
-      color: colors.$kobo-gray-800;
+      color: var(--color-primary-dark);
+      background-color: var(--color-primary-light);
+
+      .k-drawer-icon {
+        transform: scale(1.1);
+      }
     }
 
     &.form-sidebar__label--selected {
-      color: colors.$kobo-gray-800;
+      color: var(--color-primary-dark);
+      background-color: var(--color-primary-light);
+      font-weight: 600;
+
+      .form-sidebar__label-count {
+        background-color: var(--color-primary);
+        color: var(--color-surface);
+      }
     }
 
-    i {
-      font-size: 26px;
-      margin: 5px 4px 5px 1px;
-      display: inline-block;
+    .k-drawer-icon {
+      transition: transform var(--transition-fast);
+      flex-shrink: 0;
     }
 
     .form-sidebar__label-text {
@@ -72,14 +115,16 @@
     }
 
     .form-sidebar__label-count {
-      padding: 0 6px;
+      padding: 2px 8px;
       font-size: 12px;
-      line-height: 20px;
-      min-width: 20px;
+      font-weight: 600;
+      line-height: 16px;
+      min-width: 24px;
       border-radius: 20px;
-      background-color: colors.$kobo-gray-300;
+      background-color: rgba(15, 23, 42, 0.06);
+      color: var(--color-text-muted);
       text-align: center;
-      margin-right: 4px;
+      transition: all var(--transition-fast);
     }
   }
 
@@ -105,17 +150,23 @@
     flex-direction: row;
     align-items: flex-start;
     line-height: 15px;
-    color: colors.$kobo-gray-700;
+    color: var(--color-text-muted);
     font-weight: normal;
     font-size: 12px;
-    padding: 5px;
+    padding: 6px 10px;
+    margin: 2px 0 2px 12px;
+    border-radius: 6px;
+    transition: all var(--transition-fast);
 
     &:hover {
-      color: colors.$kobo-gray-800;
+      color: var(--color-primary-dark);
+      background-color: var(--color-primary-light);
     }
 
     &.form-sidebar__item--active {
-      background: #ededee;
+      background: var(--color-primary-light);
+      color: var(--color-primary-dark);
+      font-weight: 500;
     }
   }
 }

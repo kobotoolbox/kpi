@@ -1,5 +1,6 @@
 import { Box, Center, Group, Loader, Stack, Text, UnstyledButton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { IconArchive, IconFileText, IconRocket } from '@tabler/icons-react'
 import type { InfiniteData } from '@tanstack/query-core'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import React, { useMemo } from 'react'
@@ -133,16 +134,22 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
         ? t('Draft')
         : t('Archived')
 
+  const IconComponent =
+    props.deploymentStatus === 'deployed'
+      ? IconRocket
+      : props.deploymentStatus === 'draft'
+        ? IconFileText
+        : IconArchive
+
   return (
     <>
       <UnstyledButton
-        size='md'
-        variant='transparent'
         onClick={projectsListHandlers.toggle}
-        className={styles.categoryButton}
+        className={`${styles.categoryButton} ${isProjectsListVisible ? styles.activeCategory : ''}`}
       >
-        <Group gap='xs'>
-          <Box flex={1}>{categoryLabel}</Box>
+        <Group gap='sm' style={{ width: '100%' }}>
+          <IconComponent size={18} className={styles.categoryIcon} />
+          <Box flex={1} style={{ textAlign: 'left' }}>{categoryLabel}</Box>
           <Badge label={props.totalCount} color='light-storm' size='xs' />
         </Group>
       </UnstyledButton>
@@ -173,10 +180,9 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
                 <Link
                   key={asset.uid}
                   to={href}
-                  style={{ background: isActiveProject ? 'var(--mantine-color-gray-7)' : 'transparent' }}
-                  className={styles.projectLink}
+                  className={`${styles.projectLink} ${isActiveProject ? styles.projectLinkActive : ''}`}
                 >
-                  <Text fz='12' p='3 6'>
+                  <Text fz='13' p='3 6'>
                     <AssetName asset={asset} />
                   </Text>
                 </Link>

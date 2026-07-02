@@ -1,52 +1,92 @@
-{% extends "account/base.html" %}
+{% extends "account/base_split.html" %}
 
 {% load i18n %}
 {% load account %}
 
-{% block content %}
-
-  {% if confirmation %}
-  <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="registration">
-    {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+{% block status_badge %}
+  <div class="status-badge">
+    {% if confirmation %}
+      {% if LANGUAGE_CODE == 'es' %}
+        ● Confirmación de correo
+      {% else %}
+        ● Email confirmation
+      {% endif %}
+    {% else %}
+      {% if LANGUAGE_CODE == 'es' %}
+        ● Enlace expirado
+      {% else %}
+        ● Expired link
+      {% endif %}
     {% endif %}
-    <div class="registration--logo">
-      <a href="/">
-        {% block logo %}{{ block.super }}{% endblock %}
-      </a>
-    </div>
-    <h1>{% trans "Confirm E-mail Address" %}</h1>
+  </div>
+{% endblock %}
 
-    {% user_display confirmation.email_address.user as user_display %}
+{% block header_text %}
+  {% if confirmation %}
+    <h1 class="title-text">{% trans "Confirm E-mail Address" %}</h1>
+    <p class="subtitle">
+      {% if LANGUAGE_CODE == 'es' %}
+        Estás a un paso de activar tu cuenta.
+      {% else %}
+        You are one step away from activating your account.
+      {% endif %}
+    </p>
+  {% else %}
+    <h1 class="title-text">{% trans "Activation Failed" %}</h1>
+    <p class="subtitle">
+      {% if LANGUAGE_CODE == 'es' %}
+        No pudimos verificar tu correo electrónico.
+      {% else %}
+        We could not verify your email address.
+      {% endif %}
+    </p>
+  {% endif %}
+{% endblock %}
 
-    <p class="registration__message">{% blocktrans with confirmation.email_address.email as email %}Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.{% endblocktrans %}</p>
-
+{% block content %}
+  {% if confirmation %}
+    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="registration">
       {% csrf_token %}
+      {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+      {% endif %}
+
+      {% user_display confirmation.email_address.user as user_display %}
+
+      <p class="registration__message" style="font-size: 1.1rem; line-height: 1.6; color: var(--color-text-main); margin-bottom: 2rem;">
+        {% blocktrans with confirmation.email_address.email as email %}Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.{% endblocktrans %}
+      </p>
+
       <button
         type="submit"
-        class="kobo-button kobo-button--blue kobo-button--fullwidth"
+        class="login-button"
       >
         {% trans "Confirm" %}
       </button>
+    </form>
   {% else %}
-  <form class="registration registration--complete">
-    <div class="registration--logo">
-      <h1>{% trans "Activation Failed" %}</h1>
+    <div class="registration registration--complete">
+      <p class="registration__message" style="font-size: 1.05rem; line-height: 1.6; color: var(--color-text-main); margin-bottom: 1.5rem;">
+        {% trans "This activation link has expired. We could not confirm your email address. " %}
+      </p>
+
+      <p class="registration__message" style="font-size: 0.95rem; line-height: 1.6; color: var(--color-text-muted); margin-bottom: 1.5rem;">
+        {% trans "If you are trying to activate a new account, please sign into your account with your credentials (username and password) and a new link will be sent to you." %}
+      </p>
+
+      <p class="registration__message" style="font-size: 0.95rem; line-height: 1.6; color: var(--color-text-muted); margin-bottom: 2rem;">
+        {% trans "If you are trying to verify an email address change, please go to the security tab under your account settings, and click the 'resend' button to receive an activation link." %}
+      </p>
+
+      <div class="action-links" style="justify-content: center; margin-top: 1rem;">
+        <a href="{% url 'account_login' %}">
+          {% if LANGUAGE_CODE == 'es' %}
+            <span>Volver al inicio de sesión</span>
+          {% else %}
+            <span>Back to login</span>
+          {% endif %}
+        </a>
+      </div>
     </div>
-
-    <p class="registration__message">
-      {% trans "This activation link has expired. We could not confirm your email address. " %}
-    </p>
-
-    <p class="registration__message">
-      {% trans "If you are trying to activate a new account, please sign into your account with your credentials (username and password) and a new link will be sent to you." %}
-    </p>
-
-    <p class="registration__message">
-      {% trans "If you are trying to verify an email address change, please go to the security tab under your account settings, and click the 'resend' button to receive an activation link." %}
-    </p>
-
   {% endif %}
-  </form>
-
 {% endblock %}
