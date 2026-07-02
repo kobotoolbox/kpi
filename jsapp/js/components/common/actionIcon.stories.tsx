@@ -96,8 +96,8 @@ export const Preview = () => (
       padding: '10px',
     }}
   >
-    {actionIconVariants.map((variant) =>
-      actionIconSizes.map((size) => {
+    {actionIconVariants.map((variant, index1) =>
+      actionIconSizes.map((size, index2) => {
         const actionIconProps: ActionIconProps = {
           variant,
           size: size,
@@ -105,9 +105,9 @@ export const Preview = () => (
         }
         return (
           <>
-            <ActionIcon {...actionIconProps} />
-            <ActionIcon {...actionIconProps} loading />
-            <ActionIcon {...actionIconProps} disabled />
+            <ActionIcon {...actionIconProps} key={index1 + '-' + index2 + '-default'} />
+            <ActionIcon {...actionIconProps} key={index1 + '-' + index2 + '-loading'} loading />
+            <ActionIcon {...actionIconProps} key={index1 + '-' + index2 + '-disabled'} disabled />
           </>
         )
       }),

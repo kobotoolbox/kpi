@@ -1,23 +1,16 @@
-const path = require('path')
-const webpack = require('webpack')
-let SpeedMeasurePlugin
-if (process.env.MEASURE) {
-  SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
-}
-module.exports = {
+import path from 'path'
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import webpack from 'webpack'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+export default {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
-    '@storybook/addon-links',
     '@storybook/addon-a11y',
-    // NB:
-    // 'storybook-addon-swc' may improve build speed in the future.
-    // - At time of writing, the build performance gains are negated because it
-    //   switches to a slower refresh plugin and also causes other compatibility
-    //   issues in Storybook 6.
-    // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
-    //   well.
     'storybook-dark-mode',
-    '@storybook/addon-webpack5-compiler-swc',
+    '@storybook/addon-webpack5-compiler-babel',
     'storybook-addon-remix-react-router',
     '@storybook/addon-docs',
   ],
@@ -32,9 +25,12 @@ module.exports = {
   webpackFinal: async (config, { configType }) => {
     config.plugins.push(new webpack.ProvidePlugin({ $: ['jquery', 'default'] }))
 
-    // Storybook has its own webpack config, so mirror app support for `*.svg?react` imports.
-    // Without this, such imports resolve to URLs and React tries to render them as invalid tag names.
+    // Exclude .module.css and .module.scss from Storybook's default CSS rules
     config.module.rules.forEach((rule) => {
+      if (rule && rule.test instanceof RegExp && rule.test.test('.css')) {
+        rule.exclude = /\.module\.(css|scss)$/
+      }
+      // Mirror app support for `*.svg?react` imports.
       if (rule && rule.test instanceof RegExp && rule.test.test('.svg')) {
         rule.resourceQuery = {
           not: [/react/],
@@ -103,6 +99,21 @@ module.exports = {
           'sass-loader',
         ],
       },
+      {
+        test: /\.module\.css$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: {
+                localIdentName: '[name]__[local]--[hash:base64:5]',
+              },
+              sourceMap: true,
+            },
+          },
+        ],
+      },
     )
 
     // Build speed improvements
@@ -110,6 +121,7 @@ module.exports = {
 
     // Print speed measurement if env variable MEASURE is set
     if (process.env.MEASURE) {
+      const { default: SpeedMeasurePlugin } = await import('speed-measure-webpack-plugin')
       const smp = new SpeedMeasurePlugin()
       return smp.wrap(config)
     }
@@ -119,6 +131,7 @@ module.exports = {
     // Build speed improvements
     applySpeedTweaks(config)
     if (process.env.MEASURE) {
+      const { default: SpeedMeasurePlugin } = await import('speed-measure-webpack-plugin')
       const smp = new SpeedMeasurePlugin()
       return smp.wrap(config)
     }
@@ -137,14 +150,6 @@ function applySpeedTweaks(config) {
   //   'import/no-unresolved': [2, { caseSensitive: true }]
   config.plugins = config.plugins.filter((plugin) => plugin.constructor.name !== 'CaseSensitivePathsPlugin')
 
-  // Use swc to make the Terser step faster
-  if (config.mode === 'production') {
-    const TerserPlugin = require('terser-webpack-plugin')
-    config.optimization.minimizer = [
-      new TerserPlugin({
-        minify: TerserPlugin.swcMinify,
-        terserOptions: {},
-      }),
-    ]
-  }
+  // Note: Removed custom TerserPlugin with swcMinify because it doesn't handle
+  // ESM code properly (import.meta, export statements). Let Storybook use its default minifier.
 }
