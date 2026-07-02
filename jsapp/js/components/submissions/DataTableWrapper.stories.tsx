@@ -16,6 +16,7 @@ import { actions } from '#/actions'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import assetFactory from '#/endpoints/asset.factory'
 import assetMock from '#/endpoints/asset.mocks'
 import assetDataFactory from '#/endpoints/assetData.factory'
@@ -117,7 +118,8 @@ const initializeSubscriptionStoreDecorator: Decorator = (Story) => {
 // This replaces the previous loader. It reads the UID from the story's args.asset.uid (if present).
 // This ensures each story sets the correct hash for its asset, regardless of which asset is used.
 const setAssetHashDecorator: Decorator = (Story, context) => {
-  const assetUid = context.args?.asset?.uid
+  const args = context.args as { asset?: AssetResponse }
+  const assetUid = args.asset?.uid
   if (assetUid) {
     window.location.hash = ROUTES.FORM_TABLE.replace(':uid', assetUid)
   }
