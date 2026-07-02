@@ -51,19 +51,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   // Derive values from selectedSubmissions
   const selectedRowsCount = props.selectedSubmissions.length
 
-  const {
-    duration: audioDuration,
-    isLoading: isAudioDurationLoading,
-    isError: isAudioDurationError,
-    // TODO: For DEV-1399, we probably will want to incorporate an error message to the user telling them that we
-    // couldn't calculate their ASR time remaining.
-    errorMessage: audioDurationErrorMesssage,
-  } = useCalculateAudioDuration({
-    selectedSubmissions: props.selectedSubmissions,
-    fieldId: props.fieldXpath,
-    assetUid: props.assetUid,
-  })
-
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
       onSuccess: () => {
@@ -128,6 +115,19 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   })
 
   const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
+
+  const {
+    duration: audioDuration,
+    isLoading: isAudioDurationLoading,
+    isError: isAudioDurationError,
+    // TODO: For DEV-1399, we probably will want to incorporate an error message to the user telling them that we
+    // couldn't calculate their ASR time remaining.
+    errorMessage: audioDurationErrorMesssage,
+  } = useCalculateAudioDuration({
+    selectedSubmissions: eligibleSubmissions,
+    fieldId: props.fieldXpath,
+    assetUid: props.assetUid,
+  })
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
