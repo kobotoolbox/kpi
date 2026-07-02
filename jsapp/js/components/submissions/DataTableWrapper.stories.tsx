@@ -6,10 +6,10 @@
 // or default/empty data. This file is intentionally minimal and focused to avoid these problems.
 
 import { Box } from '@mantine/core'
+import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-import type { DecoratorFunction } from 'storybook/internal/types'
 import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
@@ -42,7 +42,7 @@ import {
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
 // stretch to fill the row height — just like in the real UI.
-const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={480}>{Story()}</Box>
+const fixedHeightDecorator: Decorator = (Story) => <Box h={480}>{Story()}</Box>
 
 // Decorator to show the LimitNotifications banner in stories.
 // The banner has a guard chain: it only shows if subscriptionStore.isInitialised is true.
@@ -50,7 +50,7 @@ const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={480}>{Story()
 // but MSW (our Storybook mock layer) only intercepts fetch calls, not jQuery.
 // Solution: manually populate the store on mount and clean up on unmount.
 // Only add this decorator to stories that need to show limit banners.
-const initializeSubscriptionStoreDecorator: DecoratorFunction = (Story) => {
+const initializeSubscriptionStoreDecorator: Decorator = (Story) => {
   useEffect(() => {
     subscriptionStore.isInitialised = true
     subscriptionStore.isPending = false
@@ -116,7 +116,7 @@ const initializeSubscriptionStoreDecorator: DecoratorFunction = (Story) => {
 // Decorator to set the hash for the current asset UID, so that (deprecated) `getCurrentPath` works.
 // This replaces the previous loader. It reads the UID from the story's args.asset.uid (if present).
 // This ensures each story sets the correct hash for its asset, regardless of which asset is used.
-const setAssetHashDecorator: DecoratorFunction = (Story, context) => {
+const setAssetHashDecorator: Decorator = (Story, context) => {
   const assetUid = context.args?.asset?.uid
   if (assetUid) {
     window.location.hash = ROUTES.FORM_TABLE.replace(':uid', assetUid)
