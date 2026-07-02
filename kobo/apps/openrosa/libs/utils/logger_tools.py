@@ -364,25 +364,14 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
 
 def validate_xml_chars(xml: str) -> None:
     """
-    Validate an XML submission for parser errors and disallowed XML characters
-
-    - Reject characters outside the ranges allowed by the XML spec
-      (https://www.w3.org/TR/REC-xml/#charsets).
-    - Reject a well-formed `<parsererror>` document (e.g. from a browser's
-      `DOMParser`/`XMLSerializer` failing to serialise the real instance
-      XML). This isn't caught by downstream XML parsing since it's valid
-      XML, so we check the root element directly rather than the whole
-      payload, to avoid rejecting a legitimate answer that merely mentions
-      "parsererror" in its text.
+    Reject a submission whose XML contains characters outside the ranges
+    allowed by the XML spec (https://www.w3.org/TR/REC-xml/#charsets)
     """
     invalid_xml_char_re = re.compile(
         r'[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
     )
-    root_is_parsererror_re = re.compile(
-        r'^\s*(<\?xml[^>]*\?>)?\s*<parsererror\b', re.IGNORECASE
-    )
 
-    if root_is_parsererror_re.search(xml) or invalid_xml_char_re.search(xml):
+    if invalid_xml_char_re.search(xml):
         raise InvalidXMLCharacterError(
             t(
                 'Submission rejected: '
