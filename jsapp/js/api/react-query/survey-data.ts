@@ -49,6 +49,10 @@ import type { AssetsPairedDataListParams } from '../models/assetsPairedDataListP
 
 import type { AttachmentRetrieveParams } from '../models/attachmentRetrieveParams'
 
+import type { BulkAcceptRequest } from '../models/bulkAcceptRequest'
+
+import type { BulkAcceptResponse } from '../models/bulkAcceptResponse'
+
 import type { BulkActionCreateRequest } from '../models/bulkActionCreateRequest'
 
 import type { BulkActionCreateResponse } from '../models/bulkActionCreateResponse'
@@ -3528,6 +3532,151 @@ export const useAssetsDataBulkDestroy = <TError = ErrorDetail, TContext = unknow
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsDataBulkDestroyMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Bulk accept NLP results
+
+Accepts transcription or translation results for multiple submissions in a
+single request. This is the bulk counterpart of the per-submission acceptance
+flow: instead of visiting each submission individually, users can select
+multiple submissions and approve all of them at once.
+
+The `operation` field declares the operation to perform. Currently only `"accept"`
+is supported.
+
+### Transcription example
+
+```json
+{
+    "submission_uids": ["<uuid-1>", "<uuid-2>"],
+    "question_xpath": "group_name/audio_question",
+    "action_id": "automatic_google_transcription",
+    "operation": "accept"
+}
+```
+
+### Translation example
+
+For translation actions the `language` field is **required**:
+
+```json
+{
+    "submission_uids": ["<uuid-1>", "<uuid-2>"],
+    "question_xpath": "group_name/audio_question",
+    "action_id": "automatic_google_translation",
+    "language": "fr",
+    "operation": "accept"
+}
+```
+
+### Response
+
+Returns the number of submission records that were successfully accepted.
+Submissions without a completed NLP result for the given question/action are
+silently skipped and excluded from the count.
+
+```json
+{
+    "accepted_count": 472
+}
+```
+
+ */
+export type assetsDataSupplementsBulkCreateResponse200 = {
+  data: BulkAcceptResponse
+  status: 200
+}
+
+export type assetsDataSupplementsBulkCreateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsDataSupplementsBulkCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsDataSupplementsBulkCreateResponseComposite =
+  | assetsDataSupplementsBulkCreateResponse200
+  | assetsDataSupplementsBulkCreateResponse400
+  | assetsDataSupplementsBulkCreateResponse404
+
+export type assetsDataSupplementsBulkCreateResponse = assetsDataSupplementsBulkCreateResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataSupplementsBulkCreateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/data/supplements/bulk/`
+}
+
+export const assetsDataSupplementsBulkCreate = async (
+  uidAsset: string,
+  bulkAcceptRequest: BulkAcceptRequest,
+  options?: RequestInit,
+): Promise<assetsDataSupplementsBulkCreateResponse> => {
+  return fetchWithAuth<assetsDataSupplementsBulkCreateResponse>(getAssetsDataSupplementsBulkCreateUrl(uidAsset), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(bulkAcceptRequest),
+  })
+}
+
+export const getAssetsDataSupplementsBulkCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+    TError,
+    { uidAsset: string; data: BulkAcceptRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+  TError,
+  { uidAsset: string; data: BulkAcceptRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsDataSupplementsBulkCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+    { uidAsset: string; data: BulkAcceptRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsDataSupplementsBulkCreate(uidAsset, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsDataSupplementsBulkCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>
+>
+export type AssetsDataSupplementsBulkCreateMutationBody = BulkAcceptRequest
+export type AssetsDataSupplementsBulkCreateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsDataSupplementsBulkCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+    TError,
+    { uidAsset: string; data: BulkAcceptRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataSupplementsBulkCreateMutationOptions(options)
 
   return useMutation(mutationOptions)
 }

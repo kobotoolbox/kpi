@@ -1,6 +1,12 @@
 import { expect } from 'chai'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import { evaluateAlreadyTranslated, evaluateNoEligibleSubmissions, evaluateNoSource } from './alertEvaluators'
+import { asrExceeded, mtExceeded, withinLimits } from '#/endpoints/serviceUsage.factory'
+import {
+  evaluateAlreadyTranslated,
+  evaluateNoEligibleSubmissions,
+  evaluateNoSource,
+  evaluateReachedLimit,
+} from './alertEvaluators'
 import type { AlertEvaluationContext } from './types'
 
 describe('evaluateNoEligibleSubmissions', () => {
@@ -84,6 +90,82 @@ describe('evaluateNoEligibleSubmissions', () => {
       totalCount: 0,
       filteredCount: 0,
     })
+  })
+})
+
+describe('evaluateReachedLimit', () => {
+  const mockSubmissions = [assetDataFactory(1, { _uuid: 'uuid-1' }), assetDataFactory(2, { _uuid: 'uuid-2' })]
+
+  const baseContext: AlertEvaluationContext = {
+    submissions: mockSubmissions,
+    fieldXpath: 'audio_question',
+    actionType: 'transcript',
+    activeBulkActions: [],
+    previouslyFilteredSubmissionUuids: new Set(),
+  }
+
+  it('should show alert when transcription quota is exceeded', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      serviceUsageData: asrExceeded(),
+    }
+
+    const result = evaluateReachedLimit(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.type).to.equal('error')
+    expect(result.filteredSubmissionUuids).to.deep.equal([])
+  })
+
+  it('should not show alert when transcription quota is not exceeded', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      serviceUsageData: withinLimits(),
+    }
+
+    const result = evaluateReachedLimit(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('error')
+  })
+
+  it('should show alert when translation quota is exceeded', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      actionType: 'translation',
+      serviceUsageData: mtExceeded(),
+    }
+
+    const result = evaluateReachedLimit(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.type).to.equal('error')
+    expect(result.filteredSubmissionUuids).to.deep.equal([])
+  })
+
+  it('should not show alert when translation quota is not exceeded', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      actionType: 'translation',
+      serviceUsageData: withinLimits(),
+    }
+
+    const result = evaluateReachedLimit(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('error')
+  })
+
+  it('should not show alert when serviceUsageData is missing', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      serviceUsageData: undefined,
+    }
+
+    const result = evaluateReachedLimit(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('error')
   })
 })
 
