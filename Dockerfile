@@ -165,7 +165,7 @@ RUN apt-get -qq update && \
         libproj-dev \
         locales \
         # pin an exact Node version for stability. update this regularly.
-        nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.18.1' | cut -f 2 -d ' ') \
+        nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.19.0' | cut -f 2 -d ' ') \
         openjdk-17-jre \
         postgresql-client \
         procps \
