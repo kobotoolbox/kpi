@@ -1,5 +1,9 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
+from django.utils import timezone
 
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.fields import KpiUidField
@@ -19,6 +23,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     date_removed = models.DateTimeField(null=True, blank=True)
     password_date_changed = models.DateTimeField(null=True, blank=True)
     validated_password = models.BooleanField(default=True)
+    last_project_activity = models.DateTimeField(null=True, blank=True, db_index=True)
 
     def __str__(self):
         return "{}'s data: {}".format(self.user.__str__(), repr(self.data))
@@ -62,6 +67,27 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 self.validated_password,
             )
 
+    @classmethod
+    def update_last_project_activity(cls, user_ids: set[int]) -> None:
+        """
+        Persist recent project activity for the given users.
+
+        The update is throttled: if last_project_activity was already written
+        within the last LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS, the WHERE clause will
+        not match and no row is touched, so callers can invoke this
+        unconditionally without write storms.
+        """
+        if not user_ids:
+            return
+        threshold = timezone.now() - timedelta(
+            seconds=settings.LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS
+        )
+
+        cls.objects.filter(user_id__in=user_ids).filter(
+            Q(last_project_activity__isnull=True)
+            | Q(last_project_activity__lt=threshold)
+        ).update(last_project_activity=timezone.now())
+
     def _sync_org_details(self):
         """
         Synchronizes the `name`, `organization_type`, and `organization_website` fields
@@ -73,6 +99,9 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         organization potentially transitions to a multi-member state.
         """
         user_organization = self.user.organization
+        if not user_organization:
+            return
+
         if user_organization.is_owner(self.user) and not user_organization.is_mmo:
             fields_to_update = []
             try:

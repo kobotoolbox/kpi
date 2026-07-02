@@ -30,7 +30,7 @@ ALLOWED_VIEWS_WITH_WEAK_PASSWORD = {
         'GET': ['manifest', 'media', 'list',  'retrieve'],
     },
     'XFormSubmissionApi': {
-       'POST': ['create'],
+        'POST': ['create_authenticated', 'create_anonymous', 'create_data_collector'],
     },
     'service_health': {
         'GET': []
@@ -95,6 +95,7 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
             # Consider user's password as weak
             if not self._allowed_view:
                 return self._render_response(request, response)
+            return response
 
         if profile.validated_password:
             return response

@@ -7,6 +7,7 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
   owner__username: 'kobo',
   owner_label: 'kobo',
   last_modified_by: null,
+  created_by: null,
   parent: null,
   settings: {
     sector: {},
@@ -474,6 +475,7 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
   owner__username: 'kobo',
   owner_label: 'kobo',
   last_modified_by: null,
+  created_by: null,
   parent: null,
   settings: {
     sector: {},

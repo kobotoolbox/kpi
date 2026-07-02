@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_GROUP, SCIM_SCHEMA_USER
 from kobo.apps.kobo_scim.models import ScimGroup
 
 
@@ -26,7 +27,7 @@ class ScimUserSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.ANY)
     def get_schemas(self, obj):
-        return ['urn:ietf:params:scim:schemas:core:2.0:User']
+        return [SCIM_SCHEMA_USER]
 
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_name(self, obj):
@@ -88,7 +89,7 @@ class ScimGroupSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.ANY)
     def get_schemas(self, obj):
-        return ['urn:ietf:params:scim:schemas:core:2.0:Group']
+        return [SCIM_SCHEMA_GROUP]
 
     @extend_schema_field(OpenApiTypes.ANY)
     def get_members(self, obj):

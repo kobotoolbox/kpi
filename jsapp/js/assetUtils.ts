@@ -5,6 +5,12 @@
 
 import React from 'react'
 import { isRtlLang } from 'rtl-detect'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { queryClient } from '#/api/queryClient'
+import {
+  type OrganizationsRetrieveQueryResult,
+  getOrganizationsRetrieveQueryKey,
+} from '#/api/react-query/user-team-organization-usage'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
@@ -41,6 +47,11 @@ import type { Asset } from './api/models/asset'
 import type { AssetMinimalList } from './api/models/assetMinimalList'
 import type { BulkActionResponse } from './api/models/bulkActionResponse'
 import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
+
+export enum DeleteBlockerReason {
+  submissions = 'submissions',
+  permissions = 'permissions',
+}
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -449,6 +460,21 @@ export function findRowByXpath(assetContent: AssetContent, xpath: string) {
   return assetContent?.survey?.find((row) => row.$xpath === xpath)
 }
 
+/**
+ * Like `findRowByXpath`, but falls back to matching by leaf name when the
+ * xpath doesn't exist in the current schema (e.g. after a group rename).
+ * Note that this will return the first match by leaf name,
+ * which may not be the correct one.
+ */
+export function findRowByXpathOrLeafName(assetContent: AssetContent, xpath: string) {
+  const exactMatch = findRowByXpath(assetContent, xpath)
+  if (exactMatch) {
+    return exactMatch
+  }
+  const leafName = xpath.includes('/') ? xpath.split('/').at(-1) : xpath
+  return leafName ? findRow(assetContent, leafName) : undefined
+}
+
 export function getRowType(assetContent: AssetContent, rowName: string) {
   const foundRow = findRow(assetContent, rowName)
   return foundRow?.type
@@ -723,6 +749,56 @@ export function getVirtualSupplementalFieldsForBulkActions(
   return result
 }
 
+export type AssetDeleteCheckResult =
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: true }
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: false; reason: DeleteBlockerReason }
+
+/**
+ * Checks whether the current user can delete the given assets.
+ * Returns one result per asset (in the same order), each with `canDelete: true`
+ * or `canDelete: false` with the reason why that specific asset is blocked.
+ */
+export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): AssetDeleteCheckResult[] {
+  const account = sessionStore.currentAccount
+  const orgUid = 'organization' in account ? account.organization?.uid : undefined
+  const orgResponse = orgUid
+    ? queryClient.getQueryData<OrganizationsRetrieveQueryResult>(getOrganizationsRetrieveQueryKey(orgUid))
+    : undefined
+  const org = orgResponse?.status === 200 ? orgResponse.data : undefined
+
+  const isAdmin = org?.request_user_role === MemberRoleEnum.admin
+  if (isAdmin) {
+    return assets.map((asset) => {
+      return { asset, canDelete: true as const }
+    })
+  }
+
+  const isMmoMember = org?.is_mmo && org?.request_user_role === MemberRoleEnum.member
+  const currentUsername = account.username
+
+  if (isMmoMember) {
+    // Only projects created by the user with no submissions can be deleted by MMO members.
+    // Permissions reason takes priority over submissions reason.
+    return assets.map((asset) => {
+      const isNotOwned = !asset.created_by || asset.created_by !== currentUsername
+      const hasSubmissions = (asset.deployment__submission_count ?? 0) > 0
+      if (isNotOwned) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.permissions }
+      }
+      if (hasSubmissions) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.submissions }
+      }
+      return { asset, canDelete: true }
+    })
+  }
+
+  // Non-MMO users: the delete button is disabled unless they have delete_asset,
+  // so no blocker is needed.
+  return assets.map((asset) => {
+    return { asset, canDelete: true as const }
+  })
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -746,4 +822,5 @@ export default {
   isSelfOwned,
   renderQuestionTypeIcon,
   removeInvalidChars,
+  userCanDeleteAssets,
 }

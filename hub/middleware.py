@@ -2,8 +2,6 @@ from django.conf import settings
 from django.middleware.locale import LocaleMiddleware as DjangoLocaleMiddleware
 from django.utils.deprecation import MiddlewareMixin
 
-from hub.models.v1_user_tracker import V1UserTracker
-
 
 class LocaleMiddleware(DjangoLocaleMiddleware):
     def process_response(self, request, response):
@@ -39,38 +37,4 @@ class UsernameInResponseHeaderMiddleware(MiddlewareMixin):
             return response
         if user.is_authenticated:
             response['X-KoBoNaUt'] = request.user.username
-        return response
-
-
-class V1AccessLoggingMiddleware(MiddlewareMixin):
-    """
-    Middleware to log access to deprecated v1 endpoints by authenticated users
-    """
-    legacy_patterns = [
-        '/api/v1/',
-        '/assets/',
-        '/asset_snapshots/',
-        '/asset_subscriptions/',
-        '/exports/',
-        '/imports/',
-        '/permissions/',
-        '/reports/',
-        '/tags/',
-        '/authorized_application/',
-        '/users/',
-    ]
-
-    def process_response(self, request, response):
-        # DRF token/basic/oauth authentication runs during view processing,
-        # not in Django's request middleware phase. Tracking on the response
-        # path lets us see both session-authenticated browser requests and
-        # header-authenticated API requests
-        if not request.user.is_authenticated:
-            return response
-
-        if any(request.path.startswith(pattern) for pattern in self.legacy_patterns):
-            V1UserTracker.objects.update_or_create(
-                user=request.user,
-                defaults={'last_accessed_path': request.path},
-            )
         return response

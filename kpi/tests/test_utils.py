@@ -12,6 +12,7 @@ from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
     SearchQueryTooShortException,
 )
+from kpi.models.asset import Asset
 from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
 from kpi.utils.autoname import (
     autoname_fields,
@@ -320,6 +321,12 @@ class UtilsTestCase(TestCase):
         part2 = '_001'
         self.assertEqual(surv['choices'][1]['$autovalue'], part1 + part2)
 
+    # The query-parser tests below exercise the grammar-to-`Q` translation, not
+    # the lookup validation. `parse()` requires a model so it can check the
+    # lookup paths it builds, so these tests pass a concrete one (`Asset`) to
+    # satisfy that signature. They don't actually rely on it: their synthetic
+    # field names (`field_a`, `some_field`, ...) don't resolve on `Asset`, which
+    # makes the validation a no-op here.
     def test_query_parser(self):
         query_string = """
             (a:a OR b:b AND c:can't) AND d:do"you"say OR (
@@ -345,7 +352,7 @@ class UtilsTestCase(TestCase):
                 Q(field_b='with a mouse')
             )
         )
-        assert expected_q == parse(query_string, default_field_lookups)
+        assert expected_q == parse(query_string, default_field_lookups, model=Asset)
 
     def test_query_parser_no_specified_field(self):
         query_string = 'foo'
@@ -358,7 +365,7 @@ class UtilsTestCase(TestCase):
             Q(field_b='foo')
         )
         assert repr(expected_q) == repr(
-            parse(query_string, default_field_lookups)
+            parse(query_string, default_field_lookups, model=Asset)
         )
 
     def test_query_parser_with_lists_in_json_field(self):
@@ -367,24 +374,24 @@ class UtilsTestCase(TestCase):
         query_string = 'field__property[]__key:value'
         expected_q = Q(field__property__contains=[{'key': 'value'}])
 
-        assert expected_q == parse(query_string, [])
+        assert expected_q == parse(query_string, [], model=Asset)
 
         # List of strings
         query_string = 'field__property[]:value'
         expected_q = Q(field__property=['value'])
-        assert expected_q == parse(query_string, [])
+        assert expected_q == parse(query_string, [], model=Asset)
 
     def test_query_parser_with_empty_lists_in_json_field(self):
 
         query_string = 'field__property[]:""'
         expected_q = Q(field__property=[])
-        assert expected_q == parse(query_string, [])
+        assert expected_q == parse(query_string, [], model=Asset)
 
     def test_query_parser_not_supported_lookup_with_empty_lists_in_json_field(self):
 
         query_string = 'field__property[]__key__icontains:value'
         with pytest.raises(QueryParserNotSupportedFieldLookup):
-            parse(query_string, [])
+            parse(query_string, [], model=Asset)
 
     def test_query_parser_default_search_too_short(self):
         # if the search query without a field is less than a specified
@@ -396,7 +403,7 @@ class UtilsTestCase(TestCase):
         ]
         query_string = 'fo'
         with self.assertRaises(SearchQueryTooShortException) as e:
-            parse(query_string, default_field_lookups)
+            parse(query_string, default_field_lookups, model=Asset)
         assert 'Your query is too short' in str(e.exception)
 
     def test_query_parser_short_and_long_terms(self):
@@ -406,12 +413,12 @@ class UtilsTestCase(TestCase):
         https://github.com/kobotoolbox/kpi/issues/3483
         """
         # should succeed due to long-enough terms
-        parse('my great project', ['some_field'])
+        parse('my great project', ['some_field'], model=Asset)
         # should suceeed due to explicit field specification
-        parse('some_field:hi', ['some_field'])
+        parse('some_field:hi', ['some_field'], model=Asset)
         with self.assertRaises(SearchQueryTooShortException) as e:
             # should fail, all terms are short
-            parse('me oh my', ['some_field'])
+            parse('me oh my', ['some_field'], model=Asset)
 
     def test_allow_choice_duplicates(self):
         surv = {

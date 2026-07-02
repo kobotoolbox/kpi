@@ -20,7 +20,7 @@ jobs:
       id-token: write
       packages: write
     env:
-       CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
+       CI_REGISTRY_IMAGE: ghcr.io/sociest/dataumsa-kpi
     outputs:
       kpi_image_sha: ${{ steps.sha.outputs.sha }}
     steps:
@@ -31,22 +31,22 @@ jobs:
         id: sha
         run: echo "sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.1
-        with:
-          aws-region: us-east-1
-          role-to-assume: "arn:aws:iam::917503078660:role/gha_all_repos"
-          role-duration-seconds: 2200
-          role-session-name: ghithub_actions_${{ github.run_id }}
-
-      - uses: alexellis/arkade-get@master # https://github.com/alexellis/arkade-get?tab=readme-ov-file#why-do-we-use-use-master
-        with:
-          kubectl: ${{ vars.KUBECTL_VERSION }}
-          helm: ${{ vars.HELM_VERSION }}
-
-      - name: Update kubeconfig
-        run: |
-         aws eks --region us-east-1 update-kubeconfig --name kobo
+#      - name: Configure AWS Credentials
+#        uses: aws-actions/configure-aws-credentials@v6.1.1
+#        with:
+#          aws-region: us-east-1
+#          role-to-assume: "arn:aws:iam::917503078660:role/gha_all_repos"
+#          role-duration-seconds: 2200
+#          role-session-name: ghithub_actions_${{ github.run_id }}
+#
+#      - uses: alexellis/arkade-get@master # https://github.com/alexellis/arkade-get?tab=readme-ov-file#why-do-we-use-use-master
+#        with:
+#          kubectl: ${{ vars.KUBECTL_VERSION }}
+#          helm: ${{ vars.HELM_VERSION }}
+#
+#      - name: Update kubeconfig
+#        run: |
+#         aws eks --region us-east-1 update-kubeconfig --name kobo
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
@@ -64,42 +64,42 @@ jobs:
           docker push $CI_REGISTRY_IMAGE:$GITHUB_SHA
           docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED
 
-      - name: Deploy to beta
-        if: github.ref_name == 'public-beta'
-        run: |
-          helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
-
-      - name: Deploy to feature branch
-        if: startsWith(github.ref_name, 'feature/')
-        run: |
-          BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
-          helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
-
-  trigger-main-deploy:
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: github.ref_name == 'main'
-    steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-          owner: kobotoolbox
-          repositories: "devops"
-          
-      - name: Trigger kfmain deploy build
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: deploy-kfmain.yml
-          repo: kobotoolbox/devops
-          ref: instance/kfmain
-          token: ${{ steps.app-token.outputs.token }}
-          inputs: |
-            {
-              "kpi_image_sha": "${{ needs.deploy.outputs.kpi_image_sha }}"
-            }
+#      - name: Deploy to beta
+#        if: github.ref_name == 'public-beta'
+#        run: |
+#          helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
+#
+#      - name: Deploy to feature branch
+#        if: startsWith(github.ref_name, 'feature/')
+#        run: |
+#          BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
+#          helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --set-string enketo.version=${{ vars.ENKETO_VERSION }} --reuse-values
+#
+#  trigger-main-deploy:
+#    needs: deploy
+#    runs-on: ubuntu-latest
+#    if: github.ref_name == 'main'
+#    steps:
+#      - name: Generate GitHub App Token
+#        id: app-token
+#        uses: actions/create-github-app-token@v3
+#        with:
+#          client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+#          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+#          owner: sociest
+#          repositories: "devops"
+#          
+#      - name: Trigger kfmain deploy build
+#        uses: benc-uk/workflow-dispatch@v1
+#        with:
+#          workflow: deploy-kfmain.yml
+#          repo: sociest/devops
+#          ref: instance/kfmain
+#          token: ${{ steps.app-token.outputs.token }}
+#          inputs: |
+#            {
+#              "kpi_image_sha": "${{ needs.deploy.outputs.kpi_image_sha }}"
+#            }
 
   notify-success:
     needs:
@@ -114,7 +114,7 @@ jobs:
   notify-failure:
     needs:
       - deploy
-      - trigger-main-deploy
+#      - trigger-main-deploy
     if: ${{ !cancelled() && failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit

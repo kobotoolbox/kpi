@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: snok/container-retention-policy@v3.0.1
         with:
-          account: kobotoolbox
+          account: sociest
           token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: kpi
+          image-names: dataumsa-kpi
           cut-off: 90d
           keep-n-most-recent: 1
           dry-run: false

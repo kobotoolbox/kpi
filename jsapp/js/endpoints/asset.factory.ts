@@ -13,6 +13,7 @@ export default function assetFactory(overrides: Partial<AssetResponse> = {}): As
     owner__username: '',
     owner_label: '',
     last_modified_by: null,
+    created_by: null,
     date_created: '',
     summary: {},
     date_modified: '',

@@ -43,7 +43,7 @@ export default function TranscriptCreate({
     '##type##',
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
-  const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
+  const attachment = getAttachmentForProcessing(questionXpath, submission)
 
   function goBackToLanguageStep() {
     // Clear the selected language when returning to the language selection step

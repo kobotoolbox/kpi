@@ -126,7 +126,7 @@ URL Pattern | View Class or Function | View Name
 
 The following `/api/v1/data` actions were removed in favour of using the
 OpenRosa classes within Python code in KPI. The remaining `/api/v1/data`
-endpoints were fully removed in release 2.026.__ (see above).
+endpoints were fully removed in release 2.026.22 (see above).
 
 URL Pattern | View Class or Function | Description
 -- | -- | --

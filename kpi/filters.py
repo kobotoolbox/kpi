@@ -389,8 +389,16 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
             return {}
 
         try:
-            q_obj = parse(q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
-        except (ParseError, SearchQueryTooShortException):
+            q_obj = parse(
+                q,
+                default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
+                model=Asset,
+            )
+        except (
+            ParseError,
+            QueryParserNotSupportedFieldLookup,
+            SearchQueryTooShortException,
+        ):
             # Let's `SearchFilter` handle errors
             return {}
         else:
@@ -449,7 +457,10 @@ class SearchFilter(filters.BaseFilterBackend):
             q_obj = parse(
                 q,
                 default_field_lookups=view.search_default_field_lookups,
-                min_search_characters=getattr(view, 'min_search_characters', None),
+                min_search_characters=getattr(
+                    view, 'min_search_characters', None
+                ),
+                model=queryset.model,
             )
         except ParseError:
             return queryset.model.objects.none()

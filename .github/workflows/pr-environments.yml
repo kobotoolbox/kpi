@@ -36,11 +36,11 @@ jobs:
         run: |
           # Use the GitHub CLI to find the branch name for the PR
           BRANCH=$(gh pr view "$INPUT_VALUE" \
-            --repo kobotoolbox/kpi \
+            --repo sociest/dataumsa-kpi \
             --json headRefName --template '{{.headRefName}}')
 
           TITLE=$(gh pr view "$INPUT_VALUE" \
-            --repo kobotoolbox/kpi \
+            --repo sociest/dataumsa-kpi \
             --json title --template '{{.title}}')
 
           echo "branch_name=$BRANCH" >> $GITHUB_OUTPUT
@@ -51,7 +51,7 @@ jobs:
       - name: Clone kpi repo at PR branch
         uses: actions/checkout@v6
         with:
-          repository: kobotoolbox/kpi
+          repository: sociest/dataumsa-kpi
           #if the input type is PR, use the branch name from the previous step; otherwise, use the input value directly as the branch name
           ref: ${{ github.event.inputs.input_type == 'PR' && steps.get_pr_info.outputs.branch_name || github.event.inputs.input_value }}
           path: kpi
@@ -98,41 +98,41 @@ jobs:
         with:
           context: ./kpi
           push: true
-          tags: ghcr.io/kobotoolbox/kpi:${{ steps.set_variables.outputs.ENV_NAME }}
+          tags: ghcr.io/sociest/dataumsa-kpi:${{ steps.set_variables.outputs.ENV_NAME }}
 
-      - name: Generate GitHub App Token
-        id: app_token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-          owner: kobotoolbox
-          repositories: "devops"
-
-      - name: Trigger deployment workflow
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: kpi_ephemeral_deploy.yml
-          repo: kobotoolbox/devops
-          ref: main
-          token: ${{ steps.app_token.outputs.token }}
-          inputs: |
-            {
-              "input_type": "${{ github.event.inputs.input_type }}",
-              "input_value": "${{ github.event.inputs.input_value }}",
-              "env_name": "${{ steps.set_variables.outputs.ENV_NAME }}",
-              "commit_hash": "${{ steps.get_commit_info.outputs.commit_hash }}",
-              "commit_message": "${{ steps.get_commit_info.outputs.commit_message }}",
-              "zulip_topic": "${{ steps.set_variables.outputs.zulip_topic }}"
-            }
-
-  notify-failure:
-    needs:
-      - build
-    if: ${{ !cancelled() && failure() }}
-    uses: './.github/workflows/zulip.yml'
-    secrets: inherit
-    with:
-      stream: "PR Preview Environments"
-      topic: "${{ needs.build.outputs.zulip_topic }}"
-      content: "❌ Failed to deploy ephemeral environment for ${{ github.event.inputs.input_type }} ${{ github.event.inputs.input_value }} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})"
+#      - name: Generate GitHub App Token
+#        id: app_token
+#        uses: actions/create-github-app-token@v3
+#        with:
+#          client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+#          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+#          owner: sociest
+#          repositories: "devops"
+#
+#      - name: Trigger deployment workflow
+#        uses: benc-uk/workflow-dispatch@v1
+#        with:
+#          workflow: kpi_ephemeral_deploy.yml
+#          repo: sociest/devops
+#          ref: main
+#          token: ${{ steps.app_token.outputs.token }}
+#          inputs: |
+#            {
+#              "input_type": "${{ github.event.inputs.input_type }}",
+#              "input_value": "${{ github.event.inputs.input_value }}",
+#              "env_name": "${{ steps.set_variables.outputs.ENV_NAME }}",
+#              "commit_hash": "${{ steps.get_commit_info.outputs.commit_hash }}",
+#              "commit_message": "${{ steps.get_commit_info.outputs.commit_message }}",
+#              "zulip_topic": "${{ steps.set_variables.outputs.zulip_topic }}"
+#            }
+#
+#  notify-failure:
+#    needs:
+#      - build
+#    if: ${{ !cancelled() && failure() }}
+#    uses: './.github/workflows/zulip.yml'
+#    secrets: inherit
+#    with:
+#      stream: "PR Preview Environments"
+#      topic: "${{ needs.build.outputs.zulip_topic }}"
+#      content: "❌ Failed to deploy ephemeral environment for ${{ github.event.inputs.input_type }} ${{ github.event.inputs.input_value }} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})"

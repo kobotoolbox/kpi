@@ -7,7 +7,6 @@ import unittest
 import uuid
 from datetime import datetime
 from unittest import mock
-from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -519,8 +518,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
-    def test_query_counts_for_list_submissions(self, mock_tracker):
+    def test_query_counts_for_list_submissions(self):
         # query count differs when stripe is enabled/disabled
         with self.assertNumQueries(FuzzyInt(16, 18)):
             # regular
@@ -543,8 +541,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 },
             )
 
-    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
-    def test_query_count_does_not_increase_with_more_submissions(self, mock_tracker):
+    def test_query_count_does_not_increase_with_more_submissions(self):
         with CaptureQueriesContext(connection) as context:
             self.client.get(self.submission_list_url, {'format': 'json'})
         count = context.final_queries - context.initial_queries
@@ -1447,11 +1444,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
+        # The automatic transcription is accepted and wins over the deleted manual
+        # transcription, so the accepted value should be returned
         assert (
             response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
                 'value'
             ]
-            is None
+            == 'Bonjour le monde!'
         )
 
     def test_simplified_supplemental_detail_for_acceptance(self):
@@ -1514,12 +1513,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
-        assert (
-            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
-                'value'
-            ]
-            == 'Bonjour la foule!'
+        # The automatic transcription is newer but unaccepted (pending), so it
+        # beats the older accepted manual transcription
+        transcript = (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript']
         )
+        assert transcript.get('pendingReview') is True
+        assert 'value' not in transcript
 
         transcription_data['q1']['automatic_google_transcription']['_versions'][0][
             '_dateAccepted'

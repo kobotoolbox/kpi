@@ -113,6 +113,12 @@ class Instance(AbstractTimeStampedModel):
                 name='unique_root_uuid_per_xform'
             ),
         ]
+        indexes = [
+            models.Index(
+                fields=['user_id', '-date_modified'],
+                name='instance_user_date_mod_idx',
+            ),
+        ]
 
     @property
     def asset(self):

@@ -2,7 +2,7 @@ import logging
 import time
 
 from django.conf import settings
-from django.db import transaction
+from django.db import DEFAULT_DB_ALIAS, transaction
 from django.db.models.signals import post_delete, pre_delete
 from django_celery_beat.models import PeriodicTask
 from django_userforeignkey.request import get_current_request
@@ -142,7 +142,7 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                                     get_optimized_image_path(media_file, suffix)
                                 )
 
-                att_trash_qs = AttachmentTrash.objects.filter(
+                att_trash_qs = AttachmentTrash.objects.using(DEFAULT_DB_ALIAS).filter(
                     attachment_id__in=attachment_ids
                 )
                 periodic_task_ids = list(
@@ -152,7 +152,9 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                 )
                 att_trash_qs.delete()
                 if periodic_task_ids:
-                    PeriodicTask.objects.filter(pk__in=periodic_task_ids).delete()
+                    PeriodicTask.objects.using(DEFAULT_DB_ALIAS).filter(
+                        pk__in=periodic_task_ids
+                    ).delete()
 
             Attachment.all_objects.filter(instance_id__in=instance_ids).delete()
             Note.objects.filter(instance_id__in=instance_ids).delete()

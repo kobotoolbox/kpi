@@ -5,7 +5,7 @@ from rest_framework import serializers, status
 from rest_framework.serializers import Serializer
 from rest_framework.status import HTTP_200_OK
 
-from kpi.typing_aliases import OpenApiGenericResponse
+from kpi.type_aliases import OpenApiGenericResponse
 
 
 class ErrorDetailSerializer(serializers.Serializer):
