@@ -179,7 +179,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
                   onClick={acceptSelectedSubmissions}
                   leftSection={<Icon name='check' size='inherit' />}
                 >
-                  {t('Accept all selected')}
+                  {t('Approve all selected')}
                 </Menu.Item>
               )}
             </>

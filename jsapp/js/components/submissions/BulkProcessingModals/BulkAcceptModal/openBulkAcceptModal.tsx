@@ -6,7 +6,7 @@ export type BulkAcceptModalArgs = Omit<BulkAcceptModalProps, 'onRequestClose'>
 
 export default function openBulkAcceptModal(args: BulkAcceptModalArgs) {
   const modalId = modals.open({
-    title: t('Accept all selected'),
+    title: t('Approve all selected'),
     size: 'lg',
     children: (
       <BulkAcceptModal

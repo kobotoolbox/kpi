@@ -119,19 +119,30 @@ export function BulkAcceptModal(props: BulkAcceptModalProps) {
 
       {!showWarningModal && (
         <Stack gap='md'>
-          <Alert type='warning' iconName='information'>
+          <Alert type='info' iconName='information'>
             <Text size='sm'>
-              {t(
-                'This action will approve all selected transcriptions/translations. Once approved, these results will be marked as accepted in your data.',
-              )}
+              {isTranslationColumn &&
+                t(
+                  'The selected translations were automatically generated and should be reviewed to ensure accuracy. Once approved, they will be saved and displayed in your data table.',
+                )}
+              {!isTranslationColumn &&
+                t(
+                  'The selected transcripts were automatically generated and should be reviewed to ensure accuracy. Once approved, they will be saved and displayed in your data table.',
+                )}
             </Text>
           </Alert>
 
           <Text size='sm'>
-            {t('You are about to accept ##count## submission(s).').replace(
-              '##count##',
-              String(props.selectedSubmissions.length),
-            )}
+            {isTranslationColumn &&
+              t('Do you want to approve the ##count## translations selected?').replace(
+                '##count##',
+                String(props.selectedSubmissions.length),
+              )}
+            {!isTranslationColumn &&
+              t('Do you want to approve the ##count## transcripts selected?').replace(
+                '##count##',
+                String(props.selectedSubmissions.length),
+              )}
           </Text>
 
           <Group justify='flex-end' mt='md'>
@@ -139,7 +150,7 @@ export function BulkAcceptModal(props: BulkAcceptModalProps) {
               {t('Cancel')}
             </ButtonNew>
             <ButtonNew loading={isPending} onClick={handleAcceptSubmissions}>
-              {t('Accept all selected')}
+              {t('Approve')}
             </ButtonNew>
           </Group>
         </Stack>
