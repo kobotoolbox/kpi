@@ -108,7 +108,14 @@ class SupplementMigrationInProgress(Exception):
 
 
 class TranscriptionNotFound(DependencyNotFound):
-    pass
+    def __init__(
+        self,
+        message=(
+            'No accepted transcription found. '
+            'Accept the transcription before running translation.'
+        )
+    ):
+        super().__init__(message)
 
 
 class TranslationAsyncResultAvailable(Exception):
