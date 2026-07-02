@@ -34,7 +34,6 @@ from django.http import (
     HttpResponseNotFound,
     StreamingHttpResponse,
 )
-from django.shortcuts import get_object_or_404
 from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
@@ -433,17 +432,58 @@ def get_xform_from_submission(xml, username, uuid=None):
     if uuid:
         # try to find the form by its uuid which is the ideal condition
         try:
-            xform = XForm.objects.get(uuid=uuid)
+            xform = XForm.objects.select_related('user').get(uuid=uuid)
         except XForm.DoesNotExist:
             pass
         else:
             return xform
 
+    # Fallback: resolve the form by its `id_string` (the root node's `id=""`).
+    # We deliberately do NOT filter by the submitter's username here: the
+    # submitter is not necessarily the owner (they may only hold
+    # `add_submissions`). On the common single-match path, authorization is
+    # enforced right after by `check_submission_permissions()`, so this function
+    # only has to locate the form.
     id_string = get_id_string_from_xml_str(xml)
+    try:
+        return XForm.objects.select_related('user').get(id_string=id_string)
+    except XForm.DoesNotExist:
+        raise Http404
+    except MultipleObjectsReturned:
+        # `id_string` is unique per owner (`unique_together = (user, id_string)`)
+        # but NOT globally, so several accounts can share the same value. The
+        # submission XML carries no owner information, so routing it to an
+        # arbitrary match would risk silently attaching it to the wrong project
+        # and corrupting its data.
+        #
+        # Instead, route by content: a submission belongs to the form whose
+        # instance template it conforms to (its fields are a subset of the
+        # template's).
+        submission_paths = _get_submission_field_paths(xml)
+        xforms = XForm.objects.filter(id_string=id_string).select_related('user')
+        conforming = [
+            xform
+            for xform in xforms
+            if submission_paths <= _get_xform_template_field_paths(xform.xml)
+        ]
+        if len(conforming) == 1:
+            return conforming[0]
 
-    return get_object_or_404(
-        XForm, id_string__exact=id_string, user__username=username
-    )
+        # Several conforming candidates share an equivalent schema (e.g. the very
+        # same form published under different accounts). Fall back to ownership as
+        # a tie-breaker: a submitter posting to their own form is unambiguous.
+        if len(conforming) > 1:
+            owned = [
+                xform
+                for xform in conforming
+                if username and xform.user.username == username
+            ]
+            if len(owned) == 1:
+                return owned[0]
+
+        # No conforming form, or still ambiguous with no ownership tie-breaker:
+        # fail closed rather than guess and risk corrupting another project.
+        raise Http404
 
 
 @contextmanager
@@ -916,12 +956,20 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
-    queryset = Attachment.objects.filter(instance=instance).exclude(
-        Q(media_file_basename__endswith='.enc')
-        | Q(media_file_basename='audit.csv')
-        | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$') # background audio file by Collect
-        | Q(media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$') # background audio file by Enketo
-    ).order_by('-id')
+    queryset = (
+        Attachment.objects.filter(instance=instance)
+        .exclude(
+            Q(media_file_basename__endswith='.enc')
+            | Q(media_file_basename='audit.csv')
+            | Q(
+                media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$'
+            )  # background audio file by Collect
+            | Q(
+                media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$'
+            )  # background audio file by Enketo
+        )
+        .order_by('-id')
+    )
 
     latest_attachments, remaining_attachments_ids = [], []
     basename_set = set(basenames)
@@ -947,6 +995,55 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     )
 
     return soft_deleted_attachments
+
+
+# Metadata nodes (form-level bookkeeping and ODK `jr:preload` fields) that carry
+# no distinguishing power when routing a submission to the right form, so they
+# are stripped before comparing schemas. Matching is done on the first path
+# segment, which also drops their descendants (e.g. `formhub/uuid`,
+# `meta/instanceID`).
+_COMMON_INSTANCE_FIELDS = frozenset(
+    {
+        'formhub',
+        'meta',
+        '__version__',
+        'start',
+        'end',
+        'today',
+        'deviceid',
+    }
+)
+
+
+def _collect_element_paths(node, prefix: str = '') -> set:
+    """
+    Recursively collect the relative XPaths of every descendant element of
+    `node` (e.g. `demographic/name`).
+
+    Using full paths rather than bare tag names lets nested groups be compared
+    by their exact position in the tree, so two forms that happen to reuse the
+    same field name under different groups are not treated as identical.
+    """
+
+    paths = set()
+    for child in node.childNodes:
+        if child.nodeType != Node.ELEMENT_NODE:
+            continue
+        path = f'{prefix}{child.tagName}'
+        paths.add(path)
+        paths |= _collect_element_paths(child, f'{path}/')
+
+    return paths
+
+
+def _exclude_common_paths(paths: set) -> set:
+    """
+    Drop the common metadata nodes that do not help tell two forms apart.
+    """
+
+    return {
+        path for path in paths if path.split('/', 1)[0] not in _COMMON_INSTANCE_FIELDS
+    }
 
 
 def _get_instance(
@@ -1052,6 +1149,54 @@ def _get_instance_from_deprecated_id(
             )
 
     return instance, old_uuid
+
+
+def _get_submission_field_paths(xml: str) -> set:
+    """
+    Return a submission's field XPaths, relative to its root node, with the
+    common metadata paths excluded.
+    """
+
+    root = clean_and_parse_xml(xml).documentElement
+
+    return _exclude_common_paths(_collect_element_paths(root))
+
+
+def _get_xform_template_field_paths(xform_xml: str) -> set:
+    """
+    Return an XForm's primary instance template field XPaths, with the common
+    metadata paths excluded.
+
+    The primary instance is the `<instance>` node without an `id` attribute
+    (secondary instances used for choices, e.g. `<instance id="birds">`, are
+    ignored). Its single child element is the survey root, whose own tag is the
+    `id_string` (shared by colliding forms), so we compare the paths of its
+    descendants relative to it — matching how submissions are collected.
+    """
+
+    doc = clean_and_parse_xml(xform_xml)
+
+    model_node = None
+    for node in doc.getElementsByTagName('model'):
+        parent = getattr(node, 'parentNode', None)
+        if parent is not None and parent.tagName == 'h:head':
+            model_node = node
+            break
+
+    if model_node is None:
+        return set()
+
+    for node in model_node.childNodes:
+        if (
+            node.nodeType == Node.ELEMENT_NODE
+            and node.tagName.lower() == 'instance'
+            and not node.hasAttribute('id')
+        ):
+            for child in node.childNodes:
+                if child.nodeType == Node.ELEMENT_NODE:
+                    return _exclude_common_paths(_collect_element_paths(child))
+
+    return set()
 
 
 def _has_edit_xform_permission(
