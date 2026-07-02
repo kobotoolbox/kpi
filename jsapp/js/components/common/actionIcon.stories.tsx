@@ -103,13 +103,12 @@ export const Preview = () => (
           size: size,
           iconName: 'more',
         }
-        return (
-          <>
-            <ActionIcon {...actionIconProps} key={index1 + '-' + index2 + '-default'} />
-            <ActionIcon {...actionIconProps} key={index1 + '-' + index2 + '-loading'} loading />
-            <ActionIcon {...actionIconProps} key={index1 + '-' + index2 + '-disabled'} disabled />
-          </>
-        )
+        // Returning as array rather than wrapped in React.Fragment for the key uniqueness to work
+        return [
+          <ActionIcon {...actionIconProps} key={`${index1}-${index2}-default`} />,
+          <ActionIcon {...actionIconProps} key={`${index1}-${index2}-loading`} loading />,
+          <ActionIcon {...actionIconProps} key={`${index1}-${index2}-disabled`} disabled />,
+        ]
       }),
     )}
   </div>
