@@ -107,7 +107,7 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     metadata_fields = getattr(config, 'USER_METADATA_FIELDS', None)
 
     if not isinstance(metadata_fields, list):
-        return matched_any
+        metadata_fields = []
 
     # Fields that map directly to UserProfile model attributes
     user_profile_fields = {
