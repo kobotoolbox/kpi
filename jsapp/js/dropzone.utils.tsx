@@ -20,6 +20,23 @@ interface ApplyImportParams {
   lastModified?: number
 }
 
+/**
+ * Error response structure from import operations.
+ * Can come from FileReader errors, import creation failures, or polling errors.
+ */
+export interface ImportErrorResponse {
+  messages?: {
+    error_type?: string
+    error?: string
+  }
+  responseJSON?: {
+    messages?: {
+      error_type?: string
+      error?: string
+    }
+  }
+}
+
 const APPLY_IMPORT_CHECK_INTERVAL = 1000
 
 interface PollImportUntilDoneOptions {
@@ -130,9 +147,11 @@ function createImportAndResolveFirstAsset(params: ApplyImportParams): Promise<{ 
  * a destination), and resolves with the first created/updated asset entry once the import completes.
  *
  * Replaces `mixins.droppable.applyFileToAsset`.
+ *
+ * @throws {ImportErrorResponse} When file reading fails or import fails
  */
 export function applyFileToAsset(file: File, asset: AssetResponse): Promise<{ uid: string }> {
-  return new Promise((resolve, reject) => {
+  return new Promise<{ uid: string }>((resolve, reject: (error: ImportErrorResponse) => void) => {
     const reader = new FileReader()
     reader.onload = () => {
       const params: ApplyImportParams = {
@@ -161,6 +180,8 @@ export function applyFileToAsset(file: File, asset: AssetResponse): Promise<{ ui
  * the first created/updated asset entry once the import completes.
  *
  * Replaces `mixins.droppable.applyUrlToAsset`.
+ *
+ * @throws {ImportErrorResponse} When import fails
  */
 export function applyUrlToAsset(url: string, asset: AssetResponse): Promise<{ uid: string }> {
   const params: ApplyImportParams = {

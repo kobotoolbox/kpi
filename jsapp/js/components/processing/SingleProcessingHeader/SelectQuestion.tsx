@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react'
-
 import classNames from 'classnames'
+import React, { useMemo } from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
   findRowByXpathOrLeafName,
@@ -11,7 +10,7 @@ import {
 } from '#/assetUtils'
 import KoboSelect from '#/components/common/koboSelect'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
+import { getActiveLanguageCode, getActiveTab, goToProcessing } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -42,7 +41,7 @@ export default function SelectQuestion({
   const onQuestionSelectChange = (newXpath: string | null) => {
     if (newXpath !== null) {
       protectorHelpers.safeExecute(hasUnsavedWork, () =>
-        goToProcessing(asset.uid, newXpath, currentSubmissionUid, getActiveTab()),
+        goToProcessing(asset.uid, newXpath, currentSubmissionUid, getActiveTab(), getActiveLanguageCode()),
       )
     }
   }
