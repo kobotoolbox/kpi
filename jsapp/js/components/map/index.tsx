@@ -1275,7 +1275,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                     </ButtonNew>
                   </Menu.Target>
 
-                  <Menu.Dropdown>
+                  <Menu.Dropdown style={{ maxHeight: 300, overflowY: 'auto' }}>
                     {langs.length > 1 && <Menu.Label>{t('Language')}</Menu.Label>}
                     {langs.map((l, i) => (
                       <Menu.Item
