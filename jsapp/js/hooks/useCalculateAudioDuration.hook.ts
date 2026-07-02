@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useQueries } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import type { ServerError } from '#/api/ServerError'
 import { assetsAttachmentsAudioDurationCreate } from '#/api/react-query/survey-data'
 import type { SubmissionResponse } from '#/dataInterface'
@@ -62,7 +62,7 @@ export function useCalculateAudioDuration({
         errorMessage: isError
           ? is504Error(firstError)
             ? t('Failed to calculate audio duration after multiple attempts. Please try again.')
-            : (firstError as ServerError | undefined)?.toString() ?? t('Failed to calculate audio duration.')
+            : ((firstError as ServerError | undefined)?.toString() ?? t('Failed to calculate audio duration.'))
           : null,
         duration: isLoading || isError ? 0 : results.reduce((sum, r) => sum + (r.data?.data.total ?? 0), 0),
       }
