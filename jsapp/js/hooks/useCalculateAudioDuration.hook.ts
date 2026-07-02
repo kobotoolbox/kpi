@@ -50,6 +50,8 @@ export function useCalculateAudioDuration({
         retryDelay: (attemptIndex: number) => 2 ** attemptIndex * 1000,
       }
     }),
+    // We need `combine` here as useQueries returns an array of data for each query. This allows us to check among all
+    // results and therefore keep the expected hook structure
     combine: (results) => {
       const isLoading = results.some((r) => r.isLoading || r.isFetching)
       const isError = results.some((r) => r.isError)
