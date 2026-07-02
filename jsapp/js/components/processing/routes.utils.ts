@@ -179,20 +179,19 @@ export function goToTabRoute(targetTabRoute: string) {
 /**
  * Navigates to processing view for given response to question in a project.
  *
- * Optionally can remain on the same tab as currently loaded (if processing is
- * opened right now). Default functionality is to navigate to the root route
- * for processing, thus letting the routes code handle the tab selection.
+ * @param assetUid - The asset UID
+ * @param xpath - The question xpath
+ * @param submissionEditId - The submission edit ID
+ * @param targetTab - Optional specific tab to navigate to. If not provided, navigates to root (letting routes decide)
  */
-export function goToProcessing(assetUid: string, xpath: string, submissionEditId: string, remainOnSameTab?: boolean) {
+export function goToProcessing(assetUid: string, xpath: string, submissionEditId: string, targetTab?: ProcessingTab) {
   let targetRoute: string = ROUTES.FORM_PROCESSING_ROOT
 
-  if (remainOnSameTab) {
-    const activeTab = getActiveTab()
-    if (activeTab) {
-      const activeTabRoute = TabToRouteMap.get(activeTab)
-      if (activeTabRoute) {
-        targetRoute = activeTabRoute
-      }
+  // If specific tab is provided, use it
+  if (targetTab) {
+    const tabRoute = TabToRouteMap.get(targetTab)
+    if (tabRoute) {
+      targetRoute = tabRoute
     }
   }
 

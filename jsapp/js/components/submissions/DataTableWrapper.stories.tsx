@@ -13,6 +13,7 @@ import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-r
 import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
 import assetFactory from '#/endpoints/asset.factory'
@@ -41,7 +42,7 @@ import {
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
 // stretch to fill the row height — just like in the real UI.
-const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={360}>{Story()}</Box>
+const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={480}>{Story()}</Box>
 
 // Decorator to show the LimitNotifications banner in stories.
 // The banner has a guard chain: it only shows if subscriptionStore.isInitialised is true.
@@ -216,6 +217,31 @@ const processingAsset = assetFactory({
     translated: ['label'],
     translations: [null],
   },
+  analysis_form_json: {
+    additional_fields: [
+      {
+        name: 'transcript_en',
+        type: 'transcript',
+        source: 'Record_a_sound',
+        dtpath: 'Record_a_sound/transcript_en',
+        language: 'en',
+      },
+      {
+        name: 'translation_fr',
+        type: 'translation',
+        source: 'Record_a_sound',
+        dtpath: 'Record_a_sound/translation_fr',
+        language: 'fr',
+      },
+      {
+        name: 'translation_es',
+        type: 'translation',
+        source: 'Record_a_sound',
+        dtpath: 'Record_a_sound/translation_es',
+        language: 'es',
+      },
+    ],
+  },
   effective_permissions: [{ codename: 'change_submissions' }],
 })
 const processingSubmissions = [
@@ -232,6 +258,27 @@ const processingSubmissions = [
         question_xpath: 'Record_a_sound',
       },
     ],
+    _supplementalDetails: {
+      Record_a_sound: {
+        // Unaccepted automatic transcript (English) - shows Review button
+        transcript: {
+          languageCode: 'en',
+          pendingReview: true,
+          regionCode: null,
+        },
+        // Automatic translations (French accepted, Spanish pending)
+        translation: {
+          fr: {
+            languageCode: 'fr',
+            value: 'Ceci est une traduction automatique acceptée.',
+          },
+          es: {
+            languageCode: 'es',
+            pendingReview: true,
+          },
+        },
+      },
+    },
   }),
   assetDataFactory(2, {
     Record_a_sound: 'test2.mp3',
@@ -263,14 +310,16 @@ const processingSubmissions = [
   }),
 ]
 const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/rootUuid'], 'fr', {
-  status: BulkActionResponseStatusEnum.in_progress,
+  status: BulkActionResponseStatusEnum.complete,
+  action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   created_by: {
     username: 'zefir',
   },
 })
 const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/rootUuid'], 'es', {
-  status: BulkActionResponseStatusEnum.pending,
+  status: BulkActionResponseStatusEnum.in_progress,
+  action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   created_by: {
     username: 'other-user',
@@ -350,7 +399,7 @@ export const ProcessingColumnAndBanner: Story = {
         assetMock(processingAsset.uid, processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
-        organizationServiceUsageMock(), // No usage limits - no OverLimitBanner
+        organizationServiceUsageMock(),
         subscriptionMock(),
         bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
       ],
