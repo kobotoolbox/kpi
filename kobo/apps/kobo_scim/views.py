@@ -300,51 +300,6 @@ class ScimUserViewSet(
 
                 self.perform_destroy(user)
 
-            # Ensure the SocialAccount link exists so SSO works flawlessly.
-            # We catch IntegrityError here just in case another IdP already
-            # has this exact uid linked.
-            social_account_existed = social_account is not None
-
-            SocialAccount.objects.get_or_create(
-                user=user, provider=self.idp_provider_id, uid=uid
-            )
-
-            reactivated_users = []
-            if active:
-                reactivated_users = self._reactivate_sso_linked_accounts(
-                    user.email, user
-                )
-            else:
-                # If the IdP provisions the user as deactivated, or links to an
-                # existing user but specifies active=False, deactivate them.
-                apply_scim_user_metadata(
-                    user,
-                    data,
-                    enforce_strict_validation=self.idp.enforce_strict_metadata_validation,  # noqa E501
-                )
-
-                audit_action = (
-                    AuditAction.REPROVISIONING
-                    if social_account_existed
-                    else AuditAction.PROVISIONING
-                )
-                audit_reason = (
-                    'Automated account re-provisioning via Identity Provider'
-                    if social_account_existed
-                    else 'Automated account provisioning via Identity Provider'
-                )
-
-                self._create_provisioning_audit_log(
-                    user=user,
-                    action=audit_action,
-                    email=email,
-                    username=user.username,
-                    status_code=status.HTTP_201_CREATED,
-                    reason=audit_reason,
-                )
-
-                self.perform_destroy(user)
-
                 user.refresh_from_db()
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
