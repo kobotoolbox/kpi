@@ -254,13 +254,6 @@ class ScimUserViewSet(
                     last_name=last_name,
                     is_active=active,
                 )
-                user = User.objects.create_user(
-                    username=unique_username,
-                    email=email,
-                    first_name=first_name,
-                    last_name=last_name,
-                    is_active=active,
-                )
 
             # Ensure the SocialAccount link exists so SSO works flawlessly.
             # We catch IntegrityError here just in case another IdP already
