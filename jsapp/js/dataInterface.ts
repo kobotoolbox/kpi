@@ -199,9 +199,14 @@ export interface SubmissionAttachment {
 
 interface TransxObject {
   languageCode: LanguageCode
-  value: string | null
+  value?: string | null
   /** transcripts only */
   regionCode?: string | null
+  /**
+   * When true, indicates the transcript/translation is complete but hasn't been
+   * manually accepted yet. When pendingReview is true, the value field is omitted.
+   */
+  pendingReview?: boolean
 
   // TODO: see if these below should be removed
   dateCreated?: string

@@ -2,7 +2,7 @@ import React from 'react'
 
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { findRowByXpath } from '#/assetUtils'
+import { findRowByXpathOrLeafName } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
@@ -23,7 +23,7 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
     return null
   }
 
-  const attachment = getAttachmentForProcessing(asset, xpath, submission)
+  const attachment = getAttachmentForProcessing(xpath, submission)
   if (typeof attachment === 'string') {
     return null
   }
@@ -35,7 +35,7 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
     )
   }
 
-  switch (findRowByXpath(asset.content, xpath)?.type) {
+  switch (findRowByXpathOrLeafName(asset.content, xpath)?.type) {
     case QUESTION_TYPES.audio.id:
     case QUESTION_TYPES['background-audio'].id:
       return (

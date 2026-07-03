@@ -1,5 +1,7 @@
 import jsonschema.exceptions
+from copy import deepcopy
 from django.db import IntegrityError, transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
@@ -12,6 +14,7 @@ from kobo.apps.subsequences.models import (
     SubsequenceBulkAction,
     SubsequenceBulkActionItem,
 )
+from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
@@ -264,7 +267,11 @@ class BulkActionCreateSerializer(serializers.Serializer):
                 continue
             requested_locale = params.get('locale')
             if requested_locale and data.get('locale') != requested_locale:
-                continue
+                # Deleted versions may have no locale; always include them so a
+                # deletion can clear eligibility regardless of which locale was
+                # originally stored
+                if data.get('status') != 'deleted':
+                    continue
             matching_versions.append(version)
 
         if not matching_versions:
@@ -365,8 +372,9 @@ class BulkActionCreateSerializer(serializers.Serializer):
             return
 
         action = feature.to_action()
+        params_before_update = deepcopy(feature.params)
         action.update_params(feature_params)
-        if action.params != feature.params:
+        if action.params != params_before_update:
             feature.params = action.params
             feature.save(update_fields=['params'])
 
@@ -375,6 +383,109 @@ class BulkActionCreateSerializer(serializers.Serializer):
         if not language:
             return []
         return [{'language': language}]
+
+
+class BulkAcceptSerializer(serializers.Serializer):
+    """
+    Validates and executes a bulk-accept request for ASR/MT results
+
+    Accepts the latest pending NLP result for each submission UUID by stamping
+    `_dateAccepted` on the current (first) version in the supplement content.
+    """
+
+    ACTION_CHOICES = (
+        'automatic_google_transcription',
+        'automatic_google_translation',
+    )
+
+    BULK_OPERATION_CHOICES = ('accept',)
+
+    submission_uids = serializers.ListField(
+        child=serializers.CharField(),
+        allow_empty=False,
+    )
+    question_xpath = serializers.CharField(max_length=2000)
+    action_id = serializers.ChoiceField(choices=ACTION_CHOICES)
+    language = serializers.CharField(required=False, allow_blank=False)
+    operation = serializers.ChoiceField(choices=BULK_OPERATION_CHOICES)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if (
+            attrs['action_id'] == 'automatic_google_translation'
+            and not attrs.get('language')
+        ):
+            raise serializers.ValidationError(
+                {'language': ['This field is required for translation actions.']}
+            )
+        return attrs
+
+    def accept(self, asset) -> int:
+        """
+        Bulk-accept NLP results and return the count of accepted records
+
+        Only versions that already have a non-null value are stamped. Records
+        that cannot be accepted (missing supplement, missing action data, no
+        value) are silently skipped and excluded from the returned count.
+        """
+        submission_uids = self.validated_data['submission_uids']
+        question_xpath = self.validated_data['question_xpath']
+        action_id = self.validated_data['action_id']
+        language = self.validated_data.get('language')
+        now_str = utc_datetime_to_js_str(timezone.now())
+
+        with transaction.atomic():
+            supplements = list(
+                SubmissionSupplement.objects.select_for_update()
+                .filter(
+                    asset=asset,
+                    submission_uuid__in=submission_uids,
+                )
+            )
+
+            to_update = []
+            for supplement in supplements:
+                content = supplement.content
+                if not content:
+                    continue
+
+                question_data = content.get(question_xpath)
+                if not question_data:
+                    continue
+
+                action_data = question_data.get(action_id)
+                if not action_data:
+                    continue
+
+                # For translation actions the result is keyed by language code
+                target = action_data.get(language) if language else action_data
+                if not target:
+                    continue
+
+                versions = target.get('_versions', [])
+                if not versions:
+                    continue
+
+                latest_version = versions[0]
+                version_data = latest_version.get('_data', {})
+
+                # Only accept versions that have actual content
+                if version_data.get('value') is None:
+                    continue
+
+                # Skip versions that are already accepted
+                if latest_version.get('_dateAccepted'):
+                    continue
+
+                latest_version['_dateAccepted'] = now_str
+                target['_dateModified'] = now_str
+
+                to_update.append(supplement)
+
+            if to_update:
+                SubmissionSupplement.objects.bulk_update(to_update, ['content'])
+
+        return len(to_update)
 
 
 class BulkActionCancelSerializer(serializers.ModelSerializer):
