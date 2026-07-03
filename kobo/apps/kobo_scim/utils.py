@@ -85,6 +85,11 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     last_name = get_scim_value(scim_data, 'name.familyName')
     formatted = get_scim_value(scim_data, 'name.formatted')
 
+    if not formatted and (first_name is not None or last_name is not None):
+        _first = first_name if first_name is not None else user.first_name
+        _last = last_name if last_name is not None else user.last_name
+        formatted = f"{_first or ''} {_last or ''}".strip()
+
     if first_name is not None or last_name is not None or formatted is not None:
         matched_any = True
         update_fields = []
