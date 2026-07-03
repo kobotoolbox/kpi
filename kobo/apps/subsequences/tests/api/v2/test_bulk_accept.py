@@ -297,13 +297,13 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['accepted_count'] == 0
 
-    def test_bulk_accept_already_accepted_updates_date(self):
+    def test_bulk_accept_already_accepted_returns_zero(self):
         """
-        Test that Re-accepting an already-accepted version overwrites
-        `_dateAccepted` with the current timestamp and is counted
+        Test that re-accepting an already-accepted version must be a no-op:
+        `accepted_count` should be 0 and `_dateAccepted` must remain unchanged
         """
         self._create_transcription_supplements()
-        # Accept once
+        # First accept - stamps _dateAccepted
         self._post_accept(
             {
                 'submission_uids': [self.submission_uuid],
@@ -318,8 +318,9 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
         first_date = supp_before.content['q1']['automatic_google_transcription'][
             '_versions'
         ][0].get('_dateAccepted')
+        assert first_date is not None
 
-        # Accept again
+        # Second accept: version is already accepted, so no action is taken
         response = self._post_accept(
             {
                 'submission_uids': [self.submission_uuid],
@@ -328,16 +329,18 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
                 'operation': 'accept',
             }
         )
-        assert response.data['accepted_count'] == 1
+        assert response.status_code == status.HTTP_200_OK
+        # No new records accepted, the submission was already accepted
+        assert response.data['accepted_count'] == 0
+
+        # _dateAccepted must be unchanged (not overwritten)
         supp_after = SubmissionSupplement.objects.get(
             asset=self.asset, submission_uuid=self.submission_uuid
         )
         second_date = supp_after.content['q1']['automatic_google_transcription'][
             '_versions'
         ][0].get('_dateAccepted')
-        # Both dates are present; second may equal or be later than first
-        assert first_date is not None
-        assert second_date is not None
+        assert second_date == first_date
 
     def test_bulk_accept_empty_submission_uids_returns_400(self):
         response = self._post_accept(
