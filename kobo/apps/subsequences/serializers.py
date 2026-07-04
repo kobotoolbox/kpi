@@ -9,6 +9,7 @@ from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
+    QATagTracker,
     QuestionAdvancedFeature,
     SubmissionSupplement,
     SubsequenceBulkAction,
@@ -65,6 +66,12 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
         except jsonschema.exceptions.ValidationError as ve:
             raise serializers.ValidationError(ve)
         return data
+
+
+class QATagTrackerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QATagTracker
+        fields = ['value']
 
 
 class BulkActionUserSerializer(serializers.Serializer):

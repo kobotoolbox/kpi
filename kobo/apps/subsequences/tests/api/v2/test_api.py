@@ -12,6 +12,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.organizations.constants import UsageType
@@ -1391,3 +1392,64 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         assert not QATagTracker.objects.filter(
             asset=self.asset, question_uuid=other_question_uuid
         ).exists()
+
+    def _tags_list_url(self, question_uuid: str = FIX_QUAL_TAGS_UUID) -> str:
+        return reverse(
+            self._get_endpoint('qa-tag-tracker-list'),
+            args=[self.asset.uid, question_uuid],
+        )
+
+    def test_list_returns_tracked_tags_sorted_alphabetically(self):
+        """
+        Test that the list endpoint returns previously tracked tags for the
+        given question, sorted alphabetically by value
+        """
+        self._patch_tags(['poverty', 'health', 'access to water'])
+
+        response = self.client.get(self._tags_list_url())
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == [
+            {'value': 'access to water'},
+            {'value': 'health'},
+            {'value': 'poverty'},
+        ]
+
+    def test_list_returns_empty_list_when_no_tags_tracked(self):
+        """
+        Test that the list endpoint returns an empty list for a question that
+        has no tracked tags yet
+        """
+        response = self.client.get(self._tags_list_url())
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == []
+
+    def test_list_only_returns_tags_for_requested_question(self):
+        """
+        Test that the list endpoint scopes results to the `uid_qa_question`
+        in the URL and does not leak tags tracked under other questions
+        """
+        other_question_uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        QATagTracker.objects.create(
+            asset=self.asset, question_uuid=other_question_uuid, value='unrelated'
+        )
+        self._patch_tags(['poverty'])
+
+        response = self.client.get(self._tags_list_url())
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == [{'value': 'poverty'}]
+
+    def test_list_requires_asset_access(self):
+        """
+        Test that a user without submission-editing access to the asset
+        cannot list its tracked tags
+        """
+        self._patch_tags(['poverty'])
+        other_user, _ = User.objects.get_or_create(username='anotheruser')
+        self.client.force_login(other_user)
+
+        response = self.client.get(self._tags_list_url())
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND

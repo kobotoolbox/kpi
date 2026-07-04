@@ -125,6 +125,8 @@ import type { PatchedExportSettingUpdatePayload } from '../models/patchedExportS
 
 import type { PatchedPairedDataPatchPayload } from '../models/patchedPairedDataPatchPayload'
 
+import type { QATagTrackerResponse } from '../models/qATagTrackerResponse'
+
 import type { ReportResponse } from '../models/reportResponse'
 
 import { fetchWithAuth } from '../orval.mutator'
@@ -6060,6 +6062,102 @@ export function useAssetsPairedDataExternalRetrieve<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsPairedDataExternalRetrieveQueryOptions(uidAsset, uidPairedData, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## List available tags for a QA tags question
+
+Lists the tag values previously submitted for a `qualTags` question on this asset, sorted alphabetically.
+
+ */
+export type assetsQualQuestionsTagsListResponse200 = {
+  data: QATagTrackerResponse[]
+  status: 200
+}
+
+export type assetsQualQuestionsTagsListResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsQualQuestionsTagsListResponseComposite =
+  | assetsQualQuestionsTagsListResponse200
+  | assetsQualQuestionsTagsListResponse404
+
+export type assetsQualQuestionsTagsListResponse = assetsQualQuestionsTagsListResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsQualQuestionsTagsListUrl = (uidAsset: string, uidQaQuestion: string) => {
+  return `/api/v2/assets/${uidAsset}/qual-questions/${uidQaQuestion}/tags/`
+}
+
+export const assetsQualQuestionsTagsList = async (
+  uidAsset: string,
+  uidQaQuestion: string,
+  options?: RequestInit,
+): Promise<assetsQualQuestionsTagsListResponse> => {
+  return fetchWithAuth<assetsQualQuestionsTagsListResponse>(
+    getAssetsQualQuestionsTagsListUrl(uidAsset, uidQaQuestion),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getAssetsQualQuestionsTagsListQueryKey = (uidAsset: string, uidQaQuestion: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'qual-questions', uidQaQuestion, 'tags'] as const
+}
+
+export const getAssetsQualQuestionsTagsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidQaQuestion: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsQualQuestionsTagsListQueryKey(uidAsset, uidQaQuestion)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>> = ({ signal }) =>
+    assetsQualQuestionsTagsList(uidAsset, uidQaQuestion, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidQaQuestion), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsQualQuestionsTagsListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>
+>
+export type AssetsQualQuestionsTagsListQueryError = ErrorDetail
+
+export function useAssetsQualQuestionsTagsList<
+  TData = Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidQaQuestion: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsQualQuestionsTagsListQueryOptions(uidAsset, uidQaQuestion, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 

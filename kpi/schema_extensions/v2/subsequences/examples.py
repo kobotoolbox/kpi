@@ -738,6 +738,16 @@ def get_bulk_accept_examples() -> list[OpenApiExample]:
     ]
 
 
+def get_qa_tag_trackers_list_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'QA tag trackers for a tags question',
+            value={'value': 'accomplished'},
+            response_only=True,
+        ),
+    ]
+
+
 def get_bulk_action_patch_examples() -> list[OpenApiExample]:
     return [
         OpenApiExample(
