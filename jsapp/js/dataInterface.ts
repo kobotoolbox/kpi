@@ -610,7 +610,8 @@ export interface AssetTableSettings extends AssetTableSettingsObject {
 
 export interface AssetSettings {
   sector?: LabelValuePair | null | {}
-  country?: LabelValuePair | LabelValuePair[] | null
+  // TODO DEV-XXXX: Backend always returns country as array (default []), but legacy type allowed single object
+  country?: LabelValuePair[] | null
   description?: string
   'data-table'?: AssetTableSettings
   organization?: string
