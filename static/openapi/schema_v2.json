@@ -21605,7 +21605,20 @@
                                             "type": "string"
                                         },
                                         "type": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "enum": [
+                                                "transcript",
+                                                "translation",
+                                                "qualVerification",
+                                                "qualSource",
+                                                "qualInteger",
+                                                "qualTags",
+                                                "qualText",
+                                                "qualNote",
+                                                "qualAutoKeywordCount",
+                                                "qualSelectMultiple",
+                                                "qualSelectOne"
+                                            ]
                                         },
                                         "name": {
                                             "type": "string"
@@ -21625,7 +21638,18 @@
                                                         "type": "string"
                                                     },
                                                     "labels": {
-                                                        "type": "object"
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "_default": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "additionalProperties": {
+                                                            "type": "string"
+                                                        },
+                                                        "required": [
+                                                            "_default"
+                                                        ]
                                                     }
                                                 },
                                                 "required": [

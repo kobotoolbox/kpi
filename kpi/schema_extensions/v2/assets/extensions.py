@@ -70,7 +70,22 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
             properties={
                 'language': GENERIC_STRING_SCHEMA,  # optional: two letter language code
                 'source': GENERIC_STRING_SCHEMA,  # required: path to form question
-                'type': GENERIC_STRING_SCHEMA,  # required: e.g. 'transcript', 'translation', 'qual*'
+                'type': {
+                    'type': 'string',
+                    'enum': [
+                        'transcript',
+                        'translation',
+                        'qualVerification',
+                        'qualSource',
+                        'qualInteger',
+                        'qualTags',
+                        'qualText',
+                        'qualNote',
+                        'qualAutoKeywordCount',
+                        'qualSelectMultiple',
+                        'qualSelectOne',
+                    ]
+                },  # required: type of additional field
                 'name': GENERIC_STRING_SCHEMA,  # required
                 'dtpath': GENERIC_STRING_SCHEMA,  # required: data table path
                 'label': GENERIC_STRING_SCHEMA,  # optional: question label or 'source'/'verified'
@@ -79,7 +94,13 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
                         required=['uuid', 'labels'],
                         properties={
                             'uuid': GENERIC_STRING_SCHEMA,
-                            'labels': GENERIC_OBJECT_SCHEMA,  # {_default: string, ...}
+                            'labels': build_object_type(
+                                required=['_default'],
+                                properties={
+                                    '_default': GENERIC_STRING_SCHEMA,
+                                },
+                                additionalProperties=GENERIC_STRING_SCHEMA,
+                            ),  # {_default: string, [key: string]: string}
                         }
                     )
                 ),  # optional: for single/multi choice qual questions

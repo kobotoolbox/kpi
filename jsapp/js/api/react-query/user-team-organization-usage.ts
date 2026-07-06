@@ -4072,14 +4072,26 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
         language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
         source: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        type: faker.helpers.arrayElement([
+          'transcript',
+          'translation',
+          'qualVerification',
+          'qualSource',
+          'qualInteger',
+          'qualTags',
+          'qualText',
+          'qualNote',
+          'qualAutoKeywordCount',
+          'qualSelectMultiple',
+          'qualSelectOne',
+        ] as const),
         name: faker.string.alpha({ length: { min: 10, max: 20 } }),
         dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
         label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
         choices: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
             uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
-            labels: {},
+            labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
           })),
           undefined,
         ]),

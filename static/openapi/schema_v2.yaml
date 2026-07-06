@@ -15478,6 +15478,18 @@ components:
                     type: string
                   type:
                     type: string
+                    enum:
+                    - transcript
+                    - translation
+                    - qualVerification
+                    - qualSource
+                    - qualInteger
+                    - qualTags
+                    - qualText
+                    - qualNote
+                    - qualAutoKeywordCount
+                    - qualSelectMultiple
+                    - qualSelectOne
                   name:
                     type: string
                   dtpath:
@@ -15493,6 +15505,13 @@ components:
                           type: string
                         labels:
                           type: object
+                          properties:
+                            _default:
+                              type: string
+                          additionalProperties:
+                            type: string
+                          required:
+                          - _default
                       required:
                       - labels
                       - uuid
