@@ -22175,7 +22175,70 @@
                     "permissions": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "user": {
+                                    "type": "string"
+                                },
+                                "permission": {
+                                    "type": "string"
+                                },
+                                "partial_permissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "url": {
+                                                "type": "string"
+                                            },
+                                            "filters": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "label": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "default": {
+                                                    "type": "string"
+                                                },
+                                                "view_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "change_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "delete_submissions": {
+                                                    "type": "string"
+                                                },
+                                                "validate_submissions": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "default"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "permission",
+                                "url",
+                                "user"
+                            ]
                         },
                         "readOnly": true
                     },

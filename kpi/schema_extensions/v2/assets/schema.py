@@ -71,6 +71,30 @@ ASSIGNABLE_PERMISSION_SCHEMA = build_object_type(
     }
 )
 
+# Permission assignment response (actual permission grants)
+PARTIAL_PERMISSION_FILTER_SCHEMA = build_object_type(
+    properties={
+        'url': build_basic_type(OpenApiTypes.STR),
+        'filters': build_array_type(schema=build_object_type(properties={})),
+    }
+)
+
+PERMISSION_ASSIGNMENT_SCHEMA = build_object_type(
+    required=['url', 'user', 'permission'],
+    properties={
+        'url': build_basic_type(OpenApiTypes.STR),
+        'user': build_basic_type(OpenApiTypes.STR),
+        'permission': build_basic_type(OpenApiTypes.STR),
+        'partial_permissions': build_array_type(schema=PARTIAL_PERMISSION_FILTER_SCHEMA),
+        'label': {
+            'oneOf': [
+                build_basic_type(OpenApiTypes.STR),
+                ASSIGNABLE_PERMISSION_PARTIAL_LABEL_SCHEMA,
+            ]
+        },
+    }
+)
+
 REPORT_STYLE_SCHEMA = build_object_type(
     properties={
         'groupDataBy': build_basic_type(OpenApiTypes.STR),

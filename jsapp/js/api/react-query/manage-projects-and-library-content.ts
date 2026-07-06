@@ -3194,9 +3194,46 @@ export const getApiV2AssetsListResponseMock = (
         },
       ]),
     })),
-    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-      faker.string.alpha({ length: { min: 10, max: 20 } }),
-    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      partial_permissions: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          filters: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+            undefined,
+          ]),
+        })),
+        undefined,
+      ]),
+      label: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          {
+            default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            view_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            change_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            delete_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            validate_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+          },
+        ]),
+        undefined,
+      ]),
+    })),
     effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     })),
@@ -3737,9 +3774,46 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
       },
     ]),
   })),
-  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    partial_permissions: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        filters: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+      })),
+      undefined,
+    ]),
+    label: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        {
+          default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          view_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          change_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          delete_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          validate_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+        },
+      ]),
+      undefined,
+    ]),
+  })),
   effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
   })),
@@ -4279,9 +4353,46 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
       },
     ]),
   })),
-  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    partial_permissions: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        filters: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+      })),
+      undefined,
+    ]),
+    label: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        {
+          default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          view_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          change_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          delete_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          validate_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+        },
+      ]),
+      undefined,
+    ]),
+  })),
   effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
   })),
@@ -4821,9 +4932,46 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
       },
     ]),
   })),
-  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    partial_permissions: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        filters: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+      })),
+      undefined,
+    ]),
+    label: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        {
+          default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          view_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          change_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          delete_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          validate_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+        },
+      ]),
+      undefined,
+    ]),
+  })),
   effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
   })),
@@ -5393,9 +5541,46 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
         },
       ]),
     })),
-    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-      faker.string.alpha({ length: { min: 10, max: 20 } }),
-    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      partial_permissions: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          filters: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+            undefined,
+          ]),
+        })),
+        undefined,
+      ]),
+      label: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          {
+            default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            view_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            change_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            delete_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            validate_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+          },
+        ]),
+        undefined,
+      ]),
+    })),
     effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     })),
@@ -5948,9 +6133,46 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
         },
       ]),
     })),
-    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-      faker.string.alpha({ length: { min: 10, max: 20 } }),
-    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      partial_permissions: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          filters: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+            undefined,
+          ]),
+        })),
+        undefined,
+      ]),
+      label: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          {
+            default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            view_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            change_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            delete_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            validate_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+          },
+        ]),
+        undefined,
+      ]),
+    })),
     effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     })),
@@ -6503,9 +6725,46 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
         },
       ]),
     })),
-    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-      faker.string.alpha({ length: { min: 10, max: 20 } }),
-    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      partial_permissions: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          filters: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+            undefined,
+          ]),
+        })),
+        undefined,
+      ]),
+      label: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          {
+            default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            view_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            change_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            delete_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            validate_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+          },
+        ]),
+        undefined,
+      ]),
+    })),
     effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     })),

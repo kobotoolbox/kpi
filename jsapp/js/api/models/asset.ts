@@ -15,6 +15,7 @@ import type { AssetExportSettings } from './assetExportSettings'
 import type { AssetFilesItem } from './assetFilesItem'
 import type { AssetMapCustom } from './assetMapCustom'
 import type { AssetMapStyles } from './assetMapStyles'
+import type { AssetPermissionsItem } from './assetPermissionsItem'
 import type { AssetProjectOwnership } from './assetProjectOwnership'
 import type { AssetReportCustom } from './assetReportCustom'
 import type { AssetReportStyles } from './assetReportStyles'
@@ -85,7 +86,7 @@ export interface Asset {
   /** @maxLength 255 */
   name?: string
   readonly assignable_permissions: readonly AssetAssignablePermissionsItem[]
-  readonly permissions: readonly string[]
+  readonly permissions: readonly AssetPermissionsItem[]
   readonly effective_permissions: readonly AssetEffectivePermissionsItem[]
   readonly exports: string
   readonly export_settings: readonly AssetExportSettings[]

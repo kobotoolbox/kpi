@@ -32,6 +32,7 @@ from .schema import (
     BULK_ASSET_UIDS_SCHEMA,
     BULK_CONFIRM_SCHEMA,
     MAP_STYLES_SCHEMA,
+    PERMISSION_ASSIGNMENT_SCHEMA,
     REPORT_STYLE_SCHEMA,
     SURVEY_CHOICE_SCHEMA,
     SURVEY_ROW_SCHEMA,
@@ -538,7 +539,7 @@ class PermissionsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.PermissionsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_ARRAY_SCHEMA
+        return build_array_type(schema=PERMISSION_ASSIGNMENT_SCHEMA)
 
 
 class ReportCustomFieldExtension(OpenApiSerializerFieldExtension):
