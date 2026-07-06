@@ -653,6 +653,7 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
                 'row_count': build_basic_type(OpenApiTypes.INT),
                 'name_quality': name_quality_schema,
                 'default_translation': {**GENERIC_STRING_SCHEMA, 'nullable': True},
+                'naming_conflicts': build_array_type(GENERIC_STRING_SCHEMA),
             }
         )
 

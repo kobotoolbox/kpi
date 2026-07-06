@@ -739,7 +739,7 @@ export interface AssetResponse extends AssetRequestObject {
     zip_legacy: string
   }
   deployment__uuid?: string
-  deployment__encrypted?: boolean
+  deployment__encrypted: boolean
   deployment__submission_count: number
   deployment__last_submission_time: string | null
   deployment_status: 'archived' | 'deployed' | 'draft'

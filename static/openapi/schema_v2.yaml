@@ -15302,6 +15302,10 @@ components:
             default_translation:
               type: string
               nullable: true
+            naming_conflicts:
+              type: array
+              items:
+                type: string
           readOnly: true
         date_created:
           type: string

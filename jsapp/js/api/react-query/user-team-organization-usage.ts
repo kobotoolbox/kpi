@@ -3959,6 +3959,12 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
         faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
+      naming_conflicts: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
     },
     date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),

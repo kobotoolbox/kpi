@@ -22,4 +22,5 @@ export type AssetSummary = {
   readonly name_quality?: AssetSummaryNameQuality
   /** @nullable */
   readonly default_translation?: string | null
+  readonly naming_conflicts?: string[]
 }

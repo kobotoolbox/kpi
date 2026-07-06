@@ -2837,6 +2837,12 @@ export const getApiV2AssetsListResponseMock = (
         faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
+      naming_conflicts: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
     },
     date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
@@ -3157,6 +3163,12 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
     ]),
     default_translation: faker.helpers.arrayElement([
       faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    naming_conflicts: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
       undefined,
     ]),
   },
@@ -3480,6 +3492,12 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
       faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
       undefined,
     ]),
+    naming_conflicts: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
   },
   date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
@@ -3799,6 +3817,12 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
     ]),
     default_translation: faker.helpers.arrayElement([
       faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    naming_conflicts: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
       undefined,
     ]),
   },
@@ -4146,6 +4170,12 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
         faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
+      naming_conflicts: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
     },
     date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
@@ -4474,6 +4504,12 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
         faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
+      naming_conflicts: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
     },
     date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
@@ -4800,6 +4836,12 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
       ]),
       default_translation: faker.helpers.arrayElement([
         faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+        undefined,
+      ]),
+      naming_conflicts: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
         undefined,
       ]),
     },
