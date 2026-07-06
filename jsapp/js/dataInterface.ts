@@ -336,6 +336,8 @@ export interface LabelValuePair {
 
 export interface PartialPermissionFilterByUsers {
   _submitted_by?: string | { $in: string[] }
+  /** Allow additional question response filters */
+  [key: string]: unknown
 }
 
 export type PartialPermissionFilterByResponses = Record<string, string>
@@ -427,6 +429,8 @@ export interface ExportSettingSettings {
   query?: MongoQuery
   /** Only for GeoJSON */
   flatten?: boolean
+  /** Allow additional export setting properties */
+  [key: string]: unknown
 }
 
 /**
@@ -764,7 +768,7 @@ export interface AssetResponse extends AssetRequestObject {
    * that user and ones coming from the Project View definition.
    */
   effective_permissions: Array<{ codename: PermissionCodename }>
-  exports?: string
+  exports: string
   data: string
   children: {
     count: number

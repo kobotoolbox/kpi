@@ -43,7 +43,7 @@ class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AccessTypeField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_ARRAY_SCHEMA
+        return {**GENERIC_ARRAY_SCHEMA, 'nullable': True}
 
 
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):

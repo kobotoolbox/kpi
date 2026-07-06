@@ -94,7 +94,8 @@ export interface Asset {
   readonly children: AssetChildren
   readonly subscribers_count: number
   readonly status: string
-  readonly access_types: readonly string[]
+  /** @nullable */
+  readonly access_types: readonly string[] | null
   data_sharing?: AssetDataSharing
   readonly paired_data: string
   /** @nullable */

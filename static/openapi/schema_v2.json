@@ -22295,6 +22295,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "nullable": true,
                         "readOnly": true
                     },
                     "data_sharing": {
