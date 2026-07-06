@@ -21155,7 +21155,8 @@
                         "type": "object",
                         "properties": {
                             "sector": {
-                                "type": "object"
+                                "type": "object",
+                                "nullable": true
                             },
                             "country": {
                                 "type": "array",

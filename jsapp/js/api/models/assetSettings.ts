@@ -12,6 +12,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { AssetSettingsSector } from './assetSettingsSector'
 
 export type AssetSettings = {
+  /** @nullable */
   sector?: AssetSettingsSector
   country?: string[]
   description?: string

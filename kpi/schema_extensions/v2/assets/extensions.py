@@ -545,7 +545,7 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'sector': GENERIC_OBJECT_SCHEMA,
+                'sector': {**GENERIC_OBJECT_SCHEMA, 'nullable': True},
                 'country': GENERIC_ARRAY_SCHEMA,
                 'description': GENERIC_STRING_SCHEMA,
                 'collects_pii': GENERIC_STRING_SCHEMA,

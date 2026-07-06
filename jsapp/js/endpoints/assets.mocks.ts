@@ -44,6 +44,7 @@ const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) =>
 export default assetsMock
 
 // Default mock assets using Orval-generated mocks
+// TODO DEV-XXXX: Orval-generated Asset.analysis_form_json.additional_fields is string[] but should be object[]
 const defaultMockResponse: PaginatedResponse<AssetResponse> = {
   count: 2,
   next: null,
@@ -101,34 +102,35 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
         translations: [null],
       },
     }),
-  ].map((asset) => {
-    return {
-      ...asset,
-      // Override factory defaults with original mock data specifics
-      owner_label: "zefir's MMO organization",
-      version__content_hash:
-        asset.uid === 'abam8JiJ3hHTW3EYp6Tpb5'
-          ? '822573fdb551228b65ef80359b4499e62421adde'
-          : '822573fdb551228b65ef80359b4499e62421addf',
-      version_count: 3,
-      summary: {
-        geo: false,
-        labels: ['Your name'],
-        columns: ['type', 'label', 'required'],
-        lock_all: false,
-        lock_any: false,
-        languages: [],
-        row_count: 1,
-        name_quality: {
-          ok: 1,
-          bad: 0,
-          good: 0,
-          total: 1,
-          firsts: { ok: { name: 'Your_name', index: 1, label: ['Your name'] } },
+  ].map(
+    (asset) =>
+      ({
+        ...asset,
+        // Override factory defaults with original mock data specifics
+        owner_label: "zefir's MMO organization",
+        version__content_hash:
+          asset.uid === 'abam8JiJ3hHTW3EYp6Tpb5'
+            ? '822573fdb551228b65ef80359b4499e62421adde'
+            : '822573fdb551228b65ef80359b4499e62421addf',
+        version_count: 3,
+        summary: {
+          geo: false,
+          labels: ['Your name'],
+          columns: ['type', 'label', 'required'],
+          lock_all: false,
+          lock_any: false,
+          languages: [],
+          row_count: 1,
+          name_quality: {
+            ok: 1,
+            bad: 0,
+            good: 0,
+            total: 1,
+            firsts: { ok: { name: 'Your_name', index: 1, label: ['Your name'] } },
+          },
+          default_translation: null,
         },
-        default_translation: null,
-      },
-      report_styles: { default: {}, specified: { wb1gg11: {} }, kuid_names: { wb1gg11: 'wb1gg11' } },
-    }
-  }),
+        report_styles: { default: {}, specified: { wb1gg11: {} }, kuid_names: { wb1gg11: 'wb1gg11' } },
+      }) as unknown as AssetResponse,
+  ),
 }
