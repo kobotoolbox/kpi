@@ -21568,7 +21568,58 @@
                         "type": "object"
                     },
                     "advanced_features": {
-                        "type": "object"
+                        "type": "object",
+                        "properties": {
+                            "transcript": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "translation": {
+                                "type": "object",
+                                "properties": {
+                                    "values": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "languages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "qual": {
+                                "type": "object",
+                                "properties": {
+                                    "qual_survey": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": {}
+                                        }
+                                    }
+                                }
+                            },
+                            "_version": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "map_styles": {
                         "type": "object"

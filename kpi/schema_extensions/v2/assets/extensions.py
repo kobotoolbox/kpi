@@ -18,6 +18,7 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import (
+    ADVANCED_FEATURES_SCHEMA,
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_SCHEMA,
     ASSET_ENABLED_SCHEMA,
@@ -44,7 +45,7 @@ class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AdvancedFeatureField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_OBJECT_SCHEMA
+        return ADVANCED_FEATURES_SCHEMA
 
 
 class AdvancedSubmissionSchemaFieldExtension(OpenApiSerializerFieldExtension):

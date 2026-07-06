@@ -2916,7 +2916,57 @@ export const getApiV2AssetsListResponseMock = (
       undefined,
     ]),
     report_custom: faker.helpers.arrayElement([{}, undefined]),
-    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([
+      {
+        transcript: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        translation: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        qual: faker.helpers.arrayElement([
+          {
+            qual_survey: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                [faker.string.alphanumeric(5)]: {},
+              })),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_styles: faker.helpers.arrayElement([{}, undefined]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
@@ -3264,7 +3314,57 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
     undefined,
   ]),
   report_custom: faker.helpers.arrayElement([{}, undefined]),
-  advanced_features: faker.helpers.arrayElement([{}, undefined]),
+  advanced_features: faker.helpers.arrayElement([
+    {
+      transcript: faker.helpers.arrayElement([
+        {
+          values: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          languages: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      translation: faker.helpers.arrayElement([
+        {
+          values: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          languages: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      qual: faker.helpers.arrayElement([
+        {
+          qual_survey: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+              [faker.string.alphanumeric(5)]: {},
+            })),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    },
+    undefined,
+  ]),
   map_styles: faker.helpers.arrayElement([{}, undefined]),
   map_custom: faker.helpers.arrayElement([{}, undefined]),
   content: faker.helpers.arrayElement([
@@ -3611,7 +3711,57 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
     undefined,
   ]),
   report_custom: faker.helpers.arrayElement([{}, undefined]),
-  advanced_features: faker.helpers.arrayElement([{}, undefined]),
+  advanced_features: faker.helpers.arrayElement([
+    {
+      transcript: faker.helpers.arrayElement([
+        {
+          values: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          languages: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      translation: faker.helpers.arrayElement([
+        {
+          values: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          languages: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      qual: faker.helpers.arrayElement([
+        {
+          qual_survey: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+              [faker.string.alphanumeric(5)]: {},
+            })),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    },
+    undefined,
+  ]),
   map_styles: faker.helpers.arrayElement([{}, undefined]),
   map_custom: faker.helpers.arrayElement([{}, undefined]),
   content: faker.helpers.arrayElement([
@@ -3958,7 +4108,57 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
     undefined,
   ]),
   report_custom: faker.helpers.arrayElement([{}, undefined]),
-  advanced_features: faker.helpers.arrayElement([{}, undefined]),
+  advanced_features: faker.helpers.arrayElement([
+    {
+      transcript: faker.helpers.arrayElement([
+        {
+          values: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          languages: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      translation: faker.helpers.arrayElement([
+        {
+          values: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          languages: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      qual: faker.helpers.arrayElement([
+        {
+          qual_survey: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+              [faker.string.alphanumeric(5)]: {},
+            })),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    },
+    undefined,
+  ]),
   map_styles: faker.helpers.arrayElement([{}, undefined]),
   map_custom: faker.helpers.arrayElement([{}, undefined]),
   content: faker.helpers.arrayElement([
@@ -4329,7 +4529,57 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
       undefined,
     ]),
     report_custom: faker.helpers.arrayElement([{}, undefined]),
-    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([
+      {
+        transcript: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        translation: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        qual: faker.helpers.arrayElement([
+          {
+            qual_survey: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                [faker.string.alphanumeric(5)]: {},
+              })),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_styles: faker.helpers.arrayElement([{}, undefined]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
@@ -4683,7 +4933,57 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
       undefined,
     ]),
     report_custom: faker.helpers.arrayElement([{}, undefined]),
-    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([
+      {
+        transcript: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        translation: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        qual: faker.helpers.arrayElement([
+          {
+            qual_survey: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                [faker.string.alphanumeric(5)]: {},
+              })),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_styles: faker.helpers.arrayElement([{}, undefined]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
@@ -5037,7 +5337,57 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
       undefined,
     ]),
     report_custom: faker.helpers.arrayElement([{}, undefined]),
-    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([
+      {
+        transcript: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        translation: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        qual: faker.helpers.arrayElement([
+          {
+            qual_survey: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                [faker.string.alphanumeric(5)]: {},
+              })),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_styles: faker.helpers.arrayElement([{}, undefined]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([

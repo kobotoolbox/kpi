@@ -55,3 +55,26 @@ REPORT_STYLE_SCHEMA = build_object_type(
         'graphWidth': build_basic_type(OpenApiTypes.INT),
     }
 )
+
+ADVANCED_FEATURES_SCHEMA = build_object_type(
+    properties={
+        'transcript': build_object_type(
+            properties={
+                'values': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+                'languages': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+            }
+        ),
+        'translation': build_object_type(
+            properties={
+                'values': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+                'languages': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+            }
+        ),
+        'qual': build_object_type(
+            properties={
+                'qual_survey': build_array_type(schema=build_basic_type(OpenApiTypes.OBJECT)),
+            }
+        ),
+        '_version': build_basic_type(OpenApiTypes.STR),
+    }
+)
