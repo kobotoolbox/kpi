@@ -379,6 +379,7 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
                 'previous': {**GENERIC_STRING_SCHEMA, 'nullable': True},
                 'results': build_array_type(
                     schema=build_object_type(
+                        required=['uid', 'url', 'content_hash', 'date_deployed', 'date_modified'],
                         properties={
                             'uid': GENERIC_STRING_SCHEMA,
                             'url': build_url_type(

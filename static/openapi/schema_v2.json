@@ -21438,7 +21438,14 @@
                                             "type": "string",
                                             "format": "date-time"
                                         }
-                                    }
+                                    },
+                                    "required": [
+                                        "content_hash",
+                                        "date_deployed",
+                                        "date_modified",
+                                        "uid",
+                                        "url"
+                                    ]
                                 }
                             }
                         },
