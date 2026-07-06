@@ -41,6 +41,11 @@ const config: Config = {
     ...defaults.testPathIgnorePatterns, // 📦 exclude '/node_modules/'
   ],
 
+  // Transform ESM modules from node_modules (MSW and its dependencies)
+  transformIgnorePatterns: [
+    'node_modules/(?!(msw|@mswjs|@bundled-es-modules|statuses|until-async)/)',
+  ],
+
   // Set up test environment
   testEnvironment: 'jsdom',
 

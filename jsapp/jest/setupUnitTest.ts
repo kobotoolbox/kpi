@@ -9,6 +9,18 @@ import $ from 'jquery'
 Object.defineProperty(globalThis, 'TextEncoder', { value: TextEncoder, configurable: true })
 Object.defineProperty(globalThis, 'TextDecoder', { value: TextDecoder, configurable: true })
 
+// MSW needs BroadcastChannel for WebSocket mocking
+if (typeof globalThis.BroadcastChannel === 'undefined') {
+  // @ts-expect-error: Minimal polyfill for test environment
+  globalThis.BroadcastChannel = class BroadcastChannel {
+    constructor(public name: string) {}
+    postMessage() {}
+    close() {}
+    addEventListener() {}
+    removeEventListener() {}
+  }
+}
+
 // Add global t() mock (see /static/js/global_t.js)
 global.t = (str: string) => str
 
