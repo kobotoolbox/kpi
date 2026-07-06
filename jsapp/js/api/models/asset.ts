@@ -64,7 +64,8 @@ export interface Asset {
   /** @nullable */
   readonly deployment__last_submission_time: string | null
   readonly deployment__encrypted: boolean
-  readonly deployment__uuid: string
+  /** @nullable */
+  readonly deployment__uuid: string | null
   readonly deployment_status: AssetDeploymentStatusEnum
   report_styles?: AssetReportStyles
   report_custom?: AssetReportCustom

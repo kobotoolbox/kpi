@@ -21478,6 +21478,7 @@
                     },
                     "deployment__uuid": {
                         "type": "string",
+                        "nullable": true,
                         "readOnly": true
                     },
                     "deployment_status": {

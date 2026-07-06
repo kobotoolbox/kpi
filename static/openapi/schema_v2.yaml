@@ -15393,6 +15393,7 @@ components:
           readOnly: true
         deployment__uuid:
           type: string
+          nullable: true
           readOnly: true
         deployment_status:
           allOf:

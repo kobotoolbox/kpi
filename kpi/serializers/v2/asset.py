@@ -809,7 +809,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return None
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field({'type': 'string', 'nullable': True})
     def get_deployment__uuid(self, obj):
         return obj.deployment.form_uuid if obj.has_deployment else None
 

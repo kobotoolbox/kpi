@@ -2876,7 +2876,7 @@ export const getApiV2AssetsListResponseMock = (
       null,
     ]),
     deployment__encrypted: faker.datatype.boolean(),
-    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
@@ -3204,7 +3204,7 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
     null,
   ]),
   deployment__encrypted: faker.datatype.boolean(),
-  deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
   report_styles: faker.helpers.arrayElement([
     {
@@ -3531,7 +3531,7 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
     null,
   ]),
   deployment__encrypted: faker.datatype.boolean(),
-  deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
   report_styles: faker.helpers.arrayElement([
     {
@@ -3858,7 +3858,7 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
     null,
   ]),
   deployment__encrypted: faker.datatype.boolean(),
-  deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
   report_styles: faker.helpers.arrayElement([
     {
@@ -4209,7 +4209,7 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
       null,
     ]),
     deployment__encrypted: faker.datatype.boolean(),
-    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
@@ -4543,7 +4543,7 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
       null,
     ]),
     deployment__encrypted: faker.datatype.boolean(),
-    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
@@ -4877,7 +4877,7 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
       null,
     ]),
     deployment__encrypted: faker.datatype.boolean(),
-    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {

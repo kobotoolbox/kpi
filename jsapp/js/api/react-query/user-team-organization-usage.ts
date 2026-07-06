@@ -3998,7 +3998,7 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       null,
     ]),
     deployment__encrypted: faker.datatype.boolean(),
-    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
