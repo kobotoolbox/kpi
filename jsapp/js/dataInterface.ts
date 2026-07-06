@@ -728,7 +728,7 @@ export interface AssetResponse extends AssetRequestObject {
     single_once_iframe_url?: string
   }
   deployment__active: boolean
-  deployment__data_download_links?: {
+  deployment__data_download_links: {
     csv_legacy: string
     csv: string
     geojson?: string
