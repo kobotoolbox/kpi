@@ -562,15 +562,19 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
             }
         )
 
+        # collects_pii and operational_purpose are also LabelValuePair objects, nullable
+        collects_pii_schema = {**label_value_pair_schema, 'nullable': True}
+        operational_purpose_schema = {**label_value_pair_schema, 'nullable': True}
+
         return build_object_type(
             properties={
                 'sector': sector_schema,
                 'country': {**build_array_type(schema=label_value_pair_schema), 'nullable': True},
                 'description': GENERIC_STRING_SCHEMA,
-                'collects_pii': GENERIC_STRING_SCHEMA,
-                'organization': GENERIC_STRING_SCHEMA,
+                'collects_pii': collects_pii_schema,
+                'organization': {**GENERIC_STRING_SCHEMA, 'nullable': True},
                 'country_codes': GENERIC_ARRAY_SCHEMA,
-                'operational_purpose': GENERIC_STRING_SCHEMA,
+                'operational_purpose': operational_purpose_schema,
             }
         )
 

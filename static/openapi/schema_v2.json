@@ -21185,10 +21185,20 @@
                                 "type": "string"
                             },
                             "collects_pii": {
-                                "type": "string"
+                                "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "nullable": true
                             },
                             "organization": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
                             },
                             "country_codes": {
                                 "type": "array",
@@ -21197,7 +21207,16 @@
                                 }
                             },
                             "operational_purpose": {
-                                "type": "string"
+                                "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "nullable": true
                             }
                         }
                     },

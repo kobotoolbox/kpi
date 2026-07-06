@@ -15190,15 +15190,28 @@ components:
             description:
               type: string
             collects_pii:
-              type: string
+              type: object
+              properties:
+                label:
+                  type: string
+                value:
+                  type: string
+              nullable: true
             organization:
               type: string
+              nullable: true
             country_codes:
               type: array
               items:
                 type: string
             operational_purpose:
-              type: string
+              type: object
+              properties:
+                label:
+                  type: string
+                value:
+                  type: string
+              nullable: true
         asset_type:
           $ref: '#/components/schemas/AssetTypeEnum'
         files:
