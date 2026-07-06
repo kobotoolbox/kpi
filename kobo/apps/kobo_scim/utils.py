@@ -73,13 +73,9 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     matched_any = False
 
     extra_details_updated = False
-    profile_updates = {}
-    profile_field_to_metadata_key = {}
-
     extra_user_detail = None
     metadata = {}
     original_metadata = {}
-    profile = None
 
     first_name = get_scim_value(scim_data, 'name.givenName')
     last_name = get_scim_value(scim_data, 'name.familyName')
@@ -114,16 +110,7 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     if not isinstance(metadata_fields, list):
         metadata_fields = []
 
-    # Fields that map directly to UserProfile model attributes
-    user_profile_fields = {
-        'name',
-        'city',
-        'country',
-        'organization',
-        'twitter',
-        'address',
-    }
-
+    # Fields that map to SCIM values
     for field_def in metadata_fields:
         field_name = field_def.get('name')
         scim_mapping = field_def.get('scim_mapping')
@@ -149,69 +136,19 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
             # Snapshot original metadata to safely recover previously valid fields
             original_metadata = dict(metadata)
 
-        if profile is None:
-            profile, _ = UserProfile.objects.get_or_create(user=user)
-
         # Apply value mapping if defined
         value_mapping = field_def.get('scim_value_mapping')
         if isinstance(value_mapping, dict) and str(value) in value_mapping:
             value = value_mapping[str(value)]
 
-        # Determine where to save the field in UserProfile
-        if field_name == 'bio':
-            profile.description = value
-            profile_updates['description'] = value
-            profile_field_to_metadata_key['description'] = field_name
-        elif field_name == 'organization_website':
-            profile.home_page = value
-            profile_updates['home_page'] = value
-            profile_field_to_metadata_key['home_page'] = field_name
-        elif field_name == 'phone_number':
-            profile.phonenumber = value
-            profile_updates['phonenumber'] = value
-            profile_field_to_metadata_key['phonenumber'] = field_name
-        elif field_name in user_profile_fields:
-            setattr(profile, field_name, value)
-            profile_updates[field_name] = value
-            profile_field_to_metadata_key[field_name] = field_name
-
         # Always save to ExtraUserDetail.data for a complete metadata source
         metadata[field_name] = value
         extra_details_updated = True
 
-    if extra_details_updated or profile_updates:
+    if extra_details_updated:
         with transaction.atomic():
-            if profile_updates:
-                try:
-                    profile.full_clean()
-                    profile.save(update_fields=list(profile_updates.keys()))
-                except DjangoValidationError as e:
-                    if enforce_strict_validation:
-                        raise DRFValidationError(e.message_dict)
-                    else:
-                        # Gracefully discard invalid fields and save the rest
-                        profile.refresh_from_db()
-                        valid_fields = []
-                        for field, val in profile_updates.items():
-                            if field not in e.error_dict:
-                                setattr(profile, field, val)
-                                valid_fields.append(field)
-                            else:
-                                metadata_key = profile_field_to_metadata_key.get(field)
-                                if metadata_key and metadata_key in metadata:
-                                    if metadata_key in original_metadata:
-                                        metadata[metadata_key] = original_metadata[
-                                            metadata_key
-                                        ]
-                                    else:
-                                        del metadata[metadata_key]
-
-                        if valid_fields:
-                            profile.save(update_fields=valid_fields)
-
-            if extra_details_updated:
-                extra_user_detail.data = metadata
-                extra_user_detail.save(update_fields=['data'])
+            extra_user_detail.data = metadata
+            extra_user_detail.save(update_fields=['data'])
 
     return matched_any
 
