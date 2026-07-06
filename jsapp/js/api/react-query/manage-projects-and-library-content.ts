@@ -2939,9 +2939,21 @@ export const getApiV2AssetsListResponseMock = (
     })),
     analysis_form_json: {
       additional_fields: faker.helpers.arrayElement([
-        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-          faker.string.alpha({ length: { min: 10, max: 20 } }),
-        ),
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          choices: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+              uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              labels: {},
+            })),
+            undefined,
+          ]),
+        })),
         undefined,
       ]),
     },
@@ -3249,9 +3261,21 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
   })),
   analysis_form_json: {
     additional_fields: faker.helpers.arrayElement([
-      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-        faker.string.alpha({ length: { min: 10, max: 20 } }),
-      ),
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        choices: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            labels: {},
+          })),
+          undefined,
+        ]),
+      })),
       undefined,
     ]),
   },
@@ -3558,9 +3582,21 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
   })),
   analysis_form_json: {
     additional_fields: faker.helpers.arrayElement([
-      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-        faker.string.alpha({ length: { min: 10, max: 20 } }),
-      ),
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        choices: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            labels: {},
+          })),
+          undefined,
+        ]),
+      })),
       undefined,
     ]),
   },
@@ -3867,9 +3903,21 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
   })),
   analysis_form_json: {
     additional_fields: faker.helpers.arrayElement([
-      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-        faker.string.alpha({ length: { min: 10, max: 20 } }),
-      ),
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        choices: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            labels: {},
+          })),
+          undefined,
+        ]),
+      })),
       undefined,
     ]),
   },
@@ -4200,9 +4248,21 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
     })),
     analysis_form_json: {
       additional_fields: faker.helpers.arrayElement([
-        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-          faker.string.alpha({ length: { min: 10, max: 20 } }),
-        ),
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          choices: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+              uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              labels: {},
+            })),
+            undefined,
+          ]),
+        })),
         undefined,
       ]),
     },
@@ -4516,9 +4576,21 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
     })),
     analysis_form_json: {
       additional_fields: faker.helpers.arrayElement([
-        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-          faker.string.alpha({ length: { min: 10, max: 20 } }),
-        ),
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          choices: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+              uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              labels: {},
+            })),
+            undefined,
+          ]),
+        })),
         undefined,
       ]),
     },
@@ -4832,9 +4904,21 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
     })),
     analysis_form_json: {
       additional_fields: faker.helpers.arrayElement([
-        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-          faker.string.alpha({ length: { min: 10, max: 20 } }),
-        ),
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          choices: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+              uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              labels: {},
+            })),
+            undefined,
+          ]),
+        })),
         undefined,
       ]),
     },

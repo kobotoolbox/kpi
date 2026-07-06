@@ -15465,7 +15465,37 @@ components:
             additional_fields:
               type: array
               items:
-                type: string
+                type: object
+                properties:
+                  language:
+                    type: string
+                  source:
+                    type: string
+                  type:
+                    type: string
+                  name:
+                    type: string
+                  dtpath:
+                    type: string
+                  label:
+                    type: string
+                  choices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uuid:
+                          type: string
+                        labels:
+                          type: object
+                      required:
+                      - labels
+                      - uuid
+                required:
+                - dtpath
+                - name
+                - source
+                - type
           readOnly: true
         xform_link:
           type: string

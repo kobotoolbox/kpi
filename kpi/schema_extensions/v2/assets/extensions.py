@@ -64,9 +64,31 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AnalysisFormJsonField'
 
     def map_serializer_field(self, auto_schema, direction):
+        # Define the structure for each additional_fields item
+        additional_field_item = build_object_type(
+            required=['source', 'type', 'name', 'dtpath'],
+            properties={
+                'language': GENERIC_STRING_SCHEMA,  # optional: two letter language code
+                'source': GENERIC_STRING_SCHEMA,  # required: path to form question
+                'type': GENERIC_STRING_SCHEMA,  # required: e.g. 'transcript', 'translation', 'qual*'
+                'name': GENERIC_STRING_SCHEMA,  # required
+                'dtpath': GENERIC_STRING_SCHEMA,  # required: data table path
+                'label': GENERIC_STRING_SCHEMA,  # optional: question label or 'source'/'verified'
+                'choices': build_array_type(
+                    build_object_type(
+                        required=['uuid', 'labels'],
+                        properties={
+                            'uuid': GENERIC_STRING_SCHEMA,
+                            'labels': GENERIC_OBJECT_SCHEMA,  # {_default: string, ...}
+                        }
+                    )
+                ),  # optional: for single/multi choice qual questions
+            }
+        )
+
         return build_object_type(
             properties={
-                'additional_fields': GENERIC_ARRAY_SCHEMA,
+                'additional_fields': build_array_type(additional_field_item),
             }
         )
 
