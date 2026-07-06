@@ -543,9 +543,20 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.SettingsField'
 
     def map_serializer_field(self, auto_schema, direction):
+        # Sector can be: null (no selection), {} (empty default), or {label, value} (LabelValuePair)
+        sector_schema = {
+            **build_object_type(
+                properties={
+                    'label': GENERIC_STRING_SCHEMA,
+                    'value': GENERIC_STRING_SCHEMA,
+                }
+            ),
+            'nullable': True,
+        }
+
         return build_object_type(
             properties={
-                'sector': {**GENERIC_OBJECT_SCHEMA, 'nullable': True},
+                'sector': sector_schema,
                 'country': GENERIC_ARRAY_SCHEMA,
                 'description': GENERIC_STRING_SCHEMA,
                 'collects_pii': GENERIC_STRING_SCHEMA,

@@ -21156,6 +21156,14 @@
                         "properties": {
                             "sector": {
                                 "type": "object",
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
                                 "nullable": true
                             },
                             "country": {

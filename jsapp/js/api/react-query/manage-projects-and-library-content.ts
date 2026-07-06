@@ -2694,7 +2694,13 @@ export const getApiV2AssetsListResponseMock = (
     parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
     settings: faker.helpers.arrayElement([
       {
-        sector: faker.helpers.arrayElement([{}, undefined]),
+        sector: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
         country: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
             faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -2970,7 +2976,13 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
   parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   settings: faker.helpers.arrayElement([
     {
-      sector: faker.helpers.arrayElement([{}, undefined]),
+      sector: faker.helpers.arrayElement([
+        {
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
       country: faker.helpers.arrayElement([
         Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
           faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -3242,7 +3254,13 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
   parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   settings: faker.helpers.arrayElement([
     {
-      sector: faker.helpers.arrayElement([{}, undefined]),
+      sector: faker.helpers.arrayElement([
+        {
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
       country: faker.helpers.arrayElement([
         Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
           faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -3514,7 +3532,13 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
   parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   settings: faker.helpers.arrayElement([
     {
-      sector: faker.helpers.arrayElement([{}, undefined]),
+      sector: faker.helpers.arrayElement([
+        {
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
       country: faker.helpers.arrayElement([
         Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
           faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -3810,7 +3834,13 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
     parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
     settings: faker.helpers.arrayElement([
       {
-        sector: faker.helpers.arrayElement([{}, undefined]),
+        sector: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
         country: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
             faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -4092,7 +4122,13 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
     parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
     settings: faker.helpers.arrayElement([
       {
-        sector: faker.helpers.arrayElement([{}, undefined]),
+        sector: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
         country: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
             faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -4374,7 +4410,13 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
     parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
     settings: faker.helpers.arrayElement([
       {
-        sector: faker.helpers.arrayElement([{}, undefined]),
+        sector: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
         country: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
             faker.string.alpha({ length: { min: 10, max: 20 } }),

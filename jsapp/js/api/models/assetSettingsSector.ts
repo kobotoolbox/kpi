@@ -13,4 +13,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 /**
  * @nullable
  */
-export type AssetSettingsSector = { [key: string]: unknown } | null
+export type AssetSettingsSector = {
+  label?: string
+  value?: string
+} | null
