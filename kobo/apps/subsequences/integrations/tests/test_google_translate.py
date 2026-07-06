@@ -91,12 +91,7 @@ class TestGoogleTranslate(TestCase):
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_async_translation_returns_failed_timeout_and_saves_operation(self):
-        """
-        Start a large translation, return the retry-later failure on timeout,
-        and keep the Google operation name in cache so later manual
-        requests poll instead of starting a duplicate job
-        """
+    def test_async_translation_returns_in_progress_timeout_and_saves_operation(self):
         service = self._build_service()
         operation = MagicMock()
         operation.operation.name = 'operations/translate-1'
@@ -122,13 +117,7 @@ class TestGoogleTranslate(TestCase):
                         )
 
         cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
-        assert response == {
-            'status': 'failed',
-            'error': (
-                'Timed out waiting for translation results. Translation may still '
-                'be running. Try again in 5 minutes.'
-            ),
-        }
+        assert response == {'status': 'in_progress'}
         assert cache.get(cache_key) == 'operations/translate-1'
 
     @override_config(
@@ -174,10 +163,10 @@ class TestGoogleTranslate(TestCase):
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_async_translation_reuses_cached_operation_and_returns_retry_later(self):
+    def test_async_translation_reuses_cached_operation_and_returns_in_progress(self):
         """
-        When a cached async translation is still running, return the retry-later
-        failure and keep the cached operation for a later manual retry
+        When a cached async translation is still running, return 'in_progress'
+        and keep the cached operation so the next background poll resumes it
         """
         service = self._build_service()
         cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
@@ -201,13 +190,7 @@ class TestGoogleTranslate(TestCase):
                         },
                     )
 
-        assert response == {
-            'status': 'failed',
-            'error': (
-                'Timed out waiting for translation results. Translation may still '
-                'be running. Try again in 5 minutes.'
-            ),
-        }
+        assert response == {'status': 'in_progress'}
         assert cache.get(cache_key) == 'operations/translate-1'
 
     @override_config(
@@ -268,13 +251,7 @@ class TestGoogleTranslate(TestCase):
                             )
 
         cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
-        assert response == {
-            'status': 'failed',
-            'error': (
-                'Timed out waiting for translation results. Translation may still '
-                'be running. Try again in 5 minutes.'
-            ),
-        }
+        assert response == {'status': 'in_progress'}
         assert cache.get(cache_key) == 'operations/translate-2'
 
     @override_config(
