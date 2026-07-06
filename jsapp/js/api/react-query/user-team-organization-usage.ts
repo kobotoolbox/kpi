@@ -4078,7 +4078,26 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
           {
             qual_survey: faker.helpers.arrayElement([
               Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-                [faker.string.alphanumeric(5)]: {},
+                type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                options: faker.helpers.arrayElement([
+                  { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                  undefined,
+                ]),
+                xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                choices: faker.helpers.arrayElement([
+                  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                    labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                    uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    options: faker.helpers.arrayElement([
+                      { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                      undefined,
+                    ]),
+                  })),
+                  undefined,
+                ]),
               })),
               undefined,
             ]),

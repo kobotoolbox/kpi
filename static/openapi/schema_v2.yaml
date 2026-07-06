@@ -15485,7 +15485,58 @@ components:
                   type: array
                   items:
                     type: object
-                    additionalProperties: {}
+                    properties:
+                      type:
+                        type: string
+                      labels:
+                        type: object
+                        properties:
+                          _default:
+                            type: string
+                        additionalProperties:
+                          type: string
+                        required:
+                        - _default
+                      uuid:
+                        type: string
+                      options:
+                        type: object
+                        properties:
+                          deleted:
+                            type: boolean
+                      xpath:
+                        type: string
+                      scope:
+                        type: string
+                      choices:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            labels:
+                              type: object
+                              properties:
+                                _default:
+                                  type: string
+                              additionalProperties:
+                                type: string
+                              required:
+                              - _default
+                            uuid:
+                              type: string
+                            options:
+                              type: object
+                              properties:
+                                deleted:
+                                  type: boolean
+                          required:
+                          - labels
+                          - uuid
+                    required:
+                    - labels
+                    - scope
+                    - type
+                    - xpath
             _version:
               type: string
         map_styles:

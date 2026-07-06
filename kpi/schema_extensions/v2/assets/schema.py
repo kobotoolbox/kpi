@@ -56,6 +56,44 @@ REPORT_STYLE_SCHEMA = build_object_type(
     }
 )
 
+ANALYSIS_QUESTION_LABELS_SCHEMA = build_object_type(
+    required=['_default'],
+    properties={
+        '_default': build_basic_type(OpenApiTypes.STR),
+    },
+    additionalProperties=build_basic_type(OpenApiTypes.STR),
+)
+
+ANALYSIS_QUESTION_CHOICE_SCHEMA = build_object_type(
+    required=['labels', 'uuid'],
+    properties={
+        'labels': ANALYSIS_QUESTION_LABELS_SCHEMA,
+        'uuid': build_basic_type(OpenApiTypes.STR),
+        'options': build_object_type(
+            properties={
+                'deleted': build_basic_type(OpenApiTypes.BOOL),
+            }
+        ),
+    }
+)
+
+ANALYSIS_QUESTION_SCHEMA = build_object_type(
+    required=['type', 'labels', 'xpath', 'scope'],
+    properties={
+        'type': build_basic_type(OpenApiTypes.STR),
+        'labels': ANALYSIS_QUESTION_LABELS_SCHEMA,
+        'uuid': build_basic_type(OpenApiTypes.STR),
+        'options': build_object_type(
+            properties={
+                'deleted': build_basic_type(OpenApiTypes.BOOL),
+            }
+        ),
+        'xpath': build_basic_type(OpenApiTypes.STR),
+        'scope': build_basic_type(OpenApiTypes.STR),
+        'choices': build_array_type(schema=ANALYSIS_QUESTION_CHOICE_SCHEMA),
+    }
+)
+
 ADVANCED_FEATURES_SCHEMA = build_object_type(
     properties={
         'transcript': build_object_type(
@@ -72,7 +110,7 @@ ADVANCED_FEATURES_SCHEMA = build_object_type(
         ),
         'qual': build_object_type(
             properties={
-                'qual_survey': build_array_type(schema=build_basic_type(OpenApiTypes.OBJECT)),
+                'qual_survey': build_array_type(schema=ANALYSIS_QUESTION_SCHEMA),
             }
         ),
         '_version': build_basic_type(OpenApiTypes.STR),

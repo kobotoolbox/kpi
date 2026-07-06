@@ -2956,7 +2956,26 @@ export const getApiV2AssetsListResponseMock = (
           {
             qual_survey: faker.helpers.arrayElement([
               Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-                [faker.string.alphanumeric(5)]: {},
+                type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                options: faker.helpers.arrayElement([
+                  { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                  undefined,
+                ]),
+                xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                choices: faker.helpers.arrayElement([
+                  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                    labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                    uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    options: faker.helpers.arrayElement([
+                      { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                      undefined,
+                    ]),
+                  })),
+                  undefined,
+                ]),
               })),
               undefined,
             ]),
@@ -3354,7 +3373,26 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
         {
           qual_survey: faker.helpers.arrayElement([
             Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-              [faker.string.alphanumeric(5)]: {},
+              type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+              uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+              options: faker.helpers.arrayElement([
+                { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                undefined,
+              ]),
+              xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              choices: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                  labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                  uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  options: faker.helpers.arrayElement([
+                    { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                    undefined,
+                  ]),
+                })),
+                undefined,
+              ]),
             })),
             undefined,
           ]),
@@ -3751,7 +3789,26 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
         {
           qual_survey: faker.helpers.arrayElement([
             Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-              [faker.string.alphanumeric(5)]: {},
+              type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+              uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+              options: faker.helpers.arrayElement([
+                { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                undefined,
+              ]),
+              xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              choices: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                  labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                  uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  options: faker.helpers.arrayElement([
+                    { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                    undefined,
+                  ]),
+                })),
+                undefined,
+              ]),
             })),
             undefined,
           ]),
@@ -4148,7 +4205,26 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
         {
           qual_survey: faker.helpers.arrayElement([
             Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-              [faker.string.alphanumeric(5)]: {},
+              type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+              uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+              options: faker.helpers.arrayElement([
+                { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                undefined,
+              ]),
+              xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              choices: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                  labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                  uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  options: faker.helpers.arrayElement([
+                    { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                    undefined,
+                  ]),
+                })),
+                undefined,
+              ]),
             })),
             undefined,
           ]),
@@ -4569,7 +4645,26 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
           {
             qual_survey: faker.helpers.arrayElement([
               Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-                [faker.string.alphanumeric(5)]: {},
+                type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                options: faker.helpers.arrayElement([
+                  { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                  undefined,
+                ]),
+                xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                choices: faker.helpers.arrayElement([
+                  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                    labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                    uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    options: faker.helpers.arrayElement([
+                      { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                      undefined,
+                    ]),
+                  })),
+                  undefined,
+                ]),
               })),
               undefined,
             ]),
@@ -4973,7 +5068,26 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
           {
             qual_survey: faker.helpers.arrayElement([
               Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-                [faker.string.alphanumeric(5)]: {},
+                type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                options: faker.helpers.arrayElement([
+                  { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                  undefined,
+                ]),
+                xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                choices: faker.helpers.arrayElement([
+                  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                    labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                    uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    options: faker.helpers.arrayElement([
+                      { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                      undefined,
+                    ]),
+                  })),
+                  undefined,
+                ]),
               })),
               undefined,
             ]),
@@ -5377,7 +5491,26 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
           {
             qual_survey: faker.helpers.arrayElement([
               Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-                [faker.string.alphanumeric(5)]: {},
+                type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                options: faker.helpers.arrayElement([
+                  { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                  undefined,
+                ]),
+                xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                choices: faker.helpers.arrayElement([
+                  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                    labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                    uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    options: faker.helpers.arrayElement([
+                      { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                      undefined,
+                    ]),
+                  })),
+                  undefined,
+                ]),
               })),
               undefined,
             ]),
