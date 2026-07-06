@@ -12,6 +12,7 @@ import type { AssetDownloadsItem } from './assetDownloadsItem'
 import type { AssetEffectivePermissionsItem } from './assetEffectivePermissionsItem'
 import type { AssetEmbedsItem } from './assetEmbedsItem'
 import type { AssetExportSettings } from './assetExportSettings'
+import type { AssetFilesItem } from './assetFilesItem'
 import type { AssetMapCustom } from './assetMapCustom'
 import type { AssetMapStyles } from './assetMapStyles'
 import type { AssetProjectOwnership } from './assetProjectOwnership'
@@ -41,7 +42,7 @@ export interface Asset {
   parent?: string | null
   settings?: AssetSettings
   asset_type: AssetTypeEnum
-  readonly files: readonly string[]
+  readonly files: readonly AssetFilesItem[]
   readonly summary: AssetSummary
   date_created?: string
   date_modified?: string

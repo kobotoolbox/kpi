@@ -15217,7 +15217,28 @@ components:
         files:
           type: array
           items:
-            type: string
+            type: object
+            properties:
+              uid:
+                type: string
+              url:
+                type: string
+              asset:
+                type: string
+              user:
+                type: string
+              user__username:
+                type: string
+              file_type:
+                type: string
+              description:
+                type: string
+              date_created:
+                type: string
+              content:
+                type: string
+              metadata:
+                type: object
           readOnly: true
         summary:
           type: object

@@ -392,7 +392,22 @@ class FileListFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.FileListField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_ARRAY_SCHEMA
+        # Files is an array of AssetFileSerializer objects
+        asset_file_schema = build_object_type(
+            properties={
+                'uid': GENERIC_STRING_SCHEMA,
+                'url': GENERIC_STRING_SCHEMA,
+                'asset': GENERIC_STRING_SCHEMA,
+                'user': GENERIC_STRING_SCHEMA,
+                'user__username': GENERIC_STRING_SCHEMA,
+                'file_type': GENERIC_STRING_SCHEMA,
+                'description': GENERIC_STRING_SCHEMA,
+                'date_created': GENERIC_STRING_SCHEMA,
+                'content': GENERIC_STRING_SCHEMA,
+                'metadata': GENERIC_OBJECT_SCHEMA,
+            }
+        )
+        return build_array_type(schema=asset_file_schema)
 
 
 class HasDeploymentFieldExtension(OpenApiSerializerFieldExtension):
