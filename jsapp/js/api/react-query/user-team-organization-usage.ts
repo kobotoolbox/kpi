@@ -4291,9 +4291,31 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
     kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
     xls_link: faker.internet.url(),
     name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
-    assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
-      () => ({}),
-    ),
+    assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      label: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        {
+          default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          view_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          change_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          delete_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          validate_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+        },
+      ]),
+    })),
     permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.string.alpha({ length: { min: 10, max: 20 } }),
     ),

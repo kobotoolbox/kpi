@@ -706,7 +706,7 @@ export interface AssetResponse extends AssetRequestObject {
   version_count: number
   has_deployment: boolean
   deployed_version_id: string | null
-  analysis_form_json?: {
+  analysis_form_json: {
     additional_fields: AnalysisFormJsonField[]
   }
   deployed_versions: {
@@ -748,15 +748,15 @@ export interface AssetResponse extends AssetRequestObject {
   deployment__last_submission_time: string | null
   deployment_status: 'archived' | 'deployed' | 'draft' | '-'
   downloads: AssetDownloads
-  embeds?: Array<{
+  embeds: Array<{
     format: string
     url: string
   }>
-  xform_link?: string
-  hooks_link?: string
+  xform_link: string
+  hooks_link: string
   uid: string
   kind: string
-  xls_link?: string
+  xls_link: string
   assignable_permissions: AssignablePermission[]
   /**
    * A list of all permissions (their codenames) that current user has in

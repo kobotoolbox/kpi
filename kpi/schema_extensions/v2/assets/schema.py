@@ -46,6 +46,31 @@ BULK_ASSET_UIDS_SCHEMA = build_object_type(
 
 BULK_CONFIRM_SCHEMA = build_basic_type(OpenApiTypes.BOOL)
 
+# Assignable permissions can have label as string (regular) or object (partial)
+ASSIGNABLE_PERMISSION_PARTIAL_LABEL_SCHEMA = build_object_type(
+    required=['default'],
+    properties={
+        'default': build_basic_type(OpenApiTypes.STR),
+        'view_submissions': build_basic_type(OpenApiTypes.STR),
+        'change_submissions': build_basic_type(OpenApiTypes.STR),
+        'delete_submissions': build_basic_type(OpenApiTypes.STR),
+        'validate_submissions': build_basic_type(OpenApiTypes.STR),
+    }
+)
+
+ASSIGNABLE_PERMISSION_SCHEMA = build_object_type(
+    required=['url', 'label'],
+    properties={
+        'url': build_basic_type(OpenApiTypes.STR),
+        'label': {
+            'oneOf': [
+                build_basic_type(OpenApiTypes.STR),
+                ASSIGNABLE_PERMISSION_PARTIAL_LABEL_SCHEMA,
+            ]
+        },
+    }
+)
+
 REPORT_STYLE_SCHEMA = build_object_type(
     properties={
         'groupDataBy': build_basic_type(OpenApiTypes.STR),

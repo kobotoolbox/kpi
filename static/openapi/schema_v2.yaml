@@ -15845,6 +15845,29 @@ components:
           type: array
           items:
             type: object
+            properties:
+              url:
+                type: string
+              label:
+                oneOf:
+                - type: string
+                - type: object
+                  properties:
+                    default:
+                      type: string
+                    view_submissions:
+                      type: string
+                    change_submissions:
+                      type: string
+                    delete_submissions:
+                      type: string
+                    validate_submissions:
+                      type: string
+                  required:
+                  - default
+            required:
+            - label
+            - url
           readOnly: true
         permissions:
           type: array
