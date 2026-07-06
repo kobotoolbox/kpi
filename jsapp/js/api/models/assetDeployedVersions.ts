@@ -12,10 +12,10 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { AssetDeployedVersionsResultsItem } from './assetDeployedVersionsResultsItem'
 
 export type AssetDeployedVersions = {
-  readonly count?: number
+  readonly count: number
   /** @nullable */
-  readonly next?: string | null
+  readonly next: string | null
   /** @nullable */
-  readonly previous?: string | null
-  readonly results?: AssetDeployedVersionsResultsItem[]
+  readonly previous: string | null
+  readonly results: AssetDeployedVersionsResultsItem[]
 }

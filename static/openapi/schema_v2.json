@@ -21442,6 +21442,12 @@
                                 }
                             }
                         },
+                        "required": [
+                            "count",
+                            "next",
+                            "previous",
+                            "results"
+                        ],
                         "readOnly": true
                     },
                     "deployment__links": {

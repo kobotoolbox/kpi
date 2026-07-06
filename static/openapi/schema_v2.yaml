@@ -15365,6 +15365,11 @@ components:
                   date_modified:
                     type: string
                     format: date-time
+          required:
+          - count
+          - next
+          - previous
+          - results
           readOnly: true
         deployment__links:
           type: object

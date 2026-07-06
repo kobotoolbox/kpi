@@ -372,6 +372,7 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
+            required=['count', 'next', 'previous', 'results'],
             properties={
                 'count': build_basic_type(OpenApiTypes.INT),
                 'next': {**GENERIC_STRING_SCHEMA, 'nullable': True},
