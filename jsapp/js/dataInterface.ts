@@ -651,7 +651,7 @@ export interface AssetRequestObject {
     enabled?: boolean
     fields?: string[]
   }
-  paired_data?: string
+  paired_data: string
   advanced_features?: AssetAdvancedFeatures
 }
 
