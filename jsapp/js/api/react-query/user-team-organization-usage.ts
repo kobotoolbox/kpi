@@ -4108,7 +4108,14 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       },
       undefined,
     ]),
-    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([
+      {
+        colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
       {

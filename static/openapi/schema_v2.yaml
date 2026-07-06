@@ -15541,6 +15541,13 @@ components:
               type: string
         map_styles:
           type: object
+          properties:
+            colorSet:
+              type: string
+            querylimit:
+              type: string
+            selectedQuestion:
+              type: string
         map_custom:
           type: object
         content:

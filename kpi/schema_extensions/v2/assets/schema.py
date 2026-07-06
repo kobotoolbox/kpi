@@ -116,3 +116,11 @@ ADVANCED_FEATURES_SCHEMA = build_object_type(
         '_version': build_basic_type(OpenApiTypes.STR),
     }
 )
+
+MAP_STYLES_SCHEMA = build_object_type(
+    properties={
+        'colorSet': build_basic_type(OpenApiTypes.STR),
+        'querylimit': build_basic_type(OpenApiTypes.STR),
+        'selectedQuestion': build_basic_type(OpenApiTypes.STR),
+    }
+)

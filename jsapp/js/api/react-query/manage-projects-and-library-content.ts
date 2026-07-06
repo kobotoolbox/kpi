@@ -2986,7 +2986,14 @@ export const getApiV2AssetsListResponseMock = (
       },
       undefined,
     ]),
-    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([
+      {
+        colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
       {
@@ -3403,7 +3410,14 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
     },
     undefined,
   ]),
-  map_styles: faker.helpers.arrayElement([{}, undefined]),
+  map_styles: faker.helpers.arrayElement([
+    {
+      colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    },
+    undefined,
+  ]),
   map_custom: faker.helpers.arrayElement([{}, undefined]),
   content: faker.helpers.arrayElement([
     {
@@ -3819,7 +3833,14 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
     },
     undefined,
   ]),
-  map_styles: faker.helpers.arrayElement([{}, undefined]),
+  map_styles: faker.helpers.arrayElement([
+    {
+      colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    },
+    undefined,
+  ]),
   map_custom: faker.helpers.arrayElement([{}, undefined]),
   content: faker.helpers.arrayElement([
     {
@@ -4235,7 +4256,14 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
     },
     undefined,
   ]),
-  map_styles: faker.helpers.arrayElement([{}, undefined]),
+  map_styles: faker.helpers.arrayElement([
+    {
+      colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    },
+    undefined,
+  ]),
   map_custom: faker.helpers.arrayElement([{}, undefined]),
   content: faker.helpers.arrayElement([
     {
@@ -4675,7 +4703,14 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
       },
       undefined,
     ]),
-    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([
+      {
+        colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
       {
@@ -5098,7 +5133,14 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
       },
       undefined,
     ]),
-    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([
+      {
+        colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
       {
@@ -5521,7 +5563,14 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
       },
       undefined,
     ]),
-    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([
+      {
+        colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
     map_custom: faker.helpers.arrayElement([{}, undefined]),
     content: faker.helpers.arrayElement([
       {

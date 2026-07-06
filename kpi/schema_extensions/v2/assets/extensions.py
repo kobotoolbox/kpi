@@ -30,6 +30,7 @@ from .schema import (
     BULK_ACTION_SCHEMA,
     BULK_ASSET_UIDS_SCHEMA,
     BULK_CONFIRM_SCHEMA,
+    MAP_STYLES_SCHEMA,
     REPORT_STYLE_SCHEMA,
 )
 
@@ -499,7 +500,7 @@ class MapStylesFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.MapStylesField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_OBJECT_SCHEMA
+        return MAP_STYLES_SCHEMA
 
 
 class MetadataListFieldExtension(OpenApiSerializerFieldExtension):
