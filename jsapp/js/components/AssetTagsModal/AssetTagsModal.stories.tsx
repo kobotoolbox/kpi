@@ -16,7 +16,7 @@ const mockAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'storyAssetTagsUid',
   name: 'Storybook Asset Tags',
   tag_string: 'alpha,beta',
-})
+}) as unknown as AssetResponse
 const mockAssetUid = mockAsset.uid
 const onAssetPatched = fn()
 

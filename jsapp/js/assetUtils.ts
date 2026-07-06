@@ -154,13 +154,11 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
      * and then switching to french would result in seeing spanish labels)
      */
     const countries = []
-    // https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#working-with-union-types
+    // Backend always returns country as an array (or null/undefined)
     if (Array.isArray(asset.settings.country)) {
       for (const country of asset.settings.country) {
         countries.push(envStore.getCountryLabel(country.value))
       }
-    } else {
-      countries.push(envStore.getCountryLabel(asset.settings.country.value))
     }
 
     if (countries.length === 0) {

@@ -1,6 +1,7 @@
 import chai from 'chai'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
 import { QuestionTypeName } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import { reportStyleFactory, reportsResponseDataFactory } from './reports.factory'
 import { buildEffectiveReportStyle, getEffectiveRowReportStyle, populateSelectQuestionLabels } from './reports.utils'
 import type { ReportsResponse } from './reportsConstants'
@@ -163,7 +164,7 @@ describe('populateSelectQuestionLabels', () => {
           },
         ],
       },
-    })
+    }) as unknown as AssetResponse
 
     populateSelectQuestionLabels(row, asset, 1)
 
