@@ -263,7 +263,9 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
                 'choices': build_array_type(schema=GENERIC_OBJECT_SCHEMA),
                 'settings': GENERIC_OBJECT_SCHEMA,
                 'translated': GENERIC_ARRAY_SCHEMA,
-                'translations': GENERIC_ARRAY_SCHEMA,
+                'translations': build_array_type(
+                    schema={**build_basic_type(OpenApiTypes.STR), 'nullable': True}
+                ),
             }
         )
 

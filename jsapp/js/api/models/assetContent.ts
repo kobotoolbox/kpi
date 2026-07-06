@@ -19,5 +19,5 @@ export type AssetContent = {
   choices?: AssetContentChoicesItem[]
   settings?: AssetContentSettings
   translated?: string[]
-  translations?: string[]
+  translations?: (string | null)[]
 }

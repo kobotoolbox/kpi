@@ -2888,7 +2888,7 @@ export const getApiV2AssetsListResponseMock = (
         ]),
         translations: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
           ),
           undefined,
         ]),
@@ -3161,7 +3161,7 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
       ]),
       translations: faker.helpers.arrayElement([
         Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         ),
         undefined,
       ]),
@@ -3433,7 +3433,7 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
       ]),
       translations: faker.helpers.arrayElement([
         Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         ),
         undefined,
       ]),
@@ -3705,7 +3705,7 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
       ]),
       translations: faker.helpers.arrayElement([
         Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         ),
         undefined,
       ]),
@@ -4004,7 +4004,7 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
         ]),
         translations: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
           ),
           undefined,
         ]),
@@ -4286,7 +4286,7 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
         ]),
         translations: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
           ),
           undefined,
         ]),
@@ -4568,7 +4568,7 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
         ]),
         translations: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
           ),
           undefined,
         ]),
