@@ -742,7 +742,7 @@ export interface AssetResponse extends AssetRequestObject {
   deployment__encrypted: boolean
   deployment__submission_count: number
   deployment__last_submission_time: string | null
-  deployment_status: 'archived' | 'deployed' | 'draft'
+  deployment_status: 'archived' | 'deployed' | 'draft' | '-'
   downloads: AssetDownloads
   embeds?: Array<{
     format: string
@@ -835,7 +835,7 @@ export interface ProjectViewAsset {
   has_deployment: boolean
   deployment__active: boolean
   deployment__submission_count: number
-  deployment_status: 'archived' | 'deployed' | 'draft'
+  deployment_status: 'archived' | 'deployed' | 'draft' | '-'
 }
 
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
