@@ -6633,7 +6633,7 @@ export const getApiV2AssetsDataListResponseDataSupplementManualQualDataTagsMock 
 })
 
 export const getApiV2AssetsDataListResponseDataSupplementAutomaticQualDataIntegerResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataIntegerResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataIntegerResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataIntegerResponse => ({
   ...faker.helpers.arrayElement([
     {
@@ -6650,7 +6650,7 @@ export const getApiV2AssetsDataListResponseDataSupplementAutomaticQualDataIntege
 })
 
 export const getApiV2AssetsDataListResponseDataSupplementAutomaticQualDataTextResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataTextResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataTextResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataTextResponse => ({
   ...faker.helpers.arrayElement([
     { uuid: faker.string.uuid(), value: faker.string.alpha({ length: { min: 10, max: 20 } }), status: 'complete' },
@@ -6660,7 +6660,7 @@ export const getApiV2AssetsDataListResponseDataSupplementAutomaticQualDataTextRe
 })
 
 export const getApiV2AssetsDataListResponseDataSupplementAutomaticQualDataSelectOneResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataSelectOneResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataSelectOneResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataSelectOneResponse => ({
   ...faker.helpers.arrayElement([
     { uuid: faker.string.uuid(), value: faker.string.uuid(), status: 'complete' },
@@ -6670,7 +6670,7 @@ export const getApiV2AssetsDataListResponseDataSupplementAutomaticQualDataSelect
 })
 
 export const getApiV2AssetsDataListResponseDataSupplementAutomaticQualDataSelectMultipleResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataSelectMultipleResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataSelectMultipleResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataSelectMultipleResponse => ({
   ...faker.helpers.arrayElement([
     {
@@ -6997,7 +6997,7 @@ export const getApiV2AssetsDataRetrieveResponseDataSupplementManualQualDataTagsM
 })
 
 export const getApiV2AssetsDataRetrieveResponseDataSupplementAutomaticQualDataIntegerResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataIntegerResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataIntegerResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataIntegerResponse => ({
   ...faker.helpers.arrayElement([
     {
@@ -7014,7 +7014,7 @@ export const getApiV2AssetsDataRetrieveResponseDataSupplementAutomaticQualDataIn
 })
 
 export const getApiV2AssetsDataRetrieveResponseDataSupplementAutomaticQualDataTextResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataTextResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataTextResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataTextResponse => ({
   ...faker.helpers.arrayElement([
     { uuid: faker.string.uuid(), value: faker.string.alpha({ length: { min: 10, max: 20 } }), status: 'complete' },
@@ -7024,7 +7024,7 @@ export const getApiV2AssetsDataRetrieveResponseDataSupplementAutomaticQualDataTe
 })
 
 export const getApiV2AssetsDataRetrieveResponseDataSupplementAutomaticQualDataSelectOneResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataSelectOneResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataSelectOneResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataSelectOneResponse => ({
   ...faker.helpers.arrayElement([
     { uuid: faker.string.uuid(), value: faker.string.uuid(), status: 'complete' },
@@ -7034,7 +7034,7 @@ export const getApiV2AssetsDataRetrieveResponseDataSupplementAutomaticQualDataSe
 })
 
 export const getApiV2AssetsDataRetrieveResponseDataSupplementAutomaticQualDataSelectMultipleResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataSelectMultipleResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataSelectMultipleResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataSelectMultipleResponse => ({
   ...faker.helpers.arrayElement([
     {
@@ -7351,7 +7351,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementManualQualDa
 })
 
 export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementAutomaticQualDataIntegerResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataIntegerResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataIntegerResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataIntegerResponse => ({
   ...faker.helpers.arrayElement([
     {
@@ -7368,7 +7368,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementAutomaticQua
 })
 
 export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementAutomaticQualDataTextResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataTextResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataTextResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataTextResponse => ({
   ...faker.helpers.arrayElement([
     { uuid: faker.string.uuid(), value: faker.string.alpha({ length: { min: 10, max: 20 } }), status: 'complete' },
@@ -7378,7 +7378,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementAutomaticQua
 })
 
 export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementAutomaticQualDataSelectOneResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataSelectOneResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataSelectOneResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataSelectOneResponse => ({
   ...faker.helpers.arrayElement([
     { uuid: faker.string.uuid(), value: faker.string.uuid(), status: 'complete' },
@@ -7388,7 +7388,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementAutomaticQua
 })
 
 export const getApiV2AssetsDataDuplicateCreateResponseDataSupplementAutomaticQualDataSelectMultipleResponseMock = (
-  overrideResponse: Partial<DataSupplementAutomaticQualDataSelectMultipleResponse> = {},
+  overrideResponse: Omit<Partial<DataSupplementAutomaticQualDataSelectMultipleResponse>, 'status'> = {},
 ): DataSupplementAutomaticQualDataSelectMultipleResponse => ({
   ...faker.helpers.arrayElement([
     {

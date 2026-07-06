@@ -24667,7 +24667,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementAutomaticQualDataSelectMultipleResponse": {
                 "type": "object",
@@ -24721,7 +24724,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementAutomaticQualDataSelectOneResponse": {
                 "type": "object",
@@ -24772,7 +24778,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementAutomaticQualDataTextResponse": {
                 "type": "object",
@@ -24822,7 +24831,10 @@
                             "uuid"
                         ]
                     }
-                ]
+                ],
+                "discriminator": {
+                    "propertyName": "status"
+                }
             },
             "DataSupplementManualQualDataInteger": {
                 "type": "object",

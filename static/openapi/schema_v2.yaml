@@ -17614,6 +17614,8 @@ components:
         - error
         - status
         - uuid
+      discriminator:
+        propertyName: status
     DataSupplementAutomaticQualDataSelectMultipleResponse:
       type: object
       additionalProperties: false
@@ -17651,6 +17653,8 @@ components:
         - error
         - status
         - uuid
+      discriminator:
+        propertyName: status
     DataSupplementAutomaticQualDataSelectOneResponse:
       type: object
       additionalProperties: false
@@ -17686,6 +17690,8 @@ components:
         - error
         - status
         - uuid
+      discriminator:
+        propertyName: status
     DataSupplementAutomaticQualDataTextResponse:
       type: object
       additionalProperties: false
@@ -17720,6 +17726,8 @@ components:
         - error
         - status
         - uuid
+      discriminator:
+        propertyName: status
     DataSupplementManualQualDataInteger:
       type: object
       additionalProperties: false
