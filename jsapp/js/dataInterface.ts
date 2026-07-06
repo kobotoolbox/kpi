@@ -537,7 +537,8 @@ interface AssetSummary {
   columns?: string[]
   lock_all?: boolean
   lock_any?: boolean
-  languages?: Array<LangString | null>
+  // TODO DEV-XXXX: Backend returns languages as string[], legacy type incorrectly allowed null in array
+  languages?: LangString[]
   row_count?: number
   default_translation?: string | null
   /** To be used in a warning about missing or poorly written question names. */
