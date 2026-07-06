@@ -15497,6 +15497,8 @@ components:
                 - name
                 - source
                 - type
+          required:
+          - additional_fields
           readOnly: true
         xform_link:
           type: string

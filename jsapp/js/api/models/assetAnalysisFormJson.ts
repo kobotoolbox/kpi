@@ -12,5 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { AssetAnalysisFormJsonAdditionalFieldsItem } from './assetAnalysisFormJsonAdditionalFieldsItem'
 
 export type AssetAnalysisFormJson = {
-  readonly additional_fields?: AssetAnalysisFormJsonAdditionalFieldsItem[]
+  readonly additional_fields: AssetAnalysisFormJsonAdditionalFieldsItem[]
 }

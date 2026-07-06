@@ -21638,6 +21638,9 @@
                                 }
                             }
                         },
+                        "required": [
+                            "additional_fields"
+                        ],
                         "readOnly": true
                     },
                     "xform_link": {

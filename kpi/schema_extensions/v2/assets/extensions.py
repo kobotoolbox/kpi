@@ -87,6 +87,7 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
         )
 
         return build_object_type(
+            required=['additional_fields'],
             properties={
                 'additional_fields': build_array_type(additional_field_item),
             }

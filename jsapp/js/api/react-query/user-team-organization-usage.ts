@@ -4063,24 +4063,21 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     })),
     analysis_form_json: {
-      additional_fields: faker.helpers.arrayElement([
-        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-          language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-          source: faker.string.alpha({ length: { min: 10, max: 20 } }),
-          type: faker.string.alpha({ length: { min: 10, max: 20 } }),
-          name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-          dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
-          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-          choices: faker.helpers.arrayElement([
-            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-              uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
-              labels: {},
-            })),
-            undefined,
-          ]),
-        })),
-        undefined,
-      ]),
+      additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        choices: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            labels: {},
+          })),
+          undefined,
+        ]),
+      })),
     },
     xform_link: faker.internet.url(),
     hooks_link: faker.internet.url(),

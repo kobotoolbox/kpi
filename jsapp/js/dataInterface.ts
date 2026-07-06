@@ -741,7 +741,7 @@ export interface AssetResponse extends AssetRequestObject {
   deployment__uuid?: string
   deployment__encrypted?: boolean
   deployment__submission_count: number
-  deployment__last_submission_time: string
+  deployment__last_submission_time: string | null
   deployment_status: 'archived' | 'deployed' | 'draft'
   downloads: AssetDownloads
   embeds?: Array<{
