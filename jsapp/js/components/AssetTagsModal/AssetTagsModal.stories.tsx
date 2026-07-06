@@ -1,9 +1,9 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
@@ -16,7 +16,7 @@ const mockAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'storyAssetTagsUid',
   name: 'Storybook Asset Tags',
   tag_string: 'alpha,beta',
-}) as AssetResponse
+})
 const mockAssetUid = mockAsset.uid
 const onAssetPatched = fn()
 

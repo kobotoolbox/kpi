@@ -34,7 +34,7 @@ function buildInitialAsset(): AssetResponse {
       choices: [],
       settings: {},
     },
-  } as unknown as AssetResponse
+  }
 }
 
 function createAssetPatchHandler(initialAsset: AssetResponse) {
@@ -254,7 +254,7 @@ export const BasicFlow: Story = {
         await expect(onAssetPatched).toHaveBeenCalled()
 
         const calls = (onAssetPatched as ReturnType<typeof fn>).mock.calls
-        const latestPatchedAsset = calls.at(-1)?.[0] as AssetResponse | undefined
+        const latestPatchedAsset = calls.at(-1)?.[0]
 
         const survey = latestPatchedAsset?.content?.survey || []
         const question11 = survey.find((item) => item.name === 'question_11')

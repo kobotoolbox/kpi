@@ -15,13 +15,12 @@ import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
-import { QuestionTypeName } from '#/constants'
-import type { AssetResponse } from '#/dataInterface'
 import {
-  getApiV2AssetsRetrieveResponseMock,
   getApiV2AssetsRetrieveMockHandler,
+  getApiV2AssetsRetrieveResponseMock,
 } from '#/api/react-query/manage-projects-and-library-content'
 import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data'
+import { QuestionTypeName } from '#/constants'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import assetDataMock from '#/endpoints/assetData.mocks'
 import bulkActionsMock from '#/endpoints/bulkActions.mocks'
@@ -173,7 +172,7 @@ const minimalAsset = getApiV2AssetsRetrieveResponseMock({
     translations: [null],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-}) as AssetResponse
+})
 
 const minimalSubmissions = [
   assetDataFactory(1, {
@@ -252,7 +251,7 @@ const processingAsset = getApiV2AssetsRetrieveResponseMock({
     ],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-}) as AssetResponse
+})
 
 const processingSubmissions = [
   assetDataFactory(1, {
