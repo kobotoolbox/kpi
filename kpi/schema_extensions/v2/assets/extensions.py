@@ -554,10 +554,18 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
             'nullable': True,
         }
 
+        # Country is an array of {label, value} objects (LabelValuePair[])
+        label_value_pair_schema = build_object_type(
+            properties={
+                'label': GENERIC_STRING_SCHEMA,
+                'value': GENERIC_STRING_SCHEMA,
+            }
+        )
+
         return build_object_type(
             properties={
                 'sector': sector_schema,
-                'country': GENERIC_ARRAY_SCHEMA,
+                'country': build_array_type(schema=label_value_pair_schema),
                 'description': GENERIC_STRING_SCHEMA,
                 'collects_pii': GENERIC_STRING_SCHEMA,
                 'organization': GENERIC_STRING_SCHEMA,
