@@ -45,3 +45,13 @@ BULK_ASSET_UIDS_SCHEMA = build_object_type(
 )
 
 BULK_CONFIRM_SCHEMA = build_basic_type(OpenApiTypes.BOOL)
+
+REPORT_STYLE_SCHEMA = build_object_type(
+    properties={
+        'groupDataBy': build_basic_type(OpenApiTypes.STR),
+        'report_type': build_basic_type(OpenApiTypes.STR),
+        'report_colors': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+        'translationIndex': build_basic_type(OpenApiTypes.INT),
+        'graphWidth': build_basic_type(OpenApiTypes.INT),
+    }
+)

@@ -15434,20 +15434,23 @@ components:
           properties:
             default:
               type: object
+              properties:
+                groupDataBy:
+                  type: string
+                report_type:
+                  type: string
+                report_colors:
+                  type: array
+                  items:
+                    type: string
+                translationIndex:
+                  type: integer
+                graphWidth:
+                  type: integer
             specified:
               type: object
-              properties:
-                end:
-                  type: object
-                start:
-                  type: object
             kuid_names:
               type: object
-              properties:
-                end:
-                  type: string
-                start:
-                  type: string
         report_custom:
           type: object
         advanced_features:

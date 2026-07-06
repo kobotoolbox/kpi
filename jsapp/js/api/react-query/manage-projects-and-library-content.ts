@@ -2889,18 +2889,29 @@ export const getApiV2AssetsListResponseMock = (
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
-        default: faker.helpers.arrayElement([{}, undefined]),
-        specified: faker.helpers.arrayElement([
-          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
-          undefined,
-        ]),
-        kuid_names: faker.helpers.arrayElement([
+        default: faker.helpers.arrayElement([
           {
-            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_colors: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            translationIndex: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
+            graphWidth: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
           },
           undefined,
         ]),
+        specified: faker.helpers.arrayElement([{}, undefined]),
+        kuid_names: faker.helpers.arrayElement([{}, undefined]),
       },
       undefined,
     ]),
@@ -3226,18 +3237,29 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
   deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
   report_styles: faker.helpers.arrayElement([
     {
-      default: faker.helpers.arrayElement([{}, undefined]),
-      specified: faker.helpers.arrayElement([
-        { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
-        undefined,
-      ]),
-      kuid_names: faker.helpers.arrayElement([
+      default: faker.helpers.arrayElement([
         {
-          end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-          start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          report_colors: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          translationIndex: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          graphWidth: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
         },
         undefined,
       ]),
+      specified: faker.helpers.arrayElement([{}, undefined]),
+      kuid_names: faker.helpers.arrayElement([{}, undefined]),
     },
     undefined,
   ]),
@@ -3562,18 +3584,29 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
   deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
   report_styles: faker.helpers.arrayElement([
     {
-      default: faker.helpers.arrayElement([{}, undefined]),
-      specified: faker.helpers.arrayElement([
-        { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
-        undefined,
-      ]),
-      kuid_names: faker.helpers.arrayElement([
+      default: faker.helpers.arrayElement([
         {
-          end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-          start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          report_colors: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          translationIndex: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          graphWidth: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
         },
         undefined,
       ]),
+      specified: faker.helpers.arrayElement([{}, undefined]),
+      kuid_names: faker.helpers.arrayElement([{}, undefined]),
     },
     undefined,
   ]),
@@ -3898,18 +3931,29 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
   deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
   report_styles: faker.helpers.arrayElement([
     {
-      default: faker.helpers.arrayElement([{}, undefined]),
-      specified: faker.helpers.arrayElement([
-        { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
-        undefined,
-      ]),
-      kuid_names: faker.helpers.arrayElement([
+      default: faker.helpers.arrayElement([
         {
-          end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-          start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          report_colors: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          translationIndex: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          graphWidth: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
         },
         undefined,
       ]),
+      specified: faker.helpers.arrayElement([{}, undefined]),
+      kuid_names: faker.helpers.arrayElement([{}, undefined]),
     },
     undefined,
   ]),
@@ -4258,18 +4302,29 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
-        default: faker.helpers.arrayElement([{}, undefined]),
-        specified: faker.helpers.arrayElement([
-          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
-          undefined,
-        ]),
-        kuid_names: faker.helpers.arrayElement([
+        default: faker.helpers.arrayElement([
           {
-            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_colors: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            translationIndex: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
+            graphWidth: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
           },
           undefined,
         ]),
+        specified: faker.helpers.arrayElement([{}, undefined]),
+        kuid_names: faker.helpers.arrayElement([{}, undefined]),
       },
       undefined,
     ]),
@@ -4601,18 +4656,29 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
-        default: faker.helpers.arrayElement([{}, undefined]),
-        specified: faker.helpers.arrayElement([
-          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
-          undefined,
-        ]),
-        kuid_names: faker.helpers.arrayElement([
+        default: faker.helpers.arrayElement([
           {
-            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_colors: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            translationIndex: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
+            graphWidth: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
           },
           undefined,
         ]),
+        specified: faker.helpers.arrayElement([{}, undefined]),
+        kuid_names: faker.helpers.arrayElement([{}, undefined]),
       },
       undefined,
     ]),
@@ -4944,18 +5010,29 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
     report_styles: faker.helpers.arrayElement([
       {
-        default: faker.helpers.arrayElement([{}, undefined]),
-        specified: faker.helpers.arrayElement([
-          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
-          undefined,
-        ]),
-        kuid_names: faker.helpers.arrayElement([
+        default: faker.helpers.arrayElement([
           {
-            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_colors: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            translationIndex: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
+            graphWidth: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
           },
           undefined,
         ]),
+        specified: faker.helpers.arrayElement([{}, undefined]),
+        kuid_names: faker.helpers.arrayElement([{}, undefined]),
       },
       undefined,
     ]),

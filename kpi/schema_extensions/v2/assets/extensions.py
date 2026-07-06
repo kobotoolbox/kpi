@@ -29,6 +29,7 @@ from .schema import (
     BULK_ACTION_SCHEMA,
     BULK_ASSET_UIDS_SCHEMA,
     BULK_CONFIRM_SCHEMA,
+    REPORT_STYLE_SCHEMA,
 )
 
 
@@ -559,19 +560,9 @@ class ReportStyleFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'default': GENERIC_OBJECT_SCHEMA,
-                'specified': build_object_type(
-                    properties={
-                        'end': GENERIC_OBJECT_SCHEMA,
-                        'start': GENERIC_OBJECT_SCHEMA,
-                    }
-                ),
-                'kuid_names': build_object_type(
-                    properties={
-                        'end': GENERIC_STRING_SCHEMA,
-                        'start': GENERIC_STRING_SCHEMA,
-                    }
-                ),
+                'default': REPORT_STYLE_SCHEMA,
+                'specified': GENERIC_OBJECT_SCHEMA,  # additionalProperties pattern for dynamic row names
+                'kuid_names': GENERIC_OBJECT_SCHEMA,  # additionalProperties pattern for dynamic row names
             }
         )
 
