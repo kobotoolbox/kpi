@@ -15338,8 +15338,10 @@ components:
               type: integer
             next:
               type: string
+              nullable: true
             previous:
               type: string
+              nullable: true
             results:
               type: array
               items:

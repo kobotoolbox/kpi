@@ -13,7 +13,9 @@ import type { AssetDeployedVersionsResultsItem } from './assetDeployedVersionsRe
 
 export type AssetDeployedVersions = {
   readonly count?: number
-  readonly next?: string
-  readonly previous?: string
+  /** @nullable */
+  readonly next?: string | null
+  /** @nullable */
+  readonly previous?: string | null
   readonly results?: AssetDeployedVersionsResultsItem[]
 }

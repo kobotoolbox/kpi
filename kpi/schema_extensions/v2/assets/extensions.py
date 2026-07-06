@@ -330,8 +330,8 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'count': build_basic_type(OpenApiTypes.INT),
-                'next': GENERIC_STRING_SCHEMA,
-                'previous': GENERIC_STRING_SCHEMA,
+                'next': {**GENERIC_STRING_SCHEMA, 'nullable': True},
+                'previous': {**GENERIC_STRING_SCHEMA, 'nullable': True},
                 'results': build_array_type(
                     schema=build_object_type(
                         properties={

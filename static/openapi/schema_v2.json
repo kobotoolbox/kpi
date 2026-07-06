@@ -21401,10 +21401,12 @@
                                 "type": "integer"
                             },
                             "next": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
                             },
                             "previous": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
                             },
                             "results": {
                                 "type": "array",
