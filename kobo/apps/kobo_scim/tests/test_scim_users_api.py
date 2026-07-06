@@ -15,7 +15,6 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_USER,
 )
 from kobo.apps.kobo_scim.models import IdentityProvider
-from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
 class ScimUsersAPITests(APITestCase):
@@ -973,7 +972,6 @@ class ScimUsersAPITests(APITestCase):
             }
         ]
     )
-
     def test_custom_metadata_mapping_validation_failure(self):
         # We removed strict validation against UserProfile, so we now assert
         # that invalid fields like 3-letter country codes are accepted and
@@ -1041,7 +1039,7 @@ class ScimUsersAPITests(APITestCase):
 
         user = User.objects.get(username='partial_sync_user')
         extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
-        
+
         # Now asserts that both are retained in ExtraUserDetail because UserProfile validation is removed
         self.assertEqual(extra_user_detail.data.get('country'), 'USA')
         self.assertEqual(extra_user_detail.data.get('organization'), 'Valid Org')

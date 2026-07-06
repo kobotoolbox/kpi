@@ -47,7 +47,7 @@ def scim_exception_handler(exc, context):
         reason = exc.reason
     elif isinstance(exc, IntegrityError):
         status_code = status.HTTP_409_CONFLICT
-        detail = f'One or more attributes in the resource already exists. Details: {str(exc)}'
+        detail = f'One or more attributes in the resource already exists.'
         error_code = 'integrity_error'
 
     if status_code is not None:

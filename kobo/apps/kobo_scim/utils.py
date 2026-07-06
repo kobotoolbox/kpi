@@ -1,14 +1,11 @@
 from constance import config
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from rest_framework import status
-from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_SCHEMA
 from kobo.apps.kobo_scim.exceptions import ScimException
-from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
 def get_scim_value(data, path):
