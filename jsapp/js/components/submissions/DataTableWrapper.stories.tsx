@@ -41,10 +41,12 @@ import {
   resetPollingUpdateStoryHandlers,
 } from './DataTableWrapperPollingStoriesUtils'
 
-// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
-// - Make date_created and date_modified required (they're auto-populated by Django)
-// - Fix analysis_form_json.additional_fields type (should be object[], not string[])
-// These casts are safe because the types are compatible at runtime
+// TODO DEV-XXXX: Orval-generated Asset and legacy AssetResponse have structural differences
+// Cast Orval mocks to legacy type for stories. Main differences:
+// - analysis_form_json.additional_fields: string[] vs AnalysisFormJsonField[]
+// - summary.name_quality: all properties optional vs some required
+// - files: object[] vs AssetResponseFile[] with different structures
+import type { AssetResponse } from '#/dataInterface'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
@@ -172,7 +174,7 @@ const minimalAsset = getApiV2AssetsRetrieveResponseMock({
     translations: [null],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-})
+}) as unknown as AssetResponse
 
 const minimalSubmissions = [
   assetDataFactory(1, {
@@ -251,7 +253,7 @@ const processingAsset = getApiV2AssetsRetrieveResponseMock({
     ],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-})
+}) as unknown as AssetResponse
 
 const processingSubmissions = [
   assetDataFactory(1, {

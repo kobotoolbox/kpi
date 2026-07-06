@@ -699,13 +699,13 @@ export interface AssetResponse extends AssetRequestObject {
   date_deployed?: string | null
   version_id: string | null
   version__content_hash: string | null
-  version_count?: number
+  version_count: number
   has_deployment: boolean
   deployed_version_id: string | null
   analysis_form_json?: {
     additional_fields: AnalysisFormJsonField[]
   }
-  deployed_versions?: {
+  deployed_versions: {
     count: number
     next: string | null
     previous: string | null

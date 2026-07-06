@@ -1,3 +1,4 @@
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
 import {
   AssetTypeName,
   GroupTypeBeginName,
@@ -74,48 +75,12 @@ export const simpleSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const simpleSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  version__content_hash: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const simpleSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: simpleSurvey,
     choices: simpleSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
   report_custom: {},
   map_styles: {},
   map_custom: {},
@@ -125,7 +90,7 @@ export const simpleSurveyAsset = {
   export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const simpleSurveySubmission = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
@@ -295,57 +260,14 @@ export const repeatSurvey = [
   },
 ] as const satisfies SurveyRow[]
 
-export const repeatSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  version__content_hash: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const repeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: repeatSurvey,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
 export const repeatSurveySubmission = {
@@ -495,57 +417,14 @@ export const nestedRepeatSurvey = [
   },
 ] as const satisfies SurveyRow[]
 
-export const nestedRepeatSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  version__content_hash: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const nestedRepeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: nestedRepeatSurvey,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const nestedRepeatSurveySubmission = {
   __version__: 'v7sPQZCGQoW8JKYL5Kq79m',
@@ -790,58 +669,15 @@ export const matrixSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const matrixSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  version__content_hash: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const matrixSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: matrixSurvey,
     choices: matrixSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const matrixSurveySubmission = {
   _id: 22,
@@ -1093,58 +929,15 @@ export const groupsSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const groupsSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  version__content_hash: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const groupsSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: groupsSurvey,
     choices: groupsSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const groupsSurveySubmission = {
   _id: 23,
@@ -1675,58 +1468,15 @@ export const everythingSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const everythingSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  version__content_hash: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const everythingSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: everythingSurvey,
     choices: everythingSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const everythingSurveySubmission = {
   _id: 25,
@@ -2129,58 +1879,15 @@ export const matrixRepeatSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const matrixRepeatSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  version__content_hash: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const matrixRepeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: matrixRepeatSurvey,
     choices: matrixRepeatSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const matrixRepeatSurveySubmission = {
   _id: 16,
