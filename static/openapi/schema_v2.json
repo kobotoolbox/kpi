@@ -23691,22 +23691,94 @@
                     "_supplementalDetails": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsManualTranscription"
+                                "type": "object",
+                                "description": "Manual transcription supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "manual_transcription": {
+                                            "$ref": "#/components/schemas/SupplementalDataManualTranscription"
+                                        }
+                                    },
+                                    "required": [
+                                        "manual_transcription"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsManualTranslation"
+                                "type": "object",
+                                "description": "Manual translation supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "manual_translation": {
+                                            "$ref": "#/components/schemas/SupplementalDataManualTranslation"
+                                        }
+                                    },
+                                    "required": [
+                                        "manual_translation"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsAutomaticTranscription"
+                                "type": "object",
+                                "description": "Automatic transcription supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "automatic_google_transcription": {
+                                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranscription"
+                                        }
+                                    },
+                                    "required": [
+                                        "automatic_google_transcription"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsAutomaticTranslation"
+                                "type": "object",
+                                "description": "Automatic translation supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "automatic_google_translation": {
+                                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranslation"
+                                        }
+                                    },
+                                    "required": [
+                                        "automatic_google_translation"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsManualQual"
+                                "type": "object",
+                                "description": "Manual qualitative supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "manual_qual": {
+                                            "$ref": "#/components/schemas/SupplementalDataManualQual"
+                                        }
+                                    },
+                                    "required": [
+                                        "manual_qual"
+                                    ]
+                                }
                             },
                             {
-                                "$ref": "#/components/schemas/SupplementalDetailsAutomaticQual"
+                                "type": "object",
+                                "description": "Automatic qualitative supplemental details",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "automatic_bedrock_qual": {
+                                            "$ref": "#/components/schemas/SupplementalDataAutomaticQual"
+                                        }
+                                    },
+                                    "required": [
+                                        "automatic_bedrock_qual"
+                                    ]
+                                }
                             }
                         ],
                         "nullable": true,
@@ -25992,7 +26064,8 @@
                     },
                     "last_login": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "nullable": true
                     },
                     "extra_details": {
                         "type": "object",
@@ -26045,21 +26118,56 @@
                         }
                     },
                     "git_rev": {
-                        "type": "object",
-                        "properties": {
-                            "short": {
-                                "type": "string"
+                        "oneOf": [
+                            {
+                                "type": "boolean"
                             },
-                            "long": {
-                                "type": "string"
-                            },
-                            "branch": {
-                                "type": "string"
-                            },
-                            "tag": {
-                                "type": "string"
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "short": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    },
+                                    "long": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    },
+                                    "branch": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    },
+                                    "tag": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "boolean"
+                                            }
+                                        ]
+                                    }
+                                }
                             }
-                        }
+                        ]
                     },
                     "social_accounts": {
                         "type": "array",
@@ -31995,96 +32103,6 @@
                     "_dateCreated",
                     "_uuid"
                 ]
-            },
-            "SupplementalDetailsAutomaticQual": {
-                "type": "object",
-                "description": "Automatic qualitative supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "automatic_bedrock_qual": {
-                            "$ref": "#/components/schemas/SupplementalDataAutomaticQual"
-                        }
-                    },
-                    "required": [
-                        "automatic_bedrock_qual"
-                    ]
-                }
-            },
-            "SupplementalDetailsAutomaticTranscription": {
-                "type": "object",
-                "description": "Automatic transcription supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "automatic_google_transcription": {
-                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranscription"
-                        }
-                    },
-                    "required": [
-                        "automatic_google_transcription"
-                    ]
-                }
-            },
-            "SupplementalDetailsAutomaticTranslation": {
-                "type": "object",
-                "description": "Automatic translation supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "automatic_google_translation": {
-                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranslation"
-                        }
-                    },
-                    "required": [
-                        "automatic_google_translation"
-                    ]
-                }
-            },
-            "SupplementalDetailsManualQual": {
-                "type": "object",
-                "description": "Manual qualitative supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "manual_qual": {
-                            "$ref": "#/components/schemas/SupplementalDataManualQual"
-                        }
-                    },
-                    "required": [
-                        "manual_qual"
-                    ]
-                }
-            },
-            "SupplementalDetailsManualTranscription": {
-                "type": "object",
-                "description": "Manual transcription supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "manual_transcription": {
-                            "$ref": "#/components/schemas/SupplementalDataManualTranscription"
-                        }
-                    },
-                    "required": [
-                        "manual_transcription"
-                    ]
-                }
-            },
-            "SupplementalDetailsManualTranslation": {
-                "type": "object",
-                "description": "Manual translation supplemental details",
-                "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                        "manual_translation": {
-                            "$ref": "#/components/schemas/SupplementalDataManualTranslation"
-                        }
-                    },
-                    "required": [
-                        "manual_translation"
-                    ]
-                }
             },
             "TagListResponse": {
                 "type": "object",

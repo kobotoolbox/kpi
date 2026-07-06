@@ -3,17 +3,20 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
-import assetFactory from '#/endpoints/asset.factory'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openAssetTagsModal } from './openAssetTagsModal'
 
-const mockAsset = assetFactory({
+// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
+// - Make date_created and date_modified required (they're auto-populated by Django)
+// This cast is safe because the types are compatible at runtime
+const mockAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'storyAssetTagsUid',
   name: 'Storybook Asset Tags',
   tag_string: 'alpha,beta',
-})
+}) as AssetResponse
 const mockAssetUid = mockAsset.uid
 const onAssetPatched = fn()
 

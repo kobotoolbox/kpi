@@ -1,12 +1,14 @@
-import { http, HttpResponse, type PathParams } from 'msw'
-import { endpoints } from '#/api.endpoints'
+import {
+  getApiV2AssetsListMockHandler,
+  getApiV2AssetsRetrieveResponseMock,
+} from '#/api/react-query/manage-projects-and-library-content'
 import { AssetTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
-import assetFactory from './asset.factory'
 import { mockTemplates } from './assets.templates'
 
 /**
- * Mock API for assets list. Use it in Storybook tests in `parameters.msw.handlers.assets`.
+ * Mock API for assets list using Orval-generated handler.
+ * Use it in Storybook tests in `parameters.msw.handlers.assets`.
  *
  * Supports query parameter 'q' for filtering by asset type:
  * - 'asset_type:template' returns mockTemplates
@@ -16,40 +18,38 @@ import { mockTemplates } from './assets.templates'
  * Note that default response contains only 2 results.
  */
 const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) =>
-  http.get<PathParams<'limit' | 'start' | 'q'>, never, PaginatedResponse<AssetResponse>>(
-    endpoints.ASSETS_URL,
-    (info) => {
-      const searchParams = new URL(info.request.url).searchParams
-      const limit = searchParams.get('limit') !== null ? Number(searchParams.get('limit')) : undefined
-      const query = searchParams.get('q')
+  getApiV2AssetsListMockHandler(async (info) => {
+    const searchParams = new URL(info.request.url).searchParams
+    const limit = searchParams.get('limit') !== null ? Number(searchParams.get('limit')) : undefined
+    const query = searchParams.get('q')
 
-      // Handle template queries
-      if (query === 'asset_type:template') {
-        return HttpResponse.json({
-          count: mockTemplates.length,
-          next: null,
-          previous: null,
-          results: mockTemplates.slice(0, limit),
-        })
+    // Handle template queries
+    if (query === 'asset_type:template') {
+      return {
+        count: mockTemplates.length,
+        next: null,
+        previous: null,
+        results: mockTemplates.slice(0, limit),
       }
+    }
 
-      // Default behavior for other queries
-      return HttpResponse.json({
-        ...defaultMockResponse,
-        ...override,
-        results: (override?.results ?? defaultMockResponse.results).slice(0, limit ?? override?.count ?? undefined),
-      })
-    },
-  )
+    // Default behavior for other queries
+    return {
+      ...defaultMockResponse,
+      ...override,
+      results: (override?.results ?? defaultMockResponse.results).slice(0, limit ?? override?.count ?? undefined),
+    }
+  })
+
 export default assetsMock
 
-// Default mock assets using assetFactory for cleaner code
+// Default mock assets using Orval-generated mocks
 const defaultMockResponse: PaginatedResponse<AssetResponse> = {
   count: 2,
   next: null,
   previous: null,
   results: [
-    assetFactory({
+    getApiV2AssetsRetrieveResponseMock({
       uid: 'abam8JiJ3hHTW3EYp6Tpb5',
       name: 'minimal asset first',
       owner__username: 'zefir',
@@ -75,7 +75,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
         translations: [null],
       },
     }),
-    assetFactory({
+    getApiV2AssetsRetrieveResponseMock({
       uid: 'abam8JiJ3hHTW3EYp6Tpb4',
       name: 'minimal asset second',
       owner__username: 'zefir',

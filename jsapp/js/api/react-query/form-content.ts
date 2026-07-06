@@ -21,19 +21,23 @@ import type {
 
 import type { AssetSnapshotCreateRequest } from '../models/assetSnapshotCreateRequest'
 
-import type { AssetSnapshotResponse } from '../models/assetSnapshotResponse'
-
 import type { AssetSnapshotsListParams } from '../models/assetSnapshotsListParams'
 
 import type { AssetSnapshotsRetrieveParams } from '../models/assetSnapshotsRetrieveParams'
 
-import type { AssetValidContentResponse } from '../models/assetValidContentResponse'
-
-import type { ContentResponse } from '../models/contentResponse'
-
 import type { ErrorDetail } from '../models/errorDetail'
 
 import type { ErrorObject } from '../models/errorObject'
+
+import { faker } from '@faker-js/faker'
+
+import { http, HttpResponse, delay } from 'msw'
+
+import type { AssetSnapshotResponse } from '../models/assetSnapshotResponse'
+
+import type { AssetValidContentResponse } from '../models/assetValidContentResponse'
+
+import type { ContentResponse } from '../models/contentResponse'
 
 import type { OpenRosaXFormResponse } from '../models/openRosaXFormResponse'
 
@@ -1033,3 +1037,547 @@ export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXls
 
   return query
 }
+
+export const getApiV2AssetSnapshotsListResponseMock = (
+  overrideResponse: Partial<PaginatedAssetSnapshotResponseList> = {},
+): PaginatedAssetSnapshotResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    owner: faker.internet.url(),
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    xml: faker.internet.url(),
+    enketopreviewlink: faker.internet.url(),
+    asset: faker.internet.url(),
+    asset_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    details: {
+      status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      warnings: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          code: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          message: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        })),
+        undefined,
+      ]),
+    },
+    source: {
+      schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      survey: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        })),
+        undefined,
+      ]),
+      settings: faker.helpers.arrayElement([
+        { form_title: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]) },
+        undefined,
+      ]),
+      translated: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      translation: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetSnapshotsCreateResponseMock = (
+  overrideResponse: Partial<AssetSnapshotResponse> = {},
+): AssetSnapshotResponse => ({
+  url: faker.internet.url(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  owner: faker.internet.url(),
+  date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  xml: faker.internet.url(),
+  enketopreviewlink: faker.internet.url(),
+  asset: faker.internet.url(),
+  asset_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  details: {
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    warnings: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        code: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        message: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      })),
+      undefined,
+    ]),
+  },
+  source: {
+    schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    survey: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      })),
+      undefined,
+    ]),
+    settings: faker.helpers.arrayElement([
+      { form_title: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]) },
+      undefined,
+    ]),
+    translated: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    translation: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetSnapshotsRetrieveResponseMock = (
+  overrideResponse: Partial<AssetSnapshotResponse> = {},
+): AssetSnapshotResponse => ({
+  url: faker.internet.url(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  owner: faker.internet.url(),
+  date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  xml: faker.internet.url(),
+  enketopreviewlink: faker.internet.url(),
+  asset: faker.internet.url(),
+  asset_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  details: {
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    warnings: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        code: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        message: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      })),
+      undefined,
+    ]),
+  },
+  source: {
+    schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    survey: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      })),
+      undefined,
+    ]),
+    settings: faker.helpers.arrayElement([
+      { form_title: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]) },
+      undefined,
+    ]),
+    translated: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    translation: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetSnapshotsXformRetrieveResponseMock = (
+  overrideResponse: Partial<OpenRosaXFormResponse> = {},
+): OpenRosaXFormResponse => ({
+  html: {
+    head: faker.helpers.arrayElement([
+      {
+        title: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        model: faker.helpers.arrayElement([
+          {
+            instance: faker.helpers.arrayElement([
+              {
+                instanceUuid: faker.helpers.arrayElement([
+                  {
+                    fieldName: faker.helpers.arrayElement([
+                      faker.string.alpha({ length: { min: 10, max: 20 } }),
+                      undefined,
+                    ]),
+                    meta: faker.helpers.arrayElement([
+                      {
+                        instanceID: faker.helpers.arrayElement([
+                          faker.string.alpha({ length: { min: 10, max: 20 } }),
+                          undefined,
+                        ]),
+                      },
+                      undefined,
+                    ]),
+                  },
+                  undefined,
+                ]),
+              },
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    body: faker.helpers.arrayElement([
+      {
+        input: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            hint: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetSnapshotsXmlWithDisclaimerRetrieveResponseMock = (
+  overrideResponse: Partial<OpenRosaXFormResponse> = {},
+): OpenRosaXFormResponse => ({
+  html: {
+    head: faker.helpers.arrayElement([
+      {
+        title: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        model: faker.helpers.arrayElement([
+          {
+            instance: faker.helpers.arrayElement([
+              {
+                instanceUuid: faker.helpers.arrayElement([
+                  {
+                    fieldName: faker.helpers.arrayElement([
+                      faker.string.alpha({ length: { min: 10, max: 20 } }),
+                      undefined,
+                    ]),
+                    meta: faker.helpers.arrayElement([
+                      {
+                        instanceID: faker.helpers.arrayElement([
+                          faker.string.alpha({ length: { min: 10, max: 20 } }),
+                          undefined,
+                        ]),
+                      },
+                      undefined,
+                    ]),
+                  },
+                  undefined,
+                ]),
+              },
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    body: faker.helpers.arrayElement([
+      {
+        input: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            hint: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsContentRetrieveResponseMock = (
+  overrideResponse: Partial<ContentResponse> = {},
+): ContentResponse => ({
+  kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  data: {
+    survey: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+      undefined,
+    ]),
+    settings: faker.helpers.arrayElement([{}, undefined]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsTableViewRetrieveResponseMock = (): string => faker.word.sample()
+
+export const getApiV2AssetsValidContentRetrieveResponseMock = (
+  overrideResponse: Partial<AssetValidContentResponse> = {},
+): AssetValidContentResponse => ({
+  kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  data: {
+    schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    survey: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        $kuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        $xpath: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        $autoname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      })),
+      undefined,
+    ]),
+    settings: faker.helpers.arrayElement([{}, undefined]),
+    translated: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    translations: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsXlsRetrieveResponseMock = (): string => faker.word.sample()
+
+export const getApiV2AssetSnapshotsListMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetSnapshotResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAssetSnapshotResponseList> | PaginatedAssetSnapshotResponseList),
+) => {
+  return http.get('*/api/v2/asset_snapshots/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSnapshotsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetSnapshotsCreateMockHandler = (
+  overrideResponse?:
+    | AssetSnapshotResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<AssetSnapshotResponse> | AssetSnapshotResponse),
+) => {
+  return http.post('*/api/v2/asset_snapshots/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSnapshotsCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetSnapshotsRetrieveMockHandler = (
+  overrideResponse?:
+    | AssetSnapshotResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetSnapshotResponse> | AssetSnapshotResponse),
+) => {
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSnapshotsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetSnapshotsDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/asset_snapshots/:uidAssetSnapshot/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
+  })
+}
+
+export const getApiV2AssetSnapshotsPreviewRetrieveMockHandler = (
+  overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<unknown> | unknown),
+) => {
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/preview/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 200 })
+  })
+}
+
+export const getApiV2AssetSnapshotsXformRetrieveMockHandler = (
+  overrideResponse?:
+    | OpenRosaXFormResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OpenRosaXFormResponse> | OpenRosaXFormResponse),
+) => {
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xform/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSnapshotsXformRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetSnapshotsXmlWithDisclaimerRetrieveMockHandler = (
+  overrideResponse?:
+    | OpenRosaXFormResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OpenRosaXFormResponse> | OpenRosaXFormResponse),
+) => {
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xml_with_disclaimer/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSnapshotsXmlWithDisclaimerRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsContentRetrieveMockHandler = (
+  overrideResponse?:
+    | ContentResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ContentResponse> | ContentResponse),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/content/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsContentRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsTableViewRetrieveMockHandler = (
+  overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/table_view/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsTableViewRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsValidContentRetrieveMockHandler = (
+  overrideResponse?:
+    | AssetValidContentResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<AssetValidContentResponse> | AssetValidContentResponse),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/valid_content/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsValidContentRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsXlsRetrieveMockHandler = (
+  overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/xls/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsXlsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+export const getFormContentMock = () => [
+  getApiV2AssetSnapshotsListMockHandler(),
+  getApiV2AssetSnapshotsCreateMockHandler(),
+  getApiV2AssetSnapshotsRetrieveMockHandler(),
+  getApiV2AssetSnapshotsDestroyMockHandler(),
+  getApiV2AssetSnapshotsPreviewRetrieveMockHandler(),
+  getApiV2AssetSnapshotsXformRetrieveMockHandler(),
+  getApiV2AssetSnapshotsXmlWithDisclaimerRetrieveMockHandler(),
+  getApiV2AssetsContentRetrieveMockHandler(),
+  getApiV2AssetsTableViewRetrieveMockHandler(),
+  getApiV2AssetsValidContentRetrieveMockHandler(),
+  getApiV2AssetsXlsRetrieveMockHandler(),
+]

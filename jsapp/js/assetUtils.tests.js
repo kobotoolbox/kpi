@@ -26,7 +26,10 @@ jest.mock('#/api/react-query/user-team-organization-usage', () => ({
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { DeleteBlockerReason, getSurveyFlatPaths, userCanDeleteAssets } from '#/assetUtils'
 import { surveyWithAllPossibleGroups, surveyWithGroups } from '#/assetUtils.mocks'
-import assetFactory from '#/endpoints/asset.factory'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
+
+// Helper wrapper for legacy test code
+const assetFactory = (overrides) => getApiV2AssetsRetrieveResponseMock(overrides)
 
 describe('getSurveyFlatPaths', () => {
   it('should return a list of paths for all questions', () => {

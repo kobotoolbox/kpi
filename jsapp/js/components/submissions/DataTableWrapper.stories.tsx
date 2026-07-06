@@ -16,11 +16,14 @@ import { actions } from '#/actions'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
-import assetFactory from '#/endpoints/asset.factory'
-import assetMock from '#/endpoints/asset.mocks'
+import type { AssetResponse } from '#/dataInterface'
+import {
+  getApiV2AssetsRetrieveResponseMock,
+  getApiV2AssetsRetrieveMockHandler,
+} from '#/api/react-query/manage-projects-and-library-content'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import assetDataMock from '#/endpoints/assetData.mocks'
-import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import bulkActionsMock from '#/endpoints/bulkActions.mocks'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
@@ -38,6 +41,11 @@ import {
   pollingAsset,
   resetPollingUpdateStoryHandlers,
 } from './DataTableWrapperPollingStoriesUtils'
+
+// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
+// - Make date_created and date_modified required (they're auto-populated by Django)
+// - Fix analysis_form_json.additional_fields type (should be object[], not string[])
+// These casts are safe because the types are compatible at runtime
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
@@ -145,7 +153,7 @@ const getRouterParams = (assetUid: string) =>
 // Minimal asset and submissions for simple stories
 
 // Default story asset and submissions
-const minimalAsset = assetFactory({
+const minimalAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'audio-asset-uid',
   name: 'Audio form',
   content: {
@@ -165,7 +173,8 @@ const minimalAsset = assetFactory({
     translations: [null],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-})
+}) as AssetResponse
+
 const minimalSubmissions = [
   assetDataFactory(1, {
     Record_a_sound: 'test1.mp3',
@@ -198,7 +207,7 @@ const minimalSubmissions = [
 ]
 
 // ProcessingColumn story asset and submissions (unique UID)
-const processingAsset = assetFactory({
+const processingAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'audio-asset-uid-processing',
   name: 'Audio form with processing',
   content: {
@@ -243,7 +252,8 @@ const processingAsset = assetFactory({
     ],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-})
+}) as AssetResponse
+
 const processingSubmissions = [
   assetDataFactory(1, {
     Record_a_sound: 'test1.mp3',
@@ -309,18 +319,22 @@ const processingSubmissions = [
     ],
   }),
 ]
-const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/rootUuid'], 'fr', {
+const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.complete,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
+  submission_uuids: [processingSubmissions[1]['meta/rootUuid']],
+  params: { language: 'fr' },
   created_by: {
     username: 'zefir',
   },
 })
-const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/rootUuid'], 'es', {
+const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.in_progress,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
+  submission_uuids: [processingSubmissions[2]['meta/rootUuid']],
+  params: { language: 'es' },
   created_by: {
     username: 'other-user',
   },
@@ -347,7 +361,7 @@ const meta: Meta<typeof DataTableWrapper> = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -374,7 +388,7 @@ export const Default: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -396,7 +410,7 @@ export const ProcessingColumnAndBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(processingAsset.uid, processingAsset),
+        getApiV2AssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -454,7 +468,7 @@ export const ProcessingAndLimitsBannersTogether: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(processingAsset.uid, processingAsset),
+        getApiV2AssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         // Shows both BulkProcessingBanner (active jobs) + OverLimitBanner (exceeded submission limit)
@@ -479,7 +493,7 @@ export const StorageLimitWarningBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageWarning()),
@@ -501,7 +515,7 @@ export const StorageExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageExceeded()),
@@ -523,7 +537,7 @@ export const SubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
@@ -545,7 +559,7 @@ export const StorageAndSubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.bothExceeded()),

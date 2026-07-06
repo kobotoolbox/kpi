@@ -5,7 +5,7 @@ import assetHistoryMock, {
   assetHistoryMockWithOngoingBulkProcessing,
   mockAssetUid,
 } from '#/endpoints/assetHistory.mocks'
-import assetHistoryActionsMock from '#/endpoints/assetHistoryActions.mocks'
+import { getApiV2AssetsHistoryActionsRetrieveMockHandler } from '#/api/react-query/logging'
 import { bulkActionCancelMock } from '#/endpoints/bulkActions.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
@@ -17,7 +17,22 @@ const meta: Meta<typeof FormActivity> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: [assetHistoryMock, assetHistoryActionsMock],
+      handlers: [
+        assetHistoryMock,
+        getApiV2AssetsHistoryActionsRetrieveMockHandler({
+          actions: [
+            'bulk-processing',
+            'disallow-anonymous-submissions',
+            'add-media',
+            'add-submission',
+            'allow-anonymous-submissions',
+            'modify-user-permissions',
+            'update-content',
+            'deploy',
+            'delete-submission',
+          ],
+        }),
+      ],
     },
     reactRouter: reactRouterParameters({
       location: {
@@ -71,7 +86,23 @@ export const TestFilteringByActivityType: Story = {
 export const OngoingBulkProcessing: Story = {
   parameters: {
     msw: {
-      handlers: [assetHistoryMockWithOngoingBulkProcessing, assetHistoryActionsMock, bulkActionCancelMock],
+      handlers: [
+        assetHistoryMockWithOngoingBulkProcessing,
+        getApiV2AssetsHistoryActionsRetrieveMockHandler({
+          actions: [
+            'bulk-processing',
+            'disallow-anonymous-submissions',
+            'add-media',
+            'add-submission',
+            'allow-anonymous-submissions',
+            'modify-user-permissions',
+            'update-content',
+            'deploy',
+            'delete-submission',
+          ],
+        }),
+        bulkActionCancelMock,
+      ],
     },
   },
 }

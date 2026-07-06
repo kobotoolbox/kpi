@@ -4,10 +4,13 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import { QuestionTypeName } from '#/constants'
-import assetFactory from '#/endpoints/asset.factory'
-import assetMock from '#/endpoints/asset.mocks'
+import type { AssetResponse } from '#/dataInterface'
+import {
+  getApiV2AssetsRetrieveResponseMock,
+  getApiV2AssetsRetrieveMockHandler,
+} from '#/api/react-query/manage-projects-and-library-content'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.mocks'
@@ -23,9 +26,14 @@ const POLLING_STORY_ASSERTION_GRACE_MS = 6000
 // enough time to actually render the "Processing" cell before completion fires.
 const POLLING_COMPLETE_AFTER_MS = 2000
 
+// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
+// - Make date_created and date_modified required (they're auto-populated by Django)
+// - Fix analysis_form_json.additional_fields type (should be object[], not string[])
+// This cast is safe because the types are compatible at runtime
+
 // Dedicated polling story data is kept in a separate file so the main stories
 // file remains easy to scan as more table scenarios get added.
-export const pollingAsset = assetFactory({
+export const pollingAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'audio-asset-uid-polling',
   name: 'Audio form with polling update',
   // The backend writes analysis_form_json when a bulk action is created, so
@@ -62,7 +70,7 @@ export const pollingAsset = assetFactory({
     translations: [null],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-})
+}) as AssetResponse
 
 const pollingSubmissionInitial = assetDataFactory(11, {
   Record_a_sound: 'test11.mp3',
@@ -104,11 +112,13 @@ const pollingSubmissionUpdated = assetDataFactory(11, {
   ],
 })
 
-const pollingBulkActionInProgress = bulkActionFactory(pollingSubmissionInitial['meta/rootUuid'], 'es', {
+const pollingBulkActionInProgress = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   uid: 'polling-bulk-action',
   status: BulkActionResponseStatusEnum.in_progress,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
+  submission_uuids: [pollingSubmissionInitial['meta/rootUuid']],
+  params: { language: 'es' },
   submission_statuses: [
     {
       uuid: pollingSubmissionInitial['meta/rootUuid'],
@@ -118,11 +128,13 @@ const pollingBulkActionInProgress = bulkActionFactory(pollingSubmissionInitial['
   ],
 })
 
-const pollingBulkActionComplete = bulkActionFactory(pollingSubmissionInitial['meta/rootUuid'], 'es', {
+const pollingBulkActionComplete = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   uid: 'polling-bulk-action',
   status: BulkActionResponseStatusEnum.complete,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
+  submission_uuids: [pollingSubmissionInitial['meta/rootUuid']],
+  params: { language: 'es' },
   submission_statuses: [
     {
       uuid: pollingSubmissionInitial['meta/rootUuid'],
@@ -160,7 +172,7 @@ export function getPollingUpdateStoryTimeoutMs() {
 export function getPollingUpdateStoryHandlers() {
   return [
     meMock,
-    assetMock(pollingAsset.uid, pollingAsset),
+    getApiV2AssetsRetrieveMockHandler(pollingAsset),
     organizationMock(),
     organizationServiceUsageMock(),
     http.get<PathParams<'uid'>, never>(endpoints.ASSET_ADVANCED_FEATURES_BULK_ACTIONS, ({ params }) => {

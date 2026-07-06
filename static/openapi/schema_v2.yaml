@@ -16952,12 +16952,60 @@ components:
           title: ' submitted by'
         _supplementalDetails:
           oneOf:
-          - $ref: '#/components/schemas/SupplementalDetailsManualTranscription'
-          - $ref: '#/components/schemas/SupplementalDetailsManualTranslation'
-          - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranscription'
-          - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranslation'
-          - $ref: '#/components/schemas/SupplementalDetailsManualQual'
-          - $ref: '#/components/schemas/SupplementalDetailsAutomaticQual'
+          - type: object
+            description: Manual transcription supplemental details
+            additionalProperties:
+              type: object
+              properties:
+                manual_transcription:
+                  $ref: '#/components/schemas/SupplementalDataManualTranscription'
+              required:
+              - manual_transcription
+          - type: object
+            description: Manual translation supplemental details
+            additionalProperties:
+              type: object
+              properties:
+                manual_translation:
+                  $ref: '#/components/schemas/SupplementalDataManualTranslation'
+              required:
+              - manual_translation
+          - type: object
+            description: Automatic transcription supplemental details
+            additionalProperties:
+              type: object
+              properties:
+                automatic_google_transcription:
+                  $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
+              required:
+              - automatic_google_transcription
+          - type: object
+            description: Automatic translation supplemental details
+            additionalProperties:
+              type: object
+              properties:
+                automatic_google_translation:
+                  $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
+              required:
+              - automatic_google_translation
+          - type: object
+            description: Manual qualitative supplemental details
+            additionalProperties:
+              type: object
+              properties:
+                manual_qual:
+                  $ref: '#/components/schemas/SupplementalDataManualQual'
+              required:
+              - manual_qual
+          - type: object
+            description: Automatic qualitative supplemental details
+            additionalProperties:
+              type: object
+              properties:
+                automatic_bedrock_qual:
+                  $ref: '#/components/schemas/SupplementalDataAutomaticQual'
+              required:
+              - automatic_bedrock_qual
           nullable: true
           description: Action-specific supplemental data attached to this submission.
             Structure varies by action type (transcription, translation, qual). Top-level
@@ -18582,6 +18630,7 @@ components:
         last_login:
           type: string
           format: date-time
+          nullable: true
         extra_details:
           type: object
           properties:
@@ -18616,16 +18665,26 @@ components:
             newsletter_subscription:
               type: string
         git_rev:
-          type: object
-          properties:
-            short:
-              type: string
-            long:
-              type: string
-            branch:
-              type: string
-            tag:
-              type: string
+          oneOf:
+          - type: boolean
+          - type: object
+            properties:
+              short:
+                oneOf:
+                - type: string
+                - type: boolean
+              long:
+                oneOf:
+                - type: string
+                - type: boolean
+              branch:
+                oneOf:
+                - type: string
+                - type: boolean
+              tag:
+                oneOf:
+                - type: string
+                - type: boolean
         social_accounts:
           type: array
           items:
@@ -22923,66 +22982,6 @@ components:
       - _data
       - _dateCreated
       - _uuid
-    SupplementalDetailsAutomaticQual:
-      type: object
-      description: Automatic qualitative supplemental details
-      additionalProperties:
-        type: object
-        properties:
-          automatic_bedrock_qual:
-            $ref: '#/components/schemas/SupplementalDataAutomaticQual'
-        required:
-        - automatic_bedrock_qual
-    SupplementalDetailsAutomaticTranscription:
-      type: object
-      description: Automatic transcription supplemental details
-      additionalProperties:
-        type: object
-        properties:
-          automatic_google_transcription:
-            $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
-        required:
-        - automatic_google_transcription
-    SupplementalDetailsAutomaticTranslation:
-      type: object
-      description: Automatic translation supplemental details
-      additionalProperties:
-        type: object
-        properties:
-          automatic_google_translation:
-            $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
-        required:
-        - automatic_google_translation
-    SupplementalDetailsManualQual:
-      type: object
-      description: Manual qualitative supplemental details
-      additionalProperties:
-        type: object
-        properties:
-          manual_qual:
-            $ref: '#/components/schemas/SupplementalDataManualQual'
-        required:
-        - manual_qual
-    SupplementalDetailsManualTranscription:
-      type: object
-      description: Manual transcription supplemental details
-      additionalProperties:
-        type: object
-        properties:
-          manual_transcription:
-            $ref: '#/components/schemas/SupplementalDataManualTranscription'
-        required:
-        - manual_transcription
-    SupplementalDetailsManualTranslation:
-      type: object
-      description: Manual translation supplemental details
-      additionalProperties:
-        type: object
-        properties:
-          manual_translation:
-            $ref: '#/components/schemas/SupplementalDataManualTranslation'
-        required:
-        - manual_translation
     TagListResponse:
       type: object
       properties:

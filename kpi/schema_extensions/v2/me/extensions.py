@@ -42,14 +42,22 @@ class GitRevFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.me.fields.GitRevField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'short': GENERIC_STRING_SCHEMA,
-                'long': GENERIC_STRING_SCHEMA,
-                'branch': GENERIC_STRING_SCHEMA,
-                'tag': GENERIC_STRING_SCHEMA,
-            }
-        )
+        # git_rev can be either:
+        # - False (when EXPOSE_GIT_REV=False and user is not superuser)
+        # - An object with string/boolean properties (actual git revision info)
+        return {
+            'oneOf': [
+                build_basic_type(OpenApiTypes.BOOL),
+                build_object_type(
+                    properties={
+                        'short': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
+                        'long': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
+                        'branch': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
+                        'tag': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
+                    }
+                ),
+            ]
+        }
 
 
 class GravatarFieldExtension(OpenApiSerializerFieldExtension):

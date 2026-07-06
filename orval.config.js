@@ -1,4 +1,4 @@
-import { operationName } from './jsapp/js/api/orval.operationName'
+const { operationName } = require('./jsapp/js/api/orval.operationName.js')
 
 module.exports = {
   'kpi-v2': {
@@ -15,7 +15,9 @@ module.exports = {
         return generatorClients['react-query']
       },
       httpClient: 'fetch',
-      mock: false, // TODO: enable in later PRs separately.
+      mock: {
+        type: 'msw',
+      },
       indexFiles: false,
       biome: true,
 

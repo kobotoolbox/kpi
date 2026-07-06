@@ -4,8 +4,8 @@ import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-r
 import { expect, waitFor, within } from 'storybook/test'
 import { endpoints } from '#/api.endpoints'
 import { MetaQuestionTypeName, QuestionTypeName } from '#/constants'
-import type { PaginatedResponse, SubmissionResponse } from '#/dataInterface'
-import assetFactory from '#/endpoints/asset.factory'
+import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
@@ -14,8 +14,12 @@ import FormMapWrapper from './formMapWrapper'
 
 const mockAssetUid = 'aTestMapAssetUid123'
 
+// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
+// - Make date_created and date_modified required (they're auto-populated by Django)
+// These casts are safe because the types are compatible at runtime
+
 // Asset with only start-geopoint (no regular geopoint question)
-const assetWithOnlyStartGeopoint = assetFactory({
+const assetWithOnlyStartGeopoint = getApiV2AssetsRetrieveResponseMock({
   uid: mockAssetUid,
   name: 'Test Form with Start-Geopoint Only',
   deployment__active: true,
@@ -30,7 +34,7 @@ const assetWithOnlyStartGeopoint = assetFactory({
     languages: [],
     row_count: 2,
     name_quality: { ok: 2, bad: 0, good: 0, total: 2, firsts: {} },
-    default_translation: null,
+    default_translation: undefined,
   },
   content: {
     survey: [
@@ -49,10 +53,10 @@ const assetWithOnlyStartGeopoint = assetFactory({
     ],
     choices: [],
   },
-})
+}) as AssetResponse
 
 // Asset with both start-geopoint AND regular geopoint
-const assetWithBothGeopointTypes = assetFactory({
+const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
   uid: mockAssetUid,
   name: 'Test Form with Both Geopoint Types',
   deployment__active: true,
@@ -67,7 +71,7 @@ const assetWithBothGeopointTypes = assetFactory({
     languages: [],
     row_count: 3,
     name_quality: { ok: 3, bad: 0, good: 0, total: 3, firsts: {} },
-    default_translation: null,
+    default_translation: undefined,
   },
   content: {
     survey: [
@@ -93,7 +97,7 @@ const assetWithBothGeopointTypes = assetFactory({
     ],
     choices: [],
   },
-})
+}) as AssetResponse
 
 // Submission data with populated start-geopoint
 const submissionsWithStartGeopoint: SubmissionResponse[] = [

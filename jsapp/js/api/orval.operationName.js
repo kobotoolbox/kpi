@@ -109,7 +109,5 @@ const getOperationId = (operation, route, verb) => {
   )
 }
 
-module.exports = {
-  operationName: (operation, route, verb) =>
-    sanitize(camel(getOperationId(operation, route, verb)), { es5keyword: true }),
-}
+export const operationName = (operation, route, verb) =>
+  sanitize(camel(getOperationId(operation, route, verb)), { es5keyword: true })

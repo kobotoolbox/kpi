@@ -1,16 +1,10 @@
-import { http, HttpResponse } from 'msw'
-import { endpoints } from '#/api.endpoints'
-import type { EnvironmentResponse } from '../envStore'
+import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration'
 
 /**
- * Mock API for environment config. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Production-like environment configuration for testing.
+ * Contains complete lists of countries, languages, and sectors that the UI depends on.
  */
-const environmentMock = http.get<never, never, EnvironmentResponse>(endpoints.ENVIRONMENT, () =>
-  HttpResponse.json(environmentResponse),
-)
-export default environmentMock
-
-const environmentResponse: EnvironmentResponse = {
+const environmentResponse = {
   terms_of_service_url: '',
   privacy_policy_url: '',
   source_code_url: 'https://github.com/kobotoolbox/',
@@ -433,3 +427,10 @@ const environmentResponse: EnvironmentResponse = {
   open_rosa_server: 'http://kc.kobo.local',
   allow_self_account_deletion: true,
 }
+
+/**
+ * Mock API for environment config using Orval-generated handler with production-like data.
+ * Use it in Storybook tests in `parameters.msw.handlers[]`.
+ */
+const environmentMock = getApiV2EnvironmentRetrieveMockHandler(environmentResponse)
+export default environmentMock

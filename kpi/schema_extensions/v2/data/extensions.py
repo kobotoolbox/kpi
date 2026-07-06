@@ -329,95 +329,74 @@ class DataSupplementalDetailsFieldExtension(
             auto_schema, qual_references=references
         )
 
+        # Note: These schemas are inlined (not registered as components) to avoid
+        # Orval generating problematic MSW mocks for types with index signatures.
+        # The oneOf discriminator is sufficient for the API schema.
         return {
             'oneOf': [
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsManualTranscription',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'manual_transcription': supp_references[
-                                    'action_object_manual'
-                                ],
-                            },
-                            required=['manual_transcription'],
-                        ),
-                        description='Manual transcription supplemental details',
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'manual_transcription': supp_references[
+                                'action_object_manual'
+                            ],
+                        },
+                        required=['manual_transcription'],
                     ),
+                    description='Manual transcription supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsManualTranslation',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'manual_translation': supp_references[
-                                    'translation_map_manual'
-                                ],
-                            },
-                            required=['manual_translation'],
-                        ),
-                        description='Manual translation supplemental details',
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'manual_translation': supp_references[
+                                'translation_map_manual'
+                            ],
+                        },
+                        required=['manual_translation'],
                     ),
+                    description='Manual translation supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsAutomaticTranscription',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'automatic_google_transcription': supp_references[
-                                    'action_object_automatic'
-                                ],
-                            },
-                            required=['automatic_google_transcription'],
-                        ),
-                        description='Automatic transcription supplemental details',
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'automatic_google_transcription': supp_references[
+                                'action_object_automatic'
+                            ],
+                        },
+                        required=['automatic_google_transcription'],
                     ),
+                    description='Automatic transcription supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsAutomaticTranslation',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'automatic_google_translation': supp_references[
-                                    'translation_map_automatic'
-                                ],
-                            },
-                            required=['automatic_google_translation'],
-                        ),
-                        description='Automatic translation supplemental details',
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'automatic_google_translation': supp_references[
+                                'translation_map_automatic'
+                            ],
+                        },
+                        required=['automatic_google_translation'],
                     ),
+                    description='Automatic translation supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsManualQual',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'manual_qual': supp_references['qual_map'],
-                            },
-                            required=['manual_qual'],
-                        ),
-                        description='Manual qualitative supplemental details',
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'manual_qual': supp_references['qual_map'],
+                        },
+                        required=['manual_qual'],
                     ),
+                    description='Manual qualitative supplemental details',
                 ),
-                self._register_schema_component(
-                    auto_schema,
-                    'SupplementalDetailsAutomaticQual',
-                    build_object_type(
-                        additionalProperties=build_object_type(
-                            properties={
-                                'automatic_bedrock_qual': supp_references[
-                                    'qual_map_automatic'
-                                ],
-                            },
-                            required=['automatic_bedrock_qual'],
-                        ),
-                        description='Automatic qualitative supplemental details',
+                build_object_type(
+                    additionalProperties=build_object_type(
+                        properties={
+                            'automatic_bedrock_qual': supp_references[
+                                'qual_map_automatic'
+                            ],
+                        },
+                        required=['automatic_bedrock_qual'],
                     ),
+                    description='Automatic qualitative supplemental details',
                 ),
             ],
             'nullable': True,  # Field is required=False

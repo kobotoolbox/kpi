@@ -12,6 +12,10 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import { useQuery } from '@tanstack/react-query'
 import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
+import { faker } from '@faker-js/faker'
+
+import { http, HttpResponse, delay } from 'msw'
+
 import type { EnvironmentResponse } from '../models/environmentResponse'
 
 import { fetchWithAuth } from '../orval.mutator'
@@ -95,3 +99,129 @@ export function useEnvironmentRetrieve<
 
   return query
 }
+
+export const getApiV2EnvironmentRetrieveResponseMock = (
+  overrideResponse: Partial<EnvironmentResponse> = {},
+): EnvironmentResponse => ({
+  terms_of_service_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  privacy_policy_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  source_code_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  support_email: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  support_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  academy_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  community_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  frontend_min_retry_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  frontend_max_retry_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  use_team_label: faker.datatype.boolean(),
+  usage_limit_enforcement: faker.datatype.boolean(),
+  allow_self_account_deletion: faker.datatype.boolean(),
+  project_history_log_lifespan: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  sector_choices: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    Array.from({ length: faker.number.int({ min: 2, max: 2 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+  ),
+  operational_purpose_choices: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    Array.from({ length: faker.number.int({ min: 2, max: 2 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+  ),
+  country_choices: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    Array.from({ length: faker.number.int({ min: 2, max: 2 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+  ),
+  interface_languages: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    Array.from({ length: faker.number.int({ min: 2, max: 2 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+  ),
+  mfa_localized_help_text: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  mfa_enabled: faker.datatype.boolean(),
+  mfa_code_length: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  superuser_auth_enforcement: faker.datatype.boolean(),
+  enable_password_entropy_meter: faker.datatype.boolean(),
+  enable_custom_password_guidance_text: faker.datatype.boolean(),
+  custom_password_localized_help_text: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  project_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    options: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        label: {
+          [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        },
+      })),
+      undefined,
+    ]),
+  })),
+  extra_project_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+    () => ({
+      name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      options: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          label: {
+            [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          },
+        })),
+        undefined,
+      ]),
+    }),
+  ),
+  user_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    options: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        label: {
+          [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        },
+      })),
+      undefined,
+    ]),
+  })),
+  social_apps: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    provider: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    client_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    provider_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  })),
+  asr_mt_features_enabled: faker.datatype.boolean(),
+  submission_placeholder: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  stripe_public_key: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  terms_of_service__sitewidemessage__exists: faker.datatype.boolean(),
+  open_rosa_server: faker.internet.url(),
+  ...overrideResponse,
+})
+
+export const getApiV2EnvironmentRetrieveMockHandler = (
+  overrideResponse?:
+    | EnvironmentResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnvironmentResponse> | EnvironmentResponse),
+) => {
+  return http.get('*/api/v2/environment/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2EnvironmentRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+export const getConfigurationMock = () => [getApiV2EnvironmentRetrieveMockHandler()]

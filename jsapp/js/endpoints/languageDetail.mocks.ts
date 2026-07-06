@@ -1,29 +1,29 @@
-import { http, HttpResponse } from 'msw'
-import { endpoints } from '#/api.endpoints'
-import type { Language } from '#/api/models/language'
+import { getApiV2LanguagesRetrieveMockHandler } from '#/api/react-query/other'
 
-const languageDetailMock = http.get<never, never, Language>(endpoints.LANGUAGE_DETAIL_URL, () =>
-  HttpResponse.json({
-    name: 'English',
-    code: 'en',
-    featured: true,
-    regions: [
-      { code: 'en-US', name: 'United States' },
-      { code: 'en-GB', name: 'United Kingdom' },
-    ],
-    transcription_services: {
-      goog: {
-        'en-US': 'en-US',
-        'en-GB': 'en-GB',
-      },
+/**
+ * Mock API for language detail endpoint using Orval-generated handler.
+ * Uses specific English language data for testing.
+ */
+const languageDetailMock = getApiV2LanguagesRetrieveMockHandler({
+  name: 'English',
+  code: 'en',
+  featured: true,
+  regions: [
+    { code: 'en-US', name: 'United States' },
+    { code: 'en-GB', name: 'United Kingdom' },
+  ],
+  transcription_services: {
+    goog: {
+      'en-US': 'en-US',
+      'en-GB': 'en-GB',
     },
-    translation_services: {
-      goog: {
-        'en-US': 'en-US',
-        'en-GB': 'en-GB',
-      },
+  },
+  translation_services: {
+    goog: {
+      'en-US': 'en-US',
+      'en-GB': 'en-GB',
     },
-  }),
-)
+  },
+})
 
 export default languageDetailMock

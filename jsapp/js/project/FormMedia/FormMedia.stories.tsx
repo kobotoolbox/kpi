@@ -1,12 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
-import assetFactory from '#/endpoints/asset.factory'
-import formMediaFactory from '#/endpoints/formMedia.factory'
-import { formMediaHandlers } from '#/endpoints/formMedia.mocks'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
+import { createFormMediaItem, formMediaHandlers } from '#/endpoints/formMedia.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import FormMedia from './index'
 
-const mockAsset = assetFactory({
+const mockAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'form-media-story-uid',
   deployment__active: false,
 })
@@ -22,13 +21,11 @@ const meta: Meta<typeof FormMedia> = {
     msw: {
       // Seed with one existing file so the first test step can verify loading.
       handlers: formMediaHandlers(mockAsset.uid, [
-        formMediaFactory(1, {
+        createFormMediaItem(1, {
           uid: 'form-media-1',
           url: `/api/v2/assets/${mockAsset.uid}/files/form-media-1/`,
           metadata: {
             hash: 'hash-1',
-            size: 1024,
-            type: 'image/png',
             filename: 'intro-image.png',
             mimetype: 'image/png',
           },

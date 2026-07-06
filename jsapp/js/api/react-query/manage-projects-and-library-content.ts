@@ -19,17 +19,9 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { Asset } from '../models/asset'
-
 import type { AssetBulkRequest } from '../models/assetBulkRequest'
 
-import type { AssetBulkResponse } from '../models/assetBulkResponse'
-
 import type { AssetCreateRequest } from '../models/assetCreateRequest'
-
-import type { AssetListCount } from '../models/assetListCount'
-
-import type { AssetMetadataResponse } from '../models/assetMetadataResponse'
 
 import type { AssetsCountsListParams } from '../models/assetsCountsListParams'
 
@@ -43,21 +35,51 @@ import type { AssetsVersionsListParams } from '../models/assetsVersionsListParam
 
 import type { DeploymentCreateRequest } from '../models/deploymentCreateRequest'
 
-import type { DeploymentResponse } from '../models/deploymentResponse'
-
 import type { ErrorDetail } from '../models/errorDetail'
 
 import type { ErrorObject } from '../models/errorObject'
 
-import type { HashResponse } from '../models/hashResponse'
-
 import type { ImportCreateRequest } from '../models/importCreateRequest'
+
+import type { ImportsListParams } from '../models/importsListParams'
+
+import type { PatchedAssetPatchRequest } from '../models/patchedAssetPatchRequest'
+
+import type { PatchedDeploymentPatchRequest } from '../models/patchedDeploymentPatchRequest'
+
+import type { PatchedInviteUpdatePayload } from '../models/patchedInviteUpdatePayload'
+
+import type { ProjectInviteCreatePayload } from '../models/projectInviteCreatePayload'
+
+import type { ProjectOwnershipInvitesListParams } from '../models/projectOwnershipInvitesListParams'
+
+import type { TagsListParams } from '../models/tagsListParams'
+
+import { faker } from '@faker-js/faker'
+
+import { http, HttpResponse, delay } from 'msw'
+
+import type { Asset } from '../models/asset'
+
+import type { AssetBulkResponse } from '../models/assetBulkResponse'
+
+import { AssetDeploymentStatusEnum } from '../models/assetDeploymentStatusEnum'
+
+import type { AssetListCount } from '../models/assetListCount'
+
+import type { AssetMetadataResponse } from '../models/assetMetadataResponse'
+
+import { AssetTypeEnum } from '../models/assetTypeEnum'
+
+import type { DeploymentResponse } from '../models/deploymentResponse'
+
+import type { HashResponse } from '../models/hashResponse'
 
 import type { ImportCreateResponse } from '../models/importCreateResponse'
 
 import type { ImportResponse } from '../models/importResponse'
 
-import type { ImportsListParams } from '../models/importsListParams'
+import { InviteStatusChoicesEnum } from '../models/inviteStatusChoicesEnum'
 
 import type { PaginatedAssetCountResponseList } from '../models/paginatedAssetCountResponseList'
 
@@ -73,21 +95,9 @@ import type { PaginatedTagListResponseList } from '../models/paginatedTagListRes
 
 import type { PaginatedVersionListResponseList } from '../models/paginatedVersionListResponseList'
 
-import type { PatchedAssetPatchRequest } from '../models/patchedAssetPatchRequest'
-
-import type { PatchedDeploymentPatchRequest } from '../models/patchedDeploymentPatchRequest'
-
-import type { PatchedInviteUpdatePayload } from '../models/patchedInviteUpdatePayload'
-
-import type { ProjectInviteCreatePayload } from '../models/projectInviteCreatePayload'
-
 import type { ProjectInviteResponse } from '../models/projectInviteResponse'
 
-import type { ProjectOwnershipInvitesListParams } from '../models/projectOwnershipInvitesListParams'
-
 import type { TagRetrieveResponse } from '../models/tagRetrieveResponse'
-
-import type { TagsListParams } from '../models/tagsListParams'
 
 import type { TransferListResponse } from '../models/transferListResponse'
 
@@ -2670,3 +2680,2599 @@ export function useTagsRetrieve<TData = Awaited<ReturnType<typeof tagsRetrieve>>
 
   return query
 }
+
+export const getApiV2AssetsListResponseMock = (
+  overrideResponse: Partial<PaginatedAssetList> = {},
+): PaginatedAssetList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    owner: faker.internet.url(),
+    owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+    settings: faker.helpers.arrayElement([
+      {
+        sector: faker.helpers.arrayElement([{}, undefined]),
+        country: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        country_codes: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        operational_purpose: faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+    files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    summary: {
+      geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      labels: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      columns: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      languages: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      row_count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      name_quality: faker.helpers.arrayElement([{}, undefined]),
+      default_translation: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_deployed: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    has_deployment: faker.datatype.boolean(),
+    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_versions: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      results: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+          content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+          date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+        })),
+        undefined,
+      ]),
+    },
+    deployment__links: {},
+    deployment__active: faker.datatype.boolean(),
+    deployment__data_download_links: {},
+    deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    deployment__encrypted: faker.datatype.boolean(),
+    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+    report_styles: faker.helpers.arrayElement([
+      {
+        default: faker.helpers.arrayElement([{}, undefined]),
+        specified: faker.helpers.arrayElement([
+          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
+          undefined,
+        ]),
+        kuid_names: faker.helpers.arrayElement([
+          {
+            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    report_custom: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_custom: faker.helpers.arrayElement([{}, undefined]),
+    content: faker.helpers.arrayElement([
+      {
+        schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        survey: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+        settings: faker.helpers.arrayElement([{}, undefined]),
+        translated: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        translations: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    analysis_form_json: {
+      additional_fields: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    xform_link: faker.internet.url(),
+    hooks_link: faker.internet.url(),
+    tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    xls_link: faker.internet.url(),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+    assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+      () => ({}),
+    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    exports: faker.internet.url(),
+    export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      export_settings: {
+        [faker.string.alphanumeric(5)]: {},
+      },
+    })),
+    data: faker.internet.url(),
+    children: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+    },
+    subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    data_sharing: faker.helpers.arrayElement([{}, undefined]),
+    paired_data: faker.internet.url(),
+    project_ownership: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+    owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset> = {}): Asset => ({
+  url: faker.internet.url(),
+  owner: faker.internet.url(),
+  owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  settings: faker.helpers.arrayElement([
+    {
+      sector: faker.helpers.arrayElement([{}, undefined]),
+      country: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country_codes: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      operational_purpose: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+  files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  summary: {
+    geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    labels: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    columns: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    languages: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    row_count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+    name_quality: faker.helpers.arrayElement([{}, undefined]),
+    default_translation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  },
+  date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  date_deployed: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  has_deployment: faker.datatype.boolean(),
+  deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployed_versions: {
+    count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+    next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    results: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+        content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+        date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+      })),
+      undefined,
+    ]),
+  },
+  deployment__links: {},
+  deployment__active: faker.datatype.boolean(),
+  deployment__data_download_links: {},
+  deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  deployment__encrypted: faker.datatype.boolean(),
+  deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+  report_styles: faker.helpers.arrayElement([
+    {
+      default: faker.helpers.arrayElement([{}, undefined]),
+      specified: faker.helpers.arrayElement([
+        { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
+        undefined,
+      ]),
+      kuid_names: faker.helpers.arrayElement([
+        {
+          end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  report_custom: faker.helpers.arrayElement([{}, undefined]),
+  advanced_features: faker.helpers.arrayElement([{}, undefined]),
+  map_styles: faker.helpers.arrayElement([{}, undefined]),
+  map_custom: faker.helpers.arrayElement([{}, undefined]),
+  content: faker.helpers.arrayElement([
+    {
+      schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      survey: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+        undefined,
+      ]),
+      settings: faker.helpers.arrayElement([{}, undefined]),
+      translated: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      translations: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  analysis_form_json: {
+    additional_fields: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+  },
+  xform_link: faker.internet.url(),
+  hooks_link: faker.internet.url(),
+  tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  xls_link: faker.internet.url(),
+  name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+  assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+    () => ({}),
+  ),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  exports: faker.internet.url(),
+  export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    export_settings: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+  })),
+  data: faker.internet.url(),
+  children: {
+    count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+  },
+  subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  data_sharing: faker.helpers.arrayElement([{}, undefined]),
+  paired_data: faker.internet.url(),
+  project_ownership: {
+    [faker.string.alphanumeric(5)]: {},
+  },
+  owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Asset> = {}): Asset => ({
+  url: faker.internet.url(),
+  owner: faker.internet.url(),
+  owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  settings: faker.helpers.arrayElement([
+    {
+      sector: faker.helpers.arrayElement([{}, undefined]),
+      country: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country_codes: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      operational_purpose: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+  files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  summary: {
+    geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    labels: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    columns: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    languages: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    row_count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+    name_quality: faker.helpers.arrayElement([{}, undefined]),
+    default_translation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  },
+  date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  date_deployed: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  has_deployment: faker.datatype.boolean(),
+  deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployed_versions: {
+    count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+    next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    results: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+        content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+        date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+      })),
+      undefined,
+    ]),
+  },
+  deployment__links: {},
+  deployment__active: faker.datatype.boolean(),
+  deployment__data_download_links: {},
+  deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  deployment__encrypted: faker.datatype.boolean(),
+  deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+  report_styles: faker.helpers.arrayElement([
+    {
+      default: faker.helpers.arrayElement([{}, undefined]),
+      specified: faker.helpers.arrayElement([
+        { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
+        undefined,
+      ]),
+      kuid_names: faker.helpers.arrayElement([
+        {
+          end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  report_custom: faker.helpers.arrayElement([{}, undefined]),
+  advanced_features: faker.helpers.arrayElement([{}, undefined]),
+  map_styles: faker.helpers.arrayElement([{}, undefined]),
+  map_custom: faker.helpers.arrayElement([{}, undefined]),
+  content: faker.helpers.arrayElement([
+    {
+      schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      survey: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+        undefined,
+      ]),
+      settings: faker.helpers.arrayElement([{}, undefined]),
+      translated: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      translations: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  analysis_form_json: {
+    additional_fields: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+  },
+  xform_link: faker.internet.url(),
+  hooks_link: faker.internet.url(),
+  tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  xls_link: faker.internet.url(),
+  name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+  assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+    () => ({}),
+  ),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  exports: faker.internet.url(),
+  export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    export_settings: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+  })),
+  data: faker.internet.url(),
+  children: {
+    count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+  },
+  subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  data_sharing: faker.helpers.arrayElement([{}, undefined]),
+  paired_data: faker.internet.url(),
+  project_ownership: {
+    [faker.string.alphanumeric(5)]: {},
+  },
+  owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partial<Asset> = {}): Asset => ({
+  url: faker.internet.url(),
+  owner: faker.internet.url(),
+  owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  settings: faker.helpers.arrayElement([
+    {
+      sector: faker.helpers.arrayElement([{}, undefined]),
+      country: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country_codes: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      operational_purpose: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+  files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  summary: {
+    geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    labels: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    columns: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    languages: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    row_count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+    name_quality: faker.helpers.arrayElement([{}, undefined]),
+    default_translation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  },
+  date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  date_deployed: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  has_deployment: faker.datatype.boolean(),
+  deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployed_versions: {
+    count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+    next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    results: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+        content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+        date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+      })),
+      undefined,
+    ]),
+  },
+  deployment__links: {},
+  deployment__active: faker.datatype.boolean(),
+  deployment__data_download_links: {},
+  deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  deployment__encrypted: faker.datatype.boolean(),
+  deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+  report_styles: faker.helpers.arrayElement([
+    {
+      default: faker.helpers.arrayElement([{}, undefined]),
+      specified: faker.helpers.arrayElement([
+        { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
+        undefined,
+      ]),
+      kuid_names: faker.helpers.arrayElement([
+        {
+          end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  report_custom: faker.helpers.arrayElement([{}, undefined]),
+  advanced_features: faker.helpers.arrayElement([{}, undefined]),
+  map_styles: faker.helpers.arrayElement([{}, undefined]),
+  map_custom: faker.helpers.arrayElement([{}, undefined]),
+  content: faker.helpers.arrayElement([
+    {
+      schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      survey: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+        undefined,
+      ]),
+      settings: faker.helpers.arrayElement([{}, undefined]),
+      translated: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      translations: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    undefined,
+  ]),
+  downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  analysis_form_json: {
+    additional_fields: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+  },
+  xform_link: faker.internet.url(),
+  hooks_link: faker.internet.url(),
+  tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  xls_link: faker.internet.url(),
+  name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+  assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+    () => ({}),
+  ),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  exports: faker.internet.url(),
+  export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    export_settings: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+  })),
+  data: faker.internet.url(),
+  children: {
+    count: faker.helpers.arrayElement([
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      undefined,
+    ]),
+  },
+  subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  data_sharing: faker.helpers.arrayElement([{}, undefined]),
+  paired_data: faker.internet.url(),
+  project_ownership: {
+    [faker.string.alphanumeric(5)]: {},
+  },
+  owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsCountsListResponseMock = (
+  overrideResponse: Partial<PaginatedAssetCountResponseList> = {},
+): PaginatedAssetCountResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    daily_submission_count: {
+      '2020-10-20': faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+    },
+    total_submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsDeploymentRetrieveResponseMock = (
+  overrideResponse: Partial<DeploymentResponse> = {},
+): DeploymentResponse => ({
+  backend: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  active: faker.datatype.boolean(),
+  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  asset: {
+    url: faker.internet.url(),
+    owner: faker.internet.url(),
+    owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+    settings: faker.helpers.arrayElement([
+      {
+        sector: faker.helpers.arrayElement([{}, undefined]),
+        country: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        country_codes: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        operational_purpose: faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+    files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    summary: {
+      geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      labels: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      columns: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      languages: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      row_count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      name_quality: faker.helpers.arrayElement([{}, undefined]),
+      default_translation: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_deployed: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    has_deployment: faker.datatype.boolean(),
+    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_versions: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      results: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+          content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+          date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+        })),
+        undefined,
+      ]),
+    },
+    deployment__links: {},
+    deployment__active: faker.datatype.boolean(),
+    deployment__data_download_links: {},
+    deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    deployment__encrypted: faker.datatype.boolean(),
+    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+    report_styles: faker.helpers.arrayElement([
+      {
+        default: faker.helpers.arrayElement([{}, undefined]),
+        specified: faker.helpers.arrayElement([
+          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
+          undefined,
+        ]),
+        kuid_names: faker.helpers.arrayElement([
+          {
+            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    report_custom: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_custom: faker.helpers.arrayElement([{}, undefined]),
+    content: faker.helpers.arrayElement([
+      {
+        schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        survey: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+        settings: faker.helpers.arrayElement([{}, undefined]),
+        translated: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        translations: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    analysis_form_json: {
+      additional_fields: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    xform_link: faker.internet.url(),
+    hooks_link: faker.internet.url(),
+    tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    xls_link: faker.internet.url(),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+    assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+      () => ({}),
+    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    exports: faker.internet.url(),
+    export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      export_settings: {
+        [faker.string.alphanumeric(5)]: {},
+      },
+    })),
+    data: faker.internet.url(),
+    children: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+    },
+    subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    data_sharing: faker.helpers.arrayElement([{}, undefined]),
+    paired_data: faker.internet.url(),
+    project_ownership: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+    owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsDeploymentCreateResponseMock = (
+  overrideResponse: Partial<DeploymentResponse> = {},
+): DeploymentResponse => ({
+  backend: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  active: faker.datatype.boolean(),
+  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  asset: {
+    url: faker.internet.url(),
+    owner: faker.internet.url(),
+    owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+    settings: faker.helpers.arrayElement([
+      {
+        sector: faker.helpers.arrayElement([{}, undefined]),
+        country: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        country_codes: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        operational_purpose: faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+    files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    summary: {
+      geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      labels: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      columns: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      languages: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      row_count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      name_quality: faker.helpers.arrayElement([{}, undefined]),
+      default_translation: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_deployed: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    has_deployment: faker.datatype.boolean(),
+    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_versions: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      results: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+          content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+          date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+        })),
+        undefined,
+      ]),
+    },
+    deployment__links: {},
+    deployment__active: faker.datatype.boolean(),
+    deployment__data_download_links: {},
+    deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    deployment__encrypted: faker.datatype.boolean(),
+    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+    report_styles: faker.helpers.arrayElement([
+      {
+        default: faker.helpers.arrayElement([{}, undefined]),
+        specified: faker.helpers.arrayElement([
+          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
+          undefined,
+        ]),
+        kuid_names: faker.helpers.arrayElement([
+          {
+            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    report_custom: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_custom: faker.helpers.arrayElement([{}, undefined]),
+    content: faker.helpers.arrayElement([
+      {
+        schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        survey: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+        settings: faker.helpers.arrayElement([{}, undefined]),
+        translated: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        translations: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    analysis_form_json: {
+      additional_fields: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    xform_link: faker.internet.url(),
+    hooks_link: faker.internet.url(),
+    tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    xls_link: faker.internet.url(),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+    assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+      () => ({}),
+    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    exports: faker.internet.url(),
+    export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      export_settings: {
+        [faker.string.alphanumeric(5)]: {},
+      },
+    })),
+    data: faker.internet.url(),
+    children: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+    },
+    subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    data_sharing: faker.helpers.arrayElement([{}, undefined]),
+    paired_data: faker.internet.url(),
+    project_ownership: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+    owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
+  overrideResponse: Partial<DeploymentResponse> = {},
+): DeploymentResponse => ({
+  backend: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  active: faker.datatype.boolean(),
+  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  asset: {
+    url: faker.internet.url(),
+    owner: faker.internet.url(),
+    owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+    settings: faker.helpers.arrayElement([
+      {
+        sector: faker.helpers.arrayElement([{}, undefined]),
+        country: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        country_codes: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        operational_purpose: faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+    files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    summary: {
+      geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      labels: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      columns: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      languages: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      row_count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      name_quality: faker.helpers.arrayElement([{}, undefined]),
+      default_translation: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_deployed: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    has_deployment: faker.datatype.boolean(),
+    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_versions: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      results: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+          content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+          date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+        })),
+        undefined,
+      ]),
+    },
+    deployment__links: {},
+    deployment__active: faker.datatype.boolean(),
+    deployment__data_download_links: {},
+    deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    deployment__encrypted: faker.datatype.boolean(),
+    deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+    report_styles: faker.helpers.arrayElement([
+      {
+        default: faker.helpers.arrayElement([{}, undefined]),
+        specified: faker.helpers.arrayElement([
+          { end: faker.helpers.arrayElement([{}, undefined]), start: faker.helpers.arrayElement([{}, undefined]) },
+          undefined,
+        ]),
+        kuid_names: faker.helpers.arrayElement([
+          {
+            end: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            start: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    report_custom: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([{}, undefined]),
+    map_styles: faker.helpers.arrayElement([{}, undefined]),
+    map_custom: faker.helpers.arrayElement([{}, undefined]),
+    content: faker.helpers.arrayElement([
+      {
+        schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        survey: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+        settings: faker.helpers.arrayElement([{}, undefined]),
+        translated: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        translations: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    analysis_form_json: {
+      additional_fields: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    xform_link: faker.internet.url(),
+    hooks_link: faker.internet.url(),
+    tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    xls_link: faker.internet.url(),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+    assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
+      () => ({}),
+    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    exports: faker.internet.url(),
+    export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      export_settings: {
+        [faker.string.alphanumeric(5)]: {},
+      },
+    })),
+    data: faker.internet.url(),
+    children: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+    },
+    subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    data_sharing: faker.helpers.arrayElement([{}, undefined]),
+    paired_data: faker.internet.url(),
+    project_ownership: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+    owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsVersionsListResponseMock = (
+  overrideResponse: Partial<PaginatedVersionListResponseList> = {},
+): PaginatedVersionListResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.internet.url(),
+    content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsVersionsRetrieveResponseMock = (
+  overrideResponse: Partial<VersionRetrieveResponse> = {},
+): VersionRetrieveResponse => ({
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  url: faker.internet.url(),
+  content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  content: {
+    schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    survey: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        hint: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        $kuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        label: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        $xpath: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+        $autoname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      })),
+      undefined,
+    ]),
+    settings: faker.helpers.arrayElement([
+      {
+        default_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
+    translated: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+    translation: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+      ),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsXformRetrieveResponseMock = (): string => faker.word.sample()
+
+export const getApiV2AssetsBulkCreateResponseMock = (
+  overrideResponse: Partial<AssetBulkResponse> = {},
+): AssetBulkResponse => ({ detail: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
+
+export const getApiV2AssetsCountsRetrieveResponseMock = (
+  overrideResponse: Partial<AssetListCount> = {},
+): AssetListCount => ({
+  deployed_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  archived_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  draft_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsHashRetrieveResponseMock = (overrideResponse: Partial<HashResponse> = {}): HashResponse => ({
+  hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsMetadataRetrieveResponseMock = (
+  overrideResponse: Partial<AssetMetadataResponse> = {},
+): AssetMetadataResponse => ({
+  languages: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+  ),
+  sectors: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+  ),
+  organizations: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsMinimalListRetrieveResponseMock = (
+  overrideResponse: Partial<PaginatedAssetMinimalListList> = {},
+): PaginatedAssetMinimalListList => ({
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 22 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ImportsListResponseMock = (
+  overrideResponse: Partial<PaginatedImportResponseList> = {},
+): PaginatedImportResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    messages: {
+      updated: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          kind: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          summary: faker.helpers.arrayElement([
+            {
+              geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+              labels: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+              columns: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+              language: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+              row_count: faker.helpers.arrayElement([
+                faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                undefined,
+              ]),
+              name_quality: faker.helpers.arrayElement([
+                {
+                  ok: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  bad: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  good: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  total: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  first: faker.helpers.arrayElement([{}, undefined]),
+                },
+                undefined,
+              ]),
+              default_translation: faker.helpers.arrayElement([
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+          owner__username: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+        })),
+        undefined,
+      ]),
+      'audit-logs': faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          source: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          asset_id: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          new_name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          old_name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          asset_uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          ip_address: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          project_owner: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          latest_version_uid: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+        })),
+        undefined,
+      ]),
+      error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      error_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    },
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ImportsCreateResponseMock = (
+  overrideResponse: Partial<ImportCreateResponse> = {},
+): ImportCreateResponse => ({
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  url: faker.internet.url(),
+  status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getApiV2ImportsRetrieveResponseMock = (
+  overrideResponse: Partial<ImportResponse> = {},
+): ImportResponse => ({
+  url: faker.internet.url(),
+  status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  messages: {
+    updated: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        kind: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        summary: faker.helpers.arrayElement([
+          {
+            geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+            labels: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            columns: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            language: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            row_count: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
+            name_quality: faker.helpers.arrayElement([
+              {
+                ok: faker.helpers.arrayElement([
+                  faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                  undefined,
+                ]),
+                bad: faker.helpers.arrayElement([
+                  faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                  undefined,
+                ]),
+                good: faker.helpers.arrayElement([
+                  faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                  undefined,
+                ]),
+                total: faker.helpers.arrayElement([
+                  faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                  undefined,
+                ]),
+                first: faker.helpers.arrayElement([{}, undefined]),
+              },
+              undefined,
+            ]),
+            default_translation: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        owner__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      })),
+      undefined,
+    ]),
+    'audit-logs': faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        source: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        asset_id: faker.helpers.arrayElement([
+          faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+          undefined,
+        ]),
+        new_name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        old_name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        asset_uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        ip_address: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        project_owner: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        latest_version_uid: faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          undefined,
+        ]),
+      })),
+      undefined,
+    ]),
+    error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    error_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  },
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectOwnershipInvitesListResponseMock = (
+  overrideResponse: Partial<PaginatedProjectInviteResponseList> = {},
+): PaginatedProjectInviteResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    'sender |  recipient': faker.internet.url(),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    transfers: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+      asset: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+      status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    })),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectOwnershipInvitesCreateResponseMock = (
+  overrideResponse: Partial<ProjectInviteResponse> = {},
+): ProjectInviteResponse => ({
+  url: faker.internet.url(),
+  'sender |  recipient': faker.internet.url(),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  transfers: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    asset: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectOwnershipInvitesRetrieveResponseMock = (
+  overrideResponse: Partial<ProjectInviteResponse> = {},
+): ProjectInviteResponse => ({
+  url: faker.internet.url(),
+  'sender |  recipient': faker.internet.url(),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  transfers: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    asset: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectOwnershipInvitesPartialUpdateResponseMock = (
+  overrideResponse: Partial<ProjectInviteResponse> = {},
+): ProjectInviteResponse => ({
+  url: faker.internet.url(),
+  'sender |  recipient': faker.internet.url(),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  transfers: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    asset: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectOwnershipInvitesTransfersRetrieveResponseMock = (
+  overrideResponse: Partial<TransferListResponse> = {},
+): TransferListResponse => ({
+  url: faker.internet.url(),
+  asset: faker.internet.url(),
+  status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  error: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  statuses: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    status_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2TagsListResponseMock = (
+  overrideResponse: Partial<PaginatedTagListResponseList> = {},
+): PaginatedTagListResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.internet.url(),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2TagsRetrieveResponseMock = (
+  overrideResponse: Partial<TagRetrieveResponse> = {},
+): TagRetrieveResponse => ({
+  name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  url: faker.internet.url(),
+  assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.internet.url(),
+  ),
+  parent: faker.internet.url(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetsListMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetList
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetList> | PaginatedAssetList),
+) => {
+  return http.get('*/api/v2/assets/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsCreateMockHandler = (
+  overrideResponse?: Asset | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Asset> | Asset),
+) => {
+  return http.post('*/api/v2/assets/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsRetrieveMockHandler = (
+  overrideResponse?: Asset | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Asset> | Asset),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsPartialUpdateMockHandler = (
+  overrideResponse?: Asset | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<Asset> | Asset),
+) => {
+  return http.patch('*/api/v2/assets/:uidAsset/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsPartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/assets/:uidAsset/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
+  })
+}
+
+export const getApiV2AssetsCountsListMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetCountResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAssetCountResponseList> | PaginatedAssetCountResponseList),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/counts/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsCountsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsDeploymentRetrieveMockHandler = (
+  overrideResponse?:
+    | DeploymentResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DeploymentResponse> | DeploymentResponse),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/deployment/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsDeploymentRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsDeploymentCreateMockHandler = (
+  overrideResponse?:
+    | DeploymentResponse
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<DeploymentResponse> | DeploymentResponse),
+) => {
+  return http.post('*/api/v2/assets/:uidAsset/deployment/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsDeploymentCreateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsDeploymentPartialUpdateMockHandler = (
+  overrideResponse?:
+    | DeploymentResponse
+    | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<DeploymentResponse> | DeploymentResponse),
+) => {
+  return http.patch('*/api/v2/assets/:uidAsset/deployment/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsDeploymentPartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsVersionsListMockHandler = (
+  overrideResponse?:
+    | PaginatedVersionListResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedVersionListResponseList> | PaginatedVersionListResponseList),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/versions/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsVersionsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsVersionsRetrieveMockHandler = (
+  overrideResponse?:
+    | VersionRetrieveResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<VersionRetrieveResponse> | VersionRetrieveResponse),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/versions/:uidVersion/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsVersionsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsXformRetrieveMockHandler = (
+  overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/xform/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsXformRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsBulkCreateMockHandler = (
+  overrideResponse?:
+    | AssetBulkResponse
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AssetBulkResponse> | AssetBulkResponse),
+) => {
+  return http.post('*/api/v2/assets/bulk/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsBulkCreateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsCountsRetrieveMockHandler = (
+  overrideResponse?:
+    | AssetListCount
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
+) => {
+  return http.get('*/api/v2/assets/counts/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsCountsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsHashRetrieveMockHandler = (
+  overrideResponse?:
+    | HashResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HashResponse> | HashResponse),
+) => {
+  return http.get('*/api/v2/assets/hash/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsHashRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsMetadataRetrieveMockHandler = (
+  overrideResponse?:
+    | AssetMetadataResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetMetadataResponse> | AssetMetadataResponse),
+) => {
+  return http.get('*/api/v2/assets/metadata/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsMetadataRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2AssetsMinimalListRetrieveMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetMinimalListList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
+) => {
+  return http.get('*/api/v2/assets/minimal-list/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsMinimalListRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ImportsListMockHandler = (
+  overrideResponse?:
+    | PaginatedImportResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedImportResponseList> | PaginatedImportResponseList),
+) => {
+  return http.get('*/api/v2/imports/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ImportsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ImportsCreateMockHandler = (
+  overrideResponse?:
+    | ImportCreateResponse
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ImportCreateResponse> | ImportCreateResponse),
+) => {
+  return http.post('*/api/v2/imports/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ImportsCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ImportsRetrieveMockHandler = (
+  overrideResponse?:
+    | ImportResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ImportResponse> | ImportResponse),
+) => {
+  return http.get('*/api/v2/imports/:uidImport/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ImportsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ProjectOwnershipInvitesListMockHandler = (
+  overrideResponse?:
+    | PaginatedProjectInviteResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedProjectInviteResponseList> | PaginatedProjectInviteResponseList),
+) => {
+  return http.get('*/api/v2/project-ownership/invites/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectOwnershipInvitesListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ProjectOwnershipInvitesCreateMockHandler = (
+  overrideResponse?:
+    | ProjectInviteResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<ProjectInviteResponse> | ProjectInviteResponse),
+) => {
+  return http.post('*/api/v2/project-ownership/invites/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectOwnershipInvitesCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ProjectOwnershipInvitesRetrieveMockHandler = (
+  overrideResponse?:
+    | ProjectInviteResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectInviteResponse> | ProjectInviteResponse),
+) => {
+  return http.get('*/api/v2/project-ownership/invites/:uidInvite/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectOwnershipInvitesRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ProjectOwnershipInvitesPartialUpdateMockHandler = (
+  overrideResponse?:
+    | ProjectInviteResponse
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0],
+      ) => Promise<ProjectInviteResponse> | ProjectInviteResponse),
+) => {
+  return http.patch('*/api/v2/project-ownership/invites/:uidInvite/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectOwnershipInvitesPartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2ProjectOwnershipInvitesDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/project-ownership/invites/:uidInvite/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
+  })
+}
+
+export const getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler = (
+  overrideResponse?:
+    | TransferListResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TransferListResponse> | TransferListResponse),
+) => {
+  return http.get('*/api/v2/project-ownership/invites/:uidInvite/transfers/:uidTransfer/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectOwnershipInvitesTransfersRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2TagsListMockHandler = (
+  overrideResponse?:
+    | PaginatedTagListResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedTagListResponseList> | PaginatedTagListResponseList),
+) => {
+  return http.get('*/api/v2/tags/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TagsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getApiV2TagsRetrieveMockHandler = (
+  overrideResponse?:
+    | TagRetrieveResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TagRetrieveResponse> | TagRetrieveResponse),
+) => {
+  return http.get('*/api/v2/tags/:taguidUid/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TagsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+export const getManageProjectsAndLibraryContentMock = () => [
+  getApiV2AssetsListMockHandler(),
+  getApiV2AssetsCreateMockHandler(),
+  getApiV2AssetsRetrieveMockHandler(),
+  getApiV2AssetsPartialUpdateMockHandler(),
+  getApiV2AssetsDestroyMockHandler(),
+  getApiV2AssetsCountsListMockHandler(),
+  getApiV2AssetsDeploymentRetrieveMockHandler(),
+  getApiV2AssetsDeploymentCreateMockHandler(),
+  getApiV2AssetsDeploymentPartialUpdateMockHandler(),
+  getApiV2AssetsVersionsListMockHandler(),
+  getApiV2AssetsVersionsRetrieveMockHandler(),
+  getApiV2AssetsXformRetrieveMockHandler(),
+  getApiV2AssetsBulkCreateMockHandler(),
+  getApiV2AssetsCountsRetrieveMockHandler(),
+  getApiV2AssetsHashRetrieveMockHandler(),
+  getApiV2AssetsMetadataRetrieveMockHandler(),
+  getApiV2AssetsMinimalListRetrieveMockHandler(),
+  getApiV2ImportsListMockHandler(),
+  getApiV2ImportsCreateMockHandler(),
+  getApiV2ImportsRetrieveMockHandler(),
+  getApiV2ProjectOwnershipInvitesListMockHandler(),
+  getApiV2ProjectOwnershipInvitesCreateMockHandler(),
+  getApiV2ProjectOwnershipInvitesRetrieveMockHandler(),
+  getApiV2ProjectOwnershipInvitesPartialUpdateMockHandler(),
+  getApiV2ProjectOwnershipInvitesDestroyMockHandler(),
+  getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler(),
+  getApiV2TagsListMockHandler(),
+  getApiV2TagsRetrieveMockHandler(),
+]

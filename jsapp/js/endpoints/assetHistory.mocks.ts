@@ -6,15 +6,53 @@ import {
   BULK_PROCESSING_ACTION_IDS,
 } from '#/components/activity/activity.constants'
 import type { PaginatedResponse } from '#/dataInterface'
-import assetHistoryLogFactory, { defaultAssetHistoryAssetUid } from './assetHistoryLog.factory'
+import { getApiV2ProjectHistoryLogsListResponseMock } from '#/api/react-query/server-logs-superusers'
+import type { ProjectHistoryLogResponse } from '#/api/models/projectHistoryLogResponse'
 
-export const mockAssetUid = defaultAssetHistoryAssetUid
+export const mockAssetUid = 'a1234567890bcdEFGhijkl'
 
-type AssetHistoryLogOverrides = Parameters<typeof assetHistoryLogFactory>[0]
+/**
+ * Creates a mock history log item using Orval's generated mock.
+ *
+ * Since the API doesn't have a single-item retrieve endpoint, Orval only generates
+ * getApiV2ProjectHistoryLogsListResponseMock (which returns a paginated list).
+ * This helper extracts a single item from that list and merges overrides.
+ *
+ * Note: ActivityLogsItem extends ProjectHistoryLogResponse with typed action/metadata.
+ */
+type AssetHistoryLogOverrides = Partial<Omit<ActivityLogsItem, 'metadata'>> & {
+  metadata?: Partial<ActivityLogsItem['metadata']>
+}
+
+const createHistoryLog = (overrides: AssetHistoryLogOverrides = {}): ActivityLogsItem => {
+  // Get a sample log from Orval's list mock
+  const sampleList = getApiV2ProjectHistoryLogsListResponseMock()
+  const baseLog = sampleList.results[0] as ProjectHistoryLogResponse
+
+  const { metadata, ...rest } = overrides
+
+  return {
+    ...baseLog,
+    user: '/api/v2/users/john/',
+    user_uid: 'umBqhq3XSkkeNEzrFpCfTZ',
+    username: 'john',
+    action: AuditActions['update-content'],
+    metadata: {
+      ...baseLog.metadata,
+      source: 'Firefox (Mac OS X)',
+      asset_uid: mockAssetUid,
+      ip_address: '192.168.107.1',
+      ...metadata,
+    },
+    date_created: '2025-04-15T11:31:30Z',
+    ...rest,
+  } as ActivityLogsItem
+}
+
 type ActivityPermissions = NonNullable<ActivityLogsItem['metadata']['permissions']>
 
 const johnLog = (overrides: AssetHistoryLogOverrides) =>
-  assetHistoryLogFactory({
+  createHistoryLog({
     user: '/api/v2/users/john/',
     user_uid: 'umBqhq3XSkkeNEzrFpCfTZ',
     username: 'john',
@@ -22,7 +60,7 @@ const johnLog = (overrides: AssetHistoryLogOverrides) =>
   })
 
 const karinaLog = (overrides: AssetHistoryLogOverrides) =>
-  assetHistoryLogFactory({
+  createHistoryLog({
     user: '/api/v2/users/karina/',
     user_uid: 'umBqhq3XSkkeNEzrFpCfTx',
     username: 'karina',

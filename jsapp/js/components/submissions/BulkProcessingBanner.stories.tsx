@@ -1,15 +1,39 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { withRouter } from 'storybook-addon-remix-react-router'
-import bulkActionFactory from '#/endpoints/bulkAction.factory'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data'
 import BulkProcessingBanner from './BulkProcessingBanner'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 
-const singleJobByCurrentUser = [bulkActionFactory('uuid-1', 'en', { created_by: { username: 'storybook-user' } })]
-const singleJobByAnotherUser = [bulkActionFactory('uuid-1', 'en', { created_by: { username: 'other-user' } })]
+const singleJobByCurrentUser = [
+  getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+    submission_uuids: ['uuid-1'],
+    params: { language: 'en' },
+    created_by: { username: 'storybook-user' },
+  }),
+]
+const singleJobByAnotherUser = [
+  getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+    submission_uuids: ['uuid-1'],
+    params: { language: 'en' },
+    created_by: { username: 'other-user' },
+  }),
+]
 const multipleJobs = [
-  bulkActionFactory('uuid-1', 'en', { created_by: { username: 'storybook-user' } }),
-  bulkActionFactory('uuid-2', 'fr', { created_by: { username: 'other-user' } }),
-  bulkActionFactory('uuid-3', 'es', { created_by: { username: 'another-user' } }),
+  getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+    submission_uuids: ['uuid-1'],
+    params: { language: 'en' },
+    created_by: { username: 'storybook-user' },
+  }),
+  getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+    submission_uuids: ['uuid-2'],
+    params: { language: 'fr' },
+    created_by: { username: 'other-user' },
+  }),
+  getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+    submission_uuids: ['uuid-3'],
+    params: { language: 'es' },
+    created_by: { username: 'another-user' },
+  }),
 ]
 const meta: Meta<typeof BulkProcessingBanner> = {
   title: 'Components/BulkProcessingBanner',

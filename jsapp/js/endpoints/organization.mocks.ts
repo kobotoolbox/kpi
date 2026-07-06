@@ -1,28 +1,18 @@
-import { http, HttpResponse } from 'msw'
+import { getApiV2OrganizationsRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage'
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
-import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organization-usage'
 import { meMockResponse } from './me.mocks'
 
 /**
-
- * Mock API handler for the main organization endpoint.
- * Use in Storybook tests in `parameters.msw.handlers.organization`.
- *
+ * Mock API handler for organization endpoint using Orval-generated handler.
  * Property `id` is used to generate the URL and populate other response fields that depend on it.
  * Default value is `meMockResponse.organization!.uid`.
  */
 const organizationMock = (override?: Partial<OrganizationResponse>) => {
-  const id = override?.id ?? meMockResponse.organization!.uid
-  return http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(id), () =>
-    HttpResponse.json({ ...organizationReponse(id), ...override }),
-  )
-}
-export default organizationMock
+  const id = override?.id ?? meMockResponse.organization?.uid ?? 'default-org-id'
 
-const organizationReponse = (organizationId: string): OrganizationResponse => {
-  return {
-    id: organizationId,
-    url: `http://kf.kobo.local/api/v2/organizations/${organizationId}/`,
+  return getApiV2OrganizationsRetrieveMockHandler({
+    id,
+    url: `http://kf.kobo.local/api/v2/organizations/${id}/`,
     name: 'mocked organization',
     website: '',
     organization_type: 'none',
@@ -31,9 +21,12 @@ const organizationReponse = (organizationId: string): OrganizationResponse => {
     is_owner: true,
     is_mmo: false,
     request_user_role: 'owner',
-    members: `http://kf.kobo.local/api/v2/organizations/${organizationId}/members/`,
-    assets: `http://kf.kobo.local/api/v2/organizations/${organizationId}/assets/`,
-    service_usage: `http://kf.kobo.local/api/v2/organizations/${organizationId}/service_usage/`,
-    asset_usage: `http://kf.kobo.local/api/v2/organizations/${organizationId}/asset_usage/`,
-  }
+    members: `http://kf.kobo.local/api/v2/organizations/${id}/members/`,
+    assets: `http://kf.kobo.local/api/v2/organizations/${id}/assets/`,
+    service_usage: `http://kf.kobo.local/api/v2/organizations/${id}/service_usage/`,
+    asset_usage: `http://kf.kobo.local/api/v2/organizations/${id}/asset_usage/`,
+    ...override,
+  })
 }
+
+export default organizationMock
