@@ -31,8 +31,15 @@ class ScimUserSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_name(self, obj):
+        formatted = obj.get_full_name() or obj.username
+
+        if hasattr(obj, 'extra_details') and obj.extra_details.data:
+            metadata_name = obj.extra_details.data.get('name')
+            if metadata_name:
+                formatted = metadata_name
+
         return {
-            'formatted': obj.get_full_name() or obj.username,
+            'formatted': formatted,
             'familyName': obj.last_name,
             'givenName': obj.first_name,
         }
