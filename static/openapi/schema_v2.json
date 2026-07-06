@@ -21178,7 +21178,8 @@
                                             "type": "string"
                                         }
                                     }
-                                }
+                                },
+                                "nullable": true
                             },
                             "description": {
                                 "type": "string"

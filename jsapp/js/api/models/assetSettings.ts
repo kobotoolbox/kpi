@@ -15,7 +15,8 @@ import type { AssetSettingsSector } from './assetSettingsSector'
 export type AssetSettings = {
   /** @nullable */
   sector?: AssetSettingsSector
-  country?: AssetSettingsCountryItem[]
+  /** @nullable */
+  country?: AssetSettingsCountryItem[] | null
   description?: string
   collects_pii?: string
   organization?: string

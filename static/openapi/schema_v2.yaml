@@ -15186,6 +15186,7 @@ components:
                     type: string
                   value:
                     type: string
+              nullable: true
             description:
               type: string
             collects_pii:
