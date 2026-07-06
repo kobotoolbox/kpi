@@ -20,5 +20,6 @@ export type AssetSummary = {
   readonly languages?: string[]
   readonly row_count?: number
   readonly name_quality?: AssetSummaryNameQuality
-  readonly default_translation?: string
+  /** @nullable */
+  readonly default_translation?: string | null
 }

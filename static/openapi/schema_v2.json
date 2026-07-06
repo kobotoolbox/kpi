@@ -21352,7 +21352,8 @@
                                 }
                             },
                             "default_translation": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
                             }
                         },
                         "readOnly": true
@@ -21372,11 +21373,13 @@
                     },
                     "version_id": {
                         "type": "string",
-                        "readOnly": true
+                        "readOnly": true,
+                        "nullable": true
                     },
                     "version__content_hash": {
                         "type": "string",
-                        "readOnly": true
+                        "readOnly": true,
+                        "nullable": true
                     },
                     "version_count": {
                         "type": "integer",
@@ -21388,6 +21391,7 @@
                     },
                     "deployed_version_id": {
                         "type": "string",
+                        "nullable": true,
                         "readOnly": true
                     },
                     "deployed_versions": {

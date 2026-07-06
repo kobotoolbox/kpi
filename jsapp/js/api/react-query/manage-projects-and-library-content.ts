@@ -2834,7 +2834,7 @@ export const getApiV2AssetsListResponseMock = (
         undefined,
       ]),
       default_translation: faker.helpers.arrayElement([
-        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
     },
@@ -2844,11 +2844,11 @@ export const getApiV2AssetsListResponseMock = (
       faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
       undefined,
     ]),
-    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
     has_deployment: faker.datatype.boolean(),
-    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployed_versions: {
       count: faker.helpers.arrayElement([
         faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
@@ -3137,7 +3137,10 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
       },
       undefined,
     ]),
-    default_translation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    default_translation: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
   },
   date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
@@ -3145,11 +3148,11 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
     faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
     undefined,
   ]),
-  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
   has_deployment: faker.datatype.boolean(),
-  deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   deployed_versions: {
     count: faker.helpers.arrayElement([
       faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
@@ -3437,7 +3440,10 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
       },
       undefined,
     ]),
-    default_translation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    default_translation: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
   },
   date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
@@ -3445,11 +3451,11 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
     faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
     undefined,
   ]),
-  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
   has_deployment: faker.datatype.boolean(),
-  deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   deployed_versions: {
     count: faker.helpers.arrayElement([
       faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
@@ -3737,7 +3743,10 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
       },
       undefined,
     ]),
-    default_translation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    default_translation: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
   },
   date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
@@ -3745,11 +3754,11 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
     faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
     undefined,
   ]),
-  version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
   has_deployment: faker.datatype.boolean(),
-  deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   deployed_versions: {
     count: faker.helpers.arrayElement([
       faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
@@ -4062,7 +4071,7 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
         undefined,
       ]),
       default_translation: faker.helpers.arrayElement([
-        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
     },
@@ -4072,11 +4081,11 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
       faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
       undefined,
     ]),
-    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
     has_deployment: faker.datatype.boolean(),
-    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployed_versions: {
       count: faker.helpers.arrayElement([
         faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
@@ -4372,7 +4381,7 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
         undefined,
       ]),
       default_translation: faker.helpers.arrayElement([
-        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
     },
@@ -4382,11 +4391,11 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
       faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
       undefined,
     ]),
-    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
     has_deployment: faker.datatype.boolean(),
-    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployed_versions: {
       count: faker.helpers.arrayElement([
         faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
@@ -4682,7 +4691,7 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
         undefined,
       ]),
       default_translation: faker.helpers.arrayElement([
-        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         undefined,
       ]),
     },
@@ -4692,11 +4701,11 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
       faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
       undefined,
     ]),
-    version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    version__content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
     has_deployment: faker.datatype.boolean(),
-    deployed_version_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployed_versions: {
       count: faker.helpers.arrayElement([
         faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),

@@ -698,7 +698,7 @@ export interface AssetResponse extends AssetRequestObject {
   date_modified?: string
   date_deployed?: string | null
   version_id: string | null
-  version__content_hash?: string | null
+  version__content_hash: string | null
   version_count?: number
   has_deployment: boolean
   deployed_version_id: string | null

@@ -48,11 +48,14 @@ export interface Asset {
   date_modified?: string
   /** @nullable */
   date_deployed?: string | null
-  readonly version_id: string
-  readonly version__content_hash: string
+  /** @nullable */
+  readonly version_id: string | null
+  /** @nullable */
+  readonly version__content_hash: string | null
   readonly version_count: number
   readonly has_deployment: boolean
-  readonly deployed_version_id: string
+  /** @nullable */
+  readonly deployed_version_id: string | null
   readonly deployed_versions: AssetDeployedVersions
   readonly deployment__links: AssetDeploymentLinks
   readonly deployment__active: boolean

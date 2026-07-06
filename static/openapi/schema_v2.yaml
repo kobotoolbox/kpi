@@ -15301,6 +15301,7 @@ components:
                             type: string
             default_translation:
               type: string
+              nullable: true
           readOnly: true
         date_created:
           type: string
@@ -15315,9 +15316,11 @@ components:
         version_id:
           type: string
           readOnly: true
+          nullable: true
         version__content_hash:
           type: string
           readOnly: true
+          nullable: true
         version_count:
           type: integer
           readOnly: true
@@ -15326,6 +15329,7 @@ components:
           readOnly: true
         deployed_version_id:
           type: string
+          nullable: true
           readOnly: true
         deployed_versions:
           type: object

@@ -443,8 +443,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='asset_export_settings'
     )
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    version_id = serializers.CharField(read_only=True)
-    version__content_hash = serializers.CharField(read_only=True)
+    version_id = serializers.CharField(read_only=True, allow_null=True)
+    version__content_hash = serializers.CharField(read_only=True, allow_null=True)
     has_deployment = ReadOnlyFieldWithSchemaField(
         schema_field=HasDeploymentField, read_only=True
     )
@@ -746,7 +746,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        kwargs=kwargs,
                        request=self.context.get('request', None))
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field({'type': 'string', 'nullable': True})
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return None
