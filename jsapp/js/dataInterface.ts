@@ -485,6 +485,8 @@ export interface SurveyRow {
   select_from_list_name?: string
   /** Used by `file` type to list accepted extensions */
   'body::accept'?: string
+  /** Allow additional properties for XLSForm custom fields */
+  [key: string]: unknown
 }
 
 export interface SurveyChoice {
@@ -497,6 +499,8 @@ export interface SurveyChoice {
   // Possibly deprecated? Most code doesn't use it at all, old reports code was
   // using it as fallback.
   $autoname?: string
+  /** Allow additional properties for XLSForm custom fields */
+  [key: string]: unknown
 }
 
 export interface AssetContentSettings {
