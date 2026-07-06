@@ -738,7 +738,7 @@ export interface AssetResponse extends AssetRequestObject {
     xls: string
     zip_legacy: string
   }
-  deployment__uuid?: string
+  deployment__uuid: string | null
   deployment__encrypted: boolean
   deployment__submission_count: number
   deployment__last_submission_time: string | null
