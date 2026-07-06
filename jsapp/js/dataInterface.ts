@@ -543,20 +543,20 @@ interface AssetSummary {
   default_translation?: string | null
   /** To be used in a warning about missing or poorly written question names. */
   name_quality?: {
-    ok: number
-    bad: number
-    good: number
-    total: number
-    firsts: {
+    ok?: number
+    bad?: number
+    good?: number
+    total?: number
+    firsts?: {
       ok?: {
-        name: string
-        index: number
-        label: string[]
+        name?: string
+        index?: number
+        label?: string[]
       }
       bad?: {
-        name: string
-        index: number
-        label: string[]
+        name?: string
+        index?: number
+        label?: string[]
       }
     }
   }
@@ -717,7 +717,7 @@ export interface AssetResponse extends AssetRequestObject {
       date_modified: string
     }>
   }
-  deployment__links?: {
+  deployment__links: {
     url?: string
     single_url?: string
     single_once_url?: string

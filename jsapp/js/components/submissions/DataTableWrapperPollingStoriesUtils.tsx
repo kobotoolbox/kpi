@@ -9,7 +9,6 @@ import {
 } from '#/api/react-query/manage-projects-and-library-content'
 import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data'
 import { QuestionTypeName } from '#/constants'
-import type { AssetResponse } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
@@ -25,11 +24,6 @@ const POLLING_STORY_ASSERTION_GRACE_MS = 6000
 // the first poll always returns in_progress — giving every parallel browser
 // enough time to actually render the "Processing" cell before completion fires.
 const POLLING_COMPLETE_AFTER_MS = 2000
-
-// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
-// - Make date_created and date_modified required (they're auto-populated by Django)
-// - Fix analysis_form_json.additional_fields type (should be object[], not string[])
-// This cast is safe because the types are compatible at runtime
 
 // Dedicated polling story data is kept in a separate file so the main stories
 // file remains easy to scan as more table scenarios get added.
@@ -70,7 +64,7 @@ export const pollingAsset = getApiV2AssetsRetrieveResponseMock({
     translations: [null],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-}) as AssetResponse
+})
 
 const pollingSubmissionInitial = assetDataFactory(11, {
   Record_a_sound: 'test11.mp3',

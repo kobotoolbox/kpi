@@ -426,7 +426,7 @@ export const ProcessingColumnAndBanner: Story = {
 
 export const ProcessingPollingRefreshesTranslatedCell: Story = {
   args: {
-    asset: pollingAsset,
+    asset: pollingAsset as unknown as AssetResponse,
   },
   parameters: {
     docs: {
