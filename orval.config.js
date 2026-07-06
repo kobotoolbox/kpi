@@ -48,8 +48,10 @@ module.exports = {
       // Orval has a bug that fails to generate imports for $ref in additionalProperties.
       // See https://github.com/orval-labs/orval/issues/1077.
       // Also fix TypeScript errors in MSW mock factories for types with index signatures.
-      afterAllFilesWrite:
-        'node scripts/orval-fix-referenced-additional-properties.js && node scripts/orval-fix-mock-factory-type-assertions.js',
+      afterAllFilesWrite: [
+        'node scripts/orval-fix-referenced-additional-properties.js',
+        'node scripts/orval-fix-mock-factory-type-assertions.js',
+      ],
     },
   },
 }

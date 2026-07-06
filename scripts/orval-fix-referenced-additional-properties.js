@@ -64,7 +64,10 @@ for (const file of FILES) {
   const source = fs.readFileSync(filePath, 'utf8')
 
   const detected = detectInterfaceWithIndex(source)
-  if (!fs.existsSync(filePath)) throw new Error(`File ${file} doesn't have an interface within`)
+  if (!detected) {
+    // File already processed (converted from interface to type)
+    continue
+  }
 
   const { name, versionType, valueType, interfaceBlock } = detected
 

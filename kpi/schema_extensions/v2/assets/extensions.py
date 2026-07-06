@@ -307,6 +307,9 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.ContentField'
 
     def map_serializer_field(self, auto_schema, direction):
+        # WriteableJsonWithSchemaField accepts JSON string for writes, returns object for reads
+        if direction == 'request':
+            return build_basic_type(OpenApiTypes.STR)
         return ASSET_CONTENT_SCHEMA
 
 
