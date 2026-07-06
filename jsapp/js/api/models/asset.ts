@@ -61,7 +61,8 @@ export interface Asset {
   readonly deployment__active: boolean
   readonly deployment__data_download_links: AssetDeploymentDataDownloadLinks
   readonly deployment__submission_count: number
-  readonly deployment__last_submission_time: string
+  /** @nullable */
+  readonly deployment__last_submission_time: string | null
   readonly deployment__encrypted: boolean
   readonly deployment__uuid: string
   readonly deployment_status: AssetDeploymentStatusEnum

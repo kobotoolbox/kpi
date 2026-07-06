@@ -21457,6 +21457,7 @@
                     "deployment__last_submission_time": {
                         "type": "string",
                         "format": "date-time",
+                        "nullable": true,
                         "readOnly": true
                     },
                     "deployment__encrypted": {

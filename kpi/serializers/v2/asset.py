@@ -778,7 +778,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
-    @extend_schema_field(OpenApiTypes.DATETIME)
+    @extend_schema_field({'type': 'string', 'format': 'date-time', 'nullable': True})
     def get_deployment__last_submission_time(self, obj):
         if obj.has_deployment:
             return obj.deployment.last_submission_time

@@ -3999,7 +3999,10 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
     deployment__active: faker.datatype.boolean(),
     deployment__data_download_links: {},
     deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
-    deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    deployment__last_submission_time: faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
     deployment__encrypted: faker.datatype.boolean(),
     deployment__uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
