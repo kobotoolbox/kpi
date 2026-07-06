@@ -10,4 +10,25 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type AssetContentSurveyItem = { [key: string]: unknown }
+export type AssetContentSurveyItem = {
+  $kuid: string
+  type: string
+  $xpath?: string
+  $autoname?: string
+  calculation?: string
+  label?: (string | null)[]
+  hint?: (string | null)[]
+  name?: string
+  required?: boolean
+  appearance?: string
+  parameters?: string
+  'kobo--matrix_list'?: string
+  'kobo--rank-constraint-message'?: string
+  'kobo--rank-items'?: string
+  'kobo--score-choices'?: string
+  'kobo--locking-profile'?: string
+  tags?: string[]
+  select_from_list_name?: string
+  'body::accept'?: string
+  [key: string]: unknown
+}

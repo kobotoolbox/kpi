@@ -10,4 +10,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type AssetContentChoicesItem = { [key: string]: unknown }
+export type AssetContentChoicesItem = {
+  $autovalue: string
+  $kuid: string
+  label?: (string | null)[]
+  list_name: string
+  name: string
+  'media::image'?: string[]
+  $autoname?: string
+  [key: string]: unknown
+}

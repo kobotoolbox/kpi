@@ -32,6 +32,8 @@ from .schema import (
     BULK_CONFIRM_SCHEMA,
     MAP_STYLES_SCHEMA,
     REPORT_STYLE_SCHEMA,
+    SURVEY_CHOICE_SCHEMA,
+    SURVEY_ROW_SCHEMA,
 )
 
 
@@ -303,18 +305,7 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.ContentField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'schema': GENERIC_STRING_SCHEMA,
-                'survey': build_array_type(schema=GENERIC_OBJECT_SCHEMA),
-                'choices': build_array_type(schema=GENERIC_OBJECT_SCHEMA),
-                'settings': GENERIC_OBJECT_SCHEMA,
-                'translated': GENERIC_ARRAY_SCHEMA,
-                'translations': build_array_type(
-                    schema={**build_basic_type(OpenApiTypes.STR), 'nullable': True}
-                ),
-            }
-        )
+        return ASSET_CONTENT_SCHEMA
 
 
 class CountDailySubmissionResponseFieldExtension(OpenApiSerializerFieldExtension):

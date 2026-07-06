@@ -10,4 +10,15 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type AssetContentSettings = { [key: string]: unknown }
+export type AssetContentSettings = {
+  name?: string
+  version?: string
+  id_string?: string
+  style?: string
+  form_id?: string
+  title?: string
+  'kobo--lock_all'?: boolean
+  'kobo--locking-profile'?: string
+  /** @nullable */
+  default_language?: string | null
+}

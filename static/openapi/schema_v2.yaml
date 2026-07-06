@@ -1056,7 +1056,58 @@ paths:
             examples:
               UpdatingAnAsset:
                 value:
-                  content: string
+                  content:
+                    schema: string
+                    survey:
+                    - $kuid: string
+                      type: string
+                      $xpath: string
+                      $autoname: string
+                      calculation: string
+                      label:
+                      - string
+                      hint:
+                      - string
+                      name: string
+                      required: true
+                      appearance: string
+                      parameters: string
+                      kobo--matrix_list: string
+                      kobo--rank-constraint-message: string
+                      kobo--rank-items: string
+                      kobo--score-choices: string
+                      kobo--locking-profile: string
+                      tags:
+                      - string
+                      select_from_list_name: string
+                      body::accept: string
+                    choices:
+                    - $autovalue: string
+                      $kuid: string
+                      label:
+                      - string
+                      list_name: string
+                      name: string
+                      media::image:
+                      - string
+                      $autoname: string
+                    settings:
+                      name: string
+                      version: string
+                      id_string: string
+                      style: string
+                      form_id: string
+                      title: string
+                      kobo--lock_all: true
+                      kobo--locking-profile: string
+                      default_language: string
+                    translated:
+                    - string
+                    translations:
+                    - string
+                    translations_0: string
+                    kobo--locking-profiles:
+                    - {}
                   name: string
                 summary: Updating an asset
               DataSharingOfTheProject:
@@ -15559,12 +15610,109 @@ components:
               type: array
               items:
                 type: object
+                properties:
+                  $kuid:
+                    type: string
+                  type:
+                    type: string
+                  $xpath:
+                    type: string
+                  $autoname:
+                    type: string
+                  calculation:
+                    type: string
+                  label:
+                    type: array
+                    items:
+                      type: string
+                      nullable: true
+                  hint:
+                    type: array
+                    items:
+                      type: string
+                      nullable: true
+                  name:
+                    type: string
+                  required:
+                    type: boolean
+                  appearance:
+                    type: string
+                  parameters:
+                    type: string
+                  kobo--matrix_list:
+                    type: string
+                  kobo--rank-constraint-message:
+                    type: string
+                  kobo--rank-items:
+                    type: string
+                  kobo--score-choices:
+                    type: string
+                  kobo--locking-profile:
+                    type: string
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  select_from_list_name:
+                    type: string
+                  body::accept:
+                    type: string
+                additionalProperties: true
+                required:
+                - $kuid
+                - type
             choices:
               type: array
               items:
                 type: object
+                properties:
+                  $autovalue:
+                    type: string
+                  $kuid:
+                    type: string
+                  label:
+                    type: array
+                    items:
+                      type: string
+                      nullable: true
+                  list_name:
+                    type: string
+                  name:
+                    type: string
+                  media::image:
+                    type: array
+                    items:
+                      type: string
+                  $autoname:
+                    type: string
+                additionalProperties: true
+                required:
+                - $autovalue
+                - $kuid
+                - list_name
+                - name
             settings:
               type: object
+              properties:
+                name:
+                  type: string
+                version:
+                  type: string
+                id_string:
+                  type: string
+                style:
+                  type: string
+                form_id:
+                  type: string
+                title:
+                  type: string
+                kobo--lock_all:
+                  type: boolean
+                kobo--locking-profile:
+                  type: string
+                default_language:
+                  type: string
+                  nullable: true
             translated:
               type: array
               items:
@@ -15574,6 +15722,14 @@ components:
               items:
                 type: string
                 nullable: true
+            translations_0:
+              type: string
+              nullable: true
+            kobo--locking-profiles:
+              type: array
+              items:
+                type: object
+                additionalProperties: {}
         downloads:
           type: array
           items:
@@ -20591,7 +20747,134 @@ components:
       - type: object
         properties:
           content:
-            type: string
+            type: object
+            properties:
+              schema:
+                type: string
+              survey:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    $kuid:
+                      type: string
+                    type:
+                      type: string
+                    $xpath:
+                      type: string
+                    $autoname:
+                      type: string
+                    calculation:
+                      type: string
+                    label:
+                      type: array
+                      items:
+                        type: string
+                        nullable: true
+                    hint:
+                      type: array
+                      items:
+                        type: string
+                        nullable: true
+                    name:
+                      type: string
+                    required:
+                      type: boolean
+                    appearance:
+                      type: string
+                    parameters:
+                      type: string
+                    kobo--matrix_list:
+                      type: string
+                    kobo--rank-constraint-message:
+                      type: string
+                    kobo--rank-items:
+                      type: string
+                    kobo--score-choices:
+                      type: string
+                    kobo--locking-profile:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                    select_from_list_name:
+                      type: string
+                    body::accept:
+                      type: string
+                  additionalProperties: true
+                  required:
+                  - $kuid
+                  - type
+              choices:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    $autovalue:
+                      type: string
+                    $kuid:
+                      type: string
+                    label:
+                      type: array
+                      items:
+                        type: string
+                        nullable: true
+                    list_name:
+                      type: string
+                    name:
+                      type: string
+                    media::image:
+                      type: array
+                      items:
+                        type: string
+                    $autoname:
+                      type: string
+                  additionalProperties: true
+                  required:
+                  - $autovalue
+                  - $kuid
+                  - list_name
+                  - name
+              settings:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+                  id_string:
+                    type: string
+                  style:
+                    type: string
+                  form_id:
+                    type: string
+                  title:
+                    type: string
+                  kobo--lock_all:
+                    type: boolean
+                  kobo--locking-profile:
+                    type: string
+                  default_language:
+                    type: string
+                    nullable: true
+              translated:
+                type: array
+                items:
+                  type: string
+              translations:
+                type: array
+                items:
+                  type: string
+                  nullable: true
+              translations_0:
+                type: string
+                nullable: true
+              kobo--locking-profiles:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: {}
           name:
             type: string
         required:
