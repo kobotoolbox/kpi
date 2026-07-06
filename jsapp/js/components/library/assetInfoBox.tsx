@@ -74,13 +74,13 @@ export default class AssetInfoBox extends React.Component<AssetInfoBoxProps, Ass
         <bem.AssetInfoBox__column>
           <bem.AssetInfoBox__cell>
             <label>{t('Date Created')}</label>
-            {this.props.asset.date_created ? formatTime(this.props.asset.date_created) : 'n/a'}
+            {this.props.asset.date_created ? formatTime(this.props.asset.date_created) : '-'}
           </bem.AssetInfoBox__cell>
 
           {this.state.areDetailsVisible && (
             <bem.AssetInfoBox__cell>
               <label>{t('Last Modified')}</label>
-              {this.props.asset.date_modified ? formatTime(this.props.asset.date_modified) : 'n/a'}
+              {this.props.asset.date_modified ? formatTime(this.props.asset.date_modified) : '-'}
             </bem.AssetInfoBox__cell>
           )}
 

@@ -5,7 +5,7 @@ import { expect, waitFor, within } from 'storybook/test'
 import { endpoints } from '#/api.endpoints'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
 import { MetaQuestionTypeName, QuestionTypeName } from '#/constants'
-import type { PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
@@ -53,7 +53,7 @@ const assetWithOnlyStartGeopoint = getApiV2AssetsRetrieveResponseMock({
     ],
     choices: [],
   },
-})
+}) as unknown as AssetResponse
 
 // Asset with both start-geopoint AND regular geopoint
 const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
@@ -97,7 +97,7 @@ const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
     ],
     choices: [],
   },
-})
+}) as unknown as AssetResponse
 
 // Submission data with populated start-geopoint
 const submissionsWithStartGeopoint: SubmissionResponse[] = [

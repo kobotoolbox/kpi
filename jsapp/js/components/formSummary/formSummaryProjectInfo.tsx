@@ -122,7 +122,7 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           {/* date modified */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Last modified')}</bem.FormView__label>
-            {props.asset.date_modified ? formatTime(props.asset.date_modified) : 'n/a'}
+            {props.asset.date_modified ? formatTime(props.asset.date_modified) : '-'}
           </bem.FormView__cell>
 
           {/* date deployed */}
