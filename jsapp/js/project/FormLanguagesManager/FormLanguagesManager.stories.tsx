@@ -16,6 +16,7 @@ function buildInitialAsset(): AssetResponse {
   const survey = Array.from({ length: 11 }, (_, idx) => {
     const index = idx + 1
     return {
+      $kuid: `kuid_question_${index}`,
       type: 'text',
       name: `question_${index}`,
       $autoname: `question_${index}`,
