@@ -3,9 +3,9 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
-from kpi.utils.drf_exceptions import custom_exception_handler
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_ERROR
+from kpi.utils.drf_exceptions import custom_exception_handler
 
 
 class ScimException(APIException):
@@ -47,7 +47,7 @@ def scim_exception_handler(exc, context):
         reason = exc.reason
     elif isinstance(exc, IntegrityError):
         status_code = status.HTTP_409_CONFLICT
-        detail = f'One or more attributes in the resource already exists.'
+        detail = 'One or more attributes in the resource already exists.'
         error_code = 'integrity_error'
 
     if status_code is not None:

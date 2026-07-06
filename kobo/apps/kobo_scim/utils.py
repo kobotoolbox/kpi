@@ -72,7 +72,6 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
     extra_details_updated = False
     extra_user_detail = None
     metadata = {}
-    original_metadata = {}
 
     first_name = get_scim_value(scim_data, 'name.givenName')
     last_name = get_scim_value(scim_data, 'name.familyName')
@@ -98,7 +97,6 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         if formatted is not None:
             extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
             metadata = extra_user_detail.data or {}
-            original_metadata = dict(metadata)
             metadata['name'] = formatted
             extra_details_updated = True
 
@@ -130,8 +128,6 @@ def apply_scim_user_metadata(user, scim_data, enforce_strict_validation=False):
         if extra_user_detail is None:
             extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
             metadata = extra_user_detail.data or {}
-            # Snapshot original metadata to safely recover previously valid fields
-            original_metadata = dict(metadata)
 
         # Apply value mapping if defined
         value_mapping = field_def.get('scim_value_mapping')

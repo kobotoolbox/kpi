@@ -985,7 +985,7 @@ class ScimUsersAPITests(APITestCase):
             'emails': [{'primary': True, 'value': 'bad_country@example.com'}],
             'active': True,
             SCIM_SCHEMA_EXTENSION_USER: {
-                'country': 'USA',  # Country max length is 2 in UserProfile, but we ignore UserProfile now
+                'country': 'USA',
             },
         }
 
@@ -1024,7 +1024,7 @@ class ScimUsersAPITests(APITestCase):
             'emails': [{'primary': True, 'value': 'partial_sync@example.com'}],
             'active': True,
             SCIM_SCHEMA_EXTENSION_USER: {
-                'country': 'USA',  # Invalid in UserProfile, but valid in ExtraUserDetail
+                'country': 'USA',
                 'organization': 'Valid Org',  # Valid
             },
         }
@@ -1040,7 +1040,6 @@ class ScimUsersAPITests(APITestCase):
         user = User.objects.get(username='partial_sync_user')
         extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
 
-        # Now asserts that both are retained in ExtraUserDetail because UserProfile validation is removed
         self.assertEqual(extra_user_detail.data.get('country'), 'USA')
         self.assertEqual(extra_user_detail.data.get('organization'), 'Valid Org')
 
