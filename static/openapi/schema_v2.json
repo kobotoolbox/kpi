@@ -21619,7 +21619,11 @@
                                 "url": {
                                     "type": "string"
                                 }
-                            }
+                            },
+                            "required": [
+                                "format",
+                                "url"
+                            ]
                         },
                         "readOnly": true
                     },
@@ -21634,7 +21638,11 @@
                                 "url": {
                                     "type": "string"
                                 }
-                            }
+                            },
+                            "required": [
+                                "format",
+                                "url"
+                            ]
                         },
                         "readOnly": true
                     },

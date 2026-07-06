@@ -2936,12 +2936,12 @@ export const getApiV2AssetsListResponseMock = (
       undefined,
     ]),
     downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     analysis_form_json: {
       additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -3273,12 +3273,12 @@ export const getApiV2AssetsCreateResponseMock = (overrideResponse: Partial<Asset
     undefined,
   ]),
   downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
   embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
   analysis_form_json: {
     additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -3609,12 +3609,12 @@ export const getApiV2AssetsRetrieveResponseMock = (overrideResponse: Partial<Ass
     undefined,
   ]),
   downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
   embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
   analysis_form_json: {
     additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -3945,12 +3945,12 @@ export const getApiV2AssetsPartialUpdateResponseMock = (overrideResponse: Partia
     undefined,
   ]),
   downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
   embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-    url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
   analysis_form_json: {
     additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -4305,12 +4305,12 @@ export const getApiV2AssetsDeploymentRetrieveResponseMock = (
       undefined,
     ]),
     downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     analysis_form_json: {
       additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -4648,12 +4648,12 @@ export const getApiV2AssetsDeploymentCreateResponseMock = (
       undefined,
     ]),
     downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     analysis_form_json: {
       additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -4991,12 +4991,12 @@ export const getApiV2AssetsDeploymentPartialUpdateResponseMock = (
       undefined,
     ]),
     downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     analysis_form_json: {
       additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({

@@ -15489,6 +15489,9 @@ components:
                 type: string
               url:
                 type: string
+            required:
+            - format
+            - url
           readOnly: true
         embeds:
           type: array
@@ -15499,6 +15502,9 @@ components:
                 type: string
               url:
                 type: string
+            required:
+            - format
+            - url
           readOnly: true
         analysis_form_json:
           type: object

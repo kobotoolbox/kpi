@@ -415,6 +415,7 @@ class DownloadsFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_array_type(
             schema=build_object_type(
+                required=['format', 'url'],
                 properties={
                     'format': GENERIC_STRING_SCHEMA,
                     'url': GENERIC_STRING_SCHEMA,

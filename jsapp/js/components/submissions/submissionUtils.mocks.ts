@@ -2305,7 +2305,7 @@ export const assetWithSupplementalDetails = getApiV2AssetsRetrieveResponseMock({
     translations: [null],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-}) as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const submissionWithSupplementalDetails = {
   _id: 3,
@@ -2921,7 +2921,7 @@ export const assetWithNestedSupplementalDetails = {
   owner_label: "uu's organization",
   last_modified_by: 'uu',
   created_by: null,
-} as const satisfies AssetResponse
+} as unknown as AssetResponse
 
 export const submissionWithNestedSupplementalDetails = {
   _id: 84,
@@ -3494,7 +3494,7 @@ export const assetWithAllQual = {
   owner_label: "uu's organization",
   last_modified_by: 'uu',
   created_by: null,
-} as const satisfies AssetResponse
+} as unknown as AssetResponse
 
 export const submissionWithAllQual = {
   _id: 81,

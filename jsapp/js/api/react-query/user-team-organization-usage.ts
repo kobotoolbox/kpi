@@ -4058,12 +4058,12 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       undefined,
     ]),
     downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
     })),
     analysis_form_json: {
       additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
