@@ -685,11 +685,15 @@ export interface AssetResponse extends AssetRequestObject {
   owner: string
   owner__username: string
   owner_label: string
-  date_created: string
+  // TODO DEV-XXXX: date_created is always present at runtime but OpenAPI schema
+  // marks it optional (because it has a default for write operations)
+  date_created?: string
   last_modified_by: string | null
   created_by: string | null
   summary: AssetSummary
-  date_modified: string
+  // TODO DEV-XXXX: date_modified is always present at runtime but OpenAPI schema
+  // marks it optional (because it has a default for write operations)
+  date_modified?: string
   date_deployed?: string
   version_id: string | null
   version__content_hash?: string | null
