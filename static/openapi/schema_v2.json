@@ -21467,6 +21467,40 @@
                     },
                     "deployment__data_download_links": {
                         "type": "object",
+                        "properties": {
+                            "csv_legacy": {
+                                "type": "string"
+                            },
+                            "csv": {
+                                "type": "string"
+                            },
+                            "geojson": {
+                                "type": "string"
+                            },
+                            "kml_legacy": {
+                                "type": "string"
+                            },
+                            "spss_labels": {
+                                "type": "string"
+                            },
+                            "xls_legacy": {
+                                "type": "string"
+                            },
+                            "xls": {
+                                "type": "string"
+                            },
+                            "zip_legacy": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "csv",
+                            "csv_legacy",
+                            "kml_legacy",
+                            "xls",
+                            "xls_legacy",
+                            "zip_legacy"
+                        ],
                         "readOnly": true
                     },
                     "deployment__submission_count": {

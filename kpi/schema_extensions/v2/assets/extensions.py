@@ -357,7 +357,19 @@ class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension)
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_OBJECT_SCHEMA
+        return build_object_type(
+            required=['csv_legacy', 'csv', 'kml_legacy', 'xls_legacy', 'xls', 'zip_legacy'],
+            properties={
+                'csv_legacy': GENERIC_STRING_SCHEMA,
+                'csv': GENERIC_STRING_SCHEMA,
+                'geojson': GENERIC_STRING_SCHEMA,  # optional
+                'kml_legacy': GENERIC_STRING_SCHEMA,
+                'spss_labels': GENERIC_STRING_SCHEMA,  # optional
+                'xls_legacy': GENERIC_STRING_SCHEMA,
+                'xls': GENERIC_STRING_SCHEMA,
+                'zip_legacy': GENERIC_STRING_SCHEMA,
+            }
+        )
 
 
 class DeploymentLinkFieldExtension(OpenApiSerializerFieldExtension):

@@ -3991,7 +3991,16 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
     },
     deployment__links: {},
     deployment__active: faker.datatype.boolean(),
-    deployment__data_download_links: {},
+    deployment__data_download_links: {
+      csv_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      geojson: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      kml_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      spss_labels: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      xls_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      xls: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      zip_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    },
     deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
     deployment__last_submission_time: faker.helpers.arrayElement([
       `${faker.date.past().toISOString().split('.')[0]}Z`,
