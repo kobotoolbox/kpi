@@ -260,6 +260,7 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
             properties={
                 'schema': GENERIC_STRING_SCHEMA,
                 'survey': build_array_type(schema=GENERIC_OBJECT_SCHEMA),
+                'choices': build_array_type(schema=GENERIC_OBJECT_SCHEMA),
                 'settings': GENERIC_OBJECT_SCHEMA,
                 'translated': GENERIC_ARRAY_SCHEMA,
                 'translations': GENERIC_ARRAY_SCHEMA,
@@ -557,6 +558,27 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.SummaryField'
 
     def map_serializer_field(self, auto_schema, direction):
+        name_quality_first_item_schema = build_object_type(
+            properties={
+                'name': GENERIC_STRING_SCHEMA,
+                'index': build_basic_type(OpenApiTypes.INT),
+                'label': GENERIC_ARRAY_SCHEMA,
+            }
+        )
+        name_quality_schema = build_object_type(
+            properties={
+                'ok': build_basic_type(OpenApiTypes.INT),
+                'bad': build_basic_type(OpenApiTypes.INT),
+                'good': build_basic_type(OpenApiTypes.INT),
+                'total': build_basic_type(OpenApiTypes.INT),
+                'firsts': build_object_type(
+                    properties={
+                        'ok': name_quality_first_item_schema,
+                        'bad': name_quality_first_item_schema,
+                    }
+                ),
+            }
+        )
         return build_object_type(
             properties={
                 'geo': build_basic_type(OpenApiTypes.BOOL),
@@ -566,7 +588,7 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
                 'lock_any': build_basic_type(OpenApiTypes.BOOL),
                 'languages': GENERIC_ARRAY_SCHEMA,
                 'row_count': build_basic_type(OpenApiTypes.INT),
-                'name_quality': GENERIC_OBJECT_SCHEMA,
+                'name_quality': name_quality_schema,
                 'default_translation': GENERIC_STRING_SCHEMA,
             }
         )

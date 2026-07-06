@@ -21227,7 +21227,60 @@
                                 "type": "integer"
                             },
                             "name_quality": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "ok": {
+                                        "type": "integer"
+                                    },
+                                    "bad": {
+                                        "type": "integer"
+                                    },
+                                    "good": {
+                                        "type": "integer"
+                                    },
+                                    "total": {
+                                        "type": "integer"
+                                    },
+                                    "firsts": {
+                                        "type": "object",
+                                        "properties": {
+                                            "ok": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "index": {
+                                                        "type": "integer"
+                                                    },
+                                                    "label": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "bad": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "index": {
+                                                        "type": "integer"
+                                                    },
+                                                    "label": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             },
                             "default_translation": {
                                 "type": "string"
@@ -21396,6 +21449,12 @@
                                 "type": "string"
                             },
                             "survey": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "choices": {
                                 "type": "array",
                                 "items": {
                                     "type": "object"

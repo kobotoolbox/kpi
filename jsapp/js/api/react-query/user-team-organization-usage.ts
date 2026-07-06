@@ -3869,7 +3869,64 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
         faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
         undefined,
       ]),
-      name_quality: faker.helpers.arrayElement([{}, undefined]),
+      name_quality: faker.helpers.arrayElement([
+        {
+          ok: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          bad: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          good: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          total: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          firsts: faker.helpers.arrayElement([
+            {
+              ok: faker.helpers.arrayElement([
+                {
+                  name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  index: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  label: faker.helpers.arrayElement([
+                    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                      faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    ),
+                    undefined,
+                  ]),
+                },
+                undefined,
+              ]),
+              bad: faker.helpers.arrayElement([
+                {
+                  name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  index: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  label: faker.helpers.arrayElement([
+                    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                      faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    ),
+                    undefined,
+                  ]),
+                },
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
       default_translation: faker.helpers.arrayElement([
         faker.string.alpha({ length: { min: 10, max: 20 } }),
         undefined,
@@ -3937,6 +3994,10 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       {
         schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
         survey: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+          undefined,
+        ]),
+        choices: faker.helpers.arrayElement([
           Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
           undefined,
         ]),
