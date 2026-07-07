@@ -85,7 +85,9 @@ PERMISSION_ASSIGNMENT_SCHEMA = build_object_type(
         'url': build_basic_type(OpenApiTypes.STR),
         'user': build_basic_type(OpenApiTypes.STR),
         'permission': build_basic_type(OpenApiTypes.STR),
-        'partial_permissions': build_array_type(schema=PARTIAL_PERMISSION_FILTER_SCHEMA),
+        'partial_permissions': build_array_type(
+            schema=PARTIAL_PERMISSION_FILTER_SCHEMA
+        ),
         'label': {
             'oneOf': [
                 build_basic_type(OpenApiTypes.STR),
@@ -147,14 +149,22 @@ ADVANCED_FEATURES_SCHEMA = build_object_type(
     properties={
         'transcript': build_object_type(
             properties={
-                'values': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
-                'languages': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+                'values': build_array_type(
+                    schema=build_basic_type(OpenApiTypes.STR)
+                ),
+                'languages': build_array_type(
+                    schema=build_basic_type(OpenApiTypes.STR)
+                ),
             }
         ),
         'translation': build_object_type(
             properties={
-                'values': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
-                'languages': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+                'values': build_array_type(
+                    schema=build_basic_type(OpenApiTypes.STR)
+                ),
+                'languages': build_array_type(
+                    schema=build_basic_type(OpenApiTypes.STR)
+                ),
             }
         ),
         'qual': build_object_type(
@@ -245,6 +255,8 @@ ASSET_CONTENT_SCHEMA = build_object_type(
             schema={**build_basic_type(OpenApiTypes.STR), 'nullable': True}
         ),
         'translations_0': {**build_basic_type(OpenApiTypes.STR), 'nullable': True},
-        'kobo--locking-profiles': build_array_type(schema=build_basic_type(OpenApiTypes.OBJECT)),
+        'kobo--locking-profiles': build_array_type(
+            schema=build_basic_type(OpenApiTypes.OBJECT)
+        ),
     }
 )

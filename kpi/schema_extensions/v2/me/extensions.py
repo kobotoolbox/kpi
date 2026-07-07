@@ -50,10 +50,30 @@ class GitRevFieldExtension(OpenApiSerializerFieldExtension):
                 build_basic_type(OpenApiTypes.BOOL),
                 build_object_type(
                     properties={
-                        'short': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
-                        'long': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
-                        'branch': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
-                        'tag': {'oneOf': [GENERIC_STRING_SCHEMA, build_basic_type(OpenApiTypes.BOOL)]},
+                        'short': {
+                            'oneOf': [
+                                GENERIC_STRING_SCHEMA,
+                                build_basic_type(OpenApiTypes.BOOL),
+                            ]
+                        },
+                        'long': {
+                            'oneOf': [
+                                GENERIC_STRING_SCHEMA,
+                                build_basic_type(OpenApiTypes.BOOL),
+                            ]
+                        },
+                        'branch': {
+                            'oneOf': [
+                                GENERIC_STRING_SCHEMA,
+                                build_basic_type(OpenApiTypes.BOOL),
+                            ]
+                        },
+                        'tag': {
+                            'oneOf': [
+                                GENERIC_STRING_SCHEMA,
+                                build_basic_type(OpenApiTypes.BOOL),
+                            ]
+                        },
                     }
                 ),
             ]

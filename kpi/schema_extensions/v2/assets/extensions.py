@@ -35,7 +35,6 @@ from .schema import (
     PERMISSION_ASSIGNMENT_SCHEMA,
     REPORT_STYLE_SCHEMA,
     SURVEY_CHOICE_SCHEMA,
-    SURVEY_ROW_SCHEMA,
 )
 
 
@@ -95,7 +94,8 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
                 },  # required: type of additional field
                 'name': GENERIC_STRING_SCHEMA,  # required
                 'dtpath': GENERIC_STRING_SCHEMA,  # required: data table path
-                'label': GENERIC_STRING_SCHEMA,  # optional: question label or 'source'/'verified'
+                # optional: question label or 'source'/'verified'
+                'label': GENERIC_STRING_SCHEMA,
                 'choices': build_array_type(
                     build_object_type(
                         required=['uuid', 'labels'],
@@ -307,7 +307,8 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.ContentField'
 
     def map_serializer_field(self, auto_schema, direction):
-        # WriteableJsonWithSchemaField accepts JSON string for writes, returns object for reads
+        # WriteableJsonWithSchemaField accepts JSON string for writes,
+        # returns object for reads
         if direction == 'request':
             return build_basic_type(OpenApiTypes.STR)
         return ASSET_CONTENT_SCHEMA
@@ -559,8 +560,10 @@ class ReportStyleFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'default': REPORT_STYLE_SCHEMA,
-                'specified': GENERIC_OBJECT_SCHEMA,  # additionalProperties pattern for dynamic row names
-                'kuid_names': GENERIC_OBJECT_SCHEMA,  # additionalProperties pattern for dynamic row names
+                # additionalProperties pattern for dynamic row names
+                'specified': GENERIC_OBJECT_SCHEMA,
+                # additionalProperties pattern for dynamic row names
+                'kuid_names': GENERIC_OBJECT_SCHEMA,
             }
         )
 

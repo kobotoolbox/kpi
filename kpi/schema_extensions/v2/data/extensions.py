@@ -340,9 +340,10 @@ class DataSupplementalDetailsFieldExtension(
         #   }
         # }
         #
-        # The six oneOf options represent all possible action types that can generate
-        # supplemental data. Each has a unique property name that acts as a discriminator,
-        # allowing TypeScript to narrow the union based on which property exists.
+        # The six oneOf options represent all possible action types that can
+        # generate supplemental data. Each has a unique property name that acts
+        # as a discriminator, allowing TypeScript to narrow the union based on
+        # which property exists.
         return {
             'oneOf': [
                 # Option 1: Human-generated audio/video transcription
