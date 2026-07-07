@@ -83,6 +83,9 @@ GENERIC_UUID_SCHEMA = {'type': 'string', 'format': 'uuid'}
 
 GENERIC_DATETIME_SCHEMA = build_basic_type(OpenApiTypes.DATETIME)
 
-NULLABLE_ARRAY_SCHEMA = {**build_array_type(schema=build_basic_type(OpenApiTypes.STR)), 'nullable': True}
+NULLABLE_ARRAY_SCHEMA = {
+    **build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+    'nullable': True,
+}
 
 USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')
