@@ -30,11 +30,11 @@ export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluat
  *
  * For transcription: checks for ongoing transcription jobs on the same field (write-locked output)
  * For translation: checks for:
- *   - Ongoing translation jobs on the same field (write-locked output)
+ *   - Ongoing translation jobs on the same field AND same target language (write-locked output)
  *   - Ongoing transcription jobs on the input transcript field (write-locked input)
  */
 export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEvaluationResult {
-  const { activeBulkActions, fieldXpath, actionType, submissions } = context
+  const { activeBulkActions, fieldXpath, actionType, submissions, selectedLanguage } = context
 
   // Filter to only ongoing jobs (pending or in_progress)
   const ongoingJobs = activeBulkActions.filter(
@@ -63,14 +63,21 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
   } else {
     // For translation: check for ongoing jobs that would conflict
     conflictingJobs = ongoingJobs.filter((action) => {
-      // Translation jobs on the same field conflict (write-locked output)
-      // Transcription jobs on the same field also conflict (they write to the input transcript)
-      if (
-        action.action_id === ActionIdEnum.automatic_google_translation ||
-        action.action_id === ActionIdEnum.automatic_google_transcription
-      ) {
-        return action.question_xpath === fieldXpath
+      if (action.question_xpath !== fieldXpath) {
+        return false
       }
+
+      // Transcription jobs on the same field conflict (they write to the input transcript)
+      if (action.action_id === ActionIdEnum.automatic_google_transcription) {
+        return true
+      }
+
+      // Translation jobs only conflict if targeting the same language
+      // (different languages write to different output fields: translation_en, translation_fr, etc.)
+      if (action.action_id === ActionIdEnum.automatic_google_translation) {
+        return action.params.language === selectedLanguage
+      }
+
       return false
     })
   }

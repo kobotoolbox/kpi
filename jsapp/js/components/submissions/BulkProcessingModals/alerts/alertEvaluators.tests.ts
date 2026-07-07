@@ -201,10 +201,11 @@ describe('evaluateConflictingJob', () => {
     expect(result.computedValues.count).to.equal(1)
   })
 
-  it('should show alert for translation when ongoing translation job conflicts', () => {
+  it('should show alert for translation when ongoing translation job conflicts with same language', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       actionType: 'translation',
+      selectedLanguage: 'en',
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
           status: BulkActionResponseStatusEnum.in_progress,
@@ -222,10 +223,33 @@ describe('evaluateConflictingJob', () => {
     expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
   })
 
+  it('should not show alert for translation when ongoing translation job is for different language', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      actionType: 'translation',
+      selectedLanguage: 'fr',
+      activeBulkActions: [
+        bulkActionFactory('uuid-1', 'en', {
+          status: BulkActionResponseStatusEnum.in_progress,
+          question_xpath: 'audio_question',
+          action_id: ActionIdEnum.automatic_google_translation,
+          submission_uuids: ['uuid-1'],
+        }),
+      ],
+    }
+
+    const result = evaluateConflictingJob(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('warning')
+    expect(result.filteredSubmissionUuids).to.deep.equal([])
+  })
+
   it('should show alert for translation when ongoing transcription job conflicts', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       actionType: 'translation',
+      selectedLanguage: 'en',
       activeBulkActions: [
         bulkActionFactory('uuid-2', 'en', {
           status: BulkActionResponseStatusEnum.in_progress,
@@ -297,6 +321,7 @@ describe('evaluateConflictingJob', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       actionType: 'translation',
+      selectedLanguage: 'en',
       activeBulkActions: [
         bulkActionFactory('uuid-1', 'en', {
           status: BulkActionResponseStatusEnum.in_progress,
