@@ -24,7 +24,7 @@ jest.mock('#/api/react-query/user-team-organization-usage', () => ({
 }))
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { DeleteBlockerReason, getSurveyFlatPaths, userCanDeleteAssets } from '#/assetUtils'
 import { surveyWithAllPossibleGroups, surveyWithGroups } from '#/assetUtils.mocks'
 
