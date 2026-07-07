@@ -13,6 +13,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { AssetContentSurveyItem } from './assetContentSurveyItem'
+import type { AssetContentTranslations0 } from './assetContentTranslations0'
+import type { AssetContentTranslationsItem } from './assetContentTranslationsItem'
 
 export type AssetContent = {
   schema?: string
@@ -20,8 +22,8 @@ export type AssetContent = {
   choices?: AssetContentChoicesItem[]
   settings?: AssetContentSettings
   translated?: string[]
-  translations?: (string | null)[]
+  translations?: AssetContentTranslationsItem[]
   /** @nullable */
-  translations_0?: string | null
+  translations_0?: AssetContentTranslations0
   'kobo--locking-profiles'?: AssetContentKoboLockingProfilesItem[]
 }

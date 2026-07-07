@@ -1,3 +1,4 @@
+import type { AssetAccessTypes } from './assetAccessTypes'
 import type { AssetAdvancedFeatures } from './assetAdvancedFeatures'
 import type { AssetAnalysisFormJson } from './assetAnalysisFormJson'
 import type { AssetAssignablePermissionsItem } from './assetAssignablePermissionsItem'
@@ -95,7 +96,7 @@ export interface Asset {
   readonly subscribers_count: number
   readonly status: string
   /** @nullable */
-  readonly access_types: readonly string[] | null
+  readonly access_types: AssetAccessTypes
   data_sharing?: AssetDataSharing
   readonly paired_data: string
   /** @nullable */

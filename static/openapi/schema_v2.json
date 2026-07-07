@@ -21155,7 +21155,10 @@
                         "type": "object",
                         "properties": {
                             "sector": {
-                                "type": "object",
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
                                 "properties": {
                                     "label": {
                                         "type": "string"
@@ -21167,7 +21170,10 @@
                                 "nullable": true
                             },
                             "country": {
-                                "type": "array",
+                                "type": [
+                                    "array",
+                                    "null"
+                                ],
                                 "items": {
                                     "type": "object",
                                     "properties": {
@@ -21185,7 +21191,10 @@
                                 "type": "string"
                             },
                             "collects_pii": {
-                                "type": "object",
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
                                 "properties": {
                                     "label": {
                                         "type": "string"
@@ -21197,7 +21206,10 @@
                                 "nullable": true
                             },
                             "organization": {
-                                "type": "string",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
                                 "nullable": true
                             },
                             "country_codes": {
@@ -21207,7 +21219,10 @@
                                 }
                             },
                             "operational_purpose": {
-                                "type": "object",
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
                                 "properties": {
                                     "label": {
                                         "type": "string"
@@ -21352,7 +21367,10 @@
                                 }
                             },
                             "default_translation": {
-                                "type": "string",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
                                 "nullable": true
                             },
                             "naming_conflicts": {
@@ -21407,11 +21425,17 @@
                                 "type": "integer"
                             },
                             "next": {
-                                "type": "string",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
                                 "nullable": true
                             },
                             "previous": {
-                                "type": "string",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
                                 "nullable": true
                             },
                             "results": {
@@ -21745,14 +21769,20 @@
                                         "label": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
                                                 "nullable": true
                                             }
                                         },
                                         "hint": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
                                                 "nullable": true
                                             }
                                         },
@@ -21817,7 +21847,10 @@
                                         "label": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string",
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
                                                 "nullable": true
                                             }
                                         },
@@ -21874,7 +21907,10 @@
                                         "type": "string"
                                     },
                                     "default_language": {
-                                        "type": "string",
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
                                         "nullable": true
                                     }
                                 }
@@ -21888,12 +21924,18 @@
                             "translations": {
                                 "type": "array",
                                 "items": {
-                                    "type": "string",
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
                                     "nullable": true
                                 }
                             },
                             "translations_0": {
-                                "type": "string",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
                                 "nullable": true
                             },
                             "kobo--locking-profiles": {
@@ -22224,7 +22266,10 @@
                         "readOnly": true
                     },
                     "access_types": {
-                        "type": "array",
+                        "type": [
+                            "array",
+                            "null"
+                        ],
                         "items": {
                             "type": "string"
                         },

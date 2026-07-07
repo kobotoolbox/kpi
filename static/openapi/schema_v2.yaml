@@ -15170,7 +15170,9 @@ components:
           type: object
           properties:
             sector:
-              type: object
+              type:
+              - object
+              - 'null'
               properties:
                 label:
                   type: string
@@ -15178,7 +15180,9 @@ components:
                   type: string
               nullable: true
             country:
-              type: array
+              type:
+              - array
+              - 'null'
               items:
                 type: object
                 properties:
@@ -15190,7 +15194,9 @@ components:
             description:
               type: string
             collects_pii:
-              type: object
+              type:
+              - object
+              - 'null'
               properties:
                 label:
                   type: string
@@ -15198,14 +15204,18 @@ components:
                   type: string
               nullable: true
             organization:
-              type: string
+              type:
+              - string
+              - 'null'
               nullable: true
             country_codes:
               type: array
               items:
                 type: string
             operational_purpose:
-              type: object
+              type:
+              - object
+              - 'null'
               properties:
                 label:
                   type: string
@@ -15300,7 +15310,9 @@ components:
                           items:
                             type: string
             default_translation:
-              type: string
+              type:
+              - string
+              - 'null'
               nullable: true
             naming_conflicts:
               type: array
@@ -15341,10 +15353,14 @@ components:
             count:
               type: integer
             next:
-              type: string
+              type:
+              - string
+              - 'null'
               nullable: true
             previous:
-              type: string
+              type:
+              - string
+              - 'null'
               nullable: true
             results:
               type: array
@@ -15573,12 +15589,16 @@ components:
                   label:
                     type: array
                     items:
-                      type: string
+                      type:
+                      - string
+                      - 'null'
                       nullable: true
                   hint:
                     type: array
                     items:
-                      type: string
+                      type:
+                      - string
+                      - 'null'
                       nullable: true
                   name:
                     type: string
@@ -15622,7 +15642,9 @@ components:
                   label:
                     type: array
                     items:
-                      type: string
+                      type:
+                      - string
+                      - 'null'
                       nullable: true
                   list_name:
                     type: string
@@ -15660,7 +15682,9 @@ components:
                 kobo--locking-profile:
                   type: string
                 default_language:
-                  type: string
+                  type:
+                  - string
+                  - 'null'
                   nullable: true
             translated:
               type: array
@@ -15669,10 +15693,14 @@ components:
             translations:
               type: array
               items:
-                type: string
+                type:
+                - string
+                - 'null'
                 nullable: true
             translations_0:
-              type: string
+              type:
+              - string
+              - 'null'
               nullable: true
             kobo--locking-profiles:
               type: array
@@ -15898,7 +15926,9 @@ components:
           type: string
           readOnly: true
         access_types:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             type: string
           nullable: true
