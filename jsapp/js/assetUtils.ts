@@ -154,14 +154,16 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
      * and then switching to french would result in seeing spanish labels)
      */
     const countries = []
-    // Backend always returns country as an array (or null/undefined)
+    // Backend schema specifies country as array, but old assets (pre-Dec 2022)
+    // may still have it as a single object if they haven't been updated since
+    // standardization was added, or if the migration was skipped.
     if (Array.isArray(asset.settings.country)) {
       for (const country of asset.settings.country) {
         countries.push(envStore.getCountryLabel(country.value))
       }
     } else {
-      // We leave this for legacy reasons - there might be some very old assets with country being a single object
-      countries.push(envStore.getCountryLabel(asset.settings.country.value))
+      // Legacy fallback: single object format from pre-standardization assets
+      countries.push(envStore.getCountryLabel((asset.settings.country as any).value))
     }
 
     if (countries.length === 0) {

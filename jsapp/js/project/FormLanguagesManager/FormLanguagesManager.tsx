@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import cloneDeep from 'lodash.clonedeep'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PaginatedListResponse } from '#/UniversalTable'
-import type { PatchedAssetPatchRequestOneOfContent } from '#/api/models/patchedAssetPatchRequestOneOfContent'
 import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
 import ModalNew from '#/components/common/ModalNew'
@@ -117,8 +116,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
     try {
       const response = await assetsPartialUpdate(asset.uid, {
         name: asset.name,
-        // Backend accepts JSON string for content field in PATCH requests
-        content: JSON.stringify(content) as unknown as PatchedAssetPatchRequestOneOfContent,
+        content: JSON.stringify(content),
       })
 
       if (response.status === 200) {
