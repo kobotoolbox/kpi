@@ -25,6 +25,7 @@ const assetWithOnlyStartGeopoint = getApiV2AssetsRetrieveResponseMock({
   deployment__active: true,
   deployment__submission_count: 2,
   has_deployment: true,
+  map_styles: {},
   summary: {
     geo: true,
     labels: ['Your name'],
@@ -62,6 +63,7 @@ const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
   deployment__active: true,
   deployment__submission_count: 2,
   has_deployment: true,
+  map_styles: {},
   summary: {
     geo: true,
     labels: ['Your name', 'Where are you?'],

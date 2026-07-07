@@ -31,7 +31,7 @@ import type { ErrorObject } from '../models/errorObject'
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import type { AssetSnapshotResponse } from '../models/assetSnapshotResponse'
 
@@ -1361,8 +1361,7 @@ export const getApiV2AssetSnapshotsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetSnapshotResponseList> | PaginatedAssetSnapshotResponseList),
 ) => {
-  return http.get('*/api/v2/asset_snapshots/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/asset_snapshots{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1384,8 +1383,7 @@ export const getApiV2AssetSnapshotsCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<AssetSnapshotResponse> | AssetSnapshotResponse),
 ) => {
-  return http.post('*/api/v2/asset_snapshots/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/asset_snapshots{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1405,8 +1403,7 @@ export const getApiV2AssetSnapshotsRetrieveMockHandler = (
     | AssetSnapshotResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetSnapshotResponse> | AssetSnapshotResponse),
 ) => {
-  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1424,8 +1421,7 @@ export const getApiV2AssetSnapshotsRetrieveMockHandler = (
 export const getApiV2AssetSnapshotsDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/asset_snapshots/:uidAssetSnapshot/', async (info) => {
-    await delay(1000)
+  return http.delete('*/api/v2/asset_snapshots/:uidAssetSnapshot{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -1436,8 +1432,7 @@ export const getApiV2AssetSnapshotsDestroyMockHandler = (
 export const getApiV2AssetSnapshotsPreviewRetrieveMockHandler = (
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
-  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/preview/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/preview{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -1450,8 +1445,7 @@ export const getApiV2AssetSnapshotsXformRetrieveMockHandler = (
     | OpenRosaXFormResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OpenRosaXFormResponse> | OpenRosaXFormResponse),
 ) => {
-  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xform/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xform{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1471,8 +1465,7 @@ export const getApiV2AssetSnapshotsXmlWithDisclaimerRetrieveMockHandler = (
     | OpenRosaXFormResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OpenRosaXFormResponse> | OpenRosaXFormResponse),
 ) => {
-  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xml_with_disclaimer/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xml_with_disclaimer{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1492,8 +1485,7 @@ export const getApiV2AssetsContentRetrieveMockHandler = (
     | ContentResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ContentResponse> | ContentResponse),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/content/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/content{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1511,8 +1503,7 @@ export const getApiV2AssetsContentRetrieveMockHandler = (
 export const getApiV2AssetsTableViewRetrieveMockHandler = (
   overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/table_view/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/table_view{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1534,8 +1525,7 @@ export const getApiV2AssetsValidContentRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<AssetValidContentResponse> | AssetValidContentResponse),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/valid_content/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/valid_content{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1553,8 +1543,7 @@ export const getApiV2AssetsValidContentRetrieveMockHandler = (
 export const getApiV2AssetsXlsRetrieveMockHandler = (
   overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/xls/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/xls{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(

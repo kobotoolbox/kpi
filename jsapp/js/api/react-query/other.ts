@@ -41,7 +41,7 @@ import type { TranslationServicesListParams } from '../models/translationService
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import { BlankEnum } from '../models/blankEnum'
 
@@ -2346,8 +2346,7 @@ export const getApiV2LanguagesListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedLanguageListList> | PaginatedLanguageListList),
 ) => {
-  return http.get('*/api/v2/languages/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/languages{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2365,8 +2364,7 @@ export const getApiV2LanguagesListMockHandler = (
 export const getApiV2LanguagesRetrieveMockHandler = (
   overrideResponse?: Language | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Language> | Language),
 ) => {
-  return http.get('*/api/v2/languages/:code/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/languages/:code{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2388,8 +2386,7 @@ export const getApiV2PermissionsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedPermissionResponseList> | PaginatedPermissionResponseList),
 ) => {
-  return http.get('*/api/v2/permissions/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/permissions{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2409,8 +2406,7 @@ export const getApiV2PermissionsRetrieveMockHandler = (
     | PermissionResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PermissionResponse> | PermissionResponse),
 ) => {
-  return http.get('*/api/v2/permissions/:codename/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/permissions/:codename{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2432,8 +2428,7 @@ export const getApiV2StripeAddonsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedOneTimeAddOnList> | PaginatedOneTimeAddOnList),
 ) => {
-  return http.get('*/api/v2/stripe/addons/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/stripe/addons{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2453,8 +2448,7 @@ export const getApiV2StripeAddonsRetrieveMockHandler = (
     | OneTimeAddOn
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OneTimeAddOn> | OneTimeAddOn),
 ) => {
-  return http.get('*/api/v2/stripe/addons/:id/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/stripe/addons/:id{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2475,7 +2469,6 @@ export const getApiV2StripeChangePlanRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ChangePlan> | ChangePlan),
 ) => {
   return http.get('*/api/v2/stripe/change-plan', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -2496,7 +2489,6 @@ export const getApiV2StripeCheckoutLinkCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CheckoutLink> | CheckoutLink),
 ) => {
   return http.post('*/api/v2/stripe/checkout-link', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -2519,7 +2511,6 @@ export const getApiV2StripeCustomerPortalCreateMockHandler = (
       ) => Promise<CustomerPortalPostResponse> | CustomerPortalPostResponse),
 ) => {
   return http.post('*/api/v2/stripe/customer-portal', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -2539,8 +2530,7 @@ export const getApiV2StripeProductsListMockHandler = (
     | PaginatedProductList
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedProductList> | PaginatedProductList),
 ) => {
-  return http.get('*/api/v2/stripe/products/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/stripe/products{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2562,8 +2552,7 @@ export const getApiV2StripeSubscriptionsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedSubscriptionList> | PaginatedSubscriptionList),
 ) => {
-  return http.get('*/api/v2/stripe/subscriptions/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/stripe/subscriptions{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2583,8 +2572,7 @@ export const getApiV2StripeSubscriptionsRetrieveMockHandler = (
     | Subscription
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Subscription> | Subscription),
 ) => {
-  return http.get('*/api/v2/stripe/subscriptions/:id/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/stripe/subscriptions/:id{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2606,8 +2594,7 @@ export const getApiV2TermsOfServiceListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<TermsOfServiceResponse[]> | TermsOfServiceResponse[]),
 ) => {
-  return http.get('*/api/v2/terms-of-service/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/terms-of-service{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2629,8 +2616,7 @@ export const getApiV2TermsOfServiceRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<TermsOfServiceResponse> | TermsOfServiceResponse),
 ) => {
-  return http.get('*/api/v2/terms-of-service/:slug/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/terms-of-service/:slug{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2652,8 +2638,7 @@ export const getApiV2TranscriptionServicesListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedTranscriptionServiceList> | PaginatedTranscriptionServiceList),
 ) => {
-  return http.get('*/api/v2/transcription-services/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/transcription-services{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2673,8 +2658,7 @@ export const getApiV2TranscriptionServicesRetrieveMockHandler = (
     | TranscriptionService
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranscriptionService> | TranscriptionService),
 ) => {
-  return http.get('*/api/v2/transcription-services/:code/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/transcription-services/:code{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2696,8 +2680,7 @@ export const getApiV2TranslationServicesListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedTranslationServiceList> | PaginatedTranslationServiceList),
 ) => {
-  return http.get('*/api/v2/translation-services/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/translation-services{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -2717,8 +2700,7 @@ export const getApiV2TranslationServicesRetrieveMockHandler = (
     | TranslationService
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranslationService> | TranslationService),
 ) => {
-  return http.get('*/api/v2/translation-services/:code/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/translation-services/:code{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(

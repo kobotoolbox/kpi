@@ -13,10 +13,7 @@ const meta: Meta<typeof DeleteAccountBanner> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: {
-        organization: organizationMock(),
-        assets: assetsMock(),
-      },
+      handlers: [organizationMock(), assetsMock()],
     },
     a11y: { test: 'todo' },
   },
@@ -61,9 +58,7 @@ export const UserHasAssets: Story = {
 export const UserHasNoAssets: Story = {
   parameters: {
     msw: {
-      handlers: {
-        assets: assetsMock({ count: 0 }),
-      },
+      handlers: [organizationMock(), assetsMock({ count: 0 })],
     },
   },
   play: async ({ canvasElement }) => {
@@ -80,9 +75,7 @@ export const UserHasNoAssets: Story = {
 export const UserOwnsMMO: Story = {
   parameters: {
     msw: {
-      handlers: {
-        organization: organizationMock({ is_mmo: true }),
-      },
+      handlers: [organizationMock({ is_mmo: true }), assetsMock()],
     },
   },
   play: async ({ canvasElement }) => {

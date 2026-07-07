@@ -31,7 +31,7 @@ import type { PermissionAssignmentCreateRequest } from '../models/permissionAssi
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import type { PermissionAssignmentResponse } from '../models/permissionAssignmentResponse'
 
@@ -807,8 +807,7 @@ export const getApiV2AssetsPermissionAssignmentsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/permission-assignments/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/permission-assignments{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -830,8 +829,7 @@ export const getApiV2AssetsPermissionAssignmentsCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse),
 ) => {
-  return http.post('*/api/v2/assets/:uidAsset/permission-assignments/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/assets/:uidAsset/permission-assignments{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -853,8 +851,7 @@ export const getApiV2AssetsPermissionAssignmentsRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -872,8 +869,7 @@ export const getApiV2AssetsPermissionAssignmentsRetrieveMockHandler = (
 export const getApiV2AssetsPermissionAssignmentsDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment/', async (info) => {
-    await delay(1000)
+  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -888,8 +884,7 @@ export const getApiV2AssetsPermissionAssignmentsBulkCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
 ) => {
-  return http.post('*/api/v2/assets/:uidAsset/permission-assignments/bulk/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/assets/:uidAsset/permission-assignments/bulk{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -907,8 +902,7 @@ export const getApiV2AssetsPermissionAssignmentsBulkCreateMockHandler = (
 export const getApiV2AssetsPermissionAssignmentsBulkDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/bulk/', async (info) => {
-    await delay(1000)
+  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/bulk{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -923,8 +917,7 @@ export const getApiV2AssetsPermissionAssignmentsClonePartialUpdateMockHandler = 
         info: Parameters<Parameters<typeof http.patch>[1]>[0],
       ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
 ) => {
-  return http.patch('*/api/v2/assets/:uidAsset/permission-assignments/clone/', async (info) => {
-    await delay(1000)
+  return http.patch('*/api/v2/assets/:uidAsset/permission-assignments/clone{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(

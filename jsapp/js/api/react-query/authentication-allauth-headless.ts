@@ -85,7 +85,7 @@ import type { VerifyPhoneBody } from '../models/verifyPhoneBody'
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import type { AuthenticatedByCodeResponse } from '../models/authenticatedByCodeResponse'
 
@@ -10594,7 +10594,6 @@ export const getApiV2AllauthBrowserV1ConfigGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConfigurationResponse> | ConfigurationResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/config', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10615,7 +10614,6 @@ export const getApiV2AllauthAppV1ConfigGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ConfigurationResponse> | ConfigurationResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/config', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10638,7 +10636,6 @@ export const getApiV2AllauthBrowserV1AuthLoginPostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/login', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10661,7 +10658,6 @@ export const getApiV2AllauthAppV1AuthLoginPostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/login', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10684,7 +10680,6 @@ export const getApiV2AllauthBrowserV1AuthSignupPostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/signup', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10707,7 +10702,6 @@ export const getApiV2AllauthAppV1AuthSignupPostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/signup', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10730,7 +10724,6 @@ export const getApiV2AllauthBrowserV1AuthEmailVerifyGetMockHandler = (
       ) => Promise<EmailVerificationInfoResponse> | EmailVerificationInfoResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/auth/email/verify', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10753,7 +10746,6 @@ export const getApiV2AllauthBrowserV1AuthEmailVerifyPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/email/verify', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10776,7 +10768,6 @@ export const getApiV2AllauthAppV1AuthEmailVerifyGetMockHandler = (
       ) => Promise<EmailVerificationInfoResponse> | EmailVerificationInfoResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/auth/email/verify', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10799,7 +10790,6 @@ export const getApiV2AllauthAppV1AuthEmailVerifyPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/email/verify', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10820,7 +10810,6 @@ export const getApiV2AllauthBrowserV1AuthEmailVerifyResendPostMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/email/verify/resend', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10841,7 +10830,6 @@ export const getApiV2AllauthAppV1AuthEmailVerifyResendPostMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/email/verify/resend', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10864,7 +10852,6 @@ export const getApiV2AllauthBrowserV1AuthPhoneVerifyPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/phone/verify', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10887,7 +10874,6 @@ export const getApiV2AllauthAppV1AuthPhoneVerifyPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/phone/verify', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10908,7 +10894,6 @@ export const getApiV2AllauthBrowserV1AuthPhoneVerifyResendPostMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/phone/verify/resend', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10929,7 +10914,6 @@ export const getApiV2AllauthAppV1AuthPhoneVerifyResendPostMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/phone/verify/resend', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10952,7 +10936,6 @@ export const getApiV2AllauthBrowserV1AuthReauthenticatePostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/reauthenticate', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10975,7 +10958,6 @@ export const getApiV2AllauthAppV1AuthReauthenticatePostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/reauthenticate', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -10996,7 +10978,6 @@ export const getApiV2AllauthBrowserV1AuthPasswordRequestPostMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/password/request', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11017,7 +10998,6 @@ export const getApiV2AllauthAppV1AuthPasswordRequestPostMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/password/request', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11040,7 +11020,6 @@ export const getApiV2AllauthBrowserV1AuthPasswordResetGetMockHandler = (
       ) => Promise<PasswordResetInfoResponse> | PasswordResetInfoResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/auth/password/reset', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11063,7 +11042,6 @@ export const getApiV2AllauthBrowserV1AuthPasswordResetPostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/password/reset', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11086,7 +11064,6 @@ export const getApiV2AllauthAppV1AuthPasswordResetGetMockHandler = (
       ) => Promise<PasswordResetInfoResponse> | PasswordResetInfoResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/auth/password/reset', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11109,7 +11086,6 @@ export const getApiV2AllauthAppV1AuthPasswordResetPostMockHandler = (
       ) => Promise<AuthenticatedByPasswordResponse> | AuthenticatedByPasswordResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/password/reset', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11128,7 +11104,6 @@ export const getApiV2AllauthBrowserV1AuthProviderRedirectPostMockHandler = (
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/provider/redirect', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -11144,7 +11119,6 @@ export const getApiV2AllauthBrowserV1AuthProviderTokenPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/provider/token', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11167,7 +11141,6 @@ export const getApiV2AllauthAppV1AuthProviderTokenPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/provider/token', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11190,7 +11163,6 @@ export const getApiV2AllauthBrowserV1AuthProviderSignupGetMockHandler = (
       ) => Promise<ProviderSignupResponse> | ProviderSignupResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/auth/provider/signup', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11213,7 +11185,6 @@ export const getApiV2AllauthBrowserV1AuthProviderSignupPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/provider/signup', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11236,7 +11207,6 @@ export const getApiV2AllauthAppV1AuthProviderSignupGetMockHandler = (
       ) => Promise<ProviderSignupResponse> | ProviderSignupResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/auth/provider/signup', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11259,7 +11229,6 @@ export const getApiV2AllauthAppV1AuthProviderSignupPostMockHandler = (
       ) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/provider/signup', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11282,7 +11251,6 @@ export const getApiV2AllauthBrowserV1Auth2faAuthenticatePostMockHandler = (
       ) => Promise<AuthenticatedByPasswordAnd2FAResponse> | AuthenticatedByPasswordAnd2FAResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/2fa/authenticate', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11305,7 +11273,6 @@ export const getApiV2AllauthAppV1Auth2faAuthenticatePostMockHandler = (
       ) => Promise<AuthenticatedByPasswordAnd2FAResponse> | AuthenticatedByPasswordAnd2FAResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/2fa/authenticate', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11328,7 +11295,6 @@ export const getApiV2AllauthBrowserV1Auth2faReauthenticatePostMockHandler = (
       ) => Promise<AuthenticatedByPasswordAnd2FAResponse> | AuthenticatedByPasswordAnd2FAResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/2fa/reauthenticate', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11351,7 +11317,6 @@ export const getApiV2AllauthAppV1Auth2faReauthenticatePostMockHandler = (
       ) => Promise<AuthenticatedByPasswordAnd2FAResponse> | AuthenticatedByPasswordAnd2FAResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/2fa/reauthenticate', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11374,7 +11339,6 @@ export const getApiV2AllauthBrowserV1AuthCodeConfirmPostMockHandler = (
       ) => Promise<AuthenticatedByCodeResponse> | AuthenticatedByCodeResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/auth/code/confirm', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11397,7 +11361,6 @@ export const getApiV2AllauthAppV1AuthCodeConfirmPostMockHandler = (
       ) => Promise<AuthenticatedByCodeResponse> | AuthenticatedByCodeResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/auth/code/confirm', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11420,7 +11383,6 @@ export const getApiV2AllauthBrowserV1AccountProvidersGetMockHandler = (
       ) => Promise<ProviderAccountsResponse> | ProviderAccountsResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/account/providers', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11443,7 +11405,6 @@ export const getApiV2AllauthBrowserV1AccountProvidersDeleteMockHandler = (
       ) => Promise<ProviderAccountsResponse> | ProviderAccountsResponse),
 ) => {
   return http.delete('*/api/v2/allauth/browser/v1/account/providers', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11466,7 +11427,6 @@ export const getApiV2AllauthAppV1AccountProvidersGetMockHandler = (
       ) => Promise<ProviderAccountsResponse> | ProviderAccountsResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/account/providers', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11489,7 +11449,6 @@ export const getApiV2AllauthAppV1AccountProvidersDeleteMockHandler = (
       ) => Promise<ProviderAccountsResponse> | ProviderAccountsResponse),
 ) => {
   return http.delete('*/api/v2/allauth/app/v1/account/providers', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11512,7 +11471,6 @@ export const getApiV2AllauthBrowserV1AccountEmailGetMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11535,7 +11493,6 @@ export const getApiV2AllauthBrowserV1AccountEmailPostMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11556,7 +11513,6 @@ export const getApiV2AllauthBrowserV1AccountEmailPutMockHandler = (
     | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.put('*/api/v2/allauth/browser/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11579,7 +11535,6 @@ export const getApiV2AllauthBrowserV1AccountEmailPatchMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.patch('*/api/v2/allauth/browser/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11602,7 +11557,6 @@ export const getApiV2AllauthBrowserV1AccountEmailDeleteMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.delete('*/api/v2/allauth/browser/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11625,7 +11579,6 @@ export const getApiV2AllauthAppV1AccountEmailGetMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11648,7 +11601,6 @@ export const getApiV2AllauthAppV1AccountEmailPostMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11669,7 +11621,6 @@ export const getApiV2AllauthAppV1AccountEmailPutMockHandler = (
     | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.put('*/api/v2/allauth/app/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11692,7 +11643,6 @@ export const getApiV2AllauthAppV1AccountEmailPatchMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.patch('*/api/v2/allauth/app/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11715,7 +11665,6 @@ export const getApiV2AllauthAppV1AccountEmailDeleteMockHandler = (
       ) => Promise<EmailAddressesResponse> | EmailAddressesResponse),
 ) => {
   return http.delete('*/api/v2/allauth/app/v1/account/email', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11736,7 +11685,6 @@ export const getApiV2AllauthBrowserV1AccountPhoneGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PhoneNumbersResponse> | PhoneNumbersResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/account/phone', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11759,7 +11707,6 @@ export const getApiV2AllauthBrowserV1AccountPhonePostMockHandler = (
       ) => Promise<PhoneNumberChangeResponse> | PhoneNumberChangeResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/account/phone', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11780,7 +11727,6 @@ export const getApiV2AllauthAppV1AccountPhoneGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PhoneNumbersResponse> | PhoneNumbersResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/account/phone', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11803,7 +11749,6 @@ export const getApiV2AllauthAppV1AccountPhonePostMockHandler = (
       ) => Promise<PhoneNumberChangeResponse> | PhoneNumberChangeResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/account/phone', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11826,7 +11771,6 @@ export const getApiV2AllauthBrowserV1AccountAuthenticatorsGetMockHandler = (
       ) => Promise<AuthenticatorsResponse> | AuthenticatorsResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/account/authenticators', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11849,7 +11793,6 @@ export const getApiV2AllauthAppV1AccountAuthenticatorsGetMockHandler = (
       ) => Promise<AuthenticatorsResponse> | AuthenticatorsResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/account/authenticators', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11872,7 +11815,6 @@ export const getApiV2AllauthBrowserV1AccountAuthenticatorsTotpGetMockHandler = (
       ) => Promise<TOTPAuthenticatorResponse> | TOTPAuthenticatorResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/account/authenticators/totp', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11895,7 +11837,6 @@ export const getApiV2AllauthBrowserV1AccountAuthenticatorsTotpPostMockHandler = 
       ) => Promise<TOTPAuthenticatorResponse> | TOTPAuthenticatorResponse),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/account/authenticators/totp', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11916,7 +11857,6 @@ export const getApiV2AllauthBrowserV1AccountAuthenticatorsTotpDeleteMockHandler 
     | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.delete('*/api/v2/allauth/browser/v1/account/authenticators/totp', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11939,7 +11879,6 @@ export const getApiV2AllauthAppV1AccountAuthenticatorsTotpGetMockHandler = (
       ) => Promise<TOTPAuthenticatorResponse> | TOTPAuthenticatorResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/account/authenticators/totp', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11962,7 +11901,6 @@ export const getApiV2AllauthAppV1AccountAuthenticatorsTotpPostMockHandler = (
       ) => Promise<TOTPAuthenticatorResponse> | TOTPAuthenticatorResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/account/authenticators/totp', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -11983,7 +11921,6 @@ export const getApiV2AllauthAppV1AccountAuthenticatorsTotpDeleteMockHandler = (
     | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<StatusOKResponse> | StatusOKResponse),
 ) => {
   return http.delete('*/api/v2/allauth/app/v1/account/authenticators/totp', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12004,7 +11941,6 @@ export const getApiV2AllauthBrowserV1AccountAuthenticatorsRecoveryCodesGetMockHa
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<RecoveryCodesResponse> | RecoveryCodesResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/account/authenticators/recovery-codes', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12023,7 +11959,6 @@ export const getApiV2AllauthBrowserV1AccountAuthenticatorsRecoveryCodesPostMockH
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/account/authenticators/recovery-codes', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -12037,7 +11972,6 @@ export const getApiV2AllauthAppV1AccountAuthenticatorsRecoveryCodesGetMockHandle
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<RecoveryCodesResponse> | RecoveryCodesResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/account/authenticators/recovery-codes', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12056,7 +11990,6 @@ export const getApiV2AllauthAppV1AccountAuthenticatorsRecoveryCodesPostMockHandl
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/account/authenticators/recovery-codes', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -12070,7 +12003,6 @@ export const getApiV2AllauthBrowserV1AuthSessionGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/auth/session', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12089,7 +12021,6 @@ export const getApiV2AllauthBrowserV1AuthSessionDeleteMockHandler = (
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
   return http.delete('*/api/v2/allauth/browser/v1/auth/session', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -12103,7 +12034,6 @@ export const getApiV2AllauthAppV1AuthSessionGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuthenticatedResponse> | AuthenticatedResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/auth/session', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12122,7 +12052,6 @@ export const getApiV2AllauthAppV1AuthSessionDeleteMockHandler = (
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
   return http.delete('*/api/v2/allauth/app/v1/auth/session', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -12136,7 +12065,6 @@ export const getApiV2AllauthAppV1TokensRefreshPostMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<RefreshTokenResponse> | RefreshTokenResponse),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/tokens/refresh', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12155,7 +12083,6 @@ export const getApiV2AllauthBrowserV1AccountPasswordChangePostMockHandler = (
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
   return http.post('*/api/v2/allauth/browser/v1/account/password/change', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -12167,7 +12094,6 @@ export const getApiV2AllauthAppV1AccountPasswordChangePostMockHandler = (
   overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<unknown> | unknown),
 ) => {
   return http.post('*/api/v2/allauth/app/v1/account/password/change', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -12181,7 +12107,6 @@ export const getApiV2AllauthBrowserV1AuthSessionsGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SessionsResponse> | SessionsResponse),
 ) => {
   return http.get('*/api/v2/allauth/browser/v1/auth/sessions', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12202,7 +12127,6 @@ export const getApiV2AllauthBrowserV1AuthSessionsDeleteMockHandler = (
     | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<SessionsResponse> | SessionsResponse),
 ) => {
   return http.delete('*/api/v2/allauth/browser/v1/auth/sessions', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12223,7 +12147,6 @@ export const getApiV2AllauthAppV1AuthSessionsGetMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SessionsResponse> | SessionsResponse),
 ) => {
   return http.get('*/api/v2/allauth/app/v1/auth/sessions', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -12244,7 +12167,6 @@ export const getApiV2AllauthAppV1AuthSessionsDeleteMockHandler = (
     | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<SessionsResponse> | SessionsResponse),
 ) => {
   return http.delete('*/api/v2/allauth/app/v1/auth/sessions', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(

@@ -33,7 +33,7 @@ import type { PatchedHookLog } from '../models/patchedHookLog'
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import { AuthLevelEnum } from '../models/authLevelEnum'
 
@@ -1213,8 +1213,7 @@ export const getApiV2AssetsHooksListMockHandler = (
     | PaginatedHookList
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedHookList> | PaginatedHookList),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/hooks/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/hooks{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1232,8 +1231,7 @@ export const getApiV2AssetsHooksListMockHandler = (
 export const getApiV2AssetsHooksCreateMockHandler = (
   overrideResponse?: Hook | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Hook> | Hook),
 ) => {
-  return http.post('*/api/v2/assets/:uidAsset/hooks/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/assets/:uidAsset/hooks{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1251,8 +1249,7 @@ export const getApiV2AssetsHooksCreateMockHandler = (
 export const getApiV2AssetsHooksRetrieveMockHandler = (
   overrideResponse?: Hook | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Hook> | Hook),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1270,8 +1267,7 @@ export const getApiV2AssetsHooksRetrieveMockHandler = (
 export const getApiV2AssetsHooksPartialUpdateMockHandler = (
   overrideResponse?: Hook | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<Hook> | Hook),
 ) => {
-  return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook/', async (info) => {
-    await delay(1000)
+  return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1289,8 +1285,7 @@ export const getApiV2AssetsHooksPartialUpdateMockHandler = (
 export const getApiV2AssetsHooksDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/assets/:uidAsset/hooks/:uidHook/', async (info) => {
-    await delay(1000)
+  return http.delete('*/api/v2/assets/:uidAsset/hooks/:uidHook{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -1303,8 +1298,7 @@ export const getApiV2AssetsHooksLogsListMockHandler = (
     | PaginatedHookLogList
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedHookLogList> | PaginatedHookLogList),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1322,8 +1316,7 @@ export const getApiV2AssetsHooksLogsListMockHandler = (
 export const getApiV2AssetsHooksLogsRetrieveMockHandler = (
   overrideResponse?: HookLog | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HookLog> | HookLog),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs/:uidLog/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs/:uidLog{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1343,8 +1336,7 @@ export const getApiV2AssetsHooksLogsRetryPartialUpdateMockHandler = (
     | LogsRetryResponse
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<LogsRetryResponse> | LogsRetryResponse),
 ) => {
-  return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs/:uidLog/retry/', async (info) => {
-    await delay(1000)
+  return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs/:uidLog/retry{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -1364,8 +1356,7 @@ export const getApiV2AssetsHooksRetryPartialUpdateMockHandler = (
     | HookRetryResponse
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<HookRetryResponse> | HookRetryResponse),
 ) => {
-  return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook/retry/', async (info) => {
-    await delay(1000)
+  return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook/retry{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(

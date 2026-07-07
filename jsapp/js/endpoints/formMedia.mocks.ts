@@ -53,16 +53,19 @@ function waitMs(ms: number): Promise<void> {
 
 /**
  * Creates a form media item using Orval's generated mock with deterministic IDs.
+ * If assetUid is not provided in overrides, uses 'mock-asset-uid' as default.
  */
 export function createFormMediaItem(index: number, overrides: Partial<FormMediaItem> = {}): FormMediaItem {
   const uid = overrides.uid ?? `form-media-${index}`
   const filename = overrides.metadata?.filename ?? `file-${index}.png`
+  // Extract asset UID from overrides.asset URL if provided, or use overrides.uid, or default
+  const assetUid = overrides.asset?.match(/\/assets\/([^/]+)\//)?.[1] ?? 'mock-asset-uid'
 
   return {
     ...getApiV2AssetsFilesCreateResponseMock({
       uid,
-      url: `/api/v2/assets/mock-asset-uid/files/${uid}/`,
-      asset: '/api/v2/assets/mock-asset-uid/',
+      url: `/api/v2/assets/${assetUid}/files/${uid}/`,
+      asset: `/api/v2/assets/${assetUid}/`,
       user: '/api/v2/users/storybook/',
       user__username: 'storybook',
       file_type: 'form_media',
@@ -130,6 +133,7 @@ export function formMediaHandlers(
       const newItem = createFormMediaItem(index, {
         uid: `form-media-${index}`,
         url: `/api/v2/assets/${assetUid}/files/form-media-${index}/`,
+        asset: `/api/v2/assets/${assetUid}/`,
         metadata: {
           hash: `hash-${index}`,
           filename: (parsedMetadata.filename as string | undefined) || `uploaded-${index}.dat`,

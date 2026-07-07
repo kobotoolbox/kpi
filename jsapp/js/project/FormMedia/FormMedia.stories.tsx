@@ -24,6 +24,7 @@ const meta: Meta<typeof FormMedia> = {
         createFormMediaItem(1, {
           uid: 'form-media-1',
           url: `/api/v2/assets/${mockAsset.uid}/files/form-media-1/`,
+          asset: `/api/v2/assets/${mockAsset.uid}/`,
           metadata: {
             hash: 'hash-1',
             filename: 'intro-image.png',

@@ -37,7 +37,7 @@ import type { ScimV2UsersUpdate409 } from '../models/scimV2UsersUpdate409'
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import type { PaginatedScimGroupList } from '../models/paginatedScimGroupList'
 
@@ -1588,7 +1588,6 @@ export const getApiV2ScimV2GroupsListMockHandler = (
       ) => Promise<PaginatedScimGroupList> | PaginatedScimGroupList),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Groups', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1609,7 +1608,6 @@ export const getApiV2ScimV2GroupsCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.post('*/api/v2/scim/v2/:idpSlug/Groups', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1630,7 +1628,6 @@ export const getApiV2ScimV2GroupsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Groups/:id', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1651,7 +1648,6 @@ export const getApiV2ScimV2GroupsUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.put('*/api/v2/scim/v2/:idpSlug/Groups/:id', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1672,7 +1668,6 @@ export const getApiV2ScimV2GroupsPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.patch('*/api/v2/scim/v2/:idpSlug/Groups/:id', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1691,7 +1686,6 @@ export const getApiV2ScimV2GroupsDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
   return http.delete('*/api/v2/scim/v2/:idpSlug/Groups/:id', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -1707,7 +1701,6 @@ export const getApiV2ScimV2ResourceTypesRetrieveMockHandler = (
       ) => Promise<ScimV2ResourceTypesRetrieve200> | ScimV2ResourceTypesRetrieve200),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/ResourceTypes', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1730,7 +1723,6 @@ export const getApiV2ScimV2SchemasRetrieveMockHandler = (
       ) => Promise<ScimV2SchemasRetrieve200> | ScimV2SchemasRetrieve200),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Schemas', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1753,7 +1745,6 @@ export const getApiV2ScimV2ServiceProviderConfigRetrieveMockHandler = (
       ) => Promise<ScimV2ServiceProviderConfigRetrieve200> | ScimV2ServiceProviderConfigRetrieve200),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/ServiceProviderConfig', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1774,7 +1765,6 @@ export const getApiV2ScimV2UsersListMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedScimUserList> | PaginatedScimUserList),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Users', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1795,7 +1785,6 @@ export const getApiV2ScimV2UsersCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.post('*/api/v2/scim/v2/:idpSlug/Users', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1814,7 +1803,6 @@ export const getApiV2ScimV2UsersRetrieveMockHandler = (
   overrideResponse?: ScimUser | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Users/:id', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1833,7 +1821,6 @@ export const getApiV2ScimV2UsersUpdateMockHandler = (
   overrideResponse?: ScimUser | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.put('*/api/v2/scim/v2/:idpSlug/Users/:id', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1854,7 +1841,6 @@ export const getApiV2ScimV2UsersPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.patch('*/api/v2/scim/v2/:idpSlug/Users/:id', async (info) => {
-    await delay(1000)
 
     return new HttpResponse(
       JSON.stringify(
@@ -1873,7 +1859,6 @@ export const getApiV2ScimV2UsersDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
   return http.delete('*/api/v2/scim/v2/:idpSlug/Users/:id', async (info) => {
-    await delay(1000)
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }

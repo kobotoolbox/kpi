@@ -29,7 +29,7 @@ import type { ErrorObject } from '../models/errorObject'
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import type { AssetSubscriptionResponse } from '../models/assetSubscriptionResponse'
 
@@ -431,8 +431,7 @@ export const getApiV2AssetSubscriptionsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetSubscriptionResponseList> | PaginatedAssetSubscriptionResponseList),
 ) => {
-  return http.get('*/api/v2/asset_subscriptions/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/asset_subscriptions{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -454,8 +453,7 @@ export const getApiV2AssetSubscriptionsCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
 ) => {
-  return http.post('*/api/v2/asset_subscriptions/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/asset_subscriptions{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -477,8 +475,7 @@ export const getApiV2AssetSubscriptionsRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
 ) => {
-  return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -496,8 +493,7 @@ export const getApiV2AssetSubscriptionsRetrieveMockHandler = (
 export const getApiV2AssetSubscriptionsDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {
-    await delay(1000)
+  return http.delete('*/api/v2/asset_subscriptions/:uidAssetSubscription{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }

@@ -57,7 +57,7 @@ import type { TagsListParams } from '../models/tagsListParams'
 
 import { faker } from '@faker-js/faker'
 
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 import type { Asset } from '../models/asset'
 
@@ -7260,8 +7260,7 @@ export const getApiV2AssetsListMockHandler = (
     | PaginatedAssetList
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetList> | PaginatedAssetList),
 ) => {
-  return http.get('*/api/v2/assets/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7279,8 +7278,7 @@ export const getApiV2AssetsListMockHandler = (
 export const getApiV2AssetsCreateMockHandler = (
   overrideResponse?: Asset | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Asset> | Asset),
 ) => {
-  return http.post('*/api/v2/assets/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/assets{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7298,8 +7296,7 @@ export const getApiV2AssetsCreateMockHandler = (
 export const getApiV2AssetsRetrieveMockHandler = (
   overrideResponse?: Asset | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Asset> | Asset),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7317,8 +7314,7 @@ export const getApiV2AssetsRetrieveMockHandler = (
 export const getApiV2AssetsPartialUpdateMockHandler = (
   overrideResponse?: Asset | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<Asset> | Asset),
 ) => {
-  return http.patch('*/api/v2/assets/:uidAsset/', async (info) => {
-    await delay(1000)
+  return http.patch('*/api/v2/assets/:uidAsset{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7336,8 +7332,7 @@ export const getApiV2AssetsPartialUpdateMockHandler = (
 export const getApiV2AssetsDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/assets/:uidAsset/', async (info) => {
-    await delay(1000)
+  return http.delete('*/api/v2/assets/:uidAsset{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -7352,8 +7347,7 @@ export const getApiV2AssetsCountsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetCountResponseList> | PaginatedAssetCountResponseList),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/counts/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/counts{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7373,8 +7367,7 @@ export const getApiV2AssetsDeploymentRetrieveMockHandler = (
     | DeploymentResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DeploymentResponse> | DeploymentResponse),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/deployment/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/deployment{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7394,8 +7387,7 @@ export const getApiV2AssetsDeploymentCreateMockHandler = (
     | DeploymentResponse
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<DeploymentResponse> | DeploymentResponse),
 ) => {
-  return http.post('*/api/v2/assets/:uidAsset/deployment/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/assets/:uidAsset/deployment{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7415,8 +7407,7 @@ export const getApiV2AssetsDeploymentPartialUpdateMockHandler = (
     | DeploymentResponse
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<DeploymentResponse> | DeploymentResponse),
 ) => {
-  return http.patch('*/api/v2/assets/:uidAsset/deployment/', async (info) => {
-    await delay(1000)
+  return http.patch('*/api/v2/assets/:uidAsset/deployment{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7438,8 +7429,7 @@ export const getApiV2AssetsVersionsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedVersionListResponseList> | PaginatedVersionListResponseList),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/versions/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/versions{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7461,8 +7451,7 @@ export const getApiV2AssetsVersionsRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<VersionRetrieveResponse> | VersionRetrieveResponse),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/versions/:uidVersion/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/versions/:uidVersion{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7480,8 +7469,7 @@ export const getApiV2AssetsVersionsRetrieveMockHandler = (
 export const getApiV2AssetsXformRetrieveMockHandler = (
   overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/xform/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/:uidAsset/xform{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7501,8 +7489,7 @@ export const getApiV2AssetsBulkCreateMockHandler = (
     | AssetBulkResponse
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AssetBulkResponse> | AssetBulkResponse),
 ) => {
-  return http.post('*/api/v2/assets/bulk/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/assets/bulk{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7522,8 +7509,7 @@ export const getApiV2AssetsCountsRetrieveMockHandler = (
     | AssetListCount
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
 ) => {
-  return http.get('*/api/v2/assets/counts/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/counts{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7543,8 +7529,7 @@ export const getApiV2AssetsHashRetrieveMockHandler = (
     | HashResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HashResponse> | HashResponse),
 ) => {
-  return http.get('*/api/v2/assets/hash/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/hash{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7564,8 +7549,7 @@ export const getApiV2AssetsMetadataRetrieveMockHandler = (
     | AssetMetadataResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetMetadataResponse> | AssetMetadataResponse),
 ) => {
-  return http.get('*/api/v2/assets/metadata/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/metadata{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7587,8 +7571,7 @@ export const getApiV2AssetsMinimalListRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
 ) => {
-  return http.get('*/api/v2/assets/minimal-list/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/assets/minimal-list{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7610,8 +7593,7 @@ export const getApiV2ImportsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedImportResponseList> | PaginatedImportResponseList),
 ) => {
-  return http.get('*/api/v2/imports/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/imports{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7631,8 +7613,7 @@ export const getApiV2ImportsCreateMockHandler = (
     | ImportCreateResponse
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ImportCreateResponse> | ImportCreateResponse),
 ) => {
-  return http.post('*/api/v2/imports/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/imports{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7652,8 +7633,7 @@ export const getApiV2ImportsRetrieveMockHandler = (
     | ImportResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ImportResponse> | ImportResponse),
 ) => {
-  return http.get('*/api/v2/imports/:uidImport/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/imports/:uidImport{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7675,8 +7655,7 @@ export const getApiV2ProjectOwnershipInvitesListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedProjectInviteResponseList> | PaginatedProjectInviteResponseList),
 ) => {
-  return http.get('*/api/v2/project-ownership/invites/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/project-ownership/invites{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7698,8 +7677,7 @@ export const getApiV2ProjectOwnershipInvitesCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<ProjectInviteResponse> | ProjectInviteResponse),
 ) => {
-  return http.post('*/api/v2/project-ownership/invites/', async (info) => {
-    await delay(1000)
+  return http.post('*/api/v2/project-ownership/invites{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7719,8 +7697,7 @@ export const getApiV2ProjectOwnershipInvitesRetrieveMockHandler = (
     | ProjectInviteResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectInviteResponse> | ProjectInviteResponse),
 ) => {
-  return http.get('*/api/v2/project-ownership/invites/:uidInvite/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/project-ownership/invites/:uidInvite{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7742,8 +7719,7 @@ export const getApiV2ProjectOwnershipInvitesPartialUpdateMockHandler = (
         info: Parameters<Parameters<typeof http.patch>[1]>[0],
       ) => Promise<ProjectInviteResponse> | ProjectInviteResponse),
 ) => {
-  return http.patch('*/api/v2/project-ownership/invites/:uidInvite/', async (info) => {
-    await delay(1000)
+  return http.patch('*/api/v2/project-ownership/invites/:uidInvite{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7761,8 +7737,7 @@ export const getApiV2ProjectOwnershipInvitesPartialUpdateMockHandler = (
 export const getApiV2ProjectOwnershipInvitesDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/project-ownership/invites/:uidInvite/', async (info) => {
-    await delay(1000)
+  return http.delete('*/api/v2/project-ownership/invites/:uidInvite{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -7775,8 +7750,7 @@ export const getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler = (
     | TransferListResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TransferListResponse> | TransferListResponse),
 ) => {
-  return http.get('*/api/v2/project-ownership/invites/:uidInvite/transfers/:uidTransfer/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/project-ownership/invites/:uidInvite/transfers/:uidTransfer{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7798,8 +7772,7 @@ export const getApiV2TagsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedTagListResponseList> | PaginatedTagListResponseList),
 ) => {
-  return http.get('*/api/v2/tags/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/tags{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
@@ -7819,8 +7792,7 @@ export const getApiV2TagsRetrieveMockHandler = (
     | TagRetrieveResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TagRetrieveResponse> | TagRetrieveResponse),
 ) => {
-  return http.get('*/api/v2/tags/:taguidUid/', async (info) => {
-    await delay(1000)
+  return http.get('*/api/v2/tags/:taguidUid{/}?', async (info) => {
 
     return new HttpResponse(
       JSON.stringify(
