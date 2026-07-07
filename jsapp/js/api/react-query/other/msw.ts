@@ -9,354 +9,1024 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  faker
-} from '@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
-import { HttpResponse,
-  http } from 'msw';
+import { http, HttpResponse } from 'msw'
 
-import {
-  BlankEnum
-} from '../../models/blankEnum';
+import { BlankEnum } from '../../models/blankEnum'
 
-import type {
-  ChangePlan
-} from '../../models/changePlan';
+import type { ChangePlan } from '../../models/changePlan'
 
-import type {
-  CheckoutLink
-} from '../../models/checkoutLink';
+import type { CheckoutLink } from '../../models/checkoutLink'
 
-import {
-  CollectionMethodEnum
-} from '../../models/collectionMethodEnum';
+import { CollectionMethodEnum } from '../../models/collectionMethodEnum'
 
-import type {
-  CustomerPortalPostResponse
-} from '../../models/customerPortalPostResponse';
+import type { CustomerPortalPostResponse } from '../../models/customerPortalPostResponse'
 
-import type {
-  Language
-} from '../../models/language';
+import type { Language } from '../../models/language'
 
-import type {
-  OneTimeAddOn
-} from '../../models/oneTimeAddOn';
+import type { OneTimeAddOn } from '../../models/oneTimeAddOn'
 
-import type {
-  PaginatedLanguageListList
-} from '../../models/paginatedLanguageListList';
+import type { PaginatedLanguageListList } from '../../models/paginatedLanguageListList'
 
-import type {
-  PaginatedOneTimeAddOnList
-} from '../../models/paginatedOneTimeAddOnList';
+import type { PaginatedOneTimeAddOnList } from '../../models/paginatedOneTimeAddOnList'
 
-import type {
-  PaginatedPermissionResponseList
-} from '../../models/paginatedPermissionResponseList';
+import type { PaginatedPermissionResponseList } from '../../models/paginatedPermissionResponseList'
 
-import type {
-  PaginatedProductList
-} from '../../models/paginatedProductList';
+import type { PaginatedProductList } from '../../models/paginatedProductList'
 
-import type {
-  PaginatedSubscriptionList
-} from '../../models/paginatedSubscriptionList';
+import type { PaginatedSubscriptionList } from '../../models/paginatedSubscriptionList'
 
-import type {
-  PaginatedTranscriptionServiceList
-} from '../../models/paginatedTranscriptionServiceList';
+import type { PaginatedTranscriptionServiceList } from '../../models/paginatedTranscriptionServiceList'
 
-import type {
-  PaginatedTranslationServiceList
-} from '../../models/paginatedTranslationServiceList';
+import type { PaginatedTranslationServiceList } from '../../models/paginatedTranslationServiceList'
 
-import type {
-  PermissionResponse
-} from '../../models/permissionResponse';
+import type { PermissionResponse } from '../../models/permissionResponse'
 
-import {
-  ProrationBehaviorEnum
-} from '../../models/prorationBehaviorEnum';
+import { ProrationBehaviorEnum } from '../../models/prorationBehaviorEnum'
 
-import {
-  StripeIntervalEnum
-} from '../../models/stripeIntervalEnum';
+import { StripeIntervalEnum } from '../../models/stripeIntervalEnum'
 
-import {
-  StripePriceType
-} from '../../models/stripePriceType';
+import { StripePriceType } from '../../models/stripePriceType'
 
-import {
-  StripeProductType
-} from '../../models/stripeProductType';
+import { StripeProductType } from '../../models/stripeProductType'
 
-import {
-  StripeUsageType
-} from '../../models/stripeUsageType';
+import { StripeUsageType } from '../../models/stripeUsageType'
 
-import type {
-  Subscription
-} from '../../models/subscription';
+import type { Subscription } from '../../models/subscription'
 
-import {
-  SubscriptionScheduleStatusEnum
-} from '../../models/subscriptionScheduleStatusEnum';
+import { SubscriptionScheduleStatusEnum } from '../../models/subscriptionScheduleStatusEnum'
 
-import {
-  SubscriptionStatusEnum
-} from '../../models/subscriptionStatusEnum';
+import { SubscriptionStatusEnum } from '../../models/subscriptionStatusEnum'
 
-import type {
-  TermsOfServiceResponse
-} from '../../models/termsOfServiceResponse';
+import type { TermsOfServiceResponse } from '../../models/termsOfServiceResponse'
 
-import type {
-  TranscriptionService
-} from '../../models/transcriptionService';
+import type { TranscriptionService } from '../../models/transcriptionService'
 
-import type {
-  TranslationService
-} from '../../models/translationService';
+import type { TranslationService } from '../../models/translationService'
 
+export const getApiV2LanguagesListResponseMock = (
+  overrideResponse: Partial<PaginatedLanguageListList> = {},
+): PaginatedLanguageListList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    name: faker.string.alpha({ length: { min: 10, max: 200 } }),
+    code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+    featured: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    transcription_services: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      code: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    translation_services: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      code: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    url: faker.internet.url(),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2LanguagesListResponseMock = (overrideResponse: Partial< PaginatedLanguageListList > = {}): PaginatedLanguageListList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({name: faker.string.alpha({length: {min: 10, max: 200}}), code: faker.string.alpha({length: {min: 10, max: 10}}), featured: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), transcription_services: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({code: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), translation_services: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({code: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), url: faker.internet.url()})), ...overrideResponse})
+export const getApiV2LanguagesRetrieveResponseMock = (overrideResponse: Partial<Language> = {}): Language => ({
+  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
+  code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+  featured: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  transcription_services: {
+    [faker.string.alphanumeric(5)]: {
+      [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    },
+  },
+  translation_services: {
+    [faker.string.alphanumeric(5)]: {
+      [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    },
+  },
+  regions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    code: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 200 } }),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2LanguagesRetrieveResponseMock = (overrideResponse: Partial< Language > = {}): Language => ({name: faker.string.alpha({length: {min: 10, max: 200}}), code: faker.string.alpha({length: {min: 10, max: 10}}), featured: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), transcription_services: {
-        [faker.string.alphanumeric(5)]: {
-        [faker.string.alphanumeric(5)]: faker.string.alpha({length: {min: 10, max: 20}})
-      }
-      }, translation_services: {
-        [faker.string.alphanumeric(5)]: {
-        [faker.string.alphanumeric(5)]: faker.string.alpha({length: {min: 10, max: 20}})
-      }
-      }, regions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({code: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 200}})})), ...overrideResponse})
+export const getApiV2PermissionsListResponseMock = (
+  overrideResponse: Partial<PaginatedPermissionResponseList> = {},
+): PaginatedPermissionResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    codename: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    implied: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.internet.url(),
+    ),
+    contradictory: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.internet.url(),
+    ),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2PermissionsListResponseMock = (overrideResponse: Partial< PaginatedPermissionResponseList > = {}): PaginatedPermissionResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), codename: faker.string.alpha({length: {min: 10, max: 20}}), implied: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.internet.url())), contradictory: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.internet.url())), name: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
+export const getApiV2PermissionsRetrieveResponseMock = (
+  overrideResponse: Partial<PermissionResponse> = {},
+): PermissionResponse => ({
+  url: faker.internet.url(),
+  codename: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  implied: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.internet.url(),
+  ),
+  contradictory: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.internet.url(),
+  ),
+  name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2PermissionsRetrieveResponseMock = (overrideResponse: Partial< PermissionResponse > = {}): PermissionResponse => ({url: faker.internet.url(), codename: faker.string.alpha({length: {min: 10, max: 20}}), implied: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.internet.url())), contradictory: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.internet.url())), name: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+export const getApiV2StripeAddonsListResponseMock = (
+  overrideResponse: Partial<PaginatedOneTimeAddOnList> = {},
+): PaginatedOneTimeAddOnList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    id: faker.string.alpha({ length: { min: 10, max: 27 } }),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_available: faker.datatype.boolean(),
+    usage_limits: faker.helpers.arrayElement([{}, undefined]),
+    total_usage_limits: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+    limits_remaining: faker.helpers.arrayElement([{}, undefined]),
+    organization: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    product: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2StripeAddonsListResponseMock = (overrideResponse: Partial< PaginatedOneTimeAddOnList > = {}): PaginatedOneTimeAddOnList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.string.alpha({length: {min: 10, max: 27}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, is_available: faker.datatype.boolean(), usage_limits: faker.helpers.arrayElement([{}, undefined]), total_usage_limits: {
-        [faker.string.alphanumeric(5)]: {}
-      }, limits_remaining: faker.helpers.arrayElement([{}, undefined]), organization: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), product: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), ...overrideResponse})
+export const getApiV2StripeAddonsRetrieveResponseMock = (
+  overrideResponse: Partial<OneTimeAddOn> = {},
+): OneTimeAddOn => ({
+  id: faker.string.alpha({ length: { min: 10, max: 27 } }),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  is_available: faker.datatype.boolean(),
+  usage_limits: faker.helpers.arrayElement([{}, undefined]),
+  total_usage_limits: {
+    [faker.string.alphanumeric(5)]: {},
+  },
+  limits_remaining: faker.helpers.arrayElement([{}, undefined]),
+  organization: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  product: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  ...overrideResponse,
+})
 
-export const getApiV2StripeAddonsRetrieveResponseMock = (overrideResponse: Partial< OneTimeAddOn > = {}): OneTimeAddOn => ({id: faker.string.alpha({length: {min: 10, max: 27}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, is_available: faker.datatype.boolean(), usage_limits: faker.helpers.arrayElement([{}, undefined]), total_usage_limits: {
-        [faker.string.alphanumeric(5)]: {}
-      }, limits_remaining: faker.helpers.arrayElement([{}, undefined]), organization: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), product: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+export const getApiV2StripeChangePlanRetrieveResponseMock = (
+  overrideResponse: Partial<ChangePlan> = {},
+): ChangePlan => ({
+  price_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  subscription_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  quantity: faker.helpers.arrayElement([
+    faker.number.int({ min: 1, max: undefined, multipleOf: undefined }),
+    undefined,
+  ]),
+  ...overrideResponse,
+})
 
-export const getApiV2StripeChangePlanRetrieveResponseMock = (overrideResponse: Partial< ChangePlan > = {}): ChangePlan => ({price_id: faker.string.alpha({length: {min: 10, max: 20}}), subscription_id: faker.string.alpha({length: {min: 10, max: 20}}), quantity: faker.helpers.arrayElement([faker.number.int({min: 1, max: undefined, multipleOf: undefined}), undefined]), ...overrideResponse})
+export const getApiV2StripeCheckoutLinkCreateResponseMock = (
+  overrideResponse: Partial<CheckoutLink> = {},
+): CheckoutLink => ({
+  price_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  quantity: faker.helpers.arrayElement([
+    faker.number.int({ min: 1, max: undefined, multipleOf: undefined }),
+    undefined,
+  ]),
+  ...overrideResponse,
+})
 
-export const getApiV2StripeCheckoutLinkCreateResponseMock = (overrideResponse: Partial< CheckoutLink > = {}): CheckoutLink => ({price_id: faker.string.alpha({length: {min: 10, max: 20}}), organization_id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), quantity: faker.helpers.arrayElement([faker.number.int({min: 1, max: undefined, multipleOf: undefined}), undefined]), ...overrideResponse})
+export const getApiV2StripeCustomerPortalCreateResponseMock = (
+  overrideResponse: Partial<CustomerPortalPostResponse> = {},
+): CustomerPortalPostResponse => ({ url: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
 
-export const getApiV2StripeCustomerPortalCreateResponseMock = (overrideResponse: Partial< CustomerPortalPostResponse > = {}): CustomerPortalPostResponse => ({url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+export const getApiV2StripeProductsListResponseMock = (
+  overrideResponse: Partial<PaginatedProductList> = {},
+): PaginatedProductList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 5000 } }),
+    description: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    type: faker.helpers.arrayElement(Object.values(StripeProductType)),
+    prices: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+      nickname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 250 } }), undefined]),
+      currency: faker.string.alpha({ length: { min: 10, max: 3 } }),
+      type: faker.helpers.arrayElement(Object.values(StripePriceType)),
+      recurring: {
+        ...{
+          interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
+          interval_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+          meter: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+            undefined,
+          ]),
+          usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
+        },
+      },
+      unit_amount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+          faker.number.int({ min: -9223372036854776000, max: 9223372036854776000, multipleOf: undefined }),
+          null,
+        ]),
+        undefined,
+      ]),
+      human_readable_price: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      metadata: faker.helpers.arrayElement([{}, undefined]),
+      active: faker.datatype.boolean(),
+      product: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      transform_quantity: faker.helpers.arrayElement([{}, undefined]),
+    })),
+    metadata: {
+      [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    },
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2StripeProductsListResponseMock = (overrideResponse: Partial< PaginatedProductList > = {}): PaginatedProductList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.string.alpha({length: {min: 10, max: 255}}), name: faker.string.alpha({length: {min: 10, max: 5000}}), description: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), type: faker.helpers.arrayElement(Object.values(StripeProductType)), prices: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.string.alpha({length: {min: 10, max: 255}}), nickname: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 250}}), undefined]), currency: faker.string.alpha({length: {min: 10, max: 3}}), type: faker.helpers.arrayElement(Object.values(StripePriceType)), recurring: {...{interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)), interval_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), meter: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType))},}, unit_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: -9223372036854776000, max: 9223372036854776000, multipleOf: undefined}), null]), undefined]), human_readable_price: faker.string.alpha({length: {min: 10, max: 20}}), metadata: faker.helpers.arrayElement([{}, undefined]), active: faker.datatype.boolean(), product: faker.string.alpha({length: {min: 10, max: 20}}), transform_quantity: faker.helpers.arrayElement([{}, undefined])})), metadata: {
-        [faker.string.alphanumeric(5)]: faker.string.alpha({length: {min: 10, max: 20}})
-      }})), ...overrideResponse})
+export const getApiV2StripeSubscriptionsListResponseMock = (
+  overrideResponse: Partial<PaginatedSubscriptionList> = {},
+): PaginatedSubscriptionList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    items: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+      price: {
+        id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+        nickname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 250 } }), undefined]),
+        currency: faker.string.alpha({ length: { min: 10, max: 3 } }),
+        type: faker.helpers.arrayElement(Object.values(StripePriceType)),
+        recurring: {
+          ...{
+            interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
+            interval_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            meter: faker.helpers.arrayElement([
+              faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+              undefined,
+            ]),
+            usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
+          },
+        },
+        unit_amount: faker.helpers.arrayElement([
+          faker.helpers.arrayElement([
+            faker.number.int({ min: -9223372036854776000, max: 9223372036854776000, multipleOf: undefined }),
+            null,
+          ]),
+          undefined,
+        ]),
+        human_readable_price: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        metadata: faker.helpers.arrayElement([{}, undefined]),
+        active: faker.datatype.boolean(),
+        product: {
+          id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+          name: faker.string.alpha({ length: { min: 10, max: 5000 } }),
+          description: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+            undefined,
+          ]),
+          type: faker.helpers.arrayElement(Object.values(StripeProductType)),
+          metadata: {
+            [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          },
+        },
+        transform_quantity: faker.helpers.arrayElement([{}, undefined]),
+      },
+      quantity: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.number.int({ min: 0, max: 2147483647, multipleOf: undefined }), null]),
+        undefined,
+      ]),
+    })),
+    schedule: {
+      phases: {
+        [faker.string.alphanumeric(5)]: {},
+      },
+      status: faker.helpers.arrayElement(Object.values(SubscriptionScheduleStatusEnum)),
+    },
+    application_fee_percent: faker.helpers.arrayElement([faker.helpers.fromRegExp('^-?d{0,3}(?:.d{0,2})?$'), null]),
+    djstripe_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    djstripe_updated: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    stripe_data: faker.helpers.arrayElement([{}, undefined]),
+    id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+    livemode: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    metadata: faker.helpers.arrayElement([{}, undefined]),
+    description: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    billing_cycle_anchor: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    billing_thresholds: faker.helpers.arrayElement([{}, undefined]),
+    cancel_at: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    cancel_at_period_end: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    canceled_at: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    collection_method: faker.helpers.arrayElement(Object.values(CollectionMethodEnum)),
+    current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    days_until_due: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        faker.number.int({ min: -2147483648, max: 2147483647, multipleOf: undefined }),
+        null,
+      ]),
+      undefined,
+    ]),
+    discount: faker.helpers.arrayElement([{}, undefined]),
+    ended_at: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    next_pending_invoice_item_invoice: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    pause_collection: faker.helpers.arrayElement([{}, undefined]),
+    pending_invoice_item_interval: faker.helpers.arrayElement([{}, undefined]),
+    pending_update: faker.helpers.arrayElement([{}, undefined]),
+    proration_behavior: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        faker.helpers.arrayElement(Object.values(ProrationBehaviorEnum)),
+        faker.helpers.arrayElement(Object.values(BlankEnum)),
+      ]),
+      undefined,
+    ]),
+    proration_date: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    quantity: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        faker.number.int({ min: -2147483648, max: 2147483647, multipleOf: undefined }),
+        null,
+      ]),
+      undefined,
+    ]),
+    start_date: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    status: faker.helpers.arrayElement(Object.values(SubscriptionStatusEnum)),
+    trial_end: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    trial_start: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    djstripe_owner_account: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    customer: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    default_payment_method: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    default_source: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    latest_invoice: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    pending_setup_intent: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    plan: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }), null]),
+      undefined,
+    ]),
+    default_tax_rates: faker.helpers.arrayElement([
+      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      ),
+      undefined,
+    ]),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2StripeSubscriptionsListResponseMock = (overrideResponse: Partial< PaginatedSubscriptionList > = {}): PaginatedSubscriptionList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({items: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.string.alpha({length: {min: 10, max: 255}}), price: {id: faker.string.alpha({length: {min: 10, max: 255}}), nickname: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 250}}), undefined]), currency: faker.string.alpha({length: {min: 10, max: 3}}), type: faker.helpers.arrayElement(Object.values(StripePriceType)), recurring: {...{interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)), interval_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), meter: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType))},}, unit_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: -9223372036854776000, max: 9223372036854776000, multipleOf: undefined}), null]), undefined]), human_readable_price: faker.string.alpha({length: {min: 10, max: 20}}), metadata: faker.helpers.arrayElement([{}, undefined]), active: faker.datatype.boolean(), product: {id: faker.string.alpha({length: {min: 10, max: 255}}), name: faker.string.alpha({length: {min: 10, max: 5000}}), description: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), type: faker.helpers.arrayElement(Object.values(StripeProductType)), metadata: {
-        [faker.string.alphanumeric(5)]: faker.string.alpha({length: {min: 10, max: 20}})
-      }}, transform_quantity: faker.helpers.arrayElement([{}, undefined])}, quantity: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: 0, max: 2147483647, multipleOf: undefined}), null]), undefined])})), schedule: {phases: {
-        [faker.string.alphanumeric(5)]: {}
-      }, status: faker.helpers.arrayElement(Object.values(SubscriptionScheduleStatusEnum))}, application_fee_percent: faker.helpers.arrayElement([faker.helpers.fromRegExp('^-?\d{0,3}(?:\.\d{0,2})?$'), null]), djstripe_created: `${faker.date.past().toISOString().split('.')[0]}Z`, djstripe_updated: `${faker.date.past().toISOString().split('.')[0]}Z`, stripe_data: faker.helpers.arrayElement([{}, undefined]), id: faker.string.alpha({length: {min: 10, max: 255}}), livemode: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), created: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), metadata: faker.helpers.arrayElement([{}, undefined]), description: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), billing_cycle_anchor: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), billing_thresholds: faker.helpers.arrayElement([{}, undefined]), cancel_at: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), cancel_at_period_end: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), canceled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), collection_method: faker.helpers.arrayElement(Object.values(CollectionMethodEnum)), current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`, current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`, days_until_due: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: -2147483648, max: 2147483647, multipleOf: undefined}), null]), undefined]), discount: faker.helpers.arrayElement([{}, undefined]), ended_at: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), next_pending_invoice_item_invoice: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), pause_collection: faker.helpers.arrayElement([{}, undefined]), pending_invoice_item_interval: faker.helpers.arrayElement([{}, undefined]), pending_update: faker.helpers.arrayElement([{}, undefined]), proration_behavior: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(ProrationBehaviorEnum)),faker.helpers.arrayElement(Object.values(BlankEnum)),]), undefined]), proration_date: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), quantity: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: -2147483648, max: 2147483647, multipleOf: undefined}), null]), undefined]), start_date: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), status: faker.helpers.arrayElement(Object.values(SubscriptionStatusEnum)), trial_end: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), trial_start: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), djstripe_owner_account: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), customer: faker.string.alpha({length: {min: 10, max: 20}}), default_payment_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), default_source: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), latest_invoice: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pending_setup_intent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), plan: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), null]), undefined]), default_tax_rates: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.number.int({min: undefined, max: undefined, multipleOf: undefined}))), undefined])})), ...overrideResponse})
+export const getApiV2StripeSubscriptionsRetrieveResponseMock = (
+  overrideResponse: Partial<Subscription> = {},
+): Subscription => ({
+  items: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+    price: {
+      id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+      nickname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 250 } }), undefined]),
+      currency: faker.string.alpha({ length: { min: 10, max: 3 } }),
+      type: faker.helpers.arrayElement(Object.values(StripePriceType)),
+      recurring: {
+        ...{
+          interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
+          interval_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+          meter: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+            undefined,
+          ]),
+          usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
+        },
+      },
+      unit_amount: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+          faker.number.int({ min: -9223372036854776000, max: 9223372036854776000, multipleOf: undefined }),
+          null,
+        ]),
+        undefined,
+      ]),
+      human_readable_price: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      metadata: faker.helpers.arrayElement([{}, undefined]),
+      active: faker.datatype.boolean(),
+      product: {
+        id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+        name: faker.string.alpha({ length: { min: 10, max: 5000 } }),
+        description: faker.helpers.arrayElement([
+          faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+          undefined,
+        ]),
+        type: faker.helpers.arrayElement(Object.values(StripeProductType)),
+        metadata: {
+          [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        },
+      },
+      transform_quantity: faker.helpers.arrayElement([{}, undefined]),
+    },
+    quantity: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.number.int({ min: 0, max: 2147483647, multipleOf: undefined }), null]),
+      undefined,
+    ]),
+  })),
+  schedule: {
+    phases: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+    status: faker.helpers.arrayElement(Object.values(SubscriptionScheduleStatusEnum)),
+  },
+  application_fee_percent: faker.helpers.arrayElement([faker.helpers.fromRegExp('^-?d{0,3}(?:.d{0,2})?$'), null]),
+  djstripe_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  djstripe_updated: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  stripe_data: faker.helpers.arrayElement([{}, undefined]),
+  id: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  livemode: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  metadata: faker.helpers.arrayElement([{}, undefined]),
+  description: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  billing_cycle_anchor: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  billing_thresholds: faker.helpers.arrayElement([{}, undefined]),
+  cancel_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  cancel_at_period_end: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  canceled_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  collection_method: faker.helpers.arrayElement(Object.values(CollectionMethodEnum)),
+  current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  days_until_due: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int({ min: -2147483648, max: 2147483647, multipleOf: undefined }), null]),
+    undefined,
+  ]),
+  discount: faker.helpers.arrayElement([{}, undefined]),
+  ended_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  next_pending_invoice_item_invoice: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  pause_collection: faker.helpers.arrayElement([{}, undefined]),
+  pending_invoice_item_interval: faker.helpers.arrayElement([{}, undefined]),
+  pending_update: faker.helpers.arrayElement([{}, undefined]),
+  proration_behavior: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      faker.helpers.arrayElement(Object.values(ProrationBehaviorEnum)),
+      faker.helpers.arrayElement(Object.values(BlankEnum)),
+    ]),
+    undefined,
+  ]),
+  proration_date: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  quantity: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int({ min: -2147483648, max: 2147483647, multipleOf: undefined }), null]),
+    undefined,
+  ]),
+  start_date: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  status: faker.helpers.arrayElement(Object.values(SubscriptionStatusEnum)),
+  trial_end: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  trial_start: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    undefined,
+  ]),
+  djstripe_owner_account: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  customer: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  default_payment_method: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  default_source: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  latest_invoice: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  pending_setup_intent: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  plan: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }), null]),
+    undefined,
+  ]),
+  default_tax_rates: faker.helpers.arrayElement([
+    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    ),
+    undefined,
+  ]),
+  ...overrideResponse,
+})
 
-export const getApiV2StripeSubscriptionsRetrieveResponseMock = (overrideResponse: Partial< Subscription > = {}): Subscription => ({items: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.string.alpha({length: {min: 10, max: 255}}), price: {id: faker.string.alpha({length: {min: 10, max: 255}}), nickname: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 250}}), undefined]), currency: faker.string.alpha({length: {min: 10, max: 3}}), type: faker.helpers.arrayElement(Object.values(StripePriceType)), recurring: {...{interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)), interval_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), meter: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType))},}, unit_amount: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: -9223372036854776000, max: 9223372036854776000, multipleOf: undefined}), null]), undefined]), human_readable_price: faker.string.alpha({length: {min: 10, max: 20}}), metadata: faker.helpers.arrayElement([{}, undefined]), active: faker.datatype.boolean(), product: {id: faker.string.alpha({length: {min: 10, max: 255}}), name: faker.string.alpha({length: {min: 10, max: 5000}}), description: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), type: faker.helpers.arrayElement(Object.values(StripeProductType)), metadata: {
-        [faker.string.alphanumeric(5)]: faker.string.alpha({length: {min: 10, max: 20}})
-      }}, transform_quantity: faker.helpers.arrayElement([{}, undefined])}, quantity: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: 0, max: 2147483647, multipleOf: undefined}), null]), undefined])})), schedule: {phases: {
-        [faker.string.alphanumeric(5)]: {}
-      }, status: faker.helpers.arrayElement(Object.values(SubscriptionScheduleStatusEnum))}, application_fee_percent: faker.helpers.arrayElement([faker.helpers.fromRegExp('^-?\d{0,3}(?:\.\d{0,2})?$'), null]), djstripe_created: `${faker.date.past().toISOString().split('.')[0]}Z`, djstripe_updated: `${faker.date.past().toISOString().split('.')[0]}Z`, stripe_data: faker.helpers.arrayElement([{}, undefined]), id: faker.string.alpha({length: {min: 10, max: 255}}), livemode: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), created: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), metadata: faker.helpers.arrayElement([{}, undefined]), description: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), billing_cycle_anchor: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), billing_thresholds: faker.helpers.arrayElement([{}, undefined]), cancel_at: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), cancel_at_period_end: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), canceled_at: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), collection_method: faker.helpers.arrayElement(Object.values(CollectionMethodEnum)), current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`, current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`, days_until_due: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: -2147483648, max: 2147483647, multipleOf: undefined}), null]), undefined]), discount: faker.helpers.arrayElement([{}, undefined]), ended_at: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), next_pending_invoice_item_invoice: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), pause_collection: faker.helpers.arrayElement([{}, undefined]), pending_invoice_item_interval: faker.helpers.arrayElement([{}, undefined]), pending_update: faker.helpers.arrayElement([{}, undefined]), proration_behavior: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(ProrationBehaviorEnum)),faker.helpers.arrayElement(Object.values(BlankEnum)),]), undefined]), proration_date: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), quantity: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: -2147483648, max: 2147483647, multipleOf: undefined}), null]), undefined]), start_date: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), status: faker.helpers.arrayElement(Object.values(SubscriptionStatusEnum)), trial_end: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), trial_start: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), djstripe_owner_account: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), customer: faker.string.alpha({length: {min: 10, max: 20}}), default_payment_method: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), default_source: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), latest_invoice: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), pending_setup_intent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), plan: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), null]), undefined]), default_tax_rates: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.number.int({min: undefined, max: undefined, multipleOf: undefined}))), undefined]), ...overrideResponse})
+export const getApiV2TermsOfServiceListResponseMock = (): TermsOfServiceResponse[] =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    slug: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    body: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  }))
 
-export const getApiV2TermsOfServiceListResponseMock = (): TermsOfServiceResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), slug: faker.string.alpha({length: {min: 10, max: 20}}), body: faker.string.alpha({length: {min: 10, max: 20}})})))
+export const getApiV2TermsOfServiceRetrieveResponseMock = (
+  overrideResponse: Partial<TermsOfServiceResponse> = {},
+): TermsOfServiceResponse => ({
+  url: faker.internet.url(),
+  slug: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  body: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2TermsOfServiceRetrieveResponseMock = (overrideResponse: Partial< TermsOfServiceResponse > = {}): TermsOfServiceResponse => ({url: faker.internet.url(), slug: faker.string.alpha({length: {min: 10, max: 20}}), body: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+export const getApiV2TranscriptionServicesListResponseMock = (
+  overrideResponse: Partial<PaginatedTranscriptionServiceList> = {},
+): PaginatedTranscriptionServiceList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+    code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2TranscriptionServicesListResponseMock = (overrideResponse: Partial< PaginatedTranscriptionServiceList > = {}): PaginatedTranscriptionServiceList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({name: faker.string.alpha({length: {min: 10, max: 100}}), code: faker.string.alpha({length: {min: 10, max: 10}})})), ...overrideResponse})
+export const getApiV2TranscriptionServicesRetrieveResponseMock = (
+  overrideResponse: Partial<TranscriptionService> = {},
+): TranscriptionService => ({
+  name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2TranscriptionServicesRetrieveResponseMock = (overrideResponse: Partial< TranscriptionService > = {}): TranscriptionService => ({name: faker.string.alpha({length: {min: 10, max: 100}}), code: faker.string.alpha({length: {min: 10, max: 10}}), ...overrideResponse})
+export const getApiV2TranslationServicesListResponseMock = (
+  overrideResponse: Partial<PaginatedTranslationServiceList> = {},
+): PaginatedTranslationServiceList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+    code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2TranslationServicesListResponseMock = (overrideResponse: Partial< PaginatedTranslationServiceList > = {}): PaginatedTranslationServiceList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({name: faker.string.alpha({length: {min: 10, max: 100}}), code: faker.string.alpha({length: {min: 10, max: 10}})})), ...overrideResponse})
+export const getApiV2TranslationServicesRetrieveResponseMock = (
+  overrideResponse: Partial<TranslationService> = {},
+): TranslationService => ({
+  name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2TranslationServicesRetrieveResponseMock = (overrideResponse: Partial< TranslationService > = {}): TranslationService => ({name: faker.string.alpha({length: {min: 10, max: 100}}), code: faker.string.alpha({length: {min: 10, max: 10}}), ...overrideResponse})
-
-
-export const getApiV2LanguagesListMockHandler = (overrideResponse?: PaginatedLanguageListList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedLanguageListList> | PaginatedLanguageListList)) => {
-  return http.get('*/api/v2/languages/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2LanguagesListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2LanguagesListMockHandler = (
+  overrideResponse?:
+    | PaginatedLanguageListList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedLanguageListList> | PaginatedLanguageListList),
+) => {
+  return http.get('*/api/v2/languages/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2LanguagesListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2LanguagesRetrieveMockHandler = (overrideResponse?: Language | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Language> | Language)) => {
-  return http.get('*/api/v2/languages/:code/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2LanguagesRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2LanguagesRetrieveMockHandler = (
+  overrideResponse?: Language | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Language> | Language),
+) => {
+  return http.get('*/api/v2/languages/:code/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2LanguagesRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2PermissionsListMockHandler = (overrideResponse?: PaginatedPermissionResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedPermissionResponseList> | PaginatedPermissionResponseList)) => {
-  return http.get('*/api/v2/permissions/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2PermissionsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2PermissionsListMockHandler = (
+  overrideResponse?:
+    | PaginatedPermissionResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedPermissionResponseList> | PaginatedPermissionResponseList),
+) => {
+  return http.get('*/api/v2/permissions/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2PermissionsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2PermissionsRetrieveMockHandler = (overrideResponse?: PermissionResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PermissionResponse> | PermissionResponse)) => {
-  return http.get('*/api/v2/permissions/:codename/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2PermissionsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2PermissionsRetrieveMockHandler = (
+  overrideResponse?:
+    | PermissionResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PermissionResponse> | PermissionResponse),
+) => {
+  return http.get('*/api/v2/permissions/:codename/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2PermissionsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeAddonsListMockHandler = (overrideResponse?: PaginatedOneTimeAddOnList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedOneTimeAddOnList> | PaginatedOneTimeAddOnList)) => {
-  return http.get('*/api/v2/stripe/addons/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeAddonsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeAddonsListMockHandler = (
+  overrideResponse?:
+    | PaginatedOneTimeAddOnList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedOneTimeAddOnList> | PaginatedOneTimeAddOnList),
+) => {
+  return http.get('*/api/v2/stripe/addons/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeAddonsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeAddonsRetrieveMockHandler = (overrideResponse?: OneTimeAddOn | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OneTimeAddOn> | OneTimeAddOn)) => {
-  return http.get('*/api/v2/stripe/addons/:id/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeAddonsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeAddonsRetrieveMockHandler = (
+  overrideResponse?:
+    | OneTimeAddOn
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OneTimeAddOn> | OneTimeAddOn),
+) => {
+  return http.get('*/api/v2/stripe/addons/:id/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeAddonsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeChangePlanRetrieveMockHandler = (overrideResponse?: ChangePlan | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ChangePlan> | ChangePlan)) => {
-  return http.get('*/api/v2/stripe/change-plan', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeChangePlanRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeChangePlanRetrieveMockHandler = (
+  overrideResponse?:
+    | ChangePlan
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ChangePlan> | ChangePlan),
+) => {
+  return http.get('*/api/v2/stripe/change-plan', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeChangePlanRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeCheckoutLinkCreateMockHandler = (overrideResponse?: CheckoutLink | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CheckoutLink> | CheckoutLink)) => {
-  return http.post('*/api/v2/stripe/checkout-link', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeCheckoutLinkCreateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeCheckoutLinkCreateMockHandler = (
+  overrideResponse?:
+    | CheckoutLink
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CheckoutLink> | CheckoutLink),
+) => {
+  return http.post('*/api/v2/stripe/checkout-link', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeCheckoutLinkCreateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeCustomerPortalCreateMockHandler = (overrideResponse?: CustomerPortalPostResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CustomerPortalPostResponse> | CustomerPortalPostResponse)) => {
-  return http.post('*/api/v2/stripe/customer-portal', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeCustomerPortalCreateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeCustomerPortalCreateMockHandler = (
+  overrideResponse?:
+    | CustomerPortalPostResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<CustomerPortalPostResponse> | CustomerPortalPostResponse),
+) => {
+  return http.post('*/api/v2/stripe/customer-portal', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeCustomerPortalCreateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeProductsListMockHandler = (overrideResponse?: PaginatedProductList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedProductList> | PaginatedProductList)) => {
-  return http.get('*/api/v2/stripe/products/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeProductsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeProductsListMockHandler = (
+  overrideResponse?:
+    | PaginatedProductList
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedProductList> | PaginatedProductList),
+) => {
+  return http.get('*/api/v2/stripe/products/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeProductsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeSubscriptionsListMockHandler = (overrideResponse?: PaginatedSubscriptionList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedSubscriptionList> | PaginatedSubscriptionList)) => {
-  return http.get('*/api/v2/stripe/subscriptions/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeSubscriptionsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeSubscriptionsListMockHandler = (
+  overrideResponse?:
+    | PaginatedSubscriptionList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedSubscriptionList> | PaginatedSubscriptionList),
+) => {
+  return http.get('*/api/v2/stripe/subscriptions/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeSubscriptionsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2StripeSubscriptionsRetrieveMockHandler = (overrideResponse?: Subscription | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Subscription> | Subscription)) => {
-  return http.get('*/api/v2/stripe/subscriptions/:id/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2StripeSubscriptionsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2StripeSubscriptionsRetrieveMockHandler = (
+  overrideResponse?:
+    | Subscription
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Subscription> | Subscription),
+) => {
+  return http.get('*/api/v2/stripe/subscriptions/:id/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2StripeSubscriptionsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2TermsOfServiceListMockHandler = (overrideResponse?: TermsOfServiceResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TermsOfServiceResponse[]> | TermsOfServiceResponse[])) => {
-  return http.get('*/api/v2/terms-of-service/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2TermsOfServiceListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2TermsOfServiceListMockHandler = (
+  overrideResponse?:
+    | TermsOfServiceResponse[]
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<TermsOfServiceResponse[]> | TermsOfServiceResponse[]),
+) => {
+  return http.get('*/api/v2/terms-of-service/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TermsOfServiceListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2TermsOfServiceRetrieveMockHandler = (overrideResponse?: TermsOfServiceResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TermsOfServiceResponse> | TermsOfServiceResponse)) => {
-  return http.get('*/api/v2/terms-of-service/:slug/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2TermsOfServiceRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2TermsOfServiceRetrieveMockHandler = (
+  overrideResponse?:
+    | TermsOfServiceResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<TermsOfServiceResponse> | TermsOfServiceResponse),
+) => {
+  return http.get('*/api/v2/terms-of-service/:slug/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TermsOfServiceRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2TranscriptionServicesListMockHandler = (overrideResponse?: PaginatedTranscriptionServiceList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedTranscriptionServiceList> | PaginatedTranscriptionServiceList)) => {
-  return http.get('*/api/v2/transcription-services/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2TranscriptionServicesListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2TranscriptionServicesListMockHandler = (
+  overrideResponse?:
+    | PaginatedTranscriptionServiceList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedTranscriptionServiceList> | PaginatedTranscriptionServiceList),
+) => {
+  return http.get('*/api/v2/transcription-services/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TranscriptionServicesListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2TranscriptionServicesRetrieveMockHandler = (overrideResponse?: TranscriptionService | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranscriptionService> | TranscriptionService)) => {
-  return http.get('*/api/v2/transcription-services/:code/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2TranscriptionServicesRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2TranscriptionServicesRetrieveMockHandler = (
+  overrideResponse?:
+    | TranscriptionService
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranscriptionService> | TranscriptionService),
+) => {
+  return http.get('*/api/v2/transcription-services/:code/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TranscriptionServicesRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2TranslationServicesListMockHandler = (overrideResponse?: PaginatedTranslationServiceList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedTranslationServiceList> | PaginatedTranslationServiceList)) => {
-  return http.get('*/api/v2/translation-services/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2TranslationServicesListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2TranslationServicesListMockHandler = (
+  overrideResponse?:
+    | PaginatedTranslationServiceList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedTranslationServiceList> | PaginatedTranslationServiceList),
+) => {
+  return http.get('*/api/v2/translation-services/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TranslationServicesListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2TranslationServicesRetrieveMockHandler = (overrideResponse?: TranslationService | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranslationService> | TranslationService)) => {
-  return http.get('*/api/v2/translation-services/:code/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2TranslationServicesRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2TranslationServicesRetrieveMockHandler = (
+  overrideResponse?:
+    | TranslationService
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranslationService> | TranslationService),
+) => {
+  return http.get('*/api/v2/translation-services/:code/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2TranslationServicesRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 export const getOtherMock = () => [
@@ -377,5 +1047,5 @@ export const getOtherMock = () => [
   getApiV2TranscriptionServicesListMockHandler(),
   getApiV2TranscriptionServicesRetrieveMockHandler(),
   getApiV2TranslationServicesListMockHandler(),
-  getApiV2TranslationServicesRetrieveMockHandler()
+  getApiV2TranslationServicesRetrieveMockHandler(),
 ]

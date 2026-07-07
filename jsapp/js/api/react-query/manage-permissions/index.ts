@@ -9,49 +9,31 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   MutationFunction,
   QueryFunction,
   QueryKey,
   UseMutationOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
-import type {
-  ErrorDetail
-} from '../../models/errorDetail';
+import type { ErrorDetail } from '../../models/errorDetail'
 
-import type {
-  ErrorObject
-} from '../../models/errorObject';
+import type { ErrorObject } from '../../models/errorObject'
 
-import type {
-  PatchedPermissionAssignmentCloneRequest
-} from '../../models/patchedPermissionAssignmentCloneRequest';
+import type { PatchedPermissionAssignmentCloneRequest } from '../../models/patchedPermissionAssignmentCloneRequest'
 
-import type {
-  PermissionAssignmentBulkRequest
-} from '../../models/permissionAssignmentBulkRequest';
+import type { PermissionAssignmentBulkRequest } from '../../models/permissionAssignmentBulkRequest'
 
-import type {
-  PermissionAssignmentCreateRequest
-} from '../../models/permissionAssignmentCreateRequest';
+import type { PermissionAssignmentCreateRequest } from '../../models/permissionAssignmentCreateRequest'
 
-import type {
-  PermissionAssignmentResponse
-} from '../../models/permissionAssignmentResponse';
+import type { PermissionAssignmentResponse } from '../../models/permissionAssignmentResponse'
 
-import { fetchWithAuth } from '../../orval.mutator';
+import { fetchWithAuth } from '../../orval.mutator'
 
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List permission assignments
@@ -66,77 +48,80 @@ export type assetsPermissionAssignmentsListResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsPermissionAssignmentsListResponseComposite = assetsPermissionAssignmentsListResponse200 | assetsPermissionAssignmentsListResponse403;
-    
+
+export type assetsPermissionAssignmentsListResponseComposite =
+  | assetsPermissionAssignmentsListResponse200
+  | assetsPermissionAssignmentsListResponse403
+
 export type assetsPermissionAssignmentsListResponse = assetsPermissionAssignmentsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPermissionAssignmentsListUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsPermissionAssignmentsListUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/permission-assignments/`
 }
 
-export const assetsPermissionAssignmentsList = async (uidAsset: string, options?: RequestInit): Promise<assetsPermissionAssignmentsListResponse> => {
-  
-  return fetchWithAuth<assetsPermissionAssignmentsListResponse>(getAssetsPermissionAssignmentsListUrl(uidAsset),
-  {      
+export const assetsPermissionAssignmentsList = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsListResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsListResponse>(getAssetsPermissionAssignmentsListUrl(uidAsset), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsPermissionAssignmentsListQueryKey = (uidAsset: string,) => {
-    return ['api','v2','assets',uidAsset,'permission-assignments'] as const;
-    }
-
-    
-export const getAssetsPermissionAssignmentsListQueryOptions = <TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError = ErrorDetail>(uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsPermissionAssignmentsListQueryKey(uidAsset);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>> = ({ signal }) => assetsPermissionAssignmentsList(uidAsset, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type AssetsPermissionAssignmentsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>>
+export const getAssetsPermissionAssignmentsListQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'permission-assignments'] as const
+}
+
+export const getAssetsPermissionAssignmentsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsPermissionAssignmentsListQueryKey(uidAsset)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>> = ({ signal }) =>
+    assetsPermissionAssignmentsList(uidAsset, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsPermissionAssignmentsListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>
+>
 export type AssetsPermissionAssignmentsListQueryError = ErrorDetail
 
+export function useAssetsPermissionAssignmentsList<
+  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsPermissionAssignmentsListQueryOptions(uidAsset, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsPermissionAssignmentsList<TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError = ErrorDetail>(
- uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsPermissionAssignmentsListQueryOptions(uidAsset,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Assign a permission
@@ -161,75 +146,89 @@ export type assetsPermissionAssignmentsCreateResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsPermissionAssignmentsCreateResponseComposite = assetsPermissionAssignmentsCreateResponse200 | assetsPermissionAssignmentsCreateResponse400 | assetsPermissionAssignmentsCreateResponse403;
-    
+
+export type assetsPermissionAssignmentsCreateResponseComposite =
+  | assetsPermissionAssignmentsCreateResponse200
+  | assetsPermissionAssignmentsCreateResponse400
+  | assetsPermissionAssignmentsCreateResponse403
+
 export type assetsPermissionAssignmentsCreateResponse = assetsPermissionAssignmentsCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPermissionAssignmentsCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsPermissionAssignmentsCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/permission-assignments/`
 }
 
-export const assetsPermissionAssignmentsCreate = async (uidAsset: string,
-    permissionAssignmentCreateRequest: PermissionAssignmentCreateRequest, options?: RequestInit): Promise<assetsPermissionAssignmentsCreateResponse> => {
-  
-  return fetchWithAuth<assetsPermissionAssignmentsCreateResponse>(getAssetsPermissionAssignmentsCreateUrl(uidAsset),
-  {      
+export const assetsPermissionAssignmentsCreate = async (
+  uidAsset: string,
+  permissionAssignmentCreateRequest: PermissionAssignmentCreateRequest,
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsCreateResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsCreateResponse>(getAssetsPermissionAssignmentsCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      permissionAssignmentCreateRequest,)
+    body: JSON.stringify(permissionAssignmentCreateRequest),
+  })
+}
+
+export const getAssetsPermissionAssignmentsCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
+    TError,
+    { uidAsset: string; data: PermissionAssignmentCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
+  TError,
+  { uidAsset: string; data: PermissionAssignmentCreateRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsPermissionAssignmentsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
+    { uidAsset: string; data: PermissionAssignmentCreateRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsPermissionAssignmentsCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPermissionAssignmentsCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>
+>
+export type AssetsPermissionAssignmentsCreateMutationBody = PermissionAssignmentCreateRequest
+export type AssetsPermissionAssignmentsCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsPermissionAssignmentsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
+    TError,
+    { uidAsset: string; data: PermissionAssignmentCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsCreateMutationOptions(options)
 
-export const getAssetsPermissionAssignmentsCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>, TError,{uidAsset: string;data: PermissionAssignmentCreateRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>, TError,{uidAsset: string;data: PermissionAssignmentCreateRequest}, TContext> => {
-
-const mutationKey = ['assetsPermissionAssignmentsCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>, {uidAsset: string;data: PermissionAssignmentCreateRequest}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsPermissionAssignmentsCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPermissionAssignmentsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>>
-    export type AssetsPermissionAssignmentsCreateMutationBody = PermissionAssignmentCreateRequest
-    export type AssetsPermissionAssignmentsCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsPermissionAssignmentsCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>, TError,{uidAsset: string;data: PermissionAssignmentCreateRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPermissionAssignmentsCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve assignments
 
  */
@@ -242,82 +241,87 @@ export type assetsPermissionAssignmentsRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsPermissionAssignmentsRetrieveResponseComposite = assetsPermissionAssignmentsRetrieveResponse200 | assetsPermissionAssignmentsRetrieveResponse403;
-    
+
+export type assetsPermissionAssignmentsRetrieveResponseComposite =
+  | assetsPermissionAssignmentsRetrieveResponse200
+  | assetsPermissionAssignmentsRetrieveResponse403
+
 export type assetsPermissionAssignmentsRetrieveResponse = assetsPermissionAssignmentsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPermissionAssignmentsRetrieveUrl = (uidAsset: string,
-    uidPermissionAssignment: string,) => {
-
-
-  
-
+export const getAssetsPermissionAssignmentsRetrieveUrl = (uidAsset: string, uidPermissionAssignment: string) => {
   return `/api/v2/assets/${uidAsset}/permission-assignments/${uidPermissionAssignment}/`
 }
 
-export const assetsPermissionAssignmentsRetrieve = async (uidAsset: string,
-    uidPermissionAssignment: string, options?: RequestInit): Promise<assetsPermissionAssignmentsRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsPermissionAssignmentsRetrieveResponse>(getAssetsPermissionAssignmentsRetrieveUrl(uidAsset,uidPermissionAssignment),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsPermissionAssignmentsRetrieveQueryKey = (uidAsset: string,
-    uidPermissionAssignment: string,) => {
-    return ['api','v2','assets',uidAsset,'permission-assignments',uidPermissionAssignment] as const;
-    }
-
-    
-export const getAssetsPermissionAssignmentsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidPermissionAssignment: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsPermissionAssignmentsRetrieveQueryKey(uidAsset,uidPermissionAssignment);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>> = ({ signal }) => assetsPermissionAssignmentsRetrieve(uidAsset,uidPermissionAssignment, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidPermissionAssignment), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsPermissionAssignmentsRetrieve = async (
+  uidAsset: string,
+  uidPermissionAssignment: string,
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsRetrieveResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsRetrieveResponse>(
+    getAssetsPermissionAssignmentsRetrieveUrl(uidAsset, uidPermissionAssignment),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsPermissionAssignmentsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>>
+export const getAssetsPermissionAssignmentsRetrieveQueryKey = (uidAsset: string, uidPermissionAssignment: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'permission-assignments', uidPermissionAssignment] as const
+}
+
+export const getAssetsPermissionAssignmentsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidPermissionAssignment: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAssetsPermissionAssignmentsRetrieveQueryKey(uidAsset, uidPermissionAssignment)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>> = ({ signal }) =>
+    assetsPermissionAssignmentsRetrieve(uidAsset, uidPermissionAssignment, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidPermissionAssignment), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsPermissionAssignmentsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>
+>
 export type AssetsPermissionAssignmentsRetrieveQueryError = ErrorDetail
 
+export function useAssetsPermissionAssignmentsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidPermissionAssignment: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsPermissionAssignmentsRetrieveQueryOptions(uidAsset, uidPermissionAssignment, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsPermissionAssignmentsRetrieve<TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidPermissionAssignment: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsPermissionAssignmentsRetrieveQueryOptions(uidAsset,uidPermissionAssignment,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Remove a permission assignment
@@ -332,75 +336,89 @@ export type assetsPermissionAssignmentsDestroyResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsPermissionAssignmentsDestroyResponseComposite = assetsPermissionAssignmentsDestroyResponse204 | assetsPermissionAssignmentsDestroyResponse403;
-    
+
+export type assetsPermissionAssignmentsDestroyResponseComposite =
+  | assetsPermissionAssignmentsDestroyResponse204
+  | assetsPermissionAssignmentsDestroyResponse403
+
 export type assetsPermissionAssignmentsDestroyResponse = assetsPermissionAssignmentsDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPermissionAssignmentsDestroyUrl = (uidAsset: string,
-    uidPermissionAssignment: string,) => {
-
-
-  
-
+export const getAssetsPermissionAssignmentsDestroyUrl = (uidAsset: string, uidPermissionAssignment: string) => {
   return `/api/v2/assets/${uidAsset}/permission-assignments/${uidPermissionAssignment}/`
 }
 
-export const assetsPermissionAssignmentsDestroy = async (uidAsset: string,
-    uidPermissionAssignment: string, options?: RequestInit): Promise<assetsPermissionAssignmentsDestroyResponse> => {
-  
-  return fetchWithAuth<assetsPermissionAssignmentsDestroyResponse>(getAssetsPermissionAssignmentsDestroyUrl(uidAsset,uidPermissionAssignment),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
+export const assetsPermissionAssignmentsDestroy = async (
+  uidAsset: string,
+  uidPermissionAssignment: string,
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsDestroyResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsDestroyResponse>(
+    getAssetsPermissionAssignmentsDestroyUrl(uidAsset, uidPermissionAssignment),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
+
+export const getAssetsPermissionAssignmentsDestroyMutationOptions = <
+  TError = ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
+    TError,
+    { uidAsset: string; uidPermissionAssignment: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
+  TError,
+  { uidAsset: string; uidPermissionAssignment: string },
+  TContext
+> => {
+  const mutationKey = ['assetsPermissionAssignmentsDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
+    { uidAsset: string; uidPermissionAssignment: string }
+  > = (props) => {
+    const { uidAsset, uidPermissionAssignment } = props ?? {}
+
+    return assetsPermissionAssignmentsDestroy(uidAsset, uidPermissionAssignment, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPermissionAssignmentsDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>
+>
 
+export type AssetsPermissionAssignmentsDestroyMutationError = ErrorDetail
 
-export const getAssetsPermissionAssignmentsDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>, TError,{uidAsset: string;uidPermissionAssignment: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>, TError,{uidAsset: string;uidPermissionAssignment: string}, TContext> => {
+export const useAssetsPermissionAssignmentsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
+    TError,
+    { uidAsset: string; uidPermissionAssignment: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsDestroyMutationOptions(options)
 
-const mutationKey = ['assetsPermissionAssignmentsDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>, {uidAsset: string;uidPermissionAssignment: string}> = (props) => {
-          const {uidAsset,uidPermissionAssignment} = props ?? {};
-
-          return  assetsPermissionAssignmentsDestroy(uidAsset,uidPermissionAssignment,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPermissionAssignmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>>
-    
-    export type AssetsPermissionAssignmentsDestroyMutationError = ErrorDetail
-
-    export const useAssetsPermissionAssignmentsDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>, TError,{uidAsset: string;uidPermissionAssignment: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPermissionAssignmentsDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Assign multiple permissions at once
 
 * Can put both regular and partial permission in the payload
@@ -420,75 +438,95 @@ export type assetsPermissionAssignmentsBulkCreateResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsPermissionAssignmentsBulkCreateResponseComposite = assetsPermissionAssignmentsBulkCreateResponse200 | assetsPermissionAssignmentsBulkCreateResponse400 | assetsPermissionAssignmentsBulkCreateResponse403;
-    
+
+export type assetsPermissionAssignmentsBulkCreateResponseComposite =
+  | assetsPermissionAssignmentsBulkCreateResponse200
+  | assetsPermissionAssignmentsBulkCreateResponse400
+  | assetsPermissionAssignmentsBulkCreateResponse403
+
 export type assetsPermissionAssignmentsBulkCreateResponse = assetsPermissionAssignmentsBulkCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPermissionAssignmentsBulkCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsPermissionAssignmentsBulkCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/permission-assignments/bulk/`
 }
 
-export const assetsPermissionAssignmentsBulkCreate = async (uidAsset: string,
-    permissionAssignmentBulkRequest: PermissionAssignmentBulkRequest[], options?: RequestInit): Promise<assetsPermissionAssignmentsBulkCreateResponse> => {
-  
-  return fetchWithAuth<assetsPermissionAssignmentsBulkCreateResponse>(getAssetsPermissionAssignmentsBulkCreateUrl(uidAsset),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      permissionAssignmentBulkRequest,)
+export const assetsPermissionAssignmentsBulkCreate = async (
+  uidAsset: string,
+  permissionAssignmentBulkRequest: PermissionAssignmentBulkRequest[],
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsBulkCreateResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsBulkCreateResponse>(
+    getAssetsPermissionAssignmentsBulkCreateUrl(uidAsset),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(permissionAssignmentBulkRequest),
+    },
+  )
+}
+
+export const getAssetsPermissionAssignmentsBulkCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
+    TError,
+    { uidAsset: string; data: PermissionAssignmentBulkRequest[] },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
+  TError,
+  { uidAsset: string; data: PermissionAssignmentBulkRequest[] },
+  TContext
+> => {
+  const mutationKey = ['assetsPermissionAssignmentsBulkCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
+    { uidAsset: string; data: PermissionAssignmentBulkRequest[] }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsPermissionAssignmentsBulkCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPermissionAssignmentsBulkCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>
+>
+export type AssetsPermissionAssignmentsBulkCreateMutationBody = PermissionAssignmentBulkRequest[]
+export type AssetsPermissionAssignmentsBulkCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsPermissionAssignmentsBulkCreate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
+    TError,
+    { uidAsset: string; data: PermissionAssignmentBulkRequest[] },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsBulkCreateMutationOptions(options)
 
-export const getAssetsPermissionAssignmentsBulkCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>, TError,{uidAsset: string;data: PermissionAssignmentBulkRequest[]}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>, TError,{uidAsset: string;data: PermissionAssignmentBulkRequest[]}, TContext> => {
-
-const mutationKey = ['assetsPermissionAssignmentsBulkCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>, {uidAsset: string;data: PermissionAssignmentBulkRequest[]}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsPermissionAssignmentsBulkCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPermissionAssignmentsBulkCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>>
-    export type AssetsPermissionAssignmentsBulkCreateMutationBody = PermissionAssignmentBulkRequest[]
-    export type AssetsPermissionAssignmentsBulkCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsPermissionAssignmentsBulkCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>, TError,{uidAsset: string;data: PermissionAssignmentBulkRequest[]}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPermissionAssignmentsBulkCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Remove all permission assignments
 
 ⚠️ **Warning**
@@ -519,73 +557,92 @@ export type assetsPermissionAssignmentsBulkDestroyResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsPermissionAssignmentsBulkDestroyResponseComposite = assetsPermissionAssignmentsBulkDestroyResponse204 | assetsPermissionAssignmentsBulkDestroyResponse400 | assetsPermissionAssignmentsBulkDestroyResponse403;
-    
+
+export type assetsPermissionAssignmentsBulkDestroyResponseComposite =
+  | assetsPermissionAssignmentsBulkDestroyResponse204
+  | assetsPermissionAssignmentsBulkDestroyResponse400
+  | assetsPermissionAssignmentsBulkDestroyResponse403
+
 export type assetsPermissionAssignmentsBulkDestroyResponse = assetsPermissionAssignmentsBulkDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPermissionAssignmentsBulkDestroyUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsPermissionAssignmentsBulkDestroyUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/permission-assignments/bulk/`
 }
 
-export const assetsPermissionAssignmentsBulkDestroy = async (uidAsset: string, options?: RequestInit): Promise<assetsPermissionAssignmentsBulkDestroyResponse> => {
-  
-  return fetchWithAuth<assetsPermissionAssignmentsBulkDestroyResponse>(getAssetsPermissionAssignmentsBulkDestroyUrl(uidAsset),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
+export const assetsPermissionAssignmentsBulkDestroy = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsBulkDestroyResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsBulkDestroyResponse>(
+    getAssetsPermissionAssignmentsBulkDestroyUrl(uidAsset),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
+
+export const getAssetsPermissionAssignmentsBulkDestroyMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+  TError,
+  { uidAsset: string },
+  TContext
+> => {
+  const mutationKey = ['assetsPermissionAssignmentsBulkDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+    { uidAsset: string }
+  > = (props) => {
+    const { uidAsset } = props ?? {}
+
+    return assetsPermissionAssignmentsBulkDestroy(uidAsset, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPermissionAssignmentsBulkDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>
+>
 
+export type AssetsPermissionAssignmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
 
-export const getAssetsPermissionAssignmentsBulkDestroyMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>, TError,{uidAsset: string}, TContext> => {
+export const useAssetsPermissionAssignmentsBulkDestroy = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsBulkDestroyMutationOptions(options)
 
-const mutationKey = ['assetsPermissionAssignmentsBulkDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>, {uidAsset: string}> = (props) => {
-          const {uidAsset} = props ?? {};
-
-          return  assetsPermissionAssignmentsBulkDestroy(uidAsset,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPermissionAssignmentsBulkDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>>
-    
-    export type AssetsPermissionAssignmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsPermissionAssignmentsBulkDestroy = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPermissionAssignmentsBulkDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Clone permission assignments from another asset using uid
 
 Where `clone_from` is the source uid.
@@ -605,72 +662,92 @@ export type assetsPermissionAssignmentsClonePartialUpdateResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsPermissionAssignmentsClonePartialUpdateResponseComposite = assetsPermissionAssignmentsClonePartialUpdateResponse200 | assetsPermissionAssignmentsClonePartialUpdateResponse400 | assetsPermissionAssignmentsClonePartialUpdateResponse403;
-    
-export type assetsPermissionAssignmentsClonePartialUpdateResponse = assetsPermissionAssignmentsClonePartialUpdateResponseComposite & {
-  headers: Headers;
-}
 
-export const getAssetsPermissionAssignmentsClonePartialUpdateUrl = (uidAsset: string,) => {
+export type assetsPermissionAssignmentsClonePartialUpdateResponseComposite =
+  | assetsPermissionAssignmentsClonePartialUpdateResponse200
+  | assetsPermissionAssignmentsClonePartialUpdateResponse400
+  | assetsPermissionAssignmentsClonePartialUpdateResponse403
 
+export type assetsPermissionAssignmentsClonePartialUpdateResponse =
+  assetsPermissionAssignmentsClonePartialUpdateResponseComposite & {
+    headers: Headers
+  }
 
-  
-
+export const getAssetsPermissionAssignmentsClonePartialUpdateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/permission-assignments/clone/`
 }
 
-export const assetsPermissionAssignmentsClonePartialUpdate = async (uidAsset: string,
-    patchedPermissionAssignmentCloneRequest: PatchedPermissionAssignmentCloneRequest, options?: RequestInit): Promise<assetsPermissionAssignmentsClonePartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsPermissionAssignmentsClonePartialUpdateResponse>(getAssetsPermissionAssignmentsClonePartialUpdateUrl(uidAsset),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedPermissionAssignmentCloneRequest,)
+export const assetsPermissionAssignmentsClonePartialUpdate = async (
+  uidAsset: string,
+  patchedPermissionAssignmentCloneRequest: PatchedPermissionAssignmentCloneRequest,
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsClonePartialUpdateResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsClonePartialUpdateResponse>(
+    getAssetsPermissionAssignmentsClonePartialUpdateUrl(uidAsset),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedPermissionAssignmentCloneRequest),
+    },
+  )
+}
+
+export const getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
+    TError,
+    { uidAsset: string; data: PatchedPermissionAssignmentCloneRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
+  TError,
+  { uidAsset: string; data: PatchedPermissionAssignmentCloneRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsPermissionAssignmentsClonePartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
+    { uidAsset: string; data: PatchedPermissionAssignmentCloneRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsPermissionAssignmentsClonePartialUpdate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPermissionAssignmentsClonePartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>
+>
+export type AssetsPermissionAssignmentsClonePartialUpdateMutationBody = PatchedPermissionAssignmentCloneRequest
+export type AssetsPermissionAssignmentsClonePartialUpdateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsPermissionAssignmentsClonePartialUpdate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
+    TError,
+    { uidAsset: string; data: PatchedPermissionAssignmentCloneRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions(options)
 
-export const getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>, TError,{uidAsset: string;data: PatchedPermissionAssignmentCloneRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>, TError,{uidAsset: string;data: PatchedPermissionAssignmentCloneRequest}, TContext> => {
-
-const mutationKey = ['assetsPermissionAssignmentsClonePartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>, {uidAsset: string;data: PatchedPermissionAssignmentCloneRequest}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsPermissionAssignmentsClonePartialUpdate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPermissionAssignmentsClonePartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>>
-    export type AssetsPermissionAssignmentsClonePartialUpdateMutationBody = PatchedPermissionAssignmentCloneRequest
-    export type AssetsPermissionAssignmentsClonePartialUpdateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsPermissionAssignmentsClonePartialUpdate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>, TError,{uidAsset: string;data: PatchedPermissionAssignmentCloneRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    
+  return useMutation(mutationOptions)
+}

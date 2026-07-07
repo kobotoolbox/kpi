@@ -9,268 +9,144 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   MutationFunction,
   QueryFunction,
   QueryKey,
   UseMutationOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
-import type {
-  AdvancedFeatureCreateResponse
-} from '../../models/advancedFeatureCreateResponse';
+import type { AdvancedFeatureCreateResponse } from '../../models/advancedFeatureCreateResponse'
 
-import type {
-  AdvancedFeaturePostRequest
-} from '../../models/advancedFeaturePostRequest';
+import type { AdvancedFeaturePostRequest } from '../../models/advancedFeaturePostRequest'
 
-import type {
-  AdvancedFeatureResponse
-} from '../../models/advancedFeatureResponse';
+import type { AdvancedFeatureResponse } from '../../models/advancedFeatureResponse'
 
-import type {
-  AssetAttachmentAudioDurationRequest
-} from '../../models/assetAttachmentAudioDurationRequest';
+import type { AssetAttachmentAudioDurationRequest } from '../../models/assetAttachmentAudioDurationRequest'
 
-import type {
-  AssetAttachmentAudioDurationResponse
-} from '../../models/assetAttachmentAudioDurationResponse';
+import type { AssetAttachmentAudioDurationResponse } from '../../models/assetAttachmentAudioDurationResponse'
 
-import type {
-  AssetsAdvancedFeaturesBulkActionsListParams
-} from '../../models/assetsAdvancedFeaturesBulkActionsListParams';
+import type { AssetsAdvancedFeaturesBulkActionsListParams } from '../../models/assetsAdvancedFeaturesBulkActionsListParams'
 
-import type {
-  AssetsDataAttachmentsListParams
-} from '../../models/assetsDataAttachmentsListParams';
+import type { AssetsDataAttachmentsListParams } from '../../models/assetsDataAttachmentsListParams'
 
-import type {
-  AssetsDataListParams
-} from '../../models/assetsDataListParams';
+import type { AssetsDataListParams } from '../../models/assetsDataListParams'
 
-import type {
-  AssetsDataRetrieveParams
-} from '../../models/assetsDataRetrieveParams';
+import type { AssetsDataRetrieveParams } from '../../models/assetsDataRetrieveParams'
 
-import type {
-  AssetsExportSettingsDataRetrieveParams
-} from '../../models/assetsExportSettingsDataRetrieveParams';
+import type { AssetsExportSettingsDataRetrieveParams } from '../../models/assetsExportSettingsDataRetrieveParams'
 
-import type {
-  AssetsExportSettingsListParams
-} from '../../models/assetsExportSettingsListParams';
+import type { AssetsExportSettingsListParams } from '../../models/assetsExportSettingsListParams'
 
-import type {
-  AssetsExportsListParams
-} from '../../models/assetsExportsListParams';
+import type { AssetsExportsListParams } from '../../models/assetsExportsListParams'
 
-import type {
-  AssetsFilesListParams
-} from '../../models/assetsFilesListParams';
+import type { AssetsFilesListParams } from '../../models/assetsFilesListParams'
 
-import type {
-  AssetsPairedDataListParams
-} from '../../models/assetsPairedDataListParams';
+import type { AssetsPairedDataListParams } from '../../models/assetsPairedDataListParams'
 
-import type {
-  AttachmentRetrieveParams
-} from '../../models/attachmentRetrieveParams';
+import type { AttachmentRetrieveParams } from '../../models/attachmentRetrieveParams'
 
-import type {
-  BulkAcceptRequest
-} from '../../models/bulkAcceptRequest';
+import type { BulkAcceptRequest } from '../../models/bulkAcceptRequest'
 
-import type {
-  BulkAcceptResponse
-} from '../../models/bulkAcceptResponse';
+import type { BulkAcceptResponse } from '../../models/bulkAcceptResponse'
 
-import type {
-  BulkActionCreateRequest
-} from '../../models/bulkActionCreateRequest';
+import type { BulkActionCreateRequest } from '../../models/bulkActionCreateRequest'
 
-import type {
-  BulkActionCreateResponse
-} from '../../models/bulkActionCreateResponse';
+import type { BulkActionCreateResponse } from '../../models/bulkActionCreateResponse'
 
-import type {
-  BulkActionListResponse
-} from '../../models/bulkActionListResponse';
+import type { BulkActionListResponse } from '../../models/bulkActionListResponse'
 
-import type {
-  BulkActionResponse
-} from '../../models/bulkActionResponse';
+import type { BulkActionResponse } from '../../models/bulkActionResponse'
 
-import type {
-  CreateFilePayload
-} from '../../models/createFilePayload';
+import type { CreateFilePayload } from '../../models/createFilePayload'
 
-import type {
-  DataBulkDelete
-} from '../../models/dataBulkDelete';
+import type { DataBulkDelete } from '../../models/dataBulkDelete'
 
-import type {
-  DataBulkUpdateResponse
-} from '../../models/dataBulkUpdateResponse';
+import type { DataBulkUpdateResponse } from '../../models/dataBulkUpdateResponse'
 
-import type {
-  DataResponse
-} from '../../models/dataResponse';
+import type { DataResponse } from '../../models/dataResponse'
 
-import type {
-  DataStatusesUpdate
-} from '../../models/dataStatusesUpdate';
+import type { DataStatusesUpdate } from '../../models/dataStatusesUpdate'
 
-import type {
-  DataSupplementResponse
-} from '../../models/dataSupplementResponse';
+import type { DataSupplementResponse } from '../../models/dataSupplementResponse'
 
-import type {
-  DataValidationStatusUpdateResponse
-} from '../../models/dataValidationStatusUpdateResponse';
+import type { DataValidationStatusUpdateResponse } from '../../models/dataValidationStatusUpdateResponse'
 
-import type {
-  EnketoEditResponse
-} from '../../models/enketoEditResponse';
+import type { EnketoEditResponse } from '../../models/enketoEditResponse'
 
-import type {
-  EnketoViewResponse
-} from '../../models/enketoViewResponse';
+import type { EnketoViewResponse } from '../../models/enketoViewResponse'
 
-import type {
-  ErrorDetail
-} from '../../models/errorDetail';
+import type { ErrorDetail } from '../../models/errorDetail'
 
-import type {
-  ErrorObject
-} from '../../models/errorObject';
+import type { ErrorObject } from '../../models/errorObject'
 
-import type {
-  ExportCreatePayload
-} from '../../models/exportCreatePayload';
+import type { ExportCreatePayload } from '../../models/exportCreatePayload'
 
-import type {
-  ExportResponse
-} from '../../models/exportResponse';
+import type { ExportResponse } from '../../models/exportResponse'
 
-import type {
-  ExportSettingCreatePayload
-} from '../../models/exportSettingCreatePayload';
+import type { ExportSettingCreatePayload } from '../../models/exportSettingCreatePayload'
 
-import type {
-  ExportSettingResponse
-} from '../../models/exportSettingResponse';
+import type { ExportSettingResponse } from '../../models/exportSettingResponse'
 
-import type {
-  ExternalResponse
-} from '../../models/externalResponse';
+import type { ExternalResponse } from '../../models/externalResponse'
 
-import type {
-  FilesResponse
-} from '../../models/filesResponse';
+import type { FilesResponse } from '../../models/filesResponse'
 
-import type {
-  PaginatedDataResponseList
-} from '../../models/paginatedDataResponseList';
+import type { PaginatedDataResponseList } from '../../models/paginatedDataResponseList'
 
-import type {
-  PaginatedExportResponseList
-} from '../../models/paginatedExportResponseList';
+import type { PaginatedExportResponseList } from '../../models/paginatedExportResponseList'
 
-import type {
-  PaginatedExportSettingResponseList
-} from '../../models/paginatedExportSettingResponseList';
+import type { PaginatedExportSettingResponseList } from '../../models/paginatedExportSettingResponseList'
 
-import type {
-  PaginatedFilesResponseList
-} from '../../models/paginatedFilesResponseList';
+import type { PaginatedFilesResponseList } from '../../models/paginatedFilesResponseList'
 
-import type {
-  PaginatedPairedDataResponseList
-} from '../../models/paginatedPairedDataResponseList';
+import type { PaginatedPairedDataResponseList } from '../../models/paginatedPairedDataResponseList'
 
-import type {
-  PairedData
-} from '../../models/pairedData';
+import type { PairedData } from '../../models/pairedData'
 
-import type {
-  PairedDataResponse
-} from '../../models/pairedDataResponse';
+import type { PairedDataResponse } from '../../models/pairedDataResponse'
 
-import type {
-  PatchedAdvancedFeaturePatchRequest
-} from '../../models/patchedAdvancedFeaturePatchRequest';
+import type { PatchedAdvancedFeaturePatchRequest } from '../../models/patchedAdvancedFeaturePatchRequest'
 
-import type {
-  PatchedBulkActionPatchRequest
-} from '../../models/patchedBulkActionPatchRequest';
+import type { PatchedBulkActionPatchRequest } from '../../models/patchedBulkActionPatchRequest'
 
-import type {
-  PatchedDataBulkUpdate
-} from '../../models/patchedDataBulkUpdate';
+import type { PatchedDataBulkUpdate } from '../../models/patchedDataBulkUpdate'
 
-import type {
-  PatchedDataSupplementPayload
-} from '../../models/patchedDataSupplementPayload';
+import type { PatchedDataSupplementPayload } from '../../models/patchedDataSupplementPayload'
 
-import type {
-  PatchedDataValidationStatusUpdatePayload
-} from '../../models/patchedDataValidationStatusUpdatePayload';
+import type { PatchedDataValidationStatusUpdatePayload } from '../../models/patchedDataValidationStatusUpdatePayload'
 
-import type {
-  PatchedDataValidationStatusesUpdatePayload
-} from '../../models/patchedDataValidationStatusesUpdatePayload';
+import type { PatchedDataValidationStatusesUpdatePayload } from '../../models/patchedDataValidationStatusesUpdatePayload'
 
-import type {
-  PatchedExportSettingUpdatePayload
-} from '../../models/patchedExportSettingUpdatePayload';
+import type { PatchedExportSettingUpdatePayload } from '../../models/patchedExportSettingUpdatePayload'
 
-import type {
-  PatchedPairedDataPatchPayload
-} from '../../models/patchedPairedDataPatchPayload';
+import type { PatchedPairedDataPatchPayload } from '../../models/patchedPairedDataPatchPayload'
 
-import type {
-  ReportResponse
-} from '../../models/reportResponse';
+import type { ReportResponse } from '../../models/reportResponse'
 
-import { fetchWithAuth } from '../../orval.mutator';
+import { fetchWithAuth } from '../../orval.mutator'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
-type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <
-T,
->() => T extends Y ? 1 : 2
-? A
-: B;
+type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
 
 type WritableKeys<T> = {
-[P in keyof T]-?: IfEquals<
-  { [Q in P]: T[P] },
-  { -readonly [Q in P]: T[P] },
-  P
->;
-}[keyof T];
+  [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P>
+}[keyof T]
 
-type UnionToIntersection<U> =
-  (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never;
-type DistributeReadOnlyOverUnions<T> = T extends any ? NonReadonly<T> : never;
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never
+type DistributeReadOnlyOverUnions<T> = T extends any ? NonReadonly<T> : never
 
-type Writable<T> = Pick<T, WritableKeys<T>>;
-type NonReadonly<T> = [T] extends [UnionToIntersection<T>] ? {
-  [P in keyof Writable<T>]: T[P] extends object
-    ? NonReadonly<NonNullable<T[P]>>
-    : T[P];
-} : DistributeReadOnlyOverUnions<T>;
+type Writable<T> = Pick<T, WritableKeys<T>>
+type NonReadonly<T> = [T] extends [UnionToIntersection<T>]
+  ? {
+      [P in keyof Writable<T>]: T[P] extends object ? NonReadonly<NonNullable<T[P]>> : T[P]
+    }
+  : DistributeReadOnlyOverUnions<T>
 
-
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List all advanced features on an asset
@@ -287,77 +163,78 @@ export type assetsAdvancedFeaturesListResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesListResponseComposite = assetsAdvancedFeaturesListResponse200 | assetsAdvancedFeaturesListResponse404;
-    
+
+export type assetsAdvancedFeaturesListResponseComposite =
+  | assetsAdvancedFeaturesListResponse200
+  | assetsAdvancedFeaturesListResponse404
+
 export type assetsAdvancedFeaturesListResponse = assetsAdvancedFeaturesListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAdvancedFeaturesListUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsAdvancedFeaturesListUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/advanced-features/`
 }
 
-export const assetsAdvancedFeaturesList = async (uidAsset: string, options?: RequestInit): Promise<assetsAdvancedFeaturesListResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesListResponse>(getAssetsAdvancedFeaturesListUrl(uidAsset),
-  {      
+export const assetsAdvancedFeaturesList = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesListResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesListResponse>(getAssetsAdvancedFeaturesListUrl(uidAsset), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsAdvancedFeaturesListQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features'] as const
+}
 
-
-export const getAssetsAdvancedFeaturesListQueryKey = (uidAsset: string,) => {
-    return ['api','v2','assets',uidAsset,'advanced-features'] as const;
-    }
-
-    
-export const getAssetsAdvancedFeaturesListQueryOptions = <TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError = ErrorDetail>(uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsAdvancedFeaturesListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesListQueryKey(uidAsset)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsAdvancedFeaturesListQueryKey(uidAsset);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>> = ({ signal }) =>
+    assetsAdvancedFeaturesList(uidAsset, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>> = ({ signal }) => assetsAdvancedFeaturesList(uidAsset, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsAdvancedFeaturesListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>>
 export type AssetsAdvancedFeaturesListQueryError = ErrorDetail
 
+export function useAssetsAdvancedFeaturesList<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesListQueryOptions(uidAsset, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsAdvancedFeaturesList<TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError = ErrorDetail>(
- uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsAdvancedFeaturesListQueryOptions(uidAsset,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Add an advanced action to an asset
@@ -389,75 +266,89 @@ export type assetsAdvancedFeaturesCreateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesCreateResponseComposite = assetsAdvancedFeaturesCreateResponse201 | assetsAdvancedFeaturesCreateResponse400 | assetsAdvancedFeaturesCreateResponse404;
-    
+
+export type assetsAdvancedFeaturesCreateResponseComposite =
+  | assetsAdvancedFeaturesCreateResponse201
+  | assetsAdvancedFeaturesCreateResponse400
+  | assetsAdvancedFeaturesCreateResponse404
+
 export type assetsAdvancedFeaturesCreateResponse = assetsAdvancedFeaturesCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAdvancedFeaturesCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsAdvancedFeaturesCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/advanced-features/`
 }
 
-export const assetsAdvancedFeaturesCreate = async (uidAsset: string,
-    advancedFeaturePostRequest: AdvancedFeaturePostRequest, options?: RequestInit): Promise<assetsAdvancedFeaturesCreateResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesCreateResponse>(getAssetsAdvancedFeaturesCreateUrl(uidAsset),
-  {      
+export const assetsAdvancedFeaturesCreate = async (
+  uidAsset: string,
+  advancedFeaturePostRequest: AdvancedFeaturePostRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesCreateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesCreateResponse>(getAssetsAdvancedFeaturesCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      advancedFeaturePostRequest,)
+    body: JSON.stringify(advancedFeaturePostRequest),
+  })
+}
+
+export const getAssetsAdvancedFeaturesCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+    TError,
+    { uidAsset: string; data: AdvancedFeaturePostRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+  TError,
+  { uidAsset: string; data: AdvancedFeaturePostRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+    { uidAsset: string; data: AdvancedFeaturePostRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsAdvancedFeaturesCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsAdvancedFeaturesCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>
+>
+export type AssetsAdvancedFeaturesCreateMutationBody = AdvancedFeaturePostRequest
+export type AssetsAdvancedFeaturesCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsAdvancedFeaturesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+    TError,
+    { uidAsset: string; data: AdvancedFeaturePostRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesCreateMutationOptions(options)
 
-export const getAssetsAdvancedFeaturesCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>, TError,{uidAsset: string;data: AdvancedFeaturePostRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>, TError,{uidAsset: string;data: AdvancedFeaturePostRequest}, TContext> => {
-
-const mutationKey = ['assetsAdvancedFeaturesCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>, {uidAsset: string;data: AdvancedFeaturePostRequest}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsAdvancedFeaturesCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsAdvancedFeaturesCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>>
-    export type AssetsAdvancedFeaturesCreateMutationBody = AdvancedFeaturePostRequest
-    export type AssetsAdvancedFeaturesCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsAdvancedFeaturesCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>, TError,{uidAsset: string;data: AdvancedFeaturePostRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsAdvancedFeaturesCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve advanced feature configuration for a question on an asset
 
 Gets the params for one advanced action for one question in an asset
@@ -472,82 +363,86 @@ export type assetsAdvancedFeaturesRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesRetrieveResponseComposite = assetsAdvancedFeaturesRetrieveResponse200 | assetsAdvancedFeaturesRetrieveResponse404;
-    
+
+export type assetsAdvancedFeaturesRetrieveResponseComposite =
+  | assetsAdvancedFeaturesRetrieveResponse200
+  | assetsAdvancedFeaturesRetrieveResponse404
+
 export type assetsAdvancedFeaturesRetrieveResponse = assetsAdvancedFeaturesRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAdvancedFeaturesRetrieveUrl = (uidAsset: string,
-    uidAdvancedFeature: string,) => {
-
-
-  
-
+export const getAssetsAdvancedFeaturesRetrieveUrl = (uidAsset: string, uidAdvancedFeature: string) => {
   return `/api/v2/assets/${uidAsset}/advanced-features/${uidAdvancedFeature}/`
 }
 
-export const assetsAdvancedFeaturesRetrieve = async (uidAsset: string,
-    uidAdvancedFeature: string, options?: RequestInit): Promise<assetsAdvancedFeaturesRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesRetrieveResponse>(getAssetsAdvancedFeaturesRetrieveUrl(uidAsset,uidAdvancedFeature),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsAdvancedFeaturesRetrieveQueryKey = (uidAsset: string,
-    uidAdvancedFeature: string,) => {
-    return ['api','v2','assets',uidAsset,'advanced-features',uidAdvancedFeature] as const;
-    }
-
-    
-export const getAssetsAdvancedFeaturesRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidAdvancedFeature: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsAdvancedFeaturesRetrieveQueryKey(uidAsset,uidAdvancedFeature);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>> = ({ signal }) => assetsAdvancedFeaturesRetrieve(uidAsset,uidAdvancedFeature, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidAdvancedFeature), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsAdvancedFeaturesRetrieve = async (
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesRetrieveResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesRetrieveResponse>(
+    getAssetsAdvancedFeaturesRetrieveUrl(uidAsset, uidAdvancedFeature),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsAdvancedFeaturesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>>
+export const getAssetsAdvancedFeaturesRetrieveQueryKey = (uidAsset: string, uidAdvancedFeature: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', uidAdvancedFeature] as const
+}
+
+export const getAssetsAdvancedFeaturesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesRetrieveQueryKey(uidAsset, uidAdvancedFeature)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>> = ({ signal }) =>
+    assetsAdvancedFeaturesRetrieve(uidAsset, uidAdvancedFeature, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidAdvancedFeature), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsAdvancedFeaturesRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>
+>
 export type AssetsAdvancedFeaturesRetrieveQueryError = ErrorDetail
 
+export function useAssetsAdvancedFeaturesRetrieve<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesRetrieveQueryOptions(uidAsset, uidAdvancedFeature, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsAdvancedFeaturesRetrieve<TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidAdvancedFeature: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsAdvancedFeaturesRetrieveQueryOptions(uidAsset,uidAdvancedFeature,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Update an advanced action on an asset
@@ -581,77 +476,96 @@ export type assetsAdvancedFeaturesPartialUpdateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesPartialUpdateResponseComposite = assetsAdvancedFeaturesPartialUpdateResponse200 | assetsAdvancedFeaturesPartialUpdateResponse400 | assetsAdvancedFeaturesPartialUpdateResponse404;
-    
+
+export type assetsAdvancedFeaturesPartialUpdateResponseComposite =
+  | assetsAdvancedFeaturesPartialUpdateResponse200
+  | assetsAdvancedFeaturesPartialUpdateResponse400
+  | assetsAdvancedFeaturesPartialUpdateResponse404
+
 export type assetsAdvancedFeaturesPartialUpdateResponse = assetsAdvancedFeaturesPartialUpdateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAdvancedFeaturesPartialUpdateUrl = (uidAsset: string,
-    uidAdvancedFeature: string,) => {
-
-
-  
-
+export const getAssetsAdvancedFeaturesPartialUpdateUrl = (uidAsset: string, uidAdvancedFeature: string) => {
   return `/api/v2/assets/${uidAsset}/advanced-features/${uidAdvancedFeature}/`
 }
 
-export const assetsAdvancedFeaturesPartialUpdate = async (uidAsset: string,
-    uidAdvancedFeature: string,
-    patchedAdvancedFeaturePatchRequest: PatchedAdvancedFeaturePatchRequest, options?: RequestInit): Promise<assetsAdvancedFeaturesPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesPartialUpdateResponse>(getAssetsAdvancedFeaturesPartialUpdateUrl(uidAsset,uidAdvancedFeature),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedAdvancedFeaturePatchRequest,)
+export const assetsAdvancedFeaturesPartialUpdate = async (
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  patchedAdvancedFeaturePatchRequest: PatchedAdvancedFeaturePatchRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesPartialUpdateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesPartialUpdateResponse>(
+    getAssetsAdvancedFeaturesPartialUpdateUrl(uidAsset, uidAdvancedFeature),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedAdvancedFeaturePatchRequest),
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+  TError,
+  { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+    { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest }
+  > = (props) => {
+    const { uidAsset, uidAdvancedFeature, data } = props ?? {}
+
+    return assetsAdvancedFeaturesPartialUpdate(uidAsset, uidAdvancedFeature, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsAdvancedFeaturesPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>
+>
+export type AssetsAdvancedFeaturesPartialUpdateMutationBody = PatchedAdvancedFeaturePatchRequest
+export type AssetsAdvancedFeaturesPartialUpdateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsAdvancedFeaturesPartialUpdate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesPartialUpdateMutationOptions(options)
 
-export const getAssetsAdvancedFeaturesPartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>, TError,{uidAsset: string;uidAdvancedFeature: string;data: PatchedAdvancedFeaturePatchRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>, TError,{uidAsset: string;uidAdvancedFeature: string;data: PatchedAdvancedFeaturePatchRequest}, TContext> => {
-
-const mutationKey = ['assetsAdvancedFeaturesPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>, {uidAsset: string;uidAdvancedFeature: string;data: PatchedAdvancedFeaturePatchRequest}> = (props) => {
-          const {uidAsset,uidAdvancedFeature,data} = props ?? {};
-
-          return  assetsAdvancedFeaturesPartialUpdate(uidAsset,uidAdvancedFeature,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsAdvancedFeaturesPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>>
-    export type AssetsAdvancedFeaturesPartialUpdateMutationBody = PatchedAdvancedFeaturePatchRequest
-    export type AssetsAdvancedFeaturesPartialUpdateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsAdvancedFeaturesPartialUpdate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>, TError,{uidAsset: string;uidAdvancedFeature: string;data: PatchedAdvancedFeaturePatchRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsAdvancedFeaturesPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## List bulk processing jobs on an asset
 
 Returns paginated bulk processing jobs associated with the specified asset. Each
@@ -687,89 +601,104 @@ export type assetsAdvancedFeaturesBulkActionsListResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesBulkActionsListResponseComposite = assetsAdvancedFeaturesBulkActionsListResponse200 | assetsAdvancedFeaturesBulkActionsListResponse404;
-    
+
+export type assetsAdvancedFeaturesBulkActionsListResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsListResponse200
+  | assetsAdvancedFeaturesBulkActionsListResponse404
+
 export type assetsAdvancedFeaturesBulkActionsListResponse = assetsAdvancedFeaturesBulkActionsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAdvancedFeaturesBulkActionsListUrl = (uidAsset: string,
-    params?: AssetsAdvancedFeaturesBulkActionsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsAdvancedFeaturesBulkActionsListUrl = (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/`
 }
 
-export const assetsAdvancedFeaturesBulkActionsList = async (uidAsset: string,
-    params?: AssetsAdvancedFeaturesBulkActionsListParams, options?: RequestInit): Promise<assetsAdvancedFeaturesBulkActionsListResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsListResponse>(getAssetsAdvancedFeaturesBulkActionsListUrl(uidAsset,params),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+export const assetsAdvancedFeaturesBulkActionsList = async (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsListResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsListResponse>(
+    getAssetsAdvancedFeaturesBulkActionsListUrl(uidAsset, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
 
-
-
-export const getAssetsAdvancedFeaturesBulkActionsListQueryKey = (uidAsset: string,
-    params?: AssetsAdvancedFeaturesBulkActionsListParams,) => {
-    return ['api','v2','assets',uidAsset,'advanced-features','bulk-actions', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsAdvancedFeaturesBulkActionsListQueryOptions = <TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError = ErrorDetail>(uidAsset: string,
-    params?: AssetsAdvancedFeaturesBulkActionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsAdvancedFeaturesBulkActionsListQueryKey = (
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
 ) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsListQueryKey(uidAsset,params);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>> = ({ signal }) => assetsAdvancedFeaturesBulkActionsList(uidAsset,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData> & { queryKey: QueryKey }
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const
 }
 
-export type AssetsAdvancedFeaturesBulkActionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>>
+export const getAssetsAdvancedFeaturesBulkActionsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsListQueryKey(uidAsset, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>> = ({ signal }) =>
+    assetsAdvancedFeaturesBulkActionsList(uidAsset, params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsAdvancedFeaturesBulkActionsListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>
+>
 export type AssetsAdvancedFeaturesBulkActionsListQueryError = ErrorDetail
 
+export function useAssetsAdvancedFeaturesBulkActionsList<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsAdvancedFeaturesBulkActionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesBulkActionsListQueryOptions(uidAsset, params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsAdvancedFeaturesBulkActionsList<TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError = ErrorDetail>(
- uidAsset: string,
-    params?: AssetsAdvancedFeaturesBulkActionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsAdvancedFeaturesBulkActionsListQueryOptions(uidAsset,params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Create a bulk processing job
@@ -809,75 +738,96 @@ export type assetsAdvancedFeaturesBulkActionsCreateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesBulkActionsCreateResponseComposite = assetsAdvancedFeaturesBulkActionsCreateResponse201 | assetsAdvancedFeaturesBulkActionsCreateResponse400 | assetsAdvancedFeaturesBulkActionsCreateResponse404;
-    
-export type assetsAdvancedFeaturesBulkActionsCreateResponse = assetsAdvancedFeaturesBulkActionsCreateResponseComposite & {
-  headers: Headers;
-}
 
-export const getAssetsAdvancedFeaturesBulkActionsCreateUrl = (uidAsset: string,) => {
+export type assetsAdvancedFeaturesBulkActionsCreateResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsCreateResponse201
+  | assetsAdvancedFeaturesBulkActionsCreateResponse400
+  | assetsAdvancedFeaturesBulkActionsCreateResponse404
 
+export type assetsAdvancedFeaturesBulkActionsCreateResponse =
+  assetsAdvancedFeaturesBulkActionsCreateResponseComposite & {
+    headers: Headers
+  }
 
-  
-
+export const getAssetsAdvancedFeaturesBulkActionsCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/`
 }
 
-export const assetsAdvancedFeaturesBulkActionsCreate = async (uidAsset: string,
-    bulkActionCreateRequest: BulkActionCreateRequest, options?: RequestInit): Promise<assetsAdvancedFeaturesBulkActionsCreateResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsCreateResponse>(getAssetsAdvancedFeaturesBulkActionsCreateUrl(uidAsset),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      bulkActionCreateRequest,)
+export const assetsAdvancedFeaturesBulkActionsCreate = async (
+  uidAsset: string,
+  bulkActionCreateRequest: BulkActionCreateRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsCreateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsCreateResponse>(
+    getAssetsAdvancedFeaturesBulkActionsCreateUrl(uidAsset),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(bulkActionCreateRequest),
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+    TError,
+    { uidAsset: string; data: BulkActionCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+  TError,
+  { uidAsset: string; data: BulkActionCreateRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesBulkActionsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+    { uidAsset: string; data: BulkActionCreateRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsAdvancedFeaturesBulkActionsCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsAdvancedFeaturesBulkActionsCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>
+>
+export type AssetsAdvancedFeaturesBulkActionsCreateMutationBody = BulkActionCreateRequest
+export type AssetsAdvancedFeaturesBulkActionsCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsAdvancedFeaturesBulkActionsCreate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>,
+    TError,
+    { uidAsset: string; data: BulkActionCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesBulkActionsCreateMutationOptions(options)
 
-export const getAssetsAdvancedFeaturesBulkActionsCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>, TError,{uidAsset: string;data: BulkActionCreateRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>, TError,{uidAsset: string;data: BulkActionCreateRequest}, TContext> => {
-
-const mutationKey = ['assetsAdvancedFeaturesBulkActionsCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>, {uidAsset: string;data: BulkActionCreateRequest}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsAdvancedFeaturesBulkActionsCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsAdvancedFeaturesBulkActionsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>>
-    export type AssetsAdvancedFeaturesBulkActionsCreateMutationBody = BulkActionCreateRequest
-    export type AssetsAdvancedFeaturesBulkActionsCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsAdvancedFeaturesBulkActionsCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>, TError,{uidAsset: string;data: BulkActionCreateRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsAdvancedFeaturesBulkActionsCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve a bulk processing job
 
 Returns detailed information about a single bulk processing job, including its
@@ -897,82 +847,87 @@ export type assetsAdvancedFeaturesBulkActionsRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesBulkActionsRetrieveResponseComposite = assetsAdvancedFeaturesBulkActionsRetrieveResponse200 | assetsAdvancedFeaturesBulkActionsRetrieveResponse404;
-    
-export type assetsAdvancedFeaturesBulkActionsRetrieveResponse = assetsAdvancedFeaturesBulkActionsRetrieveResponseComposite & {
-  headers: Headers;
-}
 
-export const getAssetsAdvancedFeaturesBulkActionsRetrieveUrl = (uidAsset: string,
-    actionUid: string,) => {
+export type assetsAdvancedFeaturesBulkActionsRetrieveResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsRetrieveResponse200
+  | assetsAdvancedFeaturesBulkActionsRetrieveResponse404
 
+export type assetsAdvancedFeaturesBulkActionsRetrieveResponse =
+  assetsAdvancedFeaturesBulkActionsRetrieveResponseComposite & {
+    headers: Headers
+  }
 
-  
-
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveUrl = (uidAsset: string, actionUid: string) => {
   return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${actionUid}/`
 }
 
-export const assetsAdvancedFeaturesBulkActionsRetrieve = async (uidAsset: string,
-    actionUid: string, options?: RequestInit): Promise<assetsAdvancedFeaturesBulkActionsRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsRetrieveResponse>(getAssetsAdvancedFeaturesBulkActionsRetrieveUrl(uidAsset,actionUid),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey = (uidAsset: string,
-    actionUid: string,) => {
-    return ['api','v2','assets',uidAsset,'advanced-features','bulk-actions',actionUid] as const;
-    }
-
-    
-export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    actionUid: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey(uidAsset,actionUid);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>> = ({ signal }) => assetsAdvancedFeaturesBulkActionsRetrieve(uidAsset,actionUid, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && actionUid), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsAdvancedFeaturesBulkActionsRetrieve = async (
+  uidAsset: string,
+  actionUid: string,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsRetrieveResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsRetrieveResponse>(
+    getAssetsAdvancedFeaturesBulkActionsRetrieveUrl(uidAsset, actionUid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsAdvancedFeaturesBulkActionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>>
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey = (uidAsset: string, actionUid: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', actionUid] as const
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  actionUid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesBulkActionsRetrieveQueryKey(uidAsset, actionUid)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>> = ({ signal }) =>
+    assetsAdvancedFeaturesBulkActionsRetrieve(uidAsset, actionUid, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && actionUid), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsAdvancedFeaturesBulkActionsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>
+>
 export type AssetsAdvancedFeaturesBulkActionsRetrieveQueryError = ErrorDetail
 
+export function useAssetsAdvancedFeaturesBulkActionsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  actionUid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions(uidAsset, actionUid, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsAdvancedFeaturesBulkActionsRetrieve<TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    actionUid: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsAdvancedFeaturesBulkActionsRetrieveQueryOptions(uidAsset,actionUid,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Update a bulk processing job
@@ -1005,77 +960,93 @@ export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponseComposite = assetsAdvancedFeaturesBulkActionsPartialUpdateResponse200 | assetsAdvancedFeaturesBulkActionsPartialUpdateResponse404;
-    
-export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse = assetsAdvancedFeaturesBulkActionsPartialUpdateResponseComposite & {
-  headers: Headers;
-}
 
-export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl = (uidAsset: string,
-    actionUid: string,) => {
+export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponseComposite =
+  | assetsAdvancedFeaturesBulkActionsPartialUpdateResponse200
+  | assetsAdvancedFeaturesBulkActionsPartialUpdateResponse404
 
+export type assetsAdvancedFeaturesBulkActionsPartialUpdateResponse =
+  assetsAdvancedFeaturesBulkActionsPartialUpdateResponseComposite & {
+    headers: Headers
+  }
 
-  
-
+export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl = (uidAsset: string, actionUid: string) => {
   return `/api/v2/assets/${uidAsset}/advanced-features/bulk-actions/${actionUid}/`
 }
 
-export const assetsAdvancedFeaturesBulkActionsPartialUpdate = async (uidAsset: string,
-    actionUid: string,
-    patchedBulkActionPatchRequest: PatchedBulkActionPatchRequest, options?: RequestInit): Promise<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse>(getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl(uidAsset,actionUid),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedBulkActionPatchRequest,)
+export const assetsAdvancedFeaturesBulkActionsPartialUpdate = async (
+  uidAsset: string,
+  actionUid: string,
+  patchedBulkActionPatchRequest: PatchedBulkActionPatchRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesBulkActionsPartialUpdateResponse>(
+    getAssetsAdvancedFeaturesBulkActionsPartialUpdateUrl(uidAsset, actionUid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedBulkActionPatchRequest),
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions = <
+  TError = ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+    TError,
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+  TError,
+  { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesBulkActionsPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest }
+  > = (props) => {
+    const { uidAsset, actionUid, data } = props ?? {}
+
+    return assetsAdvancedFeaturesBulkActionsPartialUpdate(uidAsset, actionUid, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>
+>
+export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationBody = PatchedBulkActionPatchRequest
+export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationError = ErrorDetail
 
+export const useAssetsAdvancedFeaturesBulkActionsPartialUpdate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>,
+    TError,
+    { uidAsset: string; actionUid: string; data: PatchedBulkActionPatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions(options)
 
-export const getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>, TError,{uidAsset: string;actionUid: string;data: PatchedBulkActionPatchRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>, TError,{uidAsset: string;actionUid: string;data: PatchedBulkActionPatchRequest}, TContext> => {
-
-const mutationKey = ['assetsAdvancedFeaturesBulkActionsPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>, {uidAsset: string;actionUid: string;data: PatchedBulkActionPatchRequest}> = (props) => {
-          const {uidAsset,actionUid,data} = props ?? {};
-
-          return  assetsAdvancedFeaturesBulkActionsPartialUpdate(uidAsset,actionUid,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>>
-    export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationBody = PatchedBulkActionPatchRequest
-    export type AssetsAdvancedFeaturesBulkActionsPartialUpdateMutationError = ErrorDetail
-
-    export const useAssetsAdvancedFeaturesBulkActionsPartialUpdate = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsPartialUpdate>>, TError,{uidAsset: string;actionUid: string;data: PatchedBulkActionPatchRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsAdvancedFeaturesBulkActionsPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Delete a specific attachment of an Asset
 
 * `id` can only be the uid of attachment to be deleted
@@ -1095,75 +1066,85 @@ export type assetsAttachmentsDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAttachmentsDestroyResponseComposite = assetsAttachmentsDestroyResponse204 | assetsAttachmentsDestroyResponse400 | assetsAttachmentsDestroyResponse404;
-    
+
+export type assetsAttachmentsDestroyResponseComposite =
+  | assetsAttachmentsDestroyResponse204
+  | assetsAttachmentsDestroyResponse400
+  | assetsAttachmentsDestroyResponse404
+
 export type assetsAttachmentsDestroyResponse = assetsAttachmentsDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAttachmentsDestroyUrl = (uidAsset: string,
-    id: number,) => {
-
-
-  
-
+export const getAssetsAttachmentsDestroyUrl = (uidAsset: string, id: number) => {
   return `/api/v2/assets/${uidAsset}/attachments/${id}/`
 }
 
-export const assetsAttachmentsDestroy = async (uidAsset: string,
-    id: number, options?: RequestInit): Promise<assetsAttachmentsDestroyResponse> => {
-  
-  return fetchWithAuth<assetsAttachmentsDestroyResponse>(getAssetsAttachmentsDestroyUrl(uidAsset,id),
-  {      
+export const assetsAttachmentsDestroy = async (
+  uidAsset: string,
+  id: number,
+  options?: RequestInit,
+): Promise<assetsAttachmentsDestroyResponse> => {
+  return fetchWithAuth<assetsAttachmentsDestroyResponse>(getAssetsAttachmentsDestroyUrl(uidAsset, id), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsAttachmentsDestroyMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
+    TError,
+    { uidAsset: string; id: number },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
+  TError,
+  { uidAsset: string; id: number },
+  TContext
+> => {
+  const mutationKey = ['assetsAttachmentsDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
+    { uidAsset: string; id: number }
+  > = (props) => {
+    const { uidAsset, id } = props ?? {}
+
+    return assetsAttachmentsDestroy(uidAsset, id, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsAttachmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>>
 
+export type AssetsAttachmentsDestroyMutationError = ErrorObject | ErrorDetail
 
-export const getAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>, TError,{uidAsset: string;id: number}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>, TError,{uidAsset: string;id: number}, TContext> => {
+export const useAssetsAttachmentsDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
+    TError,
+    { uidAsset: string; id: number },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAttachmentsDestroyMutationOptions(options)
 
-const mutationKey = ['assetsAttachmentsDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>, {uidAsset: string;id: number}> = (props) => {
-          const {uidAsset,id} = props ?? {};
-
-          return  assetsAttachmentsDestroy(uidAsset,id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsAttachmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>>
-    
-    export type AssetsAttachmentsDestroyMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsAttachmentsDestroy = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>, TError,{uidAsset: string;id: number}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsAttachmentsDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Get total audio duration for a list of attachments
 
 ```curl
@@ -1213,75 +1194,86 @@ export type assetsAttachmentsAudioDurationCreateResponse200 = {
   data: AssetAttachmentAudioDurationResponse
   status: 200
 }
-    
-export type assetsAttachmentsAudioDurationCreateResponseComposite = assetsAttachmentsAudioDurationCreateResponse200;
-    
+
+export type assetsAttachmentsAudioDurationCreateResponseComposite = assetsAttachmentsAudioDurationCreateResponse200
+
 export type assetsAttachmentsAudioDurationCreateResponse = assetsAttachmentsAudioDurationCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAttachmentsAudioDurationCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsAttachmentsAudioDurationCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/attachments/audio-duration/`
 }
 
-export const assetsAttachmentsAudioDurationCreate = async (uidAsset: string,
-    assetAttachmentAudioDurationRequest: AssetAttachmentAudioDurationRequest, options?: RequestInit): Promise<assetsAttachmentsAudioDurationCreateResponse> => {
-  
-  return fetchWithAuth<assetsAttachmentsAudioDurationCreateResponse>(getAssetsAttachmentsAudioDurationCreateUrl(uidAsset),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      assetAttachmentAudioDurationRequest,)
+export const assetsAttachmentsAudioDurationCreate = async (
+  uidAsset: string,
+  assetAttachmentAudioDurationRequest: AssetAttachmentAudioDurationRequest,
+  options?: RequestInit,
+): Promise<assetsAttachmentsAudioDurationCreateResponse> => {
+  return fetchWithAuth<assetsAttachmentsAudioDurationCreateResponse>(
+    getAssetsAttachmentsAudioDurationCreateUrl(uidAsset),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(assetAttachmentAudioDurationRequest),
+    },
+  )
+}
+
+export const getAssetsAttachmentsAudioDurationCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>,
+    TError,
+    { uidAsset: string; data: AssetAttachmentAudioDurationRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>,
+  TError,
+  { uidAsset: string; data: AssetAttachmentAudioDurationRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAttachmentsAudioDurationCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>,
+    { uidAsset: string; data: AssetAttachmentAudioDurationRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsAttachmentsAudioDurationCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsAttachmentsAudioDurationCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>
+>
+export type AssetsAttachmentsAudioDurationCreateMutationBody = AssetAttachmentAudioDurationRequest
+export type AssetsAttachmentsAudioDurationCreateMutationError = unknown
 
+export const useAssetsAttachmentsAudioDurationCreate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>,
+    TError,
+    { uidAsset: string; data: AssetAttachmentAudioDurationRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAttachmentsAudioDurationCreateMutationOptions(options)
 
-export const getAssetsAttachmentsAudioDurationCreateMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>, TError,{uidAsset: string;data: AssetAttachmentAudioDurationRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>, TError,{uidAsset: string;data: AssetAttachmentAudioDurationRequest}, TContext> => {
-
-const mutationKey = ['assetsAttachmentsAudioDurationCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>, {uidAsset: string;data: AssetAttachmentAudioDurationRequest}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsAttachmentsAudioDurationCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsAttachmentsAudioDurationCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>>
-    export type AssetsAttachmentsAudioDurationCreateMutationBody = AssetAttachmentAudioDurationRequest
-    export type AssetsAttachmentsAudioDurationCreateMutationError = unknown
-
-    export const useAssetsAttachmentsAudioDurationCreate = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsAudioDurationCreate>>, TError,{uidAsset: string;data: AssetAttachmentAudioDurationRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsAttachmentsAudioDurationCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Delete all attachments from a list of submissions
 
 ```curl
@@ -1327,73 +1319,85 @@ export type assetsAttachmentsBulkDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsAttachmentsBulkDestroyResponseComposite = assetsAttachmentsBulkDestroyResponse202 | assetsAttachmentsBulkDestroyResponse400 | assetsAttachmentsBulkDestroyResponse404;
-    
+
+export type assetsAttachmentsBulkDestroyResponseComposite =
+  | assetsAttachmentsBulkDestroyResponse202
+  | assetsAttachmentsBulkDestroyResponse400
+  | assetsAttachmentsBulkDestroyResponse404
+
 export type assetsAttachmentsBulkDestroyResponse = assetsAttachmentsBulkDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsAttachmentsBulkDestroyUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsAttachmentsBulkDestroyUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/attachments/bulk/`
 }
 
-export const assetsAttachmentsBulkDestroy = async (uidAsset: string, options?: RequestInit): Promise<assetsAttachmentsBulkDestroyResponse> => {
-  
-  return fetchWithAuth<assetsAttachmentsBulkDestroyResponse>(getAssetsAttachmentsBulkDestroyUrl(uidAsset),
-  {      
+export const assetsAttachmentsBulkDestroy = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsAttachmentsBulkDestroyResponse> => {
+  return fetchWithAuth<assetsAttachmentsBulkDestroyResponse>(getAssetsAttachmentsBulkDestroyUrl(uidAsset), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsAttachmentsBulkDestroyMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
+  TError,
+  { uidAsset: string },
+  TContext
+> => {
+  const mutationKey = ['assetsAttachmentsBulkDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>, { uidAsset: string }> = (
+    props,
+  ) => {
+    const { uidAsset } = props ?? {}
+
+    return assetsAttachmentsBulkDestroy(uidAsset, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsAttachmentsBulkDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>
+>
 
+export type AssetsAttachmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
 
-export const getAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>, TError,{uidAsset: string}, TContext> => {
+export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAttachmentsBulkDestroyMutationOptions(options)
 
-const mutationKey = ['assetsAttachmentsBulkDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>, {uidAsset: string}> = (props) => {
-          const {uidAsset} = props ?? {};
-
-          return  assetsAttachmentsBulkDestroy(uidAsset,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsAttachmentsBulkDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>>
-    
-    export type AssetsAttachmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsAttachmentsBulkDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## List of submissions for a specific asset
 
 By default, JSON format is used, but XML and GeoJSON are also available:
@@ -1460,89 +1464,85 @@ export type assetsDataListResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataListResponseComposite = assetsDataListResponse200 | assetsDataListResponse404;
-    
+
+export type assetsDataListResponseComposite = assetsDataListResponse200 | assetsDataListResponse404
+
 export type assetsDataListResponse = assetsDataListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataListUrl = (uidAsset: string,
-    params?: AssetsDataListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsDataListUrl = (uidAsset: string, params?: AssetsDataListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/data/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/data/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/data/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/data/`
 }
 
-export const assetsDataList = async (uidAsset: string,
-    params?: AssetsDataListParams, options?: RequestInit): Promise<assetsDataListResponse> => {
-  
-  return fetchWithAuth<assetsDataListResponse>(getAssetsDataListUrl(uidAsset,params),
-  {      
+export const assetsDataList = async (
+  uidAsset: string,
+  params?: AssetsDataListParams,
+  options?: RequestInit,
+): Promise<assetsDataListResponse> => {
+  return fetchWithAuth<assetsDataListResponse>(getAssetsDataListUrl(uidAsset, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsDataListQueryKey = (uidAsset: string, params?: AssetsDataListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetsDataListQueryKey = (uidAsset: string,
-    params?: AssetsDataListParams,) => {
-    return ['api','v2','assets',uidAsset,'data', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsDataListQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataList>>, TError = ErrorDetail>(uidAsset: string,
-    params?: AssetsDataListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsDataListQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataList>>, TError = ErrorDetail>(
+  uidAsset: string,
+  params?: AssetsDataListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataListQueryKey(uidAsset, params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataListQueryKey(uidAsset,params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataList>>> = ({ signal }) =>
+    assetsDataList(uidAsset, params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataList>>> = ({ signal }) => assetsDataList(uidAsset,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsDataListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataList>>>
 export type AssetsDataListQueryError = ErrorDetail
 
-
-
 export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataList>>, TError = ErrorDetail>(
- uidAsset: string,
-    params?: AssetsDataListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  params?: AssetsDataListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataListQueryOptions(uidAsset, params, options)
 
-  const queryOptions = getAssetsDataListQueryOptions(uidAsset,params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get a specific submission
@@ -1590,94 +1590,91 @@ export type assetsDataRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataRetrieveResponseComposite = assetsDataRetrieveResponse200 | assetsDataRetrieveResponse404;
-    
+
+export type assetsDataRetrieveResponseComposite = assetsDataRetrieveResponse200 | assetsDataRetrieveResponse404
+
 export type assetsDataRetrieveResponse = assetsDataRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataRetrieveUrl = (uidAsset: string,
-    id: string,
-    params?: AssetsDataRetrieveParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsDataRetrieveUrl = (uidAsset: string, id: string, params?: AssetsDataRetrieveParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/data/${id}/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/data/${id}/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/data/${id}/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/data/${id}/`
 }
 
-export const assetsDataRetrieve = async (uidAsset: string,
-    id: string,
-    params?: AssetsDataRetrieveParams, options?: RequestInit): Promise<assetsDataRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataRetrieveResponse>(getAssetsDataRetrieveUrl(uidAsset,id,params),
-  {      
+export const assetsDataRetrieve = async (
+  uidAsset: string,
+  id: string,
+  params?: AssetsDataRetrieveParams,
+  options?: RequestInit,
+): Promise<assetsDataRetrieveResponse> => {
+  return fetchWithAuth<assetsDataRetrieveResponse>(getAssetsDataRetrieveUrl(uidAsset, id, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsDataRetrieveQueryKey = (uidAsset: string, id: string, params?: AssetsDataRetrieveParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', id, ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetsDataRetrieveQueryKey = (uidAsset: string,
-    id: string,
-    params?: AssetsDataRetrieveParams,) => {
-    return ['api','v2','assets',uidAsset,'data',id, ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsDataRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    id: string,
-    params?: AssetsDataRetrieveParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsDataRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  params?: AssetsDataRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataRetrieveQueryKey(uidAsset, id, params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataRetrieveQueryKey(uidAsset,id,params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataRetrieve>>> = ({ signal }) =>
+    assetsDataRetrieve(uidAsset, id, params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataRetrieve>>> = ({ signal }) => assetsDataRetrieve(uidAsset,id,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsDataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataRetrieve>>>
 export type AssetsDataRetrieveQueryError = ErrorDetail
 
-
-
 export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDataRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    id: string,
-    params?: AssetsDataRetrieveParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  id: string,
+  params?: AssetsDataRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataRetrieveQueryOptions(uidAsset, id, params, options)
 
-  const queryOptions = getAssetsDataRetrieveQueryOptions(uidAsset,id,params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Deletes current submission
@@ -1692,75 +1689,79 @@ export type assetsDataDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataDestroyResponseComposite = assetsDataDestroyResponse204 | assetsDataDestroyResponse404;
-    
+
+export type assetsDataDestroyResponseComposite = assetsDataDestroyResponse204 | assetsDataDestroyResponse404
+
 export type assetsDataDestroyResponse = assetsDataDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataDestroyUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataDestroyUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/`
 }
 
-export const assetsDataDestroy = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataDestroyResponse> => {
-  
-  return fetchWithAuth<assetsDataDestroyResponse>(getAssetsDataDestroyUrl(uidAsset,id),
-  {      
+export const assetsDataDestroy = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataDestroyResponse> => {
+  return fetchWithAuth<assetsDataDestroyResponse>(getAssetsDataDestroyUrl(uidAsset, id), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsDataDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataDestroy>>,
+    TError,
+    { uidAsset: string; id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataDestroy>>,
+  TError,
+  { uidAsset: string; id: string },
+  TContext
+> => {
+  const mutationKey = ['assetsDataDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataDestroy>>,
+    { uidAsset: string; id: string }
+  > = (props) => {
+    const { uidAsset, id } = props ?? {}
+
+    return assetsDataDestroy(uidAsset, id, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataDestroy>>>
 
+export type AssetsDataDestroyMutationError = ErrorDetail
 
-export const getAssetsDataDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataDestroy>>, TError,{uidAsset: string;id: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataDestroy>>, TError,{uidAsset: string;id: string}, TContext> => {
+export const useAssetsDataDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataDestroy>>,
+    TError,
+    { uidAsset: string; id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataDestroyMutationOptions(options)
 
-const mutationKey = ['assetsDataDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataDestroy>>, {uidAsset: string;id: string}> = (props) => {
-          const {uidAsset,id} = props ?? {};
-
-          return  assetsDataDestroy(uidAsset,id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataDestroy>>>
-    
-    export type AssetsDataDestroyMutationError = ErrorDetail
-
-    export const useAssetsDataDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataDestroy>>, TError,{uidAsset: string;id: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Duplicate submission
 
 Duplicates the data of a submission
@@ -1784,77 +1785,84 @@ export type assetsDataDuplicateCreateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataDuplicateCreateResponseComposite = assetsDataDuplicateCreateResponse200 | assetsDataDuplicateCreateResponse404;
-    
+
+export type assetsDataDuplicateCreateResponseComposite =
+  | assetsDataDuplicateCreateResponse200
+  | assetsDataDuplicateCreateResponse404
+
 export type assetsDataDuplicateCreateResponse = assetsDataDuplicateCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataDuplicateCreateUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataDuplicateCreateUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/duplicate/`
 }
 
-export const assetsDataDuplicateCreate = async (uidAsset: string,
-    id: string,
-    dataBulkDelete: DataBulkDelete, options?: RequestInit): Promise<assetsDataDuplicateCreateResponse> => {
-  
-  return fetchWithAuth<assetsDataDuplicateCreateResponse>(getAssetsDataDuplicateCreateUrl(uidAsset,id),
-  {      
+export const assetsDataDuplicateCreate = async (
+  uidAsset: string,
+  id: string,
+  dataBulkDelete: DataBulkDelete,
+  options?: RequestInit,
+): Promise<assetsDataDuplicateCreateResponse> => {
+  return fetchWithAuth<assetsDataDuplicateCreateResponse>(getAssetsDataDuplicateCreateUrl(uidAsset, id), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      dataBulkDelete,)
+    body: JSON.stringify(dataBulkDelete),
+  })
+}
+
+export const getAssetsDataDuplicateCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
+    TError,
+    { uidAsset: string; id: string; data: DataBulkDelete },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
+  TError,
+  { uidAsset: string; id: string; data: DataBulkDelete },
+  TContext
+> => {
+  const mutationKey = ['assetsDataDuplicateCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
+    { uidAsset: string; id: string; data: DataBulkDelete }
+  > = (props) => {
+    const { uidAsset, id, data } = props ?? {}
+
+    return assetsDataDuplicateCreate(uidAsset, id, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataDuplicateCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataDuplicateCreate>>>
+export type AssetsDataDuplicateCreateMutationBody = DataBulkDelete
+export type AssetsDataDuplicateCreateMutationError = ErrorDetail
 
+export const useAssetsDataDuplicateCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
+    TError,
+    { uidAsset: string; id: string; data: DataBulkDelete },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataDuplicateCreateMutationOptions(options)
 
-export const getAssetsDataDuplicateCreateMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataDuplicateCreate>>, TError,{uidAsset: string;id: string;data: DataBulkDelete}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataDuplicateCreate>>, TError,{uidAsset: string;id: string;data: DataBulkDelete}, TContext> => {
-
-const mutationKey = ['assetsDataDuplicateCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataDuplicateCreate>>, {uidAsset: string;id: string;data: DataBulkDelete}> = (props) => {
-          const {uidAsset,id,data} = props ?? {};
-
-          return  assetsDataDuplicateCreate(uidAsset,id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataDuplicateCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataDuplicateCreate>>>
-    export type AssetsDataDuplicateCreateMutationBody = DataBulkDelete
-    export type AssetsDataDuplicateCreateMutationError = ErrorDetail
-
-    export const useAssetsDataDuplicateCreate = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataDuplicateCreate>>, TError,{uidAsset: string;id: string;data: DataBulkDelete}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataDuplicateCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Get submission url of enketo in edit mode
 
 `{id}` can be:
@@ -1884,82 +1892,81 @@ export type assetsDataEditRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsDataEditRetrieveResponseComposite = assetsDataEditRetrieveResponse200 | assetsDataEditRetrieveResponse403;
-    
+
+export type assetsDataEditRetrieveResponseComposite =
+  | assetsDataEditRetrieveResponse200
+  | assetsDataEditRetrieveResponse403
+
 export type assetsDataEditRetrieveResponse = assetsDataEditRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataEditRetrieveUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataEditRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/edit/`
 }
 
-export const assetsDataEditRetrieve = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataEditRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataEditRetrieveResponse>(getAssetsDataEditRetrieveUrl(uidAsset,id),
-  {      
+export const assetsDataEditRetrieve = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataEditRetrieveResponse> => {
+  return fetchWithAuth<assetsDataEditRetrieveResponse>(getAssetsDataEditRetrieveUrl(uidAsset, id), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsDataEditRetrieveQueryKey = (uidAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', id, 'edit'] as const
+}
 
-
-export const getAssetsDataEditRetrieveQueryKey = (uidAsset: string,
-    id: string,) => {
-    return ['api','v2','assets',uidAsset,'data',id,'edit'] as const;
-    }
-
-    
-export const getAssetsDataEditRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsDataEditRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEditRetrieveQueryKey(uidAsset, id)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataEditRetrieveQueryKey(uidAsset,id);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEditRetrieve>>> = ({ signal }) =>
+    assetsDataEditRetrieve(uidAsset, id, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEditRetrieve>>> = ({ signal }) => assetsDataEditRetrieve(uidAsset,id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEditRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsDataEditRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataEditRetrieve>>>
 export type AssetsDataEditRetrieveQueryError = ErrorDetail
 
+export function useAssetsDataEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataEditRetrieveQueryOptions(uidAsset, id, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataEditRetrieve<TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataEditRetrieveQueryOptions(uidAsset,id,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get submission url of enketo in edit mode
@@ -1991,82 +1998,83 @@ export type assetsDataEnketoEditRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsDataEnketoEditRetrieveResponseComposite = assetsDataEnketoEditRetrieveResponse200 | assetsDataEnketoEditRetrieveResponse403;
-    
+
+export type assetsDataEnketoEditRetrieveResponseComposite =
+  | assetsDataEnketoEditRetrieveResponse200
+  | assetsDataEnketoEditRetrieveResponse403
+
 export type assetsDataEnketoEditRetrieveResponse = assetsDataEnketoEditRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataEnketoEditRetrieveUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataEnketoEditRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/edit/`
 }
 
-export const assetsDataEnketoEditRetrieve = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataEnketoEditRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataEnketoEditRetrieveResponse>(getAssetsDataEnketoEditRetrieveUrl(uidAsset,id),
-  {      
+export const assetsDataEnketoEditRetrieve = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataEnketoEditRetrieveResponse> => {
+  return fetchWithAuth<assetsDataEnketoEditRetrieveResponse>(getAssetsDataEnketoEditRetrieveUrl(uidAsset, id), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsDataEnketoEditRetrieveQueryKey = (uidAsset: string,
-    id: string,) => {
-    return ['api','v2','assets',uidAsset,'data',id,'enketo','edit'] as const;
-    }
-
-    
-export const getAssetsDataEnketoEditRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataEnketoEditRetrieveQueryKey(uidAsset,id);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>> = ({ signal }) => assetsDataEnketoEditRetrieve(uidAsset,id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type AssetsDataEnketoEditRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>>
+export const getAssetsDataEnketoEditRetrieveQueryKey = (uidAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'edit'] as const
+}
+
+export const getAssetsDataEnketoEditRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEnketoEditRetrieveQueryKey(uidAsset, id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoEditRetrieve(uidAsset, id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataEnketoEditRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>
+>
 export type AssetsDataEnketoEditRetrieveQueryError = ErrorDetail
 
+export function useAssetsDataEnketoEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataEnketoEditRetrieveQueryOptions(uidAsset, id, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataEnketoEditRetrieve<TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataEnketoEditRetrieveQueryOptions(uidAsset,id,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get submission url of enketo in edit mode
@@ -2098,82 +2106,86 @@ export type assetsDataEnketoRedirectEditRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsDataEnketoRedirectEditRetrieveResponseComposite = assetsDataEnketoRedirectEditRetrieveResponse200 | assetsDataEnketoRedirectEditRetrieveResponse403;
-    
+
+export type assetsDataEnketoRedirectEditRetrieveResponseComposite =
+  | assetsDataEnketoRedirectEditRetrieveResponse200
+  | assetsDataEnketoRedirectEditRetrieveResponse403
+
 export type assetsDataEnketoRedirectEditRetrieveResponse = assetsDataEnketoRedirectEditRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataEnketoRedirectEditRetrieveUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataEnketoRedirectEditRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/redirect/edit/`
 }
 
-export const assetsDataEnketoRedirectEditRetrieve = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataEnketoRedirectEditRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataEnketoRedirectEditRetrieveResponse>(getAssetsDataEnketoRedirectEditRetrieveUrl(uidAsset,id),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsDataEnketoRedirectEditRetrieveQueryKey = (uidAsset: string,
-    id: string,) => {
-    return ['api','v2','assets',uidAsset,'data',id,'enketo','redirect','edit'] as const;
-    }
-
-    
-export const getAssetsDataEnketoRedirectEditRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataEnketoRedirectEditRetrieveQueryKey(uidAsset,id);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>> = ({ signal }) => assetsDataEnketoRedirectEditRetrieve(uidAsset,id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsDataEnketoRedirectEditRetrieve = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataEnketoRedirectEditRetrieveResponse> => {
+  return fetchWithAuth<assetsDataEnketoRedirectEditRetrieveResponse>(
+    getAssetsDataEnketoRedirectEditRetrieveUrl(uidAsset, id),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsDataEnketoRedirectEditRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>>
+export const getAssetsDataEnketoRedirectEditRetrieveQueryKey = (uidAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'redirect', 'edit'] as const
+}
+
+export const getAssetsDataEnketoRedirectEditRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEnketoRedirectEditRetrieveQueryKey(uidAsset, id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoRedirectEditRetrieve(uidAsset, id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataEnketoRedirectEditRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>
+>
 export type AssetsDataEnketoRedirectEditRetrieveQueryError = ErrorDetail
 
+export function useAssetsDataEnketoRedirectEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataEnketoRedirectEditRetrieveQueryOptions(uidAsset, id, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataEnketoRedirectEditRetrieve<TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataEnketoRedirectEditRetrieveQueryOptions(uidAsset,id,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get submission url of enketo in preview mode
@@ -2203,82 +2215,86 @@ export type assetsDataEnketoRedirectViewRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsDataEnketoRedirectViewRetrieveResponseComposite = assetsDataEnketoRedirectViewRetrieveResponse200 | assetsDataEnketoRedirectViewRetrieveResponse403;
-    
+
+export type assetsDataEnketoRedirectViewRetrieveResponseComposite =
+  | assetsDataEnketoRedirectViewRetrieveResponse200
+  | assetsDataEnketoRedirectViewRetrieveResponse403
+
 export type assetsDataEnketoRedirectViewRetrieveResponse = assetsDataEnketoRedirectViewRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataEnketoRedirectViewRetrieveUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataEnketoRedirectViewRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/redirect/view/`
 }
 
-export const assetsDataEnketoRedirectViewRetrieve = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataEnketoRedirectViewRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataEnketoRedirectViewRetrieveResponse>(getAssetsDataEnketoRedirectViewRetrieveUrl(uidAsset,id),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsDataEnketoRedirectViewRetrieveQueryKey = (uidAsset: string,
-    id: string,) => {
-    return ['api','v2','assets',uidAsset,'data',id,'enketo','redirect','view'] as const;
-    }
-
-    
-export const getAssetsDataEnketoRedirectViewRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataEnketoRedirectViewRetrieveQueryKey(uidAsset,id);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>> = ({ signal }) => assetsDataEnketoRedirectViewRetrieve(uidAsset,id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsDataEnketoRedirectViewRetrieve = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataEnketoRedirectViewRetrieveResponse> => {
+  return fetchWithAuth<assetsDataEnketoRedirectViewRetrieveResponse>(
+    getAssetsDataEnketoRedirectViewRetrieveUrl(uidAsset, id),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsDataEnketoRedirectViewRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>>
+export const getAssetsDataEnketoRedirectViewRetrieveQueryKey = (uidAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'redirect', 'view'] as const
+}
+
+export const getAssetsDataEnketoRedirectViewRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEnketoRedirectViewRetrieveQueryKey(uidAsset, id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoRedirectViewRetrieve(uidAsset, id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataEnketoRedirectViewRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>
+>
 export type AssetsDataEnketoRedirectViewRetrieveQueryError = ErrorDetail
 
+export function useAssetsDataEnketoRedirectViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataEnketoRedirectViewRetrieveQueryOptions(uidAsset, id, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataEnketoRedirectViewRetrieve<TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataEnketoRedirectViewRetrieveQueryOptions(uidAsset,id,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get submission url of enketo in preview mode
@@ -2308,82 +2324,83 @@ export type assetsDataEnketoViewRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsDataEnketoViewRetrieveResponseComposite = assetsDataEnketoViewRetrieveResponse200 | assetsDataEnketoViewRetrieveResponse403;
-    
+
+export type assetsDataEnketoViewRetrieveResponseComposite =
+  | assetsDataEnketoViewRetrieveResponse200
+  | assetsDataEnketoViewRetrieveResponse403
+
 export type assetsDataEnketoViewRetrieveResponse = assetsDataEnketoViewRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataEnketoViewRetrieveUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataEnketoViewRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/view/`
 }
 
-export const assetsDataEnketoViewRetrieve = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataEnketoViewRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataEnketoViewRetrieveResponse>(getAssetsDataEnketoViewRetrieveUrl(uidAsset,id),
-  {      
+export const assetsDataEnketoViewRetrieve = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataEnketoViewRetrieveResponse> => {
+  return fetchWithAuth<assetsDataEnketoViewRetrieveResponse>(getAssetsDataEnketoViewRetrieveUrl(uidAsset, id), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsDataEnketoViewRetrieveQueryKey = (uidAsset: string,
-    id: string,) => {
-    return ['api','v2','assets',uidAsset,'data',id,'enketo','view'] as const;
-    }
-
-    
-export const getAssetsDataEnketoViewRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataEnketoViewRetrieveQueryKey(uidAsset,id);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>> = ({ signal }) => assetsDataEnketoViewRetrieve(uidAsset,id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type AssetsDataEnketoViewRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>>
+export const getAssetsDataEnketoViewRetrieveQueryKey = (uidAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'view'] as const
+}
+
+export const getAssetsDataEnketoViewRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEnketoViewRetrieveQueryKey(uidAsset, id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoViewRetrieve(uidAsset, id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataEnketoViewRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>
+>
 export type AssetsDataEnketoViewRetrieveQueryError = ErrorDetail
 
+export function useAssetsDataEnketoViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataEnketoViewRetrieveQueryOptions(uidAsset, id, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataEnketoViewRetrieve<TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataEnketoViewRetrieveQueryOptions(uidAsset,id,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get validation statuses
@@ -2399,82 +2416,86 @@ export type assetsDataValidationStatusRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataValidationStatusRetrieveResponseComposite = assetsDataValidationStatusRetrieveResponse200 | assetsDataValidationStatusRetrieveResponse404;
-    
+
+export type assetsDataValidationStatusRetrieveResponseComposite =
+  | assetsDataValidationStatusRetrieveResponse200
+  | assetsDataValidationStatusRetrieveResponse404
+
 export type assetsDataValidationStatusRetrieveResponse = assetsDataValidationStatusRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataValidationStatusRetrieveUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataValidationStatusRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/validation_status/`
 }
 
-export const assetsDataValidationStatusRetrieve = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataValidationStatusRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataValidationStatusRetrieveResponse>(getAssetsDataValidationStatusRetrieveUrl(uidAsset,id),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsDataValidationStatusRetrieveQueryKey = (uidAsset: string,
-    id: string,) => {
-    return ['api','v2','assets',uidAsset,'data',id,'validation_status'] as const;
-    }
-
-    
-export const getAssetsDataValidationStatusRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataValidationStatusRetrieveQueryKey(uidAsset,id);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>> = ({ signal }) => assetsDataValidationStatusRetrieve(uidAsset,id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsDataValidationStatusRetrieve = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataValidationStatusRetrieveResponse> => {
+  return fetchWithAuth<assetsDataValidationStatusRetrieveResponse>(
+    getAssetsDataValidationStatusRetrieveUrl(uidAsset, id),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsDataValidationStatusRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>>
+export const getAssetsDataValidationStatusRetrieveQueryKey = (uidAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', id, 'validation_status'] as const
+}
+
+export const getAssetsDataValidationStatusRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataValidationStatusRetrieveQueryKey(uidAsset, id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>> = ({ signal }) =>
+    assetsDataValidationStatusRetrieve(uidAsset, id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataValidationStatusRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>
+>
 export type AssetsDataValidationStatusRetrieveQueryError = ErrorDetail
 
+export function useAssetsDataValidationStatusRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataValidationStatusRetrieveQueryOptions(uidAsset, id, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataValidationStatusRetrieve<TData = Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataValidationStatusRetrieveQueryOptions(uidAsset,id,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Update the validation of a submission
@@ -2495,77 +2516,93 @@ export type assetsDataValidationStatusPartialUpdateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataValidationStatusPartialUpdateResponseComposite = assetsDataValidationStatusPartialUpdateResponse200 | assetsDataValidationStatusPartialUpdateResponse404;
-    
-export type assetsDataValidationStatusPartialUpdateResponse = assetsDataValidationStatusPartialUpdateResponseComposite & {
-  headers: Headers;
-}
 
-export const getAssetsDataValidationStatusPartialUpdateUrl = (uidAsset: string,
-    id: string,) => {
+export type assetsDataValidationStatusPartialUpdateResponseComposite =
+  | assetsDataValidationStatusPartialUpdateResponse200
+  | assetsDataValidationStatusPartialUpdateResponse404
 
+export type assetsDataValidationStatusPartialUpdateResponse =
+  assetsDataValidationStatusPartialUpdateResponseComposite & {
+    headers: Headers
+  }
 
-  
-
+export const getAssetsDataValidationStatusPartialUpdateUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/validation_status/`
 }
 
-export const assetsDataValidationStatusPartialUpdate = async (uidAsset: string,
-    id: string,
-    patchedDataValidationStatusUpdatePayload: PatchedDataValidationStatusUpdatePayload, options?: RequestInit): Promise<assetsDataValidationStatusPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsDataValidationStatusPartialUpdateResponse>(getAssetsDataValidationStatusPartialUpdateUrl(uidAsset,id),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedDataValidationStatusUpdatePayload,)
+export const assetsDataValidationStatusPartialUpdate = async (
+  uidAsset: string,
+  id: string,
+  patchedDataValidationStatusUpdatePayload: PatchedDataValidationStatusUpdatePayload,
+  options?: RequestInit,
+): Promise<assetsDataValidationStatusPartialUpdateResponse> => {
+  return fetchWithAuth<assetsDataValidationStatusPartialUpdateResponse>(
+    getAssetsDataValidationStatusPartialUpdateUrl(uidAsset, id),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedDataValidationStatusUpdatePayload),
+    },
+  )
+}
+
+export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <
+  TError = ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
+    TError,
+    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
+  TError,
+  { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
+  TContext
+> => {
+  const mutationKey = ['assetsDataValidationStatusPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
+    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload }
+  > = (props) => {
+    const { uidAsset, id, data } = props ?? {}
+
+    return assetsDataValidationStatusPartialUpdate(uidAsset, id, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataValidationStatusPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>
+>
+export type AssetsDataValidationStatusPartialUpdateMutationBody = PatchedDataValidationStatusUpdatePayload
+export type AssetsDataValidationStatusPartialUpdateMutationError = ErrorDetail
 
+export const useAssetsDataValidationStatusPartialUpdate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
+    TError,
+    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataValidationStatusPartialUpdateMutationOptions(options)
 
-export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>, TError,{uidAsset: string;id: string;data: PatchedDataValidationStatusUpdatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>, TError,{uidAsset: string;id: string;data: PatchedDataValidationStatusUpdatePayload}, TContext> => {
-
-const mutationKey = ['assetsDataValidationStatusPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>, {uidAsset: string;id: string;data: PatchedDataValidationStatusUpdatePayload}> = (props) => {
-          const {uidAsset,id,data} = props ?? {};
-
-          return  assetsDataValidationStatusPartialUpdate(uidAsset,id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataValidationStatusPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>>
-    export type AssetsDataValidationStatusPartialUpdateMutationBody = PatchedDataValidationStatusUpdatePayload
-    export type AssetsDataValidationStatusPartialUpdateMutationError = ErrorDetail
-
-    export const useAssetsDataValidationStatusPartialUpdate = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>, TError,{uidAsset: string;id: string;data: PatchedDataValidationStatusUpdatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataValidationStatusPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Delete validation status
 
  */
@@ -2578,75 +2615,89 @@ export type assetsDataValidationStatusDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataValidationStatusDestroyResponseComposite = assetsDataValidationStatusDestroyResponse204 | assetsDataValidationStatusDestroyResponse404;
-    
+
+export type assetsDataValidationStatusDestroyResponseComposite =
+  | assetsDataValidationStatusDestroyResponse204
+  | assetsDataValidationStatusDestroyResponse404
+
 export type assetsDataValidationStatusDestroyResponse = assetsDataValidationStatusDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataValidationStatusDestroyUrl = (uidAsset: string,
-    id: string,) => {
-
-
-  
-
+export const getAssetsDataValidationStatusDestroyUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/validation_status/`
 }
 
-export const assetsDataValidationStatusDestroy = async (uidAsset: string,
-    id: string, options?: RequestInit): Promise<assetsDataValidationStatusDestroyResponse> => {
-  
-  return fetchWithAuth<assetsDataValidationStatusDestroyResponse>(getAssetsDataValidationStatusDestroyUrl(uidAsset,id),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
+export const assetsDataValidationStatusDestroy = async (
+  uidAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataValidationStatusDestroyResponse> => {
+  return fetchWithAuth<assetsDataValidationStatusDestroyResponse>(
+    getAssetsDataValidationStatusDestroyUrl(uidAsset, id),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
+
+export const getAssetsDataValidationStatusDestroyMutationOptions = <
+  TError = ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
+    TError,
+    { uidAsset: string; id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
+  TError,
+  { uidAsset: string; id: string },
+  TContext
+> => {
+  const mutationKey = ['assetsDataValidationStatusDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
+    { uidAsset: string; id: string }
+  > = (props) => {
+    const { uidAsset, id } = props ?? {}
+
+    return assetsDataValidationStatusDestroy(uidAsset, id, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataValidationStatusDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>
+>
 
+export type AssetsDataValidationStatusDestroyMutationError = ErrorDetail
 
-export const getAssetsDataValidationStatusDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>, TError,{uidAsset: string;id: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>, TError,{uidAsset: string;id: string}, TContext> => {
+export const useAssetsDataValidationStatusDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
+    TError,
+    { uidAsset: string; id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataValidationStatusDestroyMutationOptions(options)
 
-const mutationKey = ['assetsDataValidationStatusDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>, {uidAsset: string;id: string}> = (props) => {
-          const {uidAsset,id} = props ?? {};
-
-          return  assetsDataValidationStatusDestroy(uidAsset,id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataValidationStatusDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>>
-    
-    export type AssetsDataValidationStatusDestroyMutationError = ErrorDetail
-
-    export const useAssetsDataValidationStatusDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>, TError,{uidAsset: string;id: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataValidationStatusDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve submission supplementary data
 
 This endpoint allows you to retrieve supplementary data attached to a submission.
@@ -2687,82 +2738,84 @@ export type assetsDataSupplementRetrieveResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type assetsDataSupplementRetrieveResponseComposite = assetsDataSupplementRetrieveResponse200 | assetsDataSupplementRetrieveResponse400 | assetsDataSupplementRetrieveResponse401;
-    
+
+export type assetsDataSupplementRetrieveResponseComposite =
+  | assetsDataSupplementRetrieveResponse200
+  | assetsDataSupplementRetrieveResponse400
+  | assetsDataSupplementRetrieveResponse401
+
 export type assetsDataSupplementRetrieveResponse = assetsDataSupplementRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataSupplementRetrieveUrl = (uidAsset: string,
-    rootUuid: string,) => {
-
-
-  
-
+export const getAssetsDataSupplementRetrieveUrl = (uidAsset: string, rootUuid: string) => {
   return `/api/v2/assets/${uidAsset}/data/${rootUuid}/supplement/`
 }
 
-export const assetsDataSupplementRetrieve = async (uidAsset: string,
-    rootUuid: string, options?: RequestInit): Promise<assetsDataSupplementRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsDataSupplementRetrieveResponse>(getAssetsDataSupplementRetrieveUrl(uidAsset,rootUuid),
-  {      
+export const assetsDataSupplementRetrieve = async (
+  uidAsset: string,
+  rootUuid: string,
+  options?: RequestInit,
+): Promise<assetsDataSupplementRetrieveResponse> => {
+  return fetchWithAuth<assetsDataSupplementRetrieveResponse>(getAssetsDataSupplementRetrieveUrl(uidAsset, rootUuid), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsDataSupplementRetrieveQueryKey = (uidAsset: string,
-    rootUuid: string,) => {
-    return ['api','v2','assets',uidAsset,'data',rootUuid,'supplement'] as const;
-    }
-
-    
-export const getAssetsDataSupplementRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError = ErrorObject | ErrorDetail>(uidAsset: string,
-    rootUuid: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataSupplementRetrieveQueryKey(uidAsset,rootUuid);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>> = ({ signal }) => assetsDataSupplementRetrieve(uidAsset,rootUuid, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && rootUuid), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type AssetsDataSupplementRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>>
+export const getAssetsDataSupplementRetrieveQueryKey = (uidAsset: string, rootUuid: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', rootUuid, 'supplement'] as const
+}
+
+export const getAssetsDataSupplementRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  rootUuid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>> = ({ signal }) =>
+    assetsDataSupplementRetrieve(uidAsset, rootUuid, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && rootUuid), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataSupplementRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>
+>
 export type AssetsDataSupplementRetrieveQueryError = ErrorObject | ErrorDetail
 
+export function useAssetsDataSupplementRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  rootUuid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataSupplementRetrieveQueryOptions(uidAsset, rootUuid, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataSupplementRetrieve<TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError = ErrorObject | ErrorDetail>(
- uidAsset: string,
-    rootUuid: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataSupplementRetrieveQueryOptions(uidAsset,rootUuid,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Update submission supplementary data
@@ -2799,77 +2852,93 @@ export type assetsDataSupplementPartialUpdateResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type assetsDataSupplementPartialUpdateResponseComposite = assetsDataSupplementPartialUpdateResponse200 | assetsDataSupplementPartialUpdateResponse400 | assetsDataSupplementPartialUpdateResponse401;
-    
+
+export type assetsDataSupplementPartialUpdateResponseComposite =
+  | assetsDataSupplementPartialUpdateResponse200
+  | assetsDataSupplementPartialUpdateResponse400
+  | assetsDataSupplementPartialUpdateResponse401
+
 export type assetsDataSupplementPartialUpdateResponse = assetsDataSupplementPartialUpdateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataSupplementPartialUpdateUrl = (uidAsset: string,
-    rootUuid: string,) => {
-
-
-  
-
+export const getAssetsDataSupplementPartialUpdateUrl = (uidAsset: string, rootUuid: string) => {
   return `/api/v2/assets/${uidAsset}/data/${rootUuid}/supplement/`
 }
 
-export const assetsDataSupplementPartialUpdate = async (uidAsset: string,
-    rootUuid: string,
-    patchedDataSupplementPayload: PatchedDataSupplementPayload, options?: RequestInit): Promise<assetsDataSupplementPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsDataSupplementPartialUpdateResponse>(getAssetsDataSupplementPartialUpdateUrl(uidAsset,rootUuid),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedDataSupplementPayload,)
+export const assetsDataSupplementPartialUpdate = async (
+  uidAsset: string,
+  rootUuid: string,
+  patchedDataSupplementPayload: PatchedDataSupplementPayload,
+  options?: RequestInit,
+): Promise<assetsDataSupplementPartialUpdateResponse> => {
+  return fetchWithAuth<assetsDataSupplementPartialUpdateResponse>(
+    getAssetsDataSupplementPartialUpdateUrl(uidAsset, rootUuid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedDataSupplementPayload),
+    },
+  )
+}
+
+export const getAssetsDataSupplementPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    TError,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+  TError,
+  { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+  TContext
+> => {
+  const mutationKey = ['assetsDataSupplementPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload }
+  > = (props) => {
+    const { uidAsset, rootUuid, data } = props ?? {}
+
+    return assetsDataSupplementPartialUpdate(uidAsset, rootUuid, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataSupplementPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>
+>
+export type AssetsDataSupplementPartialUpdateMutationBody = PatchedDataSupplementPayload
+export type AssetsDataSupplementPartialUpdateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsDataSupplementPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    TError,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataSupplementPartialUpdateMutationOptions(options)
 
-export const getAssetsDataSupplementPartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>, TError,{uidAsset: string;rootUuid: string;data: PatchedDataSupplementPayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>, TError,{uidAsset: string;rootUuid: string;data: PatchedDataSupplementPayload}, TContext> => {
-
-const mutationKey = ['assetsDataSupplementPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>, {uidAsset: string;rootUuid: string;data: PatchedDataSupplementPayload}> = (props) => {
-          const {uidAsset,rootUuid,data} = props ?? {};
-
-          return  assetsDataSupplementPartialUpdate(uidAsset,rootUuid,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataSupplementPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>>
-    export type AssetsDataSupplementPartialUpdateMutationBody = PatchedDataSupplementPayload
-    export type AssetsDataSupplementPartialUpdateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsDataSupplementPartialUpdate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>, TError,{uidAsset: string;rootUuid: string;data: PatchedDataSupplementPayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataSupplementPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Get an asset's attachment using xpath
 
 * `uid_data` can be the primary key of the submission or its `uuid`.
@@ -2904,94 +2973,105 @@ export type assetsDataAttachmentsListResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataAttachmentsListResponseComposite = assetsDataAttachmentsListResponse200 | assetsDataAttachmentsListResponse400 | assetsDataAttachmentsListResponse404;
-    
+
+export type assetsDataAttachmentsListResponseComposite =
+  | assetsDataAttachmentsListResponse200
+  | assetsDataAttachmentsListResponse400
+  | assetsDataAttachmentsListResponse404
+
 export type assetsDataAttachmentsListResponse = assetsDataAttachmentsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataAttachmentsListUrl = (uidAsset: string,
-    uidData: string,
-    params: AssetsDataAttachmentsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsDataAttachmentsListUrl = (
+  uidAsset: string,
+  uidData: string,
+  params: AssetsDataAttachmentsListParams,
+) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/`
 }
 
-export const assetsDataAttachmentsList = async (uidAsset: string,
-    uidData: string,
-    params: AssetsDataAttachmentsListParams, options?: RequestInit): Promise<assetsDataAttachmentsListResponse> => {
-  
-  return fetchWithAuth<assetsDataAttachmentsListResponse>(getAssetsDataAttachmentsListUrl(uidAsset,uidData,params),
-  {      
+export const assetsDataAttachmentsList = async (
+  uidAsset: string,
+  uidData: string,
+  params: AssetsDataAttachmentsListParams,
+  options?: RequestInit,
+): Promise<assetsDataAttachmentsListResponse> => {
+  return fetchWithAuth<assetsDataAttachmentsListResponse>(getAssetsDataAttachmentsListUrl(uidAsset, uidData, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
-
-
-export const getAssetsDataAttachmentsListQueryKey = (uidAsset: string,
-    uidData: string,
-    params: AssetsDataAttachmentsListParams,) => {
-    return ['api','v2','assets',uidAsset,'data',uidData,'attachments', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsDataAttachmentsListQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError = ErrorObject | ErrorDetail>(uidAsset: string,
-    uidData: string,
-    params: AssetsDataAttachmentsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsDataAttachmentsListQueryKey = (
+  uidAsset: string,
+  uidData: string,
+  params: AssetsDataAttachmentsListParams,
 ) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', uidData, 'attachments', ...(params ? [params] : [])] as const
+}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const getAssetsDataAttachmentsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  uidData: string,
+  params: AssetsDataAttachmentsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsDataAttachmentsListQueryKey(uidAsset,uidData,params);
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataAttachmentsListQueryKey(uidAsset, uidData, params)
 
-  
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataAttachmentsList>>> = ({ signal }) =>
+    assetsDataAttachmentsList(uidAsset, uidData, params, { signal, ...requestOptions })
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataAttachmentsList>>> = ({ signal }) => assetsDataAttachmentsList(uidAsset,uidData,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidData), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidData), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsDataAttachmentsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataAttachmentsList>>>
 export type AssetsDataAttachmentsListQueryError = ErrorObject | ErrorDetail
 
+export function useAssetsDataAttachmentsList<
+  TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  uidData: string,
+  params: AssetsDataAttachmentsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataAttachmentsListQueryOptions(uidAsset, uidData, params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsDataAttachmentsList<TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError = ErrorObject | ErrorDetail>(
- uidAsset: string,
-    uidData: string,
-    params: AssetsDataAttachmentsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsDataAttachmentsListQueryOptions(uidAsset,uidData,params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get an asset's attachment using the ID
@@ -3033,99 +3113,110 @@ export type attachmentRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type attachmentRetrieveResponseComposite = attachmentRetrieveResponse200 | attachmentRetrieveResponse400 | attachmentRetrieveResponse404;
-    
+
+export type attachmentRetrieveResponseComposite =
+  | attachmentRetrieveResponse200
+  | attachmentRetrieveResponse400
+  | attachmentRetrieveResponse404
+
 export type attachmentRetrieveResponse = attachmentRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAttachmentRetrieveUrl = (uidAsset: string,
-    uidData: string,
-    id: number,
-    params?: AttachmentRetrieveParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAttachmentRetrieveUrl = (
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  params?: AttachmentRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/${id}/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/${id}/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/${id}/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/${id}/`
 }
 
-export const attachmentRetrieve = async (uidAsset: string,
-    uidData: string,
-    id: number,
-    params?: AttachmentRetrieveParams, options?: RequestInit): Promise<attachmentRetrieveResponse> => {
-  
-  return fetchWithAuth<attachmentRetrieveResponse>(getAttachmentRetrieveUrl(uidAsset,uidData,id,params),
-  {      
+export const attachmentRetrieve = async (
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  params?: AttachmentRetrieveParams,
+  options?: RequestInit,
+): Promise<attachmentRetrieveResponse> => {
+  return fetchWithAuth<attachmentRetrieveResponse>(getAttachmentRetrieveUrl(uidAsset, uidData, id, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
-
-
-export const getAttachmentRetrieveQueryKey = (uidAsset: string,
-    uidData: string,
-    id: number,
-    params?: AttachmentRetrieveParams,) => {
-    return ['api','v2','assets',uidAsset,'data',uidData,'attachments',id, ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAttachmentRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof attachmentRetrieve>>, TError = ErrorObject | ErrorDetail>(uidAsset: string,
-    uidData: string,
-    id: number,
-    params?: AttachmentRetrieveParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof attachmentRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAttachmentRetrieveQueryKey = (
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  params?: AttachmentRetrieveParams,
 ) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', uidData, 'attachments', id, ...(params ? [params] : [])] as const
+}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const getAttachmentRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof attachmentRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  params?: AttachmentRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof attachmentRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey =  queryOptions?.queryKey ?? getAttachmentRetrieveQueryKey(uidAsset,uidData,id,params);
+  const queryKey = queryOptions?.queryKey ?? getAttachmentRetrieveQueryKey(uidAsset, uidData, id, params)
 
-  
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof attachmentRetrieve>>> = ({ signal }) =>
+    attachmentRetrieve(uidAsset, uidData, id, params, { signal, ...requestOptions })
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof attachmentRetrieve>>> = ({ signal }) => attachmentRetrieve(uidAsset,uidData,id,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidData && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof attachmentRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidData && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof attachmentRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AttachmentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentRetrieve>>>
 export type AttachmentRetrieveQueryError = ErrorObject | ErrorDetail
 
+export function useAttachmentRetrieve<
+  TData = Awaited<ReturnType<typeof attachmentRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  params?: AttachmentRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof attachmentRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAttachmentRetrieveQueryOptions(uidAsset, uidData, id, params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAttachmentRetrieve<TData = Awaited<ReturnType<typeof attachmentRetrieve>>, TError = ErrorObject | ErrorDetail>(
- uidAsset: string,
-    uidData: string,
-    id: number,
-    params?: AttachmentRetrieveParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof attachmentRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAttachmentRetrieveQueryOptions(uidAsset,uidData,id,params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Get a specific size of the user's attachment (Only for images)
@@ -3156,92 +3247,82 @@ export type attachmentThumbnailResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type attachmentThumbnailResponseComposite = attachmentThumbnailResponse200 | attachmentThumbnailResponse404;
-    
+
+export type attachmentThumbnailResponseComposite = attachmentThumbnailResponse200 | attachmentThumbnailResponse404
+
 export type attachmentThumbnailResponse = attachmentThumbnailResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAttachmentThumbnailUrl = (uidAsset: string,
-    uidData: string,
-    id: number,
-    suffix: string,) => {
-
-
-  
-
+export const getAttachmentThumbnailUrl = (uidAsset: string, uidData: string, id: number, suffix: string) => {
   return `/api/v2/assets/${uidAsset}/data/${uidData}/attachments/${id}/${suffix}/`
 }
 
-export const attachmentThumbnail = async (uidAsset: string,
-    uidData: string,
-    id: number,
-    suffix: string, options?: RequestInit): Promise<attachmentThumbnailResponse> => {
-  
-  return fetchWithAuth<attachmentThumbnailResponse>(getAttachmentThumbnailUrl(uidAsset,uidData,id,suffix),
-  {      
+export const attachmentThumbnail = async (
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  suffix: string,
+  options?: RequestInit,
+): Promise<attachmentThumbnailResponse> => {
+  return fetchWithAuth<attachmentThumbnailResponse>(getAttachmentThumbnailUrl(uidAsset, uidData, id, suffix), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAttachmentThumbnailQueryKey = (uidAsset: string, uidData: string, id: number, suffix: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', uidData, 'attachments', id, suffix] as const
+}
 
-
-export const getAttachmentThumbnailQueryKey = (uidAsset: string,
-    uidData: string,
-    id: number,
-    suffix: string,) => {
-    return ['api','v2','assets',uidAsset,'data',uidData,'attachments',id,suffix] as const;
-    }
-
-    
-export const getAttachmentThumbnailQueryOptions = <TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorDetail>(uidAsset: string,
-    uidData: string,
-    id: number,
-    suffix: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAttachmentThumbnailQueryOptions = <
+  TData = Awaited<ReturnType<typeof attachmentThumbnail>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  suffix: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAttachmentThumbnailQueryKey(uidAsset, uidData, id, suffix)
 
-  const queryKey =  queryOptions?.queryKey ?? getAttachmentThumbnailQueryKey(uidAsset,uidData,id,suffix);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof attachmentThumbnail>>> = ({ signal }) =>
+    attachmentThumbnail(uidAsset, uidData, id, suffix, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof attachmentThumbnail>>> = ({ signal }) => attachmentThumbnail(uidAsset,uidData,id,suffix, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidData && id && suffix), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidData && id && suffix), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof attachmentThumbnail>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AttachmentThumbnailQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentThumbnail>>>
 export type AttachmentThumbnailQueryError = ErrorDetail
 
-
-
 export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidData: string,
-    id: number,
-    suffix: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  uidData: string,
+  id: number,
+  suffix: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAttachmentThumbnailQueryOptions(uidAsset, uidData, id, suffix, options)
 
-  const queryOptions = getAttachmentThumbnailQueryOptions(uidAsset,uidData,id,suffix,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Bulk updating of submissions
@@ -3270,75 +3351,85 @@ export type assetsDataBulkPartialUpdateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataBulkPartialUpdateResponseComposite = assetsDataBulkPartialUpdateResponse200 | assetsDataBulkPartialUpdateResponse404;
-    
+
+export type assetsDataBulkPartialUpdateResponseComposite =
+  | assetsDataBulkPartialUpdateResponse200
+  | assetsDataBulkPartialUpdateResponse404
+
 export type assetsDataBulkPartialUpdateResponse = assetsDataBulkPartialUpdateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataBulkPartialUpdateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsDataBulkPartialUpdateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/data/bulk/`
 }
 
-export const assetsDataBulkPartialUpdate = async (uidAsset: string,
-    patchedDataBulkUpdate: PatchedDataBulkUpdate, options?: RequestInit): Promise<assetsDataBulkPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsDataBulkPartialUpdateResponse>(getAssetsDataBulkPartialUpdateUrl(uidAsset),
-  {      
+export const assetsDataBulkPartialUpdate = async (
+  uidAsset: string,
+  patchedDataBulkUpdate: PatchedDataBulkUpdate,
+  options?: RequestInit,
+): Promise<assetsDataBulkPartialUpdateResponse> => {
+  return fetchWithAuth<assetsDataBulkPartialUpdateResponse>(getAssetsDataBulkPartialUpdateUrl(uidAsset), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedDataBulkUpdate,)
+    body: JSON.stringify(patchedDataBulkUpdate),
+  })
+}
+
+export const getAssetsDataBulkPartialUpdateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>,
+    TError,
+    { uidAsset: string; data: PatchedDataBulkUpdate },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>,
+  TError,
+  { uidAsset: string; data: PatchedDataBulkUpdate },
+  TContext
+> => {
+  const mutationKey = ['assetsDataBulkPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>,
+    { uidAsset: string; data: PatchedDataBulkUpdate }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsDataBulkPartialUpdate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataBulkPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>
+>
+export type AssetsDataBulkPartialUpdateMutationBody = PatchedDataBulkUpdate
+export type AssetsDataBulkPartialUpdateMutationError = ErrorDetail
 
+export const useAssetsDataBulkPartialUpdate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>,
+    TError,
+    { uidAsset: string; data: PatchedDataBulkUpdate },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataBulkPartialUpdateMutationOptions(options)
 
-export const getAssetsDataBulkPartialUpdateMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>, TError,{uidAsset: string;data: PatchedDataBulkUpdate}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>, TError,{uidAsset: string;data: PatchedDataBulkUpdate}, TContext> => {
-
-const mutationKey = ['assetsDataBulkPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>, {uidAsset: string;data: PatchedDataBulkUpdate}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsDataBulkPartialUpdate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataBulkPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>>
-    export type AssetsDataBulkPartialUpdateMutationBody = PatchedDataBulkUpdate
-    export type AssetsDataBulkPartialUpdateMutationError = ErrorDetail
-
-    export const useAssetsDataBulkPartialUpdate = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>, TError,{uidAsset: string;data: PatchedDataBulkUpdate}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataBulkPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Bulk delete submissions
 
 ```curl
@@ -3379,73 +3470,72 @@ export type assetsDataBulkDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataBulkDestroyResponseComposite = assetsDataBulkDestroyResponse200 | assetsDataBulkDestroyResponse404;
-    
+
+export type assetsDataBulkDestroyResponseComposite = assetsDataBulkDestroyResponse200 | assetsDataBulkDestroyResponse404
+
 export type assetsDataBulkDestroyResponse = assetsDataBulkDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataBulkDestroyUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsDataBulkDestroyUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/data/bulk/`
 }
 
-export const assetsDataBulkDestroy = async (uidAsset: string, options?: RequestInit): Promise<assetsDataBulkDestroyResponse> => {
-  
-  return fetchWithAuth<assetsDataBulkDestroyResponse>(getAssetsDataBulkDestroyUrl(uidAsset),
-  {      
+export const assetsDataBulkDestroy = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsDataBulkDestroyResponse> => {
+  return fetchWithAuth<assetsDataBulkDestroyResponse>(getAssetsDataBulkDestroyUrl(uidAsset), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsDataBulkDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataBulkDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<Awaited<ReturnType<typeof assetsDataBulkDestroy>>, TError, { uidAsset: string }, TContext> => {
+  const mutationKey = ['assetsDataBulkDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataBulkDestroy>>, { uidAsset: string }> = (
+    props,
+  ) => {
+    const { uidAsset } = props ?? {}
+
+    return assetsDataBulkDestroy(uidAsset, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataBulkDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataBulkDestroy>>>
 
+export type AssetsDataBulkDestroyMutationError = ErrorDetail
 
-export const getAssetsDataBulkDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataBulkDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataBulkDestroy>>, TError,{uidAsset: string}, TContext> => {
+export const useAssetsDataBulkDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataBulkDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataBulkDestroyMutationOptions(options)
 
-const mutationKey = ['assetsDataBulkDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataBulkDestroy>>, {uidAsset: string}> = (props) => {
-          const {uidAsset} = props ?? {};
-
-          return  assetsDataBulkDestroy(uidAsset,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataBulkDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataBulkDestroy>>>
-    
-    export type AssetsDataBulkDestroyMutationError = ErrorDetail
-
-    export const useAssetsDataBulkDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataBulkDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataBulkDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Bulk accept NLP results
 
 Accepts transcription or translation results for multiple submissions in a
@@ -3508,75 +3598,89 @@ export type assetsDataSupplementsBulkCreateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataSupplementsBulkCreateResponseComposite = assetsDataSupplementsBulkCreateResponse200 | assetsDataSupplementsBulkCreateResponse400 | assetsDataSupplementsBulkCreateResponse404;
-    
+
+export type assetsDataSupplementsBulkCreateResponseComposite =
+  | assetsDataSupplementsBulkCreateResponse200
+  | assetsDataSupplementsBulkCreateResponse400
+  | assetsDataSupplementsBulkCreateResponse404
+
 export type assetsDataSupplementsBulkCreateResponse = assetsDataSupplementsBulkCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataSupplementsBulkCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsDataSupplementsBulkCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/data/supplements/bulk/`
 }
 
-export const assetsDataSupplementsBulkCreate = async (uidAsset: string,
-    bulkAcceptRequest: BulkAcceptRequest, options?: RequestInit): Promise<assetsDataSupplementsBulkCreateResponse> => {
-  
-  return fetchWithAuth<assetsDataSupplementsBulkCreateResponse>(getAssetsDataSupplementsBulkCreateUrl(uidAsset),
-  {      
+export const assetsDataSupplementsBulkCreate = async (
+  uidAsset: string,
+  bulkAcceptRequest: BulkAcceptRequest,
+  options?: RequestInit,
+): Promise<assetsDataSupplementsBulkCreateResponse> => {
+  return fetchWithAuth<assetsDataSupplementsBulkCreateResponse>(getAssetsDataSupplementsBulkCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      bulkAcceptRequest,)
+    body: JSON.stringify(bulkAcceptRequest),
+  })
+}
+
+export const getAssetsDataSupplementsBulkCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+    TError,
+    { uidAsset: string; data: BulkAcceptRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+  TError,
+  { uidAsset: string; data: BulkAcceptRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsDataSupplementsBulkCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+    { uidAsset: string; data: BulkAcceptRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsDataSupplementsBulkCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataSupplementsBulkCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>
+>
+export type AssetsDataSupplementsBulkCreateMutationBody = BulkAcceptRequest
+export type AssetsDataSupplementsBulkCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsDataSupplementsBulkCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
+    TError,
+    { uidAsset: string; data: BulkAcceptRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataSupplementsBulkCreateMutationOptions(options)
 
-export const getAssetsDataSupplementsBulkCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>, TError,{uidAsset: string;data: BulkAcceptRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>, TError,{uidAsset: string;data: BulkAcceptRequest}, TContext> => {
-
-const mutationKey = ['assetsDataSupplementsBulkCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>, {uidAsset: string;data: BulkAcceptRequest}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsDataSupplementsBulkCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataSupplementsBulkCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>>
-    export type AssetsDataSupplementsBulkCreateMutationBody = BulkAcceptRequest
-    export type AssetsDataSupplementsBulkCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsDataSupplementsBulkCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>, TError,{uidAsset: string;data: BulkAcceptRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataSupplementsBulkCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Bulk update submissions status
 
 * Where: "submissions_ids" (required) is a list of submission root id on the data
@@ -3603,75 +3707,92 @@ export type assetsDataValidationStatusesPartialUpdateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataValidationStatusesPartialUpdateResponseComposite = assetsDataValidationStatusesPartialUpdateResponse200 | assetsDataValidationStatusesPartialUpdateResponse404;
-    
-export type assetsDataValidationStatusesPartialUpdateResponse = assetsDataValidationStatusesPartialUpdateResponseComposite & {
-  headers: Headers;
-}
 
-export const getAssetsDataValidationStatusesPartialUpdateUrl = (uidAsset: string,) => {
+export type assetsDataValidationStatusesPartialUpdateResponseComposite =
+  | assetsDataValidationStatusesPartialUpdateResponse200
+  | assetsDataValidationStatusesPartialUpdateResponse404
 
+export type assetsDataValidationStatusesPartialUpdateResponse =
+  assetsDataValidationStatusesPartialUpdateResponseComposite & {
+    headers: Headers
+  }
 
-  
-
+export const getAssetsDataValidationStatusesPartialUpdateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/data/validation_statuses/`
 }
 
-export const assetsDataValidationStatusesPartialUpdate = async (uidAsset: string,
-    patchedDataValidationStatusesUpdatePayload: PatchedDataValidationStatusesUpdatePayload, options?: RequestInit): Promise<assetsDataValidationStatusesPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsDataValidationStatusesPartialUpdateResponse>(getAssetsDataValidationStatusesPartialUpdateUrl(uidAsset),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedDataValidationStatusesUpdatePayload,)
+export const assetsDataValidationStatusesPartialUpdate = async (
+  uidAsset: string,
+  patchedDataValidationStatusesUpdatePayload: PatchedDataValidationStatusesUpdatePayload,
+  options?: RequestInit,
+): Promise<assetsDataValidationStatusesPartialUpdateResponse> => {
+  return fetchWithAuth<assetsDataValidationStatusesPartialUpdateResponse>(
+    getAssetsDataValidationStatusesPartialUpdateUrl(uidAsset),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedDataValidationStatusesUpdatePayload),
+    },
+  )
+}
+
+export const getAssetsDataValidationStatusesPartialUpdateMutationOptions = <
+  TError = ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>,
+    TError,
+    { uidAsset: string; data: PatchedDataValidationStatusesUpdatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>,
+  TError,
+  { uidAsset: string; data: PatchedDataValidationStatusesUpdatePayload },
+  TContext
+> => {
+  const mutationKey = ['assetsDataValidationStatusesPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>,
+    { uidAsset: string; data: PatchedDataValidationStatusesUpdatePayload }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsDataValidationStatusesPartialUpdate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataValidationStatusesPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>
+>
+export type AssetsDataValidationStatusesPartialUpdateMutationBody = PatchedDataValidationStatusesUpdatePayload
+export type AssetsDataValidationStatusesPartialUpdateMutationError = ErrorDetail
 
+export const useAssetsDataValidationStatusesPartialUpdate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>,
+    TError,
+    { uidAsset: string; data: PatchedDataValidationStatusesUpdatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataValidationStatusesPartialUpdateMutationOptions(options)
 
-export const getAssetsDataValidationStatusesPartialUpdateMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>, TError,{uidAsset: string;data: PatchedDataValidationStatusesUpdatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>, TError,{uidAsset: string;data: PatchedDataValidationStatusesUpdatePayload}, TContext> => {
-
-const mutationKey = ['assetsDataValidationStatusesPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>, {uidAsset: string;data: PatchedDataValidationStatusesUpdatePayload}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsDataValidationStatusesPartialUpdate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataValidationStatusesPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>>
-    export type AssetsDataValidationStatusesPartialUpdateMutationBody = PatchedDataValidationStatusesUpdatePayload
-    export type AssetsDataValidationStatusesPartialUpdateMutationError = ErrorDetail
-
-    export const useAssetsDataValidationStatusesPartialUpdate = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusesPartialUpdate>>, TError,{uidAsset: string;data: PatchedDataValidationStatusesUpdatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataValidationStatusesPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Bulk delete submissions status
 
 ```curl
@@ -3717,73 +3838,88 @@ export type assetsDataValidationStatusesDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsDataValidationStatusesDestroyResponseComposite = assetsDataValidationStatusesDestroyResponse204 | assetsDataValidationStatusesDestroyResponse404;
-    
+
+export type assetsDataValidationStatusesDestroyResponseComposite =
+  | assetsDataValidationStatusesDestroyResponse204
+  | assetsDataValidationStatusesDestroyResponse404
+
 export type assetsDataValidationStatusesDestroyResponse = assetsDataValidationStatusesDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsDataValidationStatusesDestroyUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsDataValidationStatusesDestroyUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/data/validation_statuses/`
 }
 
-export const assetsDataValidationStatusesDestroy = async (uidAsset: string, options?: RequestInit): Promise<assetsDataValidationStatusesDestroyResponse> => {
-  
-  return fetchWithAuth<assetsDataValidationStatusesDestroyResponse>(getAssetsDataValidationStatusesDestroyUrl(uidAsset),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
+export const assetsDataValidationStatusesDestroy = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsDataValidationStatusesDestroyResponse> => {
+  return fetchWithAuth<assetsDataValidationStatusesDestroyResponse>(
+    getAssetsDataValidationStatusesDestroyUrl(uidAsset),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
+
+export const getAssetsDataValidationStatusesDestroyMutationOptions = <
+  TError = ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>,
+  TError,
+  { uidAsset: string },
+  TContext
+> => {
+  const mutationKey = ['assetsDataValidationStatusesDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>,
+    { uidAsset: string }
+  > = (props) => {
+    const { uidAsset } = props ?? {}
+
+    return assetsDataValidationStatusesDestroy(uidAsset, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsDataValidationStatusesDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>
+>
 
+export type AssetsDataValidationStatusesDestroyMutationError = ErrorDetail
 
-export const getAssetsDataValidationStatusesDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>, TError,{uidAsset: string}, TContext> => {
+export const useAssetsDataValidationStatusesDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataValidationStatusesDestroyMutationOptions(options)
 
-const mutationKey = ['assetsDataValidationStatusesDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>, {uidAsset: string}> = (props) => {
-          const {uidAsset} = props ?? {};
-
-          return  assetsDataValidationStatusesDestroy(uidAsset,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsDataValidationStatusesDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>>
-    
-    export type AssetsDataValidationStatusesDestroyMutationError = ErrorDetail
-
-    export const useAssetsDataValidationStatusesDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsDataValidationStatusesDestroy>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsDataValidationStatusesDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## List of export settings for a specific asset
 
 <sup>*</sup> _Required permissions: `view_submissions` (View submissions)_
@@ -3798,89 +3934,93 @@ export type assetsExportSettingsListResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsExportSettingsListResponseComposite = assetsExportSettingsListResponse200 | assetsExportSettingsListResponse404;
-    
+
+export type assetsExportSettingsListResponseComposite =
+  | assetsExportSettingsListResponse200
+  | assetsExportSettingsListResponse404
+
 export type assetsExportSettingsListResponse = assetsExportSettingsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportSettingsListUrl = (uidAsset: string,
-    params?: AssetsExportSettingsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsExportSettingsListUrl = (uidAsset: string, params?: AssetsExportSettingsListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/export-settings/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/export-settings/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/export-settings/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/export-settings/`
 }
 
-export const assetsExportSettingsList = async (uidAsset: string,
-    params?: AssetsExportSettingsListParams, options?: RequestInit): Promise<assetsExportSettingsListResponse> => {
-  
-  return fetchWithAuth<assetsExportSettingsListResponse>(getAssetsExportSettingsListUrl(uidAsset,params),
-  {      
+export const assetsExportSettingsList = async (
+  uidAsset: string,
+  params?: AssetsExportSettingsListParams,
+  options?: RequestInit,
+): Promise<assetsExportSettingsListResponse> => {
+  return fetchWithAuth<assetsExportSettingsListResponse>(getAssetsExportSettingsListUrl(uidAsset, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsExportSettingsListQueryKey = (uidAsset: string, params?: AssetsExportSettingsListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'export-settings', ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetsExportSettingsListQueryKey = (uidAsset: string,
-    params?: AssetsExportSettingsListParams,) => {
-    return ['api','v2','assets',uidAsset,'export-settings', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsExportSettingsListQueryOptions = <TData = Awaited<ReturnType<typeof assetsExportSettingsList>>, TError = ErrorDetail>(uidAsset: string,
-    params?: AssetsExportSettingsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsExportSettingsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsExportSettingsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsExportSettingsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsExportSettingsListQueryKey(uidAsset, params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsExportSettingsListQueryKey(uidAsset,params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportSettingsList>>> = ({ signal }) =>
+    assetsExportSettingsList(uidAsset, params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportSettingsList>>> = ({ signal }) => assetsExportSettingsList(uidAsset,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsExportSettingsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportSettingsList>>>
 export type AssetsExportSettingsListQueryError = ErrorDetail
 
+export function useAssetsExportSettingsList<
+  TData = Awaited<ReturnType<typeof assetsExportSettingsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsExportSettingsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsExportSettingsListQueryOptions(uidAsset, params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsExportSettingsList<TData = Awaited<ReturnType<typeof assetsExportSettingsList>>, TError = ErrorDetail>(
- uidAsset: string,
-    params?: AssetsExportSettingsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsExportSettingsListQueryOptions(uidAsset,params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Create an export setting for an asset
@@ -3939,75 +4079,89 @@ export type assetsExportSettingsCreateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsExportSettingsCreateResponseComposite = assetsExportSettingsCreateResponse201 | assetsExportSettingsCreateResponse400 | assetsExportSettingsCreateResponse404;
-    
+
+export type assetsExportSettingsCreateResponseComposite =
+  | assetsExportSettingsCreateResponse201
+  | assetsExportSettingsCreateResponse400
+  | assetsExportSettingsCreateResponse404
+
 export type assetsExportSettingsCreateResponse = assetsExportSettingsCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportSettingsCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsExportSettingsCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/export-settings/`
 }
 
-export const assetsExportSettingsCreate = async (uidAsset: string,
-    exportSettingCreatePayload: ExportSettingCreatePayload, options?: RequestInit): Promise<assetsExportSettingsCreateResponse> => {
-  
-  return fetchWithAuth<assetsExportSettingsCreateResponse>(getAssetsExportSettingsCreateUrl(uidAsset),
-  {      
+export const assetsExportSettingsCreate = async (
+  uidAsset: string,
+  exportSettingCreatePayload: ExportSettingCreatePayload,
+  options?: RequestInit,
+): Promise<assetsExportSettingsCreateResponse> => {
+  return fetchWithAuth<assetsExportSettingsCreateResponse>(getAssetsExportSettingsCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      exportSettingCreatePayload,)
+    body: JSON.stringify(exportSettingCreatePayload),
+  })
+}
+
+export const getAssetsExportSettingsCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsCreate>>,
+    TError,
+    { uidAsset: string; data: ExportSettingCreatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsExportSettingsCreate>>,
+  TError,
+  { uidAsset: string; data: ExportSettingCreatePayload },
+  TContext
+> => {
+  const mutationKey = ['assetsExportSettingsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsExportSettingsCreate>>,
+    { uidAsset: string; data: ExportSettingCreatePayload }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsExportSettingsCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsExportSettingsCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsExportSettingsCreate>>
+>
+export type AssetsExportSettingsCreateMutationBody = ExportSettingCreatePayload
+export type AssetsExportSettingsCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsExportSettingsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsCreate>>,
+    TError,
+    { uidAsset: string; data: ExportSettingCreatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsExportSettingsCreateMutationOptions(options)
 
-export const getAssetsExportSettingsCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsCreate>>, TError,{uidAsset: string;data: ExportSettingCreatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsCreate>>, TError,{uidAsset: string;data: ExportSettingCreatePayload}, TContext> => {
-
-const mutationKey = ['assetsExportSettingsCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsExportSettingsCreate>>, {uidAsset: string;data: ExportSettingCreatePayload}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsExportSettingsCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsExportSettingsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportSettingsCreate>>>
-    export type AssetsExportSettingsCreateMutationBody = ExportSettingCreatePayload
-    export type AssetsExportSettingsCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsExportSettingsCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsCreate>>, TError,{uidAsset: string;data: ExportSettingCreatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsExportSettingsCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve a specific export setting
 
 <sup>*</sup> _Required permissions: `view_submissions` (View submissions)_
@@ -4022,82 +4176,86 @@ export type assetsExportSettingsRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsExportSettingsRetrieveResponseComposite = assetsExportSettingsRetrieveResponse200 | assetsExportSettingsRetrieveResponse404;
-    
+
+export type assetsExportSettingsRetrieveResponseComposite =
+  | assetsExportSettingsRetrieveResponse200
+  | assetsExportSettingsRetrieveResponse404
+
 export type assetsExportSettingsRetrieveResponse = assetsExportSettingsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportSettingsRetrieveUrl = (uidAsset: string,
-    uidExportSetting: string,) => {
-
-
-  
-
+export const getAssetsExportSettingsRetrieveUrl = (uidAsset: string, uidExportSetting: string) => {
   return `/api/v2/assets/${uidAsset}/export-settings/${uidExportSetting}/`
 }
 
-export const assetsExportSettingsRetrieve = async (uidAsset: string,
-    uidExportSetting: string, options?: RequestInit): Promise<assetsExportSettingsRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsExportSettingsRetrieveResponse>(getAssetsExportSettingsRetrieveUrl(uidAsset,uidExportSetting),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsExportSettingsRetrieveQueryKey = (uidAsset: string,
-    uidExportSetting: string,) => {
-    return ['api','v2','assets',uidAsset,'export-settings',uidExportSetting] as const;
-    }
-
-    
-export const getAssetsExportSettingsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidExportSetting: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsExportSettingsRetrieveQueryKey(uidAsset,uidExportSetting);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>> = ({ signal }) => assetsExportSettingsRetrieve(uidAsset,uidExportSetting, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidExportSetting), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsExportSettingsRetrieve = async (
+  uidAsset: string,
+  uidExportSetting: string,
+  options?: RequestInit,
+): Promise<assetsExportSettingsRetrieveResponse> => {
+  return fetchWithAuth<assetsExportSettingsRetrieveResponse>(
+    getAssetsExportSettingsRetrieveUrl(uidAsset, uidExportSetting),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsExportSettingsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>>
+export const getAssetsExportSettingsRetrieveQueryKey = (uidAsset: string, uidExportSetting: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'export-settings', uidExportSetting] as const
+}
+
+export const getAssetsExportSettingsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidExportSetting: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsExportSettingsRetrieveQueryKey(uidAsset, uidExportSetting)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>> = ({ signal }) =>
+    assetsExportSettingsRetrieve(uidAsset, uidExportSetting, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidExportSetting), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsExportSettingsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>
+>
 export type AssetsExportSettingsRetrieveQueryError = ErrorDetail
 
+export function useAssetsExportSettingsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidExportSetting: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsExportSettingsRetrieveQueryOptions(uidAsset, uidExportSetting, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsExportSettingsRetrieve<TData = Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidExportSetting: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsExportSettingsRetrieveQueryOptions(uidAsset,uidExportSetting,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Update the current export setting
@@ -4119,77 +4277,93 @@ export type assetsExportSettingsPartialUpdateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsExportSettingsPartialUpdateResponseComposite = assetsExportSettingsPartialUpdateResponse200 | assetsExportSettingsPartialUpdateResponse400 | assetsExportSettingsPartialUpdateResponse404;
-    
+
+export type assetsExportSettingsPartialUpdateResponseComposite =
+  | assetsExportSettingsPartialUpdateResponse200
+  | assetsExportSettingsPartialUpdateResponse400
+  | assetsExportSettingsPartialUpdateResponse404
+
 export type assetsExportSettingsPartialUpdateResponse = assetsExportSettingsPartialUpdateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportSettingsPartialUpdateUrl = (uidAsset: string,
-    uidExportSetting: string,) => {
-
-
-  
-
+export const getAssetsExportSettingsPartialUpdateUrl = (uidAsset: string, uidExportSetting: string) => {
   return `/api/v2/assets/${uidAsset}/export-settings/${uidExportSetting}/`
 }
 
-export const assetsExportSettingsPartialUpdate = async (uidAsset: string,
-    uidExportSetting: string,
-    patchedExportSettingUpdatePayload: PatchedExportSettingUpdatePayload, options?: RequestInit): Promise<assetsExportSettingsPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsExportSettingsPartialUpdateResponse>(getAssetsExportSettingsPartialUpdateUrl(uidAsset,uidExportSetting),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedExportSettingUpdatePayload,)
+export const assetsExportSettingsPartialUpdate = async (
+  uidAsset: string,
+  uidExportSetting: string,
+  patchedExportSettingUpdatePayload: PatchedExportSettingUpdatePayload,
+  options?: RequestInit,
+): Promise<assetsExportSettingsPartialUpdateResponse> => {
+  return fetchWithAuth<assetsExportSettingsPartialUpdateResponse>(
+    getAssetsExportSettingsPartialUpdateUrl(uidAsset, uidExportSetting),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedExportSettingUpdatePayload),
+    },
+  )
+}
+
+export const getAssetsExportSettingsPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidExportSetting: string; data: PatchedExportSettingUpdatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>,
+  TError,
+  { uidAsset: string; uidExportSetting: string; data: PatchedExportSettingUpdatePayload },
+  TContext
+> => {
+  const mutationKey = ['assetsExportSettingsPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>,
+    { uidAsset: string; uidExportSetting: string; data: PatchedExportSettingUpdatePayload }
+  > = (props) => {
+    const { uidAsset, uidExportSetting, data } = props ?? {}
+
+    return assetsExportSettingsPartialUpdate(uidAsset, uidExportSetting, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsExportSettingsPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>
+>
+export type AssetsExportSettingsPartialUpdateMutationBody = PatchedExportSettingUpdatePayload
+export type AssetsExportSettingsPartialUpdateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsExportSettingsPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidExportSetting: string; data: PatchedExportSettingUpdatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsExportSettingsPartialUpdateMutationOptions(options)
 
-export const getAssetsExportSettingsPartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>, TError,{uidAsset: string;uidExportSetting: string;data: PatchedExportSettingUpdatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>, TError,{uidAsset: string;uidExportSetting: string;data: PatchedExportSettingUpdatePayload}, TContext> => {
-
-const mutationKey = ['assetsExportSettingsPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>, {uidAsset: string;uidExportSetting: string;data: PatchedExportSettingUpdatePayload}> = (props) => {
-          const {uidAsset,uidExportSetting,data} = props ?? {};
-
-          return  assetsExportSettingsPartialUpdate(uidAsset,uidExportSetting,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsExportSettingsPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>>
-    export type AssetsExportSettingsPartialUpdateMutationBody = PatchedExportSettingUpdatePayload
-    export type AssetsExportSettingsPartialUpdateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsExportSettingsPartialUpdate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>, TError,{uidAsset: string;uidExportSetting: string;data: PatchedExportSettingUpdatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsExportSettingsPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Delete current export setting
 
 <sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
@@ -4205,75 +4379,86 @@ export type assetsExportSettingsDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsExportSettingsDestroyResponseComposite = assetsExportSettingsDestroyResponse204 | assetsExportSettingsDestroyResponse404;
-    
+
+export type assetsExportSettingsDestroyResponseComposite =
+  | assetsExportSettingsDestroyResponse204
+  | assetsExportSettingsDestroyResponse404
+
 export type assetsExportSettingsDestroyResponse = assetsExportSettingsDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportSettingsDestroyUrl = (uidAsset: string,
-    uidExportSetting: string,) => {
-
-
-  
-
+export const getAssetsExportSettingsDestroyUrl = (uidAsset: string, uidExportSetting: string) => {
   return `/api/v2/assets/${uidAsset}/export-settings/${uidExportSetting}/`
 }
 
-export const assetsExportSettingsDestroy = async (uidAsset: string,
-    uidExportSetting: string, options?: RequestInit): Promise<assetsExportSettingsDestroyResponse> => {
-  
-  return fetchWithAuth<assetsExportSettingsDestroyResponse>(getAssetsExportSettingsDestroyUrl(uidAsset,uidExportSetting),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
+export const assetsExportSettingsDestroy = async (
+  uidAsset: string,
+  uidExportSetting: string,
+  options?: RequestInit,
+): Promise<assetsExportSettingsDestroyResponse> => {
+  return fetchWithAuth<assetsExportSettingsDestroyResponse>(
+    getAssetsExportSettingsDestroyUrl(uidAsset, uidExportSetting),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
+
+export const getAssetsExportSettingsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsDestroy>>,
+    TError,
+    { uidAsset: string; uidExportSetting: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsExportSettingsDestroy>>,
+  TError,
+  { uidAsset: string; uidExportSetting: string },
+  TContext
+> => {
+  const mutationKey = ['assetsExportSettingsDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsExportSettingsDestroy>>,
+    { uidAsset: string; uidExportSetting: string }
+  > = (props) => {
+    const { uidAsset, uidExportSetting } = props ?? {}
+
+    return assetsExportSettingsDestroy(uidAsset, uidExportSetting, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsExportSettingsDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsExportSettingsDestroy>>
+>
 
+export type AssetsExportSettingsDestroyMutationError = ErrorDetail
 
-export const getAssetsExportSettingsDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsDestroy>>, TError,{uidAsset: string;uidExportSetting: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsDestroy>>, TError,{uidAsset: string;uidExportSetting: string}, TContext> => {
+export const useAssetsExportSettingsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsDestroy>>,
+    TError,
+    { uidAsset: string; uidExportSetting: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsExportSettingsDestroyMutationOptions(options)
 
-const mutationKey = ['assetsExportSettingsDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsExportSettingsDestroy>>, {uidAsset: string;uidExportSetting: string}> = (props) => {
-          const {uidAsset,uidExportSetting} = props ?? {};
-
-          return  assetsExportSettingsDestroy(uidAsset,uidExportSetting,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsExportSettingsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportSettingsDestroy>>>
-    
-    export type AssetsExportSettingsDestroyMutationError = ErrorDetail
-
-    export const useAssetsExportSettingsDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportSettingsDestroy>>, TError,{uidAsset: string;uidExportSetting: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsExportSettingsDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Synchronously export data
 
 To retrieve data synchronously in CSV and XLSX format according to a
@@ -4297,94 +4482,120 @@ export type assetsExportSettingsDataRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsExportSettingsDataRetrieveResponseComposite = assetsExportSettingsDataRetrieveResponse200 | assetsExportSettingsDataRetrieveResponse400 | assetsExportSettingsDataRetrieveResponse404;
-    
+
+export type assetsExportSettingsDataRetrieveResponseComposite =
+  | assetsExportSettingsDataRetrieveResponse200
+  | assetsExportSettingsDataRetrieveResponse400
+  | assetsExportSettingsDataRetrieveResponse404
+
 export type assetsExportSettingsDataRetrieveResponse = assetsExportSettingsDataRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportSettingsDataRetrieveUrl = (uidAsset: string,
-    uidExportSetting: string,
-    params: AssetsExportSettingsDataRetrieveParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsExportSettingsDataRetrieveUrl = (
+  uidAsset: string,
+  uidExportSetting: string,
+  params: AssetsExportSettingsDataRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/export-settings/${uidExportSetting}/data/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/export-settings/${uidExportSetting}/data/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/export-settings/${uidExportSetting}/data/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/export-settings/${uidExportSetting}/data/`
 }
 
-export const assetsExportSettingsDataRetrieve = async (uidAsset: string,
-    uidExportSetting: string,
-    params: AssetsExportSettingsDataRetrieveParams, options?: RequestInit): Promise<assetsExportSettingsDataRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsExportSettingsDataRetrieveResponse>(getAssetsExportSettingsDataRetrieveUrl(uidAsset,uidExportSetting,params),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+export const assetsExportSettingsDataRetrieve = async (
+  uidAsset: string,
+  uidExportSetting: string,
+  params: AssetsExportSettingsDataRetrieveParams,
+  options?: RequestInit,
+): Promise<assetsExportSettingsDataRetrieveResponse> => {
+  return fetchWithAuth<assetsExportSettingsDataRetrieveResponse>(
+    getAssetsExportSettingsDataRetrieveUrl(uidAsset, uidExportSetting, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
 
-
-
-export const getAssetsExportSettingsDataRetrieveQueryKey = (uidAsset: string,
-    uidExportSetting: string,
-    params: AssetsExportSettingsDataRetrieveParams,) => {
-    return ['api','v2','assets',uidAsset,'export-settings',uidExportSetting,'data', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsExportSettingsDataRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>, TError = ErrorObject | ErrorDetail>(uidAsset: string,
-    uidExportSetting: string,
-    params: AssetsExportSettingsDataRetrieveParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsExportSettingsDataRetrieveQueryKey = (
+  uidAsset: string,
+  uidExportSetting: string,
+  params: AssetsExportSettingsDataRetrieveParams,
 ) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsExportSettingsDataRetrieveQueryKey(uidAsset,uidExportSetting,params);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>> = ({ signal }) => assetsExportSettingsDataRetrieve(uidAsset,uidExportSetting,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidExportSetting), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return [
+    'api',
+    'v2',
+    'assets',
+    uidAsset,
+    'export-settings',
+    uidExportSetting,
+    'data',
+    ...(params ? [params] : []),
+  ] as const
 }
 
-export type AssetsExportSettingsDataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>>
+export const getAssetsExportSettingsDataRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  uidExportSetting: string,
+  params: AssetsExportSettingsDataRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAssetsExportSettingsDataRetrieveQueryKey(uidAsset, uidExportSetting, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>> = ({ signal }) =>
+    assetsExportSettingsDataRetrieve(uidAsset, uidExportSetting, params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidExportSetting), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsExportSettingsDataRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>
+>
 export type AssetsExportSettingsDataRetrieveQueryError = ErrorObject | ErrorDetail
 
+export function useAssetsExportSettingsDataRetrieve<
+  TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  uidExportSetting: string,
+  params: AssetsExportSettingsDataRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsExportSettingsDataRetrieveQueryOptions(uidAsset, uidExportSetting, params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsExportSettingsDataRetrieve<TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>, TError = ErrorObject | ErrorDetail>(
- uidAsset: string,
-    uidExportSetting: string,
-    params: AssetsExportSettingsDataRetrieveParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsExportSettingsDataRetrieveQueryOptions(uidAsset,uidExportSetting,params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## List of export tasks endpoints
@@ -4411,89 +4622,88 @@ export type assetsExportsListResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsExportsListResponseComposite = assetsExportsListResponse200 | assetsExportsListResponse403;
-    
+
+export type assetsExportsListResponseComposite = assetsExportsListResponse200 | assetsExportsListResponse403
+
 export type assetsExportsListResponse = assetsExportsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportsListUrl = (uidAsset: string,
-    params?: AssetsExportsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsExportsListUrl = (uidAsset: string, params?: AssetsExportsListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/exports/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/exports/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/exports/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/exports/`
 }
 
-export const assetsExportsList = async (uidAsset: string,
-    params?: AssetsExportsListParams, options?: RequestInit): Promise<assetsExportsListResponse> => {
-  
-  return fetchWithAuth<assetsExportsListResponse>(getAssetsExportsListUrl(uidAsset,params),
-  {      
+export const assetsExportsList = async (
+  uidAsset: string,
+  params?: AssetsExportsListParams,
+  options?: RequestInit,
+): Promise<assetsExportsListResponse> => {
+  return fetchWithAuth<assetsExportsListResponse>(getAssetsExportsListUrl(uidAsset, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsExportsListQueryKey = (uidAsset: string, params?: AssetsExportsListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'exports', ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetsExportsListQueryKey = (uidAsset: string,
-    params?: AssetsExportsListParams,) => {
-    return ['api','v2','assets',uidAsset,'exports', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsExportsListQueryOptions = <TData = Awaited<ReturnType<typeof assetsExportsList>>, TError = ErrorDetail>(uidAsset: string,
-    params?: AssetsExportsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsExportsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsExportsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsExportsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsExportsListQueryKey(uidAsset, params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsExportsListQueryKey(uidAsset,params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportsList>>> = ({ signal }) =>
+    assetsExportsList(uidAsset, params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportsList>>> = ({ signal }) => assetsExportsList(uidAsset,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsExportsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsExportsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsExportsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportsList>>>
 export type AssetsExportsListQueryError = ErrorDetail
 
-
-
 export function useAssetsExportsList<TData = Awaited<ReturnType<typeof assetsExportsList>>, TError = ErrorDetail>(
- uidAsset: string,
-    params?: AssetsExportsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  params?: AssetsExportsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsExportsListQueryOptions(uidAsset, params, options)
 
-  const queryOptions = getAssetsExportsListQueryOptions(uidAsset,params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Creates an export task
@@ -4544,75 +4754,87 @@ export type assetsExportsCreateResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsExportsCreateResponseComposite = assetsExportsCreateResponse201 | assetsExportsCreateResponse400 | assetsExportsCreateResponse403;
-    
+
+export type assetsExportsCreateResponseComposite =
+  | assetsExportsCreateResponse201
+  | assetsExportsCreateResponse400
+  | assetsExportsCreateResponse403
+
 export type assetsExportsCreateResponse = assetsExportsCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportsCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsExportsCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/exports/`
 }
 
-export const assetsExportsCreate = async (uidAsset: string,
-    exportCreatePayload: ExportCreatePayload, options?: RequestInit): Promise<assetsExportsCreateResponse> => {
-  
-  return fetchWithAuth<assetsExportsCreateResponse>(getAssetsExportsCreateUrl(uidAsset),
-  {      
+export const assetsExportsCreate = async (
+  uidAsset: string,
+  exportCreatePayload: ExportCreatePayload,
+  options?: RequestInit,
+): Promise<assetsExportsCreateResponse> => {
+  return fetchWithAuth<assetsExportsCreateResponse>(getAssetsExportsCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      exportCreatePayload,)
+    body: JSON.stringify(exportCreatePayload),
+  })
+}
+
+export const getAssetsExportsCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportsCreate>>,
+    TError,
+    { uidAsset: string; data: ExportCreatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsExportsCreate>>,
+  TError,
+  { uidAsset: string; data: ExportCreatePayload },
+  TContext
+> => {
+  const mutationKey = ['assetsExportsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsExportsCreate>>,
+    { uidAsset: string; data: ExportCreatePayload }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsExportsCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsExportsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportsCreate>>>
+export type AssetsExportsCreateMutationBody = ExportCreatePayload
+export type AssetsExportsCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsExportsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportsCreate>>,
+    TError,
+    { uidAsset: string; data: ExportCreatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsExportsCreateMutationOptions(options)
 
-export const getAssetsExportsCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportsCreate>>, TError,{uidAsset: string;data: ExportCreatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsExportsCreate>>, TError,{uidAsset: string;data: ExportCreatePayload}, TContext> => {
-
-const mutationKey = ['assetsExportsCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsExportsCreate>>, {uidAsset: string;data: ExportCreatePayload}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsExportsCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsExportsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportsCreate>>>
-    export type AssetsExportsCreateMutationBody = ExportCreatePayload
-    export type AssetsExportsCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsExportsCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportsCreate>>, TError,{uidAsset: string;data: ExportCreatePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsExportsCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieves current export task
 
  */
@@ -4625,82 +4847,79 @@ export type assetsExportsRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsExportsRetrieveResponseComposite = assetsExportsRetrieveResponse200 | assetsExportsRetrieveResponse403;
-    
+
+export type assetsExportsRetrieveResponseComposite = assetsExportsRetrieveResponse200 | assetsExportsRetrieveResponse403
+
 export type assetsExportsRetrieveResponse = assetsExportsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportsRetrieveUrl = (uidAsset: string,
-    uidExport: string,) => {
-
-
-  
-
+export const getAssetsExportsRetrieveUrl = (uidAsset: string, uidExport: string) => {
   return `/api/v2/assets/${uidAsset}/exports/${uidExport}/`
 }
 
-export const assetsExportsRetrieve = async (uidAsset: string,
-    uidExport: string, options?: RequestInit): Promise<assetsExportsRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsExportsRetrieveResponse>(getAssetsExportsRetrieveUrl(uidAsset,uidExport),
-  {      
+export const assetsExportsRetrieve = async (
+  uidAsset: string,
+  uidExport: string,
+  options?: RequestInit,
+): Promise<assetsExportsRetrieveResponse> => {
+  return fetchWithAuth<assetsExportsRetrieveResponse>(getAssetsExportsRetrieveUrl(uidAsset, uidExport), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsExportsRetrieveQueryKey = (uidAsset: string, uidExport: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'exports', uidExport] as const
+}
 
-
-export const getAssetsExportsRetrieveQueryKey = (uidAsset: string,
-    uidExport: string,) => {
-    return ['api','v2','assets',uidAsset,'exports',uidExport] as const;
-    }
-
-    
-export const getAssetsExportsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsExportsRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidExport: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsExportsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsExportsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidExport: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsExportsRetrieveQueryKey(uidAsset, uidExport)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsExportsRetrieveQueryKey(uidAsset,uidExport);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportsRetrieve>>> = ({ signal }) =>
+    assetsExportsRetrieve(uidAsset, uidExport, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsExportsRetrieve>>> = ({ signal }) => assetsExportsRetrieve(uidAsset,uidExport, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidExport), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsExportsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidExport), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsExportsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsExportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportsRetrieve>>>
 export type AssetsExportsRetrieveQueryError = ErrorDetail
 
+export function useAssetsExportsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsExportsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidExport: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsExportsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsExportsRetrieveQueryOptions(uidAsset, uidExport, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsExportsRetrieve<TData = Awaited<ReturnType<typeof assetsExportsRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidExport: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsExportsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsExportsRetrieveQueryOptions(uidAsset,uidExport,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Deletes current export task
@@ -4715,75 +4934,79 @@ export type assetsExportsDestroyResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsExportsDestroyResponseComposite = assetsExportsDestroyResponse204 | assetsExportsDestroyResponse403;
-    
+
+export type assetsExportsDestroyResponseComposite = assetsExportsDestroyResponse204 | assetsExportsDestroyResponse403
+
 export type assetsExportsDestroyResponse = assetsExportsDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsExportsDestroyUrl = (uidAsset: string,
-    uidExport: string,) => {
-
-
-  
-
+export const getAssetsExportsDestroyUrl = (uidAsset: string, uidExport: string) => {
   return `/api/v2/assets/${uidAsset}/exports/${uidExport}/`
 }
 
-export const assetsExportsDestroy = async (uidAsset: string,
-    uidExport: string, options?: RequestInit): Promise<assetsExportsDestroyResponse> => {
-  
-  return fetchWithAuth<assetsExportsDestroyResponse>(getAssetsExportsDestroyUrl(uidAsset,uidExport),
-  {      
+export const assetsExportsDestroy = async (
+  uidAsset: string,
+  uidExport: string,
+  options?: RequestInit,
+): Promise<assetsExportsDestroyResponse> => {
+  return fetchWithAuth<assetsExportsDestroyResponse>(getAssetsExportsDestroyUrl(uidAsset, uidExport), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsExportsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportsDestroy>>,
+    TError,
+    { uidAsset: string; uidExport: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsExportsDestroy>>,
+  TError,
+  { uidAsset: string; uidExport: string },
+  TContext
+> => {
+  const mutationKey = ['assetsExportsDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsExportsDestroy>>,
+    { uidAsset: string; uidExport: string }
+  > = (props) => {
+    const { uidAsset, uidExport } = props ?? {}
+
+    return assetsExportsDestroy(uidAsset, uidExport, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsExportsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportsDestroy>>>
 
+export type AssetsExportsDestroyMutationError = ErrorDetail
 
-export const getAssetsExportsDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportsDestroy>>, TError,{uidAsset: string;uidExport: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsExportsDestroy>>, TError,{uidAsset: string;uidExport: string}, TContext> => {
+export const useAssetsExportsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsExportsDestroy>>,
+    TError,
+    { uidAsset: string; uidExport: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsExportsDestroyMutationOptions(options)
 
-const mutationKey = ['assetsExportsDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsExportsDestroy>>, {uidAsset: string;uidExport: string}> = (props) => {
-          const {uidAsset,uidExport} = props ?? {};
-
-          return  assetsExportsDestroy(uidAsset,uidExport,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsExportsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportsDestroy>>>
-    
-    export type AssetsExportsDestroyMutationError = ErrorDetail
-
-    export const useAssetsExportsDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsExportsDestroy>>, TError,{uidAsset: string;uidExport: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsExportsDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve current asset files
 
 Results can be narrowed down with a filter by type:
@@ -4801,89 +5024,88 @@ export type assetsFilesListResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsFilesListResponseComposite = assetsFilesListResponse200 | assetsFilesListResponse404;
-    
+
+export type assetsFilesListResponseComposite = assetsFilesListResponse200 | assetsFilesListResponse404
+
 export type assetsFilesListResponse = assetsFilesListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsFilesListUrl = (uidAsset: string,
-    params?: AssetsFilesListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsFilesListUrl = (uidAsset: string, params?: AssetsFilesListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/files/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/files/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/files/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/files/`
 }
 
-export const assetsFilesList = async (uidAsset: string,
-    params?: AssetsFilesListParams, options?: RequestInit): Promise<assetsFilesListResponse> => {
-  
-  return fetchWithAuth<assetsFilesListResponse>(getAssetsFilesListUrl(uidAsset,params),
-  {      
+export const assetsFilesList = async (
+  uidAsset: string,
+  params?: AssetsFilesListParams,
+  options?: RequestInit,
+): Promise<assetsFilesListResponse> => {
+  return fetchWithAuth<assetsFilesListResponse>(getAssetsFilesListUrl(uidAsset, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsFilesListQueryKey = (uidAsset: string, params?: AssetsFilesListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'files', ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetsFilesListQueryKey = (uidAsset: string,
-    params?: AssetsFilesListParams,) => {
-    return ['api','v2','assets',uidAsset,'files', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsFilesListQueryOptions = <TData = Awaited<ReturnType<typeof assetsFilesList>>, TError = ErrorDetail>(uidAsset: string,
-    params?: AssetsFilesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsFilesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsFilesListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsFilesList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsFilesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsFilesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsFilesListQueryKey(uidAsset, params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsFilesListQueryKey(uidAsset,params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsFilesList>>> = ({ signal }) =>
+    assetsFilesList(uidAsset, params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsFilesList>>> = ({ signal }) => assetsFilesList(uidAsset,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsFilesList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsFilesList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsFilesListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesList>>>
 export type AssetsFilesListQueryError = ErrorDetail
 
-
-
 export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFilesList>>, TError = ErrorDetail>(
- uidAsset: string,
-    params?: AssetsFilesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsFilesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  params?: AssetsFilesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsFilesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsFilesListQueryOptions(uidAsset, params, options)
 
-  const queryOptions = getAssetsFilesListQueryOptions(uidAsset,params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Create a new file on current asset
@@ -4927,75 +5149,84 @@ export type assetsFilesCreateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsFilesCreateResponseComposite = assetsFilesCreateResponse201 | assetsFilesCreateResponse400 | assetsFilesCreateResponse404;
-    
+
+export type assetsFilesCreateResponseComposite =
+  | assetsFilesCreateResponse201
+  | assetsFilesCreateResponse400
+  | assetsFilesCreateResponse404
+
 export type assetsFilesCreateResponse = assetsFilesCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsFilesCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsFilesCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/files/`
 }
 
-export const assetsFilesCreate = async (uidAsset: string,
-    createFilePayload: CreateFilePayload, options?: RequestInit): Promise<assetsFilesCreateResponse> => {
-  
-  return fetchWithAuth<assetsFilesCreateResponse>(getAssetsFilesCreateUrl(uidAsset),
-  {      
+export const assetsFilesCreate = async (
+  uidAsset: string,
+  createFilePayload: CreateFilePayload,
+  options?: RequestInit,
+): Promise<assetsFilesCreateResponse> => {
+  return fetchWithAuth<assetsFilesCreateResponse>(getAssetsFilesCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      createFilePayload,)
+    body: JSON.stringify(createFilePayload),
+  })
+}
+
+export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsFilesCreate>>,
+    TError,
+    { uidAsset: string; data: CreateFilePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsFilesCreate>>,
+  TError,
+  { uidAsset: string; data: CreateFilePayload },
+  TContext
+> => {
+  const mutationKey = ['assetsFilesCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsFilesCreate>>,
+    { uidAsset: string; data: CreateFilePayload }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsFilesCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsFilesCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesCreate>>>
+export type AssetsFilesCreateMutationBody = CreateFilePayload
+export type AssetsFilesCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsFilesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsFilesCreate>>,
+    TError,
+    { uidAsset: string; data: CreateFilePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsFilesCreateMutationOptions(options)
 
-export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsFilesCreate>>, TError,{uidAsset: string;data: CreateFilePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsFilesCreate>>, TError,{uidAsset: string;data: CreateFilePayload}, TContext> => {
-
-const mutationKey = ['assetsFilesCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsFilesCreate>>, {uidAsset: string;data: CreateFilePayload}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsFilesCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsFilesCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesCreate>>>
-    export type AssetsFilesCreateMutationBody = CreateFilePayload
-    export type AssetsFilesCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsFilesCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsFilesCreate>>, TError,{uidAsset: string;data: CreateFilePayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsFilesCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve a file from current asset
 
  */
@@ -5008,82 +5239,76 @@ export type assetsFilesRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsFilesRetrieveResponseComposite = assetsFilesRetrieveResponse200 | assetsFilesRetrieveResponse404;
-    
+
+export type assetsFilesRetrieveResponseComposite = assetsFilesRetrieveResponse200 | assetsFilesRetrieveResponse404
+
 export type assetsFilesRetrieveResponse = assetsFilesRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsFilesRetrieveUrl = (uidAsset: string,
-    uidFile: string,) => {
-
-
-  
-
+export const getAssetsFilesRetrieveUrl = (uidAsset: string, uidFile: string) => {
   return `/api/v2/assets/${uidAsset}/files/${uidFile}/`
 }
 
-export const assetsFilesRetrieve = async (uidAsset: string,
-    uidFile: string, options?: RequestInit): Promise<assetsFilesRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsFilesRetrieveResponse>(getAssetsFilesRetrieveUrl(uidAsset,uidFile),
-  {      
+export const assetsFilesRetrieve = async (
+  uidAsset: string,
+  uidFile: string,
+  options?: RequestInit,
+): Promise<assetsFilesRetrieveResponse> => {
+  return fetchWithAuth<assetsFilesRetrieveResponse>(getAssetsFilesRetrieveUrl(uidAsset, uidFile), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsFilesRetrieveQueryKey = (uidAsset: string, uidFile: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'files', uidFile] as const
+}
 
-
-export const getAssetsFilesRetrieveQueryKey = (uidAsset: string,
-    uidFile: string,) => {
-    return ['api','v2','assets',uidAsset,'files',uidFile] as const;
-    }
-
-    
-export const getAssetsFilesRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidFile: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsFilesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidFile: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsFilesRetrieveQueryKey(uidAsset, uidFile)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsFilesRetrieveQueryKey(uidAsset,uidFile);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsFilesRetrieve>>> = ({ signal }) =>
+    assetsFilesRetrieve(uidAsset, uidFile, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsFilesRetrieve>>> = ({ signal }) => assetsFilesRetrieve(uidAsset,uidFile, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidFile), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidFile), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsFilesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsFilesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesRetrieve>>>
 export type AssetsFilesRetrieveQueryError = ErrorDetail
 
-
-
 export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidFile: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  uidFile: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsFilesRetrieveQueryOptions(uidAsset, uidFile, options)
 
-  const queryOptions = getAssetsFilesRetrieveQueryOptions(uidAsset,uidFile,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Delete a file from current asset
@@ -5098,75 +5323,79 @@ export type assetsFilesDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsFilesDestroyResponseComposite = assetsFilesDestroyResponse204 | assetsFilesDestroyResponse404;
-    
+
+export type assetsFilesDestroyResponseComposite = assetsFilesDestroyResponse204 | assetsFilesDestroyResponse404
+
 export type assetsFilesDestroyResponse = assetsFilesDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsFilesDestroyUrl = (uidAsset: string,
-    uidFile: string,) => {
-
-
-  
-
+export const getAssetsFilesDestroyUrl = (uidAsset: string, uidFile: string) => {
   return `/api/v2/assets/${uidAsset}/files/${uidFile}/`
 }
 
-export const assetsFilesDestroy = async (uidAsset: string,
-    uidFile: string, options?: RequestInit): Promise<assetsFilesDestroyResponse> => {
-  
-  return fetchWithAuth<assetsFilesDestroyResponse>(getAssetsFilesDestroyUrl(uidAsset,uidFile),
-  {      
+export const assetsFilesDestroy = async (
+  uidAsset: string,
+  uidFile: string,
+  options?: RequestInit,
+): Promise<assetsFilesDestroyResponse> => {
+  return fetchWithAuth<assetsFilesDestroyResponse>(getAssetsFilesDestroyUrl(uidAsset, uidFile), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsFilesDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsFilesDestroy>>,
+    TError,
+    { uidAsset: string; uidFile: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsFilesDestroy>>,
+  TError,
+  { uidAsset: string; uidFile: string },
+  TContext
+> => {
+  const mutationKey = ['assetsFilesDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsFilesDestroy>>,
+    { uidAsset: string; uidFile: string }
+  > = (props) => {
+    const { uidAsset, uidFile } = props ?? {}
+
+    return assetsFilesDestroy(uidAsset, uidFile, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsFilesDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesDestroy>>>
 
+export type AssetsFilesDestroyMutationError = ErrorDetail
 
-export const getAssetsFilesDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsFilesDestroy>>, TError,{uidAsset: string;uidFile: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsFilesDestroy>>, TError,{uidAsset: string;uidFile: string}, TContext> => {
+export const useAssetsFilesDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsFilesDestroy>>,
+    TError,
+    { uidAsset: string; uidFile: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsFilesDestroyMutationOptions(options)
 
-const mutationKey = ['assetsFilesDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsFilesDestroy>>, {uidAsset: string;uidFile: string}> = (props) => {
-          const {uidAsset,uidFile} = props ?? {};
-
-          return  assetsFilesDestroy(uidAsset,uidFile,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsFilesDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesDestroy>>>
-    
-    export type AssetsFilesDestroyMutationError = ErrorDetail
-
-    export const useAssetsFilesDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsFilesDestroy>>, TError,{uidAsset: string;uidFile: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsFilesDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Download the asset file
 
  */
@@ -5179,82 +5408,81 @@ export type assetsFilesContentRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsFilesContentRetrieveResponseComposite = assetsFilesContentRetrieveResponse200 | assetsFilesContentRetrieveResponse404;
-    
+
+export type assetsFilesContentRetrieveResponseComposite =
+  | assetsFilesContentRetrieveResponse200
+  | assetsFilesContentRetrieveResponse404
+
 export type assetsFilesContentRetrieveResponse = assetsFilesContentRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsFilesContentRetrieveUrl = (uidAsset: string,
-    uidFile: string,) => {
-
-
-  
-
+export const getAssetsFilesContentRetrieveUrl = (uidAsset: string, uidFile: string) => {
   return `/api/v2/assets/${uidAsset}/files/${uidFile}/content/`
 }
 
-export const assetsFilesContentRetrieve = async (uidAsset: string,
-    uidFile: string, options?: RequestInit): Promise<assetsFilesContentRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsFilesContentRetrieveResponse>(getAssetsFilesContentRetrieveUrl(uidAsset,uidFile),
-  {      
+export const assetsFilesContentRetrieve = async (
+  uidAsset: string,
+  uidFile: string,
+  options?: RequestInit,
+): Promise<assetsFilesContentRetrieveResponse> => {
+  return fetchWithAuth<assetsFilesContentRetrieveResponse>(getAssetsFilesContentRetrieveUrl(uidAsset, uidFile), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsFilesContentRetrieveQueryKey = (uidAsset: string, uidFile: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'files', uidFile, 'content'] as const
+}
 
-
-export const getAssetsFilesContentRetrieveQueryKey = (uidAsset: string,
-    uidFile: string,) => {
-    return ['api','v2','assets',uidAsset,'files',uidFile,'content'] as const;
-    }
-
-    
-export const getAssetsFilesContentRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidFile: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsFilesContentRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidFile: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsFilesContentRetrieveQueryKey(uidAsset, uidFile)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsFilesContentRetrieveQueryKey(uidAsset,uidFile);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>> = ({ signal }) =>
+    assetsFilesContentRetrieve(uidAsset, uidFile, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>> = ({ signal }) => assetsFilesContentRetrieve(uidAsset,uidFile, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidFile), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidFile), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsFilesContentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>>
 export type AssetsFilesContentRetrieveQueryError = ErrorDetail
 
+export function useAssetsFilesContentRetrieve<
+  TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidFile: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsFilesContentRetrieveQueryOptions(uidAsset, uidFile, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsFilesContentRetrieve<TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidFile: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsFilesContentRetrieveQueryOptions(uidAsset,uidFile,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## List paired project endpoints
@@ -5273,89 +5501,88 @@ export type assetsPairedDataListResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsPairedDataListResponseComposite = assetsPairedDataListResponse200 | assetsPairedDataListResponse404;
-    
+
+export type assetsPairedDataListResponseComposite = assetsPairedDataListResponse200 | assetsPairedDataListResponse404
+
 export type assetsPairedDataListResponse = assetsPairedDataListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPairedDataListUrl = (uidAsset: string,
-    params?: AssetsPairedDataListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsPairedDataListUrl = (uidAsset: string, params?: AssetsPairedDataListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/paired-data/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/paired-data/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/paired-data/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/paired-data/`
 }
 
-export const assetsPairedDataList = async (uidAsset: string,
-    params?: AssetsPairedDataListParams, options?: RequestInit): Promise<assetsPairedDataListResponse> => {
-  
-  return fetchWithAuth<assetsPairedDataListResponse>(getAssetsPairedDataListUrl(uidAsset,params),
-  {      
+export const assetsPairedDataList = async (
+  uidAsset: string,
+  params?: AssetsPairedDataListParams,
+  options?: RequestInit,
+): Promise<assetsPairedDataListResponse> => {
+  return fetchWithAuth<assetsPairedDataListResponse>(getAssetsPairedDataListUrl(uidAsset, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsPairedDataListQueryKey = (uidAsset: string, params?: AssetsPairedDataListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'paired-data', ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetsPairedDataListQueryKey = (uidAsset: string,
-    params?: AssetsPairedDataListParams,) => {
-    return ['api','v2','assets',uidAsset,'paired-data', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsPairedDataListQueryOptions = <TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorDetail>(uidAsset: string,
-    params?: AssetsPairedDataListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsPairedDataListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsPairedDataList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsPairedDataListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataListQueryKey(uidAsset, params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsPairedDataListQueryKey(uidAsset,params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataList>>> = ({ signal }) =>
+    assetsPairedDataList(uidAsset, params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataList>>> = ({ signal }) => assetsPairedDataList(uidAsset,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsPairedDataList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsPairedDataListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataList>>>
 export type AssetsPairedDataListQueryError = ErrorDetail
 
-
-
 export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorDetail>(
- uidAsset: string,
-    params?: AssetsPairedDataListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  params?: AssetsPairedDataListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsPairedDataListQueryOptions(uidAsset, params, options)
 
-  const queryOptions = getAssetsPairedDataListQueryOptions(uidAsset,params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Create a connection between two projects
@@ -5381,75 +5608,87 @@ export type assetsPairedDataCreateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsPairedDataCreateResponseComposite = assetsPairedDataCreateResponse201 | assetsPairedDataCreateResponse400 | assetsPairedDataCreateResponse404;
-    
+
+export type assetsPairedDataCreateResponseComposite =
+  | assetsPairedDataCreateResponse201
+  | assetsPairedDataCreateResponse400
+  | assetsPairedDataCreateResponse404
+
 export type assetsPairedDataCreateResponse = assetsPairedDataCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPairedDataCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsPairedDataCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/paired-data/`
 }
 
-export const assetsPairedDataCreate = async (uidAsset: string,
-    pairedData: NonReadonly<PairedData>, options?: RequestInit): Promise<assetsPairedDataCreateResponse> => {
-  
-  return fetchWithAuth<assetsPairedDataCreateResponse>(getAssetsPairedDataCreateUrl(uidAsset),
-  {      
+export const assetsPairedDataCreate = async (
+  uidAsset: string,
+  pairedData: NonReadonly<PairedData>,
+  options?: RequestInit,
+): Promise<assetsPairedDataCreateResponse> => {
+  return fetchWithAuth<assetsPairedDataCreateResponse>(getAssetsPairedDataCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      pairedData,)
+    body: JSON.stringify(pairedData),
+  })
+}
+
+export const getAssetsPairedDataCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataCreate>>,
+    TError,
+    { uidAsset: string; data: NonReadonly<PairedData> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPairedDataCreate>>,
+  TError,
+  { uidAsset: string; data: NonReadonly<PairedData> },
+  TContext
+> => {
+  const mutationKey = ['assetsPairedDataCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPairedDataCreate>>,
+    { uidAsset: string; data: NonReadonly<PairedData> }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsPairedDataCreate(uidAsset, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPairedDataCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataCreate>>>
+export type AssetsPairedDataCreateMutationBody = NonReadonly<PairedData>
+export type AssetsPairedDataCreateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsPairedDataCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataCreate>>,
+    TError,
+    { uidAsset: string; data: NonReadonly<PairedData> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPairedDataCreateMutationOptions(options)
 
-export const getAssetsPairedDataCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataCreate>>, TError,{uidAsset: string;data: NonReadonly<PairedData>}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataCreate>>, TError,{uidAsset: string;data: NonReadonly<PairedData>}, TContext> => {
-
-const mutationKey = ['assetsPairedDataCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPairedDataCreate>>, {uidAsset: string;data: NonReadonly<PairedData>}> = (props) => {
-          const {uidAsset,data} = props ?? {};
-
-          return  assetsPairedDataCreate(uidAsset,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPairedDataCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataCreate>>>
-    export type AssetsPairedDataCreateMutationBody = NonReadonly<PairedData>
-    export type AssetsPairedDataCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsPairedDataCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataCreate>>, TError,{uidAsset: string;data: NonReadonly<PairedData>}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPairedDataCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve a connection between two projects
 
  */
@@ -5462,82 +5701,81 @@ export type assetsPairedDataRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsPairedDataRetrieveResponseComposite = assetsPairedDataRetrieveResponse200 | assetsPairedDataRetrieveResponse404;
-    
+
+export type assetsPairedDataRetrieveResponseComposite =
+  | assetsPairedDataRetrieveResponse200
+  | assetsPairedDataRetrieveResponse404
+
 export type assetsPairedDataRetrieveResponse = assetsPairedDataRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPairedDataRetrieveUrl = (uidAsset: string,
-    uidPairedData: string,) => {
-
-
-  
-
+export const getAssetsPairedDataRetrieveUrl = (uidAsset: string, uidPairedData: string) => {
   return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/`
 }
 
-export const assetsPairedDataRetrieve = async (uidAsset: string,
-    uidPairedData: string, options?: RequestInit): Promise<assetsPairedDataRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsPairedDataRetrieveResponse>(getAssetsPairedDataRetrieveUrl(uidAsset,uidPairedData),
-  {      
+export const assetsPairedDataRetrieve = async (
+  uidAsset: string,
+  uidPairedData: string,
+  options?: RequestInit,
+): Promise<assetsPairedDataRetrieveResponse> => {
+  return fetchWithAuth<assetsPairedDataRetrieveResponse>(getAssetsPairedDataRetrieveUrl(uidAsset, uidPairedData), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsPairedDataRetrieveQueryKey = (uidAsset: string, uidPairedData: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'paired-data', uidPairedData] as const
+}
 
-
-export const getAssetsPairedDataRetrieveQueryKey = (uidAsset: string,
-    uidPairedData: string,) => {
-    return ['api','v2','assets',uidAsset,'paired-data',uidPairedData] as const;
-    }
-
-    
-export const getAssetsPairedDataRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidPairedData: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsPairedDataRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidPairedData: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataRetrieveQueryKey(uidAsset, uidPairedData)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsPairedDataRetrieveQueryKey(uidAsset,uidPairedData);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>> = ({ signal }) =>
+    assetsPairedDataRetrieve(uidAsset, uidPairedData, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>> = ({ signal }) => assetsPairedDataRetrieve(uidAsset,uidPairedData, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidPairedData), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidPairedData), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsPairedDataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>>
 export type AssetsPairedDataRetrieveQueryError = ErrorDetail
 
+export function useAssetsPairedDataRetrieve<
+  TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidPairedData: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsPairedDataRetrieveQueryOptions(uidAsset, uidPairedData, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsPairedDataRetrieve<TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidPairedData: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsPairedDataRetrieveQueryOptions(uidAsset,uidPairedData,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Update a connection between two projects
@@ -5559,77 +5797,93 @@ export type assetsPairedDataPartialUpdateResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsPairedDataPartialUpdateResponseComposite = assetsPairedDataPartialUpdateResponse200 | assetsPairedDataPartialUpdateResponse400 | assetsPairedDataPartialUpdateResponse404;
-    
+
+export type assetsPairedDataPartialUpdateResponseComposite =
+  | assetsPairedDataPartialUpdateResponse200
+  | assetsPairedDataPartialUpdateResponse400
+  | assetsPairedDataPartialUpdateResponse404
+
 export type assetsPairedDataPartialUpdateResponse = assetsPairedDataPartialUpdateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPairedDataPartialUpdateUrl = (uidAsset: string,
-    uidPairedData: string,) => {
-
-
-  
-
+export const getAssetsPairedDataPartialUpdateUrl = (uidAsset: string, uidPairedData: string) => {
   return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/`
 }
 
-export const assetsPairedDataPartialUpdate = async (uidAsset: string,
-    uidPairedData: string,
-    patchedPairedDataPatchPayload: PatchedPairedDataPatchPayload, options?: RequestInit): Promise<assetsPairedDataPartialUpdateResponse> => {
-  
-  return fetchWithAuth<assetsPairedDataPartialUpdateResponse>(getAssetsPairedDataPartialUpdateUrl(uidAsset,uidPairedData),
-  {      
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      patchedPairedDataPatchPayload,)
+export const assetsPairedDataPartialUpdate = async (
+  uidAsset: string,
+  uidPairedData: string,
+  patchedPairedDataPatchPayload: PatchedPairedDataPatchPayload,
+  options?: RequestInit,
+): Promise<assetsPairedDataPartialUpdateResponse> => {
+  return fetchWithAuth<assetsPairedDataPartialUpdateResponse>(
+    getAssetsPairedDataPartialUpdateUrl(uidAsset, uidPairedData),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedPairedDataPatchPayload),
+    },
+  )
+}
+
+export const getAssetsPairedDataPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
+  TError,
+  { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload },
+  TContext
+> => {
+  const mutationKey = ['assetsPairedDataPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
+    { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload }
+  > = (props) => {
+    const { uidAsset, uidPairedData, data } = props ?? {}
+
+    return assetsPairedDataPartialUpdate(uidAsset, uidPairedData, data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPairedDataPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>
+>
+export type AssetsPairedDataPartialUpdateMutationBody = PatchedPairedDataPatchPayload
+export type AssetsPairedDataPartialUpdateMutationError = ErrorObject | ErrorDetail
 
+export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPairedDataPartialUpdateMutationOptions(options)
 
-export const getAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>, TError,{uidAsset: string;uidPairedData: string;data: PatchedPairedDataPatchPayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>, TError,{uidAsset: string;uidPairedData: string;data: PatchedPairedDataPatchPayload}, TContext> => {
-
-const mutationKey = ['assetsPairedDataPartialUpdate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>, {uidAsset: string;uidPairedData: string;data: PatchedPairedDataPatchPayload}> = (props) => {
-          const {uidAsset,uidPairedData,data} = props ?? {};
-
-          return  assetsPairedDataPartialUpdate(uidAsset,uidPairedData,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPairedDataPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>>
-    export type AssetsPairedDataPartialUpdateMutationBody = PatchedPairedDataPatchPayload
-    export type AssetsPairedDataPartialUpdateMutationError = ErrorObject | ErrorDetail
-
-    export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>, TError,{uidAsset: string;uidPairedData: string;data: PatchedPairedDataPatchPayload}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPairedDataPartialUpdateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Remove a connection between two projects
 
  */
@@ -5642,75 +5896,81 @@ export type assetsPairedDataDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsPairedDataDestroyResponseComposite = assetsPairedDataDestroyResponse204 | assetsPairedDataDestroyResponse404;
-    
+
+export type assetsPairedDataDestroyResponseComposite =
+  | assetsPairedDataDestroyResponse204
+  | assetsPairedDataDestroyResponse404
+
 export type assetsPairedDataDestroyResponse = assetsPairedDataDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPairedDataDestroyUrl = (uidAsset: string,
-    uidPairedData: string,) => {
-
-
-  
-
+export const getAssetsPairedDataDestroyUrl = (uidAsset: string, uidPairedData: string) => {
   return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/`
 }
 
-export const assetsPairedDataDestroy = async (uidAsset: string,
-    uidPairedData: string, options?: RequestInit): Promise<assetsPairedDataDestroyResponse> => {
-  
-  return fetchWithAuth<assetsPairedDataDestroyResponse>(getAssetsPairedDataDestroyUrl(uidAsset,uidPairedData),
-  {      
+export const assetsPairedDataDestroy = async (
+  uidAsset: string,
+  uidPairedData: string,
+  options?: RequestInit,
+): Promise<assetsPairedDataDestroyResponse> => {
+  return fetchWithAuth<assetsPairedDataDestroyResponse>(getAssetsPairedDataDestroyUrl(uidAsset, uidPairedData), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
+    TError,
+    { uidAsset: string; uidPairedData: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
+  TError,
+  { uidAsset: string; uidPairedData: string },
+  TContext
+> => {
+  const mutationKey = ['assetsPairedDataDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
+    { uidAsset: string; uidPairedData: string }
+  > = (props) => {
+    const { uidAsset, uidPairedData } = props ?? {}
+
+    return assetsPairedDataDestroy(uidAsset, uidPairedData, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsPairedDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataDestroy>>>
 
+export type AssetsPairedDataDestroyMutationError = ErrorDetail
 
-export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataDestroy>>, TError,{uidAsset: string;uidPairedData: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataDestroy>>, TError,{uidAsset: string;uidPairedData: string}, TContext> => {
+export const useAssetsPairedDataDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
+    TError,
+    { uidAsset: string; uidPairedData: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPairedDataDestroyMutationOptions(options)
 
-const mutationKey = ['assetsPairedDataDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsPairedDataDestroy>>, {uidAsset: string;uidPairedData: string}> = (props) => {
-          const {uidAsset,uidPairedData} = props ?? {};
-
-          return  assetsPairedDataDestroy(uidAsset,uidPairedData,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsPairedDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataDestroy>>>
-    
-    export type AssetsPairedDataDestroyMutationError = ErrorDetail
-
-    export const useAssetsPairedDataDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsPairedDataDestroy>>, TError,{uidAsset: string;uidPairedData: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsPairedDataDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Return an XML which contains data submitted to paired asset
 
 Creates the endpoints
@@ -5727,82 +5987,86 @@ export type assetsPairedDataExternalRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsPairedDataExternalRetrieveResponseComposite = assetsPairedDataExternalRetrieveResponse200 | assetsPairedDataExternalRetrieveResponse404;
-    
+
+export type assetsPairedDataExternalRetrieveResponseComposite =
+  | assetsPairedDataExternalRetrieveResponse200
+  | assetsPairedDataExternalRetrieveResponse404
+
 export type assetsPairedDataExternalRetrieveResponse = assetsPairedDataExternalRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsPairedDataExternalRetrieveUrl = (uidAsset: string,
-    uidPairedData: string,) => {
-
-
-  
-
+export const getAssetsPairedDataExternalRetrieveUrl = (uidAsset: string, uidPairedData: string) => {
   return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/external/`
 }
 
-export const assetsPairedDataExternalRetrieve = async (uidAsset: string,
-    uidPairedData: string, options?: RequestInit): Promise<assetsPairedDataExternalRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsPairedDataExternalRetrieveResponse>(getAssetsPairedDataExternalRetrieveUrl(uidAsset,uidPairedData),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsPairedDataExternalRetrieveQueryKey = (uidAsset: string,
-    uidPairedData: string,) => {
-    return ['api','v2','assets',uidAsset,'paired-data',uidPairedData,'external'] as const;
-    }
-
-    
-export const getAssetsPairedDataExternalRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError = ErrorDetail>(uidAsset: string,
-    uidPairedData: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsPairedDataExternalRetrieveQueryKey(uidAsset,uidPairedData);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>> = ({ signal }) => assetsPairedDataExternalRetrieve(uidAsset,uidPairedData, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset && uidPairedData), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData> & { queryKey: QueryKey }
+export const assetsPairedDataExternalRetrieve = async (
+  uidAsset: string,
+  uidPairedData: string,
+  options?: RequestInit,
+): Promise<assetsPairedDataExternalRetrieveResponse> => {
+  return fetchWithAuth<assetsPairedDataExternalRetrieveResponse>(
+    getAssetsPairedDataExternalRetrieveUrl(uidAsset, uidPairedData),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export type AssetsPairedDataExternalRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>>
+export const getAssetsPairedDataExternalRetrieveQueryKey = (uidAsset: string, uidPairedData: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'paired-data', uidPairedData, 'external'] as const
+}
+
+export const getAssetsPairedDataExternalRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidPairedData: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataExternalRetrieveQueryKey(uidAsset, uidPairedData)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>> = ({ signal }) =>
+    assetsPairedDataExternalRetrieve(uidAsset, uidPairedData, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidPairedData), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsPairedDataExternalRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>
+>
 export type AssetsPairedDataExternalRetrieveQueryError = ErrorDetail
 
+export function useAssetsPairedDataExternalRetrieve<
+  TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidPairedData: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsPairedDataExternalRetrieveQueryOptions(uidAsset, uidPairedData, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsPairedDataExternalRetrieve<TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError = ErrorDetail>(
- uidAsset: string,
-    uidPairedData: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsPairedDataExternalRetrieveQueryOptions(uidAsset,uidPairedData,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Report of a user's asset
@@ -5821,75 +6085,73 @@ export type assetsReportsRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetsReportsRetrieveResponseComposite = assetsReportsRetrieveResponse200 | assetsReportsRetrieveResponse404;
-    
+
+export type assetsReportsRetrieveResponseComposite = assetsReportsRetrieveResponse200 | assetsReportsRetrieveResponse404
+
 export type assetsReportsRetrieveResponse = assetsReportsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsReportsRetrieveUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsReportsRetrieveUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/reports/`
 }
 
-export const assetsReportsRetrieve = async (uidAsset: string, options?: RequestInit): Promise<assetsReportsRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsReportsRetrieveResponse>(getAssetsReportsRetrieveUrl(uidAsset),
-  {      
+export const assetsReportsRetrieve = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsReportsRetrieveResponse> => {
+  return fetchWithAuth<assetsReportsRetrieveResponse>(getAssetsReportsRetrieveUrl(uidAsset), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsReportsRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'reports'] as const
+}
 
-
-export const getAssetsReportsRetrieveQueryKey = (uidAsset: string,) => {
-    return ['api','v2','assets',uidAsset,'reports'] as const;
-    }
-
-    
-export const getAssetsReportsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsReportsRetrieve>>, TError = ErrorDetail>(uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsReportsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsReportsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsReportsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsReportsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsReportsRetrieveQueryKey(uidAsset)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsReportsRetrieveQueryKey(uidAsset);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsReportsRetrieve>>> = ({ signal }) =>
+    assetsReportsRetrieve(uidAsset, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsReportsRetrieve>>> = ({ signal }) => assetsReportsRetrieve(uidAsset, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsReportsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsReportsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsReportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsReportsRetrieve>>>
 export type AssetsReportsRetrieveQueryError = ErrorDetail
 
+export function useAssetsReportsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsReportsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsReportsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsReportsRetrieveQueryOptions(uidAsset, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsReportsRetrieve<TData = Awaited<ReturnType<typeof assetsReportsRetrieve>>, TError = ErrorDetail>(
- uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsReportsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsReportsRetrieveQueryOptions(uidAsset,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
-

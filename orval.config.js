@@ -19,7 +19,9 @@ module.exports = {
       // With mode: 'tags-split', mocks are generated separately from runtime code
       mock: true,
       indexFiles: false,
-      biome: true,
+      // Disable built-in biome, as it is running before `afterAllFilesWrite`
+      // scripts - we run it manually after post-processing
+      biome: false,
 
       // baseUrl: 'https://api.example.com', // prepend https://api.example.com to all api calls
       urlEncodeParameters: true,
@@ -50,12 +52,14 @@ module.exports = {
       // Also fix TypeScript errors in MSW mock factories for types with index signatures.
       // Make trailing slashes optional in MSW handlers to match both /path and /path/
       // Rename files to index.ts/msw.ts pattern for clean imports
+      // Run Biome last to format and organize imports after all modifications
       afterAllFilesWrite: [
         'node scripts/orval-rename-to-index.js',
         'node scripts/orval-fix-referenced-additional-properties.js',
         'node scripts/orval-fix-mock-factory-type-assertions.js',
         'node scripts/orval-make-trailing-slash-optional.js',
         'node scripts/orval-remove-mock-delays.js',
+        'npx biome check --write --unsafe jsapp/js/api/react-query jsapp/js/api/models',
       ],
     },
   },

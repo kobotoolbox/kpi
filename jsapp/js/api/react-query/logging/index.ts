@@ -9,61 +9,37 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   MutationFunction,
   QueryFunction,
   QueryKey,
   UseMutationOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
-import type {
-  AccessLogsMeListParams
-} from '../../models/accessLogsMeListParams';
+import type { AccessLogsMeListParams } from '../../models/accessLogsMeListParams'
 
-import type {
-  AssetsHistoryListParams
-} from '../../models/assetsHistoryListParams';
+import type { AssetsHistoryListParams } from '../../models/assetsHistoryListParams'
 
-import type {
-  ErrorDetail
-} from '../../models/errorDetail';
+import type { ErrorDetail } from '../../models/errorDetail'
 
-import type {
-  ExportCreateResponse
-} from '../../models/exportCreateResponse';
+import type { ExportCreateResponse } from '../../models/exportCreateResponse'
 
-import type {
-  ExportListResponse
-} from '../../models/exportListResponse';
+import type { ExportListResponse } from '../../models/exportListResponse'
 
-import type {
-  HistoryActionResponse
-} from '../../models/historyActionResponse';
+import type { HistoryActionResponse } from '../../models/historyActionResponse'
 
-import type {
-  HistoryExportResponse
-} from '../../models/historyExportResponse';
+import type { HistoryExportResponse } from '../../models/historyExportResponse'
 
-import type {
-  PaginatedAccessLogResponseList
-} from '../../models/paginatedAccessLogResponseList';
+import type { PaginatedAccessLogResponseList } from '../../models/paginatedAccessLogResponseList'
 
-import type {
-  PaginatedHistoryListResponseList
-} from '../../models/paginatedHistoryListResponseList';
+import type { PaginatedHistoryListResponseList } from '../../models/paginatedHistoryListResponseList'
 
-import { fetchWithAuth } from '../../orval.mutator';
+import { fetchWithAuth } from '../../orval.mutator'
 
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List all access logs for the authenticated user
@@ -99,84 +75,83 @@ export type accessLogsMeListResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type accessLogsMeListResponseComposite = accessLogsMeListResponse200 | accessLogsMeListResponse401;
-    
+
+export type accessLogsMeListResponseComposite = accessLogsMeListResponse200 | accessLogsMeListResponse401
+
 export type accessLogsMeListResponse = accessLogsMeListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAccessLogsMeListUrl = (params?: AccessLogsMeListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAccessLogsMeListUrl = (params?: AccessLogsMeListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0 ? `/api/v2/access-logs/me/?${stringifiedParams}` : `/api/v2/access-logs/me/`
 }
 
-export const accessLogsMeList = async (params?: AccessLogsMeListParams, options?: RequestInit): Promise<accessLogsMeListResponse> => {
-  
-  return fetchWithAuth<accessLogsMeListResponse>(getAccessLogsMeListUrl(params),
-  {      
+export const accessLogsMeList = async (
+  params?: AccessLogsMeListParams,
+  options?: RequestInit,
+): Promise<accessLogsMeListResponse> => {
+  return fetchWithAuth<accessLogsMeListResponse>(getAccessLogsMeListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAccessLogsMeListQueryKey = (params?: AccessLogsMeListParams) => {
+  return ['api', 'v2', 'access-logs', 'me', ...(params ? [params] : [])] as const
+}
 
-
-export const getAccessLogsMeListQueryKey = (params?: AccessLogsMeListParams,) => {
-    return ['api','v2','access-logs','me', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAccessLogsMeListQueryOptions = <TData = Awaited<ReturnType<typeof accessLogsMeList>>, TError = ErrorDetail>(params?: AccessLogsMeListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAccessLogsMeListQueryOptions = <
+  TData = Awaited<ReturnType<typeof accessLogsMeList>>,
+  TError = ErrorDetail,
+>(
+  params?: AccessLogsMeListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAccessLogsMeListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAccessLogsMeListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsMeList>>> = ({ signal }) =>
+    accessLogsMeList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsMeList>>> = ({ signal }) => accessLogsMeList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof accessLogsMeList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AccessLogsMeListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeList>>>
 export type AccessLogsMeListQueryError = ErrorDetail
 
-
-
 export function useAccessLogsMeList<TData = Awaited<ReturnType<typeof accessLogsMeList>>, TError = ErrorDetail>(
- params?: AccessLogsMeListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  params?: AccessLogsMeListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAccessLogsMeListQueryOptions(params, options)
 
-  const queryOptions = getAccessLogsMeListQueryOptions(params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## List all access logs export tasks for the authenticated user
@@ -191,77 +166,69 @@ export type accessLogsMeExportListResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type accessLogsMeExportListResponseComposite = accessLogsMeExportListResponse200 | accessLogsMeExportListResponse401;
-    
+
+export type accessLogsMeExportListResponseComposite =
+  | accessLogsMeExportListResponse200
+  | accessLogsMeExportListResponse401
+
 export type accessLogsMeExportListResponse = accessLogsMeExportListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getAccessLogsMeExportListUrl = () => {
-
-
-  
-
   return `/api/v2/access-logs/me/export/`
 }
 
-export const accessLogsMeExportList = async ( options?: RequestInit): Promise<accessLogsMeExportListResponse> => {
-  
-  return fetchWithAuth<accessLogsMeExportListResponse>(getAccessLogsMeExportListUrl(),
-  {      
+export const accessLogsMeExportList = async (options?: RequestInit): Promise<accessLogsMeExportListResponse> => {
+  return fetchWithAuth<accessLogsMeExportListResponse>(getAccessLogsMeExportListUrl(), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+    method: 'GET',
+  })
+}
 
 export const getAccessLogsMeExportListQueryKey = () => {
-    return ['api','v2','access-logs','me','export'] as const;
-    }
+  return ['api', 'v2', 'access-logs', 'me', 'export'] as const
+}
 
-    
-export const getAccessLogsMeExportListQueryOptions = <TData = Awaited<ReturnType<typeof accessLogsMeExportList>>, TError = ErrorDetail>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
+export const getAccessLogsMeExportListQueryOptions = <
+  TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
+  TError = ErrorDetail,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAccessLogsMeExportListQueryKey()
 
-  const queryKey =  queryOptions?.queryKey ?? getAccessLogsMeExportListQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsMeExportList>>> = ({ signal }) =>
+    accessLogsMeExportList({ signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsMeExportList>>> = ({ signal }) => accessLogsMeExportList({ signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof accessLogsMeExportList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AccessLogsMeExportListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeExportList>>>
 export type AccessLogsMeExportListQueryError = ErrorDetail
 
-
-
-export function useAccessLogsMeExportList<TData = Awaited<ReturnType<typeof accessLogsMeExportList>>, TError = ErrorDetail>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
+export function useAccessLogsMeExportList<
+  TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
+  TError = ErrorDetail,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAccessLogsMeExportListQueryOptions(options)
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey
 
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Create an export task for the authenticated user
@@ -276,73 +243,57 @@ export type accessLogsMeExportCreateResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type accessLogsMeExportCreateResponseComposite = accessLogsMeExportCreateResponse202 | accessLogsMeExportCreateResponse401;
-    
+
+export type accessLogsMeExportCreateResponseComposite =
+  | accessLogsMeExportCreateResponse202
+  | accessLogsMeExportCreateResponse401
+
 export type accessLogsMeExportCreateResponse = accessLogsMeExportCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getAccessLogsMeExportCreateUrl = () => {
-
-
-  
-
   return `/api/v2/access-logs/me/export/`
 }
 
-export const accessLogsMeExportCreate = async ( options?: RequestInit): Promise<accessLogsMeExportCreateResponse> => {
-  
-  return fetchWithAuth<accessLogsMeExportCreateResponse>(getAccessLogsMeExportCreateUrl(),
-  {      
+export const accessLogsMeExportCreate = async (options?: RequestInit): Promise<accessLogsMeExportCreateResponse> => {
+  return fetchWithAuth<accessLogsMeExportCreateResponse>(getAccessLogsMeExportCreateUrl(), {
     ...options,
-    method: 'POST'
-    
-    
+    method: 'POST',
+  })
+}
+
+export const getAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext> => {
+  const mutationKey = ['accessLogsMeExportCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, void> = () => {
+    return accessLogsMeExportCreate(requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AccessLogsMeExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeExportCreate>>>
 
+export type AccessLogsMeExportCreateMutationError = ErrorDetail
 
-export const getAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError,void, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError,void, TContext> => {
+export const useAccessLogsMeExportCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAccessLogsMeExportCreateMutationOptions(options)
 
-const mutationKey = ['accessLogsMeExportCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, void> = () => {
-          
-
-          return  accessLogsMeExportCreate(requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AccessLogsMeExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeExportCreate>>>
-    
-    export type AccessLogsMeExportCreateMutationError = ErrorDetail
-
-    export const useAccessLogsMeExportCreate = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError,void, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAccessLogsMeExportCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## List project history logs
 
 Lists all project history logs for a single project.
@@ -498,89 +449,88 @@ export type assetsHistoryListResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsHistoryListResponseComposite = assetsHistoryListResponse200 | assetsHistoryListResponse403;
-    
+
+export type assetsHistoryListResponseComposite = assetsHistoryListResponse200 | assetsHistoryListResponse403
+
 export type assetsHistoryListResponse = assetsHistoryListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsHistoryListUrl = (uidAsset: string,
-    params?: AssetsHistoryListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetsHistoryListUrl = (uidAsset: string, params?: AssetsHistoryListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uidAsset}/history/?${stringifiedParams}` : `/api/v2/assets/${uidAsset}/history/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/history/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/history/`
 }
 
-export const assetsHistoryList = async (uidAsset: string,
-    params?: AssetsHistoryListParams, options?: RequestInit): Promise<assetsHistoryListResponse> => {
-  
-  return fetchWithAuth<assetsHistoryListResponse>(getAssetsHistoryListUrl(uidAsset,params),
-  {      
+export const assetsHistoryList = async (
+  uidAsset: string,
+  params?: AssetsHistoryListParams,
+  options?: RequestInit,
+): Promise<assetsHistoryListResponse> => {
+  return fetchWithAuth<assetsHistoryListResponse>(getAssetsHistoryListUrl(uidAsset, params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetsHistoryListQueryKey = (uidAsset: string, params?: AssetsHistoryListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'history', ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetsHistoryListQueryKey = (uidAsset: string,
-    params?: AssetsHistoryListParams,) => {
-    return ['api','v2','assets',uidAsset,'history', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetsHistoryListQueryOptions = <TData = Awaited<ReturnType<typeof assetsHistoryList>>, TError = ErrorDetail>(uidAsset: string,
-    params?: AssetsHistoryListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetsHistoryListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsHistoryList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsHistoryListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetsHistoryListQueryKey(uidAsset, params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetsHistoryListQueryKey(uidAsset,params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHistoryList>>> = ({ signal }) =>
+    assetsHistoryList(uidAsset, params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHistoryList>>> = ({ signal }) => assetsHistoryList(uidAsset,params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsHistoryList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsHistoryListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryList>>>
 export type AssetsHistoryListQueryError = ErrorDetail
 
-
-
 export function useAssetsHistoryList<TData = Awaited<ReturnType<typeof assetsHistoryList>>, TError = ErrorDetail>(
- uidAsset: string,
-    params?: AssetsHistoryListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  uidAsset: string,
+  params?: AssetsHistoryListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsHistoryListQueryOptions(uidAsset, params, options)
 
-  const queryOptions = getAssetsHistoryListQueryOptions(uidAsset,params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Retrieve distinct actions performed on the project.
@@ -595,77 +545,80 @@ export type assetsHistoryActionsRetrieveResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsHistoryActionsRetrieveResponseComposite = assetsHistoryActionsRetrieveResponse200 | assetsHistoryActionsRetrieveResponse403;
-    
+
+export type assetsHistoryActionsRetrieveResponseComposite =
+  | assetsHistoryActionsRetrieveResponse200
+  | assetsHistoryActionsRetrieveResponse403
+
 export type assetsHistoryActionsRetrieveResponse = assetsHistoryActionsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsHistoryActionsRetrieveUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsHistoryActionsRetrieveUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/history/actions/`
 }
 
-export const assetsHistoryActionsRetrieve = async (uidAsset: string, options?: RequestInit): Promise<assetsHistoryActionsRetrieveResponse> => {
-  
-  return fetchWithAuth<assetsHistoryActionsRetrieveResponse>(getAssetsHistoryActionsRetrieveUrl(uidAsset),
-  {      
+export const assetsHistoryActionsRetrieve = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsHistoryActionsRetrieveResponse> => {
+  return fetchWithAuth<assetsHistoryActionsRetrieveResponse>(getAssetsHistoryActionsRetrieveUrl(uidAsset), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getAssetsHistoryActionsRetrieveQueryKey = (uidAsset: string,) => {
-    return ['api','v2','assets',uidAsset,'history','actions'] as const;
-    }
-
-    
-export const getAssetsHistoryActionsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError = ErrorDetail>(uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAssetsHistoryActionsRetrieveQueryKey(uidAsset);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>> = ({ signal }) => assetsHistoryActionsRetrieve(uidAsset, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAsset), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type AssetsHistoryActionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>>
+export const getAssetsHistoryActionsRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'history', 'actions'] as const
+}
+
+export const getAssetsHistoryActionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsHistoryActionsRetrieveQueryKey(uidAsset)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>> = ({ signal }) =>
+    assetsHistoryActionsRetrieve(uidAsset, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsHistoryActionsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>
+>
 export type AssetsHistoryActionsRetrieveQueryError = ErrorDetail
 
+export function useAssetsHistoryActionsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsHistoryActionsRetrieveQueryOptions(uidAsset, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetsHistoryActionsRetrieve<TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError = ErrorDetail>(
- uidAsset: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetsHistoryActionsRetrieveQueryOptions(uidAsset,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Export current project's history
@@ -682,70 +635,75 @@ export type assetsHistoryExportCreateResponse403 = {
   data: ErrorDetail
   status: 403
 }
-    
-export type assetsHistoryExportCreateResponseComposite = assetsHistoryExportCreateResponse202 | assetsHistoryExportCreateResponse403;
-    
+
+export type assetsHistoryExportCreateResponseComposite =
+  | assetsHistoryExportCreateResponse202
+  | assetsHistoryExportCreateResponse403
+
 export type assetsHistoryExportCreateResponse = assetsHistoryExportCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetsHistoryExportCreateUrl = (uidAsset: string,) => {
-
-
-  
-
+export const getAssetsHistoryExportCreateUrl = (uidAsset: string) => {
   return `/api/v2/assets/${uidAsset}/history/export/`
 }
 
-export const assetsHistoryExportCreate = async (uidAsset: string, options?: RequestInit): Promise<assetsHistoryExportCreateResponse> => {
-  
-  return fetchWithAuth<assetsHistoryExportCreateResponse>(getAssetsHistoryExportCreateUrl(uidAsset),
-  {      
+export const assetsHistoryExportCreate = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsHistoryExportCreateResponse> => {
+  return fetchWithAuth<assetsHistoryExportCreateResponse>(getAssetsHistoryExportCreateUrl(uidAsset), {
     ...options,
-    method: 'POST'
-    
-    
+    method: 'POST',
+  })
+}
+
+export const getAssetsHistoryExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
+  TError,
+  { uidAsset: string },
+  TContext
+> => {
+  const mutationKey = ['assetsHistoryExportCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsHistoryExportCreate>>, { uidAsset: string }> = (
+    props,
+  ) => {
+    const { uidAsset } = props ?? {}
+
+    return assetsHistoryExportCreate(uidAsset, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetsHistoryExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryExportCreate>>>
 
+export type AssetsHistoryExportCreateMutationError = ErrorDetail
 
-export const getAssetsHistoryExportCreateMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsHistoryExportCreate>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetsHistoryExportCreate>>, TError,{uidAsset: string}, TContext> => {
+export const useAssetsHistoryExportCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
+    TError,
+    { uidAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsHistoryExportCreateMutationOptions(options)
 
-const mutationKey = ['assetsHistoryExportCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsHistoryExportCreate>>, {uidAsset: string}> = (props) => {
-          const {uidAsset} = props ?? {};
-
-          return  assetsHistoryExportCreate(uidAsset,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetsHistoryExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryExportCreate>>>
-    
-    export type AssetsHistoryExportCreateMutationError = ErrorDetail
-
-    export const useAssetsHistoryExportCreate = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetsHistoryExportCreate>>, TError,{uidAsset: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetsHistoryExportCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    
+  return useMutation(mutationOptions)
+}

@@ -9,70 +9,122 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  faker
-} from '@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
-import { HttpResponse,
-  http } from 'msw';
+import { http, HttpResponse } from 'msw'
 
-import type {
-  AssetSubscriptionResponse
-} from '../../models/assetSubscriptionResponse';
+import type { AssetSubscriptionResponse } from '../../models/assetSubscriptionResponse'
 
-import type {
-  PaginatedAssetSubscriptionResponseList
-} from '../../models/paginatedAssetSubscriptionResponseList';
+import type { PaginatedAssetSubscriptionResponseList } from '../../models/paginatedAssetSubscriptionResponseList'
 
+export const getApiV2AssetSubscriptionsListResponseMock = (
+  overrideResponse: Partial<PaginatedAssetSubscriptionResponseList> = {},
+): PaginatedAssetSubscriptionResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    asset: faker.internet.url(),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2AssetSubscriptionsListResponseMock = (overrideResponse: Partial< PaginatedAssetSubscriptionResponseList > = {}): PaginatedAssetSubscriptionResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), asset: faker.internet.url(), uid: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
+export const getApiV2AssetSubscriptionsCreateResponseMock = (
+  overrideResponse: Partial<AssetSubscriptionResponse> = {},
+): AssetSubscriptionResponse => ({
+  url: faker.internet.url(),
+  asset: faker.internet.url(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2AssetSubscriptionsCreateResponseMock = (overrideResponse: Partial< AssetSubscriptionResponse > = {}): AssetSubscriptionResponse => ({url: faker.internet.url(), asset: faker.internet.url(), uid: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+export const getApiV2AssetSubscriptionsRetrieveResponseMock = (
+  overrideResponse: Partial<AssetSubscriptionResponse> = {},
+): AssetSubscriptionResponse => ({
+  url: faker.internet.url(),
+  asset: faker.internet.url(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2AssetSubscriptionsRetrieveResponseMock = (overrideResponse: Partial< AssetSubscriptionResponse > = {}): AssetSubscriptionResponse => ({url: faker.internet.url(), asset: faker.internet.url(), uid: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
-
-
-export const getApiV2AssetSubscriptionsListMockHandler = (overrideResponse?: PaginatedAssetSubscriptionResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetSubscriptionResponseList> | PaginatedAssetSubscriptionResponseList)) => {
-  return http.get('*/api/v2/asset_subscriptions/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetSubscriptionsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetSubscriptionsListMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetSubscriptionResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAssetSubscriptionResponseList> | PaginatedAssetSubscriptionResponseList),
+) => {
+  return http.get('*/api/v2/asset_subscriptions/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSubscriptionsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetSubscriptionsCreateMockHandler = (overrideResponse?: AssetSubscriptionResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse)) => {
-  return http.post('*/api/v2/asset_subscriptions/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetSubscriptionsCreateResponseMock()),
-      { status: 201,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetSubscriptionsCreateMockHandler = (
+  overrideResponse?:
+    | AssetSubscriptionResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
+) => {
+  return http.post('*/api/v2/asset_subscriptions/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSubscriptionsCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetSubscriptionsRetrieveMockHandler = (overrideResponse?: AssetSubscriptionResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse)) => {
-  return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetSubscriptionsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetSubscriptionsRetrieveMockHandler = (
+  overrideResponse?:
+    | AssetSubscriptionResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
+) => {
+  return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetSubscriptionsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetSubscriptionsDestroyMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void)) => {
-  return http.delete('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-    return new HttpResponse(null,
-      { status: 204,
-        
-      })
+export const getApiV2AssetSubscriptionsDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
   })
 }
 export const getLibraryCollectionsMock = () => [
   getApiV2AssetSubscriptionsListMockHandler(),
   getApiV2AssetSubscriptionsCreateMockHandler(),
   getApiV2AssetSubscriptionsRetrieveMockHandler(),
-  getApiV2AssetSubscriptionsDestroyMockHandler()
+  getApiV2AssetSubscriptionsDestroyMockHandler(),
 ]

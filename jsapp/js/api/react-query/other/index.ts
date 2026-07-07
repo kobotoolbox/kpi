@@ -9,133 +9,73 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   MutationFunction,
   QueryFunction,
   QueryKey,
   UseMutationOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
-import type {
-  ChangePlan
-} from '../../models/changePlan';
+import type { ChangePlan } from '../../models/changePlan'
 
-import type {
-  CheckoutLink
-} from '../../models/checkoutLink';
+import type { CheckoutLink } from '../../models/checkoutLink'
 
-import type {
-  CustomerPortal
-} from '../../models/customerPortal';
+import type { CustomerPortal } from '../../models/customerPortal'
 
-import type {
-  CustomerPortalPostResponse
-} from '../../models/customerPortalPostResponse';
+import type { CustomerPortalPostResponse } from '../../models/customerPortalPostResponse'
 
-import type {
-  ErrorDetail
-} from '../../models/errorDetail';
+import type { ErrorDetail } from '../../models/errorDetail'
 
-import type {
-  ErrorObject
-} from '../../models/errorObject';
+import type { ErrorObject } from '../../models/errorObject'
 
-import type {
-  Language
-} from '../../models/language';
+import type { Language } from '../../models/language'
 
-import type {
-  LanguagesListParams
-} from '../../models/languagesListParams';
+import type { LanguagesListParams } from '../../models/languagesListParams'
 
-import type {
-  OneTimeAddOn
-} from '../../models/oneTimeAddOn';
+import type { OneTimeAddOn } from '../../models/oneTimeAddOn'
 
-import type {
-  PaginatedLanguageListList
-} from '../../models/paginatedLanguageListList';
+import type { PaginatedLanguageListList } from '../../models/paginatedLanguageListList'
 
-import type {
-  PaginatedOneTimeAddOnList
-} from '../../models/paginatedOneTimeAddOnList';
+import type { PaginatedOneTimeAddOnList } from '../../models/paginatedOneTimeAddOnList'
 
-import type {
-  PaginatedPermissionResponseList
-} from '../../models/paginatedPermissionResponseList';
+import type { PaginatedPermissionResponseList } from '../../models/paginatedPermissionResponseList'
 
-import type {
-  PaginatedProductList
-} from '../../models/paginatedProductList';
+import type { PaginatedProductList } from '../../models/paginatedProductList'
 
-import type {
-  PaginatedSubscriptionList
-} from '../../models/paginatedSubscriptionList';
+import type { PaginatedSubscriptionList } from '../../models/paginatedSubscriptionList'
 
-import type {
-  PaginatedTranscriptionServiceList
-} from '../../models/paginatedTranscriptionServiceList';
+import type { PaginatedTranscriptionServiceList } from '../../models/paginatedTranscriptionServiceList'
 
-import type {
-  PaginatedTranslationServiceList
-} from '../../models/paginatedTranslationServiceList';
+import type { PaginatedTranslationServiceList } from '../../models/paginatedTranslationServiceList'
 
-import type {
-  PermissionResponse
-} from '../../models/permissionResponse';
+import type { PermissionResponse } from '../../models/permissionResponse'
 
-import type {
-  PermissionsListParams
-} from '../../models/permissionsListParams';
+import type { PermissionsListParams } from '../../models/permissionsListParams'
 
-import type {
-  StripeAddonsListParams
-} from '../../models/stripeAddonsListParams';
+import type { StripeAddonsListParams } from '../../models/stripeAddonsListParams'
 
-import type {
-  StripeProductsListParams
-} from '../../models/stripeProductsListParams';
+import type { StripeProductsListParams } from '../../models/stripeProductsListParams'
 
-import type {
-  StripeSubscriptionsListParams
-} from '../../models/stripeSubscriptionsListParams';
+import type { StripeSubscriptionsListParams } from '../../models/stripeSubscriptionsListParams'
 
-import type {
-  Subscription
-} from '../../models/subscription';
+import type { Subscription } from '../../models/subscription'
 
-import type {
-  TermsOfServiceResponse
-} from '../../models/termsOfServiceResponse';
+import type { TermsOfServiceResponse } from '../../models/termsOfServiceResponse'
 
-import type {
-  TranscriptionService
-} from '../../models/transcriptionService';
+import type { TranscriptionService } from '../../models/transcriptionService'
 
-import type {
-  TranscriptionServicesListParams
-} from '../../models/transcriptionServicesListParams';
+import type { TranscriptionServicesListParams } from '../../models/transcriptionServicesListParams'
 
-import type {
-  TranslationService
-} from '../../models/translationService';
+import type { TranslationService } from '../../models/translationService'
 
-import type {
-  TranslationServicesListParams
-} from '../../models/translationServicesListParams';
+import type { TranslationServicesListParams } from '../../models/translationServicesListParams'
 
-import { fetchWithAuth } from '../../orval.mutator';
+import { fetchWithAuth } from '../../orval.mutator'
 
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List the languages accessible to requesting (authenticated) user.
@@ -166,84 +106,80 @@ export type languagesListResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type languagesListResponseComposite = languagesListResponse200 | languagesListResponse401;
-    
+
+export type languagesListResponseComposite = languagesListResponse200 | languagesListResponse401
+
 export type languagesListResponse = languagesListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getLanguagesListUrl = (params?: LanguagesListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getLanguagesListUrl = (params?: LanguagesListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0 ? `/api/v2/languages/?${stringifiedParams}` : `/api/v2/languages/`
 }
 
-export const languagesList = async (params?: LanguagesListParams, options?: RequestInit): Promise<languagesListResponse> => {
-  
-  return fetchWithAuth<languagesListResponse>(getLanguagesListUrl(params),
-  {      
+export const languagesList = async (
+  params?: LanguagesListParams,
+  options?: RequestInit,
+): Promise<languagesListResponse> => {
+  return fetchWithAuth<languagesListResponse>(getLanguagesListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getLanguagesListQueryKey = (params?: LanguagesListParams) => {
+  return ['api', 'v2', 'languages', ...(params ? [params] : [])] as const
+}
 
-
-export const getLanguagesListQueryKey = (params?: LanguagesListParams,) => {
-    return ['api','v2','languages', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getLanguagesListQueryOptions = <TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(params?: LanguagesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getLanguagesListQueryOptions = <TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
+  params?: LanguagesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getLanguagesListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getLanguagesListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof languagesList>>> = ({ signal }) =>
+    languagesList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof languagesList>>> = ({ signal }) => languagesList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof languagesList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type LanguagesListQueryResult = NonNullable<Awaited<ReturnType<typeof languagesList>>>
 export type LanguagesListQueryError = ErrorDetail
 
-
-
 export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
- params?: LanguagesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  params?: LanguagesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getLanguagesListQueryOptions(params, options)
 
-  const queryOptions = getLanguagesListQueryOptions(params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Retrieve one language
@@ -260,77 +196,70 @@ export type languagesRetrieveResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type languagesRetrieveResponseComposite = languagesRetrieveResponse200 | languagesRetrieveResponse401;
-    
+
+export type languagesRetrieveResponseComposite = languagesRetrieveResponse200 | languagesRetrieveResponse401
+
 export type languagesRetrieveResponse = languagesRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getLanguagesRetrieveUrl = (code: string,) => {
-
-
-  
-
+export const getLanguagesRetrieveUrl = (code: string) => {
   return `/api/v2/languages/${code}/`
 }
 
 export const languagesRetrieve = async (code: string, options?: RequestInit): Promise<languagesRetrieveResponse> => {
-  
-  return fetchWithAuth<languagesRetrieveResponse>(getLanguagesRetrieveUrl(code),
-  {      
+  return fetchWithAuth<languagesRetrieveResponse>(getLanguagesRetrieveUrl(code), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getLanguagesRetrieveQueryKey = (code: string) => {
+  return ['api', 'v2', 'languages', code] as const
+}
 
-
-export const getLanguagesRetrieveQueryKey = (code: string,) => {
-    return ['api','v2','languages',code] as const;
-    }
-
-    
-export const getLanguagesRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof languagesRetrieve>>, TError = ErrorDetail>(code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getLanguagesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof languagesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  code: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getLanguagesRetrieveQueryKey(code)
 
-  const queryKey =  queryOptions?.queryKey ?? getLanguagesRetrieveQueryKey(code);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof languagesRetrieve>>> = ({ signal }) =>
+    languagesRetrieve(code, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof languagesRetrieve>>> = ({ signal }) => languagesRetrieve(code, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(code), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!code, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof languagesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type LanguagesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof languagesRetrieve>>>
 export type LanguagesRetrieveQueryError = ErrorDetail
 
-
-
 export function useLanguagesRetrieve<TData = Awaited<ReturnType<typeof languagesRetrieve>>, TError = ErrorDetail>(
- code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  code: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getLanguagesRetrieveQueryOptions(code, options)
 
-  const queryOptions = getLanguagesRetrieveQueryOptions(code,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## List all assignable permissions for `Asset`
@@ -347,84 +276,80 @@ export type permissionsListResponse200 = {
   data: PaginatedPermissionResponseList
   status: 200
 }
-    
-export type permissionsListResponseComposite = permissionsListResponse200;
-    
+
+export type permissionsListResponseComposite = permissionsListResponse200
+
 export type permissionsListResponse = permissionsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getPermissionsListUrl = (params?: PermissionsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getPermissionsListUrl = (params?: PermissionsListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0 ? `/api/v2/permissions/?${stringifiedParams}` : `/api/v2/permissions/`
 }
 
-export const permissionsList = async (params?: PermissionsListParams, options?: RequestInit): Promise<permissionsListResponse> => {
-  
-  return fetchWithAuth<permissionsListResponse>(getPermissionsListUrl(params),
-  {      
+export const permissionsList = async (
+  params?: PermissionsListParams,
+  options?: RequestInit,
+): Promise<permissionsListResponse> => {
+  return fetchWithAuth<permissionsListResponse>(getPermissionsListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getPermissionsListQueryKey = (params?: PermissionsListParams) => {
+  return ['api', 'v2', 'permissions', ...(params ? [params] : [])] as const
+}
 
-
-export const getPermissionsListQueryKey = (params?: PermissionsListParams,) => {
-    return ['api','v2','permissions', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getPermissionsListQueryOptions = <TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(params?: PermissionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getPermissionsListQueryOptions = <TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
+  params?: PermissionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getPermissionsListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getPermissionsListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof permissionsList>>> = ({ signal }) =>
+    permissionsList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof permissionsList>>> = ({ signal }) => permissionsList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof permissionsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type PermissionsListQueryResult = NonNullable<Awaited<ReturnType<typeof permissionsList>>>
 export type PermissionsListQueryError = unknown
 
-
-
 export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
- params?: PermissionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  params?: PermissionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getPermissionsListQueryOptions(params, options)
 
-  const queryOptions = getPermissionsListQueryOptions(params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Retrieve a codename's permissions
@@ -434,77 +359,73 @@ export type permissionsRetrieveResponse200 = {
   data: PermissionResponse
   status: 200
 }
-    
-export type permissionsRetrieveResponseComposite = permissionsRetrieveResponse200;
-    
+
+export type permissionsRetrieveResponseComposite = permissionsRetrieveResponse200
+
 export type permissionsRetrieveResponse = permissionsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getPermissionsRetrieveUrl = (codename: string,) => {
-
-
-  
-
+export const getPermissionsRetrieveUrl = (codename: string) => {
   return `/api/v2/permissions/${codename}/`
 }
 
-export const permissionsRetrieve = async (codename: string, options?: RequestInit): Promise<permissionsRetrieveResponse> => {
-  
-  return fetchWithAuth<permissionsRetrieveResponse>(getPermissionsRetrieveUrl(codename),
-  {      
+export const permissionsRetrieve = async (
+  codename: string,
+  options?: RequestInit,
+): Promise<permissionsRetrieveResponse> => {
+  return fetchWithAuth<permissionsRetrieveResponse>(getPermissionsRetrieveUrl(codename), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getPermissionsRetrieveQueryKey = (codename: string) => {
+  return ['api', 'v2', 'permissions', codename] as const
+}
 
-
-export const getPermissionsRetrieveQueryKey = (codename: string,) => {
-    return ['api','v2','permissions',codename] as const;
-    }
-
-    
-export const getPermissionsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(codename: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getPermissionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof permissionsRetrieve>>,
+  TError = unknown,
+>(
+  codename: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getPermissionsRetrieveQueryKey(codename)
 
-  const queryKey =  queryOptions?.queryKey ?? getPermissionsRetrieveQueryKey(codename);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof permissionsRetrieve>>> = ({ signal }) =>
+    permissionsRetrieve(codename, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof permissionsRetrieve>>> = ({ signal }) => permissionsRetrieve(codename, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(codename), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!codename, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof permissionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type PermissionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof permissionsRetrieve>>>
 export type PermissionsRetrieveQueryError = unknown
 
-
-
 export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
- codename: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  codename: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getPermissionsRetrieveQueryOptions(codename, options)
 
-  const queryOptions = getPermissionsRetrieveQueryOptions(codename,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * Lists the one-time add-ons for the authenticated user's organization.
@@ -513,84 +434,80 @@ export type stripeAddonsListResponse200 = {
   data: PaginatedOneTimeAddOnList
   status: 200
 }
-    
-export type stripeAddonsListResponseComposite = stripeAddonsListResponse200;
-    
+
+export type stripeAddonsListResponseComposite = stripeAddonsListResponse200
+
 export type stripeAddonsListResponse = stripeAddonsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getStripeAddonsListUrl = (params?: StripeAddonsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getStripeAddonsListUrl = (params?: StripeAddonsListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0 ? `/api/v2/stripe/addons/?${stringifiedParams}` : `/api/v2/stripe/addons/`
 }
 
-export const stripeAddonsList = async (params?: StripeAddonsListParams, options?: RequestInit): Promise<stripeAddonsListResponse> => {
-  
-  return fetchWithAuth<stripeAddonsListResponse>(getStripeAddonsListUrl(params),
-  {      
+export const stripeAddonsList = async (
+  params?: StripeAddonsListParams,
+  options?: RequestInit,
+): Promise<stripeAddonsListResponse> => {
+  return fetchWithAuth<stripeAddonsListResponse>(getStripeAddonsListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getStripeAddonsListQueryKey = (params?: StripeAddonsListParams) => {
+  return ['api', 'v2', 'stripe', 'addons', ...(params ? [params] : [])] as const
+}
 
-
-export const getStripeAddonsListQueryKey = (params?: StripeAddonsListParams,) => {
-    return ['api','v2','stripe','addons', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getStripeAddonsListQueryOptions = <TData = Awaited<ReturnType<typeof stripeAddonsList>>, TError = unknown>(params?: StripeAddonsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getStripeAddonsListQueryOptions = <TData = Awaited<ReturnType<typeof stripeAddonsList>>, TError = unknown>(
+  params?: StripeAddonsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getStripeAddonsListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getStripeAddonsListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeAddonsList>>> = ({ signal }) =>
+    stripeAddonsList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeAddonsList>>> = ({ signal }) => stripeAddonsList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeAddonsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type StripeAddonsListQueryResult = NonNullable<Awaited<ReturnType<typeof stripeAddonsList>>>
 export type StripeAddonsListQueryError = unknown
 
-
-
 export function useStripeAddonsList<TData = Awaited<ReturnType<typeof stripeAddonsList>>, TError = unknown>(
- params?: StripeAddonsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  params?: StripeAddonsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeAddonsListQueryOptions(params, options)
 
-  const queryOptions = getStripeAddonsListQueryOptions(params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * Lists the one-time add-ons for the authenticated user's organization.
@@ -599,77 +516,73 @@ export type stripeAddonsRetrieveResponse200 = {
   data: OneTimeAddOn
   status: 200
 }
-    
-export type stripeAddonsRetrieveResponseComposite = stripeAddonsRetrieveResponse200;
-    
+
+export type stripeAddonsRetrieveResponseComposite = stripeAddonsRetrieveResponse200
+
 export type stripeAddonsRetrieveResponse = stripeAddonsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getStripeAddonsRetrieveUrl = (id: string,) => {
-
-
-  
-
+export const getStripeAddonsRetrieveUrl = (id: string) => {
   return `/api/v2/stripe/addons/${id}/`
 }
 
-export const stripeAddonsRetrieve = async (id: string, options?: RequestInit): Promise<stripeAddonsRetrieveResponse> => {
-  
-  return fetchWithAuth<stripeAddonsRetrieveResponse>(getStripeAddonsRetrieveUrl(id),
-  {      
+export const stripeAddonsRetrieve = async (
+  id: string,
+  options?: RequestInit,
+): Promise<stripeAddonsRetrieveResponse> => {
+  return fetchWithAuth<stripeAddonsRetrieveResponse>(getStripeAddonsRetrieveUrl(id), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getStripeAddonsRetrieveQueryKey = (id: string) => {
+  return ['api', 'v2', 'stripe', 'addons', id] as const
+}
 
-
-export const getStripeAddonsRetrieveQueryKey = (id: string,) => {
-    return ['api','v2','stripe','addons',id] as const;
-    }
-
-    
-export const getStripeAddonsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError = unknown>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getStripeAddonsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeAddonsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getStripeAddonsRetrieveQueryKey(id)
 
-  const queryKey =  queryOptions?.queryKey ?? getStripeAddonsRetrieveQueryKey(id);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeAddonsRetrieve>>> = ({ signal }) =>
+    stripeAddonsRetrieve(id, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeAddonsRetrieve>>> = ({ signal }) => stripeAddonsRetrieve(id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeAddonsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type StripeAddonsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof stripeAddonsRetrieve>>>
 export type StripeAddonsRetrieveQueryError = unknown
 
-
-
 export function useStripeAddonsRetrieve<TData = Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError = unknown>(
- id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeAddonsRetrieveQueryOptions(id, options)
 
-  const queryOptions = getStripeAddonsRetrieveQueryOptions(id,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * Change an existing subscription to a new price.
@@ -703,150 +616,145 @@ export type stripeChangePlanRetrieveResponse200 = {
   data: ChangePlan
   status: 200
 }
-    
-export type stripeChangePlanRetrieveResponseComposite = stripeChangePlanRetrieveResponse200;
-    
+
+export type stripeChangePlanRetrieveResponseComposite = stripeChangePlanRetrieveResponse200
+
 export type stripeChangePlanRetrieveResponse = stripeChangePlanRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getStripeChangePlanRetrieveUrl = () => {
-
-
-  
-
   return `/api/v2/stripe/change-plan`
 }
 
-export const stripeChangePlanRetrieve = async ( options?: RequestInit): Promise<stripeChangePlanRetrieveResponse> => {
-  
-  return fetchWithAuth<stripeChangePlanRetrieveResponse>(getStripeChangePlanRetrieveUrl(),
-  {      
+export const stripeChangePlanRetrieve = async (options?: RequestInit): Promise<stripeChangePlanRetrieveResponse> => {
+  return fetchWithAuth<stripeChangePlanRetrieveResponse>(getStripeChangePlanRetrieveUrl(), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+    method: 'GET',
+  })
+}
 
 export const getStripeChangePlanRetrieveQueryKey = () => {
-    return ['api','v2','stripe','change-plan'] as const;
-    }
+  return ['api', 'v2', 'stripe', 'change-plan'] as const
+}
 
-    
-export const getStripeChangePlanRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
+export const getStripeChangePlanRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeChangePlanRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getStripeChangePlanRetrieveQueryKey()
 
-  const queryKey =  queryOptions?.queryKey ?? getStripeChangePlanRetrieveQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>> = ({ signal }) =>
+    stripeChangePlanRetrieve({ signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>> = ({ signal }) => stripeChangePlanRetrieve({ signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeChangePlanRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type StripeChangePlanRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>>
 export type StripeChangePlanRetrieveQueryError = unknown
 
-
-
-export function useStripeChangePlanRetrieve<TData = Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError = unknown>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
+export function useStripeChangePlanRetrieve<
+  TData = Awaited<ReturnType<typeof stripeChangePlanRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getStripeChangePlanRetrieveQueryOptions(options)
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey
 
-  return query;
+  return query
 }
-
-
 
 export type stripeCheckoutLinkCreateResponse200 = {
   data: CheckoutLink
   status: 200
 }
-    
-export type stripeCheckoutLinkCreateResponseComposite = stripeCheckoutLinkCreateResponse200;
-    
+
+export type stripeCheckoutLinkCreateResponseComposite = stripeCheckoutLinkCreateResponse200
+
 export type stripeCheckoutLinkCreateResponse = stripeCheckoutLinkCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getStripeCheckoutLinkCreateUrl = () => {
-
-
-  
-
   return `/api/v2/stripe/checkout-link`
 }
 
-export const stripeCheckoutLinkCreate = async (checkoutLink: CheckoutLink, options?: RequestInit): Promise<stripeCheckoutLinkCreateResponse> => {
-  
-  return fetchWithAuth<stripeCheckoutLinkCreateResponse>(getStripeCheckoutLinkCreateUrl(),
-  {      
+export const stripeCheckoutLinkCreate = async (
+  checkoutLink: CheckoutLink,
+  options?: RequestInit,
+): Promise<stripeCheckoutLinkCreateResponse> => {
+  return fetchWithAuth<stripeCheckoutLinkCreateResponse>(getStripeCheckoutLinkCreateUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      checkoutLink,)
+    body: JSON.stringify(checkoutLink),
+  })
+}
+
+export const getStripeCheckoutLinkCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>,
+    TError,
+    { data: CheckoutLink },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>,
+  TError,
+  { data: CheckoutLink },
+  TContext
+> => {
+  const mutationKey = ['stripeCheckoutLinkCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>, { data: CheckoutLink }> = (
+    props,
+  ) => {
+    const { data } = props ?? {}
+
+    return stripeCheckoutLinkCreate(data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type StripeCheckoutLinkCreateMutationResult = NonNullable<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>>
+export type StripeCheckoutLinkCreateMutationBody = CheckoutLink
+export type StripeCheckoutLinkCreateMutationError = unknown
 
+export const useStripeCheckoutLinkCreate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>,
+    TError,
+    { data: CheckoutLink },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getStripeCheckoutLinkCreateMutationOptions(options)
 
-export const getStripeCheckoutLinkCreateMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>, TError,{data: CheckoutLink}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>, TError,{data: CheckoutLink}, TContext> => {
-
-const mutationKey = ['stripeCheckoutLinkCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>, {data: CheckoutLink}> = (props) => {
-          const {data} = props ?? {};
-
-          return  stripeCheckoutLinkCreate(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type StripeCheckoutLinkCreateMutationResult = NonNullable<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>>
-    export type StripeCheckoutLinkCreateMutationBody = CheckoutLink
-    export type StripeCheckoutLinkCreateMutationError = unknown
-
-    export const useStripeCheckoutLinkCreate = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>, TError,{data: CheckoutLink}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getStripeCheckoutLinkCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    export type stripeCustomerPortalCreateResponse200 = {
+  return useMutation(mutationOptions)
+}
+export type stripeCustomerPortalCreateResponse200 = {
   data: CustomerPortalPostResponse
   status: 200
 }
@@ -860,74 +768,88 @@ export type stripeCustomerPortalCreateResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type stripeCustomerPortalCreateResponseComposite = stripeCustomerPortalCreateResponse200 | stripeCustomerPortalCreateResponse400 | stripeCustomerPortalCreateResponse401;
-    
+
+export type stripeCustomerPortalCreateResponseComposite =
+  | stripeCustomerPortalCreateResponse200
+  | stripeCustomerPortalCreateResponse400
+  | stripeCustomerPortalCreateResponse401
+
 export type stripeCustomerPortalCreateResponse = stripeCustomerPortalCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getStripeCustomerPortalCreateUrl = () => {
-
-
-  
-
   return `/api/v2/stripe/customer-portal`
 }
 
-export const stripeCustomerPortalCreate = async (customerPortal: CustomerPortal, options?: RequestInit): Promise<stripeCustomerPortalCreateResponse> => {
-  
-  return fetchWithAuth<stripeCustomerPortalCreateResponse>(getStripeCustomerPortalCreateUrl(),
-  {      
+export const stripeCustomerPortalCreate = async (
+  customerPortal: CustomerPortal,
+  options?: RequestInit,
+): Promise<stripeCustomerPortalCreateResponse> => {
+  return fetchWithAuth<stripeCustomerPortalCreateResponse>(getStripeCustomerPortalCreateUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      customerPortal,)
+    body: JSON.stringify(customerPortal),
+  })
+}
+
+export const getStripeCustomerPortalCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    TError,
+    { data: CustomerPortal },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+  TError,
+  { data: CustomerPortal },
+  TContext
+> => {
+  const mutationKey = ['stripeCustomerPortalCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    { data: CustomerPortal }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return stripeCustomerPortalCreate(data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type StripeCustomerPortalCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof stripeCustomerPortalCreate>>
+>
+export type StripeCustomerPortalCreateMutationBody = CustomerPortal
+export type StripeCustomerPortalCreateMutationError = ErrorObject | ErrorDetail
 
+export const useStripeCustomerPortalCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    TError,
+    { data: CustomerPortal },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getStripeCustomerPortalCreateMutationOptions(options)
 
-export const getStripeCustomerPortalCreateMutationOptions = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stripeCustomerPortalCreate>>, TError,{data: CustomerPortal}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof stripeCustomerPortalCreate>>, TError,{data: CustomerPortal}, TContext> => {
-
-const mutationKey = ['stripeCustomerPortalCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stripeCustomerPortalCreate>>, {data: CustomerPortal}> = (props) => {
-          const {data} = props ?? {};
-
-          return  stripeCustomerPortalCreate(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type StripeCustomerPortalCreateMutationResult = NonNullable<Awaited<ReturnType<typeof stripeCustomerPortalCreate>>>
-    export type StripeCustomerPortalCreateMutationBody = CustomerPortal
-    export type StripeCustomerPortalCreateMutationError = ErrorObject | ErrorDetail
-
-    export const useStripeCustomerPortalCreate = <TError = ErrorObject | ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stripeCustomerPortalCreate>>, TError,{data: CustomerPortal}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getStripeCustomerPortalCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * Returns Product and Price Lists, sorted from the product with the lowest price to highest
 <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
 
@@ -987,84 +909,83 @@ export type stripeProductsListResponse200 = {
   data: PaginatedProductList
   status: 200
 }
-    
-export type stripeProductsListResponseComposite = stripeProductsListResponse200;
-    
+
+export type stripeProductsListResponseComposite = stripeProductsListResponse200
+
 export type stripeProductsListResponse = stripeProductsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getStripeProductsListUrl = (params?: StripeProductsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getStripeProductsListUrl = (params?: StripeProductsListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0 ? `/api/v2/stripe/products/?${stringifiedParams}` : `/api/v2/stripe/products/`
 }
 
-export const stripeProductsList = async (params?: StripeProductsListParams, options?: RequestInit): Promise<stripeProductsListResponse> => {
-  
-  return fetchWithAuth<stripeProductsListResponse>(getStripeProductsListUrl(params),
-  {      
+export const stripeProductsList = async (
+  params?: StripeProductsListParams,
+  options?: RequestInit,
+): Promise<stripeProductsListResponse> => {
+  return fetchWithAuth<stripeProductsListResponse>(getStripeProductsListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getStripeProductsListQueryKey = (params?: StripeProductsListParams) => {
+  return ['api', 'v2', 'stripe', 'products', ...(params ? [params] : [])] as const
+}
 
-
-export const getStripeProductsListQueryKey = (params?: StripeProductsListParams,) => {
-    return ['api','v2','stripe','products', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getStripeProductsListQueryOptions = <TData = Awaited<ReturnType<typeof stripeProductsList>>, TError = unknown>(params?: StripeProductsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeProductsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getStripeProductsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeProductsList>>,
+  TError = unknown,
+>(
+  params?: StripeProductsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeProductsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getStripeProductsListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getStripeProductsListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeProductsList>>> = ({ signal }) =>
+    stripeProductsList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeProductsList>>> = ({ signal }) => stripeProductsList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stripeProductsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeProductsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type StripeProductsListQueryResult = NonNullable<Awaited<ReturnType<typeof stripeProductsList>>>
 export type StripeProductsListQueryError = unknown
 
-
-
 export function useStripeProductsList<TData = Awaited<ReturnType<typeof stripeProductsList>>, TError = unknown>(
- params?: StripeProductsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeProductsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  params?: StripeProductsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeProductsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeProductsListQueryOptions(params, options)
 
-  const queryOptions = getStripeProductsListQueryOptions(params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 export type stripeSubscriptionsListResponse200 = {
   data: PaginatedSubscriptionList
@@ -1075,160 +996,167 @@ export type stripeSubscriptionsListResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type stripeSubscriptionsListResponseComposite = stripeSubscriptionsListResponse200 | stripeSubscriptionsListResponse401;
-    
+
+export type stripeSubscriptionsListResponseComposite =
+  | stripeSubscriptionsListResponse200
+  | stripeSubscriptionsListResponse401
+
 export type stripeSubscriptionsListResponse = stripeSubscriptionsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getStripeSubscriptionsListUrl = (params?: StripeSubscriptionsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getStripeSubscriptionsListUrl = (params?: StripeSubscriptionsListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/stripe/subscriptions/?${stringifiedParams}` : `/api/v2/stripe/subscriptions/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/stripe/subscriptions/?${stringifiedParams}`
+    : `/api/v2/stripe/subscriptions/`
 }
 
-export const stripeSubscriptionsList = async (params?: StripeSubscriptionsListParams, options?: RequestInit): Promise<stripeSubscriptionsListResponse> => {
-  
-  return fetchWithAuth<stripeSubscriptionsListResponse>(getStripeSubscriptionsListUrl(params),
-  {      
+export const stripeSubscriptionsList = async (
+  params?: StripeSubscriptionsListParams,
+  options?: RequestInit,
+): Promise<stripeSubscriptionsListResponse> => {
+  return fetchWithAuth<stripeSubscriptionsListResponse>(getStripeSubscriptionsListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getStripeSubscriptionsListQueryKey = (params?: StripeSubscriptionsListParams) => {
+  return ['api', 'v2', 'stripe', 'subscriptions', ...(params ? [params] : [])] as const
+}
 
-
-export const getStripeSubscriptionsListQueryKey = (params?: StripeSubscriptionsListParams,) => {
-    return ['api','v2','stripe','subscriptions', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getStripeSubscriptionsListQueryOptions = <TData = Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError = ErrorDetail>(params?: StripeSubscriptionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getStripeSubscriptionsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsList>>,
+  TError = ErrorDetail,
+>(
+  params?: StripeSubscriptionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getStripeSubscriptionsListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getStripeSubscriptionsListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeSubscriptionsList>>> = ({ signal }) =>
+    stripeSubscriptionsList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeSubscriptionsList>>> = ({ signal }) => stripeSubscriptionsList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeSubscriptionsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type StripeSubscriptionsListQueryResult = NonNullable<Awaited<ReturnType<typeof stripeSubscriptionsList>>>
 export type StripeSubscriptionsListQueryError = ErrorDetail
 
+export function useStripeSubscriptionsList<
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsList>>,
+  TError = ErrorDetail,
+>(
+  params?: StripeSubscriptionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeSubscriptionsListQueryOptions(params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useStripeSubscriptionsList<TData = Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError = ErrorDetail>(
- params?: StripeSubscriptionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getStripeSubscriptionsListQueryOptions(params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 export type stripeSubscriptionsRetrieveResponse200 = {
   data: Subscription
   status: 200
 }
-    
-export type stripeSubscriptionsRetrieveResponseComposite = stripeSubscriptionsRetrieveResponse200;
-    
+
+export type stripeSubscriptionsRetrieveResponseComposite = stripeSubscriptionsRetrieveResponse200
+
 export type stripeSubscriptionsRetrieveResponse = stripeSubscriptionsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getStripeSubscriptionsRetrieveUrl = (id: string,) => {
-
-
-  
-
+export const getStripeSubscriptionsRetrieveUrl = (id: string) => {
   return `/api/v2/stripe/subscriptions/${id}/`
 }
 
-export const stripeSubscriptionsRetrieve = async (id: string, options?: RequestInit): Promise<stripeSubscriptionsRetrieveResponse> => {
-  
-  return fetchWithAuth<stripeSubscriptionsRetrieveResponse>(getStripeSubscriptionsRetrieveUrl(id),
-  {      
+export const stripeSubscriptionsRetrieve = async (
+  id: string,
+  options?: RequestInit,
+): Promise<stripeSubscriptionsRetrieveResponse> => {
+  return fetchWithAuth<stripeSubscriptionsRetrieveResponse>(getStripeSubscriptionsRetrieveUrl(id), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getStripeSubscriptionsRetrieveQueryKey = (id: string,) => {
-    return ['api','v2','stripe','subscriptions',id] as const;
-    }
-
-    
-export const getStripeSubscriptionsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError = unknown>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getStripeSubscriptionsRetrieveQueryKey(id);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>> = ({ signal }) => stripeSubscriptionsRetrieve(id, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type StripeSubscriptionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>>
+export const getStripeSubscriptionsRetrieveQueryKey = (id: string) => {
+  return ['api', 'v2', 'stripe', 'subscriptions', id] as const
+}
+
+export const getStripeSubscriptionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeSubscriptionsRetrieveQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>> = ({ signal }) =>
+    stripeSubscriptionsRetrieve(id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeSubscriptionsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>
+>
 export type StripeSubscriptionsRetrieveQueryError = unknown
 
+export function useStripeSubscriptionsRetrieve<
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeSubscriptionsRetrieveQueryOptions(id, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useStripeSubscriptionsRetrieve<TData = Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError = unknown>(
- id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getStripeSubscriptionsRetrieveQueryOptions(id,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## List the different terms of service
@@ -1243,77 +1171,67 @@ export type termsOfServiceListResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type termsOfServiceListResponseComposite = termsOfServiceListResponse200 | termsOfServiceListResponse401;
-    
+
+export type termsOfServiceListResponseComposite = termsOfServiceListResponse200 | termsOfServiceListResponse401
+
 export type termsOfServiceListResponse = termsOfServiceListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getTermsOfServiceListUrl = () => {
-
-
-  
-
   return `/api/v2/terms-of-service/`
 }
 
-export const termsOfServiceList = async ( options?: RequestInit): Promise<termsOfServiceListResponse> => {
-  
-  return fetchWithAuth<termsOfServiceListResponse>(getTermsOfServiceListUrl(),
-  {      
+export const termsOfServiceList = async (options?: RequestInit): Promise<termsOfServiceListResponse> => {
+  return fetchWithAuth<termsOfServiceListResponse>(getTermsOfServiceListUrl(), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+    method: 'GET',
+  })
+}
 
 export const getTermsOfServiceListQueryKey = () => {
-    return ['api','v2','terms-of-service'] as const;
-    }
+  return ['api', 'v2', 'terms-of-service'] as const
+}
 
-    
-export const getTermsOfServiceListQueryOptions = <TData = Awaited<ReturnType<typeof termsOfServiceList>>, TError = ErrorDetail>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
+export const getTermsOfServiceListQueryOptions = <
+  TData = Awaited<ReturnType<typeof termsOfServiceList>>,
+  TError = ErrorDetail,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getTermsOfServiceListQueryKey()
 
-  const queryKey =  queryOptions?.queryKey ?? getTermsOfServiceListQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof termsOfServiceList>>> = ({ signal }) =>
+    termsOfServiceList({ signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof termsOfServiceList>>> = ({ signal }) => termsOfServiceList({ signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof termsOfServiceList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type TermsOfServiceListQueryResult = NonNullable<Awaited<ReturnType<typeof termsOfServiceList>>>
 export type TermsOfServiceListQueryError = ErrorDetail
 
-
-
-export function useTermsOfServiceList<TData = Awaited<ReturnType<typeof termsOfServiceList>>, TError = ErrorDetail>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
+export function useTermsOfServiceList<
+  TData = Awaited<ReturnType<typeof termsOfServiceList>>,
+  TError = ErrorDetail,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getTermsOfServiceListQueryOptions(options)
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey
 
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Retrieve a specific terms of service
@@ -1328,77 +1246,78 @@ export type termsOfServiceRetrieveResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type termsOfServiceRetrieveResponseComposite = termsOfServiceRetrieveResponse200 | termsOfServiceRetrieveResponse401;
-    
+
+export type termsOfServiceRetrieveResponseComposite =
+  | termsOfServiceRetrieveResponse200
+  | termsOfServiceRetrieveResponse401
+
 export type termsOfServiceRetrieveResponse = termsOfServiceRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getTermsOfServiceRetrieveUrl = (slug: string,) => {
-
-
-  
-
+export const getTermsOfServiceRetrieveUrl = (slug: string) => {
   return `/api/v2/terms-of-service/${slug}/`
 }
 
-export const termsOfServiceRetrieve = async (slug: string, options?: RequestInit): Promise<termsOfServiceRetrieveResponse> => {
-  
-  return fetchWithAuth<termsOfServiceRetrieveResponse>(getTermsOfServiceRetrieveUrl(slug),
-  {      
+export const termsOfServiceRetrieve = async (
+  slug: string,
+  options?: RequestInit,
+): Promise<termsOfServiceRetrieveResponse> => {
+  return fetchWithAuth<termsOfServiceRetrieveResponse>(getTermsOfServiceRetrieveUrl(slug), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getTermsOfServiceRetrieveQueryKey = (slug: string) => {
+  return ['api', 'v2', 'terms-of-service', slug] as const
+}
 
-
-export const getTermsOfServiceRetrieveQueryKey = (slug: string,) => {
-    return ['api','v2','terms-of-service',slug] as const;
-    }
-
-    
-export const getTermsOfServiceRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof termsOfServiceRetrieve>>, TError = ErrorDetail>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getTermsOfServiceRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof termsOfServiceRetrieve>>,
+  TError = ErrorDetail,
+>(
+  slug: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getTermsOfServiceRetrieveQueryKey(slug)
 
-  const queryKey =  queryOptions?.queryKey ?? getTermsOfServiceRetrieveQueryKey(slug);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof termsOfServiceRetrieve>>> = ({ signal }) =>
+    termsOfServiceRetrieve(slug, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof termsOfServiceRetrieve>>> = ({ signal }) => termsOfServiceRetrieve(slug, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(slug), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof termsOfServiceRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type TermsOfServiceRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof termsOfServiceRetrieve>>>
 export type TermsOfServiceRetrieveQueryError = ErrorDetail
 
+export function useTermsOfServiceRetrieve<
+  TData = Awaited<ReturnType<typeof termsOfServiceRetrieve>>,
+  TError = ErrorDetail,
+>(
+  slug: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getTermsOfServiceRetrieveQueryOptions(slug, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useTermsOfServiceRetrieve<TData = Awaited<ReturnType<typeof termsOfServiceRetrieve>>, TError = ErrorDetail>(
- slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof termsOfServiceRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getTermsOfServiceRetrieveQueryOptions(slug,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## List the transcription services accessible to requesting user.
@@ -1417,84 +1336,90 @@ export type transcriptionServicesListResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type transcriptionServicesListResponseComposite = transcriptionServicesListResponse200 | transcriptionServicesListResponse401;
-    
+
+export type transcriptionServicesListResponseComposite =
+  | transcriptionServicesListResponse200
+  | transcriptionServicesListResponse401
+
 export type transcriptionServicesListResponse = transcriptionServicesListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getTranscriptionServicesListUrl = (params?: TranscriptionServicesListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getTranscriptionServicesListUrl = (params?: TranscriptionServicesListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/transcription-services/?${stringifiedParams}` : `/api/v2/transcription-services/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/transcription-services/?${stringifiedParams}`
+    : `/api/v2/transcription-services/`
 }
 
-export const transcriptionServicesList = async (params?: TranscriptionServicesListParams, options?: RequestInit): Promise<transcriptionServicesListResponse> => {
-  
-  return fetchWithAuth<transcriptionServicesListResponse>(getTranscriptionServicesListUrl(params),
-  {      
+export const transcriptionServicesList = async (
+  params?: TranscriptionServicesListParams,
+  options?: RequestInit,
+): Promise<transcriptionServicesListResponse> => {
+  return fetchWithAuth<transcriptionServicesListResponse>(getTranscriptionServicesListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getTranscriptionServicesListQueryKey = (params?: TranscriptionServicesListParams) => {
+  return ['api', 'v2', 'transcription-services', ...(params ? [params] : [])] as const
+}
 
-
-export const getTranscriptionServicesListQueryKey = (params?: TranscriptionServicesListParams,) => {
-    return ['api','v2','transcription-services', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getTranscriptionServicesListQueryOptions = <TData = Awaited<ReturnType<typeof transcriptionServicesList>>, TError = ErrorDetail>(params?: TranscriptionServicesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getTranscriptionServicesListQueryOptions = <
+  TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
+  TError = ErrorDetail,
+>(
+  params?: TranscriptionServicesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getTranscriptionServicesListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getTranscriptionServicesListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof transcriptionServicesList>>> = ({ signal }) =>
+    transcriptionServicesList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof transcriptionServicesList>>> = ({ signal }) => transcriptionServicesList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof transcriptionServicesList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type TranscriptionServicesListQueryResult = NonNullable<Awaited<ReturnType<typeof transcriptionServicesList>>>
 export type TranscriptionServicesListQueryError = ErrorDetail
 
+export function useTranscriptionServicesList<
+  TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
+  TError = ErrorDetail,
+>(
+  params?: TranscriptionServicesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getTranscriptionServicesListQueryOptions(params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useTranscriptionServicesList<TData = Awaited<ReturnType<typeof transcriptionServicesList>>, TError = ErrorDetail>(
- params?: TranscriptionServicesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getTranscriptionServicesListQueryOptions(params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## retrieve a transcription service
@@ -1511,77 +1436,80 @@ export type transcriptionServicesRetrieveResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type transcriptionServicesRetrieveResponseComposite = transcriptionServicesRetrieveResponse200 | transcriptionServicesRetrieveResponse401;
-    
+
+export type transcriptionServicesRetrieveResponseComposite =
+  | transcriptionServicesRetrieveResponse200
+  | transcriptionServicesRetrieveResponse401
+
 export type transcriptionServicesRetrieveResponse = transcriptionServicesRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getTranscriptionServicesRetrieveUrl = (code: string,) => {
-
-
-  
-
+export const getTranscriptionServicesRetrieveUrl = (code: string) => {
   return `/api/v2/transcription-services/${code}/`
 }
 
-export const transcriptionServicesRetrieve = async (code: string, options?: RequestInit): Promise<transcriptionServicesRetrieveResponse> => {
-  
-  return fetchWithAuth<transcriptionServicesRetrieveResponse>(getTranscriptionServicesRetrieveUrl(code),
-  {      
+export const transcriptionServicesRetrieve = async (
+  code: string,
+  options?: RequestInit,
+): Promise<transcriptionServicesRetrieveResponse> => {
+  return fetchWithAuth<transcriptionServicesRetrieveResponse>(getTranscriptionServicesRetrieveUrl(code), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getTranscriptionServicesRetrieveQueryKey = (code: string,) => {
-    return ['api','v2','transcription-services',code] as const;
-    }
-
-    
-export const getTranscriptionServicesRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError = ErrorDetail>(code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getTranscriptionServicesRetrieveQueryKey(code);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>> = ({ signal }) => transcriptionServicesRetrieve(code, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(code), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type TranscriptionServicesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>>
+export const getTranscriptionServicesRetrieveQueryKey = (code: string) => {
+  return ['api', 'v2', 'transcription-services', code] as const
+}
+
+export const getTranscriptionServicesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  code: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getTranscriptionServicesRetrieveQueryKey(code)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>> = ({ signal }) =>
+    transcriptionServicesRetrieve(code, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!code, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type TranscriptionServicesRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof transcriptionServicesRetrieve>>
+>
 export type TranscriptionServicesRetrieveQueryError = ErrorDetail
 
+export function useTranscriptionServicesRetrieve<
+  TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  code: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getTranscriptionServicesRetrieveQueryOptions(code, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useTranscriptionServicesRetrieve<TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError = ErrorDetail>(
- code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getTranscriptionServicesRetrieveQueryOptions(code,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## List the translation services accessible to requesting (authenticated) user.
@@ -1606,84 +1534,91 @@ export type translationServicesListResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type translationServicesListResponseComposite = translationServicesListResponse200 | translationServicesListResponse400 | translationServicesListResponse401;
-    
+
+export type translationServicesListResponseComposite =
+  | translationServicesListResponse200
+  | translationServicesListResponse400
+  | translationServicesListResponse401
+
 export type translationServicesListResponse = translationServicesListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getTranslationServicesListUrl = (params?: TranslationServicesListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getTranslationServicesListUrl = (params?: TranslationServicesListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/translation-services/?${stringifiedParams}` : `/api/v2/translation-services/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/translation-services/?${stringifiedParams}`
+    : `/api/v2/translation-services/`
 }
 
-export const translationServicesList = async (params?: TranslationServicesListParams, options?: RequestInit): Promise<translationServicesListResponse> => {
-  
-  return fetchWithAuth<translationServicesListResponse>(getTranslationServicesListUrl(params),
-  {      
+export const translationServicesList = async (
+  params?: TranslationServicesListParams,
+  options?: RequestInit,
+): Promise<translationServicesListResponse> => {
+  return fetchWithAuth<translationServicesListResponse>(getTranslationServicesListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getTranslationServicesListQueryKey = (params?: TranslationServicesListParams) => {
+  return ['api', 'v2', 'translation-services', ...(params ? [params] : [])] as const
+}
 
-
-export const getTranslationServicesListQueryKey = (params?: TranslationServicesListParams,) => {
-    return ['api','v2','translation-services', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getTranslationServicesListQueryOptions = <TData = Awaited<ReturnType<typeof translationServicesList>>, TError = ErrorObject | ErrorDetail>(params?: TranslationServicesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof translationServicesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getTranslationServicesListQueryOptions = <
+  TData = Awaited<ReturnType<typeof translationServicesList>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  params?: TranslationServicesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof translationServicesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getTranslationServicesListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getTranslationServicesListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof translationServicesList>>> = ({ signal }) =>
+    translationServicesList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof translationServicesList>>> = ({ signal }) => translationServicesList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof translationServicesList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof translationServicesList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type TranslationServicesListQueryResult = NonNullable<Awaited<ReturnType<typeof translationServicesList>>>
 export type TranslationServicesListQueryError = ErrorObject | ErrorDetail
 
+export function useTranslationServicesList<
+  TData = Awaited<ReturnType<typeof translationServicesList>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  params?: TranslationServicesListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof translationServicesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getTranslationServicesListQueryOptions(params, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useTranslationServicesList<TData = Awaited<ReturnType<typeof translationServicesList>>, TError = ErrorObject | ErrorDetail>(
- params?: TranslationServicesListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof translationServicesList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getTranslationServicesListQueryOptions(params,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Retrieve a translation service
@@ -1700,75 +1635,77 @@ export type translationServicesRetrieveResponse401 = {
   data: ErrorDetail
   status: 401
 }
-    
-export type translationServicesRetrieveResponseComposite = translationServicesRetrieveResponse200 | translationServicesRetrieveResponse401;
-    
+
+export type translationServicesRetrieveResponseComposite =
+  | translationServicesRetrieveResponse200
+  | translationServicesRetrieveResponse401
+
 export type translationServicesRetrieveResponse = translationServicesRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getTranslationServicesRetrieveUrl = (code: string,) => {
-
-
-  
-
+export const getTranslationServicesRetrieveUrl = (code: string) => {
   return `/api/v2/translation-services/${code}/`
 }
 
-export const translationServicesRetrieve = async (code: string, options?: RequestInit): Promise<translationServicesRetrieveResponse> => {
-  
-  return fetchWithAuth<translationServicesRetrieveResponse>(getTranslationServicesRetrieveUrl(code),
-  {      
+export const translationServicesRetrieve = async (
+  code: string,
+  options?: RequestInit,
+): Promise<translationServicesRetrieveResponse> => {
+  return fetchWithAuth<translationServicesRetrieveResponse>(getTranslationServicesRetrieveUrl(code), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-export const getTranslationServicesRetrieveQueryKey = (code: string,) => {
-    return ['api','v2','translation-services',code] as const;
-    }
-
-    
-export const getTranslationServicesRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof translationServicesRetrieve>>, TError = ErrorDetail>(code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getTranslationServicesRetrieveQueryKey(code);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof translationServicesRetrieve>>> = ({ signal }) => translationServicesRetrieve(code, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(code), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData> & { queryKey: QueryKey }
+    method: 'GET',
+  })
 }
 
-export type TranslationServicesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof translationServicesRetrieve>>>
+export const getTranslationServicesRetrieveQueryKey = (code: string) => {
+  return ['api', 'v2', 'translation-services', code] as const
+}
+
+export const getTranslationServicesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  code: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getTranslationServicesRetrieveQueryKey(code)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof translationServicesRetrieve>>> = ({ signal }) =>
+    translationServicesRetrieve(code, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!code, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof translationServicesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type TranslationServicesRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof translationServicesRetrieve>>
+>
 export type TranslationServicesRetrieveQueryError = ErrorDetail
 
+export function useTranslationServicesRetrieve<
+  TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  code: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getTranslationServicesRetrieveQueryOptions(code, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useTranslationServicesRetrieve<TData = Awaited<ReturnType<typeof translationServicesRetrieve>>, TError = ErrorDetail>(
- code: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getTranslationServicesRetrieveQueryOptions(code,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
-

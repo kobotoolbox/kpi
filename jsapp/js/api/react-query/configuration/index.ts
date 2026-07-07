@@ -9,26 +9,14 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  useQuery
-} from '@tanstack/react-query';
-import type {
-  QueryFunction,
-  QueryKey,
-  UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
-import type {
-  EnvironmentResponse
-} from '../../models/environmentResponse';
+import type { EnvironmentResponse } from '../../models/environmentResponse'
 
-import { fetchWithAuth } from '../../orval.mutator';
+import { fetchWithAuth } from '../../orval.mutator'
 
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * Retrieve Kobo server environment configurations.
@@ -46,75 +34,64 @@ export type environmentRetrieveResponse200 = {
   data: EnvironmentResponse
   status: 200
 }
-    
-export type environmentRetrieveResponseComposite = environmentRetrieveResponse200;
-    
+
+export type environmentRetrieveResponseComposite = environmentRetrieveResponse200
+
 export type environmentRetrieveResponse = environmentRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getEnvironmentRetrieveUrl = () => {
-
-
-  
-
   return `/api/v2/environment/`
 }
 
-export const environmentRetrieve = async ( options?: RequestInit): Promise<environmentRetrieveResponse> => {
-  
-  return fetchWithAuth<environmentRetrieveResponse>(getEnvironmentRetrieveUrl(),
-  {      
+export const environmentRetrieve = async (options?: RequestInit): Promise<environmentRetrieveResponse> => {
+  return fetchWithAuth<environmentRetrieveResponse>(getEnvironmentRetrieveUrl(), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
+    method: 'GET',
+  })
+}
 
 export const getEnvironmentRetrieveQueryKey = () => {
-    return ['api','v2','environment'] as const;
-    }
+  return ['api', 'v2', 'environment'] as const
+}
 
-    
-export const getEnvironmentRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof environmentRetrieve>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-) => {
+export const getEnvironmentRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof environmentRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getEnvironmentRetrieveQueryKey()
 
-  const queryKey =  queryOptions?.queryKey ?? getEnvironmentRetrieveQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof environmentRetrieve>>> = ({ signal }) =>
+    environmentRetrieve({ signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof environmentRetrieve>>> = ({ signal }) => environmentRetrieve({ signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof environmentRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type EnvironmentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof environmentRetrieve>>>
 export type EnvironmentRetrieveQueryError = unknown
 
-
-
-export function useEnvironmentRetrieve<TData = Awaited<ReturnType<typeof environmentRetrieve>>, TError = unknown>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
+export function useEnvironmentRetrieve<
+  TData = Awaited<ReturnType<typeof environmentRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getEnvironmentRetrieveQueryOptions(options)
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey
 
-  return query;
+  return query
 }
-
-
-

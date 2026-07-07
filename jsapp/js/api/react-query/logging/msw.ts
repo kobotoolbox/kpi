@@ -9,108 +9,392 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  faker
-} from '@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
-import { HttpResponse,
-  http } from 'msw';
+import { http, HttpResponse } from 'msw'
 
-import type {
-  ExportCreateResponse
-} from '../../models/exportCreateResponse';
+import type { ExportCreateResponse } from '../../models/exportCreateResponse'
 
-import type {
-  ExportListResponse
-} from '../../models/exportListResponse';
+import type { ExportListResponse } from '../../models/exportListResponse'
 
-import type {
-  HistoryActionResponse
-} from '../../models/historyActionResponse';
+import type { HistoryActionResponse } from '../../models/historyActionResponse'
 
-import type {
-  HistoryExportResponse
-} from '../../models/historyExportResponse';
+import type { HistoryExportResponse } from '../../models/historyExportResponse'
 
-import type {
-  PaginatedAccessLogResponseList
-} from '../../models/paginatedAccessLogResponseList';
+import type { PaginatedAccessLogResponseList } from '../../models/paginatedAccessLogResponseList'
 
-import type {
-  PaginatedHistoryListResponseList
-} from '../../models/paginatedHistoryListResponseList';
+import type { PaginatedHistoryListResponseList } from '../../models/paginatedHistoryListResponseList'
 
+export const getApiV2AccessLogsMeListResponseMock = (
+  overrideResponse: Partial<PaginatedAccessLogResponseList> = {},
+): PaginatedAccessLogResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    user: faker.internet.url(),
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    metadata: {
+      source: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      auth_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      ip_address: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      initial_user_uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      initial_user_username: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+      authorized_app_name: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    user_uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    action: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2AccessLogsMeListResponseMock = (overrideResponse: Partial< PaginatedAccessLogResponseList > = {}): PaginatedAccessLogResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({user: faker.internet.url(), date_created: `${faker.date.past().toISOString().split('.')[0]}Z`, username: faker.string.alpha({length: {min: 10, max: 20}}), metadata: {source: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), auth_type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ip_address: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), initial_user_uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), initial_user_username: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), authorized_app_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, user_uid: faker.string.alpha({length: {min: 10, max: 20}}), count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), action: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
+export const getApiV2AccessLogsMeExportListResponseMock = (): ExportListResponse[] =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 24 } }),
+    status: faker.string.alpha({ length: { min: 10, max: 32 } }),
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  }))
 
-export const getApiV2AccessLogsMeExportListResponseMock = (): ExportListResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uid: faker.string.alpha({length: {min: 10, max: 24}}), status: faker.string.alpha({length: {min: 10, max: 32}}), date_created: `${faker.date.past().toISOString().split('.')[0]}Z`})))
+export const getApiV2AccessLogsMeExportCreateResponseMock = (
+  overrideResponse: Partial<ExportCreateResponse> = {},
+): ExportCreateResponse => ({ status: faker.string.alpha({ length: { min: 10, max: 32 } }), ...overrideResponse })
 
-export const getApiV2AccessLogsMeExportCreateResponseMock = (overrideResponse: Partial< ExportCreateResponse > = {}): ExportCreateResponse => ({status: faker.string.alpha({length: {min: 10, max: 32}}), ...overrideResponse})
+export const getApiV2AssetsHistoryListResponseMock = (
+  overrideResponse: Partial<PaginatedHistoryListResponseList> = {},
+): PaginatedHistoryListResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    user: faker.internet.url(),
+    user_uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    action: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    metadata: {
+      source: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      settings: faker.helpers.arrayElement([
+        {
+          sector: faker.helpers.arrayElement([
+            {
+              new: faker.helpers.arrayElement([
+                {
+                  label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                },
+                undefined,
+              ]),
+              old: faker.helpers.arrayElement([
+                {
+                  label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                },
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+          country: faker.helpers.arrayElement([
+            {
+              added: faker.helpers.arrayElement([
+                {
+                  label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                },
+                undefined,
+              ]),
+              removed: faker.helpers.arrayElement([
+                {
+                  label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                },
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+          description: faker.helpers.arrayElement([
+            {
+              new: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+              old: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            },
+            undefined,
+          ]),
+          country_codes: faker.helpers.arrayElement([
+            {
+              added: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+              removed: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+          'data-table': faker.helpers.arrayElement([
+            { new: faker.helpers.arrayElement([{}, undefined]), old: faker.helpers.arrayElement([{}, undefined]) },
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      asset_uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      ip_address: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      log_subtype: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      project_owner: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      latest_version_uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      'asset-files': faker.helpers.arrayElement([
+        {
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          filename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          md5_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          download_url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+      permissions: faker.helpers.arrayElement([
+        {
+          added: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          removed: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+      latest_deployed_version_uid: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+      submission: faker.helpers.arrayElement([
+        {
+          root_uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          submitted_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+      hook: faker.helpers.arrayElement([
+        {
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          active: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+          endpoint: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+        },
+        undefined,
+      ]),
+      bulk_action: faker.helpers.arrayElement([
+        {
+          uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          action_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          question_xpath: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          params: faker.helpers.arrayElement([{}, undefined]),
+          created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          cancelled_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          total_count: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          processed_count: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          completed_count: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          failed_count: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          cancelled_count: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      name: faker.helpers.arrayElement([
+        {
+          new: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          old: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+      shared_fields: faker.helpers.arrayElement([
+        {
+          added: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+          removed: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+            ),
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+    },
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  ...overrideResponse,
+})
 
-export const getApiV2AssetsHistoryListResponseMock = (overrideResponse: Partial< PaginatedHistoryListResponseList > = {}): PaginatedHistoryListResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({user: faker.internet.url(), user_uid: faker.string.alpha({length: {min: 10, max: 20}}), username: faker.string.alpha({length: {min: 10, max: 20}}), action: faker.string.alpha({length: {min: 10, max: 20}}), metadata: {source: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), settings: faker.helpers.arrayElement([{sector: faker.helpers.arrayElement([{new: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), old: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined])}, undefined]), country: faker.helpers.arrayElement([{added: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), removed: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined])}, undefined]), description: faker.helpers.arrayElement([{new: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), old: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), country_codes: faker.helpers.arrayElement([{added: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), removed: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined]), 'data-table': faker.helpers.arrayElement([{new: faker.helpers.arrayElement([{}, undefined]), old: faker.helpers.arrayElement([{}, undefined])}, undefined])}, undefined]), asset_uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ip_address: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), log_subtype: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), project_owner: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), latest_version_uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'asset-files': faker.helpers.arrayElement([{uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), filename: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), md5_hash: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), download_url: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), permissions: faker.helpers.arrayElement([{added: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), removed: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), username: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), latest_deployed_version_uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), submission: faker.helpers.arrayElement([{root_uuid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), submitted_by: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), hook: faker.helpers.arrayElement([{uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), active: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), endpoint: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, undefined]), bulk_action: faker.helpers.arrayElement([{uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), action_id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), status: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), question_xpath: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), params: faker.helpers.arrayElement([{}, undefined]), created_by: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), cancelled_by: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), total_count: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), processed_count: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), completed_count: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), failed_count: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), cancelled_count: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined])}, undefined]), name: faker.helpers.arrayElement([{new: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), old: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), shared_fields: faker.helpers.arrayElement([{added: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), removed: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined])}, date_created: `${faker.date.past().toISOString().split('.')[0]}Z`})), ...overrideResponse})
+export const getApiV2AssetsHistoryActionsRetrieveResponseMock = (
+  overrideResponse: Partial<HistoryActionResponse> = {},
+): HistoryActionResponse => ({
+  actions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  ...overrideResponse,
+})
 
-export const getApiV2AssetsHistoryActionsRetrieveResponseMock = (overrideResponse: Partial< HistoryActionResponse > = {}): HistoryActionResponse => ({actions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), ...overrideResponse})
+export const getApiV2AssetsHistoryExportCreateResponseMock = (
+  overrideResponse: Partial<HistoryExportResponse> = {},
+): HistoryExportResponse => ({ status: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
 
-export const getApiV2AssetsHistoryExportCreateResponseMock = (overrideResponse: Partial< HistoryExportResponse > = {}): HistoryExportResponse => ({status: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
-
-
-export const getApiV2AccessLogsMeListMockHandler = (overrideResponse?: PaginatedAccessLogResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAccessLogResponseList> | PaginatedAccessLogResponseList)) => {
-  return http.get('*/api/v2/access-logs/me/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AccessLogsMeListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AccessLogsMeListMockHandler = (
+  overrideResponse?:
+    | PaginatedAccessLogResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAccessLogResponseList> | PaginatedAccessLogResponseList),
+) => {
+  return http.get('*/api/v2/access-logs/me/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AccessLogsMeListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AccessLogsMeExportListMockHandler = (overrideResponse?: ExportListResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExportListResponse[]> | ExportListResponse[])) => {
-  return http.get('*/api/v2/access-logs/me/export/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AccessLogsMeExportListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AccessLogsMeExportListMockHandler = (
+  overrideResponse?:
+    | ExportListResponse[]
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExportListResponse[]> | ExportListResponse[]),
+) => {
+  return http.get('*/api/v2/access-logs/me/export/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AccessLogsMeExportListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AccessLogsMeExportCreateMockHandler = (overrideResponse?: ExportCreateResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ExportCreateResponse> | ExportCreateResponse)) => {
-  return http.post('*/api/v2/access-logs/me/export/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AccessLogsMeExportCreateResponseMock()),
-      { status: 202,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AccessLogsMeExportCreateMockHandler = (
+  overrideResponse?:
+    | ExportCreateResponse
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ExportCreateResponse> | ExportCreateResponse),
+) => {
+  return http.post('*/api/v2/access-logs/me/export/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AccessLogsMeExportCreateResponseMock(),
+      ),
+      { status: 202, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetsHistoryListMockHandler = (overrideResponse?: PaginatedHistoryListResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedHistoryListResponseList> | PaginatedHistoryListResponseList)) => {
-  return http.get('*/api/v2/assets/:uidAsset/history/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsHistoryListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsHistoryListMockHandler = (
+  overrideResponse?:
+    | PaginatedHistoryListResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedHistoryListResponseList> | PaginatedHistoryListResponseList),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/history/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsHistoryListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetsHistoryActionsRetrieveMockHandler = (overrideResponse?: HistoryActionResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HistoryActionResponse> | HistoryActionResponse)) => {
-  return http.get('*/api/v2/assets/:uidAsset/history/actions/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsHistoryActionsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsHistoryActionsRetrieveMockHandler = (
+  overrideResponse?:
+    | HistoryActionResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HistoryActionResponse> | HistoryActionResponse),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/history/actions/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsHistoryActionsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetsHistoryExportCreateMockHandler = (overrideResponse?: HistoryExportResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<HistoryExportResponse> | HistoryExportResponse)) => {
-  return http.post('*/api/v2/assets/:uidAsset/history/export/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsHistoryExportCreateResponseMock()),
-      { status: 202,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsHistoryExportCreateMockHandler = (
+  overrideResponse?:
+    | HistoryExportResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<HistoryExportResponse> | HistoryExportResponse),
+) => {
+  return http.post('*/api/v2/assets/:uidAsset/history/export/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsHistoryExportCreateResponseMock(),
+      ),
+      { status: 202, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 export const getLoggingMock = () => [
@@ -119,5 +403,5 @@ export const getLoggingMock = () => [
   getApiV2AccessLogsMeExportCreateMockHandler(),
   getApiV2AssetsHistoryListMockHandler(),
   getApiV2AssetsHistoryActionsRetrieveMockHandler(),
-  getApiV2AssetsHistoryExportCreateMockHandler()
+  getApiV2AssetsHistoryExportCreateMockHandler(),
 ]

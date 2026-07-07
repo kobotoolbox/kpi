@@ -9,49 +9,31 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
   MutationFunction,
   QueryFunction,
   QueryKey,
   UseMutationOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from '@tanstack/react-query'
 
-import type {
-  AssetSubscriptionRequest
-} from '../../models/assetSubscriptionRequest';
+import type { AssetSubscriptionRequest } from '../../models/assetSubscriptionRequest'
 
-import type {
-  AssetSubscriptionResponse
-} from '../../models/assetSubscriptionResponse';
+import type { AssetSubscriptionResponse } from '../../models/assetSubscriptionResponse'
 
-import type {
-  AssetSubscriptionsListParams
-} from '../../models/assetSubscriptionsListParams';
+import type { AssetSubscriptionsListParams } from '../../models/assetSubscriptionsListParams'
 
-import type {
-  ErrorDetail
-} from '../../models/errorDetail';
+import type { ErrorDetail } from '../../models/errorDetail'
 
-import type {
-  ErrorObject
-} from '../../models/errorObject';
+import type { ErrorObject } from '../../models/errorObject'
 
-import type {
-  PaginatedAssetSubscriptionResponseList
-} from '../../models/paginatedAssetSubscriptionResponseList';
+import type { PaginatedAssetSubscriptionResponseList } from '../../models/paginatedAssetSubscriptionResponseList'
 
-import { fetchWithAuth } from '../../orval.mutator';
+import { fetchWithAuth } from '../../orval.mutator'
 
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List all asset subscriptions of a user
@@ -61,84 +43,85 @@ export type assetSubscriptionsListResponse200 = {
   data: PaginatedAssetSubscriptionResponseList
   status: 200
 }
-    
-export type assetSubscriptionsListResponseComposite = assetSubscriptionsListResponse200;
-    
+
+export type assetSubscriptionsListResponseComposite = assetSubscriptionsListResponse200
+
 export type assetSubscriptionsListResponse = assetSubscriptionsListResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetSubscriptionsListUrl = (params?: AssetSubscriptionsListParams,) => {
-  const normalizedParams = new URLSearchParams();
+export const getAssetSubscriptionsListUrl = (params?: AssetSubscriptionsListParams) => {
+  const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
-    
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : value.toString())
     }
-  });
+  })
 
-  const stringifiedParams = normalizedParams.toString();
+  const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/asset_subscriptions/?${stringifiedParams}` : `/api/v2/asset_subscriptions/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/asset_subscriptions/?${stringifiedParams}`
+    : `/api/v2/asset_subscriptions/`
 }
 
-export const assetSubscriptionsList = async (params?: AssetSubscriptionsListParams, options?: RequestInit): Promise<assetSubscriptionsListResponse> => {
-  
-  return fetchWithAuth<assetSubscriptionsListResponse>(getAssetSubscriptionsListUrl(params),
-  {      
+export const assetSubscriptionsList = async (
+  params?: AssetSubscriptionsListParams,
+  options?: RequestInit,
+): Promise<assetSubscriptionsListResponse> => {
+  return fetchWithAuth<assetSubscriptionsListResponse>(getAssetSubscriptionsListUrl(params), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetSubscriptionsListQueryKey = (params?: AssetSubscriptionsListParams) => {
+  return ['api', 'v2', 'asset_subscriptions', ...(params ? [params] : [])] as const
+}
 
-
-export const getAssetSubscriptionsListQueryKey = (params?: AssetSubscriptionsListParams,) => {
-    return ['api','v2','asset_subscriptions', ...(params ? [params]: [])] as const;
-    }
-
-    
-export const getAssetSubscriptionsListQueryOptions = <TData = Awaited<ReturnType<typeof assetSubscriptionsList>>, TError = unknown>(params?: AssetSubscriptionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetSubscriptionsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetSubscriptionsList>>,
+  TError = unknown,
+>(
+  params?: AssetSubscriptionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetSubscriptionsListQueryKey(params)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetSubscriptionsListQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSubscriptionsList>>> = ({ signal }) =>
+    assetSubscriptionsList(params, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSubscriptionsList>>> = ({ signal }) => assetSubscriptionsList(params, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsList>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetSubscriptionsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetSubscriptionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsList>>>
 export type AssetSubscriptionsListQueryError = unknown
 
-
-
 export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof assetSubscriptionsList>>, TError = unknown>(
- params?: AssetSubscriptionsListParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsList>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  params?: AssetSubscriptionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetSubscriptionsListQueryOptions(params, options)
 
-  const queryOptions = getAssetSubscriptionsListQueryOptions(params,options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey
 
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Create an asset subscription
@@ -155,74 +138,82 @@ export type assetSubscriptionsCreateResponse400 = {
   data: ErrorObject
   status: 400
 }
-    
-export type assetSubscriptionsCreateResponseComposite = assetSubscriptionsCreateResponse201 | assetSubscriptionsCreateResponse400;
-    
+
+export type assetSubscriptionsCreateResponseComposite =
+  | assetSubscriptionsCreateResponse201
+  | assetSubscriptionsCreateResponse400
+
 export type assetSubscriptionsCreateResponse = assetSubscriptionsCreateResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
 export const getAssetSubscriptionsCreateUrl = () => {
-
-
-  
-
   return `/api/v2/asset_subscriptions/`
 }
 
-export const assetSubscriptionsCreate = async (assetSubscriptionRequest: AssetSubscriptionRequest, options?: RequestInit): Promise<assetSubscriptionsCreateResponse> => {
-  
-  return fetchWithAuth<assetSubscriptionsCreateResponse>(getAssetSubscriptionsCreateUrl(),
-  {      
+export const assetSubscriptionsCreate = async (
+  assetSubscriptionRequest: AssetSubscriptionRequest,
+  options?: RequestInit,
+): Promise<assetSubscriptionsCreateResponse> => {
+  return fetchWithAuth<assetSubscriptionsCreateResponse>(getAssetSubscriptionsCreateUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      assetSubscriptionRequest,)
+    body: JSON.stringify(assetSubscriptionRequest),
+  })
+}
+
+export const getAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetSubscriptionsCreate>>,
+    TError,
+    { data: AssetSubscriptionRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetSubscriptionsCreate>>,
+  TError,
+  { data: AssetSubscriptionRequest },
+  TContext
+> => {
+  const mutationKey = ['assetSubscriptionsCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetSubscriptionsCreate>>,
+    { data: AssetSubscriptionRequest }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return assetSubscriptionsCreate(data, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetSubscriptionsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsCreate>>>
+export type AssetSubscriptionsCreateMutationBody = AssetSubscriptionRequest
+export type AssetSubscriptionsCreateMutationError = ErrorObject
 
+export const useAssetSubscriptionsCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetSubscriptionsCreate>>,
+    TError,
+    { data: AssetSubscriptionRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetSubscriptionsCreateMutationOptions(options)
 
-export const getAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetSubscriptionsCreate>>, TError,{data: AssetSubscriptionRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetSubscriptionsCreate>>, TError,{data: AssetSubscriptionRequest}, TContext> => {
-
-const mutationKey = ['assetSubscriptionsCreate'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetSubscriptionsCreate>>, {data: AssetSubscriptionRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  assetSubscriptionsCreate(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetSubscriptionsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsCreate>>>
-    export type AssetSubscriptionsCreateMutationBody = AssetSubscriptionRequest
-    export type AssetSubscriptionsCreateMutationError = ErrorObject
-
-    export const useAssetSubscriptionsCreate = <TError = ErrorObject,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetSubscriptionsCreate>>, TError,{data: AssetSubscriptionRequest}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetSubscriptionsCreateMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    /**
+  return useMutation(mutationOptions)
+}
+/**
  * ## Retrieve an asset subscription
 
  */
@@ -235,77 +226,78 @@ export type assetSubscriptionsRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetSubscriptionsRetrieveResponseComposite = assetSubscriptionsRetrieveResponse200 | assetSubscriptionsRetrieveResponse404;
-    
+
+export type assetSubscriptionsRetrieveResponseComposite =
+  | assetSubscriptionsRetrieveResponse200
+  | assetSubscriptionsRetrieveResponse404
+
 export type assetSubscriptionsRetrieveResponse = assetSubscriptionsRetrieveResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetSubscriptionsRetrieveUrl = (uidAssetSubscription: string,) => {
-
-
-  
-
+export const getAssetSubscriptionsRetrieveUrl = (uidAssetSubscription: string) => {
   return `/api/v2/asset_subscriptions/${uidAssetSubscription}/`
 }
 
-export const assetSubscriptionsRetrieve = async (uidAssetSubscription: string, options?: RequestInit): Promise<assetSubscriptionsRetrieveResponse> => {
-  
-  return fetchWithAuth<assetSubscriptionsRetrieveResponse>(getAssetSubscriptionsRetrieveUrl(uidAssetSubscription),
-  {      
+export const assetSubscriptionsRetrieve = async (
+  uidAssetSubscription: string,
+  options?: RequestInit,
+): Promise<assetSubscriptionsRetrieveResponse> => {
+  return fetchWithAuth<assetSubscriptionsRetrieveResponse>(getAssetSubscriptionsRetrieveUrl(uidAssetSubscription), {
     ...options,
-    method: 'GET'
-    
-    
-  }
-);}
+    method: 'GET',
+  })
+}
 
+export const getAssetSubscriptionsRetrieveQueryKey = (uidAssetSubscription: string) => {
+  return ['api', 'v2', 'asset_subscriptions', uidAssetSubscription] as const
+}
 
-
-export const getAssetSubscriptionsRetrieveQueryKey = (uidAssetSubscription: string,) => {
-    return ['api','v2','asset_subscriptions',uidAssetSubscription] as const;
-    }
-
-    
-export const getAssetSubscriptionsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError = ErrorDetail>(uidAssetSubscription: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
+export const getAssetSubscriptionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAssetSubscription: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getAssetSubscriptionsRetrieveQueryKey(uidAssetSubscription)
 
-  const queryKey =  queryOptions?.queryKey ?? getAssetSubscriptionsRetrieveQueryKey(uidAssetSubscription);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>> = ({ signal }) =>
+    assetSubscriptionsRetrieve(uidAssetSubscription, { signal, ...requestOptions })
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>> = ({ signal }) => assetSubscriptionsRetrieve(uidAssetSubscription, { signal, ...requestOptions });
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(uidAssetSubscription), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!uidAssetSubscription, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetSubscriptionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>>
 export type AssetSubscriptionsRetrieveQueryError = ErrorDetail
 
+export function useAssetSubscriptionsRetrieve<
+  TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAssetSubscription: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetSubscriptionsRetrieveQueryOptions(uidAssetSubscription, options)
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
-export function useAssetSubscriptionsRetrieve<TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError = ErrorDetail>(
- uidAssetSubscription: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError, TData>, request?: SecondParameter<typeof fetchWithAuth>}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  query.queryKey = queryOptions.queryKey
 
-  const queryOptions = getAssetSubscriptionsRetrieveQueryOptions(uidAssetSubscription,options)
-
-  const query = useQuery(queryOptions ) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * ## Delete a subscription to an asset
@@ -322,70 +314,76 @@ export type assetSubscriptionsDestroyResponse404 = {
   data: ErrorDetail
   status: 404
 }
-    
-export type assetSubscriptionsDestroyResponseComposite = assetSubscriptionsDestroyResponse204 | assetSubscriptionsDestroyResponse404;
-    
+
+export type assetSubscriptionsDestroyResponseComposite =
+  | assetSubscriptionsDestroyResponse204
+  | assetSubscriptionsDestroyResponse404
+
 export type assetSubscriptionsDestroyResponse = assetSubscriptionsDestroyResponseComposite & {
-  headers: Headers;
+  headers: Headers
 }
 
-export const getAssetSubscriptionsDestroyUrl = (uidAssetSubscription: string,) => {
-
-
-  
-
+export const getAssetSubscriptionsDestroyUrl = (uidAssetSubscription: string) => {
   return `/api/v2/asset_subscriptions/${uidAssetSubscription}/`
 }
 
-export const assetSubscriptionsDestroy = async (uidAssetSubscription: string, options?: RequestInit): Promise<assetSubscriptionsDestroyResponse> => {
-  
-  return fetchWithAuth<assetSubscriptionsDestroyResponse>(getAssetSubscriptionsDestroyUrl(uidAssetSubscription),
-  {      
+export const assetSubscriptionsDestroy = async (
+  uidAssetSubscription: string,
+  options?: RequestInit,
+): Promise<assetSubscriptionsDestroyResponse> => {
+  return fetchWithAuth<assetSubscriptionsDestroyResponse>(getAssetSubscriptionsDestroyUrl(uidAssetSubscription), {
     ...options,
-    method: 'DELETE'
-    
-    
+    method: 'DELETE',
+  })
+}
+
+export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
+    TError,
+    { uidAssetSubscription: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
+  TError,
+  { uidAssetSubscription: string },
+  TContext
+> => {
+  const mutationKey = ['assetSubscriptionsDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
+    { uidAssetSubscription: string }
+  > = (props) => {
+    const { uidAssetSubscription } = props ?? {}
+
+    return assetSubscriptionsDestroy(uidAssetSubscription, requestOptions)
   }
-);}
 
+  return { mutationFn, ...mutationOptions }
+}
 
+export type AssetSubscriptionsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>>
 
+export type AssetSubscriptionsDestroyMutationError = ErrorDetail
 
-export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>, TError,{uidAssetSubscription: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
-): UseMutationOptions<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>, TError,{uidAssetSubscription: string}, TContext> => {
+export const useAssetSubscriptionsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
+    TError,
+    { uidAssetSubscription: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetSubscriptionsDestroyMutationOptions(options)
 
-const mutationKey = ['assetSubscriptionsDestroy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>, {uidAssetSubscription: string}> = (props) => {
-          const {uidAssetSubscription} = props ?? {};
-
-          return  assetSubscriptionsDestroy(uidAssetSubscription,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssetSubscriptionsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>>
-    
-    export type AssetSubscriptionsDestroyMutationError = ErrorDetail
-
-    export const useAssetSubscriptionsDestroy = <TError = ErrorDetail,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>, TError,{uidAssetSubscription: string}, TContext>, request?: SecondParameter<typeof fetchWithAuth>}
- ) => {
-
-      const mutationOptions = getAssetSubscriptionsDestroyMutationOptions(options);
-
-      return useMutation(mutationOptions );
-    }
-    
+  return useMutation(mutationOptions)
+}

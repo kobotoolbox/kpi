@@ -9,594 +9,2241 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  faker
-} from '@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
-import { HttpResponse,
-  http } from 'msw';
-
-import {
-  AssetDeploymentStatusEnum
-} from '../../models/assetDeploymentStatusEnum';
-
-import type {
-  AssetListCount
-} from '../../models/assetListCount';
-
-import {
-  AssetTypeEnum
-} from '../../models/assetTypeEnum';
-
-import {
-  CustomAssetUsageDeploymentStatusEnum
-} from '../../models/customAssetUsageDeploymentStatusEnum';
-
-import type {
-  EmailAddress
-} from '../../models/emailAddress';
-
-import type {
-  InviteCreateResponse
-} from '../../models/inviteCreateResponse';
-
-import type {
-  InviteResponse
-} from '../../models/inviteResponse';
-
-import {
-  InviteStatusChoicesEnum
-} from '../../models/inviteStatusChoicesEnum';
-
-import {
-  InviteeRoleEnum
-} from '../../models/inviteeRoleEnum';
-
-import type {
-  MeListResponse
-} from '../../models/meListResponse';
-
-import type {
-  MemberListResponse
-} from '../../models/memberListResponse';
+import { http, HttpResponse } from 'msw'
 
-import {
-  MemberRoleEnum
-} from '../../models/memberRoleEnum';
+import { AssetDeploymentStatusEnum } from '../../models/assetDeploymentStatusEnum'
 
-import type {
-  OrganizationResponse
-} from '../../models/organizationResponse';
+import type { AssetListCount } from '../../models/assetListCount'
 
-import type {
-  OrganizationServiceUsageResponse
-} from '../../models/organizationServiceUsageResponse';
+import { AssetTypeEnum } from '../../models/assetTypeEnum'
 
-import {
-  OrganizationTypeEnum
-} from '../../models/organizationTypeEnum';
+import { CustomAssetUsageDeploymentStatusEnum } from '../../models/customAssetUsageDeploymentStatusEnum'
 
-import type {
-  PaginatedAssetList
-} from '../../models/paginatedAssetList';
+import type { EmailAddress } from '../../models/emailAddress'
 
-import type {
-  PaginatedAssetMinimalListList
-} from '../../models/paginatedAssetMinimalListList';
+import type { InviteCreateResponse } from '../../models/inviteCreateResponse'
 
-import type {
-  PaginatedAssetUsageResponseList
-} from '../../models/paginatedAssetUsageResponseList';
+import type { InviteResponse } from '../../models/inviteResponse'
 
-import type {
-  PaginatedCustomAssetUsageList
-} from '../../models/paginatedCustomAssetUsageList';
+import { InviteStatusChoicesEnum } from '../../models/inviteStatusChoicesEnum'
 
-import type {
-  PaginatedEmailAddressList
-} from '../../models/paginatedEmailAddressList';
+import { InviteeRoleEnum } from '../../models/inviteeRoleEnum'
 
-import type {
-  PaginatedInviteResponseList
-} from '../../models/paginatedInviteResponseList';
+import type { MeListResponse } from '../../models/meListResponse'
 
-import type {
-  PaginatedMemberListResponseList
-} from '../../models/paginatedMemberListResponseList';
+import type { MemberListResponse } from '../../models/memberListResponse'
 
-import type {
-  PaginatedOrganizationResponseList
-} from '../../models/paginatedOrganizationResponseList';
+import { MemberRoleEnum } from '../../models/memberRoleEnum'
 
-import type {
-  PaginatedProjectViewAssetResponseList
-} from '../../models/paginatedProjectViewAssetResponseList';
+import type { OrganizationResponse } from '../../models/organizationResponse'
 
-import type {
-  PaginatedProjectViewListResponseList
-} from '../../models/paginatedProjectViewListResponseList';
+import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
 
-import type {
-  PaginatedProjectViewUserResponseList
-} from '../../models/paginatedProjectViewUserResponseList';
+import { OrganizationTypeEnum } from '../../models/organizationTypeEnum'
 
-import type {
-  PaginatedSocialAccountList
-} from '../../models/paginatedSocialAccountList';
+import type { PaginatedAssetList } from '../../models/paginatedAssetList'
 
-import type {
-  PaginatedUserListResponseList
-} from '../../models/paginatedUserListResponseList';
+import type { PaginatedAssetMinimalListList } from '../../models/paginatedAssetMinimalListList'
 
-import type {
-  ProjectViewExportCreateResponse
-} from '../../models/projectViewExportCreateResponse';
+import type { PaginatedAssetUsageResponseList } from '../../models/paginatedAssetUsageResponseList'
 
-import type {
-  ProjectViewExportResponse
-} from '../../models/projectViewExportResponse';
+import type { PaginatedCustomAssetUsageList } from '../../models/paginatedCustomAssetUsageList'
 
-import type {
-  ProjectViewListResponse
-} from '../../models/projectViewListResponse';
+import type { PaginatedEmailAddressList } from '../../models/paginatedEmailAddressList'
 
-import type {
-  ServiceUsageBalanceData
-} from '../../models/serviceUsageBalanceData';
+import type { PaginatedInviteResponseList } from '../../models/paginatedInviteResponseList'
 
-import type {
-  ServiceUsageResponse
-} from '../../models/serviceUsageResponse';
+import type { PaginatedMemberListResponseList } from '../../models/paginatedMemberListResponseList'
 
-import type {
-  SocialAccount
-} from '../../models/socialAccount';
+import type { PaginatedOrganizationResponseList } from '../../models/paginatedOrganizationResponseList'
 
-import type {
-  UserRetrieveResponse
-} from '../../models/userRetrieveResponse';
+import type { PaginatedProjectViewAssetResponseList } from '../../models/paginatedProjectViewAssetResponseList'
 
+import type { PaginatedProjectViewListResponseList } from '../../models/paginatedProjectViewListResponseList'
 
-export const getApiV2AssetUsageListResponseMock = (overrideResponse: Partial< PaginatedAssetUsageResponseList > = {}): PaginatedAssetUsageResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({asset: faker.internet.url(), asset__name: faker.string.alpha({length: {min: 10, max: 20}}), nlp_usage_current_period: {total_nlp_asr_seconds: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_mt_characters: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_llm_requests: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})}, nlp_usage_all_time: {total_nlp_asr_seconds: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_mt_characters: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_llm_requests: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})}, storage_bytes: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), submission_count_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), submission_count_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})})), ...overrideResponse})
+import type { PaginatedProjectViewUserResponseList } from '../../models/paginatedProjectViewUserResponseList'
 
-export const getApiV2OrganizationsListResponseMock = (overrideResponse: Partial< PaginatedOrganizationResponseList > = {}): PaginatedOrganizationResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.internet.url(), name: faker.string.alpha({length: {min: 10, max: 200}}), website: faker.string.alpha({length: {min: 10, max: 255}}), organization_type: faker.helpers.arrayElement(Object.values(OrganizationTypeEnum)), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, is_owner: faker.datatype.boolean(), is_mmo: faker.datatype.boolean(), request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)), members: faker.internet.url(), assets: faker.internet.url(), service_usage: faker.internet.url(), asset_usage: faker.internet.url()})), ...overrideResponse})
+import type { PaginatedSocialAccountList } from '../../models/paginatedSocialAccountList'
 
-export const getApiV2OrganizationsRetrieveResponseMock = (overrideResponse: Partial< OrganizationResponse > = {}): OrganizationResponse => ({id: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.internet.url(), name: faker.string.alpha({length: {min: 10, max: 200}}), website: faker.string.alpha({length: {min: 10, max: 255}}), organization_type: faker.helpers.arrayElement(Object.values(OrganizationTypeEnum)), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, is_owner: faker.datatype.boolean(), is_mmo: faker.datatype.boolean(), request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)), members: faker.internet.url(), assets: faker.internet.url(), service_usage: faker.internet.url(), asset_usage: faker.internet.url(), ...overrideResponse})
+import type { PaginatedUserListResponseList } from '../../models/paginatedUserListResponseList'
 
-export const getApiV2OrganizationsPartialUpdateResponseMock = (overrideResponse: Partial< OrganizationResponse > = {}): OrganizationResponse => ({id: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.internet.url(), name: faker.string.alpha({length: {min: 10, max: 200}}), website: faker.string.alpha({length: {min: 10, max: 255}}), organization_type: faker.helpers.arrayElement(Object.values(OrganizationTypeEnum)), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, is_owner: faker.datatype.boolean(), is_mmo: faker.datatype.boolean(), request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)), members: faker.internet.url(), assets: faker.internet.url(), service_usage: faker.internet.url(), asset_usage: faker.internet.url(), ...overrideResponse})
-
-export const getApiV2OrganizationsAssetUsageListResponseMock = (overrideResponse: Partial< PaginatedCustomAssetUsageList > = {}): PaginatedCustomAssetUsageList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({asset: faker.internet.url(), asset__name: faker.string.alpha({length: {min: 10, max: 20}}), nlp_usage_current_period: {...{total_nlp_asr_seconds: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_llm_requests: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_mt_characters: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})},}, nlp_usage_all_time: {...{total_nlp_asr_seconds: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_llm_requests: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_nlp_mt_characters: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})},}, storage_bytes: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), submission_count_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), submission_count_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), deployment_status: faker.helpers.arrayElement(Object.values(CustomAssetUsageDeploymentStatusEnum))})), ...overrideResponse})
-
-export const getApiV2OrganizationsAssetsRetrieveResponseMock = (overrideResponse: Partial< PaginatedAssetList > = {}): PaginatedAssetList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), owner: faker.internet.url(), owner__username: faker.string.alpha({length: {min: 10, max: 20}}), parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), settings: faker.helpers.arrayElement([{sector: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), country: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), undefined]), description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), collects_pii: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), organization: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), country_codes: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), operational_purpose: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined])}, undefined]), asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)), files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), url: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), asset: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), user: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), user__username: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), file_type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), date_created: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), content: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), metadata: faker.helpers.arrayElement([{}, undefined])})), summary: {geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), labels: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), columns: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), languages: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), row_count: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), name_quality: faker.helpers.arrayElement([{ok: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), bad: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), good: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), total: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), firsts: faker.helpers.arrayElement([{ok: faker.helpers.arrayElement([{name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), index: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), label: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined]), bad: faker.helpers.arrayElement([{name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), index: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), label: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined])}, undefined])}, undefined]), default_translation: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), naming_conflicts: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), date_deployed: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), version_id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), version__content_hash: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), version_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), has_deployment: faker.datatype.boolean(), deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), deployed_versions: {count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), previous: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uid: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.internet.url(), content_hash: faker.string.alpha({length: {min: 10, max: 20}}), date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`, date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`}))}, deployment__links: {}, deployment__active: faker.datatype.boolean(), deployment__data_download_links: {csv_legacy: faker.string.alpha({length: {min: 10, max: 20}}), csv: faker.string.alpha({length: {min: 10, max: 20}}), geojson: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), kml_legacy: faker.string.alpha({length: {min: 10, max: 20}}), spss_labels: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), xls_legacy: faker.string.alpha({length: {min: 10, max: 20}}), xls: faker.string.alpha({length: {min: 10, max: 20}}), zip_legacy: faker.string.alpha({length: {min: 10, max: 20}})}, deployment__submission_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), deployment__last_submission_time: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), deployment__encrypted: faker.datatype.boolean(), deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)), report_styles: faker.helpers.arrayElement([{default: faker.helpers.arrayElement([{groupDataBy: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), report_type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), report_colors: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), translationIndex: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), graphWidth: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined])}, undefined]), specified: faker.helpers.arrayElement([{}, undefined]), kuid_names: faker.helpers.arrayElement([{}, undefined])}, undefined]), report_custom: faker.helpers.arrayElement([{}, undefined]), advanced_features: faker.helpers.arrayElement([{transcript: faker.helpers.arrayElement([{values: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), languages: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined]), translation: faker.helpers.arrayElement([{values: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), languages: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined]), qual: faker.helpers.arrayElement([{qual_survey: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({type: faker.string.alpha({length: {min: 10, max: 20}}), labels: {_default: faker.string.alpha({length: {min: 10, max: 20}})}, uuid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), options: faker.helpers.arrayElement([{deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, undefined]), xpath: faker.string.alpha({length: {min: 10, max: 20}}), scope: faker.string.alpha({length: {min: 10, max: 20}}), choices: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({labels: {_default: faker.string.alpha({length: {min: 10, max: 20}})}, uuid: faker.string.alpha({length: {min: 10, max: 20}}), options: faker.helpers.arrayElement([{deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])}, undefined])})), undefined])})), undefined])}, undefined]), _version: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), map_styles: faker.helpers.arrayElement([{colorSet: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), querylimit: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), map_custom: faker.helpers.arrayElement([{}, undefined]), content: faker.helpers.arrayElement([{schema: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), survey: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({$kuid: faker.string.alpha({length: {min: 10, max: 20}}), type: faker.string.alpha({length: {min: 10, max: 20}}), $xpath: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), $autoname: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), calculation: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), label: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]))), undefined]), hint: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]))), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), appearance: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), parameters: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'kobo--matrix_list': faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'kobo--rank-constraint-message': faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'kobo--rank-items': faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'kobo--score-choices': faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'kobo--locking-profile': faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), tags: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), select_from_list_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'body::accept': faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), undefined]), choices: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({$autovalue: faker.string.alpha({length: {min: 10, max: 20}}), $kuid: faker.string.alpha({length: {min: 10, max: 20}}), label: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]))), undefined]), list_name: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), 'media::image': faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), $autoname: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), undefined]), settings: faker.helpers.arrayElement([{name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), version: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), id_string: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), style: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), form_id: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), title: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), 'kobo--lock_all': faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), 'kobo--locking-profile': faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), default_language: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, undefined]), translated: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), translations: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]))), undefined]), translations_0: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), 'kobo--locking-profiles': faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-        [faker.string.alphanumeric(5)]: {}
-      })), undefined])}, undefined]), downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({format: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.string.alpha({length: {min: 10, max: 20}})})), embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({format: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.string.alpha({length: {min: 10, max: 20}})})), analysis_form_json: {additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({language: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), source: faker.string.alpha({length: {min: 10, max: 20}}), type: faker.helpers.arrayElement(['transcript','translation','qualVerification','qualSource','qualInteger','qualTags','qualText','qualNote','qualAutoKeywordCount','qualSelectMultiple','qualSelectOne'] as const), name: faker.string.alpha({length: {min: 10, max: 20}}), dtpath: faker.string.alpha({length: {min: 10, max: 20}}), label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), choices: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uuid: faker.string.alpha({length: {min: 10, max: 20}}), labels: {_default: faker.string.alpha({length: {min: 10, max: 20}})}})), undefined])}))}, xform_link: faker.internet.url(), hooks_link: faker.internet.url(), tag_string: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), uid: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.string.alpha({length: {min: 10, max: 20}}), xls_link: faker.internet.url(), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 255}}), undefined]), assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.string.alpha({length: {min: 10, max: 20}}), label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),{default: faker.string.alpha({length: {min: 10, max: 20}}), view_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), change_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), delete_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), validate_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])},])})), permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.string.alpha({length: {min: 10, max: 20}}), user: faker.string.alpha({length: {min: 10, max: 20}}), permission: faker.string.alpha({length: {min: 10, max: 20}}), partial_permissions: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), filters: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})), undefined])})), undefined]), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),{default: faker.string.alpha({length: {min: 10, max: 20}}), view_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), change_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), delete_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), validate_submissions: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])},]), undefined])})), effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({codename: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), exports: faker.internet.url(), export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uid: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.string.alpha({length: {min: 10, max: 20}}), data_url_csv: faker.string.alpha({length: {min: 10, max: 20}}), data_url_xlsx: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`, export_settings: {
-        [faker.string.alphanumeric(5)]: {}
-      }})), data: faker.internet.url(), children: {count: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined])}, subscribers_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), status: faker.string.alpha({length: {min: 10, max: 20}}), access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), data_sharing: faker.helpers.arrayElement([{}, undefined]), paired_data: faker.internet.url(), project_ownership: {
-        [faker.string.alphanumeric(5)]: {}
-      }, owner_label: faker.string.alpha({length: {min: 10, max: 20}}), last_modified_by: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), created_by: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null])})), ...overrideResponse})
-
-export const getApiV2OrganizationsAssetsCountsRetrieveResponseMock = (overrideResponse: Partial< AssetListCount > = {}): AssetListCount => ({deployed_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), archived_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), draft_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), ...overrideResponse})
-
-export const getApiV2OrganizationsAssetsMinimalListRetrieveResponseMock = (overrideResponse: Partial< PaginatedAssetMinimalListList > = {}): PaginatedAssetMinimalListList => ({next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uid: faker.string.alpha({length: {min: 10, max: 22}}), name: faker.string.alpha({length: {min: 10, max: 20}}), deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum))})), ...overrideResponse})
-
-export const getApiV2OrganizationsInvitesListResponseMock = (overrideResponse: Partial< PaginatedInviteResponseList > = {}): PaginatedInviteResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)), status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)), url: faker.internet.url(), invited_by: faker.internet.url(), organization_name: faker.string.alpha({length: {min: 10, max: 20}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, invitee: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
-
-export const getApiV2OrganizationsInvitesCreateResponseMock = (): InviteCreateResponse => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), invited_by: faker.internet.url(), status: faker.string.alpha({length: {min: 10, max: 20}}), invitee_role: faker.helpers.arrayElement(['admin','member'] as const), organization_name: faker.string.alpha({length: {min: 10, max: 20}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, invitee: faker.string.alpha({length: {min: 10, max: 20}})})))
-
-export const getApiV2OrganizationsInvitesRetrieveResponseMock = (overrideResponse: Partial< InviteResponse > = {}): InviteResponse => ({invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)), status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)), url: faker.internet.url(), invited_by: faker.internet.url(), organization_name: faker.string.alpha({length: {min: 10, max: 20}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, invitee: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
-
-export const getApiV2OrganizationsInvitesPartialUpdateResponseMock = (overrideResponse: Partial< InviteResponse > = {}): InviteResponse => ({invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)), status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)), url: faker.internet.url(), invited_by: faker.internet.url(), organization_name: faker.string.alpha({length: {min: 10, max: 20}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, invitee: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
-
-export const getApiV2OrganizationsMembersListResponseMock = (overrideResponse: Partial< PaginatedMemberListResponseList > = {}): PaginatedMemberListResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)), url: faker.internet.url(), user: faker.internet.url(), user__username: faker.string.alpha({length: {min: 10, max: 20}}), user__email: faker.internet.email(), user__extra_details__name: faker.string.alpha({length: {min: 10, max: 20}}), user__has_mfa_enabled: faker.datatype.boolean(), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, user__is_active: faker.datatype.boolean(), invite: {...{invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)), status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)), url: faker.internet.url(), invited_by: faker.internet.url(), organization_name: faker.string.alpha({length: {min: 10, max: 20}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, invitee: faker.string.alpha({length: {min: 10, max: 20}})},}})), ...overrideResponse})
-
-export const getApiV2OrganizationsMembersRetrieveResponseMock = (overrideResponse: Partial< MemberListResponse > = {}): MemberListResponse => ({role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)), url: faker.internet.url(), user: faker.internet.url(), user__username: faker.string.alpha({length: {min: 10, max: 20}}), user__email: faker.internet.email(), user__extra_details__name: faker.string.alpha({length: {min: 10, max: 20}}), user__has_mfa_enabled: faker.datatype.boolean(), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, user__is_active: faker.datatype.boolean(), invite: {...{invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)), status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)), url: faker.internet.url(), invited_by: faker.internet.url(), organization_name: faker.string.alpha({length: {min: 10, max: 20}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, invitee: faker.string.alpha({length: {min: 10, max: 20}})},}, ...overrideResponse})
-
-export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (overrideResponse: Partial< MemberListResponse > = {}): MemberListResponse => ({role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)), url: faker.internet.url(), user: faker.internet.url(), user__username: faker.string.alpha({length: {min: 10, max: 20}}), user__email: faker.internet.email(), user__extra_details__name: faker.string.alpha({length: {min: 10, max: 20}}), user__has_mfa_enabled: faker.datatype.boolean(), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, user__is_active: faker.datatype.boolean(), invite: {...{invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)), status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)), url: faker.internet.url(), invited_by: faker.internet.url(), organization_name: faker.string.alpha({length: {min: 10, max: 20}}), created: `${faker.date.past().toISOString().split('.')[0]}Z`, modified: `${faker.date.past().toISOString().split('.')[0]}Z`, invitee: faker.string.alpha({length: {min: 10, max: 20}})},}, ...overrideResponse})
-
-export const getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock = (overrideResponse: Partial<ServiceUsageBalanceData> = {}): ServiceUsageBalanceData => ({...{effective_limit: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), balance_value: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), balance_percent: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), exceeded: faker.datatype.boolean()}, ...overrideResponse});
-
-export const getApiV2OrganizationsServiceUsageRetrieveResponseMock = (overrideResponse: Partial< OrganizationServiceUsageResponse > = {}): OrganizationServiceUsageResponse => ({total_nlp_usage: {asr_seconds_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), llm_requests_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), mt_characters_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), asr_seconds_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), llm_requests_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), mt_characters_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})}, total_storage_bytes: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_submission_count: {all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})}, balances: {submission: faker.helpers.arrayElement([{...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock()},null,]), storage_bytes: faker.helpers.arrayElement([{...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock()},null,]), asr_seconds: faker.helpers.arrayElement([{...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock()},null,]), mt_characters: faker.helpers.arrayElement([{...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock()},null,]), llm_requests: faker.helpers.arrayElement([{...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock()},null,])}, current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`, current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`, last_updated: `${faker.date.past().toISOString().split('.')[0]}Z`, ...overrideResponse})
-
-export const getApiV2ProjectViewsListResponseMock = (overrideResponse: Partial< PaginatedProjectViewListResponseList > = {}): PaginatedProjectViewListResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uid: faker.string.alpha({length: {min: 10, max: 32}}), name: faker.internet.url(), url: faker.internet.url(), assets: faker.internet.url(), assets_export: faker.internet.url(), users: faker.internet.url(), users_export: faker.internet.url(), countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))})), ...overrideResponse})
-
-export const getApiV2ProjectViewsRetrieveResponseMock = (overrideResponse: Partial< ProjectViewListResponse > = {}): ProjectViewListResponse => ({uid: faker.string.alpha({length: {min: 10, max: 32}}), name: faker.internet.url(), url: faker.internet.url(), assets: faker.internet.url(), assets_export: faker.internet.url(), users: faker.internet.url(), users_export: faker.internet.url(), countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), ...overrideResponse})
-
-export const getApiV2ProjectViewsExportRetrieveResponseMock = (overrideResponse: Partial< ProjectViewExportResponse > = {}): ProjectViewExportResponse => ({status: faker.string.alpha({length: {min: 10, max: 32}}), result: faker.internet.url(), ...overrideResponse})
-
-export const getApiV2ProjectViewsExportCreateResponseMock = (overrideResponse: Partial< ProjectViewExportCreateResponse > = {}): ProjectViewExportCreateResponse => ({status: faker.string.alpha({length: {min: 10, max: 32}}), ...overrideResponse})
-
-export const getApiV2ProjectViewsAssetsRetrieveResponseMock = (overrideResponse: Partial< PaginatedProjectViewAssetResponseList > = {}): PaginatedProjectViewAssetResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), date_created: `${faker.date.past().toISOString().split('.')[0]}Z`, date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`, date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`, owner: faker.internet.url(), owner__username: faker.string.alpha({length: {min: 10, max: 20}}), owner__email: faker.internet.email(), owner__name: faker.string.alpha({length: {min: 10, max: 20}}), owner__organization: faker.string.alpha({length: {min: 10, max: 20}}), uid: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}}), settings: {sector: faker.helpers.arrayElement([{label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, undefined]), country: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({label: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), value: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), undefined]), description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), collects_pii: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), country_codes: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), operational_purpose: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, languages: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), has_deployment: faker.datatype.boolean(), deployment__active: faker.datatype.boolean(), deployment__submission_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), deployment_status: faker.string.alpha({length: {min: 10, max: 20}}), asset_type: faker.string.alpha({length: {min: 10, max: 20}}), downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({format: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), url: faker.helpers.arrayElement([faker.internet.url(), undefined])})), owner_label: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
-
-export const getApiV2ProjectViewsAssetsCountsRetrieveResponseMock = (overrideResponse: Partial< AssetListCount > = {}): AssetListCount => ({deployed_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), archived_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), draft_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), ...overrideResponse})
-
-export const getApiV2ProjectViewsAssetsMinimalListRetrieveResponseMock = (overrideResponse: Partial< PaginatedAssetMinimalListList > = {}): PaginatedAssetMinimalListList => ({next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({uid: faker.string.alpha({length: {min: 10, max: 22}}), name: faker.string.alpha({length: {min: 10, max: 20}}), deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum))})), ...overrideResponse})
-
-export const getApiV2ProjectViewsUsersRetrieveResponseMock = (overrideResponse: Partial< PaginatedProjectViewUserResponseList > = {}): PaginatedProjectViewUserResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), username: faker.string.alpha({length: {min: 10, max: 20}}), is_superuser: faker.datatype.boolean(), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, last_login: `${faker.date.past().toISOString().split('.')[0]}Z`, is_active: faker.datatype.boolean(), email: faker.internet.email(), asset_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), metadata: {city: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sector: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), country: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), last_ui_language: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_website: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), project_view_settings: faker.helpers.arrayElement([{my_project_view_name: faker.helpers.arrayElement([{order: faker.helpers.arrayElement([{}, undefined]), fields: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), filters: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined])}, undefined])}})), ...overrideResponse})
-
-export const getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock = (overrideResponse: Partial<ServiceUsageBalanceData> = {}): ServiceUsageBalanceData => ({...{effective_limit: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), balance_value: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), balance_percent: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), exceeded: faker.datatype.boolean()}, ...overrideResponse});
-
-export const getApiV2ServiceUsageListResponseMock = (): ServiceUsageResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({total_nlp_usage: {asr_seconds_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), llm_requests_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), mt_characters_current_period: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), asr_seconds_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), llm_requests_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), mt_characters_all_time: faker.number.int({min: undefined, max: undefined, multipleOf: undefined})}, total_storage_bytes: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), total_submission_count: {all_time: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined]), current_period: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), undefined])}, balances: {submission: faker.helpers.arrayElement([{...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock()},null,]), storage_bytes: faker.helpers.arrayElement([{...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock()},null,]), asr_seconds: faker.helpers.arrayElement([{...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock()},null,]), mt_characters: faker.helpers.arrayElement([{...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock()},null,]), llm_requests: faker.helpers.arrayElement([{...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock()},null,])}, current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`, current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`, last_updated: `${faker.date.past().toISOString().split('.')[0]}Z`})))
-
-export const getApiV2UsersListResponseMock = (overrideResponse: Partial< PaginatedUserListResponseList > = {}): PaginatedUserListResponseList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), username: faker.string.alpha({length: {min: 10, max: 20}}), is_superuser: faker.datatype.boolean(), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, last_login: `${faker.date.past().toISOString().split('.')[0]}Z`, is_active: faker.datatype.boolean(), email: faker.internet.email(), asset_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), metadata: {name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sector: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), country: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), last_ui_language: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_website: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), project_views_settings: faker.helpers.arrayElement([{kobo_my_project: faker.helpers.arrayElement([{order: faker.helpers.arrayElement([{}, undefined]), fields: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined]), filters: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])}, undefined])}, undefined])}})), ...overrideResponse})
-
-export const getApiV2UsersRetrieveResponseMock = (overrideResponse: Partial< UserRetrieveResponse > = {}): UserRetrieveResponse => ({url: faker.internet.url(), username: faker.string.alpha({length: {min: 10, max: 20}}), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, public_collection_subscribers_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), public_collections_count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), ...overrideResponse})
-
-export const getMeRetrieveResponseMock = (overrideResponse: Partial< MeListResponse > = {}): MeListResponse => ({username: faker.string.alpha({length: {min: 10, max: 20}}), first_name: faker.string.alpha({length: {min: 10, max: 20}}), last_name: faker.string.alpha({length: {min: 10, max: 20}}), email: faker.internet.email(), server_time: `${faker.date.past().toISOString().split('.')[0]}Z`, date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, projects_url: faker.internet.url(), gravatar: faker.internet.url(), last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), extra_details: {bio: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), city: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sector: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), country: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), twitter: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkedin: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), instagram: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), last_ui_language: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_website: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), project_views_settings: faker.helpers.arrayElement([{}, undefined]), require_auth: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), newsletter_subscription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, git_rev: faker.helpers.arrayElement([faker.datatype.boolean(),{short: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined]), long: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined]), branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined]), tag: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined])},]), social_accounts: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({provider: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), last_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), email: faker.helpers.arrayElement([faker.internet.email(), undefined]), username: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), validated_password: faker.datatype.boolean(), accepted_tos: faker.datatype.boolean(), organization: {url: faker.helpers.arrayElement([faker.internet.url(), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, extra_details__uid: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
-
-export const getMePartialUpdateResponseMock = (overrideResponse: Partial< MeListResponse > = {}): MeListResponse => ({username: faker.string.alpha({length: {min: 10, max: 20}}), first_name: faker.string.alpha({length: {min: 10, max: 20}}), last_name: faker.string.alpha({length: {min: 10, max: 20}}), email: faker.internet.email(), server_time: `${faker.date.past().toISOString().split('.')[0]}Z`, date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, projects_url: faker.internet.url(), gravatar: faker.internet.url(), last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), extra_details: {bio: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), city: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sector: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), country: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), twitter: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), linkedin: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), instagram: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), last_ui_language: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_type: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), organization_website: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), project_views_settings: faker.helpers.arrayElement([{}, undefined]), require_auth: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), newsletter_subscription: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, git_rev: faker.helpers.arrayElement([faker.datatype.boolean(),{short: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined]), long: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined]), branch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined]), tag: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}),faker.datatype.boolean(),]), undefined])},]), social_accounts: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({provider: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), last_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), email: faker.helpers.arrayElement([faker.internet.email(), undefined]), username: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])})), validated_password: faker.datatype.boolean(), accepted_tos: faker.datatype.boolean(), organization: {url: faker.helpers.arrayElement([faker.internet.url(), undefined]), name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), uid: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])}, extra_details__uid: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
-
-export const getMeEmailsListResponseMock = (overrideResponse: Partial< PaginatedEmailAddressList > = {}): PaginatedEmailAddressList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({email: faker.string.alpha({length: {min: 10, max: 20}}), primary: faker.datatype.boolean(), verified: faker.datatype.boolean()})), ...overrideResponse})
-
-export const getMeEmailsCreateResponseMock = (overrideResponse: Partial< EmailAddress > = {}): EmailAddress => ({email: faker.string.alpha({length: {min: 10, max: 20}}), primary: faker.datatype.boolean(), verified: faker.datatype.boolean(), ...overrideResponse})
-
-export const getMeSocialAccountsListResponseMock = (overrideResponse: Partial< PaginatedSocialAccountList > = {}): PaginatedSocialAccountList => ({count: faker.number.int({min: undefined, max: undefined, multipleOf: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({provider: faker.string.alpha({length: {min: 10, max: 200}}), uid: faker.string.alpha({length: {min: 10, max: 191}}), last_login: `${faker.date.past().toISOString().split('.')[0]}Z`, date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, email: faker.internet.email(), username: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
-
-export const getMeSocialAccountsRetrieveResponseMock = (overrideResponse: Partial< SocialAccount > = {}): SocialAccount => ({provider: faker.string.alpha({length: {min: 10, max: 200}}), uid: faker.string.alpha({length: {min: 10, max: 191}}), last_login: `${faker.date.past().toISOString().split('.')[0]}Z`, date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, email: faker.internet.email(), username: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
-
-
-export const getApiV2AssetUsageListMockHandler = (overrideResponse?: PaginatedAssetUsageResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetUsageResponseList> | PaginatedAssetUsageResponseList)) => {
-  return http.get('*/api/v2/asset_usage/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetUsageListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+import type { ProjectViewExportCreateResponse } from '../../models/projectViewExportCreateResponse'
+
+import type { ProjectViewExportResponse } from '../../models/projectViewExportResponse'
+
+import type { ProjectViewListResponse } from '../../models/projectViewListResponse'
+
+import type { ServiceUsageBalanceData } from '../../models/serviceUsageBalanceData'
+
+import type { ServiceUsageResponse } from '../../models/serviceUsageResponse'
+
+import type { SocialAccount } from '../../models/socialAccount'
+
+import type { UserRetrieveResponse } from '../../models/userRetrieveResponse'
+
+export const getApiV2AssetUsageListResponseMock = (
+  overrideResponse: Partial<PaginatedAssetUsageResponseList> = {},
+): PaginatedAssetUsageResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    asset: faker.internet.url(),
+    asset__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    nlp_usage_current_period: {
+      total_nlp_asr_seconds: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      total_nlp_mt_characters: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      total_nlp_llm_requests: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    },
+    nlp_usage_all_time: {
+      total_nlp_asr_seconds: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      total_nlp_mt_characters: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      total_nlp_llm_requests: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    },
+    storage_bytes: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    submission_count_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    submission_count_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsListResponseMock = (
+  overrideResponse: Partial<PaginatedOrganizationResponseList> = {},
+): PaginatedOrganizationResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    url: faker.internet.url(),
+    name: faker.string.alpha({ length: { min: 10, max: 200 } }),
+    website: faker.string.alpha({ length: { min: 10, max: 255 } }),
+    organization_type: faker.helpers.arrayElement(Object.values(OrganizationTypeEnum)),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_owner: faker.datatype.boolean(),
+    is_mmo: faker.datatype.boolean(),
+    request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+    members: faker.internet.url(),
+    assets: faker.internet.url(),
+    service_usage: faker.internet.url(),
+    asset_usage: faker.internet.url(),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsRetrieveResponseMock = (
+  overrideResponse: Partial<OrganizationResponse> = {},
+): OrganizationResponse => ({
+  id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  url: faker.internet.url(),
+  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
+  website: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  organization_type: faker.helpers.arrayElement(Object.values(OrganizationTypeEnum)),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  is_owner: faker.datatype.boolean(),
+  is_mmo: faker.datatype.boolean(),
+  request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+  members: faker.internet.url(),
+  assets: faker.internet.url(),
+  service_usage: faker.internet.url(),
+  asset_usage: faker.internet.url(),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsPartialUpdateResponseMock = (
+  overrideResponse: Partial<OrganizationResponse> = {},
+): OrganizationResponse => ({
+  id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  url: faker.internet.url(),
+  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
+  website: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  organization_type: faker.helpers.arrayElement(Object.values(OrganizationTypeEnum)),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  is_owner: faker.datatype.boolean(),
+  is_mmo: faker.datatype.boolean(),
+  request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+  members: faker.internet.url(),
+  assets: faker.internet.url(),
+  service_usage: faker.internet.url(),
+  asset_usage: faker.internet.url(),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsAssetUsageListResponseMock = (
+  overrideResponse: Partial<PaginatedCustomAssetUsageList> = {},
+): PaginatedCustomAssetUsageList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    asset: faker.internet.url(),
+    asset__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    nlp_usage_current_period: {
+      ...{
+        total_nlp_asr_seconds: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        total_nlp_llm_requests: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        total_nlp_mt_characters: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      },
+    },
+    nlp_usage_all_time: {
+      ...{
+        total_nlp_asr_seconds: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        total_nlp_llm_requests: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        total_nlp_mt_characters: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      },
+    },
+    storage_bytes: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    submission_count_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    submission_count_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment_status: faker.helpers.arrayElement(Object.values(CustomAssetUsageDeploymentStatusEnum)),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
+  overrideResponse: Partial<PaginatedAssetList> = {},
+): PaginatedAssetList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    owner: faker.internet.url(),
+    owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+    settings: faker.helpers.arrayElement([
+      {
+        sector: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+        country: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          })),
+          undefined,
+        ]),
+        description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        collects_pii: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+        organization: faker.helpers.arrayElement([
+          faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+          undefined,
+        ]),
+        country_codes: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        operational_purpose: faker.helpers.arrayElement([
+          {
+            label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          },
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    asset_type: faker.helpers.arrayElement(Object.values(AssetTypeEnum)),
+    files: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      asset: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      user: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      user__username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      file_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      date_created: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      content: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      metadata: faker.helpers.arrayElement([{}, undefined]),
+    })),
+    summary: {
+      geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      labels: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      columns: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+      languages: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      row_count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      name_quality: faker.helpers.arrayElement([
+        {
+          ok: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          bad: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          good: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          total: faker.helpers.arrayElement([
+            faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+            undefined,
+          ]),
+          firsts: faker.helpers.arrayElement([
+            {
+              ok: faker.helpers.arrayElement([
+                {
+                  name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  index: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  label: faker.helpers.arrayElement([
+                    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                      faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    ),
+                    undefined,
+                  ]),
+                },
+                undefined,
+              ]),
+              bad: faker.helpers.arrayElement([
+                {
+                  name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  index: faker.helpers.arrayElement([
+                    faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+                    undefined,
+                  ]),
+                  label: faker.helpers.arrayElement([
+                    Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                      faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    ),
+                    undefined,
+                  ]),
+                },
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+      default_translation: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+        undefined,
+      ]),
+      naming_conflicts: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+    },
+    date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_deployed: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      undefined,
+    ]),
+    version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    has_deployment: faker.datatype.boolean(),
+    deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    deployed_versions: {
+      count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      next: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      previous: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        url: faker.internet.url(),
+        content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`,
+        date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      })),
+    },
+    deployment__links: {},
+    deployment__active: faker.datatype.boolean(),
+    deployment__data_download_links: {
+      csv_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      geojson: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      kml_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      spss_labels: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      xls_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      xls: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      zip_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    },
+    deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment__last_submission_time: faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    deployment__encrypted: faker.datatype.boolean(),
+    deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+    report_styles: faker.helpers.arrayElement([
+      {
+        default: faker.helpers.arrayElement([
+          {
+            groupDataBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            report_colors: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            translationIndex: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
+            graphWidth: faker.helpers.arrayElement([
+              faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        specified: faker.helpers.arrayElement([{}, undefined]),
+        kuid_names: faker.helpers.arrayElement([{}, undefined]),
+      },
+      undefined,
+    ]),
+    report_custom: faker.helpers.arrayElement([{}, undefined]),
+    advanced_features: faker.helpers.arrayElement([
+      {
+        transcript: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        translation: faker.helpers.arrayElement([
+          {
+            values: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            languages: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        qual: faker.helpers.arrayElement([
+          {
+            qual_survey: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                options: faker.helpers.arrayElement([
+                  { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                  undefined,
+                ]),
+                xpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                scope: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                choices: faker.helpers.arrayElement([
+                  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+                    labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+                    uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    options: faker.helpers.arrayElement([
+                      { deleted: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]) },
+                      undefined,
+                    ]),
+                  })),
+                  undefined,
+                ]),
+              })),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        _version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
+    map_styles: faker.helpers.arrayElement([
+      {
+        colorSet: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        querylimit: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        selectedQuestion: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      },
+      undefined,
+    ]),
+    map_custom: faker.helpers.arrayElement([{}, undefined]),
+    content: faker.helpers.arrayElement([
+      {
+        schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        survey: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            $kuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            $xpath: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            $autoname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            calculation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            label: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+              ),
+              undefined,
+            ]),
+            hint: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+              ),
+              undefined,
+            ]),
+            name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+            appearance: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            parameters: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            'kobo--matrix_list': faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            'kobo--rank-constraint-message': faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            'kobo--rank-items': faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            'kobo--score-choices': faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            'kobo--locking-profile': faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            tags: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            select_from_list_name: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            'body::accept': faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+          })),
+          undefined,
+        ]),
+        choices: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            $autovalue: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            $kuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            label: faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+              ),
+              undefined,
+            ]),
+            list_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            'media::image': faker.helpers.arrayElement([
+              Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                faker.string.alpha({ length: { min: 10, max: 20 } }),
+              ),
+              undefined,
+            ]),
+            $autoname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          })),
+          undefined,
+        ]),
+        settings: faker.helpers.arrayElement([
+          {
+            name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            version: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            id_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            style: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            form_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            title: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+            'kobo--lock_all': faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+            'kobo--locking-profile': faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            default_language: faker.helpers.arrayElement([
+              faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        translated: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        translations: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+          ),
+          undefined,
+        ]),
+        translations_0: faker.helpers.arrayElement([
+          faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+          undefined,
+        ]),
+        'kobo--locking-profiles': faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            [faker.string.alphanumeric(5)]: {},
+          })),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    })),
+    embeds: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    })),
+    analysis_form_json: {
+      additional_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        source: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        type: faker.helpers.arrayElement([
+          'transcript',
+          'translation',
+          'qualVerification',
+          'qualSource',
+          'qualInteger',
+          'qualTags',
+          'qualText',
+          'qualNote',
+          'qualAutoKeywordCount',
+          'qualSelectMultiple',
+          'qualSelectOne',
+        ] as const),
+        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        dtpath: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        choices: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+            uuid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            labels: { _default: faker.string.alpha({ length: { min: 10, max: 20 } }) },
+          })),
+          undefined,
+        ]),
+      })),
+    },
+    xform_link: faker.internet.url(),
+    hooks_link: faker.internet.url(),
+    tag_string: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    kind: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    xls_link: faker.internet.url(),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 255 } }), undefined]),
+    assignable_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      label: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        {
+          default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          view_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          change_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          delete_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+          validate_submissions: faker.helpers.arrayElement([
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+            undefined,
+          ]),
+        },
+      ]),
+    })),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      user: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      permission: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      partial_permissions: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          url: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          filters: faker.helpers.arrayElement([
+            Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
+            undefined,
+          ]),
+        })),
+        undefined,
+      ]),
+      label: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          {
+            default: faker.string.alpha({ length: { min: 10, max: 20 } }),
+            view_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            change_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            delete_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+            validate_submissions: faker.helpers.arrayElement([
+              faker.string.alpha({ length: { min: 10, max: 20 } }),
+              undefined,
+            ]),
+          },
+        ]),
+        undefined,
+      ]),
+    })),
+    effective_permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      codename: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    })),
+    exports: faker.internet.url(),
+    export_settings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      data_url_xlsx: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      export_settings: {
+        [faker.string.alphanumeric(5)]: {},
+      },
+    })),
+    data: faker.internet.url(),
+    children: {
+      count: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+    },
+    subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    access_types: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    data_sharing: faker.helpers.arrayElement([{}, undefined]),
+    paired_data: faker.internet.url(),
+    project_ownership: {
+      [faker.string.alphanumeric(5)]: {},
+    },
+    owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsAssetsCountsRetrieveResponseMock = (
+  overrideResponse: Partial<AssetListCount> = {},
+): AssetListCount => ({
+  deployed_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  archived_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  draft_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsAssetsMinimalListRetrieveResponseMock = (
+  overrideResponse: Partial<PaginatedAssetMinimalListList> = {},
+): PaginatedAssetMinimalListList => ({
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 22 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsInvitesListResponseMock = (
+  overrideResponse: Partial<PaginatedInviteResponseList> = {},
+): PaginatedInviteResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    url: faker.internet.url(),
+    invited_by: faker.internet.url(),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsInvitesCreateResponseMock = (): InviteCreateResponse =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    invited_by: faker.internet.url(),
+    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    invitee_role: faker.helpers.arrayElement(['admin', 'member'] as const),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  }))
+
+export const getApiV2OrganizationsInvitesRetrieveResponseMock = (
+  overrideResponse: Partial<InviteResponse> = {},
+): InviteResponse => ({
+  invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  url: faker.internet.url(),
+  invited_by: faker.internet.url(),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsInvitesPartialUpdateResponseMock = (
+  overrideResponse: Partial<InviteResponse> = {},
+): InviteResponse => ({
+  invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  url: faker.internet.url(),
+  invited_by: faker.internet.url(),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsMembersListResponseMock = (
+  overrideResponse: Partial<PaginatedMemberListResponseList> = {},
+): PaginatedMemberListResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+    url: faker.internet.url(),
+    user: faker.internet.url(),
+    user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    user__email: faker.internet.email(),
+    user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    user__has_mfa_enabled: faker.datatype.boolean(),
+    date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    user__is_active: faker.datatype.boolean(),
+    invite: {
+      ...{
+        invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+        status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+        url: faker.internet.url(),
+        invited_by: faker.internet.url(),
+        organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+        modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+        invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      },
+    },
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsMembersRetrieveResponseMock = (
+  overrideResponse: Partial<MemberListResponse> = {},
+): MemberListResponse => ({
+  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+  url: faker.internet.url(),
+  user: faker.internet.url(),
+  user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  user__email: faker.internet.email(),
+  user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  user__has_mfa_enabled: faker.datatype.boolean(),
+  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  user__is_active: faker.datatype.boolean(),
+  invite: {
+    ...{
+      invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+      status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+      url: faker.internet.url(),
+      invited_by: faker.internet.url(),
+      organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    },
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
+  overrideResponse: Partial<MemberListResponse> = {},
+): MemberListResponse => ({
+  role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
+  url: faker.internet.url(),
+  user: faker.internet.url(),
+  user__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  user__email: faker.internet.email(),
+  user__extra_details__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  user__has_mfa_enabled: faker.datatype.boolean(),
+  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  user__is_active: faker.datatype.boolean(),
+  invite: {
+    ...{
+      invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+      status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+      url: faker.internet.url(),
+      invited_by: faker.internet.url(),
+      organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    },
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock = (
+  overrideResponse: Partial<ServiceUsageBalanceData> = {},
+): ServiceUsageBalanceData => ({
+  ...{
+    effective_limit: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    balance_value: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    balance_percent: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    exceeded: faker.datatype.boolean(),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsServiceUsageRetrieveResponseMock = (
+  overrideResponse: Partial<OrganizationServiceUsageResponse> = {},
+): OrganizationServiceUsageResponse => ({
+  total_nlp_usage: {
+    asr_seconds_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    llm_requests_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    mt_characters_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    asr_seconds_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    llm_requests_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    mt_characters_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  },
+  total_storage_bytes: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  total_submission_count: {
+    all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  },
+  balances: {
+    submission: faker.helpers.arrayElement([
+      { ...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock() },
+      null,
+    ]),
+    storage_bytes: faker.helpers.arrayElement([
+      { ...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock() },
+      null,
+    ]),
+    asr_seconds: faker.helpers.arrayElement([
+      { ...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock() },
+      null,
+    ]),
+    mt_characters: faker.helpers.arrayElement([
+      { ...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock() },
+      null,
+    ]),
+    llm_requests: faker.helpers.arrayElement([
+      { ...getApiV2OrganizationsServiceUsageRetrieveResponseServiceUsageBalanceDataMock() },
+      null,
+    ]),
+  },
+  current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  last_updated: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsListResponseMock = (
+  overrideResponse: Partial<PaginatedProjectViewListResponseList> = {},
+): PaginatedProjectViewListResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 32 } }),
+    name: faker.internet.url(),
+    url: faker.internet.url(),
+    assets: faker.internet.url(),
+    assets_export: faker.internet.url(),
+    users: faker.internet.url(),
+    users_export: faker.internet.url(),
+    countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsRetrieveResponseMock = (
+  overrideResponse: Partial<ProjectViewListResponse> = {},
+): ProjectViewListResponse => ({
+  uid: faker.string.alpha({ length: { min: 10, max: 32 } }),
+  name: faker.internet.url(),
+  url: faker.internet.url(),
+  assets: faker.internet.url(),
+  assets_export: faker.internet.url(),
+  users: faker.internet.url(),
+  users_export: faker.internet.url(),
+  countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsExportRetrieveResponseMock = (
+  overrideResponse: Partial<ProjectViewExportResponse> = {},
+): ProjectViewExportResponse => ({
+  status: faker.string.alpha({ length: { min: 10, max: 32 } }),
+  result: faker.internet.url(),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsExportCreateResponseMock = (
+  overrideResponse: Partial<ProjectViewExportCreateResponse> = {},
+): ProjectViewExportCreateResponse => ({
+  status: faker.string.alpha({ length: { min: 10, max: 32 } }),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsAssetsRetrieveResponseMock = (
+  overrideResponse: Partial<PaginatedProjectViewAssetResponseList> = {},
+): PaginatedProjectViewAssetResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    owner: faker.internet.url(),
+    owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    owner__email: faker.internet.email(),
+    owner__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    owner__organization: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    settings: {
+      sector: faker.helpers.arrayElement([
+        {
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+      country: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        })),
+        undefined,
+      ]),
+      description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country_codes: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      operational_purpose: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    languages: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    has_deployment: faker.datatype.boolean(),
+    deployment__active: faker.datatype.boolean(),
+    deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment_status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    asset_type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    })),
+    owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsAssetsCountsRetrieveResponseMock = (
+  overrideResponse: Partial<AssetListCount> = {},
+): AssetListCount => ({
+  deployed_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  archived_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  draft_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsAssetsMinimalListRetrieveResponseMock = (
+  overrideResponse: Partial<PaginatedAssetMinimalListList> = {},
+): PaginatedAssetMinimalListList => ({
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 22 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ProjectViewsUsersRetrieveResponseMock = (
+  overrideResponse: Partial<PaginatedProjectViewUserResponseList> = {},
+): PaginatedProjectViewUserResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    id: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    is_superuser: faker.datatype.boolean(),
+    date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_active: faker.datatype.boolean(),
+    email: faker.internet.email(),
+    asset_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    metadata: {
+      city: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      sector: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      last_ui_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization_website: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+      project_view_settings: faker.helpers.arrayElement([
+        {
+          my_project_view_name: faker.helpers.arrayElement([
+            {
+              order: faker.helpers.arrayElement([{}, undefined]),
+              fields: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+              filters: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+    },
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock = (
+  overrideResponse: Partial<ServiceUsageBalanceData> = {},
+): ServiceUsageBalanceData => ({
+  ...{
+    effective_limit: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    balance_value: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    balance_percent: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    exceeded: faker.datatype.boolean(),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2ServiceUsageListResponseMock = (): ServiceUsageResponse[] =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    total_nlp_usage: {
+      asr_seconds_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      llm_requests_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      mt_characters_current_period: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      asr_seconds_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      llm_requests_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+      mt_characters_all_time: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    },
+    total_storage_bytes: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    total_submission_count: {
+      all_time: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+      current_period: faker.helpers.arrayElement([
+        faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+        undefined,
+      ]),
+    },
+    balances: {
+      submission: faker.helpers.arrayElement([
+        { ...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock() },
+        null,
+      ]),
+      storage_bytes: faker.helpers.arrayElement([
+        { ...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock() },
+        null,
+      ]),
+      asr_seconds: faker.helpers.arrayElement([
+        { ...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock() },
+        null,
+      ]),
+      mt_characters: faker.helpers.arrayElement([
+        { ...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock() },
+        null,
+      ]),
+      llm_requests: faker.helpers.arrayElement([
+        { ...getApiV2ServiceUsageListResponseServiceUsageBalanceDataMock() },
+        null,
+      ]),
+    },
+    current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    last_updated: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  }))
+
+export const getApiV2UsersListResponseMock = (
+  overrideResponse: Partial<PaginatedUserListResponseList> = {},
+): PaginatedUserListResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    id: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    is_superuser: faker.datatype.boolean(),
+    date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_active: faker.datatype.boolean(),
+    email: faker.internet.email(),
+    asset_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    metadata: {
+      name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      sector: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      last_ui_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization_website: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+      project_views_settings: faker.helpers.arrayElement([
+        {
+          kobo_my_project: faker.helpers.arrayElement([
+            {
+              order: faker.helpers.arrayElement([{}, undefined]),
+              fields: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+              filters: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+    },
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2UsersRetrieveResponseMock = (
+  overrideResponse: Partial<UserRetrieveResponse> = {},
+): UserRetrieveResponse => ({
+  url: faker.internet.url(),
+  username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  public_collection_subscribers_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  public_collections_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  ...overrideResponse,
+})
+
+export const getMeRetrieveResponseMock = (overrideResponse: Partial<MeListResponse> = {}): MeListResponse => ({
+  username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  first_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  last_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  email: faker.internet.email(),
+  server_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  projects_url: faker.internet.url(),
+  gravatar: faker.internet.url(),
+  last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+  extra_details: {
+    bio: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    city: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    sector: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    country: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    twitter: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    linkedin: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    instagram: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    last_ui_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    organization_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    organization_website: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    project_views_settings: faker.helpers.arrayElement([{}, undefined]),
+    require_auth: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    newsletter_subscription: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+      undefined,
+    ]),
+  },
+  git_rev: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    {
+      short: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+      long: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+      branch: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+      tag: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+    },
+  ]),
+  social_accounts: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    provider: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    last_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    email: faker.helpers.arrayElement([faker.internet.email(), undefined]),
+    username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  validated_password: faker.datatype.boolean(),
+  accepted_tos: faker.datatype.boolean(),
+  organization: {
+    url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  },
+  extra_details__uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getMePartialUpdateResponseMock = (overrideResponse: Partial<MeListResponse> = {}): MeListResponse => ({
+  username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  first_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  last_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  email: faker.internet.email(),
+  server_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  projects_url: faker.internet.url(),
+  gravatar: faker.internet.url(),
+  last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+  extra_details: {
+    bio: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    city: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    sector: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    country: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    twitter: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    linkedin: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    instagram: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    last_ui_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    organization_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    organization_website: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    project_views_settings: faker.helpers.arrayElement([{}, undefined]),
+    require_auth: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    newsletter_subscription: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+      undefined,
+    ]),
+  },
+  git_rev: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    {
+      short: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+      long: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+      branch: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+      tag: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), faker.datatype.boolean()]),
+        undefined,
+      ]),
+    },
+  ]),
+  social_accounts: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    provider: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    last_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    date_joined: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    email: faker.helpers.arrayElement([faker.internet.email(), undefined]),
+    username: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  })),
+  validated_password: faker.datatype.boolean(),
+  accepted_tos: faker.datatype.boolean(),
+  organization: {
+    url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    uid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+  },
+  extra_details__uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getMeEmailsListResponseMock = (
+  overrideResponse: Partial<PaginatedEmailAddressList> = {},
+): PaginatedEmailAddressList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    email: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    primary: faker.datatype.boolean(),
+    verified: faker.datatype.boolean(),
+  })),
+  ...overrideResponse,
+})
+
+export const getMeEmailsCreateResponseMock = (overrideResponse: Partial<EmailAddress> = {}): EmailAddress => ({
+  email: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  primary: faker.datatype.boolean(),
+  verified: faker.datatype.boolean(),
+  ...overrideResponse,
+})
+
+export const getMeSocialAccountsListResponseMock = (
+  overrideResponse: Partial<PaginatedSocialAccountList> = {},
+): PaginatedSocialAccountList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    provider: faker.string.alpha({ length: { min: 10, max: 200 } }),
+    uid: faker.string.alpha({ length: { min: 10, max: 191 } }),
+    last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    email: faker.internet.email(),
+    username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+})
+
+export const getMeSocialAccountsRetrieveResponseMock = (
+  overrideResponse: Partial<SocialAccount> = {},
+): SocialAccount => ({
+  provider: faker.string.alpha({ length: { min: 10, max: 200 } }),
+  uid: faker.string.alpha({ length: { min: 10, max: 191 } }),
+  last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  email: faker.internet.email(),
+  username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
+export const getApiV2AssetUsageListMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetUsageResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAssetUsageResponseList> | PaginatedAssetUsageResponseList),
+) => {
+  return http.get('*/api/v2/asset_usage/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetUsageListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsListMockHandler = (overrideResponse?: PaginatedOrganizationResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedOrganizationResponseList> | PaginatedOrganizationResponseList)) => {
-  return http.get('*/api/v2/organizations/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsListMockHandler = (
+  overrideResponse?:
+    | PaginatedOrganizationResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedOrganizationResponseList> | PaginatedOrganizationResponseList),
+) => {
+  return http.get('*/api/v2/organizations/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsRetrieveMockHandler = (overrideResponse?: OrganizationResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsRetrieveMockHandler = (
+  overrideResponse?:
+    | OrganizationResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsPartialUpdateMockHandler = (overrideResponse?: OrganizationResponse | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse)) => {
-  return http.patch('*/api/v2/organizations/:uidOrganization/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsPartialUpdateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsPartialUpdateMockHandler = (
+  overrideResponse?:
+    | OrganizationResponse
+    | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse),
+) => {
+  return http.patch('*/api/v2/organizations/:uidOrganization/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsPartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsAssetUsageListMockHandler = (overrideResponse?: PaginatedCustomAssetUsageList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedCustomAssetUsageList> | PaginatedCustomAssetUsageList)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/asset_usage/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsAssetUsageListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsAssetUsageListMockHandler = (
+  overrideResponse?:
+    | PaginatedCustomAssetUsageList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedCustomAssetUsageList> | PaginatedCustomAssetUsageList),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/asset_usage/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsAssetUsageListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsAssetsRetrieveMockHandler = (overrideResponse?: PaginatedAssetList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetList> | PaginatedAssetList)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/assets/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsAssetsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsAssetsRetrieveMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetList
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetList> | PaginatedAssetList),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/assets/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsAssetsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsAssetsCountsRetrieveMockHandler = (overrideResponse?: AssetListCount | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/assets/counts/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsAssetsCountsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsAssetsCountsRetrieveMockHandler = (
+  overrideResponse?:
+    | AssetListCount
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/assets/counts/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsAssetsCountsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsAssetsMinimalListRetrieveMockHandler = (overrideResponse?: PaginatedAssetMinimalListList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/assets/minimal-list/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsAssetsMinimalListRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsAssetsMinimalListRetrieveMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetMinimalListList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/assets/minimal-list/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsAssetsMinimalListRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsInvitesListMockHandler = (overrideResponse?: PaginatedInviteResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedInviteResponseList> | PaginatedInviteResponseList)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/invites/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsInvitesListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsInvitesListMockHandler = (
+  overrideResponse?:
+    | PaginatedInviteResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedInviteResponseList> | PaginatedInviteResponseList),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/invites/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsInvitesListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsInvitesCreateMockHandler = (overrideResponse?: InviteCreateResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<InviteCreateResponse> | InviteCreateResponse)) => {
-  return http.post('*/api/v2/organizations/:uidOrganization/invites/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsInvitesCreateResponseMock()),
-      { status: 201,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsInvitesCreateMockHandler = (
+  overrideResponse?:
+    | InviteCreateResponse
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<InviteCreateResponse> | InviteCreateResponse),
+) => {
+  return http.post('*/api/v2/organizations/:uidOrganization/invites/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsInvitesCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsInvitesRetrieveMockHandler = (overrideResponse?: InviteResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<InviteResponse> | InviteResponse)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsInvitesRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsInvitesRetrieveMockHandler = (
+  overrideResponse?:
+    | InviteResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<InviteResponse> | InviteResponse),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsInvitesRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsInvitesPartialUpdateMockHandler = (overrideResponse?: InviteResponse | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<InviteResponse> | InviteResponse)) => {
-  return http.patch('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsInvitesPartialUpdateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsInvitesPartialUpdateMockHandler = (
+  overrideResponse?:
+    | InviteResponse
+    | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<InviteResponse> | InviteResponse),
+) => {
+  return http.patch('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsInvitesPartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsInvitesDestroyMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void)) => {
-  return http.delete('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-    return new HttpResponse(null,
-      { status: 204,
-        
-      })
+export const getApiV2OrganizationsInvitesDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
   })
 }
 
-export const getApiV2OrganizationsMembersListMockHandler = (overrideResponse?: PaginatedMemberListResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedMemberListResponseList> | PaginatedMemberListResponseList)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/members/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsMembersListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsMembersListMockHandler = (
+  overrideResponse?:
+    | PaginatedMemberListResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedMemberListResponseList> | PaginatedMemberListResponseList),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/members/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsMembersListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsMembersRetrieveMockHandler = (overrideResponse?: MemberListResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsMembersRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsMembersRetrieveMockHandler = (
+  overrideResponse?:
+    | MemberListResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsMembersRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsMembersPartialUpdateMockHandler = (overrideResponse?: MemberListResponse | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse)) => {
-  return http.patch('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsMembersPartialUpdateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsMembersPartialUpdateMockHandler = (
+  overrideResponse?:
+    | MemberListResponse
+    | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse),
+) => {
+  return http.patch('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsMembersPartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2OrganizationsMembersDestroyMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void)) => {
-  return http.delete('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-    return new HttpResponse(null,
-      { status: 204,
-        
-      })
+export const getApiV2OrganizationsMembersDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
   })
 }
 
-export const getApiV2OrganizationsServiceUsageRetrieveMockHandler = (overrideResponse?: OrganizationServiceUsageResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrganizationServiceUsageResponse> | OrganizationServiceUsageResponse)) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/service_usage/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2OrganizationsServiceUsageRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2OrganizationsServiceUsageRetrieveMockHandler = (
+  overrideResponse?:
+    | OrganizationServiceUsageResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<OrganizationServiceUsageResponse> | OrganizationServiceUsageResponse),
+) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/service_usage/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2OrganizationsServiceUsageRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsListMockHandler = (overrideResponse?: PaginatedProjectViewListResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedProjectViewListResponseList> | PaginatedProjectViewListResponseList)) => {
-  return http.get('*/api/v2/project-views/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsListMockHandler = (
+  overrideResponse?:
+    | PaginatedProjectViewListResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedProjectViewListResponseList> | PaginatedProjectViewListResponseList),
+) => {
+  return http.get('*/api/v2/project-views/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsRetrieveMockHandler = (overrideResponse?: ProjectViewListResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectViewListResponse> | ProjectViewListResponse)) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsRetrieveMockHandler = (
+  overrideResponse?:
+    | ProjectViewListResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<ProjectViewListResponse> | ProjectViewListResponse),
+) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsExportRetrieveMockHandler = (overrideResponse?: ProjectViewExportResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectViewExportResponse> | ProjectViewExportResponse)) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/:objType/export/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsExportRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsExportRetrieveMockHandler = (
+  overrideResponse?:
+    | ProjectViewExportResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<ProjectViewExportResponse> | ProjectViewExportResponse),
+) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/:objType/export/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsExportRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsExportCreateMockHandler = (overrideResponse?: ProjectViewExportCreateResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ProjectViewExportCreateResponse> | ProjectViewExportCreateResponse)) => {
-  return http.post('*/api/v2/project-views/:uidProjectView/:objType/export/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsExportCreateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsExportCreateMockHandler = (
+  overrideResponse?:
+    | ProjectViewExportCreateResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<ProjectViewExportCreateResponse> | ProjectViewExportCreateResponse),
+) => {
+  return http.post('*/api/v2/project-views/:uidProjectView/:objType/export/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsExportCreateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsAssetsRetrieveMockHandler = (overrideResponse?: PaginatedProjectViewAssetResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedProjectViewAssetResponseList> | PaginatedProjectViewAssetResponseList)) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/assets/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsAssetsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsAssetsRetrieveMockHandler = (
+  overrideResponse?:
+    | PaginatedProjectViewAssetResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedProjectViewAssetResponseList> | PaginatedProjectViewAssetResponseList),
+) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/assets/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsAssetsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsAssetsCountsRetrieveMockHandler = (overrideResponse?: AssetListCount | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount)) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/assets/counts/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsAssetsCountsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsAssetsCountsRetrieveMockHandler = (
+  overrideResponse?:
+    | AssetListCount
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
+) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/assets/counts/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsAssetsCountsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsAssetsMinimalListRetrieveMockHandler = (overrideResponse?: PaginatedAssetMinimalListList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList)) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/assets/minimal-list/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsAssetsMinimalListRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsAssetsMinimalListRetrieveMockHandler = (
+  overrideResponse?:
+    | PaginatedAssetMinimalListList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
+) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/assets/minimal-list/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsAssetsMinimalListRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ProjectViewsUsersRetrieveMockHandler = (overrideResponse?: PaginatedProjectViewUserResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedProjectViewUserResponseList> | PaginatedProjectViewUserResponseList)) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/users/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ProjectViewsUsersRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ProjectViewsUsersRetrieveMockHandler = (
+  overrideResponse?:
+    | PaginatedProjectViewUserResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedProjectViewUserResponseList> | PaginatedProjectViewUserResponseList),
+) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/users/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ProjectViewsUsersRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2ServiceUsageListMockHandler = (overrideResponse?: ServiceUsageResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ServiceUsageResponse[]> | ServiceUsageResponse[])) => {
-  return http.get('*/api/v2/service_usage/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2ServiceUsageListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2ServiceUsageListMockHandler = (
+  overrideResponse?:
+    | ServiceUsageResponse[]
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<ServiceUsageResponse[]> | ServiceUsageResponse[]),
+) => {
+  return http.get('*/api/v2/service_usage/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2ServiceUsageListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2UsersListMockHandler = (overrideResponse?: PaginatedUserListResponseList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedUserListResponseList> | PaginatedUserListResponseList)) => {
-  return http.get('*/api/v2/users/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2UsersListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2UsersListMockHandler = (
+  overrideResponse?:
+    | PaginatedUserListResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedUserListResponseList> | PaginatedUserListResponseList),
+) => {
+  return http.get('*/api/v2/users/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2UsersListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2UsersRetrieveMockHandler = (overrideResponse?: UserRetrieveResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<UserRetrieveResponse> | UserRetrieveResponse)) => {
-  return http.get('*/api/v2/users/:username/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2UsersRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2UsersRetrieveMockHandler = (
+  overrideResponse?:
+    | UserRetrieveResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<UserRetrieveResponse> | UserRetrieveResponse),
+) => {
+  return http.get('*/api/v2/users/:username/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2UsersRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getMeRetrieveMockHandler = (overrideResponse?: MeListResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MeListResponse> | MeListResponse)) => {
-  return http.get('*/me/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getMeRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getMeRetrieveMockHandler = (
+  overrideResponse?:
+    | MeListResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MeListResponse> | MeListResponse),
+) => {
+  return http.get('*/me/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getMePartialUpdateMockHandler = (overrideResponse?: MeListResponse | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MeListResponse> | MeListResponse)) => {
-  return http.patch('*/me/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getMePartialUpdateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getMePartialUpdateMockHandler = (
+  overrideResponse?:
+    | MeListResponse
+    | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MeListResponse> | MeListResponse),
+) => {
+  return http.patch('*/me/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMePartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getMeDestroyMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void)) => {
-  return http.delete('*/me/', async (info) => {if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-    return new HttpResponse(null,
-      { status: 204,
-        
-      })
+export const getMeDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/me/', async (info) => {
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
   })
 }
 
-export const getMeEmailsListMockHandler = (overrideResponse?: PaginatedEmailAddressList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedEmailAddressList> | PaginatedEmailAddressList)) => {
-  return http.get('*/me/emails/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getMeEmailsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getMeEmailsListMockHandler = (
+  overrideResponse?:
+    | PaginatedEmailAddressList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedEmailAddressList> | PaginatedEmailAddressList),
+) => {
+  return http.get('*/me/emails/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeEmailsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getMeEmailsCreateMockHandler = (overrideResponse?: EmailAddress | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<EmailAddress> | EmailAddress)) => {
-  return http.post('*/me/emails/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getMeEmailsCreateResponseMock()),
-      { status: 201,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getMeEmailsCreateMockHandler = (
+  overrideResponse?:
+    | EmailAddress
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<EmailAddress> | EmailAddress),
+) => {
+  return http.post('*/me/emails/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeEmailsCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getMeSocialAccountsListMockHandler = (overrideResponse?: PaginatedSocialAccountList | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedSocialAccountList> | PaginatedSocialAccountList)) => {
-  return http.get('*/me/social-accounts/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getMeSocialAccountsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getMeSocialAccountsListMockHandler = (
+  overrideResponse?:
+    | PaginatedSocialAccountList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedSocialAccountList> | PaginatedSocialAccountList),
+) => {
+  return http.get('*/me/social-accounts/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeSocialAccountsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getMeSocialAccountsRetrieveMockHandler = (overrideResponse?: SocialAccount | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SocialAccount> | SocialAccount)) => {
-  return http.get('*/me/social-accounts/:provider/:uidSocialAccount/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getMeSocialAccountsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getMeSocialAccountsRetrieveMockHandler = (
+  overrideResponse?:
+    | SocialAccount
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SocialAccount> | SocialAccount),
+) => {
+  return http.get('*/me/social-accounts/:provider/:uidSocialAccount/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeSocialAccountsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getMeSocialAccountsDestroyMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void)) => {
-  return http.delete('*/me/social-accounts/:provider/:uidSocialAccount/', async (info) => {if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-    return new HttpResponse(null,
-      { status: 204,
-        
-      })
+export const getMeSocialAccountsDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/me/social-accounts/:provider/:uidSocialAccount/', async (info) => {
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
   })
 }
 export const getUserTeamOrganizationUsageMock = () => [
@@ -636,5 +2283,5 @@ export const getUserTeamOrganizationUsageMock = () => [
   getMeEmailsCreateMockHandler(),
   getMeSocialAccountsListMockHandler(),
   getMeSocialAccountsRetrieveMockHandler(),
-  getMeSocialAccountsDestroyMockHandler()
+  getMeSocialAccountsDestroyMockHandler(),
 ]

@@ -9,94 +9,180 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import {
-  faker
-} from '@faker-js/faker';
+import { faker } from '@faker-js/faker'
 
-import { HttpResponse,
-  http } from 'msw';
+import { http, HttpResponse } from 'msw'
 
-import type {
-  PermissionAssignmentResponse
-} from '../../models/permissionAssignmentResponse';
+import type { PermissionAssignmentResponse } from '../../models/permissionAssignmentResponse'
 
+export const getApiV2AssetsPermissionAssignmentsListResponseMock = (): PermissionAssignmentResponse[] =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    user: faker.internet.url(),
+    permission: faker.internet.url(),
+    label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  }))
 
-export const getApiV2AssetsPermissionAssignmentsListResponseMock = (): PermissionAssignmentResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), user: faker.internet.url(), permission: faker.internet.url(), label: faker.string.alpha({length: {min: 10, max: 20}})})))
+export const getApiV2AssetsPermissionAssignmentsCreateResponseMock = (
+  overrideResponse: Partial<PermissionAssignmentResponse> = {},
+): PermissionAssignmentResponse => ({
+  url: faker.internet.url(),
+  user: faker.internet.url(),
+  permission: faker.internet.url(),
+  label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2AssetsPermissionAssignmentsCreateResponseMock = (overrideResponse: Partial< PermissionAssignmentResponse > = {}): PermissionAssignmentResponse => ({url: faker.internet.url(), user: faker.internet.url(), permission: faker.internet.url(), label: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+export const getApiV2AssetsPermissionAssignmentsRetrieveResponseMock = (
+  overrideResponse: Partial<PermissionAssignmentResponse> = {},
+): PermissionAssignmentResponse => ({
+  url: faker.internet.url(),
+  user: faker.internet.url(),
+  permission: faker.internet.url(),
+  label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
 
-export const getApiV2AssetsPermissionAssignmentsRetrieveResponseMock = (overrideResponse: Partial< PermissionAssignmentResponse > = {}): PermissionAssignmentResponse => ({url: faker.internet.url(), user: faker.internet.url(), permission: faker.internet.url(), label: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+export const getApiV2AssetsPermissionAssignmentsBulkCreateResponseMock = (): PermissionAssignmentResponse[] =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    user: faker.internet.url(),
+    permission: faker.internet.url(),
+    label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  }))
 
-export const getApiV2AssetsPermissionAssignmentsBulkCreateResponseMock = (): PermissionAssignmentResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), user: faker.internet.url(), permission: faker.internet.url(), label: faker.string.alpha({length: {min: 10, max: 20}})})))
+export const getApiV2AssetsPermissionAssignmentsClonePartialUpdateResponseMock = (): PermissionAssignmentResponse[] =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    user: faker.internet.url(),
+    permission: faker.internet.url(),
+    label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  }))
 
-export const getApiV2AssetsPermissionAssignmentsClonePartialUpdateResponseMock = (): PermissionAssignmentResponse[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({url: faker.internet.url(), user: faker.internet.url(), permission: faker.internet.url(), label: faker.string.alpha({length: {min: 10, max: 20}})})))
-
-
-export const getApiV2AssetsPermissionAssignmentsListMockHandler = (overrideResponse?: PermissionAssignmentResponse[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[])) => {
-  return http.get('*/api/v2/assets/:uidAsset/permission-assignments/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsPermissionAssignmentsListResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsPermissionAssignmentsListMockHandler = (
+  overrideResponse?:
+    | PermissionAssignmentResponse[]
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/permission-assignments/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsPermissionAssignmentsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetsPermissionAssignmentsCreateMockHandler = (overrideResponse?: PermissionAssignmentResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse)) => {
-  return http.post('*/api/v2/assets/:uidAsset/permission-assignments/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsPermissionAssignmentsCreateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsPermissionAssignmentsCreateMockHandler = (
+  overrideResponse?:
+    | PermissionAssignmentResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse),
+) => {
+  return http.post('*/api/v2/assets/:uidAsset/permission-assignments/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsPermissionAssignmentsCreateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetsPermissionAssignmentsRetrieveMockHandler = (overrideResponse?: PermissionAssignmentResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse)) => {
-  return http.get('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsPermissionAssignmentsRetrieveResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsPermissionAssignmentsRetrieveMockHandler = (
+  overrideResponse?:
+    | PermissionAssignmentResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsPermissionAssignmentsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetsPermissionAssignmentsDestroyMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void)) => {
-  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment/', async (info) => {if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-    return new HttpResponse(null,
-      { status: 204,
-        
-      })
+export const getApiV2AssetsPermissionAssignmentsDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment/', async (info) => {
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
   })
 }
 
-export const getApiV2AssetsPermissionAssignmentsBulkCreateMockHandler = (overrideResponse?: PermissionAssignmentResponse[] | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[])) => {
-  return http.post('*/api/v2/assets/:uidAsset/permission-assignments/bulk/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsPermissionAssignmentsBulkCreateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsPermissionAssignmentsBulkCreateMockHandler = (
+  overrideResponse?:
+    | PermissionAssignmentResponse[]
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
+) => {
+  return http.post('*/api/v2/assets/:uidAsset/permission-assignments/bulk/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsPermissionAssignmentsBulkCreateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 
-export const getApiV2AssetsPermissionAssignmentsBulkDestroyMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void)) => {
-  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/bulk/', async (info) => {if (typeof overrideResponse === 'function') {await overrideResponse(info); }
-    return new HttpResponse(null,
-      { status: 204,
-        
-      })
+export const getApiV2AssetsPermissionAssignmentsBulkDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/api/v2/assets/:uidAsset/permission-assignments/bulk/', async (info) => {
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
   })
 }
 
-export const getApiV2AssetsPermissionAssignmentsClonePartialUpdateMockHandler = (overrideResponse?: PermissionAssignmentResponse[] | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[])) => {
-  return http.patch('*/api/v2/assets/:uidAsset/permission-assignments/clone/', async (info) => {return new HttpResponse(JSON.stringify(overrideResponse !== undefined
-    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
-    : getApiV2AssetsPermissionAssignmentsClonePartialUpdateResponseMock()),
-      { status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      })
+export const getApiV2AssetsPermissionAssignmentsClonePartialUpdateMockHandler = (
+  overrideResponse?:
+    | PermissionAssignmentResponse[]
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0],
+      ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
+) => {
+  return http.patch('*/api/v2/assets/:uidAsset/permission-assignments/clone/', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsPermissionAssignmentsClonePartialUpdateResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
   })
 }
 export const getManagePermissionsMock = () => [
@@ -106,5 +192,5 @@ export const getManagePermissionsMock = () => [
   getApiV2AssetsPermissionAssignmentsDestroyMockHandler(),
   getApiV2AssetsPermissionAssignmentsBulkCreateMockHandler(),
   getApiV2AssetsPermissionAssignmentsBulkDestroyMockHandler(),
-  getApiV2AssetsPermissionAssignmentsClonePartialUpdateMockHandler()
+  getApiV2AssetsPermissionAssignmentsClonePartialUpdateMockHandler(),
 ]
