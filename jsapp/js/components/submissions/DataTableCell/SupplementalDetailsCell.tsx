@@ -38,7 +38,14 @@ export default function SupplementalDetailsCell(props: SupplementalDetailsCellPr
     const targetTab = pathParts.type === 'transcript' ? ProcessingTab.Transcript : ProcessingTab.Translations
 
     // Navigate to the appropriate processing view
-    goToProcessing(props.asset.uid, pathParts.sourceRowPath, submissionEditId, targetTab)
+    // For translations, pass the languageCode to pre-select the specific translation
+    goToProcessing(
+      props.asset.uid,
+      pathParts.sourceRowPath,
+      submissionEditId,
+      targetTab,
+      pathParts.type === 'translation' ? pathParts.languageCode : undefined,
+    )
   }
 
   // If this cell has unaccepted automatic content, show Review button

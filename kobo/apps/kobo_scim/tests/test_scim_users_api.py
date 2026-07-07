@@ -15,7 +15,6 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_USER,
 )
 from kobo.apps.kobo_scim.models import IdentityProvider
-from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
 class ScimUsersAPITests(APITestCase):
@@ -120,7 +119,11 @@ class ScimUsersAPITests(APITestCase):
         payload = {
             'schemas': [SCIM_SCHEMA_USER],
             'userName': 'newscimuser',
-            'name': {'givenName': 'New', 'familyName': 'Scim'},
+            'name': {
+                'givenName': 'New',
+                'familyName': 'Scim',
+                'formatted': 'New Scim User',
+            },
             'emails': [
                 {'primary': True, 'value': 'newscimuser@example.com', 'type': 'work'}
             ],
@@ -139,11 +142,18 @@ class ScimUsersAPITests(APITestCase):
         )
         data = response.json()
         self.assertEqual(data['userName'], 'newscimuser')
+        self.assertEqual(data['name']['formatted'], 'New Scim User')
+        self.assertEqual(data['name']['givenName'], 'New')
+        self.assertEqual(data['name']['familyName'], 'Scim')
 
         # Verify in DB
         user = User.objects.get(username='newscimuser')
         self.assertEqual(user.email, 'newscimuser@example.com')
         self.assertEqual(user.first_name, 'New')
+        self.assertEqual(user.last_name, 'Scim')
+
+        extra_user_detail = ExtraUserDetail.objects.get(user=user)
+        self.assertEqual(extra_user_detail.data.get('name'), 'New Scim User')
 
         # Verify SocialAccount link
         social_account = SocialAccount.objects.get(
@@ -516,7 +526,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertFalse(self.user1.is_active)
         self.assertFalse(user3.is_active)
 
-    def test_patch_unsupported_operation(self):
+    def test_patch_name_operation(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         payload = {
@@ -533,10 +543,62 @@ class ScimUsersAPITests(APITestCase):
             HTTP_ACCEPT='application/scim+json',
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.user1.refresh_from_db()
-        self.assertTrue(self.user1.is_active)
+        self.assertEqual(self.user1.last_name, 'Smith')
+
+    def test_patch_unsupported_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': [SCIM_SCHEMA_PATCH_OP],
+            'Operations': [
+                {'op': 'replace', 'path': 'unknownField', 'value': 'x'}
+            ],
+        }
+
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.json()
+        self.assertEqual(data.get('detail'), 'Operation not supported or invalid')
+
+    def test_put_name_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': [SCIM_SCHEMA_USER],
+            'userName': 'jdoe',
+            'name': {
+                'givenName': 'Johnny',
+                'familyName': 'Doeseph',
+                'formatted': 'Johnny Doeseph',
+            },
+            'emails': [{'primary': True, 'value': 'jdoe@example.com', 'type': 'work'}],
+            'active': True,
+        }
+
+        response = self.client.put(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.first_name, 'Johnny')
+        self.assertEqual(self.user1.last_name, 'Doeseph')
+
+        extra_user_detail = ExtraUserDetail.objects.get(user=self.user1)
+        self.assertEqual(extra_user_detail.data.get('name'), 'Johnny Doeseph')
 
     def test_manual_reactivation_after_scim_deprovisioning(self):
         """
@@ -789,12 +851,6 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(extra.data.get('bio'), 'Test bio')
         self.assertEqual(extra.data.get('organization'), 'Acme Corp')
 
-        # Check UserProfile
-        profile, _ = UserProfile.objects.get_or_create(user=user)
-        self.assertEqual(profile.country, 'US')
-        self.assertEqual(profile.description, 'Test bio')  # bio maps to description
-        self.assertEqual(profile.organization, 'Acme Corp')
-
     @override_config(
         USER_METADATA_FIELDS=[
             {
@@ -826,8 +882,8 @@ class ScimUsersAPITests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        profile, _ = UserProfile.objects.get_or_create(user=self.user1)
-        self.assertEqual(profile.country, 'CA')
+        extra, _ = ExtraUserDetail.objects.get_or_create(user=self.user1)
+        self.assertEqual(extra.data.get('country'), 'CA')
 
         # Test value-based update
         payload2 = {
@@ -847,8 +903,8 @@ class ScimUsersAPITests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        profile.refresh_from_db()
-        self.assertEqual(profile.country, 'GB')
+        extra.refresh_from_db()
+        self.assertEqual(extra.data.get('country'), 'GB')
 
     @override_config(
         USER_METADATA_FIELDS=[
@@ -880,8 +936,8 @@ class ScimUsersAPITests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        profile, _ = UserProfile.objects.get_or_create(user=self.user1)
-        self.assertEqual(profile.country, 'CA')
+        extra, _ = ExtraUserDetail.objects.get_or_create(user=self.user1)
+        self.assertEqual(extra.data.get('country'), 'CA')
 
     def test_reactivation_of_user_without_email_works(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
@@ -917,6 +973,9 @@ class ScimUsersAPITests(APITestCase):
         ]
     )
     def test_custom_metadata_mapping_validation_failure(self):
+        # We removed strict validation against UserProfile, so we now assert
+        # that invalid fields like 3-letter country codes are accepted and
+        # stored directly in ExtraUserDetail.data without returning 400.
         self.idp.enforce_strict_metadata_validation = True
         self.idp.save()
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
@@ -926,7 +985,7 @@ class ScimUsersAPITests(APITestCase):
             'emails': [{'primary': True, 'value': 'bad_country@example.com'}],
             'active': True,
             SCIM_SCHEMA_EXTENSION_USER: {
-                'country': 'USA',  # Country max length is 2
+                'country': 'USA',
             },
         }
 
@@ -936,10 +995,11 @@ class ScimUsersAPITests(APITestCase):
             format='json',
             HTTP_ACCEPT='application/scim+json',
         )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Verify user was not created
-        self.assertFalse(User.objects.filter(username='bad_country_user').exists())
+        user = User.objects.get(username='bad_country_user')
+        extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
+        self.assertEqual(extra_user_detail.data.get('country'), 'USA')
 
     @override_config(
         USER_METADATA_FIELDS=[
@@ -964,7 +1024,7 @@ class ScimUsersAPITests(APITestCase):
             'emails': [{'primary': True, 'value': 'partial_sync@example.com'}],
             'active': True,
             SCIM_SCHEMA_EXTENSION_USER: {
-                'country': 'USA',  # Invalid, max length is 2
+                'country': 'USA',
                 'organization': 'Valid Org',  # Valid
             },
         }
@@ -978,17 +1038,9 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         user = User.objects.get(username='partial_sync_user')
-        profile, _ = UserProfile.objects.get_or_create(user=user)
-
-        # Invalid field should be gracefully discarded
-        self.assertEqual(profile.country, '')
-
-        # Valid field should be successfully saved
-        self.assertEqual(profile.organization, 'Valid Org')
-
-        # Assert ExtraUserDetail metadata is also scrubbed of the invalid field
         extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
-        self.assertNotIn('country', extra_user_detail.data)
+
+        self.assertEqual(extra_user_detail.data.get('country'), 'USA')
         self.assertEqual(extra_user_detail.data.get('organization'), 'Valid Org')
 
     @override_config(
@@ -1025,15 +1077,13 @@ class ScimUsersAPITests(APITestCase):
 
         user_id = response1.json()['id']
 
-        # Step 2: Patch user with invalid country
+        # Step 2: Patch user with "invalid" country
         payload2 = {
             'schemas': [SCIM_SCHEMA_PATCH_OP],
             'Operations': [
                 {
                     'op': 'replace',
-                    'value': {
-                        SCIM_SCHEMA_EXTENSION_USER: {'country': 'USA'}
-                    },
+                    'value': {SCIM_SCHEMA_EXTENSION_USER: {'country': 'USA'}},
                 }
             ],
         }
@@ -1046,11 +1096,7 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(response2.status_code, status.HTTP_200_OK)
 
         user = User.objects.get(username='existing_metadata_user')
-        profile, _ = UserProfile.objects.get_or_create(user=user)
 
-        # Profile country should still be US
-        self.assertEqual(profile.country, 'US')
-
-        # ExtraUserDetail metadata should still have US
+        # ExtraUserDetail metadata should now have USA
         extra_user_detail, _ = ExtraUserDetail.objects.get_or_create(user=user)
-        self.assertEqual(extra_user_detail.data.get('country'), 'US')
+        self.assertEqual(extra_user_detail.data.get('country'), 'USA')
