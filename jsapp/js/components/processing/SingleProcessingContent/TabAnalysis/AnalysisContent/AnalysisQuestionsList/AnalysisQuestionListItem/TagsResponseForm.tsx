@@ -19,7 +19,6 @@ export default function SelectMultipleResponseForm({ qaAnswer, onSave, disabled,
   const qaQuestionUidParam = qaQuestionUid ?? ''
   const { data: suggestedTagsData, isLoading } = useAssetsQualQuestionsTagsList(assetUidParam, qaQuestionUidParam, {
     query: {
-      queryKey: getAssetsQualQuestionsTagsListQueryKey(assetUidParam, qaQuestionUidParam),
       refetchOnMount: false,
       refetchOnWindowFocus: false,
     },
