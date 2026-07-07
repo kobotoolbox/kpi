@@ -19,11 +19,14 @@ export interface FormMediaItem extends Omit<FilesResponse, 'metadata'> {
 interface CreateFormMediaPayload {
   description?: string
   file_type?: string
+  // metadata may arrive as a JSON string (legacy URL-encoded POST) or as a
+  // parsed object (JSON POST from the orval-generated client).
   metadata?: string | Record<string, unknown>
   base64Encoded?: string
 }
 
 interface FormMediaMockOptions {
+  // Optional per-filename delays for story/play-test scenarios.
   uploadDelayByFilenameMs?: Record<string, number>
 }
 
@@ -39,9 +42,13 @@ function parsePayloadFromText(textPayload: string): CreateFormMediaPayload {
 
 async function parsePayload(request: Request): Promise<CreateFormMediaPayload> {
   const contentType = request.headers.get('content-type') || ''
+
+  // Keep this branch for components that may switch to JSON POST later.
   if (contentType.includes('application/json')) {
     return (await request.json()) as CreateFormMediaPayload
   }
+
+  // Current uploader sends URL-encoded form payloads.
   return parsePayloadFromText(await request.text())
 }
 
@@ -97,6 +104,8 @@ export function formMediaHandlers(
   seedItems: FormMediaItem[] = [createFormMediaItem(1)],
   options: FormMediaMockOptions = {},
 ) {
+  // We mutate this local array to mimic backend persistence between requests
+  // inside a single Storybook run.
   const mediaItems = [...seedItems]
 
   return [
@@ -120,12 +129,15 @@ export function formMediaHandlers(
       }
 
       const payload = await parsePayload(request)
+      // metadata may be a JSON string (legacy form-encoded POST) or a plain
+      // object (JSON POST from the orval-generated client).
       const parsedMetadata =
         typeof payload.metadata === 'string'
           ? (JSON.parse(payload.metadata) as Record<string, unknown>)
           : (payload.metadata ?? {})
 
       const fileName = parsedMetadata.filename as string | undefined
+      // Unknown filenames (or missing delay map) upload immediately.
       const delayMs = (fileName && options.uploadDelayByFilenameMs?.[fileName]) || 0
       if (delayMs > 0) {
         await waitMs(delayMs)
@@ -146,6 +158,7 @@ export function formMediaHandlers(
       })
 
       mediaItems.push(newItem)
+      // Return created item so UI can behave like real API responses.
       return newItem
     }),
 
