@@ -299,7 +299,9 @@ from kpi.utils.strings import strtobool
             OpenApiExample(
                 name='Updating an asset',
                 value={
-                    'content': generate_example_from_schema(ASSET_CONTENT_REQUEST_SCHEMA),
+                    'content': generate_example_from_schema(
+                        ASSET_CONTENT_REQUEST_SCHEMA
+                    ),
                     'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
                 },
                 request_only=True,
