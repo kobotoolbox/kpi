@@ -5,7 +5,7 @@ import { TagsInput as MantineTagsInput } from '@mantine/core'
 const DEFAULT_PLACEHOLDER = t('Type and confirm with ENTER')
 const TAGS_SEPARATOR = ','
 
-export interface KoboTagsInputProps extends Omit<TagsInputProps, 'onChange' | 'value'> {
+export interface KoboTagsInputProps extends Omit<TagsInputProps, 'onChange'> {
   value: string[]
   onChange: (tags: string[]) => void
 }
