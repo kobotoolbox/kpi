@@ -241,7 +241,37 @@ export function getAllDataColumns(
       return true
     }
 
-    return !output.includes(currentPath)
+    if (!output.includes(currentPath)) {
+      return true
+    }
+
+    // Only collapse legacy path if we can observe it mirroring current path in
+    // at least one submission (same non-empty value on both keys). This avoids
+    // hiding distinct historical columns that merely share a leaf name.
+    if (!submissions || submissions.length === 0) {
+      return true
+    }
+
+    let hasMatchingOverlap = false
+    for (const submission of submissions) {
+      const legacyValue = submission[key]
+      const currentValue = submission[currentPath]
+
+      const hasLegacyValue = legacyValue !== undefined && legacyValue !== null && legacyValue !== ''
+      const hasCurrentValue = currentValue !== undefined && currentValue !== null && currentValue !== ''
+
+      if (!hasLegacyValue || !hasCurrentValue) {
+        continue
+      }
+
+      if (legacyValue !== currentValue) {
+        return true
+      }
+
+      hasMatchingOverlap = true
+    }
+
+    return !hasMatchingOverlap
   })
 
   // exclude notes

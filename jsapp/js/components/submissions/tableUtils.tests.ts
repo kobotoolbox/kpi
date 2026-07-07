@@ -88,5 +88,29 @@ describe('tableUtils', () => {
       chai.expect(columns).to.include('Secret_password_as_an_audio_file')
       chai.expect(columns).to.not.include('old_group/Secret_password_as_an_audio_file')
     })
+
+    it('should keep both columns when old and current paths are distinct fields', () => {
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: 'old_group/Secret_password_as_an_audio_file',
+              media_file_basename: 'legacy_audio.mp3',
+            },
+            {
+              question_xpath: 'Secret_password_as_an_audio_file',
+              media_file_basename: 'current_audio.mp3',
+            },
+          ],
+          Secret_password_as_an_audio_file: 'current_audio.mp3',
+          'old_group/Secret_password_as_an_audio_file': 'legacy_audio.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include('Secret_password_as_an_audio_file')
+      chai.expect(columns).to.include('old_group/Secret_password_as_an_audio_file')
+    })
   })
 })
