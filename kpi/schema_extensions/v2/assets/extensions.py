@@ -34,7 +34,6 @@ from .schema import (
     MAP_STYLES_SCHEMA,
     PERMISSION_ASSIGNMENT_SCHEMA,
     REPORT_STYLE_SCHEMA,
-    SURVEY_CHOICE_SCHEMA,
 )
 
 
@@ -358,7 +357,14 @@ class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension)
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
-            required=['csv_legacy', 'csv', 'kml_legacy', 'xls_legacy', 'xls', 'zip_legacy'],
+            required=[
+                'csv_legacy',
+                'csv',
+                'kml_legacy',
+                'xls_legacy',
+                'xls',
+                'zip_legacy',
+            ],
             properties={
                 'csv_legacy': GENERIC_STRING_SCHEMA,
                 'csv': GENERIC_STRING_SCHEMA,
@@ -391,7 +397,13 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
                 'previous': {**GENERIC_STRING_SCHEMA, 'nullable': True},
                 'results': build_array_type(
                     schema=build_object_type(
-                        required=['uid', 'url', 'content_hash', 'date_deployed', 'date_modified'],
+                        required=[
+                            'uid',
+                            'url',
+                            'content_hash',
+                            'date_deployed',
+                            'date_modified',
+                        ],
                         properties={
                             'uid': GENERIC_STRING_SCHEMA,
                             'url': build_url_type(
@@ -609,7 +621,8 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.SettingsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        # Sector can be: null (no selection), {} (empty default), or {label, value} (LabelValuePair)
+        # Sector can be: null (no selection), {} (empty default),
+        # or {label, value} (LabelValuePair)
         sector_schema = {
             **build_object_type(
                 properties={
@@ -620,7 +633,8 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
             'nullable': True,
         }
 
-        # Country is an array of {label, value} objects (LabelValuePair[]), nullable for form state
+        # Country is an array of {label, value} objects (LabelValuePair[]),
+        # nullable for form state
         label_value_pair_schema = build_object_type(
             properties={
                 'label': GENERIC_STRING_SCHEMA,
@@ -628,14 +642,21 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
             }
         )
 
-        # collects_pii and operational_purpose are also LabelValuePair objects, nullable
+        # collects_pii and operational_purpose are also LabelValuePair objects,
+        # nullable
         collects_pii_schema = {**label_value_pair_schema, 'nullable': True}
-        operational_purpose_schema = {**label_value_pair_schema, 'nullable': True}
+        operational_purpose_schema = {
+            **label_value_pair_schema,
+            'nullable': True,
+        }
 
         return build_object_type(
             properties={
                 'sector': sector_schema,
-                'country': {**build_array_type(schema=label_value_pair_schema), 'nullable': True},
+                'country': {
+                    **build_array_type(schema=label_value_pair_schema),
+                    'nullable': True,
+                },
                 'description': GENERIC_STRING_SCHEMA,
                 'collects_pii': collects_pii_schema,
                 'organization': {**GENERIC_STRING_SCHEMA, 'nullable': True},
