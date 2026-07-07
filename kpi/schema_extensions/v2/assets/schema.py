@@ -11,7 +11,8 @@ Common schemas to avoid redundancy
 
 ASSET_CLONE_FROM_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
-ASSET_CONTENT_SCHEMA = build_basic_type(OpenApiTypes.STR)
+# Asset content can be sent as a JSON string (write) or received as an object (read)
+ASSET_CONTENT_REQUEST_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
 ASSET_ENABLED_SCHEMA = build_basic_type(OpenApiTypes.BOOL)
 
@@ -244,7 +245,7 @@ ASSET_CONTENT_SETTINGS_SCHEMA = build_object_type(
     }
 )
 
-ASSET_CONTENT_SCHEMA = build_object_type(
+ASSET_CONTENT_RESPONSE_SCHEMA = build_object_type(
     properties={
         'schema': build_basic_type(OpenApiTypes.STR),
         'survey': build_array_type(schema=SURVEY_ROW_SCHEMA),

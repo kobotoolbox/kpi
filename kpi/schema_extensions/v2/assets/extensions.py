@@ -21,7 +21,8 @@ from .schema import (
     ADVANCED_FEATURES_SCHEMA,
     ASSIGNABLE_PERMISSION_SCHEMA,
     ASSET_CLONE_FROM_SCHEMA,
-    ASSET_CONTENT_SCHEMA,
+    ASSET_CONTENT_REQUEST_SCHEMA,
+    ASSET_CONTENT_RESPONSE_SCHEMA,
     ASSET_ENABLED_SCHEMA,
     ASSET_FIELDS_SCHEMA,
     ASSET_NAME_SCHEMA,
@@ -175,7 +176,7 @@ class AssetPatchRequestSerializerExtension(OpenApiSerializerExtension):
                 build_object_type(
                     required=['content', 'name'],
                     properties={
-                        'content': ASSET_CONTENT_SCHEMA,
+                        'content': ASSET_CONTENT_REQUEST_SCHEMA,
                         'name': ASSET_NAME_SCHEMA,
                     },
                 ),
@@ -309,8 +310,8 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
         # WriteableJsonWithSchemaField accepts JSON string for writes,
         # returns object for reads
         if direction == 'request':
-            return build_basic_type(OpenApiTypes.STR)
-        return ASSET_CONTENT_SCHEMA
+            return ASSET_CONTENT_REQUEST_SCHEMA
+        return ASSET_CONTENT_RESPONSE_SCHEMA
 
 
 class CountDailySubmissionResponseFieldExtension(OpenApiSerializerFieldExtension):
