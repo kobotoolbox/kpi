@@ -61,5 +61,6 @@ export const PROCESSING_ROUTE_GENERIC = ROUTES.FORM_PROCESSING_ROOT + '/:tabName
 export const PROCESSING_ROUTES: { readonly [key: string]: string } = {
   TRANSCRIPT: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'transcript'),
   TRANSLATIONS: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'translations'),
+  TRANSLATION_DETAIL: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'translations') + '/:languageCode',
   ANALYSIS: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'analysis'),
 }

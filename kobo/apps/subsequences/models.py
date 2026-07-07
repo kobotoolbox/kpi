@@ -287,6 +287,29 @@ class QuestionAdvancedFeature(models.Model):
         )
 
 
+class QATagTracker(models.Model):
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='qa_tag_trackers',
+        on_delete=models.CASCADE,
+    )
+    question_uuid = models.CharField(max_length=36)
+    value = models.CharField(max_length=255)
+
+    class Meta:
+        verbose_name = 'QA tag tracker'
+        verbose_name_plural = 'QA tag trackers'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['asset', 'question_uuid', 'value'],
+                name='unique_qa_tag_per_question',
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.value} (asset={self.asset_id}, question={self.question_uuid})'
+
+
 class BulkActionStatus(models.TextChoices):
     """
     Represents the lifecycle status of a batch job

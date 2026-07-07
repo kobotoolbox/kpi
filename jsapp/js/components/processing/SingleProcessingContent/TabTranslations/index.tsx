@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
+import { removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import {
@@ -32,7 +35,14 @@ export default function TranslationTab({
   supplement,
   advancedFeatures,
 }: Props) {
-  const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath, false)
+  const translationVersions = useMemo(
+    () => getAllTranslationsFromSupplementData(supplement, questionXpath, false),
+    [supplement, questionXpath],
+  )
+
+  // Read languageCode from URL params if available (for direct navigation to specific translation)
+  const params = useParams<{ languageCode?: string }>()
+  const urlLanguageCode = params.languageCode as LanguageCode | undefined
 
   // Selected language code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)
@@ -40,14 +50,40 @@ export default function TranslationTab({
 
   useEffect(() => {
     if (translationVersion) return
-    // Get latest translation if current selected is not available
+
+    // First priority: use languageCode from URL if available and valid
+    if (urlLanguageCode) {
+      const urlTranslation = translationVersions.find(({ _data }) => _data.language === urlLanguageCode)
+      if (urlTranslation) {
+        setLanguageCode(urlLanguageCode)
+        return
+      }
+    }
+
+    // Second priority: get latest translation if current selected is not available
     const latestTranslation = getLatestAutomaticTranslationVersionItem(supplement, questionXpath, undefined, false)
     if (!latestTranslation) {
       setLanguageCode(null)
       return
     }
-    setLanguageCode(latestTranslation?._data.language ?? null)
-  }, [translationVersion, setLanguageCode, supplement, questionXpath])
+    const fallbackLanguage = latestTranslation._data.language
+    setLanguageCode(fallbackLanguage)
+
+    // If URL had a language code that doesn't exist in this submission, update URL to match the fallback
+    if (urlLanguageCode && fallbackLanguage) {
+      const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+      goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, fallbackLanguage)
+    }
+  }, [
+    translationVersion,
+    setLanguageCode,
+    supplement,
+    questionXpath,
+    urlLanguageCode,
+    translationVersions,
+    asset.uid,
+    submission,
+  ])
 
   const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
   const mode = (() => {
@@ -80,14 +116,17 @@ export default function TranslationTab({
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
-          onCreate={(languageCode: LanguageCode, context: 'automated' | 'manual') => {
+          onCreate={(newLanguageCode: LanguageCode, context: 'automated' | 'manual') => {
             // After creating automated translation, go straight into 'edit' mode
             if (context === 'automated') {
               setMode('edit')
             } else {
               setMode('view')
             }
-            setLanguageCode(languageCode)
+            setLanguageCode(newLanguageCode)
+            // Update URL to reflect the newly created translation language
+            const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+            goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
           }}
           onBack={() => {
             // This ensures we don't get back to "begin" step when abandoning the creation of new translation if we
@@ -113,7 +152,13 @@ export default function TranslationTab({
             translationVersions={translationVersions}
             onEdit={() => setMode('edit')}
             onAdd={() => setMode('add')}
-            onChangeLanguageCode={(languageCode: LanguageCode) => setLanguageCode(languageCode)}
+            onChangeLanguageCode={(newLanguageCode: LanguageCode) => {
+              // Update browser URL to reflect the new language selection
+              const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+              goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
+              // Update local state (navigation will cause re-render, but this provides immediate feedback)
+              setLanguageCode(newLanguageCode)
+            }}
           />
         </div>
       )}

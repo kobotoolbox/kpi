@@ -26,6 +26,7 @@ from kobo.apps.kobo_scim.constants import (
     SCIM_SCHEMA_SERVICE_PROVIDER_CONFIG,
     SCIM_SCHEMA_USER,
 )
+from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
 from kobo.apps.kobo_scim.models import IdentityProvider, ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
@@ -37,8 +38,8 @@ from kobo.apps.kobo_scim.utils import (
     apply_scim_user_metadata,
     generate_unique_scim_username,
     get_scim_extension_schemas,
+    get_scim_value,
 )
-from kobo.apps.kobo_scim.exceptions import ScimException, scim_exception_handler
 
 
 class ScimExceptionHandlerMixin:
@@ -197,9 +198,8 @@ class ScimUserViewSet(
         if not email and '@' in username:
             email = username
 
-        name_dict = data.get('name', {})
-        first_name = name_dict.get('givenName', '')
-        last_name = name_dict.get('familyName', '')
+        first_name = get_scim_value(data, 'name.givenName') or ''
+        last_name = get_scim_value(data, 'name.familyName') or ''
         uid = data.get('externalId') or username
         active = str(data.get('active', True)).lower() == 'true'
 
@@ -246,9 +246,7 @@ class ScimUserViewSet(
                     )
 
                 # Create the user natively
-                unique_username = generate_unique_scim_username(
-                    username, self.idp.slug
-                )
+                unique_username = generate_unique_scim_username(username, self.idp.slug)
                 user = User.objects.create_user(
                     username=unique_username,
                     email=email,
@@ -302,6 +300,7 @@ class ScimUserViewSet(
 
                 self.perform_destroy(user)
 
+                user.refresh_from_db()
                 serializer = self.get_serializer(user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -348,6 +347,7 @@ class ScimUserViewSet(
                     reason='Automated account provisioning via Identity Provider',
                 )
 
+            user.refresh_from_db()
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 

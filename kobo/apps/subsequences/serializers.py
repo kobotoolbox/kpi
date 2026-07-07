@@ -473,6 +473,10 @@ class BulkAcceptSerializer(serializers.Serializer):
                 if version_data.get('value') is None:
                     continue
 
+                # Skip versions that are already accepted
+                if latest_version.get('_dateAccepted'):
+                    continue
+
                 latest_version['_dateAccepted'] = now_str
                 target['_dateModified'] = now_str
 

@@ -98,6 +98,7 @@ import type { PageStateStoreState } from '#/pageState.store'
 import { addDefaultUuidPrefix, matchUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import { openBulkApproveModal } from './BulkProcessingModals/BulkApproveModal'
 import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
 import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
 
@@ -505,55 +506,70 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen)
   }
 
-  onTranscribeSelectedAudioFiles(fieldId: string) {
+  /**
+   * Opens a bulk processing modal for selected submissions.
+   * Note: Only submissions from the currently loaded page are included, even if
+   * rows from other pages are selected. This is intentional - the warning modal
+   * alerts users when they've selected rows across multiple pages.
+   */
+  private openBulkProcessingModal(fieldId: string, modalType: 'transcribe' | 'translate' | 'approve') {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
 
+    // Filter to get full submission objects for the selected IDs.
+    // This only finds submissions on the current page - selections from other
+    // pages are intentionally excluded (user is warned about this).
     const selectedSubmissions = this.state.submissions.filter((submission) =>
       selectedSubmissionIds.includes(String(submission._id)),
     )
 
-    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
+    // Show warning if "Select All" would process more rows than are visible on current page
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
 
-    openBulkTranscriptionModal({
+    const commonProps = {
       fieldXpath: fieldId,
       assetUid: this.props.asset.uid,
+<<<<<<< HEAD
       selectedSubmissions,
       showWarningModal: showWarningModal,
       activeBulkActions: this.props.activeBulkActions || [],
+=======
+      selectedRowsCount: selectedSubmissionIds.length,
+      showWarningModal,
+      selectedSubmissions,
+>>>>>>> origin/main
       onSuccess: () => {
         this.setState({
           selectedRows: {},
           selectAll: false,
         })
       },
-    })
+    }
+
+    if (modalType === 'transcribe') {
+      openBulkTranscriptionModal({
+        ...commonProps,
+        activeBulkActions: this.props.activeBulkActions || [],
+      })
+    } else if (modalType === 'translate') {
+      openBulkTranslationModal({
+        ...commonProps,
+        activeBulkActions: this.props.activeBulkActions || [],
+      })
+    } else {
+      openBulkApproveModal(commonProps)
+    }
+  }
+
+  onTranscribeSelectedAudioFiles(fieldId: string) {
+    this.openBulkProcessingModal(fieldId, 'transcribe')
   }
 
   onTranslateSelectedTranscriptions(fieldId: string) {
-    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+    this.openBulkProcessingModal(fieldId, 'translate')
+  }
 
-    const selectedSubmissions = this.state.submissions.filter((submission) =>
-      selectedSubmissionIds.includes(String(submission._id)),
-    )
-
-    // Warn user about large request if selectAll would contain more submissions than the submissions shown on a page
-    const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
-
-    openBulkTranslationModal({
-      fieldXpath: fieldId,
-      assetUid: this.props.asset.uid,
-      selectedRowsCount: selectedSubmissionIds.length,
-      showWarningModal: showWarningModal,
-      activeBulkActions: this.props.activeBulkActions || [],
-      onSuccess: () => {
-        this.setState({
-          selectedRows: {},
-          selectAll: false,
-        })
-      },
-      selectedSubmissions: selectedSubmissions,
-    })
+  onApproveSelectedSubmissions(fieldId: string) {
+    this.openBulkProcessingModal(fieldId, 'approve')
   }
 
   // We need to distinguish between repeated groups with nested values
@@ -970,6 +986,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 fieldId={key}
                 isAudioQuestionColumn={q?.type === QUESTION_TYPES.audio.id}
                 isTranscriptColumn={getSupplementalPathParts(key).type === 'transcript'}
+                isTranslationColumn={getSupplementalPathParts(key).type === 'translation'}
                 sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange.bind(this)}
                 onHide={this.onHideField.bind(this)}
@@ -977,6 +994,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
+                onApproveSelectedSubmissions={this.onApproveSelectedSubmissions.bind(this)}
                 isBulkProcessingDisabled={
                   !(
                     userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
