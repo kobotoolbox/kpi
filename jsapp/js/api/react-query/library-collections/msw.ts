@@ -56,7 +56,7 @@ export const getApiV2AssetSubscriptionsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetSubscriptionResponseList> | PaginatedAssetSubscriptionResponseList),
 ) => {
-  return http.get('*/api/v2/asset_subscriptions/', async (info) => {
+  return http.get('*/api/v2/asset_subscriptions{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -77,7 +77,7 @@ export const getApiV2AssetSubscriptionsCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
 ) => {
-  return http.post('*/api/v2/asset_subscriptions/', async (info) => {
+  return http.post('*/api/v2/asset_subscriptions{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -98,7 +98,7 @@ export const getApiV2AssetSubscriptionsRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
 ) => {
-  return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {
+  return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -115,7 +115,7 @@ export const getApiV2AssetSubscriptionsRetrieveMockHandler = (
 export const getApiV2AssetSubscriptionsDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/asset_subscriptions/:uidAssetSubscription/', async (info) => {
+  return http.delete('*/api/v2/asset_subscriptions/:uidAssetSubscription{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }

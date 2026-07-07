@@ -38,12 +38,19 @@ function processFile(filePath) {
   return modified
 }
 
-const files = fs.readdirSync(REACT_QUERY_DIR)
-for (const file of files) {
-  if (!file.endsWith('.ts')) continue
-  const filePath = path.join(REACT_QUERY_DIR, file)
-  processFile(filePath)
+function processDirectory(dirPath) {
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true })
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name)
+    if (entry.isDirectory()) {
+      processDirectory(fullPath)
+    } else if (entry.name.endsWith('.ts')) {
+      processFile(fullPath)
+    }
+  }
 }
+
+processDirectory(REACT_QUERY_DIR)
 
 if (totalFixed > 0) {
   console.log(`✔ Made trailing slashes optional in ${totalFixed} react-query files`)

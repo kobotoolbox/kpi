@@ -1521,7 +1521,7 @@ export const getApiV2AssetUsageListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetUsageResponseList> | PaginatedAssetUsageResponseList),
 ) => {
-  return http.get('*/api/v2/asset_usage/', async (info) => {
+  return http.get('*/api/v2/asset_usage{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1542,7 +1542,7 @@ export const getApiV2OrganizationsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedOrganizationResponseList> | PaginatedOrganizationResponseList),
 ) => {
-  return http.get('*/api/v2/organizations/', async (info) => {
+  return http.get('*/api/v2/organizations{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1561,7 +1561,7 @@ export const getApiV2OrganizationsRetrieveMockHandler = (
     | OrganizationResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1580,7 +1580,7 @@ export const getApiV2OrganizationsPartialUpdateMockHandler = (
     | OrganizationResponse
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse),
 ) => {
-  return http.patch('*/api/v2/organizations/:uidOrganization/', async (info) => {
+  return http.patch('*/api/v2/organizations/:uidOrganization{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1601,7 +1601,7 @@ export const getApiV2OrganizationsAssetUsageListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedCustomAssetUsageList> | PaginatedCustomAssetUsageList),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/asset_usage/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/asset_usage{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1620,7 +1620,7 @@ export const getApiV2OrganizationsAssetsRetrieveMockHandler = (
     | PaginatedAssetList
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetList> | PaginatedAssetList),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/assets/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/assets{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1639,7 +1639,7 @@ export const getApiV2OrganizationsAssetsCountsRetrieveMockHandler = (
     | AssetListCount
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/assets/counts/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/assets/counts{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1660,7 +1660,7 @@ export const getApiV2OrganizationsAssetsMinimalListRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/assets/minimal-list/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/assets/minimal-list{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1681,7 +1681,7 @@ export const getApiV2OrganizationsInvitesListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedInviteResponseList> | PaginatedInviteResponseList),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/invites/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/invites{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1700,7 +1700,7 @@ export const getApiV2OrganizationsInvitesCreateMockHandler = (
     | InviteCreateResponse
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<InviteCreateResponse> | InviteCreateResponse),
 ) => {
-  return http.post('*/api/v2/organizations/:uidOrganization/invites/', async (info) => {
+  return http.post('*/api/v2/organizations/:uidOrganization/invites{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1719,7 +1719,7 @@ export const getApiV2OrganizationsInvitesRetrieveMockHandler = (
     | InviteResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<InviteResponse> | InviteResponse),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/invites/:guid{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1738,7 +1738,7 @@ export const getApiV2OrganizationsInvitesPartialUpdateMockHandler = (
     | InviteResponse
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<InviteResponse> | InviteResponse),
 ) => {
-  return http.patch('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {
+  return http.patch('*/api/v2/organizations/:uidOrganization/invites/:guid{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1755,7 +1755,7 @@ export const getApiV2OrganizationsInvitesPartialUpdateMockHandler = (
 export const getApiV2OrganizationsInvitesDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/organizations/:uidOrganization/invites/:guid/', async (info) => {
+  return http.delete('*/api/v2/organizations/:uidOrganization/invites/:guid{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -1770,7 +1770,7 @@ export const getApiV2OrganizationsMembersListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedMemberListResponseList> | PaginatedMemberListResponseList),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/members/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/members{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1789,7 +1789,7 @@ export const getApiV2OrganizationsMembersRetrieveMockHandler = (
     | MemberListResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/members/:username{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1808,7 +1808,7 @@ export const getApiV2OrganizationsMembersPartialUpdateMockHandler = (
     | MemberListResponse
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse),
 ) => {
-  return http.patch('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {
+  return http.patch('*/api/v2/organizations/:uidOrganization/members/:username{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1825,7 +1825,7 @@ export const getApiV2OrganizationsMembersPartialUpdateMockHandler = (
 export const getApiV2OrganizationsMembersDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/api/v2/organizations/:uidOrganization/members/:username/', async (info) => {
+  return http.delete('*/api/v2/organizations/:uidOrganization/members/:username{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -1840,7 +1840,7 @@ export const getApiV2OrganizationsServiceUsageRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<OrganizationServiceUsageResponse> | OrganizationServiceUsageResponse),
 ) => {
-  return http.get('*/api/v2/organizations/:uidOrganization/service_usage/', async (info) => {
+  return http.get('*/api/v2/organizations/:uidOrganization/service_usage{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1861,7 +1861,7 @@ export const getApiV2ProjectViewsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedProjectViewListResponseList> | PaginatedProjectViewListResponseList),
 ) => {
-  return http.get('*/api/v2/project-views/', async (info) => {
+  return http.get('*/api/v2/project-views{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1882,7 +1882,7 @@ export const getApiV2ProjectViewsRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<ProjectViewListResponse> | ProjectViewListResponse),
 ) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/', async (info) => {
+  return http.get('*/api/v2/project-views/:uidProjectView{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1903,7 +1903,7 @@ export const getApiV2ProjectViewsExportRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<ProjectViewExportResponse> | ProjectViewExportResponse),
 ) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/:objType/export/', async (info) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/:objType/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1924,7 +1924,7 @@ export const getApiV2ProjectViewsExportCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<ProjectViewExportCreateResponse> | ProjectViewExportCreateResponse),
 ) => {
-  return http.post('*/api/v2/project-views/:uidProjectView/:objType/export/', async (info) => {
+  return http.post('*/api/v2/project-views/:uidProjectView/:objType/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1945,7 +1945,7 @@ export const getApiV2ProjectViewsAssetsRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedProjectViewAssetResponseList> | PaginatedProjectViewAssetResponseList),
 ) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/assets/', async (info) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/assets{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1964,7 +1964,7 @@ export const getApiV2ProjectViewsAssetsCountsRetrieveMockHandler = (
     | AssetListCount
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
 ) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/assets/counts/', async (info) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/assets/counts{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1985,7 +1985,7 @@ export const getApiV2ProjectViewsAssetsMinimalListRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
 ) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/assets/minimal-list/', async (info) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/assets/minimal-list{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2006,7 +2006,7 @@ export const getApiV2ProjectViewsUsersRetrieveMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedProjectViewUserResponseList> | PaginatedProjectViewUserResponseList),
 ) => {
-  return http.get('*/api/v2/project-views/:uidProjectView/users/', async (info) => {
+  return http.get('*/api/v2/project-views/:uidProjectView/users{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2027,7 +2027,7 @@ export const getApiV2ServiceUsageListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<ServiceUsageResponse[]> | ServiceUsageResponse[]),
 ) => {
-  return http.get('*/api/v2/service_usage/', async (info) => {
+  return http.get('*/api/v2/service_usage{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2048,7 +2048,7 @@ export const getApiV2UsersListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedUserListResponseList> | PaginatedUserListResponseList),
 ) => {
-  return http.get('*/api/v2/users/', async (info) => {
+  return http.get('*/api/v2/users{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2067,7 +2067,7 @@ export const getApiV2UsersRetrieveMockHandler = (
     | UserRetrieveResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<UserRetrieveResponse> | UserRetrieveResponse),
 ) => {
-  return http.get('*/api/v2/users/:username/', async (info) => {
+  return http.get('*/api/v2/users/:username{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2086,7 +2086,7 @@ export const getMeRetrieveMockHandler = (
     | MeListResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MeListResponse> | MeListResponse),
 ) => {
-  return http.get('*/me/', async (info) => {
+  return http.get('*/me{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2105,7 +2105,7 @@ export const getMePartialUpdateMockHandler = (
     | MeListResponse
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MeListResponse> | MeListResponse),
 ) => {
-  return http.patch('*/me/', async (info) => {
+  return http.patch('*/me{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2122,7 +2122,7 @@ export const getMePartialUpdateMockHandler = (
 export const getMeDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/me/', async (info) => {
+  return http.delete('*/me{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }
@@ -2137,7 +2137,7 @@ export const getMeEmailsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedEmailAddressList> | PaginatedEmailAddressList),
 ) => {
-  return http.get('*/me/emails/', async (info) => {
+  return http.get('*/me/emails{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2156,7 +2156,7 @@ export const getMeEmailsCreateMockHandler = (
     | EmailAddress
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<EmailAddress> | EmailAddress),
 ) => {
-  return http.post('*/me/emails/', async (info) => {
+  return http.post('*/me/emails{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2177,7 +2177,7 @@ export const getMeSocialAccountsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedSocialAccountList> | PaginatedSocialAccountList),
 ) => {
-  return http.get('*/me/social-accounts/', async (info) => {
+  return http.get('*/me/social-accounts{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2196,7 +2196,7 @@ export const getMeSocialAccountsRetrieveMockHandler = (
     | SocialAccount
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SocialAccount> | SocialAccount),
 ) => {
-  return http.get('*/me/social-accounts/:provider/:uidSocialAccount/', async (info) => {
+  return http.get('*/me/social-accounts/:provider/:uidSocialAccount{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2213,7 +2213,7 @@ export const getMeSocialAccountsRetrieveMockHandler = (
 export const getMeSocialAccountsDestroyMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
 ) => {
-  return http.delete('*/me/social-accounts/:provider/:uidSocialAccount/', async (info) => {
+  return http.delete('*/me/social-accounts/:provider/:uidSocialAccount{/}?', async (info) => {
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info)
     }

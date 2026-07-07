@@ -896,7 +896,7 @@ export const getApiV2AccessLogsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedSuperUserAccessLogResponseList> | PaginatedSuperUserAccessLogResponseList),
 ) => {
-  return http.get('*/api/v2/access-logs/', async (info) => {
+  return http.get('*/api/v2/access-logs{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -915,7 +915,7 @@ export const getApiV2AccessLogsExportListMockHandler = (
     | ExportListResponse[]
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExportListResponse[]> | ExportListResponse[]),
 ) => {
-  return http.get('*/api/v2/access-logs/export/', async (info) => {
+  return http.get('*/api/v2/access-logs/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -934,7 +934,7 @@ export const getApiV2AccessLogsExportCreateMockHandler = (
     | ExportCreateResponse
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ExportCreateResponse> | ExportCreateResponse),
 ) => {
-  return http.post('*/api/v2/access-logs/export/', async (info) => {
+  return http.post('*/api/v2/access-logs/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -955,7 +955,7 @@ export const getApiV2AuditLogsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAuditLogResponseList> | PaginatedAuditLogResponseList),
 ) => {
-  return http.get('*/api/v2/audit-logs/', async (info) => {
+  return http.get('*/api/v2/audit-logs{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -976,7 +976,7 @@ export const getApiV2ProjectHistoryLogsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedProjectHistoryLogResponseList> | PaginatedProjectHistoryLogResponseList),
 ) => {
-  return http.get('*/api/v2/project-history-logs/', async (info) => {
+  return http.get('*/api/v2/project-history-logs{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -995,7 +995,7 @@ export const getApiV2ProjectHistoryLogsExportRetrieveMockHandler = (
     | ExportHistoryResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExportHistoryResponse> | ExportHistoryResponse),
 ) => {
-  return http.get('*/api/v2/project-history-logs/export/', async (info) => {
+  return http.get('*/api/v2/project-history-logs/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1016,7 +1016,7 @@ export const getApiV2ProjectHistoryLogsExportCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<ExportHistoryResponse> | ExportHistoryResponse),
 ) => {
-  return http.post('*/api/v2/project-history-logs/export/', async (info) => {
+  return http.post('*/api/v2/project-history-logs/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1037,7 +1037,7 @@ export const getApiV2UserReportsListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedUserReportsListResponseList> | PaginatedUserReportsListResponseList),
 ) => {
-  return http.get('*/api/v2/user-reports/', async (info) => {
+  return http.get('*/api/v2/user-reports{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

@@ -285,7 +285,7 @@ export const getApiV2AccessLogsMeListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedAccessLogResponseList> | PaginatedAccessLogResponseList),
 ) => {
-  return http.get('*/api/v2/access-logs/me/', async (info) => {
+  return http.get('*/api/v2/access-logs/me{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -304,7 +304,7 @@ export const getApiV2AccessLogsMeExportListMockHandler = (
     | ExportListResponse[]
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExportListResponse[]> | ExportListResponse[]),
 ) => {
-  return http.get('*/api/v2/access-logs/me/export/', async (info) => {
+  return http.get('*/api/v2/access-logs/me/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -323,7 +323,7 @@ export const getApiV2AccessLogsMeExportCreateMockHandler = (
     | ExportCreateResponse
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ExportCreateResponse> | ExportCreateResponse),
 ) => {
-  return http.post('*/api/v2/access-logs/me/export/', async (info) => {
+  return http.post('*/api/v2/access-logs/me/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -344,7 +344,7 @@ export const getApiV2AssetsHistoryListMockHandler = (
         info: Parameters<Parameters<typeof http.get>[1]>[0],
       ) => Promise<PaginatedHistoryListResponseList> | PaginatedHistoryListResponseList),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/history/', async (info) => {
+  return http.get('*/api/v2/assets/:uidAsset/history{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -363,7 +363,7 @@ export const getApiV2AssetsHistoryActionsRetrieveMockHandler = (
     | HistoryActionResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HistoryActionResponse> | HistoryActionResponse),
 ) => {
-  return http.get('*/api/v2/assets/:uidAsset/history/actions/', async (info) => {
+  return http.get('*/api/v2/assets/:uidAsset/history/actions{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -384,7 +384,7 @@ export const getApiV2AssetsHistoryExportCreateMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0],
       ) => Promise<HistoryExportResponse> | HistoryExportResponse),
 ) => {
-  return http.post('*/api/v2/assets/:uidAsset/history/export/', async (info) => {
+  return http.post('*/api/v2/assets/:uidAsset/history/export{/}?', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
