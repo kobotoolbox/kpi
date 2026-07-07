@@ -64,11 +64,11 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
     // For translation: check for ongoing jobs that would conflict
     conflictingJobs = ongoingJobs.filter((action) => {
       // Translation jobs on the same field conflict (write-locked output)
-      if (action.action_id === ActionIdEnum.automatic_google_translation) {
-        return action.question_xpath === fieldXpath
-      }
       // Transcription jobs on the same field also conflict (they write to the input transcript)
-      if (action.action_id === ActionIdEnum.automatic_google_transcription) {
+      if (
+        action.action_id === ActionIdEnum.automatic_google_translation ||
+        action.action_id === ActionIdEnum.automatic_google_transcription
+      ) {
         return action.question_xpath === fieldXpath
       }
       return false
