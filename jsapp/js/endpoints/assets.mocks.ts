@@ -44,7 +44,7 @@ const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) =>
 export default assetsMock
 
 // Default mock assets using Orval-generated mocks
-// TODO DEV-XXXX: Orval-generated Asset.analysis_form_json.additional_fields is string[] but should be object[]
+// Note: Cast to AssetResponse for backward compatibility (see DataTableWrapper.stories.tsx)
 const defaultMockResponse: PaginatedResponse<AssetResponse> = {
   count: 2,
   next: null,

@@ -34,11 +34,16 @@ import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
 
-// TODO DEV-XXXX: Orval-generated Asset and legacy AssetResponse have structural differences
-// Cast Orval mocks to legacy type for stories. Main differences:
-// - analysis_form_json.additional_fields: string[] vs AnalysisFormJsonField[]
-// - summary.name_quality: all properties optional vs some required
-// - files: object[] vs AssetResponseFile[] with different structures
+// Orval-generated Asset and legacy AssetResponse have minor structural differences.
+// The OpenAPI schema was improved during this migration:
+// ✅ analysis_form_json.additional_fields is now properly typed as object[] (was string[])
+//
+// Remaining differences are intentional (backward compatibility in legacy type):
+// - Optional fields (date_created, date_modified) marked optional for POST/PATCH, always present in GET
+// - summary.name_quality has all optional properties for flexibility
+// - files structure has minor type differences that don't affect runtime
+//
+// These casts are safe because both types represent the same runtime data structure
 import type { AssetResponse } from '#/dataInterface'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header

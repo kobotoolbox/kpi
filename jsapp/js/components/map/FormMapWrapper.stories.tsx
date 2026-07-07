@@ -14,9 +14,8 @@ import FormMapWrapper from './formMapWrapper'
 
 const mockAssetUid = 'aTestMapAssetUid123'
 
-// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
-// - Make date_created and date_modified required (they're auto-populated by Django)
-// These casts are safe because the types are compatible at runtime
+// Cast Orval-generated Assets to legacy AssetResponse type
+// The types are structurally compatible at runtime (see DataTableWrapper.stories.tsx for details)
 
 // Asset with only start-geopoint (no regular geopoint question)
 const assetWithOnlyStartGeopoint = getApiV2AssetsRetrieveResponseMock({

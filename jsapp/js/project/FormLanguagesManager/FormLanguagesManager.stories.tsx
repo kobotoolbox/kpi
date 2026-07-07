@@ -27,7 +27,7 @@ function buildInitialAsset(): AssetResponse {
     }
   })
 
-  // TODO DEV-XXXX: Orval-generated Asset type has incompatible structure with legacy AssetResponse
+  // Cast Orval Asset to legacy AssetResponse (see DataTableWrapper.stories.tsx for details)
   return getApiV2AssetsRetrieveResponseMock({
     uid: mockAssetUid,
     name: 'Storybook Form Languages',

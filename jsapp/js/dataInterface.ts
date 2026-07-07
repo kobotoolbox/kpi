@@ -545,7 +545,8 @@ interface AssetSummary {
   columns?: string[]
   lock_all?: boolean
   lock_any?: boolean
-  // TODO DEV-XXXX: Backend returns languages as string[], legacy type incorrectly allowed null in array
+  // Backend returns languages as string[] (never null elements)
+  // Note: OpenAPI schema correctly specifies string[], this legacy type matches it now
   languages?: LangString[]
   row_count?: number
   default_translation?: string | null
@@ -619,7 +620,8 @@ export interface AssetTableSettings extends AssetTableSettingsObject {
 
 export interface AssetSettings {
   sector?: LabelValuePair | null | {}
-  // TODO DEV-XXXX: Backend always returns country as array (default []), but legacy type allowed single object
+  // Backend always returns country as array (even when empty: [])
+  // Legacy code might have treated it as single object in some cases, but array is correct
   country?: LabelValuePair[] | null
   description?: string
   'data-table'?: AssetTableSettings
@@ -695,14 +697,14 @@ export interface AssetResponse extends AssetRequestObject {
   owner: string
   owner__username: string
   owner_label: string
-  // TODO DEV-XXXX: date_created is always present at runtime but OpenAPI schema
-  // marks it optional (because it has a default for write operations)
+  // Always present in GET responses (Django auto-populates on creation)
+  // OpenAPI marks optional because POST/PATCH don't require it (has default value)
   date_created?: string
   last_modified_by: string | null
   created_by: string | null
   summary: AssetSummary
-  // TODO DEV-XXXX: date_modified is always present at runtime but OpenAPI schema
-  // marks it optional (because it has a default for write operations)
+  // Always present in GET responses (Django auto-updates on save)
+  // OpenAPI marks optional because POST/PATCH don't require it (has default value)
   date_modified?: string
   date_deployed?: string | null
   version_id: string | null

@@ -9,9 +9,10 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openAssetTagsModal } from './openAssetTagsModal'
 
-// TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
-// - Make date_created and date_modified required (they're auto-populated by Django)
-// This cast is safe because the types are compatible at runtime
+// Cast Orval-generated Asset to legacy AssetResponse type
+// The types are structurally compatible at runtime, differences are:
+// - Optional fields (date_created, date_modified) that are always present in responses
+// - Legacy type has looser field types for backward compatibility
 const mockAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'storyAssetTagsUid',
   name: 'Storybook Asset Tags',
