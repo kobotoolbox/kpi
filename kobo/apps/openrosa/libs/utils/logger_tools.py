@@ -368,7 +368,7 @@ def validate_xml_chars(xml: str) -> None:
     allowed by the XML spec (https://www.w3.org/TR/REC-xml/#charsets)
     """
     invalid_xml_char_re = re.compile(
-        r'[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
+        r'[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
     )
 
     if invalid_xml_char_re.search(xml):
