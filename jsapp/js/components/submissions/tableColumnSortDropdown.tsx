@@ -19,6 +19,7 @@ interface TableColumnSortDropdownProps {
   fieldId: string
   isAudioQuestionColumn?: boolean
   isTranscriptColumn?: boolean
+  isTranslationColumn?: boolean
   sortValue: SortValues | null
   onSortChange: (fieldId: string, sortValue: SortValues | null) => void
   onHide: (fieldId: string) => void
@@ -26,6 +27,7 @@ interface TableColumnSortDropdownProps {
   onFrozenChange: (fieldId: string, isFrozen: boolean) => void
   onTranscribeSelectedAudioFiles?: (fieldId: string) => void
   onTranslateSelectedTranscriptions?: (fieldId: string) => void
+  onApproveSelectedSubmissions?: (fieldId: string) => void
   isBulkProcessingDisabled?: boolean
   /**
    * To be put inside trigger, before the predefined content. Please note that
@@ -48,7 +50,12 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     isBulkProcessingEnabled && props.isAudioQuestionColumn && Boolean(props.onTranscribeSelectedAudioFiles)
   const canTranslateSelectedTranscriptions =
     isBulkProcessingEnabled && props.isTranscriptColumn && Boolean(props.onTranslateSelectedTranscriptions)
-  const shouldRenderBulkProcessingButtons = canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions
+  const canApproveSelectedSubmissions =
+    isBulkProcessingEnabled &&
+    (props.isTranscriptColumn || props.isTranslationColumn) &&
+    Boolean(props.onApproveSelectedSubmissions)
+  const shouldRenderBulkProcessingButtons =
+    canTranscribeSelectedAudioFiles || canTranslateSelectedTranscriptions || canApproveSelectedSubmissions
 
   function renderTrigger() {
     let sortIconName: 'sort-ascending' | 'sort-descending' | null = null
@@ -83,6 +90,10 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
 
   function translateSelectedTranscriptions() {
     props.onTranslateSelectedTranscriptions?.(props.fieldId)
+  }
+
+  function approveSelectedSubmissions() {
+    props.onApproveSelectedSubmissions?.(props.fieldId)
   }
 
   function renderSortButton(buttonSortValue: SortValues) {
@@ -158,6 +169,17 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
                   leftSection={<Icon name='transcripts' size='inherit' />}
                 >
                   {t('Translate selected transcriptions')}
+                </Menu.Item>
+              )}
+
+              {canApproveSelectedSubmissions && (
+                <Menu.Item
+                  className='sort-dropdown-menu-button'
+                  disabled={props.isBulkProcessingDisabled}
+                  onClick={approveSelectedSubmissions}
+                  leftSection={<Icon name='check' size='inherit' />}
+                >
+                  {t('Approve all selected')}
                 </Menu.Item>
               )}
             </>

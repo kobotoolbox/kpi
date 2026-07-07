@@ -1,7 +1,9 @@
+import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   getMediaAttachment,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
+  hasUnacceptedAutomaticContent,
   removeEmptyFromSupplementalDetails,
   removeEmptyObjects,
 } from './submissionUtils'
@@ -461,5 +463,162 @@ describe('removeEmptyFromSupplementalDetails', () => {
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
     chai.expect(result).to.eql({})
+  })
+})
+
+describe('hasUnacceptedAutomaticContent', () => {
+  it('should return true for transcript with pendingReview flag', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            languageCode: 'en',
+            pendingReview: true,
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.true
+  })
+
+  it('should return false for accepted transcript (no pendingReview flag)', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            value: 'Hello world',
+            languageCode: 'en',
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return true for translation with pendingReview flag', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            es: {
+              languageCode: 'es',
+              pendingReview: true,
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_es')
+
+    chai.expect(result).to.be.true
+  })
+
+  it('should return false for accepted translation (no pendingReview flag)', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            fr: {
+              value: 'Bonjour le monde',
+              languageCode: 'fr',
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false for qual questions (not transcript/translation)', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          qual: {
+            '123-uuid': {
+              value: 'Some analysis',
+              type: 'qualText',
+              uuid: '123-uuid',
+              labels: { _default: 'Analysis' },
+              xpath: 'audio_question',
+              verified: false,
+              source: 'manual',
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/123-uuid')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false for non-supplemental-details columns', () => {
+    const submission = assetDataFactory(1, {
+      regular_question: 'some answer',
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, 'regular_question')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when supplemental details are missing', () => {
+    const submission = assetDataFactory(1)
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when source row data is missing', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {},
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when transcript data is missing', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {},
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when translation language is missing', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            es: {
+              value: 'Hola',
+              languageCode: 'es',
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
+
+    chai.expect(result).to.be.false
   })
 })
