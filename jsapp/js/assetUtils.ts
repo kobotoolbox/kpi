@@ -159,6 +159,9 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
       for (const country of asset.settings.country) {
         countries.push(envStore.getCountryLabel(country.value))
       }
+    } else {
+      // We leave this for legacy reasons - there might be some very old assets with country being a single object
+      countries.push(envStore.getCountryLabel(asset.settings.country.value))
     }
 
     if (countries.length === 0) {
