@@ -620,8 +620,9 @@ export interface AssetTableSettings extends AssetTableSettingsObject {
 
 export interface AssetSettings {
   sector?: LabelValuePair | null | {}
-  // Backend always returns country as array (even when empty: [])
-  // Legacy code might have treated it as single object in some cases, but array is correct
+  // Backend schema specifies array, but old assets (pre-Dec 2022) may still have
+  // single object if not updated since standardization or if migration was skipped.
+  // Runtime: LabelValuePair[] | LabelValuePair | null, but typed as array for new code.
   country?: LabelValuePair[] | null
   description?: string
   'data-table'?: AssetTableSettings
