@@ -3,10 +3,10 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import {
-  getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock,
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsList,
-} from '#/api/react-query/survey-data/msw'
+} from '#/api/react-query/survey-data'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
 import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
@@ -112,7 +112,7 @@ describe('useDataTableBulkActions', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     getBulkActionsListQueryKeyMock.mockImplementation(
-      (uidAsset: string, params) =>
+      (uidAsset: string, params?: unknown) =>
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     )
     envStore.data.asr_mt_features_enabled = true

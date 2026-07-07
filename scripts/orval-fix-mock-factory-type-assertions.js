@@ -27,11 +27,11 @@ const REACT_QUERY_DIR = path.join(ROOT, 'jsapp/js/api/react-query')
 const TYPE_FILES = {
   'dataSupplementResponse.ts': {
     typeName: 'DataSupplementResponse',
-    factoryFile: 'survey-data.ts',
+    factoryFile: 'survey-data/msw.ts',
   },
   'patchedDataSupplementPayload.ts': {
     typeName: 'PatchedDataSupplementPayload',
-    factoryFile: 'survey-data.ts',
+    factoryFile: 'survey-data/msw.ts',
   },
 }
 

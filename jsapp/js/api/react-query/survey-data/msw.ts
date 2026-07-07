@@ -1567,11 +1567,13 @@ export const getApiV2AssetsDataValidationStatusPartialUpdateResponseMock = (
 
 export const getApiV2AssetsDataSupplementRetrieveResponseMock = (
   overrideResponse: Partial<DataSupplementResponse> = {},
-): DataSupplementResponse => ({ _version: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
+): DataSupplementResponse =>
+  ({ _version: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse }) as DataSupplementResponse
 
 export const getApiV2AssetsDataSupplementPartialUpdateResponseMock = (
   overrideResponse: Partial<DataSupplementResponse> = {},
-): DataSupplementResponse => ({ _version: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
+): DataSupplementResponse =>
+  ({ _version: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse }) as DataSupplementResponse
 
 export const getApiV2AssetsDataBulkPartialUpdateResponseMock = (
   overrideResponse: Partial<DataBulkUpdateResponse> = {},
