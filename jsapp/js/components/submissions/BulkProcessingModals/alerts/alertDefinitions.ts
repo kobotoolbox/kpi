@@ -50,10 +50,10 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       type: 'warning',
       evaluator: evaluateConflictingJob,
       messageTemplate: ({ count = 0 }) =>
-        t('##count## submissions are already being processed by another job and will be ignored').replace(
-          '##count##',
-          String(count),
-        ),
+        (count === 1
+          ? t('1 submission is already being processed by another job and will be ignored')
+          : t('##count## submissions are already being processed by another job and will be ignored')
+        ).replace('##count##', String(count)),
     },
     {
       id: 'no-source',
@@ -61,24 +61,35 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       evaluator: evaluateNoSource,
       messageTemplate: ({ count = 0 }) =>
         isTranscription
-          ? t('##count## submissions are missing audio file and will be ignored').replace('##count##', String(count))
-          : t('##count## submissions are missing transcription and will be ignored').replace(
-              '##count##',
-              String(count),
-            ),
+          ? (count === 1
+              ? t('#1 submission is missing audio file and will be ignored')
+              : t('##count## submissions are missing audio file and will be ignored')
+            ).replace('##count##', String(count))
+          : (count === 1
+              ? t('1 submission is missing transcription and will be ignored')
+              : t('##count## submissions are missing transcription and will be ignored')
+            ).replace('##count##', String(count)),
     },
     {
       id: isTranscription ? 'already-transcribed' : 'already-translated',
       type: 'warning',
       evaluator: isTranscription ? evaluateAlreadyTranscribed : evaluateAlreadyTranslated,
-      messageTemplate: (values) =>
-        isTranscription
-          ? t('##count## audio files totaling ##minutes## minutes already transcribed and will be ignored')
-              .replace('##count##', String(values.count ?? 0))
+      messageTemplate: (values) => {
+        const count = values.count ?? 0
+        return isTranscription
+          ? (count === 1
+              ? t('1 audio file totaling ##minutes## minutes already transcribed and will be ignored')
+              : t('##count## audio files totaling ##minutes## minutes already transcribed and will be ignored')
+            )
+              .replace('##count##', String(count))
               .replace('##minutes##', String(values.minutes ?? 0))
-          : t('##count## transcripts totaling ##characters## characters already translated and will be ignored')
-              .replace('##count##', String(values.count ?? 0))
-              .replace('##characters##', String(values.characters ?? 0)),
+          : (count === 1
+              ? t('1 transcript totaling ##characters## characters already translated and will be ignored')
+              : t('##count## transcripts totaling ##characters## characters already translated and will be ignored')
+            )
+              .replace('##count##', String(count))
+              .replace('##characters##', String(values.characters ?? 0))
+      },
     },
     {
       id: 'no-eligible-submissions',
