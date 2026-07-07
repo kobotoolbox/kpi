@@ -10,7 +10,6 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-// import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
@@ -35,9 +34,6 @@ import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStor
 import DataTableWrapper from './DataTableWrapper'
 
 // Orval-generated Asset and legacy AssetResponse have minor structural differences.
-// The OpenAPI schema was improved during this migration:
-// ✅ analysis_form_json.additional_fields is now properly typed as object[] (was string[])
-//
 // Remaining differences are intentional (backward compatibility in legacy type):
 // - Optional fields (date_created, date_modified) marked optional for POST/PATCH, always present in GET
 // - summary.name_quality has all optional properties for flexibility
