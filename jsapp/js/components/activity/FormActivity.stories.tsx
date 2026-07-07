@@ -18,7 +18,7 @@ const meta: Meta<typeof FormActivity> = {
   parameters: {
     msw: {
       handlers: [
-        assetHistoryMock,
+        // More specific handler must come first
         getApiV2AssetsHistoryActionsRetrieveMockHandler({
           actions: [
             'bulk-processing',
@@ -32,6 +32,7 @@ const meta: Meta<typeof FormActivity> = {
             'delete-submission',
           ],
         }),
+        assetHistoryMock,
       ],
     },
     reactRouter: reactRouterParameters({
