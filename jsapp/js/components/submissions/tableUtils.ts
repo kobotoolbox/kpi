@@ -220,7 +220,7 @@ export function getAllDataColumns(
   // TODO DEV-2407: Evaluate extending this dedupe approach to other
   // attachment question types (image/video/file) in main, with dedicated tests
   // to avoid over-deduping distinct fields that share a leaf name.
-  const currentAudioPathsByLeaf = new Map<string, string>()
+  const currentAudioPathsByLeaf = new Map<string, string[]>()
   asset.content.survey.forEach((row) => {
     if (row.type !== QUESTION_TYPES.audio.id && row.type !== QUESTION_TYPES['background-audio'].id) {
       return
@@ -228,20 +228,25 @@ export function getAllDataColumns(
     const rowName = getRowName(row)
     const currentPath = flatPaths[rowName]
     if (currentPath) {
-      currentAudioPathsByLeaf.set(rowName, currentPath)
+      const existingPaths = currentAudioPathsByLeaf.get(rowName) || []
+      if (!existingPaths.includes(currentPath)) {
+        currentAudioPathsByLeaf.set(rowName, [...existingPaths, currentPath])
+      }
     }
   })
 
   output = output.filter((key) => {
     const keyParts = key.split('/')
     const leafName = keyParts[keyParts.length - 1]
-    const currentPath = currentAudioPathsByLeaf.get(leafName)
+    const currentPaths = currentAudioPathsByLeaf.get(leafName)
 
-    if (!currentPath || key === currentPath) {
+    if (!currentPaths || currentPaths.includes(key)) {
       return true
     }
 
-    if (!output.includes(currentPath)) {
+    const matchingCurrentPaths = currentPaths.filter((currentPath) => output.includes(currentPath))
+
+    if (matchingCurrentPaths.length === 0) {
       return true
     }
 
@@ -255,20 +260,25 @@ export function getAllDataColumns(
     let hasMatchingOverlap = false
     for (const submission of submissions) {
       const legacyValue = submission[key]
-      const currentValue = submission[currentPath]
-
       const hasLegacyValue = legacyValue !== undefined && legacyValue !== null && legacyValue !== ''
-      const hasCurrentValue = currentValue !== undefined && currentValue !== null && currentValue !== ''
-
-      if (!hasLegacyValue || !hasCurrentValue) {
+      if (!hasLegacyValue) {
         continue
       }
 
-      if (legacyValue !== currentValue) {
-        return true
-      }
+      for (const currentPath of matchingCurrentPaths) {
+        const currentValue = submission[currentPath]
+        const hasCurrentValue = currentValue !== undefined && currentValue !== null && currentValue !== ''
 
-      hasMatchingOverlap = true
+        if (!hasCurrentValue) {
+          continue
+        }
+
+        if (legacyValue !== currentValue) {
+          return true
+        }
+
+        hasMatchingOverlap = true
+      }
     }
 
     return !hasMatchingOverlap
