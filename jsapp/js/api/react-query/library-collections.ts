@@ -432,7 +432,6 @@ export const getApiV2AssetSubscriptionsListMockHandler = (
       ) => Promise<PaginatedAssetSubscriptionResponseList> | PaginatedAssetSubscriptionResponseList),
 ) => {
   return http.get('*/api/v2/asset_subscriptions{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -454,7 +453,6 @@ export const getApiV2AssetSubscriptionsCreateMockHandler = (
       ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
 ) => {
   return http.post('*/api/v2/asset_subscriptions{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -476,7 +474,6 @@ export const getApiV2AssetSubscriptionsRetrieveMockHandler = (
       ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
 ) => {
   return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

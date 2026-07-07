@@ -1362,7 +1362,6 @@ export const getApiV2AssetSnapshotsListMockHandler = (
       ) => Promise<PaginatedAssetSnapshotResponseList> | PaginatedAssetSnapshotResponseList),
 ) => {
   return http.get('*/api/v2/asset_snapshots{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1384,7 +1383,6 @@ export const getApiV2AssetSnapshotsCreateMockHandler = (
       ) => Promise<AssetSnapshotResponse> | AssetSnapshotResponse),
 ) => {
   return http.post('*/api/v2/asset_snapshots{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1404,7 +1402,6 @@ export const getApiV2AssetSnapshotsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetSnapshotResponse> | AssetSnapshotResponse),
 ) => {
   return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1446,7 +1443,6 @@ export const getApiV2AssetSnapshotsXformRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OpenRosaXFormResponse> | OpenRosaXFormResponse),
 ) => {
   return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xform{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1466,7 +1462,6 @@ export const getApiV2AssetSnapshotsXmlWithDisclaimerRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OpenRosaXFormResponse> | OpenRosaXFormResponse),
 ) => {
   return http.get('*/api/v2/asset_snapshots/:uidAssetSnapshot/xml_with_disclaimer{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1486,7 +1481,6 @@ export const getApiV2AssetsContentRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ContentResponse> | ContentResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/content{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1504,7 +1498,6 @@ export const getApiV2AssetsTableViewRetrieveMockHandler = (
   overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/table_view{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1526,7 +1519,6 @@ export const getApiV2AssetsValidContentRetrieveMockHandler = (
       ) => Promise<AssetValidContentResponse> | AssetValidContentResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/valid_content{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1544,7 +1536,6 @@ export const getApiV2AssetsXlsRetrieveMockHandler = (
   overrideResponse?: string | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<string> | string),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/xls{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

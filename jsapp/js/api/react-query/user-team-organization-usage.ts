@@ -5146,7 +5146,6 @@ export const getApiV2AssetUsageListMockHandler = (
       ) => Promise<PaginatedAssetUsageResponseList> | PaginatedAssetUsageResponseList),
 ) => {
   return http.get('*/api/v2/asset_usage{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5168,7 +5167,6 @@ export const getApiV2OrganizationsListMockHandler = (
       ) => Promise<PaginatedOrganizationResponseList> | PaginatedOrganizationResponseList),
 ) => {
   return http.get('*/api/v2/organizations{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5188,7 +5186,6 @@ export const getApiV2OrganizationsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5208,7 +5205,6 @@ export const getApiV2OrganizationsPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<OrganizationResponse> | OrganizationResponse),
 ) => {
   return http.patch('*/api/v2/organizations/:uidOrganization{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5230,7 +5226,6 @@ export const getApiV2OrganizationsAssetUsageListMockHandler = (
       ) => Promise<PaginatedCustomAssetUsageList> | PaginatedCustomAssetUsageList),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/asset_usage{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5250,7 +5245,6 @@ export const getApiV2OrganizationsAssetsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedAssetList> | PaginatedAssetList),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/assets{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5270,7 +5264,6 @@ export const getApiV2OrganizationsAssetsCountsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/assets/counts{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5292,7 +5285,6 @@ export const getApiV2OrganizationsAssetsMinimalListRetrieveMockHandler = (
       ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/assets/minimal-list{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5314,7 +5306,6 @@ export const getApiV2OrganizationsInvitesListMockHandler = (
       ) => Promise<PaginatedInviteResponseList> | PaginatedInviteResponseList),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/invites{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5334,7 +5325,6 @@ export const getApiV2OrganizationsInvitesCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<InviteCreateResponse> | InviteCreateResponse),
 ) => {
   return http.post('*/api/v2/organizations/:uidOrganization/invites{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5354,7 +5344,6 @@ export const getApiV2OrganizationsInvitesRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<InviteResponse> | InviteResponse),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/invites/:guid{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5374,7 +5363,6 @@ export const getApiV2OrganizationsInvitesPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<InviteResponse> | InviteResponse),
 ) => {
   return http.patch('*/api/v2/organizations/:uidOrganization/invites/:guid{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5407,7 +5395,6 @@ export const getApiV2OrganizationsMembersListMockHandler = (
       ) => Promise<PaginatedMemberListResponseList> | PaginatedMemberListResponseList),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/members{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5427,7 +5414,6 @@ export const getApiV2OrganizationsMembersRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/members/:username{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5447,7 +5433,6 @@ export const getApiV2OrganizationsMembersPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MemberListResponse> | MemberListResponse),
 ) => {
   return http.patch('*/api/v2/organizations/:uidOrganization/members/:username{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5480,7 +5465,6 @@ export const getApiV2OrganizationsServiceUsageRetrieveMockHandler = (
       ) => Promise<OrganizationServiceUsageResponse> | OrganizationServiceUsageResponse),
 ) => {
   return http.get('*/api/v2/organizations/:uidOrganization/service_usage{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5502,7 +5486,6 @@ export const getApiV2ProjectViewsListMockHandler = (
       ) => Promise<PaginatedProjectViewListResponseList> | PaginatedProjectViewListResponseList),
 ) => {
   return http.get('*/api/v2/project-views{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5524,7 +5507,6 @@ export const getApiV2ProjectViewsRetrieveMockHandler = (
       ) => Promise<ProjectViewListResponse> | ProjectViewListResponse),
 ) => {
   return http.get('*/api/v2/project-views/:uidProjectView{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5546,7 +5528,6 @@ export const getApiV2ProjectViewsExportRetrieveMockHandler = (
       ) => Promise<ProjectViewExportResponse> | ProjectViewExportResponse),
 ) => {
   return http.get('*/api/v2/project-views/:uidProjectView/:objType/export{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5568,7 +5549,6 @@ export const getApiV2ProjectViewsExportCreateMockHandler = (
       ) => Promise<ProjectViewExportCreateResponse> | ProjectViewExportCreateResponse),
 ) => {
   return http.post('*/api/v2/project-views/:uidProjectView/:objType/export{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5590,7 +5570,6 @@ export const getApiV2ProjectViewsAssetsRetrieveMockHandler = (
       ) => Promise<PaginatedProjectViewAssetResponseList> | PaginatedProjectViewAssetResponseList),
 ) => {
   return http.get('*/api/v2/project-views/:uidProjectView/assets{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5610,7 +5589,6 @@ export const getApiV2ProjectViewsAssetsCountsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AssetListCount> | AssetListCount),
 ) => {
   return http.get('*/api/v2/project-views/:uidProjectView/assets/counts{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5632,7 +5610,6 @@ export const getApiV2ProjectViewsAssetsMinimalListRetrieveMockHandler = (
       ) => Promise<PaginatedAssetMinimalListList> | PaginatedAssetMinimalListList),
 ) => {
   return http.get('*/api/v2/project-views/:uidProjectView/assets/minimal-list{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5654,7 +5631,6 @@ export const getApiV2ProjectViewsUsersRetrieveMockHandler = (
       ) => Promise<PaginatedProjectViewUserResponseList> | PaginatedProjectViewUserResponseList),
 ) => {
   return http.get('*/api/v2/project-views/:uidProjectView/users{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5676,7 +5652,6 @@ export const getApiV2ServiceUsageListMockHandler = (
       ) => Promise<ServiceUsageResponse[]> | ServiceUsageResponse[]),
 ) => {
   return http.get('*/api/v2/service_usage{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5698,7 +5673,6 @@ export const getApiV2UsersListMockHandler = (
       ) => Promise<PaginatedUserListResponseList> | PaginatedUserListResponseList),
 ) => {
   return http.get('*/api/v2/users{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5718,7 +5692,6 @@ export const getApiV2UsersRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<UserRetrieveResponse> | UserRetrieveResponse),
 ) => {
   return http.get('*/api/v2/users/:username{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5738,7 +5711,6 @@ export const getMeRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<MeListResponse> | MeListResponse),
 ) => {
   return http.get('*/me{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5758,7 +5730,6 @@ export const getMePartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<MeListResponse> | MeListResponse),
 ) => {
   return http.patch('*/me{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5791,7 +5762,6 @@ export const getMeEmailsListMockHandler = (
       ) => Promise<PaginatedEmailAddressList> | PaginatedEmailAddressList),
 ) => {
   return http.get('*/me/emails{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5811,7 +5781,6 @@ export const getMeEmailsCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<EmailAddress> | EmailAddress),
 ) => {
   return http.post('*/me/emails{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5833,7 +5802,6 @@ export const getMeSocialAccountsListMockHandler = (
       ) => Promise<PaginatedSocialAccountList> | PaginatedSocialAccountList),
 ) => {
   return http.get('*/me/social-accounts{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -5853,7 +5821,6 @@ export const getMeSocialAccountsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SocialAccount> | SocialAccount),
 ) => {
   return http.get('*/me/social-accounts/:provider/:uidSocialAccount{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

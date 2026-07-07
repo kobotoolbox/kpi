@@ -210,7 +210,6 @@ export const getApiV2EnvironmentRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnvironmentResponse> | EnvironmentResponse),
 ) => {
   return http.get('*/api/v2/environment{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

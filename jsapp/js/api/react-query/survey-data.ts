@@ -8106,7 +8106,6 @@ export const getApiV2AssetsAdvancedFeaturesListMockHandler = (
       ) => Promise<AdvancedFeatureResponse[]> | AdvancedFeatureResponse[]),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/advanced-features{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8128,7 +8127,6 @@ export const getApiV2AssetsAdvancedFeaturesCreateMockHandler = (
       ) => Promise<AdvancedFeatureCreateResponse> | AdvancedFeatureCreateResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/advanced-features{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8150,7 +8148,6 @@ export const getApiV2AssetsAdvancedFeaturesRetrieveMockHandler = (
       ) => Promise<AdvancedFeatureResponse> | AdvancedFeatureResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/advanced-features/:uidAdvancedFeature{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8172,7 +8169,6 @@ export const getApiV2AssetsAdvancedFeaturesPartialUpdateMockHandler = (
       ) => Promise<AdvancedFeatureResponse> | AdvancedFeatureResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/advanced-features/:uidAdvancedFeature{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8194,7 +8190,6 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsListMockHandler = (
       ) => Promise<BulkActionListResponse> | BulkActionListResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/advanced-features/bulk-actions{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8216,7 +8211,6 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsCreateMockHandler = (
       ) => Promise<BulkActionCreateResponse> | BulkActionCreateResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/advanced-features/bulk-actions{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8236,7 +8230,6 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BulkActionResponse> | BulkActionResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/advanced-features/bulk-actions/:actionUid{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8256,7 +8249,6 @@ export const getApiV2AssetsAdvancedFeaturesBulkActionsPartialUpdateMockHandler =
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<BulkActionResponse> | BulkActionResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/advanced-features/bulk-actions/:actionUid{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8289,7 +8281,6 @@ export const getApiV2AssetsAttachmentsAudioDurationCreateMockHandler = (
       ) => Promise<AssetAttachmentAudioDurationResponse> | AssetAttachmentAudioDurationResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/attachments/audio-duration{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8322,7 +8313,6 @@ export const getApiV2AssetsDataListMockHandler = (
       ) => Promise<PaginatedDataResponseList> | PaginatedDataResponseList),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8342,7 +8332,6 @@ export const getApiV2AssetsDataRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DataResponse> | DataResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:id{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8373,7 +8362,6 @@ export const getApiV2AssetsDataDuplicateCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<DataResponse> | DataResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/data/:id/duplicate{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8393,7 +8381,6 @@ export const getApiV2AssetsDataEditRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnketoEditResponse> | EnketoEditResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:id/edit{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8413,7 +8400,6 @@ export const getApiV2AssetsDataEnketoEditRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnketoEditResponse> | EnketoEditResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:id/enketo/edit{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8433,7 +8419,6 @@ export const getApiV2AssetsDataEnketoRedirectEditRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnketoEditResponse> | EnketoEditResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:id/enketo/redirect/edit{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8453,7 +8438,6 @@ export const getApiV2AssetsDataEnketoRedirectViewRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnketoViewResponse> | EnketoViewResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:id/enketo/redirect/view{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8473,7 +8457,6 @@ export const getApiV2AssetsDataEnketoViewRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnketoViewResponse> | EnketoViewResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:id/enketo/view{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8495,7 +8478,6 @@ export const getApiV2AssetsDataValidationStatusRetrieveMockHandler = (
       ) => Promise<DataValidationStatusUpdateResponse> | DataValidationStatusUpdateResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:id/validation_status{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8517,7 +8499,6 @@ export const getApiV2AssetsDataValidationStatusPartialUpdateMockHandler = (
       ) => Promise<DataValidationStatusUpdateResponse> | DataValidationStatusUpdateResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/data/:id/validation_status{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8550,7 +8531,6 @@ export const getApiV2AssetsDataSupplementRetrieveMockHandler = (
       ) => Promise<DataSupplementResponse> | DataSupplementResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/data/:rootUuid/supplement{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8572,7 +8552,6 @@ export const getApiV2AssetsDataSupplementPartialUpdateMockHandler = (
       ) => Promise<DataSupplementResponse> | DataSupplementResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/data/:rootUuid/supplement{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8627,7 +8606,6 @@ export const getApiV2AssetsDataBulkPartialUpdateMockHandler = (
       ) => Promise<DataBulkUpdateResponse> | DataBulkUpdateResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/data/bulk{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8658,7 +8636,6 @@ export const getApiV2AssetsDataSupplementsBulkCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BulkAcceptResponse> | BulkAcceptResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/data/supplements/bulk{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8678,7 +8655,6 @@ export const getApiV2AssetsDataValidationStatusesPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<DataStatusesUpdate> | DataStatusesUpdate),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/data/validation_statuses{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8711,7 +8687,6 @@ export const getApiV2AssetsExportSettingsListMockHandler = (
       ) => Promise<PaginatedExportSettingResponseList> | PaginatedExportSettingResponseList),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/export-settings{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8733,7 +8708,6 @@ export const getApiV2AssetsExportSettingsCreateMockHandler = (
       ) => Promise<ExportSettingResponse> | ExportSettingResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/export-settings{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8753,7 +8727,6 @@ export const getApiV2AssetsExportSettingsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExportSettingResponse> | ExportSettingResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/export-settings/:uidExportSetting{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8775,7 +8748,6 @@ export const getApiV2AssetsExportSettingsPartialUpdateMockHandler = (
       ) => Promise<ExportSettingResponse> | ExportSettingResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/export-settings/:uidExportSetting{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8819,7 +8791,6 @@ export const getApiV2AssetsExportsListMockHandler = (
       ) => Promise<PaginatedExportResponseList> | PaginatedExportResponseList),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/exports{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8839,7 +8810,6 @@ export const getApiV2AssetsExportsCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ExportResponse> | ExportResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/exports{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8859,7 +8829,6 @@ export const getApiV2AssetsExportsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExportResponse> | ExportResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/exports/:uidExport{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8892,7 +8861,6 @@ export const getApiV2AssetsFilesListMockHandler = (
       ) => Promise<PaginatedFilesResponseList> | PaginatedFilesResponseList),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/files{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8912,7 +8880,6 @@ export const getApiV2AssetsFilesCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<FilesResponse> | FilesResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/files{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8932,7 +8899,6 @@ export const getApiV2AssetsFilesRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<FilesResponse> | FilesResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/files/:uidFile{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8976,7 +8942,6 @@ export const getApiV2AssetsPairedDataListMockHandler = (
       ) => Promise<PaginatedPairedDataResponseList> | PaginatedPairedDataResponseList),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/paired-data{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -8996,7 +8961,6 @@ export const getApiV2AssetsPairedDataCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PairedDataResponse> | PairedDataResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/paired-data{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -9016,7 +8980,6 @@ export const getApiV2AssetsPairedDataRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PairedDataResponse> | PairedDataResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/paired-data/:uidPairedData{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -9036,7 +8999,6 @@ export const getApiV2AssetsPairedDataPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<PairedDataResponse> | PairedDataResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/paired-data/:uidPairedData{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -9067,7 +9029,6 @@ export const getApiV2AssetsPairedDataExternalRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ExternalResponse> | ExternalResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/paired-data/:uidPairedData/external{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -9087,7 +9048,6 @@ export const getApiV2AssetsReportsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ReportResponse> | ReportResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/reports{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

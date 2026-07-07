@@ -2347,7 +2347,6 @@ export const getApiV2LanguagesListMockHandler = (
       ) => Promise<PaginatedLanguageListList> | PaginatedLanguageListList),
 ) => {
   return http.get('*/api/v2/languages{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2365,7 +2364,6 @@ export const getApiV2LanguagesRetrieveMockHandler = (
   overrideResponse?: Language | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Language> | Language),
 ) => {
   return http.get('*/api/v2/languages/:code{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2387,7 +2385,6 @@ export const getApiV2PermissionsListMockHandler = (
       ) => Promise<PaginatedPermissionResponseList> | PaginatedPermissionResponseList),
 ) => {
   return http.get('*/api/v2/permissions{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2407,7 +2404,6 @@ export const getApiV2PermissionsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PermissionResponse> | PermissionResponse),
 ) => {
   return http.get('*/api/v2/permissions/:codename{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2429,7 +2425,6 @@ export const getApiV2StripeAddonsListMockHandler = (
       ) => Promise<PaginatedOneTimeAddOnList> | PaginatedOneTimeAddOnList),
 ) => {
   return http.get('*/api/v2/stripe/addons{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2449,7 +2444,6 @@ export const getApiV2StripeAddonsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<OneTimeAddOn> | OneTimeAddOn),
 ) => {
   return http.get('*/api/v2/stripe/addons/:id{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2469,7 +2463,6 @@ export const getApiV2StripeChangePlanRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ChangePlan> | ChangePlan),
 ) => {
   return http.get('*/api/v2/stripe/change-plan', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2489,7 +2482,6 @@ export const getApiV2StripeCheckoutLinkCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<CheckoutLink> | CheckoutLink),
 ) => {
   return http.post('*/api/v2/stripe/checkout-link', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2511,7 +2503,6 @@ export const getApiV2StripeCustomerPortalCreateMockHandler = (
       ) => Promise<CustomerPortalPostResponse> | CustomerPortalPostResponse),
 ) => {
   return http.post('*/api/v2/stripe/customer-portal', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2531,7 +2522,6 @@ export const getApiV2StripeProductsListMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedProductList> | PaginatedProductList),
 ) => {
   return http.get('*/api/v2/stripe/products{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2553,7 +2543,6 @@ export const getApiV2StripeSubscriptionsListMockHandler = (
       ) => Promise<PaginatedSubscriptionList> | PaginatedSubscriptionList),
 ) => {
   return http.get('*/api/v2/stripe/subscriptions{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2573,7 +2562,6 @@ export const getApiV2StripeSubscriptionsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Subscription> | Subscription),
 ) => {
   return http.get('*/api/v2/stripe/subscriptions/:id{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2595,7 +2583,6 @@ export const getApiV2TermsOfServiceListMockHandler = (
       ) => Promise<TermsOfServiceResponse[]> | TermsOfServiceResponse[]),
 ) => {
   return http.get('*/api/v2/terms-of-service{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2617,7 +2604,6 @@ export const getApiV2TermsOfServiceRetrieveMockHandler = (
       ) => Promise<TermsOfServiceResponse> | TermsOfServiceResponse),
 ) => {
   return http.get('*/api/v2/terms-of-service/:slug{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2639,7 +2625,6 @@ export const getApiV2TranscriptionServicesListMockHandler = (
       ) => Promise<PaginatedTranscriptionServiceList> | PaginatedTranscriptionServiceList),
 ) => {
   return http.get('*/api/v2/transcription-services{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2659,7 +2644,6 @@ export const getApiV2TranscriptionServicesRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranscriptionService> | TranscriptionService),
 ) => {
   return http.get('*/api/v2/transcription-services/:code{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2681,7 +2665,6 @@ export const getApiV2TranslationServicesListMockHandler = (
       ) => Promise<PaginatedTranslationServiceList> | PaginatedTranslationServiceList),
 ) => {
   return http.get('*/api/v2/translation-services{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -2701,7 +2684,6 @@ export const getApiV2TranslationServicesRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TranslationService> | TranslationService),
 ) => {
   return http.get('*/api/v2/translation-services/:code{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

@@ -36,8 +36,10 @@ function removeDelays(filePath) {
   source = source.replace(/import\s+{\s*delay\s*}\s+from\s+['"]msw['"][\s\r\n]*/g, '')
 
   // Remove all `await delay(...)` calls from handler bodies
-  // Example: "await delay(1000)" becomes a blank line
-  source = source.replace(/\s*await\s+delay\(\d+\)[\s\r\n]*/g, '\n')
+  // Handles both formats:
+  // 1. Delay on same line: "=> {await delay(1000);\n" becomes "=> {\n"
+  // 2. Delay on own line: "  await delay(1000)\n" becomes ""
+  source = source.replace(/await\s+delay\(\d+\)\s*;?\s*/g, '')
 
   if (source !== originalSource) {
     fs.writeFileSync(filePath, source, 'utf-8')

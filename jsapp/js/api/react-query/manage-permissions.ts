@@ -808,7 +808,6 @@ export const getApiV2AssetsPermissionAssignmentsListMockHandler = (
       ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/permission-assignments{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -830,7 +829,6 @@ export const getApiV2AssetsPermissionAssignmentsCreateMockHandler = (
       ) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/permission-assignments{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -852,7 +850,6 @@ export const getApiV2AssetsPermissionAssignmentsRetrieveMockHandler = (
       ) => Promise<PermissionAssignmentResponse> | PermissionAssignmentResponse),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/permission-assignments/:uidPermissionAssignment{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -885,7 +882,6 @@ export const getApiV2AssetsPermissionAssignmentsBulkCreateMockHandler = (
       ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/permission-assignments/bulk{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -918,7 +914,6 @@ export const getApiV2AssetsPermissionAssignmentsClonePartialUpdateMockHandler = 
       ) => Promise<PermissionAssignmentResponse[]> | PermissionAssignmentResponse[]),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/permission-assignments/clone{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

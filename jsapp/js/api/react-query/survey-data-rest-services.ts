@@ -1214,7 +1214,6 @@ export const getApiV2AssetsHooksListMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedHookList> | PaginatedHookList),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/hooks{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1232,7 +1231,6 @@ export const getApiV2AssetsHooksCreateMockHandler = (
   overrideResponse?: Hook | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Hook> | Hook),
 ) => {
   return http.post('*/api/v2/assets/:uidAsset/hooks{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1250,7 +1248,6 @@ export const getApiV2AssetsHooksRetrieveMockHandler = (
   overrideResponse?: Hook | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Hook> | Hook),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1268,7 +1265,6 @@ export const getApiV2AssetsHooksPartialUpdateMockHandler = (
   overrideResponse?: Hook | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<Hook> | Hook),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1299,7 +1295,6 @@ export const getApiV2AssetsHooksLogsListMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedHookLogList> | PaginatedHookLogList),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1317,7 +1312,6 @@ export const getApiV2AssetsHooksLogsRetrieveMockHandler = (
   overrideResponse?: HookLog | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<HookLog> | HookLog),
 ) => {
   return http.get('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs/:uidLog{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1337,7 +1331,6 @@ export const getApiV2AssetsHooksLogsRetryPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<LogsRetryResponse> | LogsRetryResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook/logs/:uidLog/retry{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1357,7 +1350,6 @@ export const getApiV2AssetsHooksRetryPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<HookRetryResponse> | HookRetryResponse),
 ) => {
   return http.patch('*/api/v2/assets/:uidAsset/hooks/:uidHook/retry{/}?', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

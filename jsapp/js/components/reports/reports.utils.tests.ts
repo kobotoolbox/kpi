@@ -135,7 +135,7 @@ describe('populateSelectQuestionLabels', () => {
       style: reportStyleFactory(),
     }
 
-    // TODO DEV-XXXX: Improve backend OpenAPI schema for Asset
+    // TODO: Improve backend OpenAPI schema for Asset
     // - Make date_created and date_modified required (they're auto-populated by Django)
     const asset = getApiV2AssetsRetrieveResponseMock({
       content: {

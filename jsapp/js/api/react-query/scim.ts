@@ -1588,7 +1588,6 @@ export const getApiV2ScimV2GroupsListMockHandler = (
       ) => Promise<PaginatedScimGroupList> | PaginatedScimGroupList),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Groups', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1608,7 +1607,6 @@ export const getApiV2ScimV2GroupsCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.post('*/api/v2/scim/v2/:idpSlug/Groups', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1628,7 +1626,6 @@ export const getApiV2ScimV2GroupsRetrieveMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Groups/:id', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1648,7 +1645,6 @@ export const getApiV2ScimV2GroupsUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.put('*/api/v2/scim/v2/:idpSlug/Groups/:id', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1668,7 +1664,6 @@ export const getApiV2ScimV2GroupsPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<ScimGroup> | ScimGroup),
 ) => {
   return http.patch('*/api/v2/scim/v2/:idpSlug/Groups/:id', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1701,7 +1696,6 @@ export const getApiV2ScimV2ResourceTypesRetrieveMockHandler = (
       ) => Promise<ScimV2ResourceTypesRetrieve200> | ScimV2ResourceTypesRetrieve200),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/ResourceTypes', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1723,7 +1717,6 @@ export const getApiV2ScimV2SchemasRetrieveMockHandler = (
       ) => Promise<ScimV2SchemasRetrieve200> | ScimV2SchemasRetrieve200),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Schemas', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1745,7 +1738,6 @@ export const getApiV2ScimV2ServiceProviderConfigRetrieveMockHandler = (
       ) => Promise<ScimV2ServiceProviderConfigRetrieve200> | ScimV2ServiceProviderConfigRetrieve200),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/ServiceProviderConfig', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1765,7 +1757,6 @@ export const getApiV2ScimV2UsersListMockHandler = (
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedScimUserList> | PaginatedScimUserList),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Users', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1785,7 +1776,6 @@ export const getApiV2ScimV2UsersCreateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.post('*/api/v2/scim/v2/:idpSlug/Users', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1803,7 +1793,6 @@ export const getApiV2ScimV2UsersRetrieveMockHandler = (
   overrideResponse?: ScimUser | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.get('*/api/v2/scim/v2/:idpSlug/Users/:id', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1821,7 +1810,6 @@ export const getApiV2ScimV2UsersUpdateMockHandler = (
   overrideResponse?: ScimUser | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.put('*/api/v2/scim/v2/:idpSlug/Users/:id', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
@@ -1841,7 +1829,6 @@ export const getApiV2ScimV2UsersPartialUpdateMockHandler = (
     | ((info: Parameters<Parameters<typeof http.patch>[1]>[0]) => Promise<ScimUser> | ScimUser),
 ) => {
   return http.patch('*/api/v2/scim/v2/:idpSlug/Users/:id', async (info) => {
-
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined
