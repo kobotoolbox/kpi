@@ -58,6 +58,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     InstanceIdMissingError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
+    InvalidXMLCharacterError,
     LockedSubmissionError,
     TemporarilyUnavailableError,
 )
@@ -213,6 +214,7 @@ def create_instance(
         username = username.lower()
 
     xml = smart_str(xml_file.read())
+    validate_xml_chars(xml)
     xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
@@ -360,6 +362,26 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
     return xml_head + dict2xml(submission) + xml_tail
 
 
+def validate_xml_chars(xml: str) -> None:
+    """
+    Reject a submission whose XML contains characters outside the ranges
+    allowed by the XML spec (https://www.w3.org/TR/REC-xml/#charsets)
+    """
+    invalid_xml_char_re = re.compile(
+        r'[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
+    )
+
+    if invalid_xml_char_re.search(xml):
+        raise InvalidXMLCharacterError(
+            t(
+                'Submission rejected: '
+                'the form contains unsupported or invisible characters.'
+            )
+        )
+
+    return None
+
+
 @contextlib.contextmanager
 def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
     """
@@ -496,6 +518,9 @@ def http_open_rosa_error_handler(func, request):
             )
 
         result.http_error_response = OpenRosaResponsePaymentRequired(result.error)
+    except InvalidXMLCharacterError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except AccountInactiveError:
         result.error = t('Account is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
