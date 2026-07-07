@@ -215,6 +215,35 @@ export function getAllDataColumns(
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
 
+  // Deduplicate stale audio keys from old submissions when current schema has
+  // the same question under a different (usually renamed-group) path.
+  // TODO DEV-2407: Evaluate extending this dedupe approach to other
+  // attachment question types (image/video/file) in main, with dedicated tests
+  // to avoid over-deduping distinct fields that share a leaf name.
+  const currentAudioPathsByLeaf = new Map<string, string>()
+  asset.content.survey.forEach((row) => {
+    if (row.type !== QUESTION_TYPES.audio.id && row.type !== QUESTION_TYPES['background-audio'].id) {
+      return
+    }
+    const rowName = getRowName(row)
+    const currentPath = flatPaths[rowName]
+    if (currentPath) {
+      currentAudioPathsByLeaf.set(rowName, currentPath)
+    }
+  })
+
+  output = output.filter((key) => {
+    const keyParts = key.split('/')
+    const leafName = keyParts[keyParts.length - 1]
+    const currentPath = currentAudioPathsByLeaf.get(leafName)
+
+    if (!currentPath || key === currentPath) {
+      return true
+    }
+
+    return !output.includes(currentPath)
+  })
+
   // exclude notes
   output = output.filter((key) => {
     const foundPathKey = recordKeys(flatPaths).find((pathKey) => flatPaths[pathKey] === key)

@@ -1,4 +1,5 @@
-import { getColumnLabel } from './tableUtils'
+import type { SubmissionResponse } from '#/dataInterface'
+import { getAllDataColumns, getColumnLabel } from './tableUtils'
 import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
@@ -62,5 +63,30 @@ describe('tableUtils', () => {
     // TODO: write more tests here… I haven't got enough time to go over all
     // possible cases, just added one that I was fixing a bug for and a couple
     // that came to my mind.
+  })
+  describe('getAllDataColumns', () => {
+    it('should keep current audio key and drop legacy path duplicate', () => {
+      // In this case, imagine we had a question with path
+      // `old_group/Secret_password_as_an_audio_file`, made a submission, and
+      // then and we've renamed it to `Secret_password_as_an_audio_file` and
+      // now we have both pieces in submission data
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: 'old_group/Secret_password_as_an_audio_file',
+              media_file_basename: 'secret_audio.mp3',
+            },
+          ],
+          Secret_password_as_an_audio_file: 'secret_audio.mp3',
+          'old_group/Secret_password_as_an_audio_file': 'secret_audio.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include('Secret_password_as_an_audio_file')
+      chai.expect(columns).to.not.include('old_group/Secret_password_as_an_audio_file')
+    })
   })
 })
