@@ -14,6 +14,8 @@ from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
     GENERIC_OBJECT_SCHEMA,
     GENERIC_STRING_SCHEMA,
+    NULLABLE_ARRAY_SCHEMA,
+    NULLABLE_STRING_SCHEMA,
     USER_URL_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
@@ -42,7 +44,7 @@ class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AccessTypeField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return {**GENERIC_ARRAY_SCHEMA, 'nullable': True}
+        return NULLABLE_ARRAY_SCHEMA
 
 
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
@@ -394,8 +396,8 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
             required=['count', 'next', 'previous', 'results'],
             properties={
                 'count': build_basic_type(OpenApiTypes.INT),
-                'next': {**GENERIC_STRING_SCHEMA, 'nullable': True},
-                'previous': {**GENERIC_STRING_SCHEMA, 'nullable': True},
+                'next': NULLABLE_STRING_SCHEMA,
+                'previous': NULLABLE_STRING_SCHEMA,
                 'results': build_array_type(
                     schema=build_object_type(
                         required=[
@@ -622,20 +624,7 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.SettingsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        # Sector can be: null (no selection), {} (empty default),
-        # or {label, value} (LabelValuePair)
-        sector_schema = {
-            **build_object_type(
-                properties={
-                    'label': GENERIC_STRING_SCHEMA,
-                    'value': GENERIC_STRING_SCHEMA,
-                }
-            ),
-            'nullable': True,
-        }
-
-        # Country is an array of {label, value} objects (LabelValuePair[]),
-        # nullable for form state
+        # Base LabelValuePair schema reused for multiple fields
         label_value_pair_schema = build_object_type(
             properties={
                 'label': GENERIC_STRING_SCHEMA,
@@ -643,26 +632,27 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
             }
         )
 
-        # collects_pii and operational_purpose are also LabelValuePair objects,
-        # nullable
-        collects_pii_schema = {**label_value_pair_schema, 'nullable': True}
-        operational_purpose_schema = {
+        # Nullable LabelValuePair for optional fields
+        nullable_label_value_pair_schema = {
             **label_value_pair_schema,
+            'nullable': True,
+        }
+
+        # Country is an array of LabelValuePair objects, nullable
+        nullable_label_value_pair_array_schema = {
+            **build_array_type(schema=label_value_pair_schema),
             'nullable': True,
         }
 
         return build_object_type(
             properties={
-                'sector': sector_schema,
-                'country': {
-                    **build_array_type(schema=label_value_pair_schema),
-                    'nullable': True,
-                },
+                'sector': nullable_label_value_pair_schema,
+                'country': nullable_label_value_pair_array_schema,
                 'description': GENERIC_STRING_SCHEMA,
-                'collects_pii': collects_pii_schema,
-                'organization': {**GENERIC_STRING_SCHEMA, 'nullable': True},
+                'collects_pii': nullable_label_value_pair_schema,
+                'organization': NULLABLE_STRING_SCHEMA,
                 'country_codes': GENERIC_ARRAY_SCHEMA,
-                'operational_purpose': operational_purpose_schema,
+                'operational_purpose': nullable_label_value_pair_schema,
             }
         )
 
@@ -702,7 +692,7 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
                 'languages': GENERIC_ARRAY_SCHEMA,
                 'row_count': build_basic_type(OpenApiTypes.INT),
                 'name_quality': name_quality_schema,
-                'default_translation': {**GENERIC_STRING_SCHEMA, 'nullable': True},
+                'default_translation': NULLABLE_STRING_SCHEMA,
                 'naming_conflicts': build_array_type(GENERIC_STRING_SCHEMA),
             }
         )

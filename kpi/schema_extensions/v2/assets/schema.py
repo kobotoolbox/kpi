@@ -5,6 +5,8 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import NULLABLE_STRING_SCHEMA
+
 """
 Common schemas to avoid redundancy
 """
@@ -193,12 +195,8 @@ SURVEY_ROW_SCHEMA = build_object_type(
         '$xpath': build_basic_type(OpenApiTypes.STR),
         '$autoname': build_basic_type(OpenApiTypes.STR),
         'calculation': build_basic_type(OpenApiTypes.STR),
-        'label': build_array_type(
-            schema={**build_basic_type(OpenApiTypes.STR), 'nullable': True}
-        ),
-        'hint': build_array_type(
-            schema={**build_basic_type(OpenApiTypes.STR), 'nullable': True}
-        ),
+        'label': build_array_type(schema=NULLABLE_STRING_SCHEMA),
+        'hint': build_array_type(schema=NULLABLE_STRING_SCHEMA),
         'name': build_basic_type(OpenApiTypes.STR),
         'required': build_basic_type(OpenApiTypes.BOOL),
         'appearance': build_basic_type(OpenApiTypes.STR),
@@ -220,9 +218,7 @@ SURVEY_CHOICE_SCHEMA = build_object_type(
     properties={
         '$autovalue': build_basic_type(OpenApiTypes.STR),
         '$kuid': build_basic_type(OpenApiTypes.STR),
-        'label': build_array_type(
-            schema={**build_basic_type(OpenApiTypes.STR), 'nullable': True}
-        ),
+        'label': build_array_type(schema=NULLABLE_STRING_SCHEMA),
         'list_name': build_basic_type(OpenApiTypes.STR),
         'name': build_basic_type(OpenApiTypes.STR),
         'media::image': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
@@ -241,7 +237,7 @@ ASSET_CONTENT_SETTINGS_SCHEMA = build_object_type(
         'title': build_basic_type(OpenApiTypes.STR),
         'kobo--lock_all': build_basic_type(OpenApiTypes.BOOL),
         'kobo--locking-profile': build_basic_type(OpenApiTypes.STR),
-        'default_language': {**build_basic_type(OpenApiTypes.STR), 'nullable': True},
+        'default_language': NULLABLE_STRING_SCHEMA,
     }
 )
 
@@ -252,10 +248,8 @@ ASSET_CONTENT_RESPONSE_SCHEMA = build_object_type(
         'choices': build_array_type(schema=SURVEY_CHOICE_SCHEMA),
         'settings': ASSET_CONTENT_SETTINGS_SCHEMA,
         'translated': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
-        'translations': build_array_type(
-            schema={**build_basic_type(OpenApiTypes.STR), 'nullable': True}
-        ),
-        'translations_0': {**build_basic_type(OpenApiTypes.STR), 'nullable': True},
+        'translations': build_array_type(schema=NULLABLE_STRING_SCHEMA),
+        'translations_0': NULLABLE_STRING_SCHEMA,
         'kobo--locking-profiles': build_array_type(
             schema=build_basic_type(OpenApiTypes.OBJECT)
         ),
