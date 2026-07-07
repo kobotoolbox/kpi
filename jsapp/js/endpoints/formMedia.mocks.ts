@@ -4,7 +4,7 @@ import {
   getApiV2AssetsFilesCreateResponseMock,
   getApiV2AssetsFilesDestroyMockHandler,
   getApiV2AssetsFilesListMockHandler,
-} from '#/api/react-query/survey-data.msw'
+} from '#/api/react-query/survey-data/msw'
 
 /**
  * Extended FilesResponse type with redirect_url in metadata.

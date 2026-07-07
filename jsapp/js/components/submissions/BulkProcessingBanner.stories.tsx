@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { withRouter } from 'storybook-addon-remix-react-router'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data.msw'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import BulkProcessingBanner from './BulkProcessingBanner'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 

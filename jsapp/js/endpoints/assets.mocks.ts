@@ -1,7 +1,7 @@
 import {
   getApiV2AssetsListMockHandler,
   getApiV2AssetsRetrieveResponseMock,
-} from '#/api/react-query/manage-projects-and-library-content.msw'
+} from '#/api/react-query/manage-projects-and-library-content/msw'
 import { AssetTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
 import { mockTemplates } from './assets.templates'

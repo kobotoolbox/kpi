@@ -1,5 +1,5 @@
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
-import { getApiV2OrganizationsRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage.msw'
+import { getApiV2OrganizationsRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 import { meMockResponse } from './me.mocks'
 
 /**

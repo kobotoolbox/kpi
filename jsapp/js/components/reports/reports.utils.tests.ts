@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content.msw'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { reportStyleFactory, reportsResponseDataFactory } from './reports.factory'

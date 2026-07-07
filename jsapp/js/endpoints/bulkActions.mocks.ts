@@ -5,7 +5,7 @@ import type { BulkActionListResponse } from '#/api/models/bulkActionListResponse
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data.msw'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 
 /**
  * Mock API for bulk actions list. Use it in Storybook tests in `parameters.msw.handlers.bulkActions`.

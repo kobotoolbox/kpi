@@ -1,7 +1,7 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
 import type { ProjectHistoryLogResponse } from '#/api/models/projectHistoryLogResponse'
-import { getApiV2ProjectHistoryLogsListResponseMock } from '#/api/react-query/server-logs-superusers.msw'
+import { getApiV2ProjectHistoryLogsListResponseMock } from '#/api/react-query/server-logs-superusers/msw'
 import {
   type ActivityLogsItem,
   AuditActions,

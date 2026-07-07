@@ -1,5 +1,5 @@
 import type { MeListResponse } from '#/api/models/meListResponse'
-import { getMeRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage.msw'
+import { getMeRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 
 /**
  * Mock response data for /me/ endpoint.

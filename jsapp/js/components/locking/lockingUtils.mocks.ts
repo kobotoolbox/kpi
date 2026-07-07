@@ -1,6 +1,6 @@
 import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content.msw'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import {
   AssetTypeName,
   GroupTypeBeginName,

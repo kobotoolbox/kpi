@@ -1,7 +1,7 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content.msw'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
 import { assetPatchMock } from '#/endpoints/asset.mocks'

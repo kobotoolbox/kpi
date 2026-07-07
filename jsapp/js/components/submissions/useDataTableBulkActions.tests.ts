@@ -6,7 +6,7 @@ import {
   getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock,
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsList,
-} from '#/api/react-query/survey-data.msw'
+} from '#/api/react-query/survey-data/msw'
 import { useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
 import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
