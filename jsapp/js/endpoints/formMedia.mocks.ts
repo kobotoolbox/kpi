@@ -1,10 +1,10 @@
+import type { FilesResponse } from '#/api/models/filesResponse'
 import {
   getApiV2AssetsFilesCreateMockHandler,
   getApiV2AssetsFilesCreateResponseMock,
   getApiV2AssetsFilesDestroyMockHandler,
   getApiV2AssetsFilesListMockHandler,
 } from '#/api/react-query/survey-data'
-import type { FilesResponse } from '#/api/models/filesResponse'
 
 /**
  * Extended FilesResponse type with redirect_url in metadata.
@@ -121,7 +121,9 @@ export function formMediaHandlers(
 
       const payload = await parsePayload(request)
       const parsedMetadata =
-        typeof payload.metadata === 'string' ? (JSON.parse(payload.metadata) as Record<string, unknown>) : (payload.metadata ?? {})
+        typeof payload.metadata === 'string'
+          ? (JSON.parse(payload.metadata) as Record<string, unknown>)
+          : (payload.metadata ?? {})
 
       const fileName = parsedMetadata.filename as string | undefined
       const delayMs = (fileName && options.uploadDelayByFilenameMs?.[fileName]) || 0

@@ -19,20 +19,24 @@ function removeDelays(filePath) {
   let source = fs.readFileSync(filePath, 'utf-8')
   const originalSource = source
 
-  // Remove the delay import from msw
+  // Remove `delay` from the MSW import statement
+  // Example: "import { http, delay, HttpResponse } from 'msw'" becomes "import { http, HttpResponse } from 'msw'"
   source = source.replace(
     /import\s+{([^}]*),\s*delay\s*([^}]*)}\s+from\s+['"]msw['"]/g,
     (match, before, after) => {
-      // Remove trailing/leading commas
+      // Merge the parts before and after `delay`, then clean up any double commas
       const cleaned = `${before}${after}`.replace(/,\s*,/g, ',').replace(/^,|,$/g, '').trim()
+      // If nothing remains after removing `delay`, leave an empty import (will be cleaned up by formatter)
       return cleaned ? `import { ${cleaned} } from 'msw'` : "import { } from 'msw'"
     }
   )
 
-  // Remove standalone delay import
+  // Remove standalone delay import if `delay` was the only import
+  // Example: "import { delay } from 'msw'" becomes ""
   source = source.replace(/import\s+{\s*delay\s*}\s+from\s+['"]msw['"][\s\r\n]*/g, '')
 
-  // Remove await delay() calls
+  // Remove all `await delay(...)` calls from handler bodies
+  // Example: "await delay(1000)" becomes a blank line
   source = source.replace(/\s*await\s+delay\(\d+\)[\s\r\n]*/g, '\n')
 
   if (source !== originalSource) {

@@ -42,9 +42,7 @@ const config: Config = {
   ],
 
   // Transform ESM modules from node_modules (MSW and its dependencies)
-  transformIgnorePatterns: [
-    'node_modules/(?!(msw|@mswjs|@bundled-es-modules|statuses|until-async)/)',
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(msw|@mswjs|@bundled-es-modules|statuses|until-async)/)'],
 
   // Set up test environment
   testEnvironment: 'jsdom',

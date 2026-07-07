@@ -332,8 +332,20 @@ class DataSupplementalDetailsFieldExtension(
         # Note: These schemas are inlined (not registered as components) to avoid
         # Orval generating problematic MSW mocks for types with index signatures.
         # The oneOf discriminator is sufficient for the API schema.
+        #
+        # Structure of each oneOf option:
+        # {
+        #   [question_xpath]: {
+        #     [action_type]: { ...action_data }
+        #   }
+        # }
+        #
+        # The six oneOf options represent all possible action types that can generate
+        # supplemental data. Each has a unique property name that acts as a discriminator,
+        # allowing TypeScript to narrow the union based on which property exists.
         return {
             'oneOf': [
+                # Option 1: Human-generated audio/video transcription
                 build_object_type(
                     additionalProperties=build_object_type(
                         properties={
@@ -345,6 +357,7 @@ class DataSupplementalDetailsFieldExtension(
                     ),
                     description='Manual transcription supplemental details',
                 ),
+                # Option 2: Human-generated text translation
                 build_object_type(
                     additionalProperties=build_object_type(
                         properties={
@@ -356,6 +369,7 @@ class DataSupplementalDetailsFieldExtension(
                     ),
                     description='Manual translation supplemental details',
                 ),
+                # Option 3: AI-generated audio/video transcription
                 build_object_type(
                     additionalProperties=build_object_type(
                         properties={
@@ -367,6 +381,7 @@ class DataSupplementalDetailsFieldExtension(
                     ),
                     description='Automatic transcription supplemental details',
                 ),
+                # Option 4: AI-generated text translation
                 build_object_type(
                     additionalProperties=build_object_type(
                         properties={
@@ -378,6 +393,7 @@ class DataSupplementalDetailsFieldExtension(
                     ),
                     description='Automatic translation supplemental details',
                 ),
+                # Option 5: Human-generated qualitative analysis tags
                 build_object_type(
                     additionalProperties=build_object_type(
                         properties={
@@ -387,6 +403,7 @@ class DataSupplementalDetailsFieldExtension(
                     ),
                     description='Manual qualitative supplemental details',
                 ),
+                # Option 6: AI-generated qualitative analysis tags
                 build_object_type(
                     additionalProperties=build_object_type(
                         properties={

@@ -2,16 +2,19 @@
 /**
  * Fixes TypeScript errors in MSW mock factories.
  *
- * The problem: Types like { _version: string } & Record<string, SomeOtherType>
- * tell TypeScript that _version has to be both a string AND SomeOtherType.
- * That doesn't work, so mock factories that return { _version: "..." } fail to compile.
+ * Why this is needed: When Orval generates types like
+ * `{ _version: string } & Record<string, SomeOtherType>`, TypeScript's type system
+ * sees a conflict - _version must be both a `string` AND a `SomeOtherType`, which
+ * is impossible. This causes the mock factory return values to fail type checking
+ * even though they're structurally correct at runtime.
  *
- * The fix: Cast the return value with `as TypeName`. Safe because these are test mocks
- * and the structure is fine at runtime.
+ * What this does: Adds explicit type assertions (`as TypeName`) to mock factory
+ * return statements. This tells TypeScript "trust me, this object matches the type"
+ * without changing runtime behavior. Safe for test mocks where we control the data.
  *
- * Types we fix:
- * - DataSupplementResponse (& Record)
- * - PatchedDataSupplementPayload (| Record)
+ * Types currently affected:
+ * - DataSupplementResponse (intersection with Record)
+ * - PatchedDataSupplementPayload (union with Record)
  */
 const fs = require('fs')
 const path = require('path')
