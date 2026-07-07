@@ -62,8 +62,11 @@ class PairedDataSerializer(serializers.Serializer):
         return source__name
 
     def to_representation(self, instance):
+        source_deleted = self._source_is_deleted(instance)
         return {
-            'source': self.__get_source_asset_url(instance),
+            'source': (
+                None if source_deleted else self.__get_source_asset_url(instance)
+            ),
             'source__name': self.get_source__name(instance),
             'fields': instance.fields,
             'filename': instance.filename,
@@ -119,6 +122,22 @@ class PairedDataSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         return self.__save(validated_data)
+
+    def _source_is_deleted(self, instance) -> bool:
+        """
+        Return whether the source (parent) asset no longer exists.
+
+        A deleted source is not cleaned up from the destination's
+        `paired_data` because there is no cascading FK (see DEV-2034), so it
+        keeps appearing here. Reuse the `source__names` mapping the viewset
+        already built (uid absent means the row does not exist) to avoid an
+        extra query per row on the list endpoint; fall back to a direct
+        existence check when the context is not populated.
+        """
+        source__names = self.context.get('source__names')
+        if source__names is not None:
+            return instance.source_uid not in source__names
+        return not Asset.objects.filter(uid=instance.source_uid).exists()
 
     def _validate_fields(self, attrs: dict):
 
