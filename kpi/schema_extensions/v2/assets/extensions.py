@@ -632,15 +632,17 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
             }
         )
 
-        # Nullable LabelValuePair for optional fields
+        # Orval-compatible nullable object: type: ['object', 'null'] AND nullable: True
         nullable_label_value_pair_schema = {
             **label_value_pair_schema,
+            'type': ['object', 'null'],
             'nullable': True,
         }
 
-        # Country is an array of LabelValuePair objects, nullable
+        # Orval-compatible nullable array: type: ['array', 'null'] AND nullable: True
         nullable_label_value_pair_array_schema = {
-            **build_array_type(schema=label_value_pair_schema),
+            'type': ['array', 'null'],
+            'items': label_value_pair_schema,
             'nullable': True,
         }
 
