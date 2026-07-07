@@ -162,8 +162,11 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
       return []
     }
 
-    // Backend always returns country as an array
-    return value.map((item) => item.value)
+    if (Array.isArray(value)) {
+      return value.map((item) => item.value)
+    }
+
+    return [value.value]
   }
 
   const fromSingleSelectValue = (newValue: string | null, option?: LabelValuePair): LabelValuePair | null => {
