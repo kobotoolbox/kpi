@@ -528,15 +528,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const commonProps = {
       fieldXpath: fieldId,
       assetUid: this.props.asset.uid,
-<<<<<<< HEAD
-      selectedSubmissions,
-      showWarningModal: showWarningModal,
-      activeBulkActions: this.props.activeBulkActions || [],
-=======
       selectedRowsCount: selectedSubmissionIds.length,
       showWarningModal,
       selectedSubmissions,
->>>>>>> origin/main
       onSuccess: () => {
         this.setState({
           selectedRows: {},

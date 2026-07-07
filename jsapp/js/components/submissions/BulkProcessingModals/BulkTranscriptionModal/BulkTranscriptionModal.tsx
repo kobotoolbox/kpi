@@ -36,6 +36,7 @@ export interface BulkTranscriptionModalProps {
   fieldXpath: string
   assetUid: string
   selectedSubmissions: SubmissionResponse[]
+  selectedRowsCount: number
   showWarningModal: boolean
   activeBulkActions: BulkActionResponse[]
   onRequestClose: () => void
@@ -47,9 +48,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
   const queryClient = useQueryClient()
-
-  // Derive values from selectedSubmissions
-  const selectedRowsCount = props.selectedSubmissions.length
 
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
     mutation: {
@@ -188,7 +186,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     <>
       {showWarningModal && (
         <BulkProcessingWarningModal
-          selectedRowsCount={selectedRowsCount}
+          selectedRowsCount={props.selectedRowsCount}
           onRequestClose={props.onRequestClose}
           handleWarningContinue={handleWarningContinue}
         />
