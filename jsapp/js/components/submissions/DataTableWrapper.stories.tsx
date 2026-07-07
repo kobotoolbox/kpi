@@ -17,8 +17,8 @@ import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseSta
 import {
   getApiV2AssetsRetrieveMockHandler,
   getApiV2AssetsRetrieveResponseMock,
-} from '#/api/react-query/manage-projects-and-library-content'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data'
+} from '#/api/react-query/manage-projects-and-library-content.msw'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data.msw'
 import { QuestionTypeName } from '#/constants'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import assetDataMock from '#/endpoints/assetData.mocks'

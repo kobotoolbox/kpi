@@ -1,4 +1,4 @@
-import { getApiV2LanguagesRetrieveMockHandler } from '#/api/react-query/other'
+import { getApiV2LanguagesRetrieveMockHandler } from '#/api/react-query/other.msw'
 
 /**
  * Mock API for language detail endpoint using Orval-generated handler.

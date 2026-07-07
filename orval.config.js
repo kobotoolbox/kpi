@@ -3,7 +3,7 @@ const { operationName } = require('./jsapp/js/api/orval.operationName.js')
 module.exports = {
   'kpi-v2': {
     output: {
-      mode: 'tags',
+      mode: 'tags-split',
       workspace: './jsapp/js/api/',
       target: './react-query',
       schemas: './models',
@@ -15,9 +15,9 @@ module.exports = {
         return generatorClients['react-query']
       },
       httpClient: 'fetch',
-      mock: {
-        type: 'msw',
-      },
+      // Generate mocks in separate .msw.ts files to avoid bundling faker/msw in production
+      // With mode: 'tags-split', mocks are generated separately from runtime code
+      mock: true,
       indexFiles: false,
       biome: true,
 

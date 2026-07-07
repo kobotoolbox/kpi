@@ -19,23 +19,19 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { AssetSubscriptionRequest } from '../models/assetSubscriptionRequest'
+import type { AssetSubscriptionRequest } from '../../models/assetSubscriptionRequest'
 
-import type { AssetSubscriptionsListParams } from '../models/assetSubscriptionsListParams'
+import type { AssetSubscriptionResponse } from '../../models/assetSubscriptionResponse'
 
-import type { ErrorDetail } from '../models/errorDetail'
+import type { AssetSubscriptionsListParams } from '../../models/assetSubscriptionsListParams'
 
-import type { ErrorObject } from '../models/errorObject'
+import type { ErrorDetail } from '../../models/errorDetail'
 
-import { faker } from '@faker-js/faker'
+import type { ErrorObject } from '../../models/errorObject'
 
-import { http, HttpResponse } from 'msw'
+import type { PaginatedAssetSubscriptionResponseList } from '../../models/paginatedAssetSubscriptionResponseList'
 
-import type { AssetSubscriptionResponse } from '../models/assetSubscriptionResponse'
-
-import type { PaginatedAssetSubscriptionResponseList } from '../models/paginatedAssetSubscriptionResponseList'
-
-import { fetchWithAuth } from '../orval.mutator'
+import { fetchWithAuth } from '../../orval.mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
@@ -391,115 +387,3 @@ export const useAssetSubscriptionsDestroy = <TError = ErrorDetail, TContext = un
 
   return useMutation(mutationOptions)
 }
-
-export const getApiV2AssetSubscriptionsListResponseMock = (
-  overrideResponse: Partial<PaginatedAssetSubscriptionResponseList> = {},
-): PaginatedAssetSubscriptionResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
-  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
-  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
-  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    url: faker.internet.url(),
-    asset: faker.internet.url(),
-    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  })),
-  ...overrideResponse,
-})
-
-export const getApiV2AssetSubscriptionsCreateResponseMock = (
-  overrideResponse: Partial<AssetSubscriptionResponse> = {},
-): AssetSubscriptionResponse => ({
-  url: faker.internet.url(),
-  asset: faker.internet.url(),
-  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ...overrideResponse,
-})
-
-export const getApiV2AssetSubscriptionsRetrieveResponseMock = (
-  overrideResponse: Partial<AssetSubscriptionResponse> = {},
-): AssetSubscriptionResponse => ({
-  url: faker.internet.url(),
-  asset: faker.internet.url(),
-  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ...overrideResponse,
-})
-
-export const getApiV2AssetSubscriptionsListMockHandler = (
-  overrideResponse?:
-    | PaginatedAssetSubscriptionResponseList
-    | ((
-        info: Parameters<Parameters<typeof http.get>[1]>[0],
-      ) => Promise<PaginatedAssetSubscriptionResponseList> | PaginatedAssetSubscriptionResponseList),
-) => {
-  return http.get('*/api/v2/asset_subscriptions{/}?', async (info) => {
-    return new HttpResponse(
-      JSON.stringify(
-        overrideResponse !== undefined
-          ? typeof overrideResponse === 'function'
-            ? await overrideResponse(info)
-            : overrideResponse
-          : getApiV2AssetSubscriptionsListResponseMock(),
-      ),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
-    )
-  })
-}
-
-export const getApiV2AssetSubscriptionsCreateMockHandler = (
-  overrideResponse?:
-    | AssetSubscriptionResponse
-    | ((
-        info: Parameters<Parameters<typeof http.post>[1]>[0],
-      ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
-) => {
-  return http.post('*/api/v2/asset_subscriptions{/}?', async (info) => {
-    return new HttpResponse(
-      JSON.stringify(
-        overrideResponse !== undefined
-          ? typeof overrideResponse === 'function'
-            ? await overrideResponse(info)
-            : overrideResponse
-          : getApiV2AssetSubscriptionsCreateResponseMock(),
-      ),
-      { status: 201, headers: { 'Content-Type': 'application/json' } },
-    )
-  })
-}
-
-export const getApiV2AssetSubscriptionsRetrieveMockHandler = (
-  overrideResponse?:
-    | AssetSubscriptionResponse
-    | ((
-        info: Parameters<Parameters<typeof http.get>[1]>[0],
-      ) => Promise<AssetSubscriptionResponse> | AssetSubscriptionResponse),
-) => {
-  return http.get('*/api/v2/asset_subscriptions/:uidAssetSubscription{/}?', async (info) => {
-    return new HttpResponse(
-      JSON.stringify(
-        overrideResponse !== undefined
-          ? typeof overrideResponse === 'function'
-            ? await overrideResponse(info)
-            : overrideResponse
-          : getApiV2AssetSubscriptionsRetrieveResponseMock(),
-      ),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
-    )
-  })
-}
-
-export const getApiV2AssetSubscriptionsDestroyMockHandler = (
-  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
-) => {
-  return http.delete('*/api/v2/asset_subscriptions/:uidAssetSubscription{/}?', async (info) => {
-    if (typeof overrideResponse === 'function') {
-      await overrideResponse(info)
-    }
-    return new HttpResponse(null, { status: 204 })
-  })
-}
-export const getLibraryCollectionsMock = () => [
-  getApiV2AssetSubscriptionsListMockHandler(),
-  getApiV2AssetSubscriptionsCreateMockHandler(),
-  getApiV2AssetSubscriptionsRetrieveMockHandler(),
-  getApiV2AssetSubscriptionsDestroyMockHandler(),
-]

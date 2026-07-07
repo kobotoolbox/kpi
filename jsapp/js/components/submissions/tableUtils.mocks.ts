@@ -1,4 +1,4 @@
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content.msw'
 import { ANY_ROW_TYPE_NAMES, AssetTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 

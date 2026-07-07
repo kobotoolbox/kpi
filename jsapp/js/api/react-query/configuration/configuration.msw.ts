@@ -9,96 +9,11 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import { useQuery } from '@tanstack/react-query'
-import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
-
 import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse } from 'msw'
 
-import type { EnvironmentResponse } from '../models/environmentResponse'
-
-import { fetchWithAuth } from '../orval.mutator'
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
-
-/**
- * Retrieve Kobo server environment configurations.
-
-This endpoint provides a wide range of configuration details required by the frontend client, including:
-- Legal, support, and community URLs (e.g. Terms of Service, Privacy Policy).
-- Frontend configuration (retry times, usage limit enforcement, etc).
-- Global static lists (sectors, countries, interface languages, operational purposes).
-- Metadata configuration (available project and user metadata fields).
-- Features configurations (MFA, password entropy meter, custom guidance text).
-- Additional integrations and features (Stripe public key, ASR & MT enablement, Social apps).
-
- */
-export type environmentRetrieveResponse200 = {
-  data: EnvironmentResponse
-  status: 200
-}
-
-export type environmentRetrieveResponseComposite = environmentRetrieveResponse200
-
-export type environmentRetrieveResponse = environmentRetrieveResponseComposite & {
-  headers: Headers
-}
-
-export const getEnvironmentRetrieveUrl = () => {
-  return `/api/v2/environment/`
-}
-
-export const environmentRetrieve = async (options?: RequestInit): Promise<environmentRetrieveResponse> => {
-  return fetchWithAuth<environmentRetrieveResponse>(getEnvironmentRetrieveUrl(), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getEnvironmentRetrieveQueryKey = () => {
-  return ['api', 'v2', 'environment'] as const
-}
-
-export const getEnvironmentRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof environmentRetrieve>>,
-  TError = unknown,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getEnvironmentRetrieveQueryKey()
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof environmentRetrieve>>> = ({ signal }) =>
-    environmentRetrieve({ signal, ...requestOptions })
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof environmentRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type EnvironmentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof environmentRetrieve>>>
-export type EnvironmentRetrieveQueryError = unknown
-
-export function useEnvironmentRetrieve<
-  TData = Awaited<ReturnType<typeof environmentRetrieve>>,
-  TError = unknown,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof environmentRetrieve>>, TError, TData>
-  request?: SecondParameter<typeof fetchWithAuth>
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getEnvironmentRetrieveQueryOptions(options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
+import type { EnvironmentResponse } from '../../models/environmentResponse'
 
 export const getApiV2EnvironmentRetrieveResponseMock = (
   overrideResponse: Partial<EnvironmentResponse> = {},
@@ -209,7 +124,7 @@ export const getApiV2EnvironmentRetrieveMockHandler = (
     | EnvironmentResponse
     | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<EnvironmentResponse> | EnvironmentResponse),
 ) => {
-  return http.get('*/api/v2/environment{/}?', async (info) => {
+  return http.get('*/api/v2/environment/', async (info) => {
     return new HttpResponse(
       JSON.stringify(
         overrideResponse !== undefined

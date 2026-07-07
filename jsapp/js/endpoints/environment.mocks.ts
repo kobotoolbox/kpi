@@ -1,4 +1,4 @@
-import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration'
+import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration.msw'
 
 /**
  * Production-like environment configuration for testing.
