@@ -364,10 +364,14 @@ class ImportTask(ImportExportTask):
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
-                survey_list = kontent.get('survey')
+                survey_list = kontent.get('survey', [])
                 for node in survey_list:
                     name = node.get('name')
-                    if not _is_group_end(node) and not is_valid_node_name(name):
+                    if (
+                        bool(name)
+                        and not _is_group_end(node)
+                        and not is_valid_node_name(name)
+                    ):
                         raise ValueError(f'Invalid node name: {name}')
 
                 if not destination:
@@ -415,7 +419,7 @@ class ImportTask(ImportExportTask):
         survey_list = survey_dict.get('survey', [])
         for node in survey_list:
             name = node.get('name')
-            if not _is_group_end(node) and not is_valid_node_name(name):
+            if bool(name) and not _is_group_end(node) and not is_valid_node_name(name):
                 raise ValueError(f'Invalid node name: {name}')
 
         destination = kwargs.get('destination', False)
