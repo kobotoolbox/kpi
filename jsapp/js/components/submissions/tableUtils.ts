@@ -189,7 +189,7 @@ export function selectNestedRow(row: SubmissionResponse, key: string, rootParent
   const keyPathSegments = key.split('/')
   for (let i = keyPathSegments.length - 1; i >= 1; i--) {
     const parentPath = keyPathSegments.slice(0, i).join('/')
-    if (parentPath in row) {
+    if (Object.prototype.hasOwnProperty.call(row, parentPath)) {
       const parentValue = row[parentPath]
 
       // Parent fallback is only valid for container-like values (repeat/group payloads).
