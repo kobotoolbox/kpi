@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { Tabs } from '@mantine/core'
+import classnames from 'classnames'
 import { Link } from 'react-router-dom'
 import assetStore from '#/assetStore'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
@@ -27,7 +27,7 @@ export default function ProjectTopTabs() {
 
   useEffect(() => {
     assetStore.whenLoaded(assetUid, setAsset)
-  }, [assetUid])
+  }, [])
 
   const isDataTabEnabled = userCan('view_submissions', asset) || userCanPartially('view_submissions', asset)
 
@@ -39,54 +39,83 @@ export default function ProjectTopTabs() {
   const dataRoute = ROUTES.FORM_DATA.replace(':uid', assetUid)
   const settingsRoute = ROUTES.FORM_SETTINGS.replace(':uid', assetUid)
 
-  let activeTab = 'form'
-  if (isFormSummaryRoute(assetUid)) {
-    activeTab = 'summary'
-  } else if (isAnyFormDataRoute(assetUid)) {
-    activeTab = 'data'
-  } else if (isAnyFormSettingsRoute(assetUid)) {
-    activeTab = 'settings'
-  } else if (isFormLandingRoute(assetUid)) {
-    activeTab = 'form'
-  }
-
   return (
-    <Tabs value={activeTab} className={styles.root}>
-      <Tabs.List grow>
-        {sessionStore.isLoggedIn ? (
-          <Tabs.Tab value='summary' renderRoot={(props) => <Link {...props} to={summaryRoute} />}>
-            {t('Summary')}
-          </Tabs.Tab>
-        ) : (
-          <Tabs.Tab value='summary' disabled>
-            {t('Summary')}
-          </Tabs.Tab>
-        )}
+    <nav className={styles.root}>
+      <ul className={styles.tabs}>
+        <li>
+          {sessionStore.isLoggedIn ? (
+            <Link
+              to={summaryRoute}
+              className={classnames(styles.tab, {
+                [styles.active]: isFormSummaryRoute(assetUid),
+              })}
+            >
+              {t('Summary')}
+            </Link>
+          ) : (
+            <span
+              className={classnames(styles.tab, styles.disabled, {
+                [styles.active]: isFormSummaryRoute(assetUid),
+              })}
+            >
+              {t('Summary')}
+            </span>
+          )}
+        </li>
 
-        <Tabs.Tab value='form' renderRoot={(props) => <Link {...props} to={formRoute} />}>
-          {t('Form')}
-        </Tabs.Tab>
+        <li>
+          <Link
+            to={formRoute}
+            className={classnames(styles.tab, {
+              [styles.active]: isFormLandingRoute(assetUid),
+            })}
+          >
+            {t('Form')}
+          </Link>
+        </li>
 
-        {isDataTabEnabled ? (
-          <Tabs.Tab value='data' renderRoot={(props) => <Link {...props} to={dataRoute} />}>
-            {t('Data')}
-          </Tabs.Tab>
-        ) : (
-          <Tabs.Tab value='data' disabled>
-            {t('Data')}
-          </Tabs.Tab>
-        )}
+        <li>
+          {isDataTabEnabled ? (
+            <Link
+              to={dataRoute}
+              className={classnames(styles.tab, {
+                [styles.active]: isAnyFormDataRoute(assetUid),
+              })}
+            >
+              {t('Data')}
+            </Link>
+          ) : (
+            <span
+              className={classnames(styles.tab, styles.disabled, {
+                [styles.active]: isAnyFormDataRoute(assetUid),
+              })}
+            >
+              {t('Data')}
+            </span>
+          )}
+        </li>
 
-        {isSettingsTabEnabled ? (
-          <Tabs.Tab value='settings' renderRoot={(props) => <Link {...props} to={settingsRoute} />}>
-            {t('Settings')}
-          </Tabs.Tab>
-        ) : (
-          <Tabs.Tab value='settings' disabled>
-            {t('Settings')}
-          </Tabs.Tab>
-        )}
-      </Tabs.List>
-    </Tabs>
+        <li>
+          {isSettingsTabEnabled ? (
+            <Link
+              to={settingsRoute}
+              className={classnames(styles.tab, {
+                [styles.active]: isAnyFormSettingsRoute(assetUid),
+              })}
+            >
+              {t('Settings')}
+            </Link>
+          ) : (
+            <span
+              className={classnames(styles.tab, styles.disabled, {
+                [styles.active]: isAnyFormSettingsRoute(assetUid),
+              })}
+            >
+              {t('Settings')}
+            </span>
+          )}
+        </li>
+      </ul>
+    </nav>
   )
 }
