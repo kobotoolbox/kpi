@@ -52,6 +52,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
@@ -566,17 +567,13 @@ class DataViewSet(
             submission_root_uuid, request
         )
 
-        deployment = self._get_deployment()
-        fetched_root_uuid = submission.get(deployment.SUBMISSION_ROOT_UUID_XPATH)
+        # TODO remove the block below when LRM 0028 has completed
+        root_uuid_key = OpenRosaDeploymentBackend.SUBMISSION_ROOT_UUID_XPATH
+        instance_id_key = OpenRosaDeploymentBackend.SUBMISSION_CURRENT_UUID_XPATH
+        if root_uuid_key not in submission:
+            submission[root_uuid_key] = submission[instance_id_key]
 
-        if not fetched_root_uuid:
-            fetched_root_uuid = submission.get('meta/instanceID') or submission.get(
-                '_uuid'
-            )
-            fetched_root_uuid = add_uuid_prefix(fetched_root_uuid)
-            submission[deployment.SUBMISSION_ROOT_UUID_XPATH] = fetched_root_uuid
-
-        submission_root_uuid = fetched_root_uuid
+        submission_root_uuid = remove_uuid_prefix(submission[root_uuid_key])
 
         if request.method == 'GET':
             return Response(

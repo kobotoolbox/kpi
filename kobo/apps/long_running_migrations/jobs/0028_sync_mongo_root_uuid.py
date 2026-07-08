@@ -69,18 +69,18 @@ def _process_batch(docs: list):
     doc_ids = [doc['_id'] for doc in docs]
 
     # Only fetch Postgres records that actually have a root_uuid populated
-    instances = Instance.objects.only('pk', 'root_uuid').filter(
-        pk__in=doc_ids, root_uuid__isnull=False
+    instances_map = dict(
+        Instance.objects.filter(
+            pk__in=doc_ids, root_uuid__isnull=False
+        ).values_list('pk', 'root_uuid')
     )
-    instances_map = {inst.pk: inst.root_uuid for inst in instances}
 
     mongo_updates = [
         UpdateOne(
-            {'_id': doc_id},
-            {'$set': {'meta/rootUuid': add_uuid_prefix(instances_map[doc_id])}},
+            {'_id': pk},
+            {'$set': {'meta/rootUuid': add_uuid_prefix(root_uuid)}},
         )
-        for doc_id in doc_ids
-        if doc_id in instances_map
+        for pk, root_uuid in instances_map.items()
     ]
 
     if mongo_updates:
