@@ -138,6 +138,7 @@ export default function FormActivity() {
           setPagination={setPagination}
           columns={columns}
           queryResult={queryResult}
+          spinnerVisibility='loading'
         />
       </div>
     </div>
