@@ -562,31 +562,21 @@ class DataViewSet(
         if request.method == 'PATCH' and is_automatic_qa_request(request.data):
             check_automatic_qa_throttle(request, self)
 
-        deployment = self._get_deployment()
-        try:
-            submission_root_uuid_prefixed = add_uuid_prefix(submission_root_uuid)
-            # Fallback to meta/instanceID
-            uuid_query = {
-                '$or': [
-                    {'meta/rootUuid': submission_root_uuid_prefixed},
-                    {'meta/instanceID': submission_root_uuid_prefixed},
-                ]
-            }
-            submission = list(
-                deployment.get_submissions(
-                    user=request.user,
-                    query=uuid_query,
-                )
-            )[0]
-        except IndexError:
-            raise Http404
+        submission = self._get_submission_by_id_or_root_uuid(
+            submission_root_uuid, request
+        )
 
-        submission_root_uuid = submission.get(deployment.SUBMISSION_ROOT_UUID_XPATH)
-        if not submission_root_uuid:
-            submission_root_uuid = submission_root_uuid_prefixed
-            submission[deployment.SUBMISSION_ROOT_UUID_XPATH] = (
-                submission_root_uuid_prefixed
+        deployment = self._get_deployment()
+        fetched_root_uuid = submission.get(deployment.SUBMISSION_ROOT_UUID_XPATH)
+
+        if not fetched_root_uuid:
+            fetched_root_uuid = submission.get('meta/instanceID') or submission.get(
+                '_uuid'
             )
+            fetched_root_uuid = add_uuid_prefix(fetched_root_uuid)
+            submission[deployment.SUBMISSION_ROOT_UUID_XPATH] = fetched_root_uuid
+
+        submission_root_uuid = fetched_root_uuid
 
         if request.method == 'GET':
             return Response(
