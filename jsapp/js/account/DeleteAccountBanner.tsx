@@ -1,6 +1,6 @@
 import { Box, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAssetsList } from '#/api/react-query/manage-projects-and-library-content'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
@@ -11,7 +11,6 @@ import DeleteAccountModal from './DeleteAccountModal'
 
 export default function DeleteAccountBanner() {
   const [isModalOpened, { open, close }] = useDisclosure(false)
-  const navigate = useNavigate()
   const session = useSession()
   const [organization] = useOrganizationAssumed()
   const isAccountOrganizationOwner = organization.is_mmo && organization.is_owner
@@ -23,10 +22,6 @@ export default function DeleteAccountBanner() {
   })
 
   const isAccountWithoutAssets = assetsData?.status === 200 ? assetsData.data.count === 0 : undefined
-
-  function goToProjectsList() {
-    navigate(PROJECTS_ROUTES.MY_PROJECTS)
-  }
 
   function renderMessage() {
     if (isAccountOrganizationOwner) {
@@ -55,7 +50,14 @@ export default function DeleteAccountBanner() {
           )}
         </Text>
 
-        <Button p='0' size='sm' onClick={goToProjectsList} rightIcon='arrow-right' variant='transparent'>
+        <Button
+          p='0'
+          size='sm'
+          rightIcon='arrow-right'
+          variant='transparent'
+          component={Link}
+          to={PROJECTS_ROUTES.MY_PROJECTS}
+        >
           {t('Go to project list')}
         </Button>
       </Group>

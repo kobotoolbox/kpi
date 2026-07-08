@@ -1,0 +1,123 @@
+.list {
+  align-items: stretch;
+}
+
+.tab {
+  cursor: pointer;
+}
+
+/* Page Tabs: close to the historical top-tabs UI. */
+.root[data-variant='default'] .list {
+  background: var(--mantine-color-white);
+  border-bottom: 1px solid var(--mantine-color-gray-6);
+  min-height: 48px;
+  gap: var(--mantine-spacing-lg);
+}
+
+.root[data-variant='default'] .tab {
+  background: transparent;
+  border: none;
+  border-bottom: 4px solid transparent;
+  border-radius: 0;
+  color: var(--mantine-color-gray-2);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 400;
+  line-height: 48px;
+  min-height: 48px;
+  padding: 0 var(--mantine-spacing-md);
+  text-transform: uppercase;
+}
+
+.root[data-variant='default'] .tab:hover {
+  color: var(--mantine-color-gray-1);
+}
+
+.root[data-variant='default'] .tab[data-active] {
+  border-bottom-color: var(--mantine-color-teal-4);
+  color: var(--mantine-color-gray-1);
+  font-weight: 700;
+}
+
+/* Button Tabs: Figma Button Tabs */
+.root[data-variant='pills'] .list {
+  background: var(--mantine-color-white);
+  border-radius: 10px;
+  gap: 0;
+  padding: 4px;
+}
+
+.root[data-variant='pills'] .tab {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--mantine-color-blue-6);
+  font-size: var(--mantine-font-size-md);
+  font-weight: 500;
+  min-height: 32px;
+  padding: 0 16px;
+}
+
+.root[data-variant='pills'] .tab:hover {
+  background: var(--mantine-color-blue-0);
+}
+
+.root[data-variant='pills'] .tab[data-active] {
+  background: var(--mantine-color-blue-6);
+  color: var(--mantine-color-white);
+  font-weight: 500;
+}
+
+/* Summary Tabs: Figma Summary Tabs / bubbles */
+.root[data-variant='bubbles'] .list {
+  background: transparent;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.root[data-variant='bubbles'] .tab {
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--mantine-color-cyan-8);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+.root[data-variant='bubbles'] .tab:hover {
+  background: var(--mantine-color-cyan-0);
+}
+
+.root[data-variant='bubbles'] .tab[data-active] {
+  background: var(--mantine-color-cyan-2);
+  color: var(--mantine-color-cyan-9);
+  position: relative;
+}
+
+.root[data-variant='bubbles'] .tab[data-active]::after {
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--mantine-color-cyan-2);
+  bottom: -6px;
+  content: '';
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.tab[data-disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.tab:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
+@media (width <= 767px) {
+  .root[data-variant='default'] .tab {
+    padding: 0 var(--mantine-spacing-sm);
+  }
+}

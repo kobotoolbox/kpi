@@ -152,13 +152,13 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     actions.library.unsubscribeFromCollection(this.props.asset.uid)
   }
 
-  viewContainingCollection() {
+  getContainingCollectionLink() {
     if (this.props.asset.parent === null) {
-      return
+      return null
     }
     const parentArr = this.props.asset.parent.split('/')
     const parentAssetUid = parentArr[parentArr.length - 2]
-    this.props.router.navigate(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid))
+    return ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid)
   }
 
   getFormBuilderLink() {
@@ -291,14 +291,15 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
         )}
 
         {routeAssetUid && this.props.asset.parent !== null && !this.props.asset.parent.includes(routeAssetUid) && (
-          <Button
-            type='text'
-            size='m'
-            onClick={this.viewContainingCollection.bind(this)}
-            tooltip={t('View containing Collection')}
-            tooltipPosition='right'
-            startIcon='folder'
-          />
+          <Link to={this.getContainingCollectionLink()!}>
+            <Button
+              type='text'
+              size='m'
+              tooltip={t('View containing Collection')}
+              tooltipPosition='right'
+              startIcon='folder'
+            />
+          </Link>
         )}
 
         <AssetMoreActions

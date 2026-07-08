@@ -8,13 +8,16 @@ interface Tab {
   route: string
 }
 
-export interface TabsProps {
+export interface TabsOldProps {
   tabs: Tab[]
   selectedTab: string
   onChange: (route: string) => void
 }
 
-export default function Tabs({ tabs, selectedTab, onChange }: TabsProps) {
+/**
+ * @deprecated - use Mantine's Tabs
+ */
+export default function TabsOld({ tabs, selectedTab, onChange }: TabsOldProps) {
   const [activeTab, setActiveTab] = useState(selectedTab)
   const [focus, setFocus] = useState(false)
 

@@ -1,29 +1,33 @@
+import { Tabs } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import Tabs from './tabs'
 
 const meta: Meta<typeof Tabs> = {
-  title: 'Design system old/Tabs',
+  title: 'Design system/Tabs',
   component: Tabs,
+  decorators: [
+    (Story) => (
+      <div style={{ padding: 24, maxWidth: 760, margin: '0 auto' }}>
+        <Story />
+      </div>
+    ),
+  ],
   argTypes: {
-    tabs: {
-      description: 'Array of tab objects which contain strings defining the label and route',
-      control: 'object',
-    },
-    selectedTab: {
-      description: 'Defines the active tab for navigation and styling purposes',
-      control: 'text',
-    },
-    onChange: {
-      description: 'Tab change callback',
+    variant: {
+      control: { type: 'select' },
+      options: ['default', 'pills', 'bubbles'],
     },
   },
+  args: {
+    variant: 'default',
+  },
   parameters: {
+    a11y: { test: 'todo' },
     docs: {
       description: {
-        component: 'This is a component that provides a top tab navigation menu.',
+        component:
+          'Mantine Tabs theme showcase. Kobo styles the default variant as Page Tabs, pills as Button Tabs, and bubbles as Summary Tabs.',
       },
     },
-    a11y: { test: 'todo' },
   },
 }
 
@@ -31,22 +35,30 @@ export default meta
 
 type Story = StoryObj<typeof Tabs>
 
-const tabsData = [
-  { label: 'Tab 1', route: '/tab1' },
-  { label: 'Tab 2', route: '/tab2' },
-  { label: 'Tab 3', route: '/tab3' },
-]
+const tabValues = ['one', 'two', 'three', 'four', 'five'] as const
 
-export const Default: Story = {
-  args: {
-    tabs: tabsData,
-    selectedTab: '/tab1',
-  },
+function TabsPreview({ variant }: { variant: 'default' | 'pills' | 'bubbles' }) {
+  return (
+    <Tabs defaultValue='one' variant={variant}>
+      <Tabs.List>
+        {tabValues.map((value) => (
+          <Tabs.Tab key={value} value={value}>
+            Label
+          </Tabs.Tab>
+        ))}
+      </Tabs.List>
+    </Tabs>
+  )
 }
 
-export const SelectedTab2: Story = {
-  args: {
-    ...Default.args,
-    selectedTab: '/tab2',
-  },
+export const PageTabs: Story = {
+  render: () => <TabsPreview variant='default' />,
+}
+
+export const ButtonTabs: Story = {
+  render: () => <TabsPreview variant='pills' />,
+}
+
+export const SummaryTabs: Story = {
+  render: () => <TabsPreview variant='bubbles' />,
 }
