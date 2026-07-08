@@ -180,7 +180,7 @@ export function selectNestedRow(row: SubmissionResponse, key: string, rootParent
   }
 
   // Prefer exact key lookup whenever available.
-  if (key in row) {
+  if (Object.prototype.hasOwnProperty.call(row, key)) {
     return row[key]
   }
 
