@@ -27,9 +27,9 @@ import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
 import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
+import { formatTimeFromSeconds } from '../../bulkProcessingUtils'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
-import {formatTimeFromSeconds} from '../../bulkProcessingUtils'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 

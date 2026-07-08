@@ -199,6 +199,5 @@ describe('bulkProcessingUtils', () => {
       const result = formatTimeFromSeconds(3601)
       chai.expect(result).to.deep.equal('1 hours')
     })
-
   })
 })
