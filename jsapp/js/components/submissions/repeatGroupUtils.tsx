@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import type { SubmissionResponse, SubmissionResponseValue, SubmissionResponseValueObject } from '#/dataInterface'
