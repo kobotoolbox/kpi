@@ -58,6 +58,7 @@ from kpi.constants import (
 from kpi.exceptions import ConcurrentExportException, XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
+from kpi.utils.autoname import _is_group_end
 from kpi.utils.data_exports import (
     ACCESS_LOGS_EXPORT_FIELDS,
     ASSET_FIELDS,
@@ -76,6 +77,7 @@ from kpi.utils.rename_xls_sheet import (
     rename_xls_sheet,
     rename_xlsx_sheet,
 )
+from kpi.utils.sluggify import is_valid_node_name
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
@@ -362,6 +364,11 @@ class ImportTask(ImportExportTask):
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
+                survey_list = kontent.get('survey')
+                for node in survey_list:
+                    name = node.get('name')
+                    if not _is_group_end(node) and not is_valid_node_name(name):
+                        raise ValueError(f'Invalid node name: {name}')
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
@@ -405,6 +412,11 @@ class ImportTask(ImportExportTask):
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
+        survey_list = survey_dict.get('survey', [])
+        for node in survey_list:
+            name = node.get('name')
+            if not _is_group_end(node) and not is_valid_node_name(name):
+                raise ValueError(f'Invalid node name: {name}')
 
         destination = kwargs.get('destination', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
