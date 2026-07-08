@@ -1,16 +1,13 @@
 import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
-import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
-import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import {
   QUAL_NOTE_TYPE,
   type SubmissionAnalysisResponse,
 } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
-import { getColumnLabel } from '#/components/submissions/tableUtils'
-import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
+import { getBackgroundAudioQuestionName, getColumnLabel } from '#/components/submissions/tableUtils'
 import {
   CHOICE_LISTS,
   GROUP_TYPES_BEGIN,
@@ -28,12 +25,20 @@ import type {
   SubmissionAttachment,
   SubmissionResponse,
   SubmissionResponseValue,
-  SubmissionResponseValueObject,
   SubmissionSupplementalDetails,
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
 import { recordEntries, recordKeys } from '#/utils'
+import { getRepeatGroupAnswers } from './repeatGroupUtils'
+import { getMediaAttachment } from './submissionMediaUtils'
+export {
+  getRepeatGroupAnswerTree,
+  getRepeatGroupAnswers,
+  type RepeatGroupAnswerOptions,
+  type RepeatGroupAnswerTreeNode,
+} from './repeatGroupUtils'
+export { getMediaAttachment } from './submissionMediaUtils'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -506,120 +511,6 @@ function isRowFromCurrentGroupLevel(
   }
 }
 
-const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseValueObject => {
-  if (data === null) return false
-  if (typeof data !== 'object') return false
-  if (Array.isArray(data)) return false
-  if (recordKeys(data).length === 0) return false
-
-  return true
-}
-
-/**
- * Returns an array of answers. Will return empty array if no answers found.
- *
- * Note: this function doesn't include unresponded questions from repeat groups - i.e. if your repeat group `person` has
- * `your_name` question, and user submitted 10 `person`s, but only 3 of them have `your_name` answered, this function
- * will return an array of 3 items (e.g. `['Joe', 'Moe', 'Zoe']`) rather than an array of 10 items with empty strings
- * for unresponded questions (e.g. `['', 'Joe', '', '', '', '', 'Moe', 'Zoe', '', '']`).
- * TODO: we might want to change this in future, when we will improve the Data Table UI for repeat groups.
- */
-export function getRepeatGroupAnswers(
-  responseData: DataResponse | SubmissionResponse,
-  /** Full (nested) path to a response, e.g. group_person/group_pets/group_pet/pet_name. */
-  fullPath: string,
-): React.ReactNode[] {
-  const pathSegments = fullPath.split('/')
-  const lastPathSegmentIndex = pathSegments.length - 1
-
-  // This function is a recursive detective. It goes through nested groups from given path (`targetKey`), looking for
-  // answers. We are traversing `DataResponse | SubmissionResponse` and it's values (might be nested arrays), going one path level and
-  // one `responseData` level at a time - verifying if response exist and if needed (nested) going deeper.
-  const lookForAnswers = (
-    data: DataResponse | SubmissionResponse | SubmissionResponseValue,
-    currentDepth = 0,
-    responseIndex?: number,
-  ): Array<JSX.Element | string> => {
-    if (!isSubmissionResponseValueObject(data)) return []
-
-    // Some submissions keep grouped-repeat keys under a deeper full prefix directly on parent object,
-    // so we may need to jump over missing path levels.
-    let resolvedDepth = currentDepth
-    let submissionResponseValue: SubmissionResponseValue | undefined
-    while (resolvedDepth <= lastPathSegmentIndex) {
-      const resolvedPath = pathSegments.slice(0, resolvedDepth + 1).join('/')
-      const resolvedSegment = pathSegments[resolvedDepth]
-      const hasResolvedPath = Object.prototype.hasOwnProperty.call(data, resolvedPath)
-      const hasResolvedSegment = Object.prototype.hasOwnProperty.call(data, resolvedSegment)
-
-      if (hasResolvedPath || hasResolvedSegment) {
-        submissionResponseValue = hasResolvedPath ? data[resolvedPath] : data[resolvedSegment]
-        break
-      }
-
-      resolvedDepth += 1
-    }
-
-    if (typeof submissionResponseValue === 'undefined') return []
-
-    if (resolvedDepth === lastPathSegmentIndex) {
-      // At full path `submissionResponseValue` should be an actual response to a repeat group question.
-
-      // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
-      if (Array.isArray(submissionResponseValue)) return []
-
-      // To find the attachment, we need to build a question path that includes response number in it. For example, if
-      // we have repeat group `band_member` with `image` type question `portrait_photo`, then the attachment for third
-      // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
-      // works for them too :fingers_crossed:.
-      const responseNumber = responseIndex !== undefined ? responseIndex + 1 : undefined
-      const levelParentKey = fullPath.split('/').slice(0, resolvedDepth).join('/')
-      const attachmentPath = appendTextToPathAtLevel(fullPath, levelParentKey, `[${responseNumber}]`)
-      const attachment = getMediaAttachment(responseData, String(submissionResponseValue), attachmentPath)
-
-      if (typeof attachment === 'object' && attachment?.is_deleted) {
-        // If we've found the attachment, and it is deleted, we don't want to display it…
-        return [<DeletedAttachment />]
-      } else {
-        // …otherwise we are displaying raw data
-        // TODO: In future we could render something similar to `MediaCell` for each response/attachment here
-        return [String(submissionResponseValue)]
-      }
-    } else {
-      // Here we go recursively into each item of the array, looking for answers.
-
-      if (isSubmissionResponseValueObject(submissionResponseValue)) {
-        return lookForAnswers(submissionResponseValue, resolvedDepth + 1, responseIndex)
-      }
-
-      // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
-      if (!Array.isArray(submissionResponseValue)) return []
-
-      const answersByBranch = submissionResponseValue.map((item: SubmissionResponseValue, itemIndex: number) =>
-        lookForAnswers(item, resolvedDepth + 1, itemIndex),
-      )
-
-      const shouldGroupByBranch =
-        resolvedDepth + 2 <= lastPathSegmentIndex &&
-        answersByBranch.some((branch) => branch.length > 1) &&
-        answersByBranch.every((branch) => branch.every((answer) => typeof answer === 'string'))
-
-      if (shouldGroupByBranch) {
-        return answersByBranch.flatMap((branch) => {
-          if (branch.length <= 0) return []
-          if (branch.length === 1) return branch
-
-          return [`(${branch.join(', ')})`]
-        })
-      }
-
-      return answersByBranch.flat()
-    }
-  }
-
-  return lookForAnswers(responseData)
-}
-
 /**
  * Filters data for items inside the group
  */
@@ -656,46 +547,6 @@ function getRowListName(row: SurveyRow | undefined): string | undefined {
     return returnVal
   }
   return undefined
-}
-
-/**
- * Returns an attachment object or an error message.
- */
-export function getMediaAttachment(
-  submission: DataResponse | SubmissionResponse,
-  fileName: string,
-  questionXPath: string,
-): string | SubmissionAttachment {
-  let mediaAttachment: string | _DataResponseAttachmentsItem = t('Could not find ##fileName##').replace(
-    '##fileName##',
-    fileName,
-  )
-  submission._attachments.forEach((attachment) => {
-    if (attachment.question_xpath === questionXPath) {
-      // Check if the audio filetype is of type not supported by player and send it to format to mp3
-      if (
-        attachment.mimetype!.includes('audio/') &&
-        !attachment.mimetype!.includes('/mp3') &&
-        !attachment.mimetype!.includes('mpeg') &&
-        !attachment.mimetype!.includes('/wav') &&
-        !attachment.mimetype!.includes('ogg')
-      ) {
-        const newAudioURL = attachment.download_url + '?format=mp3'
-        const newAttachment = {
-          ...attachment,
-          download_url: newAudioURL,
-          download_large_url: newAudioURL,
-          download_medium_url: newAudioURL,
-          download_small_url: newAudioURL,
-          mimetype: 'audio/mp3',
-        }
-        mediaAttachment = newAttachment
-      } else {
-        mediaAttachment = attachment
-      }
-    }
-  })
-  return mediaAttachment
 }
 
 /**
@@ -809,21 +660,6 @@ export default {
 export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
   const flatPaths = getSurveyFlatPaths(surveyRows, true)
   return flatPaths[rowName]
-}
-
-/**
- * Inserts given string immediately after the specified level in the path.
- * @param path - The original path string.
- * @param level - The level after which `stringToAdd` should be inserted.
- * @returns The updated path string.
- */
-function appendTextToPathAtLevel(path: string, level: string, stringToAdd: string): string {
-  const parts = path.split('/')
-  const index = parts.indexOf(level)
-  if (index !== -1) {
-    parts[index] = `${parts[index]}${stringToAdd}`
-  }
-  return parts.join('/')
 }
 
 /**

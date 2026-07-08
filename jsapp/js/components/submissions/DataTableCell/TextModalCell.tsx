@@ -16,6 +16,7 @@ interface TextModalCellProps {
   columnName: string
   submissionIndex: number
   submissionTotal: number
+  modalContent?: React.ReactNode
 }
 
 /**
@@ -69,7 +70,7 @@ export default function TextModalCell(props: TextModalCellProps) {
 
         <KoboModalContent>
           <div className={styles.modalContent} dir='auto'>
-            {props.text}
+            {props.modalContent ?? props.text}
           </div>
         </KoboModalContent>
       </KoboModal>

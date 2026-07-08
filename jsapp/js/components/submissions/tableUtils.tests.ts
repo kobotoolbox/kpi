@@ -104,10 +104,7 @@ describe('tableUtils', () => {
     })
 
     it('should return nearest parent container when exact nested key is missing', () => {
-      const parentContainer = [
-        { 'group_a/group_b/question': 'a' },
-        { 'group_a/group_b/question': 'b' },
-      ]
+      const parentContainer = [{ 'group_a/group_b/question': 'a' }, { 'group_a/group_b/question': 'b' }]
       const row = {
         'group_a/group_b': parentContainer,
       } as unknown as SubmissionResponse
