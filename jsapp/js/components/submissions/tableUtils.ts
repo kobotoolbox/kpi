@@ -201,7 +201,7 @@ export function selectNestedRow(row: SubmissionResponse, key: string, rootParent
   }
 
   // Backward-compatible fallback for root-level repeat groups.
-  if (rootParentGroup && rootParentGroup in row) {
+  if (rootParentGroup && Object.prototype.hasOwnProperty.call(row, rootParentGroup)) {
     const rootParentValue = row[rootParentGroup]
     if (Array.isArray(rootParentValue) || (typeof rootParentValue === 'object' && rootParentValue !== null)) {
       return rootParentValue
