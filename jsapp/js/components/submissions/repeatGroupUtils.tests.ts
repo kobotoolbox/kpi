@@ -150,7 +150,7 @@ describe('getRepeatGroupAnswers', () => {
   it('should return values for a repeat group nested inside another repeat group', () => {
     const test = getRepeatGroupAnswers(nestedRepeatSurveySubmission, 'group_people/group_items/Item_name')
 
-    chai.expect(test).to.deep.equal(['(Notebook, Pen, Shoe)', 'Computer'])
+    chai.expect(test).to.deep.equal(['Notebook', 'Pen', 'Shoe', 'Computer'])
   })
 
   it('should return values for repeat inside regular group when repeat key is flat at root level', () => {
@@ -170,7 +170,7 @@ describe('getRepeatGroupAnswers', () => {
     chai.expect(test).to.deep.equal(['c', 'd'])
   })
 
-  it('should group nested repeat answers by outer repeat iteration for readability', () => {
+  it('should flatten nested repeat answers into a single list', () => {
     const nestedRepeatForTableDisplay = makeNestedRepeatSubmission([
       ['e', 'f'],
       ['g', 'h'],
@@ -178,10 +178,10 @@ describe('getRepeatGroupAnswers', () => {
 
     const test = getRepeatGroupAnswers(nestedRepeatForTableDisplay, 'outer_repeat/inner_repeat/item_name')
 
-    chai.expect(test).to.deep.equal(['(e, f)', '(g, h)'])
+    chai.expect(test).to.deep.equal(['e', 'f', 'g', 'h'])
   })
 
-  it('should keep nested grouping and show placeholder for unanswered nested repeat values', () => {
+  it('should flatten nested answers and include placeholders for unanswered nested repeat values', () => {
     const nestedRepeatWithMissingValues = makeSubmission({
       outer_repeat: [
         {
@@ -212,7 +212,7 @@ describe('getRepeatGroupAnswers', () => {
       unansweredPlaceholder: '-',
     })
 
-    chai.expect(test).to.deep.equal(['(e, f)', '(g, -)'])
+    chai.expect(test).to.deep.equal(['e', 'f', 'g', '-'])
   })
 
   it('should return deleted attachment component when repeat answer points to deleted media', () => {

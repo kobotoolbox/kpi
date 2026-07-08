@@ -25,22 +25,12 @@ export type RepeatGroupAnswerValue = RepeatGroupAnswerValueText | RepeatGroupAns
 
 export type RepeatGroupAnswerTreeNode = RepeatGroupAnswerValue | RepeatGroupAnswerTreeNode[]
 
-function isRepeatGroupAnswerValueText(answerValue: RepeatGroupAnswerValue): answerValue is RepeatGroupAnswerValueText {
-  return answerValue.kind === 'text'
-}
-
 export function formatRepeatGroupAnswerValueToText(answerValue: RepeatGroupAnswerValue): string {
   if (answerValue.kind === 'deleted-attachment') {
     return t('Deleted attachment')
   }
 
   return answerValue.value
-}
-
-function isRepeatGroupAnswerValueTextNode(
-  answerNode: RepeatGroupAnswerTreeNode,
-): answerNode is RepeatGroupAnswerValueText {
-  return !Array.isArray(answerNode) && isRepeatGroupAnswerValueText(answerNode)
 }
 
 const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseValueObject => {
@@ -55,9 +45,7 @@ const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseV
 /**
  * Returns answers for one repeat-group question as a flat list.
  *
- * This helper exists for older callers that expect a simple flat array. Nested
- * repeat groups are still grouped into strings like `(a, b)` so the caller can
- * tell which nested answers came from the same parent iteration.
+ * This helper exists for older callers that expect a simple flat array.
  */
 export function getRepeatGroupAnswers(
   responseData: DataResponse | SubmissionResponse,
@@ -70,16 +58,6 @@ export function getRepeatGroupAnswers(
   const formatAnswerNode = (answerNode: RepeatGroupAnswerTreeNode): React.ReactNode[] => {
     if (!Array.isArray(answerNode)) {
       return [renderRepeatGroupAnswerValue(answerNode)]
-    }
-
-    const textChildren = answerNode.filter(isRepeatGroupAnswerValueTextNode)
-
-    if (textChildren.length === answerNode.length) {
-      if (textChildren.length === 1) {
-        return [textChildren[0].value]
-      }
-
-      return [`(${textChildren.map((childNode) => childNode.value).join(', ')})`]
     }
 
     return answerNode.flatMap((childNode) => formatAnswerNode(childNode))

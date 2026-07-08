@@ -69,15 +69,7 @@ export default function DataTableCell(props: DataTableCellProps) {
     !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP) &&
     (typeof props.reactTableRow.value === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
   ) {
-    return (
-      <RepeatGroupCell
-        submissionData={submission}
-        rowName={props.columnKey}
-        columnName={columnName}
-        submissionIndex={submissionIndex}
-        submissionTotal={props.submissionCount}
-      />
-    )
+    return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 
   if (props.question && props.question.type && props.reactTableRow.value) {
