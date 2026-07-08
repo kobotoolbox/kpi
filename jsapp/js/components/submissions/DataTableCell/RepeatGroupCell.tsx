@@ -12,7 +12,7 @@ interface RepeatGroupCellProps {
  */
 export default function RepeatGroupCell(props: RepeatGroupCellProps) {
   const repeatGroupAnswers = getRepeatGroupAnswers(props.submissionData, props.rowName)
-  if (!repeatGroupAnswers) return null
+  if (!repeatGroupAnswers || repeatGroupAnswers.length <= 0) return null
 
   return (
     <div className={styles.repeatGroupCell} dir='auto'>

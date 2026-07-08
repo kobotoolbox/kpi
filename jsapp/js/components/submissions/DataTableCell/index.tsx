@@ -47,7 +47,13 @@ export default function DataTableCell(props: DataTableCellProps) {
     )
   }
 
-  if (typeof props.reactTableRow.value === 'object' && !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+  // Some repeat answers are stored under related nested keys, so a direct lookup for this column key can be
+  // undefined even though repeat data exists in the submission payload.
+  if (
+    !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP) &&
+    (typeof props.reactTableRow.value === 'object' ||
+      (props.reactTableRow.value === undefined && props.columnKey.includes('/')))
+  ) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 

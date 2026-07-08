@@ -57,6 +57,7 @@ import {
   getColumnLabel,
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
+  selectNestedRow,
 } from '#/components/submissions/tableUtils'
 import type {
   ValidationStatusOption,
@@ -566,16 +567,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     this.openBulkProcessingModal(fieldId, 'approve')
   }
 
-  // We need to distinguish between repeated groups with nested values
-  // and other question types that use a flat nested key (i.e. with '/').
-  // If submission response contains the parent key, we should use that.
-  _selectNestedRow(row: SubmissionResponse, key: string, rootParentGroup: string | undefined) {
-    if (rootParentGroup && rootParentGroup in row && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-      return row[rootParentGroup]
-    }
-    return row[key]
-  }
-
   _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
     if (!columnId) {
       return DEFAULT_DATA_CELL_WIDTH
@@ -1012,7 +1003,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           )
         },
         id: key,
-        accessor: (row) => this._selectNestedRow(row, key, rootParentGroup),
+        accessor: (row) => selectNestedRow(row, key, rootParentGroup),
         index: index,
         question: q,
         // This (and the Filter itself) will be set below (we do it separately,

@@ -1,6 +1,7 @@
 import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   getMediaAttachment,
+  getRepeatGroupAnswers,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
   hasUnacceptedAutomaticContent,
@@ -57,7 +58,7 @@ chai.use(chaiExclude)
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
-import type { SubmissionSupplementalDetails } from '#/dataInterface'
+import type { SubmissionResponse, SubmissionSupplementalDetails } from '#/dataInterface'
 chai.use(chaiDeepEqualIgnoreUndefined)
 
 describe('getSubmissionDisplayData', () => {
@@ -141,6 +142,201 @@ describe('getMediaAttachment', () => {
     )
     const target = submissionWithAttachmentsWithUnicode._attachments[0]
     chai.expect(test).to.deep.equal(target)
+  })
+})
+
+describe('getRepeatGroupAnswers', () => {
+  it('should return values for a repeat group in root', () => {
+    const rootRepeatSubmission = {
+      _attachments: [],
+      children: [
+        {
+          'children/name': 'Ada',
+        },
+        {
+          'children/name': 'Grace',
+        },
+      ],
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(rootRepeatSubmission, 'children/name')
+
+    chai.expect(test).to.deep.equal(['Ada', 'Grace'])
+  })
+
+  it('should return values for a repeat group nested inside a regular group', () => {
+    const groupedRepeatSubmission = {
+      _attachments: [],
+      family: {
+        'family/children': [
+          {
+            'family/children/name': 'Ada',
+          },
+          {
+            'family/children/name': 'Grace',
+          },
+        ],
+      },
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(groupedRepeatSubmission, 'family/children/name')
+
+    chai.expect(test).to.deep.equal(['Ada', 'Grace'])
+  })
+
+  it('should return no values when repeat group does not exist in submission', () => {
+    const submissionWithoutRepeat = {
+      _attachments: [],
+      other_group: {
+        'other_group/name': 'Nope',
+      },
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(submissionWithoutRepeat, 'children/name')
+
+    chai.expect(test).to.deep.equal([])
+  })
+
+  it('should skip unanswered iterations and keep answered values', () => {
+    const partiallyAnsweredRepeatSubmission = {
+      _attachments: [],
+      children: [
+        {
+          'children/name': 'Ada',
+        },
+        {
+          'children/age': '11',
+        },
+        {
+          'children/name': 'Grace',
+        },
+      ],
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(partiallyAnsweredRepeatSubmission, 'children/name')
+
+    chai.expect(test).to.deep.equal(['Ada', 'Grace'])
+  })
+
+  it('should ignore invalid repeat items and return values from valid objects', () => {
+    const mixedRepeatSubmission = {
+      _attachments: [],
+      children: [
+        {
+          'children/name': 'Ada',
+        },
+        null,
+        'unexpected-string-item',
+        {
+          'children/name': 'Grace',
+        },
+      ],
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(mixedRepeatSubmission, 'children/name')
+
+    chai.expect(test).to.deep.equal(['Ada', 'Grace'])
+  })
+
+  it('should return values for a repeat group nested inside another repeat group', () => {
+    const test = getRepeatGroupAnswers(nestedRepeatSurveySubmission, 'group_people/group_items/Item_name')
+
+    chai.expect(test).to.deep.equal(['(Notebook, Pen, Shoe)', 'Computer'])
+  })
+
+  it('should return values for repeat inside regular group when repeat key is flat at root level', () => {
+    const rootLevelGroupedRepeatSubmission = {
+      _attachments: [],
+      'regular_group/nested_repeat': [
+        {
+          'regular_group/nested_repeat/nested_text': 'c',
+        },
+        {
+          'regular_group/nested_repeat/nested_text': 'd',
+        },
+      ],
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(rootLevelGroupedRepeatSubmission, 'regular_group/nested_repeat/nested_text')
+
+    chai.expect(test).to.deep.equal(['c', 'd'])
+  })
+
+  it('should group nested repeat answers by outer repeat iteration for readability', () => {
+    const nestedRepeatForTableDisplay = {
+      _attachments: [],
+      outer_repeat: [
+        {
+          'outer_repeat/inner_repeat': [
+            {
+              'outer_repeat/inner_repeat/item_name': 'e',
+            },
+            {
+              'outer_repeat/inner_repeat/item_name': 'f',
+            },
+          ],
+        },
+        {
+          'outer_repeat/inner_repeat': [
+            {
+              'outer_repeat/inner_repeat/item_name': 'g',
+            },
+            {
+              'outer_repeat/inner_repeat/item_name': 'h',
+            },
+          ],
+        },
+      ],
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(nestedRepeatForTableDisplay, 'outer_repeat/inner_repeat/item_name')
+
+    chai.expect(test).to.deep.equal(['(e, f)', '(g, h)'])
+  })
+
+  it('should return values from repeat groups nested 4 levels deep', () => {
+    const fourLevelNestedRepeatSubmission = {
+      _attachments: [],
+      level1_repeat: [
+        {
+          'level1_repeat/level2_repeat': [
+            {
+              'level1_repeat/level2_repeat/level3_repeat': [
+                {
+                  'level1_repeat/level2_repeat/level3_repeat/level4_repeat': [
+                    {
+                      'level1_repeat/level2_repeat/level3_repeat/level4_repeat/deep_value': 'alpha',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          'level1_repeat/level2_repeat': [
+            {
+              'level1_repeat/level2_repeat/level3_repeat': [
+                {
+                  'level1_repeat/level2_repeat/level3_repeat/level4_repeat': [
+                    {
+                      'level1_repeat/level2_repeat/level3_repeat/level4_repeat/deep_value': 'beta',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    } as unknown as SubmissionResponse
+
+    const test = getRepeatGroupAnswers(
+      fourLevelNestedRepeatSubmission,
+      'level1_repeat/level2_repeat/level3_repeat/level4_repeat/deep_value',
+    )
+
+    chai.expect(test).to.deep.equal(['alpha', 'beta'])
   })
 })
 

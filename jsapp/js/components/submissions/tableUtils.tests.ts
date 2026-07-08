@@ -1,5 +1,6 @@
-import { QuestionTypeName } from '#/constants'
-import { getColumnLabel, isTableColumnFilterableByTextInput } from './tableUtils'
+import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
+import type { SubmissionResponse } from '#/dataInterface'
+import { getColumnLabel, isTableColumnFilterableByTextInput, selectNestedRow } from './tableUtils'
 import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
@@ -74,6 +75,68 @@ describe('tableUtils', () => {
     it('should return false for a non-filterable question type', () => {
       const test = isTableColumnFilterableByTextInput(QuestionTypeName.audio, 'my_audio_question')
       chai.expect(test).to.equal(false)
+    })
+  })
+
+  describe('selectNestedRow', () => {
+    it('should return exact key value when present', () => {
+      const row = {
+        'group_a/group_b/question': 'value-from-exact-key',
+      } as unknown as SubmissionResponse
+
+      const test = selectNestedRow(row, 'group_a/group_b/question', 'group_a')
+
+      chai.expect(test).to.equal('value-from-exact-key')
+    })
+
+    it('should always use exact key for supplemental details', () => {
+      const supplementalKey = `${SUPPLEMENTAL_DETAILS_PROP}/audio/transcript_en`
+      const row = {
+        [supplementalKey]: 'bonjour',
+        audio: {
+          transcript_en: 'should-not-be-used',
+        },
+      } as unknown as SubmissionResponse
+
+      const test = selectNestedRow(row, supplementalKey, 'audio')
+
+      chai.expect(test).to.equal('bonjour')
+    })
+
+    it('should return nearest parent container when exact nested key is missing', () => {
+      const parentContainer = [
+        { 'group_a/group_b/question': 'a' },
+        { 'group_a/group_b/question': 'b' },
+      ]
+      const row = {
+        'group_a/group_b': parentContainer,
+      } as unknown as SubmissionResponse
+
+      const test = selectNestedRow(row, 'group_a/group_b/question', 'group_a')
+
+      chai.expect(test).to.equal(parentContainer)
+    })
+
+    it('should ignore scalar parent fallback and keep searching for valid container', () => {
+      const rootContainer = [{ 'group_a/question': 'a' }]
+      const row = {
+        'group_a/group_b': 'scalar-value',
+        group_a: rootContainer,
+      } as unknown as SubmissionResponse
+
+      const test = selectNestedRow(row, 'group_a/group_b/question', 'group_a')
+
+      chai.expect(test).to.equal(rootContainer)
+    })
+
+    it('should return undefined when neither exact key nor valid parent containers exist', () => {
+      const row = {
+        group_a: 'not-a-container',
+      } as unknown as SubmissionResponse
+
+      const test = selectNestedRow(row, 'group_a/group_b/question', 'group_a')
+
+      chai.expect(test).to.equal(undefined)
     })
   })
 })

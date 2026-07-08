@@ -166,6 +166,52 @@ export function getBackgroundAudioQuestionName(asset: AssetResponse): string | n
 }
 
 /**
+ * Selects a value for a Data Table column key from submission data.
+ *
+ * For repeat/group data, some submissions store answers under a parent path
+ * (e.g. `group_a/group_b`) rather than the full question key
+ * (`group_a/group_b/question`). This helper returns the closest matching
+ * container payload in such cases.
+ */
+export function selectNestedRow(row: SubmissionResponse, key: string, rootParentGroup: string | undefined) {
+  // Supplemental details should always use exact keys.
+  if (key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+    return row[key]
+  }
+
+  // Prefer exact key lookup whenever available.
+  if (key in row) {
+    return row[key]
+  }
+
+  // If exact key is missing, find the closest existing parent path.
+  // Example: key `group_a/group_b/question` with data stored at `group_a/group_b`.
+  const keyPathSegments = key.split('/')
+  for (let i = keyPathSegments.length - 1; i >= 1; i--) {
+    const parentPath = keyPathSegments.slice(0, i).join('/')
+    if (parentPath in row) {
+      const parentValue = row[parentPath]
+
+      // Parent fallback is only valid for container-like values (repeat/group payloads).
+      // This avoids accidentally targeting an unrelated scalar from a shorter matching path.
+      if (Array.isArray(parentValue) || (typeof parentValue === 'object' && parentValue !== null)) {
+        return parentValue
+      }
+    }
+  }
+
+  // Backward-compatible fallback for root-level repeat groups.
+  if (rootParentGroup && rootParentGroup in row) {
+    const rootParentValue = row[rootParentGroup]
+    if (Array.isArray(rootParentValue) || (typeof rootParentValue === 'object' && rootParentValue !== null)) {
+      return rootParentValue
+    }
+  }
+
+  return row[key]
+}
+
+/**
  * Returns a complete and unique list of columns (keys) that contain displayable
  * data that is useful for users.
  *

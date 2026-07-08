@@ -529,6 +529,9 @@ export function getRepeatGroupAnswers(
   /** Full (nested) path to a response, e.g. group_person/group_pets/group_pet/pet_name. */
   fullPath: string,
 ): React.ReactNode[] {
+  const pathSegments = fullPath.split('/')
+  const lastPathSegmentIndex = pathSegments.length - 1
+
   // This function is a recursive detective. It goes through nested groups from given path (`targetKey`), looking for
   // answers. We are traversing `DataResponse | SubmissionResponse` and it's values (might be nested arrays), going one path level and
   // one `responseData` level at a time - verifying if response exist and if needed (nested) going deeper.
@@ -537,17 +540,29 @@ export function getRepeatGroupAnswers(
     currentDepth = 0,
     responseIndex?: number,
   ): Array<JSX.Element | string> => {
-    const currentPath = fullPath
-      .split('/')
-      .slice(0, currentDepth + 1)
-      .join('/')
-
     if (!isSubmissionResponseValueObject(data)) return []
 
-    const submissionResponseValue = data[currentPath]
-    if (!submissionResponseValue) return []
+    // Some submissions keep grouped-repeat keys under a deeper full prefix directly on parent object,
+    // so we may need to jump over missing path levels.
+    let resolvedDepth = currentDepth
+    let submissionResponseValue: SubmissionResponseValue | undefined
+    while (resolvedDepth <= lastPathSegmentIndex) {
+      const resolvedPath = pathSegments.slice(0, resolvedDepth + 1).join('/')
+      const resolvedSegment = pathSegments[resolvedDepth]
+      const hasResolvedPath = Object.prototype.hasOwnProperty.call(data, resolvedPath)
+      const hasResolvedSegment = Object.prototype.hasOwnProperty.call(data, resolvedSegment)
 
-    if (currentPath === fullPath) {
+      if (hasResolvedPath || hasResolvedSegment) {
+        submissionResponseValue = hasResolvedPath ? data[resolvedPath] : data[resolvedSegment]
+        break
+      }
+
+      resolvedDepth += 1
+    }
+
+    if (typeof submissionResponseValue === 'undefined') return []
+
+    if (resolvedDepth === lastPathSegmentIndex) {
       // At full path `submissionResponseValue` should be an actual response to a repeat group question.
 
       // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
@@ -558,7 +573,7 @@ export function getRepeatGroupAnswers(
       // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
       // works for them too :fingers_crossed:.
       const responseNumber = responseIndex !== undefined ? responseIndex + 1 : undefined
-      const levelParentKey = fullPath.split('/').slice(0, currentDepth).join('/')
+      const levelParentKey = fullPath.split('/').slice(0, resolvedDepth).join('/')
       const attachmentPath = appendTextToPathAtLevel(fullPath, levelParentKey, `[${responseNumber}]`)
       const attachment = getMediaAttachment(responseData, String(submissionResponseValue), attachmentPath)
 
@@ -573,12 +588,32 @@ export function getRepeatGroupAnswers(
     } else {
       // Here we go recursively into each item of the array, looking for answers.
 
+      if (isSubmissionResponseValueObject(submissionResponseValue)) {
+        return lookForAnswers(submissionResponseValue, resolvedDepth + 1, responseIndex)
+      }
+
       // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
       if (!Array.isArray(submissionResponseValue)) return []
 
-      return submissionResponseValue.flatMap((item: SubmissionResponseValue, itemIndex: number) =>
-        lookForAnswers(item, currentDepth + 1, itemIndex),
+      const answersByBranch = submissionResponseValue.map((item: SubmissionResponseValue, itemIndex: number) =>
+        lookForAnswers(item, resolvedDepth + 1, itemIndex),
       )
+
+      const shouldGroupByBranch =
+        resolvedDepth + 2 <= lastPathSegmentIndex &&
+        answersByBranch.some((branch) => branch.length > 1) &&
+        answersByBranch.every((branch) => branch.every((answer) => typeof answer === 'string'))
+
+      if (shouldGroupByBranch) {
+        return answersByBranch.flatMap((branch) => {
+          if (branch.length <= 0) return []
+          if (branch.length === 1) return branch
+
+          return [`(${branch.join(', ')})`]
+        })
+      }
+
+      return answersByBranch.flat()
     }
   }
 
