@@ -128,7 +128,7 @@ export default function AssetMoreActions(props: AssetMoreActionsProps) {
               <Menu.Target>
                 <Menu.Item leftSection={<KoboIcon icon={IconChevronLeft} />}>{t('Move to')}</Menu.Item>
               </Menu.Target>
-              <Menu.Dropdown mah='50vh' h={400} style={{ overflowY: 'auto' }}>
+              <Menu.Dropdown mah='50vh' style={{ overflowY: 'auto' }}>
                 {props.managedCollections.map((collection) => {
                   const isAssetParent = collection.url === props.asset.parent
                   const displayName = assetUtils.getAssetDisplayName(collection).final
