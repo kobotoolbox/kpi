@@ -15,34 +15,36 @@ interface RepeatGroupCellProps {
   submissionTotal: number
 }
 
+function formatIndexPath(indexPath: number[]): string {
+  return `${indexPath.join('.')}.`
+}
+
+function formatInlineAnswer(answerNode: RepeatGroupAnswerTreeNode, indexPath: number[]): string {
+  if (!Array.isArray(answerNode)) {
+    return `${formatIndexPath(indexPath)} ${formatRepeatGroupAnswerValueToText(answerNode)}`
+  }
+
+  return answerNode
+    .map((childNode, childIndex) => formatInlineAnswer(childNode, [...indexPath, childIndex + 1]))
+    .join('; ')
+}
+
+function collectIndexedLeafAnswers(answerNode: RepeatGroupAnswerTreeNode, indexPath: number[]): string[] {
+  if (!Array.isArray(answerNode)) {
+    return [`${formatIndexPath(indexPath)} ${formatRepeatGroupAnswerValueToText(answerNode)}`]
+  }
+
+  return answerNode.flatMap((childNode, childIndex) =>
+    collectIndexedLeafAnswers(childNode, [...indexPath, childIndex + 1]),
+  )
+}
+
 /**
  * Displays a list of answers from a repeat group question.
  */
 export default function RepeatGroupCell(props: RepeatGroupCellProps) {
   const repeatGroupAnswers = getRepeatGroupAnswerTree(props.submissionData, props.rowName)
   if (!repeatGroupAnswers || repeatGroupAnswers.length <= 0) return null
-
-  const formatIndexPath = (indexPath: number[]): string => `${indexPath.join('.')}.`
-
-  const formatInlineAnswer = (answerNode: RepeatGroupAnswerTreeNode, indexPath: number[]): string => {
-    if (!Array.isArray(answerNode)) {
-      return `${formatIndexPath(indexPath)} ${formatRepeatGroupAnswerValueToText(answerNode)}`
-    }
-
-    return answerNode
-      .map((childNode, childIndex) => formatInlineAnswer(childNode, [...indexPath, childIndex + 1]))
-      .join('; ')
-  }
-
-  const collectIndexedLeafAnswers = (answerNode: RepeatGroupAnswerTreeNode, indexPath: number[]): string[] => {
-    if (!Array.isArray(answerNode)) {
-      return [`${formatIndexPath(indexPath)} ${formatRepeatGroupAnswerValueToText(answerNode)}`]
-    }
-
-    return answerNode.flatMap((childNode, childIndex) =>
-      collectIndexedLeafAnswers(childNode, [...indexPath, childIndex + 1]),
-    )
-  }
 
   const inlineText = repeatGroupAnswers.map((answer, i) => formatInlineAnswer(answer, [i + 1])).join('; ')
 
