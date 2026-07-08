@@ -102,6 +102,7 @@ export function getRepeatGroupAnswerTree(
     data: DataResponse | SubmissionResponse | SubmissionResponseValue,
     currentDepth = 0,
     responseIndex?: number,
+    allowBareSegmentFallback = false,
   ): RepeatGroupAnswerTreeNode[] => {
     if (!isSubmissionResponseValueObject(data)) return []
 
@@ -115,7 +116,7 @@ export function getRepeatGroupAnswerTree(
       const resolvedPath = pathSegments.slice(0, resolvedDepth + 1).join('/')
       const resolvedSegment = pathSegments[resolvedDepth]
       const hasResolvedPath = Object.prototype.hasOwnProperty.call(data, resolvedPath)
-      const hasResolvedSegment = Object.prototype.hasOwnProperty.call(data, resolvedSegment)
+      const hasResolvedSegment = allowBareSegmentFallback && Object.prototype.hasOwnProperty.call(data, resolvedSegment)
 
       if (hasResolvedPath || hasResolvedSegment) {
         submissionResponseValue = hasResolvedPath ? data[resolvedPath] : data[resolvedSegment]
@@ -149,7 +150,7 @@ export function getRepeatGroupAnswerTree(
     }
 
     if (isSubmissionResponseValueObject(submissionResponseValue)) {
-      return lookForAnswers(submissionResponseValue, resolvedDepth + 1, responseIndex)
+      return lookForAnswers(submissionResponseValue, resolvedDepth + 1, responseIndex, true)
     }
 
     // If this branch is not an object or an array, then the saved submission
@@ -157,7 +158,7 @@ export function getRepeatGroupAnswerTree(
     if (!Array.isArray(submissionResponseValue)) return []
 
     const answersByBranch: RepeatGroupAnswerTreeNode[][] = submissionResponseValue.map(
-      (item: SubmissionResponseValue, itemIndex: number) => lookForAnswers(item, resolvedDepth + 1, itemIndex),
+      (item: SubmissionResponseValue, itemIndex: number) => lookForAnswers(item, resolvedDepth + 1, itemIndex, true),
     )
 
     const normalizedAnswersByBranch: RepeatGroupAnswerTreeNode[][] = answersByBranch.map(

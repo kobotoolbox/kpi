@@ -95,6 +95,16 @@ describe('getRepeatGroupAnswers', () => {
     chai.expect(test).to.deep.equal([])
   })
 
+  it('should not match unrelated root-level segment when full repeat path is missing', () => {
+    const submissionWithUnrelatedRootName = makeSubmission({
+      name: 'Alice',
+    })
+
+    const test = getRepeatGroupAnswers(submissionWithUnrelatedRootName, 'group_a/name')
+
+    chai.expect(test).to.deep.equal([])
+  })
+
   it('should skip unanswered iterations and keep answered values', () => {
     const partiallyAnsweredRepeatSubmission = makeRepeatSubmission('children', 'name', [
       'Ada',
