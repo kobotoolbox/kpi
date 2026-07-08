@@ -564,16 +564,29 @@ class DataViewSet(
 
         deployment = self._get_deployment()
         try:
+            submission_root_uuid_prefixed = add_uuid_prefix(submission_root_uuid)
+            # Fallback to meta/instanceID
+            uuid_query = {
+                '$or': [
+                    {'meta/rootUuid': submission_root_uuid_prefixed},
+                    {'meta/instanceID': submission_root_uuid_prefixed},
+                ]
+            }
             submission = list(
                 deployment.get_submissions(
                     user=request.user,
-                    query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)},
+                    query=uuid_query,
                 )
             )[0]
         except IndexError:
             raise Http404
 
-        submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+        submission_root_uuid = submission.get(deployment.SUBMISSION_ROOT_UUID_XPATH)
+        if not submission_root_uuid:
+            submission_root_uuid = submission_root_uuid_prefixed
+            submission[deployment.SUBMISSION_ROOT_UUID_XPATH] = (
+                submission_root_uuid_prefixed
+            )
 
         if request.method == 'GET':
             return Response(
