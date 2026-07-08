@@ -1,5 +1,3 @@
-# Generated on 2026-07-08
-
 from django.db import migrations
 
 

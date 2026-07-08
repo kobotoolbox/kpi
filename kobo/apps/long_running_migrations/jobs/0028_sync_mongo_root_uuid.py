@@ -10,6 +10,7 @@ from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.utils.log import logging
 
+
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 
 
@@ -44,7 +45,7 @@ def run():
             break
 
         logging.info(
-            f'[LRM 0028] - Processing batch from _id {docs[0]["_id"]} to {docs[-1]["_id"]}'
+            f'[LRM 0028] - Processing batch _id {docs[0]["_id"]} to {docs[-1]["_id"]}'
         )
         _process_batch(docs)
         last_id = docs[-1]['_id']
