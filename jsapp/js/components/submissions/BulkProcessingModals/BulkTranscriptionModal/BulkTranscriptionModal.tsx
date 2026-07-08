@@ -29,6 +29,7 @@ import type { LanguageCode } from '../../../languages/languagesStore'
 import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
+import {formatTimeFromSeconds} from '../../bulkProcessingUtils'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
@@ -162,26 +163,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     setShowWarningModal(!showWarningModal)
   }
 
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-
-    if (hours && !minutes) {
-      return t('##hours## hours').replace('##hours##', String(hours))
-    } else if (hours && minutes) {
-      return t('##hours## hours, ##minutes## minutes')
-        .replace('##hours##', String(hours))
-        .replace('##minutes##', String(minutes))
-    } else if (!hours && minutes) {
-      return t('##minutes## minutes').replace('##minutes##', String(minutes))
-    } else if (!hours && !minutes) {
-      return t('##seconds## seconds').replace('##seconds##', String(seconds))
-    } else {
-      // Fallback for typescript, should never happen.
-      return '…'
-    }
-  }
-
   return (
     <>
       {showWarningModal && (
@@ -208,7 +189,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               .replace('##total_files##', String(eligibleSubmissions.length))
               .replace(
                 '##total_length##',
-                isAudioDurationLoading || isAudioDurationError ? '…' : formatDuration(audioDuration),
+                isAudioDurationLoading || isAudioDurationError ? '…' : formatTimeFromSeconds(audioDuration),
               )}
           </Text>
 

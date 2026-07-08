@@ -120,3 +120,26 @@ export function getVisibleBulkProcessingSubmissionUuidsToRefresh(
 
   return [...uuidsToRefresh].filter((submissionUuid) => visibleSubmissionUuids.has(submissionUuid))
 }
+
+/*
+ * Formats seconds into a "<hours> hours, <minutes> minutes" structure, with "…" as a fallback
+ */
+export const formatTimeFromSeconds = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+
+  if (hours && !minutes) {
+    return t('##hours## hours').replace('##hours##', String(hours))
+  } else if (hours && minutes) {
+    return t('##hours## hours, ##minutes## minutes')
+      .replace('##hours##', String(hours))
+      .replace('##minutes##', String(minutes))
+  } else if (!hours && minutes) {
+    return t('##minutes## minutes').replace('##minutes##', String(minutes))
+  } else if (!hours && !minutes) {
+    return t('##seconds## seconds').replace('##seconds##', String(seconds))
+  } else {
+    // Fallback for typescript, should never happen.
+    return '…'
+  }
+}
