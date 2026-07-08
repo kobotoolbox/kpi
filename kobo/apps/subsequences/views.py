@@ -27,8 +27,8 @@ from kobo.apps.subsequences.serializers import (
 )
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.permissions import (
-    AdvancedSubmissionPermission,
-    AssetAdvancedFeaturesPermission
+    AssetAdvancedFeaturesPermission,
+    QATagTrackerPermission,
 )
 from kpi.schema_extensions.v2.subsequences.examples import (
     get_bulk_accept_examples,
@@ -428,7 +428,7 @@ class QATagTrackerViewSet(
     """
 
     serializer_class = QATagTrackerSerializer
-    permission_classes = (AdvancedSubmissionPermission,)
+    permission_classes = (QATagTrackerPermission,)
     versioning_class = APIV2Versioning
     pagination_class = None
     http_method_names = ['get']

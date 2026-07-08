@@ -31,6 +31,7 @@ from kobo.apps.subsequences.tests.constants import (
     FIX_QUAL_TEXT_UUID,
     QUESTION_SUPPLEMENT,
 )
+from kpi.constants import PERM_VIEW_SUBMISSIONS
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -1449,6 +1450,35 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         self._patch_tags(['poverty'])
         other_user, _ = User.objects.get_or_create(username='anotheruser')
         self.client.force_login(other_user)
+
+        response = self.client.get(self._tags_list_url())
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_list_denied_for_read_only_submission_viewer(self):
+        """
+        Test that a user with only `view_submissions` (read-only submission
+        access) cannot list tracked tags, since listing is reserved for users
+        who can submit QA answers (`change_submissions`). Because reads require
+        `change_submissions`, such a user does not even meet the view threshold
+        and the object's existence is hidden with a 404
+        """
+        self._patch_tags(['poverty'])
+        other_user, _ = User.objects.get_or_create(username='anotheruser')
+        self.asset.assign_perm(other_user, PERM_VIEW_SUBMISSIONS)
+        self.client.force_login(other_user)
+
+        response = self.client.get(self._tags_list_url())
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_list_denied_for_anonymous_user(self):
+        """
+        Test that an unauthenticated (anonymous) request cannot list tracked
+        tags and receives a 404 rather than leaking the data
+        """
+        self._patch_tags(['poverty'])
+        self.client.logout()
 
         response = self.client.get(self._tags_list_url())
 
