@@ -1,6 +1,6 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
@@ -18,16 +18,18 @@ import {
 import Alert from '#/components/common/alert'
 import RegionSelector from '#/components/languages/RegionSelector'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useCalculateAudioDuration } from '#/hooks/useCalculateAudioDuration.hook'
 import { useSession } from '#/stores/useSession'
-import { formatTimeFromSeconds, notify } from '#/utils'
+import { convertSecondsToMinutes, formatTimeFromSeconds, notify } from '#/utils'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
 import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
+import { getAlertDefinitions } from '../alerts/alertDefinitions'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
@@ -112,7 +114,22 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     activeBulkActions: props.activeBulkActions,
   })
 
+  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
   const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
+
+  const alreadyTranscribedSubmissionUuids = useMemo(
+    () => activeAlerts.find((alert) => alert.id === 'already-transcribed')?.filteredSubmissionUuids ?? [],
+    [activeAlerts],
+  )
+
+  const alreadyTranscribedSubmissions = useMemo(() => {
+    if (alreadyTranscribedSubmissionUuids.length === 0) {
+      return []
+    }
+    const uuids = new Set(alreadyTranscribedSubmissionUuids)
+    return props.selectedSubmissions.filter((submission) => uuids.has(submission._uuid))
+  }, [alreadyTranscribedSubmissionUuids, props.selectedSubmissions])
 
   const {
     duration: audioDuration,
@@ -123,9 +140,52 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     errorMessage: audioDurationErrorMesssage,
   } = useCalculateAudioDuration({
     selectedSubmissions: eligibleSubmissions,
-    fieldId: props.fieldXpath,
+    fieldId: sourceRowPath,
     assetUid: props.assetUid,
   })
+
+  const {
+    duration: alreadyTranscribedDuration,
+    isLoading: isAlreadyTranscribedDurationLoading,
+    isError: isAlreadyTranscribedDurationError,
+  } = useCalculateAudioDuration({
+    selectedSubmissions: alreadyTranscribedSubmissions,
+    fieldId: sourceRowPath,
+    assetUid: props.assetUid,
+  })
+
+  const activeAlertsWithResolvedMinutes = useMemo(() => {
+    const alreadyTranscribedAlert = getAlertDefinitions('transcript').find(
+      (alert) => alert.id === 'already-transcribed',
+    )
+    if (!alreadyTranscribedAlert) {
+      return activeAlerts
+    }
+
+    const minutes =
+      isAlreadyTranscribedDurationLoading || isAlreadyTranscribedDurationError
+        ? '…'
+        : alreadyTranscribedDuration > 0
+          ? Math.max(1, convertSecondsToMinutes(alreadyTranscribedDuration))
+          : 0
+
+    return activeAlerts.map((alert) => {
+      if (alert.id !== 'already-transcribed') {
+        return alert
+      }
+
+      const computedValues = {
+        ...alert.computedValues,
+        minutes,
+      }
+
+      return {
+        ...alert,
+        computedValues,
+        message: alreadyTranscribedAlert.messageTemplate(computedValues),
+      }
+    })
+  }, [activeAlerts, alreadyTranscribedDuration, isAlreadyTranscribedDurationError, isAlreadyTranscribedDurationLoading])
 
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
@@ -143,7 +203,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       uidAsset: props.assetUid,
       data: {
         action_id: ActionIdEnum.automatic_google_transcription,
-        question_xpath: props.fieldXpath,
+        question_xpath: sourceRowPath,
         submission_uuids: eligibleSubmissionUuids,
         params: {
           language: selectedLanguage!,
@@ -212,10 +272,10 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
             />
           </Group>
 
-          <BulkProcessingAlerts activeAlerts={activeAlerts} />
+          <BulkProcessingAlerts activeAlerts={activeAlertsWithResolvedMinutes} />
 
           {/* Legacy alert - will be removed once evaluators are implemented */}
-          {hasExceededLimit && activeAlerts.length === 0 && (
+          {hasExceededLimit && activeAlertsWithResolvedMinutes.length === 0 && (
             <Alert type='warning' iconName='information' mt={12} mb={12}>
               {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
             </Alert>
