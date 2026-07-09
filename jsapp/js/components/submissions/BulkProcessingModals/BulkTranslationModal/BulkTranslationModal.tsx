@@ -103,11 +103,17 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
   // Use bulk processing alerts hook
+  const nearLimitRequiredCharacters = props.selectedSubmissions.reduce((sum, sub) => {
+    const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
+    return sum + supplementalValue.length
+  }, 0)
+
   const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'translation',
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
     fieldXpath: props.fieldXpath,
+    nearLimitRequiredAmount: nearLimitRequiredCharacters,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })

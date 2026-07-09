@@ -23,6 +23,8 @@ export interface AlertEvaluationContext {
   /** For transcription only */
   selectedRegion?: string
   actionType: BulkActionType
+  /** Required amount for full job in base units: seconds (transcription) or characters (translation). */
+  nearLimitRequiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
   previouslyFilteredSubmissionUuids: Set<string>

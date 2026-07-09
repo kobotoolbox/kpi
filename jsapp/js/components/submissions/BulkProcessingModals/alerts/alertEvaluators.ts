@@ -1,4 +1,5 @@
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { convertSecondsToMinutes } from '#/utils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 import { createInactiveResult } from './utils'
 
@@ -27,13 +28,46 @@ export function evaluateReachedLimit(context: AlertEvaluationContext): AlertEval
 
 /**
  * Checks if remaining quota is less than required but greater than 0
- * TODO: DEV-1399 - Implement this evaluator (depends on DEV-2255 for audio duration)
  */
 export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluationResult {
-  console.log('[BulkProcessingAlerts] Evaluator evaluateNearLimit - STUBBED, returning no alerts', context)
+  const { actionType, serviceUsageData, nearLimitRequiredAmount } = context
 
-  // STUB: Return inactive result
-  return createInactiveResult('error')
+  if (!serviceUsageData?.balances || nearLimitRequiredAmount === undefined) {
+    return createInactiveResult('error')
+  }
+
+  if (nearLimitRequiredAmount <= 0) {
+    return createInactiveResult('error')
+  }
+
+  const balance =
+    actionType === 'transcript' ? serviceUsageData.balances.asr_seconds : serviceUsageData.balances.mt_characters
+
+  if (!balance) {
+    return createInactiveResult('error')
+  }
+
+  const remainingAmount = balance.balance_value
+
+  if (remainingAmount <= 0 || remainingAmount >= nearLimitRequiredAmount) {
+    return createInactiveResult('error')
+  }
+
+  const computedValues =
+    actionType === 'transcript'
+      ? {
+          remainingMinutes: convertSecondsToMinutes(remainingAmount),
+        }
+      : {
+          remainingCharacters: remainingAmount,
+        }
+
+  return {
+    shouldShow: true,
+    type: 'error',
+    filteredSubmissionUuids: [],
+    computedValues,
+  }
 }
 
 /**

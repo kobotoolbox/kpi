@@ -1,9 +1,10 @@
 import { expect } from 'chai'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import { asrExceeded, mtExceeded, withinLimits } from '#/endpoints/serviceUsage.factory'
+import { asrExceeded, asrNearLimit, mtExceeded, mtNearLimit, withinLimits } from '#/endpoints/serviceUsage.factory'
 import {
   evaluateAlreadyTranscribed,
   evaluateAlreadyTranslated,
+  evaluateNearLimit,
   evaluateNoEligibleSubmissions,
   evaluateNoSource,
   evaluateReachedLimit,
@@ -164,6 +165,92 @@ describe('evaluateReachedLimit', () => {
     }
 
     const result = evaluateReachedLimit(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('error')
+  })
+})
+
+describe('evaluateNearLimit', () => {
+  const mockSubmissions = [assetDataFactory(1, { _uuid: 'uuid-1' }), assetDataFactory(2, { _uuid: 'uuid-2' })]
+
+  const baseContext: AlertEvaluationContext = {
+    submissions: mockSubmissions,
+    fieldXpath: 'audio_question',
+    actionType: 'transcript',
+    activeBulkActions: [],
+    previouslyFilteredSubmissionUuids: new Set(),
+  }
+
+  it('should show alert for transcription when remaining balance is positive but below required amount', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      serviceUsageData: asrNearLimit(95),
+      nearLimitRequiredAmount: 120,
+    }
+
+    const result = evaluateNearLimit(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.type).to.equal('error')
+    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result.computedValues).to.deep.equal({
+      remainingMinutes: 0,
+    })
+  })
+
+  it('should not show alert when remaining amount is enough to process the full job', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      serviceUsageData: asrNearLimit(95),
+      nearLimitRequiredAmount: 20,
+    }
+
+    const result = evaluateNearLimit(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('error')
+  })
+
+  it('should not show alert when balance is exceeded', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      serviceUsageData: asrExceeded(),
+      nearLimitRequiredAmount: 120,
+    }
+
+    const result = evaluateNearLimit(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('error')
+  })
+
+  it('should show alert for translation when remaining characters are below required amount', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      actionType: 'translation',
+      serviceUsageData: mtNearLimit(95),
+      nearLimitRequiredAmount: 3000,
+    }
+
+    const result = evaluateNearLimit(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.type).to.equal('error')
+    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result.computedValues).to.deep.equal({
+      remainingCharacters: 2500,
+    })
+  })
+
+  it('should not show alert when required amount is missing', () => {
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      serviceUsageData: asrNearLimit(95),
+      nearLimitRequiredAmount: undefined,
+    }
+
+    const result = evaluateNearLimit(context)
 
     expect(result.shouldShow).to.equal(false)
     expect(result.type).to.equal('error')

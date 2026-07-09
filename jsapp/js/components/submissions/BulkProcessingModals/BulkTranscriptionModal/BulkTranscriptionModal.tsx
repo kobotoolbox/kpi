@@ -104,17 +104,31 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
+  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
+  const {
+    duration: totalSelectedAudioDuration,
+    isLoading: isTotalSelectedAudioDurationLoading,
+    isError: isTotalSelectedAudioDurationError,
+  } = useCalculateAudioDuration({
+    selectedSubmissions: props.selectedSubmissions,
+    fieldId: sourceRowPath,
+    assetUid: props.assetUid,
+  })
+
+  const nearLimitRequiredSeconds =
+    isTotalSelectedAudioDurationLoading || isTotalSelectedAudioDurationError ? undefined : totalSelectedAudioDuration
+
   const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'transcript',
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
     selectedRegion: selectedRegion || undefined,
     fieldXpath: props.fieldXpath,
+    nearLimitRequiredAmount: nearLimitRequiredSeconds,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })
-
-  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
 
   const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
 
