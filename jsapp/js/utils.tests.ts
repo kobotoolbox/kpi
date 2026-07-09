@@ -13,13 +13,15 @@ import {
 describe('utils', () => {
   describe('join', () => {
     it('should make an array with separators between array elements', () => {
-      ;[
+      const testCases: Array<Array<any>> = [
         [['hi', 'hello', 'how are you'], '<br/>', ['hi', '<br/>', 'hello', '<br/>', 'how are you']],
         [['a', 'b', 'c'], '\n', ['a', '\n', 'b', '\n', 'c']],
         [[1, 2, 3], 0, [1, 0, 2, 0, 3]],
         [['a', 2, { hello: 'world' }], [], ['a', [], 2, [], { hello: 'world' }]],
         // We could add a real JSX test case here (we'd have to import React)
-      ].forEach((testCase) => {
+      ]
+
+      testCases.forEach((testCase) => {
         const test = join(testCase[0], testCase[1])
         chai.expect(test).to.deep.equal(testCase[2])
       })
@@ -28,7 +30,7 @@ describe('utils', () => {
 
   describe('formatSeconds', () => {
     it('should format properly', () => {
-      ;[
+      const testCases: [number, string][] = [
         [10, '00:10'],
         [0, '00:00'],
         [1.333, '00:01'],
@@ -39,7 +41,8 @@ describe('utils', () => {
         [3599, '59:59'],
         [6000, '100:00'],
         [6666, '111:06'],
-      ].forEach((testCase) => {
+      ]
+      testCases.forEach((testCase) => {
         const test = formatSeconds(testCase[0])
         chai.expect(test).to.equal(testCase[1])
       })
@@ -49,8 +52,8 @@ describe('utils', () => {
   describe('getLangAsObject', () => {
     it('should return object for valid langString', () => {
       const langObj = getLangAsObject('English (en)')
-      chai.expect(langObj.name).to.equal('English')
-      chai.expect(langObj.code).to.equal('en')
+      chai.expect(langObj?.name).to.equal('English')
+      chai.expect(langObj?.code).to.equal('en')
     })
 
     it('should return undefined for invalid langString', () => {
@@ -65,14 +68,13 @@ describe('utils', () => {
     })
 
     it('should work properly with getLangString', () => {
-      const langObj = getLangAsObject(
-        getLangString({
-          name: 'English',
-          code: 'en',
-        }),
-      )
-      chai.expect(langObj.name).to.equal('English')
-      chai.expect(langObj.code).to.equal('en')
+      const langString = getLangString({
+        name: 'English',
+        code: 'en',
+      })
+      const langObj = getLangAsObject(langString || '')
+      chai.expect(langObj?.name).to.equal('English')
+      chai.expect(langObj?.code).to.equal('en')
     })
   })
 
@@ -85,16 +87,18 @@ describe('utils', () => {
       chai.expect(langString).to.equal('English (en)')
     })
 
+    // TODO: remove this test when all code is migrated to TS
     it('should return nothing for invalid object', () => {
       const langString = getLangString({
         pizzaType: 2,
         delivery: false,
-      })
+      } as any)
       chai.expect(langString).to.equal(undefined)
     })
 
     it('should work properly with getLangAsObject', () => {
-      const langString = getLangString(getLangAsObject('English (en)'))
+      const langObj = getLangAsObject('English (en)')
+      const langString = langObj ? getLangString(langObj) : ''
       chai.expect(langString).to.equal('English (en)')
     })
   })
