@@ -1,3 +1,4 @@
+import { formatTimeFromSeconds } from '#/utils'
 import {
   evaluateAlreadyTranscribed,
   evaluateAlreadyTranslated,
@@ -71,10 +72,10 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
         isTranscription
           ? t('##count## audio files totaling ##duration## already transcribed and will be ignored')
               .replace('##count##', String(values.count ?? 0))
-              .replace('##duration##', String(values.duration ?? 0))
+              .replace('##duration##', String(values.duration ?? formatTimeFromSeconds(0)))
           : t('##count## transcripts totaling ##characters## characters already translated and will be ignored')
               .replace('##count##', String(values.count ?? 0))
-              .replace('##characters##', String(values.characters ?? 0)),
+              .replace('##characters##', String(values.characters ?? formatTimeFromSeconds(0))),
     },
     {
       id: 'no-eligible-submissions',
