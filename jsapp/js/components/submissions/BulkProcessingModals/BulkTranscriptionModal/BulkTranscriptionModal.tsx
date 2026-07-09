@@ -195,7 +195,10 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       return {
         ...alert,
         computedValues,
-        message: getAlreadyTranscribedMessage(Number(computedValues.count ?? 0), String(computedValues.duration ?? 0)),
+        message: getAlreadyTranscribedMessage(
+          Number(alert.computedValues.count ?? 0),
+          String(computedValues.duration ?? 0),
+        ),
       }
     })
   }, [activeAlerts, alreadyTranscribedDuration, isAlreadyTranscribedDurationError, isAlreadyTranscribedDurationLoading])
