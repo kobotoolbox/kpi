@@ -225,21 +225,24 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')),
+        env.str(
+            'CONSTANCE_SUPPORT_EMAIL',
+            env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
+        ),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        env.str('CONSTANCE_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
+        env.str('CONSTANCE_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
         env.str(
-            'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
+            'CONSTANCE_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
         ),
         'URL for "KoboToolbox Community Forum"',
     ),
@@ -328,7 +331,7 @@ CONSTANCE_CONFIG = {
         'Require MFA for superusers with a usable password',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
-        env.bool('USAGE_LIMIT_ENFORCEMENT', False),
+        env.bool('CONSTANCE_USAGE_LIMIT_ENFORCEMENT', False),
         'For Stripe-enabled instances, determines whether usage limits will be enforced'
         'by blocking submissions/NLP actions or deleting stored files.',
     ),
@@ -345,10 +348,6 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
-    # We are adopting the `CONSTANCE_` prefix as the new standard for all env
-    # variables that override Constance defaults. Legacy variables (e.g., KOBO_*)
-    # will be deprecated and migrated to this new pattern after the upcoming
-    # migration to Constance 4.x
     'ASR_MT_GOOGLE_PROJECT_ID': (
         env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
