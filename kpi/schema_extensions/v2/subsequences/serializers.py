@@ -192,13 +192,6 @@ BulkAcceptResponse = inline_serializer_class(
     },
 )
 
-QATagTrackerResponse = inline_serializer_class(
-    name='QATagTrackerResponse',
-    fields={
-        'value': serializers.CharField(),
-    },
-)
-
 BulkActionListResponse = extend_schema_serializer(many=False)(
     inline_serializer_class(
         name='BulkActionListResponse',

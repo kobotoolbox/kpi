@@ -40,7 +40,6 @@ from kpi.schema_extensions.v2.subsequences.examples import (
     get_advanced_features_create_examples,
     get_advanced_features_list_examples,
     get_advanced_features_update_examples,
-    get_qa_tag_trackers_list_examples,
 )
 from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeatureCreateResponse,
@@ -54,7 +53,6 @@ from kpi.schema_extensions.v2.subsequences.serializers import (
     BulkActionListResponse,
     BulkActionPatchRequest,
     BulkActionResponse,
-    QATagTrackerResponse,
 )
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -405,13 +403,6 @@ class BulkAcceptViewSet(
 @extend_schema_view(
     list=extend_schema(
         description=read_md('subsequences', 'subsequences/qa_tag_trackers_list.md'),
-        responses=open_api_200_ok_response(
-            QATagTrackerResponse,
-            require_auth=False,
-            raise_access_forbidden=False,
-            validate_payload=False,
-        ),
-        examples=get_qa_tag_trackers_list_examples(),
     ),
 )
 class QATagTrackerViewSet(

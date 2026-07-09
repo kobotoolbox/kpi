@@ -10657,35 +10657,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/QATagTrackerResponse"
-                                    }
-                                },
-                                "examples": {
-                                    "QATagTrackersForATagsQuestion": {
-                                        "value": [
-                                            {
-                                                "value": "accomplished"
-                                            }
-                                        ],
-                                        "summary": "QA tag trackers for a tags question"
-                                    }
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
+                                        "$ref": "#/components/schemas/QATagTracker"
                                     }
                                 }
                             }
@@ -30270,11 +30242,12 @@
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
             },
-            "QATagTrackerResponse": {
+            "QATagTracker": {
                 "type": "object",
                 "properties": {
                     "value": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 255
                     }
                 },
                 "required": [

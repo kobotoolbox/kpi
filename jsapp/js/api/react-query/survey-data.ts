@@ -125,7 +125,7 @@ import type { PatchedExportSettingUpdatePayload } from '../models/patchedExportS
 
 import type { PatchedPairedDataPatchPayload } from '../models/patchedPairedDataPatchPayload'
 
-import type { QATagTrackerResponse } from '../models/qATagTrackerResponse'
+import type { QATagTracker } from '../models/qATagTracker'
 
 import type { ReportResponse } from '../models/reportResponse'
 
@@ -6077,18 +6077,11 @@ Lists the tag values previously submitted for a `qualTags` question on this asse
 
  */
 export type assetsQualQuestionsTagsListResponse200 = {
-  data: QATagTrackerResponse[]
+  data: QATagTracker[]
   status: 200
 }
 
-export type assetsQualQuestionsTagsListResponse404 = {
-  data: ErrorDetail
-  status: 404
-}
-
-export type assetsQualQuestionsTagsListResponseComposite =
-  | assetsQualQuestionsTagsListResponse200
-  | assetsQualQuestionsTagsListResponse404
+export type assetsQualQuestionsTagsListResponseComposite = assetsQualQuestionsTagsListResponse200
 
 export type assetsQualQuestionsTagsListResponse = assetsQualQuestionsTagsListResponseComposite & {
   headers: Headers
@@ -6118,7 +6111,7 @@ export const getAssetsQualQuestionsTagsListQueryKey = (uidAsset: string, uidQaQu
 
 export const getAssetsQualQuestionsTagsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>,
-  TError = ErrorDetail,
+  TError = unknown,
 >(
   uidAsset: string,
   uidQaQuestion: string,
@@ -6144,11 +6137,11 @@ export const getAssetsQualQuestionsTagsListQueryOptions = <
 export type AssetsQualQuestionsTagsListQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>
 >
-export type AssetsQualQuestionsTagsListQueryError = ErrorDetail
+export type AssetsQualQuestionsTagsListQueryError = unknown
 
 export function useAssetsQualQuestionsTagsList<
   TData = Awaited<ReturnType<typeof assetsQualQuestionsTagsList>>,
-  TError = ErrorDetail,
+  TError = unknown,
 >(
   uidAsset: string,
   uidQaQuestion: string,
