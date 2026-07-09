@@ -2,7 +2,11 @@ from allauth.account.views import LoginView
 from allauth.mfa.adapter import get_adapter
 from allauth.mfa.internal.flows.add import validate_can_add_authenticator
 from allauth.mfa.totp.internal import auth as totp_auth
+from django.conf import settings
+from django.contrib.auth import logout
 from django.db.models import QuerySet
+from django.http import HttpResponse
+from django.shortcuts import resolve_url
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
@@ -15,12 +19,28 @@ from kpi.utils.log import logging
 from ..forms import LoginForm
 from .flows import activate_totp, deactivate_totp, regenerate_codes
 from .models import MfaMethodsWrapper
-from .permissions import IsMfaEnabled, EnforceSuperuserMFA
+from .permissions import EnforceSuperuserMFA, IsMfaEnabled
 from .serializers import MfaCodeSerializer, UserMfaMethodSerializer
 
 
 class MfaLoginView(LoginView):
     form_class = LoginForm
+
+    def form_valid(self, form) -> HttpResponse:
+        """
+        Overload parent method to drop a stale session before logging in.
+        """
+        # `form.user` is the account being authenticated. Remember it before
+        # anything else: allauth calls `get_success_url()` before the login
+        # completes, and the `logout()` below clears `request.user`, so
+        # `request.user` is not a reliable reference to the target user there.
+        self._login_user = form.user
+
+        user = self.request.user
+        if user.is_authenticated and user.pk != form.user.pk:
+            logout(self.request)
+
+        return super().form_valid(form)
 
     def get_success_url(self):
         """
@@ -37,15 +57,17 @@ class MfaLoginView(LoginView):
         # We do not want to redirect a regular user to `/admin/` if they
         # are not a superuser. Otherwise, they are successfully authenticated,
         # redirected to the admin platform, then disconnected because of the
-        # lack of permissions.
-        user = self.request.user
+        # lack of permissions. Check the account being authenticated
+        # (`self._login_user`), not `request.user`: this runs before the login
+        # completes, and a stale session may have just been logged out.
+        user = getattr(self, '_login_user', self.request.user)
         if (
             user.is_authenticated
             and self.redirect_field_name in self.request.POST
             and not user.is_superuser
             and redirect_to.startswith(reverse('admin:index'))
         ):
-            return ''
+            return resolve_url(settings.LOGIN_REDIRECT_URL)
 
         return redirect_to
 
