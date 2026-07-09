@@ -75,7 +75,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
               .replace('##duration##', String(values.duration ?? formatTimeFromSeconds(0)))
           : t('##count## transcripts totaling ##characters## characters already translated and will be ignored')
               .replace('##count##', String(values.count ?? 0))
-              .replace('##characters##', String(values.characters ?? formatTimeFromSeconds(0))),
+              .replace('##characters##', String(values.characters ?? 0)),
     },
     {
       id: 'no-eligible-submissions',
