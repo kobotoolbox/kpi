@@ -570,7 +570,7 @@ class DataViewSet(
         # TODO remove the block below when LRM 0028 has completed
         root_uuid_key = OpenRosaDeploymentBackend.SUBMISSION_ROOT_UUID_XPATH
         instance_id_key = OpenRosaDeploymentBackend.SUBMISSION_CURRENT_UUID_XPATH
-        if root_uuid_key not in submission:
+        if not submission.get(root_uuid_key):
             submission[root_uuid_key] = submission[instance_id_key]
 
         submission_root_uuid = remove_uuid_prefix(submission[root_uuid_key])
