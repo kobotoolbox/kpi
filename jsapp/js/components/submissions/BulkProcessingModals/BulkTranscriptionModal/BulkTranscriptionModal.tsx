@@ -154,6 +154,9 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     assetUid: props.assetUid,
   })
 
+  // Keep useBulkProcessingAlerts generic, then enrich just the transcription-specific
+  // "already transcribed" warning with duration text calculated in this modal.
+  // All other alerts are rendered exactly as returned by the hook.
   const activeAlertsWithResolvedMinutes = useMemo(() => {
     const alreadyTranscribedAlert = getAlertDefinitions('transcript').find(
       (alert) => alert.id === 'already-transcribed',
