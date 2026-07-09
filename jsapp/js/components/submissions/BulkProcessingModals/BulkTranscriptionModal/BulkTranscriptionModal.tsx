@@ -29,10 +29,15 @@ import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
 import { BulkProcessingWarningModal } from '../../BulkProcessingModals/BulkProcessingWarningModal'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
-import { getAlertDefinitions } from '../alerts/alertDefinitions'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
+
+function getAlreadyTranscribedMessage(count: number, duration: string): string {
+  return t('##count## audio files totaling ##duration## already transcribed and will be ignored')
+    .replace('##count##', String(count))
+    .replace('##duration##', duration)
+}
 
 export interface BulkTranscriptionModalProps {
   fieldXpath: string
@@ -172,13 +177,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   // "already transcribed" warning with duration text calculated in this modal.
   // All other alerts are rendered exactly as returned by the hook.
   const activeAlertsWithResolvedMinutes = useMemo(() => {
-    const alreadyTranscribedAlert = getAlertDefinitions('transcript').find(
-      (alert) => alert.id === 'already-transcribed',
-    )
-    if (!alreadyTranscribedAlert) {
-      return activeAlerts
-    }
-
     const duration =
       isAlreadyTranscribedDurationLoading || isAlreadyTranscribedDurationError
         ? '…'
@@ -197,7 +195,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       return {
         ...alert,
         computedValues,
-        message: alreadyTranscribedAlert.messageTemplate(computedValues),
+        message: getAlreadyTranscribedMessage(Number(computedValues.count ?? 0), String(computedValues.duration ?? 0)),
       }
     })
   }, [activeAlerts, alreadyTranscribedDuration, isAlreadyTranscribedDurationError, isAlreadyTranscribedDurationLoading])
