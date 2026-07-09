@@ -11,17 +11,25 @@ from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.subsequences.audit import create_bulk_action_history_log
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
-from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubsequenceBulkAction
+from kobo.apps.subsequences.models import (
+    QATagTracker,
+    QuestionAdvancedFeature,
+    SubsequenceBulkAction,
+)
 from kobo.apps.subsequences.serializers import (
     BulkAcceptSerializer,
     BulkActionCancelSerializer,
     BulkActionCreateSerializer,
     BulkActionResponseSerializer,
+    QATagTrackerSerializer,
     QuestionAdvancedFeatureSerializer,
     QuestionAdvancedFeatureUpdateSerializer,
 )
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
-from kpi.permissions import AssetAdvancedFeaturesPermission
+from kpi.permissions import (
+    AssetAdvancedFeaturesPermission,
+    QATagTrackerPermission,
+)
 from kpi.schema_extensions.v2.subsequences.examples import (
     get_bulk_accept_examples,
     get_bulk_action_list_response_examples,
@@ -371,3 +379,53 @@ class BulkAcceptViewSet(
             },
             status=status.HTTP_200_OK
         )
+
+
+@extend_schema(
+    tags=['Survey data'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='uid_qa_question',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UUID of the QA tags question',
+        ),
+    ],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('subsequences', 'subsequences/qa_tag_trackers_list.md'),
+    ),
+)
+class QATagTrackerViewSet(
+    NestedViewSetMixin,
+    AssetNestedObjectViewsetMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    GET /api/v2/assets/{uid_asset}/qual-questions/{uid_qa_question}/tags/
+
+    Lists previously tracked tag values for a QA tags question, for use in
+    frontend autocomplete suggestions.
+    """
+
+    serializer_class = QATagTrackerSerializer
+    permission_classes = (QATagTrackerPermission,)
+    versioning_class = APIV2Versioning
+    pagination_class = None
+    http_method_names = ['get']
+
+    def get_queryset(self):
+        return QATagTracker.objects.filter(
+            asset=self.asset,
+            question_uuid=self.kwargs['uid_qa_question'],
+        ).order_by('value')
