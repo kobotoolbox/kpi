@@ -190,6 +190,24 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
 
+
+def _constance_env(getter, new_key, deprecated_key, default):
+    """
+    Read a Constance override from the `CONSTANCE_`-prefixed environment
+    variable, falling back to its deprecated (unprefixed / `KOBO_`) name.
+
+    Emit a `DeprecationWarning` when the deprecated name is still set so
+    deployments know to migrate to the `CONSTANCE_` prefix.
+    """
+    if deprecated_key in os.environ:
+        warnings.warn(
+            f'{deprecated_key} is renamed {new_key}, '
+            f'update the environment variable.',
+            DeprecationWarning,
+        )
+    return getter(new_key, getter(deprecated_key, default))
+
+
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (
         True,
@@ -225,24 +243,39 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        env.str(
+        _constance_env(
+            env.str,
             'CONSTANCE_SUPPORT_EMAIL',
+            'KOBO_SUPPORT_EMAIL',
             env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
         ),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        env.str('CONSTANCE_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        _constance_env(
+            env.str,
+            'CONSTANCE_SUPPORT_URL',
+            'KOBO_SUPPORT_URL',
+            'https://support.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str('CONSTANCE_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
+        _constance_env(
+            env.str,
+            'CONSTANCE_ACADEMY_URL',
+            'KOBO_ACADEMY_URL',
+            'https://academy.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
-        env.str(
-            'CONSTANCE_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
+        _constance_env(
+            env.str,
+            'CONSTANCE_COMMUNITY_URL',
+            'KOBO_COMMUNITY_URL',
+            'https://community.kobotoolbox.org/',
         ),
         'URL for "KoboToolbox Community Forum"',
     ),
@@ -331,7 +364,12 @@ CONSTANCE_CONFIG = {
         'Require MFA for superusers with a usable password',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
-        env.bool('CONSTANCE_USAGE_LIMIT_ENFORCEMENT', False),
+        _constance_env(
+            env.bool,
+            'CONSTANCE_USAGE_LIMIT_ENFORCEMENT',
+            'USAGE_LIMIT_ENFORCEMENT',
+            False,
+        ),
         'For Stripe-enabled instances, determines whether usage limits will be enforced'
         'by blocking submissions/NLP actions or deleting stored files.',
     ),
