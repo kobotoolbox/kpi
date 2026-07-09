@@ -4,7 +4,6 @@ import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseSta
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import type { SubmissionResponse } from '#/dataInterface'
 import {
-  formatTimeFromSeconds,
   getBulkProcessingColumnKey,
   getVisibleBulkProcessingSubmissionUuidsToRefresh,
   isBulkProcessingCellInProgress,
@@ -162,42 +161,5 @@ describe('bulkProcessingUtils', () => {
     const test = getVisibleBulkProcessingSubmissionUuidsToRefresh(prev, [], [notVisibleSubmission])
 
     chai.expect(test).to.deep.equal([])
-  })
-
-  describe('formatTimeFromSeconds', () => {
-    it('formats hours only', () => {
-      const result = formatTimeFromSeconds(7200)
-      chai.expect(result).to.deep.equal('2 hours')
-    })
-
-    it('formats minutes only', () => {
-      const result = formatTimeFromSeconds(3540)
-      chai.expect(result).to.deep.equal('59 minutes')
-    })
-
-    it('formats seconds only', () => {
-      const result = formatTimeFromSeconds(59)
-      chai.expect(result).to.deep.equal('59 seconds')
-    })
-
-    it('formats hours and minutes', () => {
-      const result = formatTimeFromSeconds(7500)
-      chai.expect(result).to.deep.equal('2 hours, 5 minutes')
-    })
-
-    it('handles zero in seconds', () => {
-      const result = formatTimeFromSeconds(0)
-      chai.expect(result).to.deep.equal('0 seconds')
-    })
-
-    it('rounds seconds down to nearest minute if number is more than 60', () => {
-      const result = formatTimeFromSeconds(61)
-      chai.expect(result).to.deep.equal('1 minutes')
-    })
-
-    it('rounds seconds down to nearest minute if number is more than 3600 (an hour)', () => {
-      const result = formatTimeFromSeconds(3601)
-      chai.expect(result).to.deep.equal('1 hours')
-    })
   })
 })
