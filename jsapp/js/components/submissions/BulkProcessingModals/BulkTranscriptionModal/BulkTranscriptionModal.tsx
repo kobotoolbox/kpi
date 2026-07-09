@@ -23,7 +23,7 @@ import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { useCalculateAudioDuration } from '#/hooks/useCalculateAudioDuration.hook'
 import { useSession } from '#/stores/useSession'
-import { convertSecondsToMinutes, formatTimeFromSeconds, notify } from '#/utils'
+import { formatTimeFromSeconds, notify } from '#/utils'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
@@ -162,12 +162,10 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
       return activeAlerts
     }
 
-    const minutes =
+    const duration =
       isAlreadyTranscribedDurationLoading || isAlreadyTranscribedDurationError
         ? '…'
-        : alreadyTranscribedDuration > 0
-          ? Math.max(1, convertSecondsToMinutes(alreadyTranscribedDuration))
-          : 0
+        : formatTimeFromSeconds(alreadyTranscribedDuration)
 
     return activeAlerts.map((alert) => {
       if (alert.id !== 'already-transcribed') {
@@ -176,7 +174,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
       const computedValues = {
         ...alert.computedValues,
-        minutes,
+        duration,
       }
 
       return {

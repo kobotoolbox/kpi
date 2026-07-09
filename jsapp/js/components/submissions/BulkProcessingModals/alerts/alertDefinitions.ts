@@ -69,9 +69,9 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       evaluator: isTranscription ? evaluateAlreadyTranscribed : evaluateAlreadyTranslated,
       messageTemplate: (values) =>
         isTranscription
-          ? t('##count## audio files totaling ##minutes## minutes already transcribed and will be ignored')
+          ? t('##count## audio files totaling ##duration## already transcribed and will be ignored')
               .replace('##count##', String(values.count ?? 0))
-              .replace('##minutes##', String(values.minutes ?? 0))
+              .replace('##duration##', String(values.duration ?? 0))
           : t('##count## transcripts totaling ##characters## characters already translated and will be ignored')
               .replace('##count##', String(values.count ?? 0))
               .replace('##characters##', String(values.characters ?? 0)),

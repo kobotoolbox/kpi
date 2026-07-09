@@ -126,7 +126,7 @@ export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): Ale
     // with the audio-duration endpoint and replaces this placeholder value.
     computedValues: {
       count: alreadyTranscribed.length,
-      minutes: 0,
+      duration: 0,
     },
   }
 }

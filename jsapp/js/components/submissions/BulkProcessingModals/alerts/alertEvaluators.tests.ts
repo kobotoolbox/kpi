@@ -453,7 +453,7 @@ describe('evaluateAlreadyTranscribed', () => {
     expect(result.filteredSubmissionUuids).to.deep.equal([])
     expect(result.computedValues).to.deep.equal({
       count: 0,
-      minutes: 0,
+      duration: 0,
     })
   })
 
@@ -496,7 +496,7 @@ describe('evaluateAlreadyTranscribed', () => {
     expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
     expect(result.computedValues).to.deep.equal({
       count: 2,
-      minutes: 0,
+      duration: 0,
     })
   })
 
@@ -565,7 +565,7 @@ describe('evaluateAlreadyTranscribed', () => {
     expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
     expect(result.computedValues).to.deep.equal({
       count: 1,
-      minutes: 0,
+      duration: 0,
     })
   })
 })
