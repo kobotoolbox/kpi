@@ -1,6 +1,6 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
@@ -102,11 +102,30 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
+  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
   // Use bulk processing alerts hook
-  const nearLimitRequiredCharacters = props.selectedSubmissions.reduce((sum, sub) => {
-    const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
-    return sum + supplementalValue.length
-  }, 0)
+  // Near-limit should reflect only the submissions that still need translation.
+  // Rows that already have a translation in the selected language will be filtered
+  // out by the alert pipeline, so we exclude them here as well to keep the limit check aligned.
+  const nearLimitRequiredCharacters = useMemo(() => {
+    if (!selectedLanguage) {
+      return undefined
+    }
+
+    return props.selectedSubmissions.reduce((sum, sub) => {
+      const supplementalDetails = sub._supplementalDetails?.[sourceRowPath]
+      const translation = supplementalDetails?.translation?.[selectedLanguage]
+
+      if (translation?.value) {
+        // This row is already translated in the chosen language and won't consume MT quota.
+        return sum
+      }
+
+      const supplementalValue = getSupplementalDetailsContent(sub, props.fieldXpath) || ''
+      return sum + supplementalValue.length
+    }, 0)
+  }, [props.selectedSubmissions, props.fieldXpath, selectedLanguage, sourceRowPath])
 
   const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'translation',
@@ -129,10 +148,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const eligibleSubmissionUuids = eligibleSubmissions.map((submission) => submission._uuid)
 
   const handleStartTranslation = () => {
-    // Extract the source row path from the transcript column path
-    // e.g., "_supplementalDetails/q1/transcript_en" -> "q1"
-    const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
-
     // Use eligibleSubmissionUuids from the alerts hook to filter out submissions
     // that have been flagged by warning evaluators (e.g., already translated, no source)
     createBulkTranslation({

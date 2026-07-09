@@ -195,7 +195,7 @@ describe('evaluateNearLimit', () => {
     expect(result.type).to.equal('error')
     expect(result.filteredSubmissionUuids).to.deep.equal([])
     expect(result.computedValues).to.deep.equal({
-      remainingMinutes: 0,
+      remainingSeconds: 30,
     })
   })
 

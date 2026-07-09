@@ -39,6 +39,12 @@ function getAlreadyTranscribedMessage(count: number, duration: string): string {
     .replace('##duration##', duration)
 }
 
+function isAlreadyTranscribedSubmission(submission: SubmissionResponse, sourceRowPath: string): boolean {
+  const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+
+  return Boolean(transcript?.value || transcript?.pendingReview)
+}
+
 export interface BulkTranscriptionModalProps {
   fieldXpath: string
   assetUid: string
@@ -111,12 +117,20 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
   const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
 
+  // Keep the quota estimate aligned with the rows that will actually be sent.
+  // The alert hook filters already-transcribed submissions later, so we mirror
+  // that exclusion here instead of counting every selected row up front.
+  const transcribableSubmissions = useMemo(
+    () => props.selectedSubmissions.filter((submission) => !isAlreadyTranscribedSubmission(submission, sourceRowPath)),
+    [props.selectedSubmissions, sourceRowPath],
+  )
+
   const {
     duration: totalSelectedAudioDuration,
     isLoading: isTotalSelectedAudioDurationLoading,
     isError: isTotalSelectedAudioDurationError,
   } = useCalculateAudioDuration({
-    selectedSubmissions: props.selectedSubmissions,
+    selectedSubmissions: transcribableSubmissions,
     fieldId: sourceRowPath,
     assetUid: props.assetUid,
   })

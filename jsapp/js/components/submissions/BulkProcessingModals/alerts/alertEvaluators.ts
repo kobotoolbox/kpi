@@ -1,5 +1,4 @@
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
-import { convertSecondsToMinutes } from '#/utils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 import { createInactiveResult } from './utils'
 
@@ -56,7 +55,7 @@ export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluat
   const computedValues =
     actionType === 'transcript'
       ? {
-          remainingMinutes: convertSecondsToMinutes(remainingAmount),
+          remainingSeconds: remainingAmount,
         }
       : {
           remainingCharacters: remainingAmount,
