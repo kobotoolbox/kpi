@@ -55,6 +55,33 @@ export default function FormActivity() {
         start: pagination.start,
       }),
     placeholderData: keepPreviousData,
+    refetchInterval: (query) => {
+      // Poll only when there are ongoing bulk processing items
+      const data = query.state.data?.status === 200 ? query.state.data.data : null
+      if (!data?.results) {
+        return false
+      }
+
+      // Check if there are any ongoing bulk processing activities
+      const hasOngoingBulkProcessing = data.results.some((item) => {
+        if (item.action !== 'bulk-processing') {
+          return false
+        }
+        const bulkAction = item.metadata.bulk_action
+        return bulkAction?.status === 'in_progress' || bulkAction?.status === 'pending'
+      })
+
+      // If no ongoing items, stop polling
+      if (!hasOngoingBulkProcessing) {
+        return false
+      }
+
+      // Poll every 5 seconds when there are ongoing items
+      // This is a reasonable interval that balances responsiveness with server load
+      return 5000
+    },
+    // Only poll while the tab is foregrounded
+    refetchIntervalInBackground: false,
   })
 
   const columns: Array<UniversalTableColumn<ActivityLogsItem>> = [
@@ -111,6 +138,7 @@ export default function FormActivity() {
           setPagination={setPagination}
           columns={columns}
           queryResult={queryResult}
+          spinnerVisibility='loading'
         />
       </div>
     </div>
