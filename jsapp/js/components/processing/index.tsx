@@ -1,8 +1,12 @@
 import React, { useState } from 'react'
 
 import DocumentTitle from 'react-document-title'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
+import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
+  getAssetsAdvancedFeaturesBulkActionsListQueryKey,
+  useAssetsAdvancedFeaturesBulkActionsList,
   useAssetsAdvancedFeaturesList,
   useAssetsDataList,
   useAssetsDataSupplementRetrieve,
@@ -21,6 +25,14 @@ interface RouteParams extends Record<string, string | undefined> {
   uid: string
   xpath: string
   submissionEditId: string
+}
+
+function getActiveBulkActions(bulkActions: BulkActionResponse[]) {
+  return bulkActions.filter(
+    (bulkAction) =>
+      bulkAction.status === BulkActionResponseStatusEnum.pending ||
+      bulkAction.status === BulkActionResponseStatusEnum.in_progress,
+  )
 }
 
 /**
@@ -44,6 +56,24 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
 
   const querySupplement = useAssetsDataSupplementRetrieve(assetId, submissionId)
   const supplement = querySupplement.data?.status === 200 ? querySupplement.data.data : undefined
+
+  const queryBulkActions = useAssetsAdvancedFeaturesBulkActionsList(assetId, undefined, {
+    query: {
+      queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(assetId, undefined),
+      refetchInterval: (query) => {
+        const bulkActions = query.state.data?.status === 200 ? query.state.data.data.results : []
+        const hasActiveBulkActions = getActiveBulkActions(bulkActions).length > 0
+        // Poll only while there is something ongoing. This keeps the conflict
+        // lock state fresh without adding constant network traffic.
+        return hasActiveBulkActions ? 10000 : false
+      },
+      // If user is on a different tab/window, we skip interval polling.
+      refetchIntervalInBackground: false,
+    },
+  })
+
+  const activeBulkActions: BulkActionResponse[] =
+    queryBulkActions.data?.status === 200 ? getActiveBulkActions(queryBulkActions.data.data.results) : []
 
   const querySubmission = useAssetsDataList(assetId, {
     query: JSON.stringify({
@@ -95,6 +125,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
                   asset={asset}
                   questionXpath={questionXpath}
                   submission={submission}
+                  activeBulkActions={activeBulkActions}
                   hasUnsavedWork={hasUnsavedWork}
                   onUnsavedWorkChange={setHasUnsavedWork}
                   supplement={supplement}

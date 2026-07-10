@@ -1,6 +1,7 @@
 import React from 'react'
 
 import classNames from 'classnames'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
@@ -18,6 +19,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   hasUnsavedWork: boolean
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
@@ -33,6 +35,7 @@ export default function SingleProcessingContent({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   hasUnsavedWork,
   onUnsavedWorkChange,
   supplement,
@@ -95,6 +98,7 @@ export default function SingleProcessingContent({
             asset={asset}
             questionXpath={questionXpath}
             submission={submission}
+            activeBulkActions={activeBulkActions}
             onUnsavedWorkChange={onUnsavedWorkChange}
             supplement={supplement}
             advancedFeatures={advancedFeatures}
@@ -105,6 +109,7 @@ export default function SingleProcessingContent({
             asset={asset}
             questionXpath={questionXpath}
             submission={submission}
+            activeBulkActions={activeBulkActions}
             onUnsavedWorkChange={onUnsavedWorkChange}
             supplement={supplement}
             advancedFeatures={advancedFeatures}

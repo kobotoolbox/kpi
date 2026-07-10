@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
@@ -14,6 +15,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   transcriptVersion: TranscriptVersionItem
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
@@ -24,6 +26,7 @@ export default function TranscriptEdit({
   questionXpath,
   submission,
   supplement,
+  activeBulkActions,
   transcriptVersion,
   onUnsavedWorkChange,
   advancedFeatures,
@@ -42,6 +45,7 @@ export default function TranscriptEdit({
           submission={submission}
           supplement={supplement}
           transcriptVersion={transcriptVersion}
+          activeBulkActions={activeBulkActions}
           onEdit={() => setMode('edit')}
         />
       ) : (

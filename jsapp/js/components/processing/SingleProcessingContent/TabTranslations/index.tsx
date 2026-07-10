@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
@@ -22,6 +23,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
   advancedFeatures: AdvancedFeatureResponse[]
@@ -31,6 +33,7 @@ export default function TranslationTab({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   onUnsavedWorkChange,
   supplement,
   advancedFeatures,
@@ -116,6 +119,7 @@ export default function TranslationTab({
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
+          activeBulkActions={activeBulkActions}
           onCreate={(newLanguageCode: LanguageCode, context: 'automated' | 'manual') => {
             // After creating automated translation, go straight into 'edit' mode
             if (context === 'automated') {
@@ -150,6 +154,7 @@ export default function TranslationTab({
             supplement={supplement}
             translationVersion={translationVersion}
             translationVersions={translationVersions}
+            activeBulkActions={activeBulkActions}
             onEdit={() => setMode('edit')}
             onAdd={() => setMode('add')}
             onChangeLanguageCode={(newLanguageCode: LanguageCode) => {

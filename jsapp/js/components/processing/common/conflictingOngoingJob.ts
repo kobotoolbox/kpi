@@ -1,0 +1,70 @@
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
+import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+
+interface IsConflictingOngoingJobArgs {
+  activeBulkActions: BulkActionResponse[]
+  actionType: 'transcript' | 'translation'
+  fieldXpath: string
+  submissionUuid: string
+  selectedLanguage?: LanguageCode
+}
+
+// Pending and in-progress jobs can still write/update records, so only those
+// states can block editing in Single Processing.
+function isOngoingBulkAction(action: BulkActionResponse) {
+  return (
+    action.status === BulkActionResponseStatusEnum.pending || action.status === BulkActionResponseStatusEnum.in_progress
+  )
+}
+
+/**
+ * Checks whether one submission should be considered locked by an active bulk job.
+ *
+ * Transcript rule:
+ * - Ongoing bulk transcription on the same question conflicts.
+ *
+ * Translation rules:
+ * - Ongoing bulk transcription on the same question conflicts because transcript
+ *   is the translation source and may still change.
+ * - Ongoing bulk translation on the same question conflicts only when target
+ *   language matches; different languages write to different destinations.
+ */
+export function isConflictingOngoingJobForSubmission(args: IsConflictingOngoingJobArgs) {
+  const { activeBulkActions, actionType, fieldXpath, submissionUuid, selectedLanguage } = args
+
+  if (!submissionUuid) {
+    return false
+  }
+
+  if (actionType === 'translation' && !selectedLanguage) {
+    return false
+  }
+
+  return activeBulkActions.filter(isOngoingBulkAction).some((action) => {
+    // Different question xpath means a different write target.
+    if (action.question_xpath !== fieldXpath) {
+      return false
+    }
+
+    if (actionType === 'transcript') {
+      return (
+        action.action_id === ActionIdEnum.automatic_google_transcription &&
+        action.submission_uuids.includes(submissionUuid)
+      )
+    }
+
+    if (action.action_id === ActionIdEnum.automatic_google_transcription) {
+      // Translation depends on transcript content, so we treat active
+      // transcript generation as a conflict here too.
+      return action.submission_uuids.includes(submissionUuid)
+    }
+
+    if (action.action_id === ActionIdEnum.automatic_google_translation) {
+      return action.params.language === selectedLanguage && action.submission_uuids.includes(submissionUuid)
+    }
+
+    return false
+  })
+}

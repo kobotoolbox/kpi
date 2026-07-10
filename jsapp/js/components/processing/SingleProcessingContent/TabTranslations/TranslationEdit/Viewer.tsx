@@ -1,12 +1,15 @@
 import React from 'react'
 import { destroyConfirm } from '#/alertify'
 import { ActionEnum } from '#/api/models/actionEnum'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import type { TranslationVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -23,6 +26,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   onEdit: () => void
   onAdd: () => void
   onChangeLanguageCode: (languageCode: LanguageCode) => void
@@ -33,6 +37,7 @@ export default function Viewer({
   questionXpath,
   submission,
   supplement,
+  activeBulkActions,
   translationVersion,
   translationVersions,
   onEdit,
@@ -40,6 +45,14 @@ export default function Viewer({
   onChangeLanguageCode,
 }: Props) {
   const mutateTrash = useAssetsDataSupplementPartialUpdate()
+
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'translation',
+    fieldXpath: questionXpath,
+    submissionUuid: submission._uuid,
+    selectedLanguage: translationVersion._data.language,
+  })
 
   const handleTrash = () => {
     destroyConfirm(() => {
@@ -93,7 +106,7 @@ export default function Viewer({
             startIcon='edit'
             onClick={onEdit}
             tooltip={t('Edit')}
-            isDisabled={!userCan('change_submissions', asset)}
+            isDisabled={!userCan('change_submissions', asset) || hasConflictingOngoingJob}
           />
 
           <Button
@@ -103,10 +116,12 @@ export default function Viewer({
             onClick={handleTrash}
             tooltip={t('Delete')}
             isPending={mutateTrash.isPending}
-            isDisabled={!userCan('change_submissions', asset)}
+            isDisabled={!userCan('change_submissions', asset) || hasConflictingOngoingJob}
           />
         </nav>
       </header>
+
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mb='md' />}
 
       <article className={bodyStyles.text} dir='auto'>
         {

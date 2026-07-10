@@ -2,11 +2,13 @@ import React, { useState } from 'react'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -22,6 +24,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   languagesExisting: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic>
@@ -36,6 +39,7 @@ export default function TranslationAdd({
   questionXpath,
   submission,
   supplement,
+  activeBulkActions,
   languagesExisting,
   initialStep,
   translationVersions,
@@ -48,6 +52,16 @@ export default function TranslationAdd({
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const { billingPeriod } = useBillingPeriod()
+
+  const hasConflictingOngoingJob =
+    languageCode !== null &&
+    isConflictingOngoingJobForSubmission({
+      activeBulkActions,
+      actionType: 'translation',
+      fieldXpath: questionXpath,
+      submissionUuid: submission._uuid,
+      selectedLanguage: languageCode,
+    })
 
   /**
    * This is for going back from manual/automated to language selector step
@@ -87,7 +101,9 @@ export default function TranslationAdd({
           setLanguageCode={setLanguageCode}
           titleOverride={t('Please select the language you want to translate to')}
           singleManualButtonLabel={t('translate')}
+          disableManual={hasConflictingOngoingJob}
           disableAutomatic={!envStore.data.asr_mt_features_enabled}
+          showConflictingOngoingJobAlert={hasConflictingOngoingJob}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (
