@@ -983,6 +983,9 @@ class SubmissionExportTaskBase(ImportExportTask):
         if self.data.get('type', '').lower() != 'kml':
             return fields
 
+        if not fields:
+            return fields
+
         survey = source.content.get('survey', []) if source.content else []
         geo_fields = self._get_geo_fields_from_survey(survey)
         if not geo_fields:

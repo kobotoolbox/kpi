@@ -267,7 +267,10 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             )
 
         # KML-specific validation
-        if export_type == EXPORT_TYPE_KML and data.get(EXPORT_SETTING_FLATTEN) is True:
+        if (
+            export_type == EXPORT_TYPE_KML
+            and EXPORT_SETTING_FLATTEN in data
+        ):
             raise serializers.ValidationError(
                 {
                     EXPORT_SETTING_FLATTEN: t(
