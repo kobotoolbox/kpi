@@ -428,6 +428,35 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         )
         assert export_content_response.status_code == status.HTTP_200_OK
 
+    def test_export_task_create_kml_requires_view_data_permission(self):
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'kml',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': False,
+            'fields_from_all_versions': False,
+            'multiple_select': 'both',
+        }
+
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        self.asset.assign_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
+        with immediate_on_commit():
+            response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
     def test_export_task_create_kml_includes_geo_fields_when_fields_filtered(self):
         geo_asset = Asset()
         geo_asset.owner = self.asset.owner
