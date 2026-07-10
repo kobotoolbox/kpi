@@ -26,12 +26,8 @@ class SitewideMessageAdmin(MarkdownxModelAdminBase):
         ):
             data = request.POST.copy()
             data['select_across'] = '1'
+            data['_selected_action'] = '1'
             request.POST = data
-            response = self.response_action(
-                request, queryset=self.get_queryset(request)
-            )
-            if response:
-                return response
         return super().changelist_view(request, extra_context)
 
     @admin.action(description='Require all users to reaccept the Terms of Service')
