@@ -98,7 +98,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         most_recent_tos_update = config.LAST_TOS_UPDATE
         if not most_recent_tos_update:
             return True
-        return last_accepted > most_recent_tos_update.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return last_accepted > most_recent_tos_update
 
     @extend_schema_field(DateJoinedField)
     def get_date_joined(self, obj):

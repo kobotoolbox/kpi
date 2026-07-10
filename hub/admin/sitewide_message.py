@@ -36,7 +36,9 @@ class SitewideMessageAdmin(MarkdownxModelAdminBase):
 
     @admin.action(description='Require all users to reaccept the Terms of Service')
     def require_terms_of_service_reacceptance(self, request, *args, **kwargs):
-        setattr(config, 'LAST_TOS_UPDATE', timezone.now())
+        setattr(
+            config, 'LAST_TOS_UPDATE', timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        )
         self.message_user(
             request, 'All users will be prompted to re-accept the Terms of Service'
         )
