@@ -218,7 +218,7 @@ CONSTANCE_CONFIG = {
         'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
-    'LAST_TOS_UPDATE': (None, 'Date of the most recent update to the terms of service'),
+    'LAST_TOS_UPDATE': ('', 'Date of the most recent update to the terms of service'),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
         'https://github.com/kobotoolbox/',

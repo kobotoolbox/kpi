@@ -92,10 +92,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             user_extra_details = obj.extra_details
         except obj.extra_details.RelatedObjectDoesNotExist:
             return False
-        most_recent_tos_update = config.LAST_TOS_UPDATE
         last_accepted = user_extra_details.private_data.get('last_tos_accept_time')
         if not last_accepted:
             return False
+        most_recent_tos_update = config.LAST_TOS_UPDATE
         if not most_recent_tos_update:
             return True
         return last_accepted > most_recent_tos_update.strftime('%Y-%m-%dT%H:%M:%SZ')
