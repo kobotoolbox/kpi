@@ -364,15 +364,7 @@ class ImportTask(ImportExportTask):
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
-                survey_list = kontent.get('survey', [])
-                for node in survey_list:
-                    name = node.get('name')
-                    if (
-                        bool(name)
-                        and not _is_group_end(node)
-                        and not is_valid_node_name(name)
-                    ):
-                        raise ValueError(f'Invalid node name: {name}')
+                self._ensure_valid_node_names(kontent)
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
@@ -405,6 +397,14 @@ class ImportTask(ImportExportTask):
             orm_obj.parent = parent_item
             orm_obj.save()
 
+    @staticmethod
+    def _ensure_valid_node_names(survey_dict):
+        survey_list = survey_dict.get('survey', [])
+        for node in survey_list:
+            name = node.get('name')
+            if bool(name) and not _is_group_end(node) and not is_valid_node_name(name):
+                raise ValueError(f'Invalid node name: {name}')
+
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
         desired_type = kwargs.get('desired_type')
@@ -415,12 +415,8 @@ class ImportTask(ImportExportTask):
             filename = ''
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
+        self._ensure_valid_node_names(survey_dict)
         survey_dict_keys = survey_dict.keys()
-        survey_list = survey_dict.get('survey', [])
-        for node in survey_list:
-            name = node.get('name')
-            if bool(name) and not _is_group_end(node) and not is_valid_node_name(name):
-                raise ValueError(f'Invalid node name: {name}')
 
         destination = kwargs.get('destination', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
