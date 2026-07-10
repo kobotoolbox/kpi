@@ -1,6 +1,6 @@
 import { Group, Loader, Text } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
-import { IconInfoCircleFilled } from '@tabler/icons-react'
+import { IconInfoCircleFilled, IconSparkles } from '@tabler/icons-react'
 import { useQueries } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { getLanguagesRetrieveQueryOptions, useLanguagesList } from '#/api/react-query/other'
@@ -151,7 +151,17 @@ const LanguageSelector = (props: LanguageSelectorProps) => {
           </Group>
         )
       }
-      renderOption={(item) => <Text>{item.option.label}</Text>}
+      renderOption={(item) => {
+        const lang = languages.find((l) => l.code === item.option.value)
+        const hasAutomatedService =
+          (lang?.transcription_services.length ?? 0) > 0 || (lang?.translation_services.length ?? 0) > 0
+        return (
+          <Group gap='xs'>
+            <Text>{item.option.label}</Text>
+            {hasAutomatedService && <KoboIcon icon={IconSparkles} size='sm' />}
+          </Group>
+        )
+      }}
       required={props.required}
       rightSection={isLoading ? <Loader size='xs' /> : undefined}
     />
