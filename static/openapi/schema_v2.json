@@ -11532,8 +11532,7 @@
                                 "$ref": "#/components/schemas/ImportCreateRequest"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "security": [
                     {
@@ -25550,24 +25549,44 @@
                 "properties": {
                     "destination": {
                         "type": "string",
-                        "format": "uri"
+                        "format": "uri",
+                        "nullable": true
                     },
                     "url": {
                         "type": "string",
-                        "format": "uri"
+                        "format": "uri",
+                        "nullable": true
                     },
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "assetUid": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "base64Encoded": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "library": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "desired_type": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "totalFiles": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
                     }
-                },
-                "required": [
-                    "assetUid",
-                    "destination",
-                    "url"
-                ]
+                }
             },
             "ImportCreateResponse": {
                 "type": "object",

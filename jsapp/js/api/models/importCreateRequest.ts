@@ -11,8 +11,22 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 export interface ImportCreateRequest {
-  destination: string
-  url: string
-  name?: string
-  assetUid: string
+  /** @nullable */
+  destination?: string | null
+  /** @nullable */
+  url?: string | null
+  /** @nullable */
+  name?: string | null
+  /** @nullable */
+  assetUid?: string | null
+  /** @nullable */
+  base64Encoded?: string | null
+  /** @nullable */
+  library?: boolean | null
+  /** @nullable */
+  desired_type?: string | null
+  /** @nullable */
+  totalFiles?: number | null
+  /** @nullable */
+  file?: string | null
 }

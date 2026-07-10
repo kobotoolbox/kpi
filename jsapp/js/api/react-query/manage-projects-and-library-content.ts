@@ -1772,12 +1772,33 @@ export const importsCreate = async (
   options?: RequestInit,
 ): Promise<importsCreateResponse> => {
   const formData = new FormData()
-  formData.append(`destination`, importCreateRequest.destination)
-  formData.append(`url`, importCreateRequest.url)
-  if (importCreateRequest.name !== undefined) {
+  if (importCreateRequest.destination !== undefined && importCreateRequest.destination !== null) {
+    formData.append(`destination`, importCreateRequest.destination)
+  }
+  if (importCreateRequest.url !== undefined && importCreateRequest.url !== null) {
+    formData.append(`url`, importCreateRequest.url)
+  }
+  if (importCreateRequest.name !== undefined && importCreateRequest.name !== null) {
     formData.append(`name`, importCreateRequest.name)
   }
-  formData.append(`assetUid`, importCreateRequest.assetUid)
+  if (importCreateRequest.assetUid !== undefined && importCreateRequest.assetUid !== null) {
+    formData.append(`assetUid`, importCreateRequest.assetUid)
+  }
+  if (importCreateRequest.base64Encoded !== undefined && importCreateRequest.base64Encoded !== null) {
+    formData.append(`base64Encoded`, importCreateRequest.base64Encoded)
+  }
+  if (importCreateRequest.library !== undefined && importCreateRequest.library !== null) {
+    formData.append(`library`, importCreateRequest.library.toString())
+  }
+  if (importCreateRequest.desired_type !== undefined && importCreateRequest.desired_type !== null) {
+    formData.append(`desired_type`, importCreateRequest.desired_type)
+  }
+  if (importCreateRequest.totalFiles !== undefined && importCreateRequest.totalFiles !== null) {
+    formData.append(`totalFiles`, importCreateRequest.totalFiles.toString())
+  }
+  if (importCreateRequest.file !== undefined && importCreateRequest.file !== null) {
+    formData.append(`file`, importCreateRequest.file)
+  }
 
   return fetchWithAuth<importsCreateResponse>(getImportsCreateUrl(), {
     ...options,
