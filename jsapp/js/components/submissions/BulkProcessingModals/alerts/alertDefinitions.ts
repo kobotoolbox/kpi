@@ -63,7 +63,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       messageTemplate: ({ count = 0 }) =>
         isTranscription
           ? (count === 1
-              ? t('#1 submission is missing audio file and will be ignored')
+              ? t('1 submission is missing audio file and will be ignored')
               : t('##count## submissions are missing audio file and will be ignored')
             ).replace('##count##', String(count))
           : (count === 1
