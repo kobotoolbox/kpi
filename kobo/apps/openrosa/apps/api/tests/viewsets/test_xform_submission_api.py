@@ -436,6 +436,42 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 self.assertEqual(response['Location'],
                                  'http://testserver/submission')
 
+    def test_post_submission_with_long_filename(self):
+        # KoboCollect names `xml_submission_file` after the form title, so a
+        # long title produces a long filename. It used to overflow the parser's
+        # base64-encoded filename past Django's 255-char cap on `file.name`,
+        # corrupting it and raising during decode -> HTTP 500 (DEV-1856).
+        s = self.surveys[0]
+        media_file = '1335783522563.jpg'
+        media_path = os.path.join(self.main_directory, 'fixtures',
+                                  'transportation', 'instances', s, media_file)
+        long_filename = 'a' * 220 + '.xml'
+        with open(media_path, 'rb') as mf:
+            mf = InMemoryUploadedFile(mf, 'media_file', media_file, 'image/jpg',
+                                      os.path.getsize(media_path), None)
+
+            submission_path = os.path.join(
+                self.main_directory, 'fixtures',
+                'transportation', 'instances', s, s + '.xml')
+
+            with open(submission_path, 'rb') as sf:
+                xml_file = InMemoryUploadedFile(
+                    sf, 'xml_submission_file', long_filename, 'text/xml',
+                    os.path.getsize(submission_path), None)
+                data = {'xml_submission_file': xml_file, 'media_file': mf}
+                request = self.factory.post('/submission', data)
+                response = self.view(request)
+                self.assertEqual(response.status_code, 401)
+
+                sf.seek(0)
+                mf.seek(0)
+                request = self.factory.post('/submission', data)
+                auth = DigestAuth('bob', 'bobbob')
+                request.META.update(auth(request.META, response))
+                response = self.view(request, username=self.user.username)
+                self.assertContains(response, 'Successful submission',
+                                    status_code=201)
+
     def test_post_submission_uuid_other_user_username_not_provided(self):
         alice_data = {
             'username': 'alice',
