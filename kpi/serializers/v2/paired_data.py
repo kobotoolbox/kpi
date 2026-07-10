@@ -3,6 +3,7 @@ import os
 import re
 
 from django.utils.translation import gettext as t
+from django_request_cache import cache_for_request
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -41,6 +42,9 @@ class PairedDataSerializer(serializers.Serializer):
         return self.__save(validated_data)
 
     def get_source__name(self, paired_data):
+        if self._source_is_deleted(paired_data):
+            return None
+
         # To avoid multiple calls to DB, try to retrieve source names from
         # the context.
         source__name = None
@@ -62,11 +66,8 @@ class PairedDataSerializer(serializers.Serializer):
         return source__name
 
     def to_representation(self, instance):
-        source_deleted = self._source_is_deleted(instance)
         return {
-            'source': (
-                None if source_deleted else self.__get_source_asset_url(instance)
-            ),
+            'source': self.__get_source_asset_url(instance),
             'source__name': self.get_source__name(instance),
             'fields': instance.fields,
             'filename': instance.filename,
@@ -123,6 +124,7 @@ class PairedDataSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         return self.__save(validated_data)
 
+    @cache_for_request
     def _source_is_deleted(self, instance) -> bool:
         """
         Return whether the source (parent) asset no longer exists.
@@ -132,7 +134,8 @@ class PairedDataSerializer(serializers.Serializer):
         keeps appearing here. Reuse the `source__names` mapping the viewset
         already built (uid absent means the row does not exist) to avoid an
         extra query per row on the list endpoint; fall back to a direct
-        existence check when the context is not populated.
+        existence check when the context is not populated. Cached per request
+        so `get_source__name()` and `__get_source_asset_url()` share one lookup.
         """
         source__names = self.context.get('source__names')
         if source__names is not None:
@@ -256,7 +259,9 @@ class PairedDataSerializer(serializers.Serializer):
             request=request,
         )
 
-    def __get_source_asset_url(self, instance: 'kpi.models.PairedData') -> str:
+    def __get_source_asset_url(self, instance: 'kpi.models.PairedData') -> str | None:
+        if self._source_is_deleted(instance):
+            return None
         request = self.context['request']
         return reverse('asset-detail',
                        args=[instance.source_uid],
