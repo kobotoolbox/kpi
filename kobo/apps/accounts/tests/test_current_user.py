@@ -151,7 +151,9 @@ class CurrentUserAPITestCase(APITestCase):
         assert response.data['accepted_tos'] is True
 
         # require reacceptance
-        with override_config(LAST_TOS_UPDATE=timezone.now()):
+        with override_config(
+            LAST_TOS_UPDATE=timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        ):
             response = self.client.get(self.url)
             assert response.data['accepted_tos'] is False
             # make it a bit later and re-accept
