@@ -2,6 +2,7 @@ import datetime
 from zoneinfo import ZoneInfo
 
 import constance
+from constance import config
 from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
@@ -91,10 +92,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             user_extra_details = obj.extra_details
         except obj.extra_details.RelatedObjectDoesNotExist:
             return False
-        accepted_tos = (
-            'last_tos_accept_time' in user_extra_details.private_data.keys()
-        )
-        return accepted_tos
+        most_recent_tos_update = config.LAST_TOS_UPDATE
+        last_accepted = user_extra_details.private_data.get('last_tos_accept_time')
+        if not last_accepted:
+            return False
+        if not most_recent_tos_update:
+            return True
+        return last_accepted > most_recent_tos_update.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     @extend_schema_field(DateJoinedField)
     def get_date_joined(self, obj):
