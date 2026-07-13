@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import DocumentTitle from 'react-document-title'
+import type { AssetsAdvancedFeaturesBulkActionsListParams } from '#/api/models/assetsAdvancedFeaturesBulkActionsListParams'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -57,9 +58,18 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const querySupplement = useAssetsDataSupplementRetrieve(assetId, submissionId)
   const supplement = querySupplement.data?.status === 200 ? querySupplement.data.data : undefined
 
-  const queryBulkActions = useAssetsAdvancedFeaturesBulkActionsList(assetId, undefined, {
+  const bulkActionsParams: AssetsAdvancedFeaturesBulkActionsListParams = {
+    status: `${BulkActionResponseStatusEnum.pending},${BulkActionResponseStatusEnum.in_progress}`,
+    submission_uuid: submissionId,
+    question_xpath: questionXpath,
+    // High page size keeps this to a single request in normal usage while
+    // still relying on backend filtering instead of client-side page scanning.
+    limit: 1000,
+  }
+
+  const queryBulkActions = useAssetsAdvancedFeaturesBulkActionsList(assetId, bulkActionsParams, {
     query: {
-      queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(assetId, undefined),
+      queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(assetId, bulkActionsParams),
       // Keep polling while the route is open so a job that starts after an
       // empty initial load can still lock the controls without a remount.
       refetchInterval: 10000,

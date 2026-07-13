@@ -12,6 +12,18 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type AssetsAdvancedFeaturesBulkActionsListParams = {
   /**
+   * Comma-separated parent job statuses, e.g. `pending,in_progress`.
+   */
+  status?: string
+  /**
+   * Filter jobs to those containing this submission UUID.
+   */
+  submission_uuid?: string
+  /**
+   * Filter jobs to this question xpath.
+   */
+  question_xpath?: string
+  /**
    * Number of results to return per page. Use with `start`.
    */
   limit?: number

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import {
@@ -11,6 +12,8 @@ import {
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -24,6 +27,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   transcriptVersion: TranscriptVersionItem
   onBack: () => void
   onSave?: () => void
@@ -36,6 +40,7 @@ export default function Editor({
   questionXpath,
   submission,
   supplement,
+  activeBulkActions,
   transcriptVersion,
   onBack,
   onSave,
@@ -46,6 +51,15 @@ export default function Editor({
   const unacceptedAutomaticTranscript =
     isSupplementVersionAutomatic(transcriptVersion) && !transcriptVersion._dateAccepted
   const [value, setValue] = useState(initialValue)
+  const hasUnsavedChanges = value !== initialValue || unacceptedAutomaticTranscript
+
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: submission._uuid,
+    selectedLanguage: transcriptVersion._data.language,
+  })
 
   // Track unsaved work when value changes from initial
   useEffect(() => {
@@ -91,6 +105,7 @@ export default function Editor({
   }
 
   const handleSave = async () => {
+    if (hasConflictingOngoingJob) return
     if (!value) return // Just a typeguard, button is disabled.
     if (value === initialValue && isSupplementVersionAutomatic(transcriptVersion)) {
       await patch.mutateAsync({
@@ -132,6 +147,12 @@ export default function Editor({
   }
 
   const handleDiscard = async () => {
+    // While a conflicting job is active, avoid all write operations from edit mode.
+    if (hasConflictingOngoingJob) {
+      onBack()
+      return
+    }
+
     if (unacceptedAutomaticTranscript) {
       await assertManualAdvancedFeature(transcriptVersion._data.language)
       await patch.mutateAsync({
@@ -164,9 +185,9 @@ export default function Editor({
           <Button
             type='secondary'
             size='s'
-            label={value !== initialValue || unacceptedAutomaticTranscript ? t('Discard') : t('Back')}
+            label={hasConflictingOngoingJob ? t('Back') : hasUnsavedChanges ? t('Discard') : t('Back')}
             onClick={handleDiscard}
-            isDisabled={patch.isPending || !userCan('change_submissions', asset)}
+            isDisabled={patch.isPending || (!hasConflictingOngoingJob && !userCan('change_submissions', asset))}
           />
 
           <Button
@@ -176,6 +197,7 @@ export default function Editor({
             onClick={handleSave}
             isPending={patch.isPending}
             isDisabled={
+              hasConflictingOngoingJob ||
               !value ||
               (value === initialValue && !unacceptedAutomaticTranscript) ||
               !userCan('change_submissions', asset)
@@ -184,11 +206,13 @@ export default function Editor({
         </nav>
       </header>
 
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mb='md' />}
+
       <textarea
         className={bodyStyles.textarea}
         value={value || ''}
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => setValue(evt.target.value)}
-        disabled={false}
+        disabled={hasConflictingOngoingJob}
         dir='auto'
       />
     </>

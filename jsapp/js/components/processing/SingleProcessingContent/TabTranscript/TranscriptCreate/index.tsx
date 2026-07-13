@@ -97,6 +97,7 @@ export default function TranscriptCreate({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
+          activeBulkActions={activeBulkActions}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
         />

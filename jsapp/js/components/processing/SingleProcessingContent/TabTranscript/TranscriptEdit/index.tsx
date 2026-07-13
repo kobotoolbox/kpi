@@ -54,6 +54,7 @@ export default function TranscriptEdit({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
+          activeBulkActions={activeBulkActions}
           transcriptVersion={transcriptVersion}
           onBack={() => setMode('view')}
           onSave={() => setMode('view')}
