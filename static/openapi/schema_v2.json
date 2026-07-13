@@ -10615,6 +10615,58 @@
                 }
             }
         },
+        "/api/v2/assets/{uid_asset}/qual-questions/{uid_qa_question}/tags/": {
+            "get": {
+                "operationId": "api_v2_assets_qual_questions_tags_list",
+                "description": "## List available tags for a QA tags question\n\nLists the tag values previously submitted for a `qualTags` question on this asset, sorted alphabetically.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_qa_question",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UUID of the QA tags question",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/QATagTracker"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/assets/{uid_asset}/reports/": {
             "get": {
                 "operationId": "api_v2_assets_reports_retrieve",
@@ -30189,6 +30241,18 @@
                 ],
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
+            },
+            "QATagTracker": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "value"
+                ]
             },
             "QualSelectQuestionParamsTypeEnum": {
                 "type": "string",
