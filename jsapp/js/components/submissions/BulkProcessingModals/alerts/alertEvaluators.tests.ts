@@ -413,7 +413,7 @@ describe('evaluateNearLimit', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       serviceUsageData: asrNearLimit(95),
-      nearLimitRequiredAmount: 120,
+      requiredAmount: 120,
     }
 
     const result = evaluateNearLimit(context)
@@ -430,7 +430,7 @@ describe('evaluateNearLimit', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       serviceUsageData: asrNearLimit(95),
-      nearLimitRequiredAmount: 20,
+      requiredAmount: 20,
     }
 
     const result = evaluateNearLimit(context)
@@ -442,7 +442,7 @@ describe('evaluateNearLimit', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       serviceUsageData: asrExceeded(),
-      nearLimitRequiredAmount: 120,
+      requiredAmount: 120,
     }
 
     const result = evaluateNearLimit(context)
@@ -455,7 +455,7 @@ describe('evaluateNearLimit', () => {
       ...baseContext,
       actionType: 'translation',
       serviceUsageData: mtNearLimit(95),
-      nearLimitRequiredAmount: 3000,
+      requiredAmount: 3000,
     }
 
     const result = evaluateNearLimit(context)
@@ -472,7 +472,7 @@ describe('evaluateNearLimit', () => {
     const context: AlertEvaluationContext = {
       ...baseContext,
       serviceUsageData: asrNearLimit(95),
-      nearLimitRequiredAmount: undefined,
+      requiredAmount: undefined,
     }
 
     const result = evaluateNearLimit(context)

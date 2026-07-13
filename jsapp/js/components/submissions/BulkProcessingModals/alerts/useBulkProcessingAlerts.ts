@@ -14,7 +14,7 @@ interface UseBulkProcessingAlertsProps {
   selectedRegion?: string
   fieldXpath: string
   /** Required amount for full job in base units: seconds (transcription) or characters (translation). */
-  nearLimitRequiredAmount?: number
+  requiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
 }
@@ -44,7 +44,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     fieldXpath,
-    nearLimitRequiredAmount,
+    requiredAmount,
     serviceUsageData,
     activeBulkActions,
   } = props
@@ -66,7 +66,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
       selectedLanguage,
       selectedRegion,
       actionType,
-      nearLimitRequiredAmount,
+      requiredAmount,
       serviceUsageData,
       activeBulkActions,
       previouslyFilteredSubmissionUuids: filteredSubmissionUuids,
@@ -123,7 +123,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     actionType,
-    nearLimitRequiredAmount,
+    requiredAmount,
     serviceUsageData,
     activeBulkActions,
     alertDefinitions,

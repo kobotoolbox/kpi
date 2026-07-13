@@ -34,13 +34,13 @@ export function evaluateReachedLimit(context: AlertEvaluationContext): AlertEval
  * Checks if remaining quota is less than required but greater than 0
  */
 export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluationResult | null {
-  const { actionType, serviceUsageData, nearLimitRequiredAmount } = context
+  const { actionType, serviceUsageData, requiredAmount } = context
 
-  if (!serviceUsageData?.balances || nearLimitRequiredAmount === undefined) {
+  if (!serviceUsageData?.balances || requiredAmount === undefined) {
     return null
   }
 
-  if (nearLimitRequiredAmount <= 0) {
+  if (requiredAmount <= 0) {
     return null
   }
 
@@ -55,11 +55,11 @@ export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluat
 
   // Don't show this alert if:
   // 1. remainingAmount <= 0 — no quota left (the reached-limit alert handles this, runs first)
-  // 2. remainingAmount >= nearLimitRequiredAmount — enough quota to process everything
+  // 2. remainingAmount >= requiredAmount — enough quota to process everything
   //
-  // Show only when 0 < remainingAmount < nearLimitRequiredAmount.
+  // Show only when 0 < remainingAmount < requiredAmount.
   // That's when you have some quota but not enough for all the submissions you selected.
-  if (remainingAmount <= 0 || remainingAmount >= nearLimitRequiredAmount) {
+  if (remainingAmount <= 0 || remainingAmount >= requiredAmount) {
     return null
   }
 
