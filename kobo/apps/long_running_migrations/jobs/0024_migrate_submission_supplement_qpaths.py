@@ -46,115 +46,68 @@ def run(dry_run: bool = False):
         return
 
     migrated = 0
-    failed = 0
     total = supplements_with_qpaths.count()
     # keep track of asset/xpath/action qafs we've already seen/created
     existing_qafs: set[tuple[str, str, str]] = set()
 
     for supplement in supplements_with_qpaths:
-        logging.info(
-            f'{logging_prefix} - updating supplement {migrated + failed + 1}/{total}'
+        logging.info(f'{logging_prefix} - updating supplement {migrated+1}/{total}')
+        asset = supplement.asset
+        new_content = get_sanitized_dict_keys(
+            logging_prefix, supplement.content, supplement.asset
         )
-        # Isolate each supplement: a single malformed record — an asset with no
-        # survey, a duplicate QuestionAdvancedFeature, params that fail
-        # validation, an unknown action — must not abort the whole migration.
-        # The per-supplement transaction rolls back that record's partial writes
-        # while the others keep migrating.
-        try:
-            _migrate_supplement(logging_prefix, supplement, existing_qafs, dry_run)
-        except Exception as e:  # noqa: BLE001 - defensive: keep migrating other records
-            failed += 1
-            logging.error(
-                f'{logging_prefix} - failed to migrate supplement '
-                f'{supplement.pk} (asset={supplement.asset.uid}): {e}'
-            )
-            continue
-        migrated += 1
-
-    logging.info(
-        f'{logging_prefix} - Done. migrated={migrated} failed={failed} total={total}'
-    )
-
-
-def _migrate_supplement(
-    logging_prefix: str,
-    supplement: SubmissionSupplement,
-    existing_qafs: set[tuple[str, str, str]],
-    dry_run: bool,
-) -> None:
-    """
-    Migrate a single SubmissionSupplement, creating any missing
-    QuestionAdvancedFeature rows. Runs in its own transaction so a failure
-    leaves no partial writes behind.
-    """
-    asset = supplement.asset
-    new_content = get_sanitized_dict_keys(logging_prefix, supplement.content, asset)
-    with transaction.atomic():
-        for xpath, actions_for_xpath in new_content.items():
-            if not isinstance(actions_for_xpath, dict):
-                continue
-            for action_id in actions_for_xpath.keys():
-                if (asset.uid, xpath, action_id) in existing_qafs:
+        with transaction.atomic():
+            for xpath, actions_for_xpath in new_content.items():
+                if not isinstance(actions_for_xpath, dict):
                     continue
-                # Legacy content may still carry pre-migration action IDs (e.g.
-                # 'googlets'/'googletx') that 0023 didn't convert. They aren't in
-                # ACTION_IDS_TO_CLASSES, so creating a QuestionAdvancedFeature for
-                # them raises KeyError in its save(). Skip them like the
-                # migrate_submission_supplements management command does.
-                if action_id not in ACTION_IDS_TO_CLASSES:
-                    logging.warning(
-                        f'{logging_prefix} - skipping unknown action '
-                        f'{action_id} for {xpath}'
-                    )
-                    existing_qafs.add((asset.uid, xpath, action_id))
-                    continue
-                try:
-                    params = build_params(asset, xpath, action_id)
-                except ValueError as ve:
-                    logging.warning(
-                        f'{logging_prefix} - failed to build params '
-                        f'for {xpath}, {action_id}: {ve}'
-                    )
-                    existing_qafs.add((asset.uid, xpath, action_id))
-                    continue
+                for action_id in actions_for_xpath.keys():
+                    if (asset.uid, xpath, action_id) not in existing_qafs:
+                        # Legacy content may still carry pre-migration action IDs
+                        # (e.g. 'googlets'/'googletx') that 0023 didn't convert.
+                        # They aren't in ACTION_IDS_TO_CLASSES, so creating a
+                        # QuestionAdvancedFeature for them raises KeyError in its
+                        # save(). Skip them like the migrate_submission_supplements
+                        # management command does.
+                        if action_id not in ACTION_IDS_TO_CLASSES:
+                            logging.warning(
+                                f'{logging_prefix} - skipping unknown action '
+                                f'{action_id} for {xpath}'
+                            )
+                            existing_qafs.add((asset.uid, xpath, action_id))
+                            continue
+                        try:
+                            params = build_params(asset, xpath, action_id)
+                        except ValueError as ve:
+                            logging.warning(
+                                f'{logging_prefix} - failed to build params '
+                                f'for {xpath}, {action_id}: {ve}'
+                            )
+                            existing_qafs.add((asset.uid, xpath, action_id))
+                            continue
 
-                if not dry_run:
-                    _get_or_create_qaf(
-                        logging_prefix, asset, xpath, action_id, params
-                    )
-                existing_qafs.add((asset.uid, xpath, action_id))
-        if not dry_run:
-            supplement.content = new_content
-            supplement.save(
-                update_fields=[
-                    'content',
-                ]
-            )
+                        if not dry_run:
+                            _, created = QuestionAdvancedFeature.objects.get_or_create(
+                                asset=asset,
+                                question_xpath=xpath,
+                                action=action_id,
+                                defaults={'params': params},
+                            )
+                            if created:
+                                logging.info(
+                                    f'{logging_prefix} - Created QAF asset={asset.uid}'
+                                    f' xpath={xpath} action={action_id}'
+                                )
+                        existing_qafs.add((asset.uid, xpath, action_id))
+            if not dry_run:
+                supplement.content = new_content
+                supplement.save(
+                    update_fields=[
+                        'content',
+                    ]
+                )
+            migrated += 1
 
-
-def _get_or_create_qaf(
-    logging_prefix: str,
-    asset: 'kpi.models.Asset',
-    xpath: str,
-    action_id: str,
-    params: list | dict,
-) -> None:
-    try:
-        _, created = QuestionAdvancedFeature.objects.get_or_create(
-            asset=asset,
-            question_xpath=xpath,
-            action=action_id,
-            defaults={'params': params},
-        )
-    except QuestionAdvancedFeature.MultipleObjectsReturned:
-        # Duplicate rows already exist for this (asset, xpath, action); the
-        # feature is present, so there is nothing to create.
-        created = False
-    if created:
-        logging.info(
-            f'{logging_prefix} - Created QAF asset={asset.uid}'
-            f' xpath={xpath} action={action_id}'
-        )
+    logging.info(f'{logging_prefix} - Done')
 
 
 def get_sanitized_dict_keys(
@@ -183,12 +136,12 @@ def qpath_to_xpath(logging_prefix: str, qpath: str, asset: 'kpi.models.Asset') -
     Existing projects may still use it though.
     We need to find the equivalent `xpath`.
     """
-    for row in (asset.content or {}).get('survey') or []:
+    for row in asset.content.get('survey'):
         if '$qpath' in row and '$xpath' in row and row['$qpath'] == qpath:
             return row['$xpath']
 
     # Could not find it from the survey, let's try to detect it automatically
-    xpaths = asset.get_all_attachment_xpaths() or []
+    xpaths = asset.get_all_attachment_xpaths()
     for xpath in xpaths:
         dashed_xpath = xpath.replace('/', '-')
         if dashed_xpath == qpath:

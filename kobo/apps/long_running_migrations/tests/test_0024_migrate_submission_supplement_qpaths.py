@@ -42,7 +42,7 @@ class Migrate0024QpathsTestCase(TestCase):
         )
         self.owner = get_user_model().objects.create(username='nlp_owner')
 
-    def _make_asset(self, survey=True):
+    def _make_asset(self):
         # Create with a normal survey (so content adjustment is happy), then
         # overwrite the content raw with `adjust_content=False` — otherwise
         # `save()` regenerates `$xpath` from the label and drops the legacy
@@ -52,23 +52,24 @@ class Migrate0024QpathsTestCase(TestCase):
             content={'survey': [{'type': 'audio', 'name': 'story', 'label': ['S']}]},
             advanced_features={'_version': 'v1', 'qual': {'qual_survey': []}},
         )
-        content = {'schema': '1', 'settings': {}}
-        if survey:
-            content['survey'] = [
+        asset.content = {
+            'schema': '1',
+            'settings': {},
+            'survey': [
                 {
                     'type': 'audio',
                     'label': ['Tell me a story!'],
                     '$qpath': QPATH,
                     '$xpath': XPATH,
                 }
-            ]
-        asset.content = content
+            ],
+        }
         asset.save(adjust_content=False, create_version=False)
         return asset
 
-    def _make_supplement(self, asset, content, idx=0):
+    def _make_supplement(self, asset, content):
         return SubmissionSupplement.objects.create(
-            submission_uuid=f'sub-{asset.uid}-{idx}',
+            submission_uuid=f'sub-{asset.uid}',
             asset=asset,
             content=content,
         )
@@ -95,37 +96,6 @@ class Migrate0024QpathsTestCase(TestCase):
         self.assertIn(XPATH, supplement.content)
         self.assertNotIn(QPATH, supplement.content)
 
-    def test_one_bad_supplement_does_not_fail_the_whole_migration(self):
-        asset = self._make_asset()
-        QuestionAdvancedFeature.objects.create(
-            asset=asset,
-            question_xpath=XPATH,
-            action=Action.MANUAL_QUAL,
-            params=QUAL_PARAMS,
-        )
-        good = self._make_supplement(
-            asset,
-            {'_version': '20250820', QPATH: {Action.MANUAL_QUAL: {'value': 'x'}}},
-            idx=0,
-        )
-        # an unknown action makes QuestionAdvancedFeature.save() raise KeyError,
-        # which previously aborted the entire migration
-        bad = self._make_supplement(
-            asset,
-            {'_version': '20250820', 'orphan-qpath': {'not_a_real_action': {}}},
-            idx=1,
-        )
-
-        self.migration.execute()
-
-        self.migration.refresh_from_db()
-        self.assertEqual(self.migration.status, LongRunningMigrationStatus.COMPLETED)
-        good.refresh_from_db()
-        self.assertIn(XPATH, good.content)
-        # the bad record is left untouched, not partially written
-        bad.refresh_from_db()
-        self.assertIn('orphan-qpath', bad.content)
-
     def test_legacy_googlets_action_is_skipped_not_fatal(self):
         # Reproduces the real prod failure: a supplement still carrying the
         # pre-migration action ID 'googlets' made get_or_create -> QAF.save()
@@ -149,20 +119,3 @@ class Migrate0024QpathsTestCase(TestCase):
         self.assertFalse(
             QuestionAdvancedFeature.objects.filter(action='googlets').exists()
         )
-
-    def test_asset_without_survey_does_not_crash(self):
-        # regression: `asset.content['survey']` used to be `None` for such assets,
-        # raising `TypeError: 'NoneType' object is not iterable`
-        asset = self._make_asset(survey=False)
-        supplement = self._make_supplement(
-            asset,
-            {'_version': '20250820', 'orphan-qpath': 'not-a-dict'},
-        )
-
-        self.migration.execute()
-
-        self.migration.refresh_from_db()
-        self.assertEqual(self.migration.status, LongRunningMigrationStatus.COMPLETED)
-        supplement.refresh_from_db()
-        # qpath could not be resolved without a survey, so the key is kept as-is
-        self.assertIn('orphan-qpath', supplement.content)
