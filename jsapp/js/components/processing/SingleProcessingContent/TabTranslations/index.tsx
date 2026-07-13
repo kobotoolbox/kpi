@@ -174,6 +174,7 @@ export default function TranslationTab({
             questionXpath={questionXpath}
             submission={submission}
             supplement={supplement}
+            activeBulkActions={activeBulkActions}
             translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
             onBack={() => setMode('view')}
             onSave={() => {

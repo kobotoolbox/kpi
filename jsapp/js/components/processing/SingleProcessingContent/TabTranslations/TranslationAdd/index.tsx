@@ -92,7 +92,7 @@ export default function TranslationAdd({
       {step === CreateSteps.Language && (
         <StepSelectLanguage
           onBack={goBackFromLanguageStep}
-          onNext={(step: CreateSteps.Manual | CreateSteps.Automatic) => setStep(step)}
+          onNext={(nextStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(nextStep)}
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           usageType={UsageLimitTypes.TRANSLATION}
           hiddenLanguages={languagesExisting}
@@ -114,6 +114,7 @@ export default function TranslationAdd({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
+          activeBulkActions={activeBulkActions}
           onCreate={onCreate}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
@@ -127,6 +128,7 @@ export default function TranslationAdd({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
           onCreate={onCreate}
           advancedFeatures={advancedFeatures}
         />
