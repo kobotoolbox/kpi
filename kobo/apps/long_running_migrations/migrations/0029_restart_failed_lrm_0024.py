@@ -25,7 +25,7 @@ def noop(*args, **kwargs):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('long_running_migrations', '0027_backfill_remaining_root_uuid'),
+        ('long_running_migrations', '0028_sync_mongo_root_uuid'),
     ]
 
     operations = [
