@@ -260,6 +260,33 @@ ALLOWED_LOOKUP_FIELDS = {
         'metadata',
         'user',
     }),
+    'audit_log.projecthistorylog': frozenset({
+        'action',
+        'date_created',
+        'metadata',
+        'user',
+    }),
+    'audit_log.accesslog': frozenset({
+        'action',
+        'date_created',
+        'metadata',
+        'user',
+    }),
+    'languages.language': frozenset({
+        'code',
+        'name',
+        'featured',
+        'transcription_services',
+        'translation_services',
+    }),
+    'languages.translationservice': frozenset({
+        'code',
+        'name',
+    }),
+    'languages.transcriptionservice': frozenset({
+        'code',
+        'name',
+    }),
     'kpi.userassetsubscription': frozenset({
         'id',
         'status',
