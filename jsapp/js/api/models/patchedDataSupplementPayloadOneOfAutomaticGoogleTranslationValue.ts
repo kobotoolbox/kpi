@@ -9,12 +9,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue } from './patchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue'
 
-export type PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation = {
-  language: string
-  locale?: string
-  accepted?: boolean
-  /** @nullable */
-  value?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue
-}
+/**
+ * @nullable
+ */
+export type PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue =
+  | (typeof PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue)[keyof typeof PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue]
+  | null
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue = {} as const

@@ -20498,6 +20498,10 @@ components:
               type: string
             accepted:
               type: boolean
+            value:
+              enum:
+              - null
+              nullable: true
           additionalProperties: false
           required:
           - language
@@ -20510,6 +20514,10 @@ components:
               type: string
             accepted:
               type: boolean
+            value:
+              enum:
+              - null
+              nullable: true
           additionalProperties: false
           required:
           - language
