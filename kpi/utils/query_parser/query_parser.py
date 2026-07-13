@@ -307,7 +307,7 @@ class QueryParseActions:
         is left untouched. This keeps the check independent of the relation
         names used, so it holds on every endpoint regardless of the root model.
         """
-        if getattr(self, 'user', None) and getattr(self.user, 'is_superuser', False):
+        if self.user and getattr(self.user, 'is_superuser', False):
             return
 
         if self.model is None:
