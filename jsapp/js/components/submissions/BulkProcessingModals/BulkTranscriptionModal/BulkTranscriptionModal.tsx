@@ -139,7 +139,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     assetUid: props.assetUid,
   })
 
-  const nearLimitRequiredSeconds =
+  const requiredSeconds =
     isTotalSelectedAudioDurationLoading || isTotalSelectedAudioDurationError ? undefined : totalSelectedAudioDuration
 
   const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
@@ -148,7 +148,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     selectedLanguage: selectedLanguage || undefined,
     selectedRegion: selectedRegion || undefined,
     fieldXpath: props.fieldXpath,
-    nearLimitRequiredAmount: nearLimitRequiredSeconds,
+    requiredAmount: requiredSeconds,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })

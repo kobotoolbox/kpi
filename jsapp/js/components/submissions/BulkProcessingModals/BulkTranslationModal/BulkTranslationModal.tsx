@@ -107,7 +107,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   // Near-limit should reflect only the submissions that still need translation.
   // Rows that already have a translation in the selected language will be filtered
   // out by the alert pipeline, so we exclude them here as well to keep the limit check aligned.
-  const nearLimitRequiredCharacters = useMemo(() => {
+  const requiredCharacters = useMemo(() => {
     if (!selectedLanguage) {
       return undefined
     }
@@ -131,7 +131,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
     fieldXpath: props.fieldXpath,
-    nearLimitRequiredAmount: nearLimitRequiredCharacters,
+    requiredAmount: requiredCharacters,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })
