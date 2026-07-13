@@ -219,8 +219,8 @@ UNSUPPORTED_INLINE_MIMETYPES = [
 # Granularity is at the explicit model level.
 # ```
 # ALLOWED_LOOKUP_FIELDS = {
-       'app_label.model_name': {'field1', 'field2', ...},
-      ...
+#     'app_label.model_name': {'field1', 'field2', ...},
+#     ...
 # }
 # ```
 ALLOWED_LOOKUP_FIELDS = {
