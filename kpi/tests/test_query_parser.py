@@ -91,12 +91,13 @@ BLOCKED_QUERIES = [
     # User.first_name and User.last_name exist but are not explicitly whitelisted.
     (Asset, 'owner__first_name:x'),
     (Asset, 'owner__last_name:x'),
+    (Asset, 'owner__email:meg@example.com'),
+    (Asset, 'owner__is_superuser:True'),
 ]
 
 # Legitimate field-qualified terms that must keep working.
 ALLOWED_QUERIES = [
     (Asset, 'owner__username:meg'),
-    (Asset, 'owner__email:meg@example.com'),
     (Asset, 'parent__uid:aTJ3vi2KRGYj'),
     (Asset, 'parent:null'),
     (Asset, 'settings__sector__iexact:health'),
