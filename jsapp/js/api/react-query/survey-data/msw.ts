@@ -93,6 +93,8 @@ import type { PaginatedPairedDataResponseList } from '../../models/paginatedPair
 
 import type { PairedDataResponse } from '../../models/pairedDataResponse'
 
+import type { QATagTracker } from '../../models/qATagTracker'
+
 import { QualSelectQuestionParamsTypeEnum } from '../../models/qualSelectQuestionParamsTypeEnum'
 
 import { QualSimpleQuestionParamsTypeEnum } from '../../models/qualSimpleQuestionParamsTypeEnum'
@@ -1966,6 +1968,11 @@ export const getApiV2AssetsPairedDataExternalRetrieveResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2AssetsQualQuestionsTagsListResponseMock = (): QATagTracker[] =>
+  Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    value: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  }))
+
 export const getApiV2AssetsReportsRetrieveResponseMock = (
   overrideResponse: Partial<ReportResponse> = {},
 ): ReportResponse => ({
@@ -2945,6 +2952,25 @@ export const getApiV2AssetsPairedDataExternalRetrieveMockHandler = (
   })
 }
 
+export const getApiV2AssetsQualQuestionsTagsListMockHandler = (
+  overrideResponse?:
+    | QATagTracker[]
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<QATagTracker[]> | QATagTracker[]),
+) => {
+  return http.get('*/api/v2/assets/:uidAsset/qual-questions/:uidQaQuestion/tags{/}?', async (info) => {
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getApiV2AssetsQualQuestionsTagsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
 export const getApiV2AssetsReportsRetrieveMockHandler = (
   overrideResponse?:
     | ReportResponse
@@ -3018,5 +3044,6 @@ export const getSurveyDataMock = () => [
   getApiV2AssetsPairedDataPartialUpdateMockHandler(),
   getApiV2AssetsPairedDataDestroyMockHandler(),
   getApiV2AssetsPairedDataExternalRetrieveMockHandler(),
+  getApiV2AssetsQualQuestionsTagsListMockHandler(),
   getApiV2AssetsReportsRetrieveMockHandler(),
 ]
