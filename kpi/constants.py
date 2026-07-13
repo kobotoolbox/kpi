@@ -206,15 +206,23 @@ UNSUPPORTED_INLINE_MIMETYPES = [
 ]
 
 # LLM Prompt used to generate this allowlist:
-# "Generate a dictionary of allowed fields for each model in KoboToolbox KPI's q search.
+#
+# Generate a dictionary of allowed fields for each model in KoboToolbox KPI's q search.
 # The list must cover paths used by real searches (e.g. owner__username, parent__uid,
 # asset_type, summary__icontains, the status special-case, JSONField roots like
-# settings, summary, extra_details__data, etc.).
-# Keep the uniform-rejection behavior for disallowed paths. Only whitelist explicitly
-# what is allowed."
-# The single source of truth for allowed lookups in `q` searches.
-# Granularity is at the explicit model level:
-#     'app_label.model_name': {'field1', 'field2', ...}
+# settings, summary, extra_details__data, etc.). Keep the uniform-rejection behavior
+# for disallowed paths. Only whitelist explicitly what is allowed. Make a comprehensive
+# search across the codebase for all instances of SearchFilter to identify any views
+# that use the query parser in order to make sure we don't miss anything. The list will
+# be maintained in `kpi.contants.ALLOWED_LOOKUP_FIELDS`. The idea is to block
+# sensitive data from being used with search filters
+# Granularity is at the explicit model level.
+# ```
+# ALLOWED_LOOKUP_FIELDS = {
+       'app_label.model_name': {'field1', 'field2', ...},
+      ...
+# }
+# ```
 ALLOWED_LOOKUP_FIELDS = {
     'auth.user': frozenset({
         'username',
@@ -239,6 +247,9 @@ ALLOWED_LOOKUP_FIELDS = {
         'user',
     }),
     'hub.extrauserdetail': frozenset({
+        'data',
+    }),
+    'kpi.extrauserdetail': frozenset({
         'data',
     }),
     'kobo_auth.user': frozenset({
@@ -304,6 +315,18 @@ ALLOWED_LOOKUP_FIELDS = {
     'languages.translationservice': frozenset({
         'code',
         'name',
+    }),
+    'project_views.projectview': frozenset({
+        'name',
+        'countries',
+        'organizations',
+        'permissions',
+        'users',
+    }),
+    'user_reports.userreports': frozenset({
+        'username',
+        'first_name',
+        'last_name',
     }),
     'taggit.tag': frozenset({
         'name',
