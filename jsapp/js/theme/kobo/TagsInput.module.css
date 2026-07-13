@@ -22,3 +22,14 @@
     color: var(--mantine-color-gray-2);
   }
 }
+
+.dropdown {
+  border-color: transparent;
+  box-shadow: 3px 3px 37px 0 var(--mantine-color-blue-8);
+}
+
+.option {
+  &:hover {
+    background-color: var(--mantine-color-gray-8);
+  }
+}

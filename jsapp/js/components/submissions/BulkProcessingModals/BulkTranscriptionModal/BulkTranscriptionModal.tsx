@@ -34,7 +34,11 @@ import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 const GOOGLE_TRANSCRIPTION_LANGUAGE_SUPPORT_URL = 'transcription-translation.html#language-list'
 
 function getAlreadyTranscribedMessage(count: number, duration: string): string {
-  return t('##count## audio files totaling ##duration## already transcribed and will be ignored')
+  return (
+    count === 1
+      ? t('1 audio file totaling ##duration## already transcribed and will be ignored')
+      : t('##count## audio files totaling ##duration## already transcribed and will be ignored')
+  )
     .replace('##count##', String(count))
     .replace('##duration##', duration)
 }

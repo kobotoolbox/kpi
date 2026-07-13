@@ -414,7 +414,13 @@ export default function AnalysisQuestionListItem({
             hasTranscript={hasTranscript}
             isAnswerAIGenerated={isAnswerAIGeneratedVal}
           >
-            <TagsResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+            <TagsResponseForm
+              qaAnswer={queryAnswer.data}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+              assetUid={asset.uid}
+              qaQuestionUid={qaQuestion.uuid}
+            />
           </ResponseForm>
         )
       }
