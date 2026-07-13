@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import assetDataFactory from '#/endpoints/assetData.factory'
+import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import { asrExceeded, asrNearLimit, mtExceeded, mtNearLimit, withinLimits } from '#/endpoints/serviceUsage.factory'
 import {
   evaluateAlreadyTranscribed,
@@ -12,7 +13,6 @@ import {
   evaluateNoSource,
   evaluateReachedLimit,
 } from './alertEvaluators'
-import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import type { AlertEvaluationContext } from './types'
 
 describe('evaluateNoEligibleSubmissions', () => {
