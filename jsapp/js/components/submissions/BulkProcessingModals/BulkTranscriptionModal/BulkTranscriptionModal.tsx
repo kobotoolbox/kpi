@@ -20,8 +20,9 @@ import RegionSelector from '#/components/languages/RegionSelector'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { useCalculateAudioDuration } from '#/hooks/useCalculateAudioDuration.hook'
 import { useSession } from '#/stores/useSession'
-import { notify } from '#/utils'
+import { formatTimeFromSeconds, notify } from '#/utils'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
@@ -113,6 +114,19 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
   const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
 
+  const {
+    duration: audioDuration,
+    isLoading: isAudioDurationLoading,
+    isError: isAudioDurationError,
+    // TODO: For DEV-1399, we probably will want to incorporate an error message to the user telling them that we
+    // couldn't calculate their ASR time remaining.
+    errorMessage: audioDurationErrorMesssage,
+  } = useCalculateAudioDuration({
+    selectedSubmissions: eligibleSubmissions,
+    fieldId: props.fieldXpath,
+    assetUid: props.assetUid,
+  })
+
   const handleLanguageChange = (language: LanguageCode | null) => {
     setSelectedLanguage(language)
     setSelectedRegion(null)
@@ -157,15 +171,25 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           handleWarningContinue={handleWarningContinue}
         />
       )}
+
       {!showWarningModal && (
         <Stack gap='md'>
+          {/* Legacy alert - will be removed once audio duration evaluators are implemented see DEV-1399 */}
+          {isAudioDurationError && audioDurationErrorMesssage && (
+            <Alert type='warning' iconName='information'>
+              {audioDurationErrorMesssage}
+            </Alert>
+          )}
+
           <Text size='sm'>
             {t(
               'Your ##total_files## audio files is a total of ##total_length##. This may take longer to complete than the total duration of your files.',
             )
               .replace('##total_files##', String(eligibleSubmissions.length))
-              // TODO: this will be done after DEV-2255 is done
-              .replace('##total_length##', t('some time'))}
+              .replace(
+                '##total_length##',
+                isAudioDurationLoading || isAudioDurationError ? '…' : formatTimeFromSeconds(audioDuration),
+              )}
           </Text>
 
           <Group gap='sm' align='flex-start' wrap='nowrap' grow>
