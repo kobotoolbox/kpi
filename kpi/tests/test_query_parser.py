@@ -85,6 +85,12 @@ BLOCKED_QUERIES = [
     # blocked even with a trailing lookup, since the walk stops at the column
     (User, 'extra_details__private_data__last_tos_accept_time:x'),
     (Asset, 'owner__extra_details__private_data__icontains:x'),
+    
+    # NEW ALLOWLIST TESTS:
+    # Prove default-deny works for innocent but un-whitelisted real fields:
+    # User.first_name and User.last_name exist but are not explicitly whitelisted.
+    (Asset, 'owner__first_name:x'),
+    (Asset, 'owner__last_name:x'),
 ]
 
 # Legitimate field-qualified terms that must keep working.
@@ -132,3 +138,23 @@ def test_field_term_without_model_is_rejected():
     actions = QueryParseActions(['name__icontains'], 3, model=None)
     with pytest.raises(QueryParserNotSupportedFieldLookup):
         actions._validate_field('owner__username')
+
+
+def test_superuser_bypass():
+    """
+    Superusers should bypass the allowlist checks and be permitted to query
+    paths that would otherwise be blocked.
+    """
+    class MockSuperUser:
+        is_superuser = True
+
+    # User.password is highly sensitive and normally blocked.
+    query = 'owner__password:x'
+    
+    # 1. Without superuser, it should raise an exception (verify normal behavior)
+    with pytest.raises(QueryParserNotSupportedFieldLookup):
+        parse(query, default_field_lookups=['name__icontains'], model=Asset, user=None)
+        
+    # 2. With superuser, it should parse without raising any exceptions
+    parsed_q = parse(query, default_field_lookups=['name__icontains'], model=Asset, user=MockSuperUser())
+    assert parsed_q is not None
