@@ -400,10 +400,19 @@ class ImportTask(ImportExportTask):
     @staticmethod
     def _ensure_valid_node_names(survey_dict):
         survey_list = survey_dict.get('survey', [])
+
+        names = set()
         for node in survey_list:
             name = node.get('name')
-            if bool(name) and not _is_group_end(node) and not is_valid_node_name(name):
+            if not name or _is_group_end(node):
+                continue
+            if not name:
+                continue
+            if not is_valid_node_name(name):
                 raise ValueError(f'Invalid node name: {name}')
+            if name in names:
+                raise ValueError(f'Duplicate node name: {name}')
+            names.add(name)
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
