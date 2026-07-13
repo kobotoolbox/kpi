@@ -57,6 +57,8 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const querySupplement = useAssetsDataSupplementRetrieve(assetId, submissionId)
   const supplement = querySupplement.data?.status === 200 ? querySupplement.data.data : undefined
 
+  // Some routes pass edit `_uuid`, others pass root UUID. We query with both so
+  // we can always resolve the same submission record.
   const querySubmission = useAssetsDataList(assetId, {
     query: JSON.stringify({
       $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId) }, { _uuid: submissionId }],
@@ -89,6 +91,8 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
       refetchInterval: 10000,
       // If user is on a different tab/window, we skip interval polling.
       refetchIntervalInBackground: false,
+      // Wait until we know the root UUID, otherwise backend filtering can miss
+      // matching rows and return a misleading empty result.
       enabled: Boolean(assetId && submissionRootUuid),
     },
   })

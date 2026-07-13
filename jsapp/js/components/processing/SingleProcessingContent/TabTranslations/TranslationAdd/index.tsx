@@ -53,6 +53,8 @@ export default function TranslationAdd({
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const { billingPeriod } = useBillingPeriod()
 
+  // Translation conflicts are language-specific, so we only evaluate once a
+  // target language is selected.
   const hasConflictingOngoingJob =
     languageCode !== null &&
     isConflictingOngoingJobForSubmission({

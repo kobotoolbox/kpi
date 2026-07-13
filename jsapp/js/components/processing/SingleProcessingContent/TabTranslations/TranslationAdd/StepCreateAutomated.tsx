@@ -113,6 +113,8 @@ export default function StepCreateAutomated({
   }
 
   async function handleCreateTranslation() {
+    // Keep a runtime guard in addition to disabled UI controls.
+    // This protects against stale state and accidental double-trigger paths.
     if (hasConflictingOngoingJob) {
       return
     }
