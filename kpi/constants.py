@@ -238,15 +238,22 @@ ALLOWED_LOOKUP_FIELDS = {
         'is_superuser',
         'extra_details',   # To allow extra_details__data
     }),
+    'kobo_auth.user': frozenset({
+        'username',
+        'email',
+        'is_superuser',
+        'extra_details',   # To allow extra_details__data
+    }),
     'kpi.extrauserdetail': frozenset({
+        'data',
+    }),
+    'hub.extrauserdetail': frozenset({
         'data',
     }),
     'taggit.tag': frozenset({
         'name',
     }),
-    'kpi.datasharing': frozenset({
-        'enabled',
-    }),
+
     'audit_log.auditlog': frozenset({
         'action',
         'date_created',

@@ -39,52 +39,6 @@ Special notes:
 """
 
 
-# The allowed lookups in `q` searches.
-ALLOWED_LOOKUP_FIELDS = {
-    'kpi.asset': {
-        'asset_type',
-        'date_created',
-        'date_deployed',
-        'date_modified',
-        'name',
-        'owner',
-        'parent',
-        'settings',
-        'status',          # Special-cased in code, but good to whitelist explicitly
-        'summary',
-        'tags',
-        'uid',
-        'data_sharing',    # To allow data_sharing__enabled
-        'last_modified_by',
-    },
-    'auth.user': {
-        'username',
-        'email',
-        'is_superuser',
-        'extra_details',   # To allow extra_details__data
-    },
-    'kpi.extrauserdetail': {
-        'data',
-    },
-    'taggit.tag': {
-        'name',
-    },
-    'kpi.datasharing': {
-        'enabled',
-    },
-    'audit_log.auditlog': {
-        'action',
-        'date_created',
-        'metadata',
-        'user',
-    },
-    'kpi.userassetsubscription': {
-        'id',
-        'status',
-    },
-}
-
-
 class QueryParseActions:
     """
     Actions for the parser to take when it encounters certain identifiers
