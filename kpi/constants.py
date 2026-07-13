@@ -249,9 +249,6 @@ ALLOWED_LOOKUP_FIELDS = {
     'hub.extrauserdetail': frozenset({
         'data',
     }),
-    'kpi.extrauserdetail': frozenset({
-        'data',
-    }),
     'kobo_auth.user': frozenset({
         'username',
         'extra_details',   # To allow extra_details__data
