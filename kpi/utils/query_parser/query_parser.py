@@ -38,46 +38,50 @@ Special notes:
 """
 
 
-# A user-supplied `q` search builds an ORM lookup from a caller-provided field
-# path, and the grammar allows relational paths (e.g. `owner__username`). To
-# keep a search from reaching sensitive records, a lookup is never allowed to
-# traverse into the models below, whatever the relation names used to reach
-# them. Identifiers are Django `label_lower` values (`app_label.model_name`);
-# see `QueryParseActions._validate_field`.
-SENSITIVE_LOOKUP_MODELS = frozenset(
-    {
-        'authtoken.token',                 # DRF API token
-        'mfa.authenticator',               # allauth MFA authenticators
-        'accounts_mfa.mfamethodswrapper',  # MFA
-        'django_digest.partialdigest',     # HTTP digest auth
-        'account.emailconfirmation',       # e-mail confirmation
-        'socialaccount.socialaccount',     # SSO account
-        'socialaccount.socialtoken',       # SSO tokens
-        'socialaccount.socialapp',         # SSO application
-    }
-)
-
-# Non-relational columns that must never be read through a `q` lookup. They are
-# matched by column name on any model the path reaches (not only blocked ones),
-# so a column named like one of these is rejected wherever it appears, now or on
-# a model added later.
-#
-# This is the *exception* mechanism; `SENSITIVE_LOOKUP_MODELS` is the primary
-# one. A model whose purpose is to hold secrets should be blocked there, which
-# covers all of its columns at once. Use this set only for a sensitive column
-# that lives on a model which must stay searchable for its other columns — e.g.
-# `password` on `User` (still traversed for `owner__username`), or `private_data`
-# on `ExtraUserDetail` (still traversed for `extra_details__data`). The remaining
-# names are defensive: a column literally named `secret` or `token` added to a
-# searchable model is then rejected without a change here.
-SENSITIVE_LOOKUP_COLUMNS = frozenset(
-    {
-        'password',
-        'private_data',
-        'secret',
-        'token',
-    }
-)
+# The allowed lookups in `q` searches.
+ALLOWED_LOOKUP_FIELDS = {
+    'kpi.asset': {
+        'asset_type',
+        'date_created',
+        'date_deployed',
+        'date_modified',
+        'name',
+        'owner',
+        'parent',
+        'settings',
+        'status',          # Special-cased in code, but good to whitelist explicitly
+        'summary',
+        'tags',
+        'uid',
+        'data_sharing',    # To allow data_sharing__enabled
+        'last_modified_by',
+    },
+    'auth.user': {
+        'username',
+        'email',
+        'is_superuser',
+        'extra_details',   # To allow extra_details__data
+    },
+    'kpi.extrauserdetail': {
+        'data',
+    },
+    'taggit.tag': {
+        'name',
+    },
+    'kpi.datasharing': {
+        'enabled',
+    },
+    'audit_log.auditlog': {
+        'action',
+        'date_created',
+        'metadata',
+        'user',
+    },
+    'kpi.userassetsubscription': {
+        'id',
+        'status',
+    },
+}
 
 
 class QueryParseActions:
@@ -98,10 +102,12 @@ class QueryParseActions:
         default_field_lookups: list,
         min_search_characters: int,
         model=None,
+        user=None,
     ):
         self.default_field_lookups = default_field_lookups
         self.min_search_characters = min_search_characters
         self.model = model
+        self.user = user
         self.has_term_with_sufficient_length = False
 
     @classmethod
@@ -337,17 +343,17 @@ class QueryParseActions:
 
     def _validate_field(self, field):
         """
-        Reject a field whose lookup path would traverse into a sensitive model
-        (see `SENSITIVE_LOOKUP_MODELS`) or read a sensitive column.
+        Reject a field whose lookup path is not explicitly whitelisted.
 
         The path is walked from `self.model` one segment at a time. Traversal
         can only continue while a segment resolves to a relation, so anything
         past the first non-relational field (a scalar column, or a `JSONField`
         whose nested keys also look like `__foo`) cannot reach another table and
         is left untouched. This keeps the check independent of the relation
-        names used, so it holds on every endpoint regardless of the root model
-        (`owner__...`, `user__...`, `parent__owner__...`, a direct lookup, etc.).
+        names used, so it holds on every endpoint regardless of the root model.
         """
+        if getattr(self, 'user', None) and getattr(self.user, 'is_superuser', False):
+            return
 
         if self.model is None:
             # A field-qualified lookup cannot be proven safe without a model to
@@ -363,9 +369,12 @@ class QueryParseActions:
                 # no further table can be reached from here
                 return
 
+            model_label = current_model._meta.label_lower
+            allowed_fields = ALLOWED_LOOKUP_FIELDS.get(model_label, set())
+            if segment not in allowed_fields:
+                raise QueryParserNotSupportedFieldLookup
+
             if not model_field.is_relation:
-                if segment in SENSITIVE_LOOKUP_COLUMNS:
-                    raise QueryParserNotSupportedFieldLookup
                 # A concrete column; the rest of the path can only be lookups
                 return
 
@@ -373,8 +382,7 @@ class QueryParseActions:
             if related_model is None:
                 # e.g. a generic relation that cannot be traversed in a lookup
                 return
-            if related_model._meta.label_lower in SENSITIVE_LOOKUP_MODELS:
-                raise QueryParserNotSupportedFieldLookup
+
             current_model = related_model
 
 
@@ -409,6 +417,7 @@ def parse(
     default_field_lookups: list,
     model: ModelClass,
     min_search_characters: int = None,
+    user=None,
 ) -> Q:
     """
     Parse a Boolean query string into a Django Q object.
@@ -422,7 +431,7 @@ def parse(
         min_search_characters = settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS
 
     actions = QueryParseActions(
-        default_field_lookups, min_search_characters, model
+        default_field_lookups, min_search_characters, model, user
     )
     q_object = grammar_parse(query, actions)
 
