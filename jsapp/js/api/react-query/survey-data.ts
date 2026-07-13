@@ -578,6 +578,13 @@ jobs. Each result includes the parent job status, per-submission statuses, the
 original deterministic params, the user who created the job, cancellation
 metadata, and integer `progress` from `0` to `100`.
 
+Optional query params:
+
+* `status`: Filter by parent job status. Accepts a comma-separated list,
+  for example `status=pending,in_progress`.
+* `submission_uuid`: Return only jobs that include this submission.
+* `question_xpath`: Return only jobs for this question xpath.
+
 Job statuses:
 
 * `pending`: the job exists but has not started.
