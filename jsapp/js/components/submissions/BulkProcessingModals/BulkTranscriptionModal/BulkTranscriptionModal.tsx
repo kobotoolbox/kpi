@@ -268,7 +268,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
       {!showWarningModal && (
         <Stack gap='md'>
-          {/* Legacy alert - will be removed once audio duration evaluators are implemented see DEV-1399 */}
           {isAudioDurationError && audioDurationErrorMesssage && (
             <Alert type='warning' iconName='information'>
               {audioDurationErrorMesssage}
@@ -307,13 +306,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
           </Group>
 
           <BulkProcessingAlerts activeAlerts={activeAlertsWithResolvedMinutes} />
-
-          {/* Legacy alert - will be removed once evaluators are implemented */}
-          {hasExceededLimit && activeAlertsWithResolvedMinutes.length === 0 && (
-            <Alert type='warning' iconName='information' mt={12} mb={12}>
-              {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
-            </Alert>
-          )}
 
           <Text size='xs'>
             {t('Automatic transcription is provided by Google Cloud Platform.')}

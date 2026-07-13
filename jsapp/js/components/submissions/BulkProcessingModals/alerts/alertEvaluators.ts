@@ -50,6 +50,12 @@ export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluat
 
   const remainingAmount = balance.balance_value
 
+  // Don't show this alert if:
+  // 1. remainingAmount <= 0 — no quota left (the reached-limit alert handles this, runs first)
+  // 2. remainingAmount >= nearLimitRequiredAmount — enough quota to process everything
+  //
+  // Show only when 0 < remainingAmount < nearLimitRequiredAmount.
+  // That's when you have some quota but not enough for all the submissions you selected.
   if (remainingAmount <= 0 || remainingAmount >= nearLimitRequiredAmount) {
     return createInactiveResult('error')
   }

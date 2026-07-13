@@ -16,7 +16,6 @@ import {
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
 import ButtonNew from '#/components/common/ButtonNew'
-import Alert from '#/components/common/alert'
 import LanguageSelector from '#/components/languages/LanguageSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
@@ -205,13 +204,6 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
           </Group>
 
           <BulkProcessingAlerts activeAlerts={activeAlerts} />
-
-          {/* Legacy alert - will be removed once evaluators are implemented */}
-          {hasExceededLimit && activeAlerts.length === 0 && (
-            <Alert type='warning' iconName='information' mt={12} mb={12}>
-              {t("You've reached your automatic translation limit. Please purchase an add‑on to continue.")}
-            </Alert>
-          )}
 
           <Text size='xs'>
             {t('Automatic translation is provided by Google Cloud Platform.')}
