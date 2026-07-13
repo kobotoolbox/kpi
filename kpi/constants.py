@@ -204,3 +204,77 @@ UNSUPPORTED_INLINE_MIMETYPES = [
     'image/heic',
     'image/heif',
 ]
+
+# LLM Prompt used to generate this allowlist:
+# "Generate a dictionary of allowed fields for each model in KoboToolbox KPI's q search.
+# The list must cover paths used by real searches (e.g. owner__username, parent__uid,
+# asset_type, summary__icontains, the status special-case, JSONField roots like
+# settings, summary, extra_details__data, etc.).
+# Keep the uniform-rejection behavior for disallowed paths. Only whitelist explicitly
+# what is allowed."
+# The single source of truth for allowed lookups in `q` searches.
+# Granularity is at the explicit model level:
+#     'app_label.model_name': {'field1', 'field2', ...}
+ALLOWED_LOOKUP_FIELDS = {
+    'kpi.asset': frozenset({
+        'asset_type',
+        'date_created',
+        'date_deployed',
+        'date_modified',
+        'name',
+        'owner',
+        'parent',
+        'settings',
+        'status',          # Special-cased in code, but good to whitelist explicitly
+        'summary',
+        'tags',
+        'uid',
+        'data_sharing',    # To allow data_sharing__enabled
+        'last_modified_by',
+    }),
+    'auth.user': frozenset({
+        'username',
+        'email',
+        'is_superuser',
+        'extra_details',   # To allow extra_details__data
+    }),
+    'kpi.extrauserdetail': frozenset({
+        'data',
+    }),
+    'taggit.tag': frozenset({
+        'name',
+    }),
+    'kpi.datasharing': frozenset({
+        'enabled',
+    }),
+    'audit_log.auditlog': frozenset({
+        'action',
+        'date_created',
+        'metadata',
+        'user',
+    }),
+    'kpi.userassetsubscription': frozenset({
+        'id',
+        'status',
+    }),
+}
+# The denylist is kept purely as documentation and does not participate in runtime
+# authorization. It records what is explicitly banned and why.
+DENIED_LOOKUP_FIELDS = {
+    # Models that must NEVER be traversed to protect sensitive data
+    # (e.g., tokens, credentials):
+    'authtoken.token': 'DRF API tokens',
+    'mfa.authenticator': 'allauth MFA authenticators',
+    'accounts_mfa.mfamethodswrapper': 'MFA',
+    'django_digest.partialdigest': 'HTTP digest auth',
+    'account.emailconfirmation': 'e-mail confirmation',
+    'socialaccount.socialaccount': 'SSO account',
+    'socialaccount.socialtoken': 'SSO tokens',
+    'socialaccount.socialapp': 'SSO application',
+
+    # Specific columns that must NEVER be read via a lookup on any model:
+    'password': 'User password',
+    'private_data': 'ExtraUserDetail private data',
+    'secret': 'Any secret token',
+    'token': 'Any token',
+}
