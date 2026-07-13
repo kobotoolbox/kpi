@@ -85,6 +85,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
           type: alertDef.type,
           message,
           computedValues: result.computedValues,
+          filteredSubmissionUuids: result.filteredSubmissionUuids,
         })
       }
     }

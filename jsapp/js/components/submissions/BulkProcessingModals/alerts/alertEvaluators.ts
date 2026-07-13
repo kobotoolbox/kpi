@@ -176,13 +176,38 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
 
 /**
  * Checks for submissions with existing transcripts
- * TODO: DEV-1410 - Implement this evaluator (full duration calc depends on DEV-2255)
  */
 export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): AlertEvaluationResult {
-  console.log('[BulkProcessingAlerts] Evaluator evaluateAlreadyTranscribed - STUBBED, returning no alerts', context)
+  const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
 
-  // STUB: Return inactive result
-  return createInactiveResult('warning')
+  const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
+  const alreadyTranscribed: string[] = []
+
+  submissions.forEach((submission) => {
+    // Skip if already filtered by previous evaluators
+    if (previouslyFilteredSubmissionUuids.has(submission._uuid)) {
+      return
+    }
+
+    const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+    const hasTranscript = Boolean(transcript?.value || transcript?.pendingReview)
+
+    if (hasTranscript) {
+      alreadyTranscribed.push(submission._uuid)
+    }
+  })
+
+  return {
+    shouldShow: alreadyTranscribed.length > 0,
+    type: 'warning',
+    filteredSubmissionUuids: alreadyTranscribed,
+    // The exact duration (in minutes) is resolved in the transcription modal
+    // with the audio-duration endpoint and replaces this placeholder value.
+    computedValues: {
+      count: alreadyTranscribed.length,
+      duration: 0,
+    },
+  }
 }
 
 /**
