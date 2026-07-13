@@ -1,8 +1,9 @@
 import { expect } from 'chai'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import assetDataFactory from '#/endpoints/assetData.factory'
-import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import { asrExceeded, mtExceeded, withinLimits } from '#/endpoints/serviceUsage.factory'
 import {
   evaluateAlreadyTranslated,
@@ -12,6 +13,18 @@ import {
   evaluateReachedLimit,
 } from './alertEvaluators'
 import type { AlertEvaluationContext } from './types'
+
+function bulkActionFactory(
+  uid: string,
+  language: string,
+  overrides: Partial<BulkActionResponse> = {},
+): BulkActionResponse {
+  return getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+    uid,
+    params: { language },
+    ...overrides,
+  })
+}
 
 describe('evaluateNoEligibleSubmissions', () => {
   const mockSubmissions = [
