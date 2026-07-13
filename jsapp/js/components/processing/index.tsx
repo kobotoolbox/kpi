@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 
 import DocumentTitle from 'react-document-title'
-import type { AssetsAdvancedFeaturesBulkActionsListParams } from '#/api/models/assetsAdvancedFeaturesBulkActionsListParams'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -15,7 +14,7 @@ import {
 import assetStore from '#/assetStore'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { addDefaultUuidPrefix } from '#/utils'
+import { addDefaultUuidPrefix, removeDefaultUuidPrefix } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
@@ -58,9 +57,24 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const querySupplement = useAssetsDataSupplementRetrieve(assetId, submissionId)
   const supplement = querySupplement.data?.status === 200 ? querySupplement.data.data : undefined
 
-  const bulkActionsParams: AssetsAdvancedFeaturesBulkActionsListParams = {
+  const querySubmission = useAssetsDataList(assetId, {
+    query: JSON.stringify({
+      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId) }, { _uuid: submissionId }],
+    }),
+  })
+
+  const submission: DataResponse | undefined =
+    querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
+      ? querySubmission.data.data.results[0]
+      : undefined
+
+  // Bulk-action rows store submission_root_uuid, so normalize the selected
+  // submission to root UUID form before filtering.
+  const submissionRootUuid = submission ? removeDefaultUuidPrefix(submission['meta/rootUuid']) : undefined
+
+  const bulkActionsParams = {
     status: `${BulkActionResponseStatusEnum.pending},${BulkActionResponseStatusEnum.in_progress}`,
-    submission_uuid: submissionId,
+    submission_uuid: submissionRootUuid,
     question_xpath: questionXpath,
     // High page size keeps this to a single request in normal usage while
     // still relying on backend filtering instead of client-side page scanning.
@@ -75,22 +89,12 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
       refetchInterval: 10000,
       // If user is on a different tab/window, we skip interval polling.
       refetchIntervalInBackground: false,
+      enabled: Boolean(assetId && submissionRootUuid),
     },
   })
 
   const activeBulkActions: BulkActionResponse[] =
     queryBulkActions.data?.status === 200 ? getActiveBulkActions(queryBulkActions.data.data.results) : []
-
-  const querySubmission = useAssetsDataList(assetId, {
-    query: JSON.stringify({
-      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId) }, { _uuid: submissionId }],
-    }),
-  })
-
-  const submission: DataResponse | undefined =
-    querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
-      ? querySubmission.data.data.results[0]
-      : undefined
 
   /** Whether current submission has a response for current question. */
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
