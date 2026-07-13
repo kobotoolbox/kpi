@@ -58,6 +58,7 @@ from kpi.constants import (
 from kpi.exceptions import ConcurrentExportException, XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
+from kpi.utils.autoname import _is_group_end
 from kpi.utils.data_exports import (
     ACCESS_LOGS_EXPORT_FIELDS,
     ASSET_FIELDS,
@@ -76,6 +77,7 @@ from kpi.utils.rename_xls_sheet import (
     rename_xls_sheet,
     rename_xlsx_sheet,
 )
+from kpi.utils.sluggify import is_valid_node_name
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
@@ -362,6 +364,7 @@ class ImportTask(ImportExportTask):
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
+                self._ensure_valid_node_names(kontent)
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
@@ -394,6 +397,14 @@ class ImportTask(ImportExportTask):
             orm_obj.parent = parent_item
             orm_obj.save()
 
+    @staticmethod
+    def _ensure_valid_node_names(survey_dict):
+        survey_list = survey_dict.get('survey', [])
+        for node in survey_list:
+            name = node.get('name')
+            if bool(name) and not _is_group_end(node) and not is_valid_node_name(name):
+                raise ValueError(f'Invalid node name: {name}')
+
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
         desired_type = kwargs.get('desired_type')
@@ -404,6 +415,7 @@ class ImportTask(ImportExportTask):
             filename = ''
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
+        self._ensure_valid_node_names(survey_dict)
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)
