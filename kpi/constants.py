@@ -216,6 +216,35 @@ UNSUPPORTED_INLINE_MIMETYPES = [
 # Granularity is at the explicit model level:
 #     'app_label.model_name': {'field1', 'field2', ...}
 ALLOWED_LOOKUP_FIELDS = {
+    'auth.user': frozenset({
+        'username',
+        'extra_details',   # To allow extra_details__data
+    }),
+    'audit_log.accesslog': frozenset({
+        'action',
+        'date_created',
+        'metadata',
+        'user',
+    }),
+    'audit_log.auditlog': frozenset({
+        'action',
+        'date_created',
+        'metadata',
+        'user',
+    }),
+    'audit_log.projecthistorylog': frozenset({
+        'action',
+        'date_created',
+        'metadata',
+        'user',
+    }),
+    'hub.extrauserdetail': frozenset({
+        'data',
+    }),
+    'kobo_auth.user': frozenset({
+        'username',
+        'extra_details',   # To allow extra_details__data
+    }),
     'kpi.asset': frozenset({
         'asset_type',
         'date_created',
@@ -232,65 +261,17 @@ ALLOWED_LOOKUP_FIELDS = {
         'data_sharing',    # To allow data_sharing__enabled
         'last_modified_by',
     }),
-    'auth.user': frozenset({
-        'username',
-        'email',
-        'is_superuser',
-        'extra_details',   # To allow extra_details__data
-    }),
-    'kobo_auth.user': frozenset({
-        'username',
-        'email',
-        'is_superuser',
-        'extra_details',   # To allow extra_details__data
-    }),
-    'kpi.extrauserdetail': frozenset({
+    'kpi.importexporttask': frozenset({
         'data',
-    }),
-    'hub.extrauserdetail': frozenset({
-        'data',
-    }),
-    'taggit.tag': frozenset({
-        'name',
-    }),
-
-    'audit_log.auditlog': frozenset({
-        'action',
         'date_created',
-        'metadata',
-        'user',
-    }),
-    'audit_log.projecthistorylog': frozenset({
-        'action',
-        'date_created',
-        'metadata',
-        'user',
-    }),
-    'audit_log.accesslog': frozenset({
-        'action',
-        'date_created',
-        'metadata',
-        'user',
-    }),
-    'languages.language': frozenset({
-        'code',
-        'name',
-        'featured',
-        'transcription_services',
-        'translation_services',
-    }),
-    'languages.translationservice': frozenset({
-        'code',
-        'name',
-    }),
-    'languages.transcriptionservice': frozenset({
-        'code',
-        'name',
-    }),
-    'kpi.userassetsubscription': frozenset({
-        'id',
         'status',
-        'subscribed_date',
+        'user',
+    }),
+    'kpi.importtask': frozenset({
+        'data',
+        'date_created',
+        'status',
+        'user',
     }),
     'kpi.submissionexporttask': frozenset({
         'data',
@@ -304,17 +285,28 @@ ALLOWED_LOOKUP_FIELDS = {
         'status',
         'user',
     }),
-    'kpi.importtask': frozenset({
-        'data',
-        'date_created',
+    'kpi.userassetsubscription': frozenset({
+        'id',
         'status',
-        'user',
+        'subscribed_date',
     }),
-    'kpi.importexporttask': frozenset({
-        'data',
-        'date_created',
-        'status',
-        'user',
+    'languages.language': frozenset({
+        'code',
+        'name',
+        'featured',
+        'transcription_services',
+        'translation_services',
+    }),
+    'languages.transcriptionservice': frozenset({
+        'code',
+        'name',
+    }),
+    'languages.translationservice': frozenset({
+        'code',
+        'name',
+    }),
+    'taggit.tag': frozenset({
+        'name',
     }),
 }
 # The denylist is kept purely as documentation and does not participate in runtime
@@ -322,18 +314,28 @@ ALLOWED_LOOKUP_FIELDS = {
 DENIED_LOOKUP_FIELDS = {
     # Models that must NEVER be traversed to protect sensitive data
     # (e.g., tokens, credentials):
-    'authtoken.token': 'DRF API tokens',
-    'mfa.authenticator': 'allauth MFA authenticators',
-    'accounts_mfa.mfamethodswrapper': 'MFA',
-    'django_digest.partialdigest': 'HTTP digest auth',
-    'account.emailconfirmation': 'e-mail confirmation',
-    'socialaccount.socialaccount': 'SSO account',
-    'socialaccount.socialtoken': 'SSO tokens',
-    'socialaccount.socialapp': 'SSO application',
-
-    # Specific columns that must NEVER be read via a lookup on any model:
-    'password': 'User password',
-    'private_data': 'ExtraUserDetail private data',
-    'secret': 'Any secret token',
-    'token': 'Any token',
+    'account.emailconfirmation': frozenset({'*'}),
+    'accounts_mfa.mfamethodswrapper': frozenset({'*'}),
+    'authtoken.token': frozenset({'*'}),
+    'auth.user': frozenset({
+        'password',
+    }),
+    'django_digest.partialdigest': frozenset({'*'}),
+    'kobo_auth.user': frozenset({
+        'password',
+    }),
+    'hub.extrauserdetail': frozenset({
+        'private_data',
+    }),
+    'kpi.extrauserdetail': frozenset({
+        'private_data',
+    }),
+    'mfa.authenticator': frozenset({'*'}),
+    'socialaccount.socialaccount': frozenset({'*'}),
+    'socialaccount.socialtoken': frozenset({'*'}),
+    'socialaccount.socialapp': frozenset({'*'}),
+    '*': frozenset({
+        'secret',
+        'token',
+    }),
 }
