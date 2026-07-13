@@ -933,7 +933,7 @@ class Asset(
         force_update=False,
         update_fields=None,
         adjust_content=True,
-        create_version=True,
+        create_version=False,
         update_parent_languages=True,
         *args,
         **kwargs
@@ -973,6 +973,7 @@ class Asset(
         # If `content` is part of the updated fields, `summary` and
         # `report_styles` must be too.
         if update_content_field:
+            create_version = True
             update_fields += ['summary', 'report_styles']
             # Avoid duplicates
             update_fields = list(set(update_fields))
@@ -991,7 +992,10 @@ class Asset(
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
         if adjust_content:
+            before_adjust = copy.deepcopy(self.content)
             self.adjust_content_on_save()
+            if before_adjust != self.content:
+                create_version = True
 
         if not update_fields or update_fields and 'advanced_features' in update_fields:
             migrate_advanced_features(self, save_asset=False)
