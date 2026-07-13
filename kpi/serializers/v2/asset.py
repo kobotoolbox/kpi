@@ -872,13 +872,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _get_object_permission_assignments(self, asset):
         """
-        Fetch this asset's non-denied permission assignments once per request,
-        memoized on the serializer instance, so `get_permissions` and
-        `get_access_types` share a single query in the detail endpoint.
-
-        The dicts are a superset: `get_permissions` further filters on
-        `user__is_active`. Shape mirrors the list view's
-        `object_permissions_per_asset` cache.
+        Fetch the asset's non-denied assignments once per request (memoized), so
+        get_permissions and get_access_types share one query in the detail view.
         """
         cache = self.__dict__.setdefault(
             '_object_permission_assignments_cache', {}
