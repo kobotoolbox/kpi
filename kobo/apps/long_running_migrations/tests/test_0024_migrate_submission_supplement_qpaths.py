@@ -126,6 +126,30 @@ class Migrate0024QpathsTestCase(TestCase):
         bad.refresh_from_db()
         self.assertIn('orphan-qpath', bad.content)
 
+    def test_legacy_googlets_action_is_skipped_not_fatal(self):
+        # Reproduces the real prod failure: a supplement still carrying the
+        # pre-migration action ID 'googlets' made get_or_create -> QAF.save()
+        # raise `KeyError: 'googlets'` and abort the whole migration. The action
+        # is now skipped, and the qpath key is still rewritten to its xpath.
+        asset = self._make_asset()
+        supplement = self._make_supplement(
+            asset,
+            {'_version': '20250820', QPATH: {'googlets': {'value': 'x'}}},
+        )
+
+        self.migration.execute()
+
+        self.migration.refresh_from_db()
+        self.assertEqual(self.migration.status, LongRunningMigrationStatus.COMPLETED)
+        supplement.refresh_from_db()
+        # outer qpath -> xpath rewrite still happened despite the legacy action
+        self.assertIn(XPATH, supplement.content)
+        self.assertNotIn(QPATH, supplement.content)
+        # no QuestionAdvancedFeature was created for the unknown legacy action
+        self.assertFalse(
+            QuestionAdvancedFeature.objects.filter(action='googlets').exists()
+        )
+
     def test_asset_without_survey_does_not_crash(self):
         # regression: `asset.content['survey']` used to be `None` for such assets,
         # raising `TypeError: 'NoneType' object is not iterable`

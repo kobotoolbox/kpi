@@ -7,6 +7,7 @@ from kobo.apps.long_running_migrations.models import (
     LongRunningMigration,
     LongRunningMigrationStatus,
 )
+from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.utils.versioning import build_params
 from kpi.utils.log import logging
@@ -94,6 +95,18 @@ def _migrate_supplement(
                 continue
             for action_id in actions_for_xpath.keys():
                 if (asset.uid, xpath, action_id) in existing_qafs:
+                    continue
+                # Legacy content may still carry pre-migration action IDs (e.g.
+                # 'googlets'/'googletx') that 0023 didn't convert. They aren't in
+                # ACTION_IDS_TO_CLASSES, so creating a QuestionAdvancedFeature for
+                # them raises KeyError in its save(). Skip them like the
+                # migrate_submission_supplements management command does.
+                if action_id not in ACTION_IDS_TO_CLASSES:
+                    logging.warning(
+                        f'{logging_prefix} - skipping unknown action '
+                        f'{action_id} for {xpath}'
+                    )
+                    existing_qafs.add((asset.uid, xpath, action_id))
                     continue
                 try:
                     params = build_params(asset, xpath, action_id)
