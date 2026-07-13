@@ -10,7 +10,7 @@
     "module": "es2020",
     "lib": ["ES2022"],
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,

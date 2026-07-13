@@ -1,4 +1,4 @@
-import type { DecoratorFunction } from '@storybook/types'
+import type { Decorator } from '@storybook/react'
 
 const BULK_PROCESSING_BANNER_KEY_PREFIX = 'kpiBulkProcessingBanner-'
 
@@ -15,7 +15,7 @@ export function clearAllBulkProcessingBannerDismissals() {
  * Storybook decorator that resets banner-dismissal session state whenever a
  * story is rendered, so testers can always see the banner again on revisit.
  */
-export const withBulkProcessingBannerSessionReset: DecoratorFunction = (Story) => {
+export const withBulkProcessingBannerSessionReset: Decorator = (Story) => {
   clearAllBulkProcessingBannerDismissals()
   return Story()
 }
