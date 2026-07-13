@@ -393,6 +393,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
                 q,
                 default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
                 model=Asset,
+                user=request.user,
             )
         except (
             ParseError,
@@ -461,6 +462,7 @@ class SearchFilter(filters.BaseFilterBackend):
                     view, 'min_search_characters', None
                 ),
                 model=queryset.model,
+                user=request.user,
             )
         except ParseError:
             return queryset.model.objects.none()
