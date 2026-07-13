@@ -21,6 +21,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
+import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -139,7 +140,7 @@ export default function StepCreateAutomated({
     }
 
     try {
-      await mutationCreateAutomaticTranslation.mutateAsync({
+      const response = await mutationCreateAutomaticTranslation.mutateAsync({
         uidAsset: asset.uid,
         rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
         data: {
@@ -149,12 +150,27 @@ export default function StepCreateAutomated({
           },
         },
       })
+
+      if (response.status !== 200) return
+
+      const translationVersion = getLatestAutomaticTranslationVersionItem(response.data, questionXpath, languageCode)
+      if (
+        translationVersion?._data &&
+        'status' in translationVersion._data &&
+        (translationVersion._data.status === 'failed' || translationVersion._data.status === 'in_progress')
+      ) {
+        if (translationVersion._data.status === 'in_progress') {
+          const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+          goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, languageCode)
+        }
+        return
+      }
+
+      onCreate(languageCode, 'automated')
     } catch {
       // Error is handled by the onError callback above
       return
     }
-
-    onCreate(languageCode, 'automated')
   }
 
   if (!languageCode) return null

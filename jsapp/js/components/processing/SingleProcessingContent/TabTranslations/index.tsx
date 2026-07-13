@@ -17,6 +17,7 @@ import {
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'
+import TranslationPoll from './TranslationPoll'
 
 interface Props {
   asset: AssetResponse
@@ -46,7 +47,11 @@ export default function TranslationTab({
 
   // Selected language code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)
+  const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
   const translationVersion = translationVersions.find(({ _data }) => _data.language === languageCode)
+  const latestAutomaticTranslationVersion = languageCode
+    ? getLatestAutomaticTranslationVersionItem(supplement, questionXpath, languageCode)
+    : undefined
 
   useEffect(() => {
     if (translationVersion) return
@@ -54,14 +59,19 @@ export default function TranslationTab({
     // First priority: use languageCode from URL if available and valid
     if (urlLanguageCode) {
       const urlTranslation = translationVersions.find(({ _data }) => _data.language === urlLanguageCode)
-      if (urlTranslation) {
+      const urlInProgressTranslation = getLatestAutomaticTranslationVersionItem(
+        supplement,
+        questionXpath,
+        urlLanguageCode,
+      )
+      if (urlTranslation || urlInProgressTranslation) {
         setLanguageCode(urlLanguageCode)
         return
       }
     }
 
     // Second priority: get latest translation if current selected is not available
-    const latestTranslation = getLatestAutomaticTranslationVersionItem(supplement, questionXpath, undefined, false)
+    const latestTranslation = getLatestAutomaticTranslationVersionItem(supplement, questionXpath)
     if (!latestTranslation) {
       setLanguageCode(null)
       return
@@ -85,7 +95,24 @@ export default function TranslationTab({
     submission,
   ])
 
-  const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
+  if (
+    latestAutomaticTranslationVersion &&
+    isSupplementVersionAutomatic(latestAutomaticTranslationVersion) &&
+    latestAutomaticTranslationVersion._data.status === 'in_progress' &&
+    languageCode
+  ) {
+    return (
+      <TranslationPoll
+        key={`${submission._uuid}-${languageCode}`}
+        asset={asset}
+        questionXpath={questionXpath}
+        submission={submission}
+        supplement={supplement}
+        languageCode={languageCode}
+      />
+    )
+  }
+
   const mode = (() => {
     if (translationVersion && isSupplementVersionAutomatic(translationVersion) && !translationVersion._dateAccepted) {
       // If automatic translation isn't accepted, go directly to edit mode to accept or edit it.
