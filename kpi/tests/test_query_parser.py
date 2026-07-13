@@ -85,7 +85,7 @@ BLOCKED_QUERIES = [
     # blocked even with a trailing lookup, since the walk stops at the column
     (User, 'extra_details__private_data__last_tos_accept_time:x'),
     (Asset, 'owner__extra_details__private_data__icontains:x'),
-    
+
     # NEW ALLOWLIST TESTS:
     # Prove default-deny works for innocent but un-whitelisted real fields:
     # User.first_name and User.last_name exist but are not explicitly whitelisted.
@@ -150,11 +150,15 @@ def test_superuser_bypass():
 
     # User.password is highly sensitive and normally blocked.
     query = 'owner__password:x'
-    
+
     # 1. Without superuser, it should raise an exception (verify normal behavior)
     with pytest.raises(QueryParserNotSupportedFieldLookup):
         parse(query, default_field_lookups=['name__icontains'], model=Asset, user=None)
-        
+
     # 2. With superuser, it should parse without raising any exceptions
-    parsed_q = parse(query, default_field_lookups=['name__icontains'], model=Asset, user=MockSuperUser())
+    parsed_q = parse(
+        query,
+        default_field_lookups=['name__icontains'],
+        model=Asset, user=MockSuperUser(),
+    )
     assert parsed_q is not None
