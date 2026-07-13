@@ -6,6 +6,7 @@ import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { asrExceeded, mtExceeded, withinLimits } from '#/endpoints/serviceUsage.factory'
 import {
+  evaluateAlreadyTranscribed,
   evaluateAlreadyTranslated,
   evaluateConflictingJob,
   evaluateNoEligibleSubmissions,
@@ -691,6 +692,147 @@ describe('evaluateAlreadyTranslated', () => {
     expect(result.computedValues).to.deep.equal({
       count: 1,
       characters: 7,
+    })
+  })
+})
+
+describe('evaluateAlreadyTranscribed', () => {
+  const baseContext: AlertEvaluationContext = {
+    submissions: [],
+    fieldXpath: '_supplementalDetails/audio_question/transcript_en',
+    actionType: 'transcript',
+    activeBulkActions: [],
+    previouslyFilteredSubmissionUuids: new Set(),
+  }
+
+  it('should not show alert when no submissions have transcripts', () => {
+    const mockSubmissions = [assetDataFactory(1, { _uuid: 'uuid-1' }), assetDataFactory(2, { _uuid: 'uuid-2' })]
+
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: mockSubmissions,
+    }
+
+    const result = evaluateAlreadyTranscribed(context)
+
+    expect(result.shouldShow).to.equal(false)
+    expect(result.type).to.equal('warning')
+    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result.computedValues).to.deep.equal({
+      count: 0,
+      duration: 0,
+    })
+  })
+
+  it('should show alert when submissions have existing transcripts in any language', () => {
+    const mockSubmissions = [
+      assetDataFactory(1, {
+        _uuid: 'uuid-1',
+        _supplementalDetails: {
+          audio_question: {
+            transcript: {
+              languageCode: 'fr',
+              value: 'Bonjour',
+            },
+          },
+        },
+      }),
+      assetDataFactory(2, {
+        _uuid: 'uuid-2',
+        _supplementalDetails: {
+          audio_question: {
+            transcript: {
+              languageCode: 'sw',
+              value: 'Habari',
+            },
+          },
+        },
+      }),
+      assetDataFactory(3, { _uuid: 'uuid-3' }),
+    ]
+
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: mockSubmissions,
+    }
+
+    const result = evaluateAlreadyTranscribed(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.type).to.equal('warning')
+    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
+    expect(result.computedValues).to.deep.equal({
+      count: 2,
+      duration: 0,
+    })
+  })
+
+  it('should treat pending-review transcripts as existing', () => {
+    const mockSubmissions = [
+      assetDataFactory(1, {
+        _uuid: 'uuid-1',
+        _supplementalDetails: {
+          audio_question: {
+            transcript: {
+              languageCode: 'en',
+              pendingReview: true,
+            },
+          },
+        },
+      }),
+    ]
+
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: mockSubmissions,
+    }
+
+    const result = evaluateAlreadyTranscribed(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+    expect(result.computedValues.count).to.equal(1)
+  })
+
+  it('should skip submissions already filtered by previous evaluators', () => {
+    const mockSubmissions = [
+      assetDataFactory(1, {
+        _uuid: 'uuid-1',
+        _supplementalDetails: {
+          audio_question: {
+            transcript: {
+              languageCode: 'en',
+              value: 'hello',
+            },
+          },
+        },
+      }),
+      assetDataFactory(2, {
+        _uuid: 'uuid-2',
+        _supplementalDetails: {
+          audio_question: {
+            transcript: {
+              languageCode: 'es',
+              value: 'hola',
+            },
+          },
+        },
+      }),
+    ]
+
+    const context: AlertEvaluationContext = {
+      ...baseContext,
+      submissions: mockSubmissions,
+      previouslyFilteredSubmissionUuids: new Set(['uuid-1']),
+    }
+
+    const result = evaluateAlreadyTranscribed(context)
+
+    expect(result.shouldShow).to.equal(true)
+    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+    expect(result.computedValues).to.deep.equal({
+      count: 1,
+      duration: 0,
     })
   })
 })

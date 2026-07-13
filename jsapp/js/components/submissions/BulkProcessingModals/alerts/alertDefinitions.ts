@@ -1,3 +1,4 @@
+import { formatTimeFromSeconds } from '#/utils'
 import {
   evaluateAlreadyTranscribed,
   evaluateAlreadyTranslated,
@@ -62,7 +63,7 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       messageTemplate: ({ count = 0 }) =>
         isTranscription
           ? (count === 1
-              ? t('#1 submission is missing audio file and will be ignored')
+              ? t('1 submission is missing audio file and will be ignored')
               : t('##count## submissions are missing audio file and will be ignored')
             ).replace('##count##', String(count))
           : (count === 1
@@ -78,11 +79,11 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
         const count = values.count ?? 0
         return isTranscription
           ? (count === 1
-              ? t('1 audio file totaling ##minutes## minutes already transcribed and will be ignored')
-              : t('##count## audio files totaling ##minutes## minutes already transcribed and will be ignored')
+              ? t('1 audio file totaling ##duration## already transcribed and will be ignored')
+              : t('##count## audio files totaling ##duration## already transcribed and will be ignored')
             )
               .replace('##count##', String(count))
-              .replace('##minutes##', String(values.minutes ?? 0))
+              .replace('##duration##', String(values.duration ?? formatTimeFromSeconds(0)))
           : (count === 1
               ? t('1 transcript totaling ##characters## characters already translated and will be ignored')
               : t('##count## transcripts totaling ##characters## characters already translated and will be ignored')
