@@ -1,4 +1,4 @@
-import { keyword } from 'esutils'
+const { keyword } = require('esutils')
 
 /**
  * Copied some orvel internals and modified one line in order to drop the annoying `ApiV2` prefix to everything.

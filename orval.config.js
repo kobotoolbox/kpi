@@ -1,4 +1,4 @@
-import { operationName } from './jsapp/js/api/orval.operationName'
+const { operationName } = require('./jsapp/js/api/orval.operationName')
 
 module.exports = {
   'kpi-v2': {
