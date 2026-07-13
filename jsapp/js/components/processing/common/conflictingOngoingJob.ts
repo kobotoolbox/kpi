@@ -24,6 +24,8 @@ function isOngoingBulkAction(action: BulkActionResponse) {
  *
  * Transcript rule:
  * - Ongoing bulk transcription on the same question conflicts.
+ * - Ongoing bulk translation on the same question also conflicts, because the
+ *   transcript is the source text the translation job is reading from.
  *
  * Translation rules:
  * - Ongoing bulk transcription on the same question conflicts because transcript
@@ -50,7 +52,8 @@ export function isConflictingOngoingJobForSubmission(args: IsConflictingOngoingJ
 
     if (actionType === 'transcript') {
       return (
-        action.action_id === ActionIdEnum.automatic_google_transcription &&
+        (action.action_id === ActionIdEnum.automatic_google_transcription ||
+          action.action_id === ActionIdEnum.automatic_google_translation) &&
         action.submission_uuids.includes(submissionUuid)
       )
     }

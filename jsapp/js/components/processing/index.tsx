@@ -60,13 +60,9 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const queryBulkActions = useAssetsAdvancedFeaturesBulkActionsList(assetId, undefined, {
     query: {
       queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(assetId, undefined),
-      refetchInterval: (query) => {
-        const bulkActions = query.state.data?.status === 200 ? query.state.data.data.results : []
-        const hasActiveBulkActions = getActiveBulkActions(bulkActions).length > 0
-        // Poll only while there is something ongoing. This keeps the conflict
-        // lock state fresh without adding constant network traffic.
-        return hasActiveBulkActions ? 10000 : false
-      },
+      // Keep polling while the route is open so a job that starts after an
+      // empty initial load can still lock the controls without a remount.
+      refetchInterval: 10000,
       // If user is on a different tab/window, we skip interval polling.
       refetchIntervalInBackground: false,
     },

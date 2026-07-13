@@ -38,6 +38,24 @@ describe('isConflictingOngoingJobForSubmission', () => {
     chai.expect(result).to.equal(true)
   })
 
+  it('returns true for transcript when ongoing translation exists on same field and submission', () => {
+    const result = isConflictingOngoingJobForSubmission({
+      activeBulkActions: [
+        bulkActionFactory(submissionUuid, 'fr', {
+          action_id: ActionIdEnum.automatic_google_translation,
+          question_xpath: fieldXpath,
+          status: BulkActionResponseStatusEnum.in_progress,
+        }),
+      ],
+      actionType: 'transcript',
+      fieldXpath,
+      submissionUuid,
+      selectedLanguage: 'en',
+    })
+
+    chai.expect(result).to.equal(true)
+  })
+
   it('returns false for transcript when action is complete', () => {
     const result = isConflictingOngoingJobForSubmission({
       activeBulkActions: [
