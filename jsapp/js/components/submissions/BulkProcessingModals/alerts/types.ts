@@ -62,4 +62,6 @@ export interface ActiveAlert {
   type: AlertSeverity
   message: string
   computedValues: Record<string, any>
+  /** Optional UUIDs filtered by this alert, used by modal-specific follow-up calculations */
+  filteredSubmissionUuids?: string[]
 }
