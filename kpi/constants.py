@@ -290,6 +290,31 @@ ALLOWED_LOOKUP_FIELDS = {
     'kpi.userassetsubscription': frozenset({
         'id',
         'status',
+        'subscribed_date',
+    }),
+    'kpi.submissionexporttask': frozenset({
+        'data',
+        'date_created',
+        'status',
+        'user',
+    }),
+    'kpi.submissionsynchronousexport': frozenset({
+        'data',
+        'date_created',
+        'status',
+        'user',
+    }),
+    'kpi.importtask': frozenset({
+        'data',
+        'date_created',
+        'status',
+        'user',
+    }),
+    'kpi.importexporttask': frozenset({
+        'data',
+        'date_created',
+        'status',
+        'user',
     }),
 }
 # The denylist is kept purely as documentation and does not participate in runtime
