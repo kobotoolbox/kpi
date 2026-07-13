@@ -76,7 +76,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     for (const alertDef of alertDefinitions) {
       const result = alertDef.evaluator(context)
 
-      if (result.shouldShow) {
+      if (result) {
         // Add filtered submission uuids to the set (for warnings)
         if (result.type === 'warning') {
           result.filteredSubmissionUuids.forEach((uuid) => filteredSubmissionUuids.add(uuid))

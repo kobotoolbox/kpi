@@ -2,25 +2,28 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
-import { createInactiveResult } from './utils'
 
 /**
  * Checks if user has reached their quota limit (0 remaining)
  */
-export function evaluateReachedLimit(context: AlertEvaluationContext): AlertEvaluationResult {
+export function evaluateReachedLimit(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { actionType, serviceUsageData } = context
 
   // Can't evaluate without service usage data
   if (!serviceUsageData?.balances) {
-    return createInactiveResult('error')
+    return null
   }
 
   // Check the appropriate balance based on action type
   const balance =
     actionType === 'transcript' ? serviceUsageData.balances.asr_seconds : serviceUsageData.balances.mt_characters
 
+  const exceeded = balance?.exceeded || false
+  if (!exceeded) {
+    return null
+  }
+
   return {
-    shouldShow: balance?.exceeded || false,
     type: 'error',
     filteredSubmissionUuids: [],
     computedValues: {},
@@ -30,22 +33,22 @@ export function evaluateReachedLimit(context: AlertEvaluationContext): AlertEval
 /**
  * Checks if remaining quota is less than required but greater than 0
  */
-export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluationResult {
+export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { actionType, serviceUsageData, nearLimitRequiredAmount } = context
 
   if (!serviceUsageData?.balances || nearLimitRequiredAmount === undefined) {
-    return createInactiveResult('error')
+    return null
   }
 
   if (nearLimitRequiredAmount <= 0) {
-    return createInactiveResult('error')
+    return null
   }
 
   const balance =
     actionType === 'transcript' ? serviceUsageData.balances.asr_seconds : serviceUsageData.balances.mt_characters
 
   if (!balance) {
-    return createInactiveResult('error')
+    return null
   }
 
   const remainingAmount = balance.balance_value
@@ -57,7 +60,7 @@ export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluat
   // Show only when 0 < remainingAmount < nearLimitRequiredAmount.
   // That's when you have some quota but not enough for all the submissions you selected.
   if (remainingAmount <= 0 || remainingAmount >= nearLimitRequiredAmount) {
-    return createInactiveResult('error')
+    return null
   }
 
   const computedValues =
@@ -70,7 +73,6 @@ export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluat
         }
 
   return {
-    shouldShow: true,
     type: 'error',
     filteredSubmissionUuids: [],
     computedValues,
@@ -85,7 +87,7 @@ export function evaluateNearLimit(context: AlertEvaluationContext): AlertEvaluat
  *   - Ongoing translation jobs on the same field AND same target language (write-locked output)
  *   - Ongoing transcription jobs on the input transcript field (write-locked input)
  */
-export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEvaluationResult {
+export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { activeBulkActions, fieldXpath, actionType, submissions, selectedLanguage } = context
 
   // Filter to only ongoing jobs (pending or in_progress)
@@ -96,12 +98,7 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
   )
 
   if (ongoingJobs.length === 0) {
-    return {
-      shouldShow: false,
-      type: 'warning',
-      filteredSubmissionUuids: [],
-      computedValues: {},
-    }
+    return null
   }
 
   // Find conflicting jobs based on action type
@@ -135,12 +132,7 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
   }
 
   if (conflictingJobs.length === 0) {
-    return {
-      shouldShow: false,
-      type: 'warning',
-      filteredSubmissionUuids: [],
-      computedValues: {},
-    }
+    return null
   }
 
   // Collect all submission UUIDs from conflicting jobs
@@ -154,8 +146,11 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
     .filter((submission) => conflictingUuids.has(submission._uuid))
     .map((submission) => submission._uuid)
 
+  if (filteredSubmissionUuids.length === 0) {
+    return null
+  }
+
   return {
-    shouldShow: filteredSubmissionUuids.length > 0,
     type: 'warning',
     filteredSubmissionUuids,
     computedValues: {
@@ -169,7 +164,7 @@ export function evaluateConflictingJob(context: AlertEvaluationContext): AlertEv
  * Checks for submissions missing audio attachments (transcription)
  * or missing transcripts (translation)
  */
-export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluationResult {
+export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { submissions, fieldXpath, actionType, previouslyFilteredSubmissionUuids } = context
 
   const missingSource: string[] = []
@@ -203,8 +198,11 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
     }
   })
 
+  if (missingSource.length === 0) {
+    return null
+  }
+
   return {
-    shouldShow: missingSource.length > 0,
     type: 'warning',
     filteredSubmissionUuids: missingSource,
     computedValues: {
@@ -216,7 +214,7 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
 /**
  * Checks for submissions with existing transcripts
  */
-export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): AlertEvaluationResult {
+export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { submissions, fieldXpath, previouslyFilteredSubmissionUuids } = context
 
   const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
@@ -236,8 +234,11 @@ export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): Ale
     }
   })
 
+  if (alreadyTranscribed.length === 0) {
+    return null
+  }
+
   return {
-    shouldShow: alreadyTranscribed.length > 0,
     type: 'warning',
     filteredSubmissionUuids: alreadyTranscribed,
     // The exact duration (in minutes) is resolved in the transcription modal
@@ -252,12 +253,12 @@ export function evaluateAlreadyTranscribed(context: AlertEvaluationContext): Ale
 /**
  * Checks for submissions with existing translations in the selected language
  */
-export function evaluateAlreadyTranslated(context: AlertEvaluationContext): AlertEvaluationResult {
+export function evaluateAlreadyTranslated(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const { submissions, fieldXpath, selectedLanguage, previouslyFilteredSubmissionUuids } = context
 
   // Can't evaluate without a selected language
   if (!selectedLanguage) {
-    return createInactiveResult('warning')
+    return null
   }
 
   const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
@@ -282,8 +283,11 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
     }
   })
 
+  if (alreadyTranslated.length === 0) {
+    return null
+  }
+
   return {
-    shouldShow: alreadyTranslated.length > 0,
     type: 'warning',
     filteredSubmissionUuids: alreadyTranslated,
     computedValues: {
@@ -296,10 +300,14 @@ export function evaluateAlreadyTranslated(context: AlertEvaluationContext): Aler
 /**
  * Checks if all submissions have been filtered out by previous evaluators
  */
-export function evaluateNoEligibleSubmissions(context: AlertEvaluationContext): AlertEvaluationResult {
+export function evaluateNoEligibleSubmissions(context: AlertEvaluationContext): AlertEvaluationResult | null {
   const eligibleCount = context.submissions.length - context.previouslyFilteredSubmissionUuids.size
+
+  if (eligibleCount > 0) {
+    return null
+  }
+
   return {
-    shouldShow: eligibleCount === 0,
     type: 'error',
     filteredSubmissionUuids: [],
     computedValues: {

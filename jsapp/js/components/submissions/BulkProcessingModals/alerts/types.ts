@@ -31,11 +31,9 @@ export interface AlertEvaluationContext {
 }
 
 /**
- * Result returned by alert evaluators
+ * A "show alert" result returned by alert evaluators (otherwise it returns `null`)
  */
 export interface AlertEvaluationResult {
-  /** Whether this alert should be displayed */
-  shouldShow: boolean
   type: AlertSeverity
   /** Submission Uuids filtered out by this evaluator */
   filteredSubmissionUuids: string[]
@@ -51,7 +49,7 @@ export interface AlertDefinition {
   /** Unique alert identifier */
   id: string
   type: AlertSeverity
-  evaluator: (context: AlertEvaluationContext) => AlertEvaluationResult
+  evaluator: (context: AlertEvaluationContext) => AlertEvaluationResult | null
   messageTemplate: (values: Record<string, any>) => string
 }
 

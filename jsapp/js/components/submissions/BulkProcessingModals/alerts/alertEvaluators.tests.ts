@@ -38,10 +38,10 @@ describe('evaluateNoEligibleSubmissions', () => {
 
     const result = evaluateNoEligibleSubmissions(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('error')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('error')
+    expect(result?.filteredSubmissionUuids).to.deep.equal([])
+    expect(result?.computedValues).to.deep.equal({
       totalCount: 3,
       filteredCount: 3,
     })
@@ -55,13 +55,7 @@ describe('evaluateNoEligibleSubmissions', () => {
 
     const result = evaluateNoEligibleSubmissions(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
-    expect(result.computedValues).to.deep.equal({
-      totalCount: 3,
-      filteredCount: 2,
-    })
+    expect(result).to.equal(null)
   })
 
   it('should not show alert when no submissions are filtered', () => {
@@ -72,13 +66,7 @@ describe('evaluateNoEligibleSubmissions', () => {
 
     const result = evaluateNoEligibleSubmissions(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
-    expect(result.computedValues).to.deep.equal({
-      totalCount: 3,
-      filteredCount: 0,
-    })
+    expect(result).to.equal(null)
   })
 
   it('should handle empty submissions array', () => {
@@ -90,9 +78,9 @@ describe('evaluateNoEligibleSubmissions', () => {
 
     const result = evaluateNoEligibleSubmissions(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('error')
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('error')
+    expect(result?.computedValues).to.deep.equal({
       totalCount: 0,
       filteredCount: 0,
     })
@@ -122,9 +110,7 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should not show alert when ongoing jobs are for different field', () => {
@@ -141,9 +127,7 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should not show alert when jobs are completed', () => {
@@ -160,9 +144,7 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should show alert for transcription when ongoing transcription job conflicts', () => {
@@ -180,10 +162,10 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
+    expect(result?.computedValues).to.deep.equal({
       count: 2,
       conflictingJobCount: 1,
     })
@@ -204,10 +186,10 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-3'])
-    expect(result.computedValues.count).to.equal(1)
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-3'])
+    expect(result?.computedValues.count).to.equal(1)
   })
 
   it('should show alert for translation when ongoing translation job conflicts with same language', () => {
@@ -227,9 +209,9 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
   })
 
   it('should not show alert for translation when ongoing translation job is for different language', () => {
@@ -249,9 +231,7 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should show alert for translation when ongoing transcription job conflicts', () => {
@@ -271,9 +251,9 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
   })
 
   it('should handle multiple conflicting jobs', () => {
@@ -297,10 +277,10 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.have.members(['uuid-1', 'uuid-2', 'uuid-3'])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.have.members(['uuid-1', 'uuid-2', 'uuid-3'])
+    expect(result?.computedValues).to.deep.equal({
       count: 3,
       conflictingJobCount: 2,
     })
@@ -321,9 +301,7 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should not show alert for translation when ongoing translation job is for different field', () => {
@@ -343,9 +321,7 @@ describe('evaluateConflictingJob', () => {
 
     const result = evaluateConflictingJob(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 })
 
@@ -368,9 +344,9 @@ describe('evaluateReachedLimit', () => {
 
     const result = evaluateReachedLimit(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('error')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('error')
+    expect(result?.filteredSubmissionUuids).to.deep.equal([])
   })
 
   it('should not show alert when transcription quota is not exceeded', () => {
@@ -381,8 +357,7 @@ describe('evaluateReachedLimit', () => {
 
     const result = evaluateReachedLimit(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
+    expect(result).to.equal(null)
   })
 
   it('should show alert when translation quota is exceeded', () => {
@@ -394,9 +369,9 @@ describe('evaluateReachedLimit', () => {
 
     const result = evaluateReachedLimit(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('error')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('error')
+    expect(result?.filteredSubmissionUuids).to.deep.equal([])
   })
 
   it('should not show alert when translation quota is not exceeded', () => {
@@ -408,8 +383,7 @@ describe('evaluateReachedLimit', () => {
 
     const result = evaluateReachedLimit(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
+    expect(result).to.equal(null)
   })
 
   it('should not show alert when serviceUsageData is missing', () => {
@@ -420,8 +394,7 @@ describe('evaluateReachedLimit', () => {
 
     const result = evaluateReachedLimit(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
+    expect(result).to.equal(null)
   })
 })
 
@@ -445,10 +418,10 @@ describe('evaluateNearLimit', () => {
 
     const result = evaluateNearLimit(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('error')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('error')
+    expect(result?.filteredSubmissionUuids).to.deep.equal([])
+    expect(result?.computedValues).to.deep.equal({
       remainingSeconds: 30,
     })
   })
@@ -462,8 +435,7 @@ describe('evaluateNearLimit', () => {
 
     const result = evaluateNearLimit(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
+    expect(result).to.equal(null)
   })
 
   it('should not show alert when balance is exceeded', () => {
@@ -475,8 +447,7 @@ describe('evaluateNearLimit', () => {
 
     const result = evaluateNearLimit(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
+    expect(result).to.equal(null)
   })
 
   it('should show alert for translation when remaining characters are below required amount', () => {
@@ -489,10 +460,10 @@ describe('evaluateNearLimit', () => {
 
     const result = evaluateNearLimit(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('error')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('error')
+    expect(result?.filteredSubmissionUuids).to.deep.equal([])
+    expect(result?.computedValues).to.deep.equal({
       remainingCharacters: 2500,
     })
   })
@@ -506,8 +477,7 @@ describe('evaluateNearLimit', () => {
 
     const result = evaluateNearLimit(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('error')
+    expect(result).to.equal(null)
   })
 })
 
@@ -543,8 +513,7 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
+    expect(result).to.equal(null)
   })
 
   it('should not show alert when no submissions have translations', () => {
@@ -557,9 +526,7 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should show alert when submissions have existing translations', () => {
@@ -594,10 +561,10 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
+    expect(result?.computedValues).to.deep.equal({
       count: 2,
       characters: 7 + 9, // 'Bonjour' + 'Au revoir'
     })
@@ -634,9 +601,9 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
-    expect(result.computedValues.count).to.equal(1)
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+    expect(result?.computedValues.count).to.equal(1)
   })
 
   it('should not flag submissions with empty translation value', () => {
@@ -670,8 +637,7 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should skip submissions already filtered by previous evaluators', () => {
@@ -706,9 +672,9 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+    expect(result?.computedValues).to.deep.equal({
       count: 1,
       characters: 9, // Only 'Au revoir'
     })
@@ -735,8 +701,7 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
+    expect(result).to.equal(null)
   })
 
   it('should work with direct field xpath (not transcript column xpath)', () => {
@@ -761,9 +726,9 @@ describe('evaluateAlreadyTranslated', () => {
 
     const result = evaluateAlreadyTranslated(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+    expect(result?.computedValues).to.deep.equal({
       count: 1,
       characters: 7,
     })
@@ -789,13 +754,7 @@ describe('evaluateAlreadyTranscribed', () => {
 
     const result = evaluateAlreadyTranscribed(context)
 
-    expect(result.shouldShow).to.equal(false)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal([])
-    expect(result.computedValues).to.deep.equal({
-      count: 0,
-      duration: 0,
-    })
+    expect(result).to.equal(null)
   })
 
   it('should show alert when submissions have existing transcripts in any language', () => {
@@ -832,10 +791,10 @@ describe('evaluateAlreadyTranscribed', () => {
 
     const result = evaluateAlreadyTranscribed(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.type).to.equal('warning')
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.type).to.equal('warning')
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
+    expect(result?.computedValues).to.deep.equal({
       count: 2,
       duration: 0,
     })
@@ -863,9 +822,9 @@ describe('evaluateAlreadyTranscribed', () => {
 
     const result = evaluateAlreadyTranscribed(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
-    expect(result.computedValues.count).to.equal(1)
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+    expect(result?.computedValues.count).to.equal(1)
   })
 
   it('should skip submissions already filtered by previous evaluators', () => {
@@ -902,9 +861,9 @@ describe('evaluateAlreadyTranscribed', () => {
 
     const result = evaluateAlreadyTranscribed(context)
 
-    expect(result.shouldShow).to.equal(true)
-    expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
-    expect(result.computedValues).to.deep.equal({
+    expect(result).to.not.equal(null)
+    expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+    expect(result?.computedValues).to.deep.equal({
       count: 1,
       duration: 0,
     })
@@ -960,9 +919,7 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(false)
-      expect(result.type).to.equal('warning')
-      expect(result.filteredSubmissionUuids).to.deep.equal([])
+      expect(result).to.equal(null)
     })
 
     it('should show alert when submissions are missing audio attachments', () => {
@@ -992,10 +949,10 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.type).to.equal('warning')
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2', 'uuid-3'])
-      expect(result.computedValues.count).to.equal(2)
+      expect(result).to.not.equal(null)
+      expect(result?.type).to.equal('warning')
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2', 'uuid-3'])
+      expect(result?.computedValues.count).to.equal(2)
     })
 
     it('should ignore deleted attachments', () => {
@@ -1023,8 +980,8 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
     })
 
     it('should check correct field xpath', () => {
@@ -1052,8 +1009,8 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
     })
 
     it('should skip submissions already filtered by previous evaluators', () => {
@@ -1070,9 +1027,9 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
-      expect(result.computedValues.count).to.equal(1)
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+      expect(result?.computedValues.count).to.equal(1)
     })
   })
 
@@ -1112,9 +1069,7 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(false)
-      expect(result.type).to.equal('warning')
-      expect(result.filteredSubmissionUuids).to.deep.equal([])
+      expect(result).to.equal(null)
     })
 
     it('should show alert when submissions are missing transcripts', () => {
@@ -1143,10 +1098,10 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.type).to.equal('warning')
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2', 'uuid-3'])
-      expect(result.computedValues.count).to.equal(2)
+      expect(result).to.not.equal(null)
+      expect(result?.type).to.equal('warning')
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2', 'uuid-3'])
+      expect(result?.computedValues.count).to.equal(2)
     })
 
     it('should flag submissions with empty transcript value', () => {
@@ -1176,8 +1131,8 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1', 'uuid-2'])
     })
 
     it('should check correct field xpath', () => {
@@ -1199,8 +1154,8 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-1'])
     })
 
     it('should skip submissions already filtered by previous evaluators', () => {
@@ -1214,9 +1169,9 @@ describe('evaluateNoSource', () => {
 
       const result = evaluateNoSource(context)
 
-      expect(result.shouldShow).to.equal(true)
-      expect(result.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
-      expect(result.computedValues.count).to.equal(1)
+      expect(result).to.not.equal(null)
+      expect(result?.filteredSubmissionUuids).to.deep.equal(['uuid-2'])
+      expect(result?.computedValues.count).to.equal(1)
     })
   })
 })
