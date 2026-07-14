@@ -18,6 +18,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
+from .utils import constance_env, dj_stripe_request_callback_method
 
 env = environ.Env()
 
@@ -190,24 +191,6 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
 
-
-def _constance_env(getter, new_key, deprecated_key, default):
-    """
-    Read a Constance override from the `CONSTANCE_`-prefixed environment
-    variable, falling back to its deprecated (unprefixed / `KOBO_`) name.
-
-    Emit a `DeprecationWarning` when the deprecated name is still set so
-    deployments know to migrate to the `CONSTANCE_` prefix.
-    """
-    if deprecated_key in os.environ:
-        warnings.warn(
-            f'{deprecated_key} is renamed {new_key}, '
-            f'update the environment variable.',
-            DeprecationWarning,
-        )
-    return getter(new_key, getter(deprecated_key, default))
-
-
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (
         True,
@@ -243,7 +226,7 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        _constance_env(
+        constance_env(
             env.str,
             'CONSTANCE_SUPPORT_EMAIL',
             'KOBO_SUPPORT_EMAIL',
@@ -253,7 +236,7 @@ CONSTANCE_CONFIG = {
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        _constance_env(
+        constance_env(
             env.str,
             'CONSTANCE_SUPPORT_URL',
             'KOBO_SUPPORT_URL',
@@ -262,7 +245,7 @@ CONSTANCE_CONFIG = {
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        _constance_env(
+        constance_env(
             env.str,
             'CONSTANCE_ACADEMY_URL',
             'KOBO_ACADEMY_URL',
@@ -271,7 +254,7 @@ CONSTANCE_CONFIG = {
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
-        _constance_env(
+        constance_env(
             env.str,
             'CONSTANCE_COMMUNITY_URL',
             'KOBO_COMMUNITY_URL',
@@ -364,7 +347,7 @@ CONSTANCE_CONFIG = {
         'Require MFA for superusers with a usable password',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
-        _constance_env(
+        constance_env(
             env.bool,
             'CONSTANCE_USAGE_LIMIT_ENFORCEMENT',
             'USAGE_LIMIT_ENFORCEMENT',
@@ -1290,16 +1273,6 @@ Stripe configuration intended for kf.kobotoolbox.org only,
 tracks usage limit exceptions
 """
 STRIPE_ENABLED = env.bool('STRIPE_ENABLED', False)
-
-
-def dj_stripe_request_callback_method():
-    # This method exists because dj-stripe's documentation doesn't reflect reality.
-    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
-    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
-    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
-    # It doesn't need to do anything other than exist
-    # https://github.com/dj-stripe/dj-stripe/issues/1900
-    pass
 
 
 BULK_ACTION_RATE_LIMITS = {
