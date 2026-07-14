@@ -1,5 +1,3 @@
-import base64
-
 from django.conf import settings
 from django.http.multipartparser import MultiPartParser as DjangoMultiPartParser
 from django.http.multipartparser import MultiPartParserError
@@ -8,35 +6,48 @@ from rest_framework.exceptions import ParseError
 from rest_framework.parsers import DataAndFiles
 from rest_framework.parsers import MultiPartParser as DRFMultiPartParser
 
+# Prefix for the short placeholder names returned by `sanitize_file_name`.
+# It only needs to survive `DjangoMultiPartParser` as an opaque lookup key, so
+# keep it well under Django's 255-char limit on `file.name`.
+RAW_FILENAME_TOKEN_PREFIX = '__kobo_raw_filename__'
+
 
 class MultiPartParserWithRawFilenames(DjangoMultiPartParser):
     """
     A parser that "smuggles" unsanitized filenames through
-    `DjangoMultiPartParser._parse()` by encoding them to base64. Then, after
-    the superclass is called, the base64-encoded filenames are decoded and
-    split into raw and sanitized attributes on each file.
+    `DjangoMultiPartParser._parse()`. Instead of storing the raw filename in
+    `file.name` (which Django silently truncates to 255 chars), it hands back a
+    short placeholder token and keeps the original filename in a side-channel
+    dict. After the superclass is called, each file's raw filename is recovered
+    from that dict, so it survives regardless of length.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Maps placeholder token -> original (unsanitized) filename.
+        self._raw_filenames = {}
 
     def sanitize_file_name(self, file_name: str) -> str:
         raw = force_str(file_name)
-        encoded = base64.urlsafe_b64encode(raw.encode('utf-8')).decode('ascii')
-        return encoded
+        token = f'{RAW_FILENAME_TOKEN_PREFIX}{len(self._raw_filenames)}'
+        self._raw_filenames[token] = raw
+        return token
 
     def parse(self):
         data, files = super().parse()
 
         for field_name, f in files.items():
-            decoded = base64.urlsafe_b64decode(f.name.encode('ascii')).decode('utf-8')
-            f._raw_filename = decoded
-            f.name = super().sanitize_file_name(decoded)
+            raw = self._raw_filenames.get(f.name, f.name)
+            f._raw_filename = raw
+            f.name = super().sanitize_file_name(raw)
 
         return data, files
 
 
 class RawFilenameMultiPartParser(DRFMultiPartParser):
     """
-    DRF-compatible MultiPartParser that intercepts the original filenames
-    via base64 encoding and stores the decoded version in ._raw_filename.
+    DRF-compatible MultiPartParser that intercepts the original filenames and
+    stores them, unsanitized, in ._raw_filename.
     """
 
     def parse(self, stream, media_type=None, parser_context=None):
