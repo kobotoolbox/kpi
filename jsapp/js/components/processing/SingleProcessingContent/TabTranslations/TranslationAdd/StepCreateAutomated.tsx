@@ -151,6 +151,8 @@ export default function StepCreateAutomated({
         },
       })
 
+      // This endpoint is expected to come back with 200 on success. If that ever changes,
+      // the API contract needs fixing instead of guessing our way through it here.
       if (response.status !== 200) return
 
       const translationVersion = getLatestAutomaticTranslationVersionItem(response.data, questionXpath, languageCode)

@@ -38,13 +38,16 @@ export function useSupplementStatusPolling(asset: AssetResponse, submission: Dat
       enabled: !mutationPending,
     },
   })
+  // Keep the effect tied to the stable refetch function. The query result object changes
+  // on every update, and that would restart the timer from scratch.
+  const { refetch } = querySupplement
 
   useEffect(() => {
     if (mutationPending) return // Start polling only after the initial mutation(s) are done.
     let timeoutId: NodeJS.Timeout
 
     const pollStatus = () => {
-      querySupplement.refetch()
+      refetch()
       timeoutId = setTimeout(pollStatus, POLL_INTERVAL)
     }
 
@@ -53,5 +56,5 @@ export function useSupplementStatusPolling(asset: AssetResponse, submission: Dat
     return () => {
       clearTimeout(timeoutId)
     }
-  }, [querySupplement, mutationPending, firstPollDelayMs])
+  }, [refetch, mutationPending, firstPollDelayMs])
 }
