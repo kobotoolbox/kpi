@@ -1110,7 +1110,6 @@ class Asset(
 
         if self.has_deployment:
             self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
-
         if self.new_version_required():
             self.create_version()
 
