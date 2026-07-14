@@ -1,13 +1,12 @@
 # coding: utf-8
 import datetime
-import json
 
 from django.db import models
 
 from formpack.utils.expand_content import expand_content
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from kpi.utils.hash import calculate_hash
+from kpi.utils.hash import calculate_content_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
@@ -71,10 +70,8 @@ class AssetVersion(AbstractTimeStampedModel):
         disappear once all records have been backfilled via the long-running
         migration 0020
         """
-
         if not self._content_hash:
-            _json_string = json.dumps(self.version_content, sort_keys=True)
-            self._content_hash = calculate_hash(_json_string, 'sha1')
+            self._content_hash = calculate_content_hash(self.version_content)
 
         return self._content_hash
 

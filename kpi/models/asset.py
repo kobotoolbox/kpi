@@ -65,6 +65,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
     post_assign_partial_perm,
@@ -868,15 +869,19 @@ class Asset(
             self.settings['extra_metadata'] = {}
 
     def new_version_required(self):
-        if not self.latest_version:
+        latest_version = (
+            self.asset_versions.defer('version_content')
+            .order_by('-date_created')
+            .first()
+        )
+        if not latest_version:
             return True
-        current_content = self.content
-        current_name = self.name
-        previous_version_content = self.latest_version.version_content
-        previous_version_name = self.latest_version.name
-        return current_name != previous_version_name or hash(
-            previous_version_content
-        ) != hash(current_content)
+        current_content_hash = calculate_content_hash(self.content)
+        previous_version_name = latest_version.name
+        return (
+            self.name != previous_version_name
+            or latest_version.content_hash != current_content_hash
+        )
 
     @staticmethod
     def optimize_queryset_for_list(queryset):
