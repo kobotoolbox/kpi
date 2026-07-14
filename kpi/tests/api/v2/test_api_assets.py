@@ -1543,7 +1543,7 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         }
         self.client.patch(self.asset_url, data, format='json')
         self.asset.refresh_from_db()
-        assert self.asset.versions.count() == initial_version_count
+        assert self.asset.asset_versions.count() == initial_version_count
 
     def test_asset_has_deployment_data(self):
         response = self.client.get(self.asset_url, format='json')
