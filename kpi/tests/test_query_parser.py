@@ -108,6 +108,8 @@ ALLOWED_QUERIES = [
     (Asset, 'uid__in:abc'),
     (User, 'username:foo'),
     (User, 'extra_details__data__name:foo'),
+    (Asset, 'search_field__owner_username__icontains:foo'),
+    (Asset, 'search_field__organization_name__icontains:bar'),
 ]
 
 

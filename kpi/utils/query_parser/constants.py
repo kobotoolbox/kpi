@@ -48,6 +48,7 @@ ALLOWED_LOOKUP_FIELDS = {
         'extra_details',   # To allow extra_details__data
     }),
     'kpi.asset': frozenset({
+        '_deployment_status',
         'asset_type',
         'date_created',
         'date_deployed',
@@ -55,6 +56,7 @@ ALLOWED_LOOKUP_FIELDS = {
         'name',
         'owner',
         'parent',
+        'search_field',
         'settings',
         'status',          # Special-cased in code, but good to whitelist explicitly
         'summary',
@@ -80,6 +82,7 @@ ALLOWED_LOOKUP_FIELDS = {
         'date_created',
         'status',
         'user',
+        'uid',
     }),
     'kpi.submissionsynchronousexport': frozenset({
         'data',
