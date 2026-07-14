@@ -867,6 +867,17 @@ class Asset(
         elif not isinstance(extra_metadata, dict):
             self.settings['extra_metadata'] = {}
 
+    def new_version_required(self):
+        if not self.latest_version:
+            return True
+        current_content = self.content
+        current_name = self.name
+        previous_version_content = self.latest_version.version_content
+        previous_version_name = self.latest_version.name
+        return current_name != previous_version_name or hash(
+            previous_version_content
+        ) != hash(current_content)
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """Used by serializers to improve performance when listing assets"""
@@ -933,10 +944,9 @@ class Asset(
         force_update=False,
         update_fields=None,
         adjust_content=True,
-        create_version=False,
         update_parent_languages=True,
         *args,
-        **kwargs
+        **kwargs,
     ):
         is_new = self.pk is None
 
@@ -973,7 +983,6 @@ class Asset(
         # If `content` is part of the updated fields, `summary` and
         # `report_styles` must be too.
         if update_content_field:
-            create_version = True
             update_fields += ['summary', 'report_styles']
             # Avoid duplicates
             update_fields = list(set(update_fields))
@@ -992,10 +1001,7 @@ class Asset(
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
         if adjust_content:
-            before_adjust = copy.deepcopy(self.content)
             self.adjust_content_on_save()
-            if before_adjust != self.content:
-                create_version = True
 
         if not update_fields or update_fields and 'advanced_features' in update_fields:
             migrate_advanced_features(self, save_asset=False)
@@ -1098,7 +1104,7 @@ class Asset(
         if self.has_deployment:
             self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
 
-        if create_version:
+        if self.new_version_required():
             self.create_version()
 
     def set_deployment_status(self):
