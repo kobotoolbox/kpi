@@ -401,6 +401,12 @@ class TestVersioning(TestCase):
         self.asset.refresh_from_db()
         assert self.asset.advanced_features.get('_version') is None
 
+    def test_migrate_does_not_produce_new_version(self):
+        initial_version_count = self.asset.asset_versions.count()
+        migrate_advanced_features(self.asset)
+        self.asset.refresh_from_db()
+        assert self.asset.asset_versions.count() == initial_version_count
+
     def test_convert_nlp_action(self):
         transcript_dict = {'languages': ['en', 'es']}
         known_cols_list = ['Audio_q_1', 'Audio_q_2']

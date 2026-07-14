@@ -139,3 +139,11 @@ class ProjectOwnershipTransferStatusTestCase(TestCase):
         assert (
             error.error == 'Updating status of previously successful transfer to failed'
         )
+
+    def test_transfer_does_not_produce_new_version(self):
+        asset = self.transfer.asset
+        initial_version_count = asset.asset_versions.count()
+        with immediate_on_commit():
+            self.transfer.transfer_project()
+        asset.refresh_from_db()
+        assert asset.asset_versions.count() == initial_version_count
