@@ -869,8 +869,10 @@ class Asset(
             self.settings['extra_metadata'] = {}
 
     def new_version_required(self):
+        # don't use self.latest_version or self.version__content_hash to avoid
+        # loading potentially large version_content field
         latest_version = (
-            self.asset_versions.defer('version_content')
+            self.asset_versions.only('name', '_content_hash')
             .order_by('-date_created')
             .first()
         )
