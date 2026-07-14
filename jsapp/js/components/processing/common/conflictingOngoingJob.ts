@@ -20,7 +20,8 @@ export function getSubmissionRootUuid(submission: {
   _uuid?: string
   'meta/rootUuid'?: string
 }) {
-  return removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid || ''
+  const rootUuid = submission['meta/rootUuid']
+  return (rootUuid ? removeDefaultUuidPrefix(rootUuid) : undefined) || submission._uuid || ''
 }
 
 // Pending and in-progress jobs can still write/update records, so only those
