@@ -13,6 +13,8 @@ interface UseBulkProcessingAlertsProps {
   /** Selected region (transcription only) */
   selectedRegion?: string
   fieldXpath: string
+  /** Required amount for full job in base units: seconds (transcription) or characters (translation). */
+  requiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
 }
@@ -42,6 +44,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     fieldXpath,
+    requiredAmount,
     serviceUsageData,
     activeBulkActions,
   } = props
@@ -63,6 +66,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
       selectedLanguage,
       selectedRegion,
       actionType,
+      requiredAmount,
       serviceUsageData,
       activeBulkActions,
       previouslyFilteredSubmissionUuids: filteredSubmissionUuids,
@@ -72,7 +76,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     for (const alertDef of alertDefinitions) {
       const result = alertDef.evaluator(context)
 
-      if (result.shouldShow) {
+      if (result) {
         // Add filtered submission uuids to the set (for warnings)
         if (result.type === 'warning') {
           result.filteredSubmissionUuids.forEach((uuid) => filteredSubmissionUuids.add(uuid))
@@ -119,6 +123,7 @@ export function useBulkProcessingAlerts(props: UseBulkProcessingAlertsProps): Us
     selectedLanguage,
     selectedRegion,
     actionType,
+    requiredAmount,
     serviceUsageData,
     activeBulkActions,
     alertDefinitions,
