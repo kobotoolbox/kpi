@@ -76,3 +76,56 @@ def get_translate_endpoint() -> str:
 
 def get_translate_location() -> str:
     return TRANSLATE_LOCATION_BY_REGION[get_google_region()]
+
+
+def get_asr_language_code_overrides() -> dict[str, str]:
+    """
+    Return the active ASR language code overrides from Constance
+
+    This is used to work around broken Google Speech-to-Text locale pipelines
+    without requiring a code deploy. When a locale code is present in the
+    returned dict, google_transcribe.py sends the mapped value to Google's
+    language_codes[] instead of the configured locale.
+
+    The Constance value is a comma-separated list of `source:target` pairs
+    (e.g. `sw:auto,sw-KE:auto`) that can be set via Django admin for
+    an immediate hotfix, or pre-populated from the ASR_LANGUAGE_CODE_OVERRIDES
+    environment variable in the deployment config so all managed instances pick
+    it up automatically.
+
+    Returns an empty dict (no overrides) on any parse error so that a
+    misconfigured value never silently breaks all transcription.
+    """
+    raw = str(constance.config.ASR_LANGUAGE_CODE_OVERRIDES).strip()
+    if not raw:
+        return {}
+
+    overrides: dict[str, str] = {}
+    for item in raw.split(','):
+        item = item.strip()
+        if not item:
+            continue
+
+        if ':' not in item:
+            logging.info(
+                'Ignoring invalid ASR language override %r. '
+                "Expected format 'source:target'.",
+                item,
+            )
+            continue
+
+        source, target = (
+            value.strip()
+            for value in item.split(':', 1)
+        )
+
+        if not source or not target:
+            logging.info(
+                'Ignoring invalid ASR language override %r.',
+                item,
+            )
+            continue
+
+        overrides[source] = target
+
+    return overrides
