@@ -1,7 +1,9 @@
 # coding: utf-8
+import copy
 import os
 from collections import defaultdict
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.test import RequestFactory
 from django.utils import timezone
@@ -9,6 +11,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
@@ -384,6 +387,294 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         }
         response = self.client.post(list_url, data=data, format='json')
         assert response.status_code == status.HTTP_201_CREATED
+
+    def test_export_task_create_kml_with_full_payload(self):
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'kml',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': False,
+            'fields_from_all_versions': False,
+            'multiple_select': 'both',
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+        export_uid = response.json()['uid']
+        export_task = SubmissionExportTask.objects.get(uid=export_uid)
+        assert export_task.data['type'] == 'kml'
+        assert export_task.status == ImportExportStatusChoices.COMPLETE
+        assert export_task.result.name.endswith('.kml')
+        assert export_task.result.storage.exists(export_task.result.name)
+        assert SubmissionExportTask.objects.filter(
+            uid=export_uid, data__type='kml'
+        ).exists()
+
+        export_detail_response = self.client.get(
+            response.json()['url'], headers={'accept': 'application/json'}
+        )
+        assert export_detail_response.status_code == status.HTTP_200_OK
+        assert export_detail_response.json()['result'].endswith('.kml')
+
+        export_content_response = self.client.get(
+            export_detail_response.json()['result']
+        )
+        assert export_content_response.status_code == status.HTTP_200_OK
+
+    def test_export_task_create_kml_requires_view_data_permission(self):
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'kml',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': False,
+            'fields_from_all_versions': False,
+            'multiple_select': 'both',
+        }
+
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        self.asset.assign_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
+        with immediate_on_commit():
+            response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_export_task_create_kml_includes_geo_fields_when_fields_filtered(self):
+        geo_asset = Asset()
+        geo_asset.owner = self.asset.owner
+        geo_asset.content = copy.deepcopy(self.asset.content)
+        geo_asset.content['survey'].extend(
+            [
+                {
+                    'name': 'geo_point',
+                    '$autoname': 'geo_point',
+                    '$kuid': 'kml_geo_point',
+                    '$xpath': 'geo_point',
+                    'type': 'geopoint',
+                    'label': ['Geo point', 'Punto geo'],
+                },
+                {
+                    'name': 'geo_trace',
+                    '$autoname': 'geo_trace',
+                    '$kuid': 'kml_geo_trace',
+                    '$xpath': 'geo_trace',
+                    'type': 'geotrace',
+                    'label': ['Geo trace', 'Trazo geo'],
+                },
+                {
+                    'name': 'geo_shape',
+                    '$autoname': 'geo_shape',
+                    '$kuid': 'kml_geo_shape',
+                    '$xpath': 'geo_shape',
+                    'type': 'geoshape',
+                    'label': ['Geo shape', 'Area geo'],
+                },
+            ]
+        )
+        geo_asset.save()
+        geo_asset.deploy(backend='mock', active=True)
+        geo_asset.deployment.mock_submissions(
+            [
+                {
+                    '_attachments': [],
+                    '_status': 'submitted_via_web',
+                    '_submission_time': '2026-07-10T00:00:00',
+                    '_uuid': '7d6f8ce4-e2d6-4f75-a450-5f0a1e2d9c11',
+                    'meta/rootUuid': 'uuid:7d6f8ce4-e2d6-4f75-a450-5f0a1e2d9c11',
+                    'string': 'text value',
+                    'geo_point': '13.581921 17.858232 0 0',
+                    'geo_trace': '18.312811 0.269114 0 0;18.315724 0.274077 0 0',
+                    'geo_shape': (
+                        '22.268764 -1.841581 0 0;22.26791 -1.837273 0 0;'
+                        '22.266332 -1.841469 0 0;22.268764 -1.841581 0 0'
+                    ),
+                }
+            ]
+        )
+
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': geo_asset.uid},
+        )
+
+        with immediate_on_commit():
+            response = self.client.post(
+                list_url,
+                data={
+                    'type': 'kml',
+                    'lang': '_default',
+                    'group_sep': '/',
+                    'hierarchy_in_labels': False,
+                    'fields_from_all_versions': False,
+                    'multiple_select': 'both',
+                    'fields': ['string'],
+                },
+                format='json',
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+        export_task = SubmissionExportTask.objects.get(uid=response.json()['uid'])
+        assert export_task._get_submission_fields(geo_asset, []) == []
+
+        export_detail_response = self.client.get(
+            response.json()['url'], headers={'accept': 'application/json'}
+        )
+        assert export_detail_response.status_code == status.HTTP_200_OK
+
+        export_content_response = self.client.get(
+            export_detail_response.json()['result']
+        )
+        assert export_content_response.status_code == status.HTTP_200_OK
+
+        export_content = ''.join(
+            line.decode() for line in export_content_response.streaming_content
+        )
+        assert '<Placemark' in export_content
+        assert '<Point' in export_content
+
+    def test_export_task_create_kml_without_field_filter_keeps_non_geo_fields(self):
+        geo_asset = Asset()
+        geo_asset.owner = self.asset.owner
+        geo_asset.content = copy.deepcopy(self.asset.content)
+        geo_asset.content['survey'].extend(
+            [
+                {
+                    'name': 'geo_point',
+                    '$autoname': 'geo_point',
+                    '$kuid': 'kml_geo_point',
+                    '$xpath': 'geo_point',
+                    'type': 'geopoint',
+                    'label': ['Geo point', 'Punto geo'],
+                },
+                {
+                    'name': 'geo_trace',
+                    '$autoname': 'geo_trace',
+                    '$kuid': 'kml_geo_trace',
+                    '$xpath': 'geo_trace',
+                    'type': 'geotrace',
+                    'label': ['Geo trace', 'Trazo geo'],
+                },
+                {
+                    'name': 'geo_shape',
+                    '$autoname': 'geo_shape',
+                    '$kuid': 'kml_geo_shape',
+                    '$xpath': 'geo_shape',
+                    'type': 'geoshape',
+                    'label': ['Geo shape', 'Area geo'],
+                },
+            ]
+        )
+        geo_asset.save()
+        geo_asset.deploy(backend='mock', active=True)
+        geo_asset.deployment.mock_submissions(
+            [
+                {
+                    '_attachments': [],
+                    '_status': 'submitted_via_web',
+                    '_submission_time': '2026-07-10T00:00:00',
+                    '_uuid': '7d6f8ce4-e2d6-4f75-a450-5f0a1e2d9c11',
+                    'meta/rootUuid': 'uuid:7d6f8ce4-e2d6-4f75-a450-5f0a1e2d9c11',
+                    'string': 'text value',
+                    'geo_point': '13.581921 17.858232 0 0',
+                    'geo_trace': '18.312811 0.269114 0 0;18.315724 0.274077 0 0',
+                    'geo_shape': (
+                        '22.268764 -1.841581 0 0;22.26791 -1.837273 0 0;'
+                        '22.266332 -1.841469 0 0;22.268764 -1.841581 0 0'
+                    ),
+                }
+            ]
+        )
+
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': geo_asset.uid},
+        )
+
+        with immediate_on_commit():
+            response = self.client.post(
+                list_url,
+                data={
+                    'type': 'kml',
+                    'lang': '_default',
+                    'group_sep': '/',
+                    'hierarchy_in_labels': False,
+                    'fields_from_all_versions': False,
+                    'multiple_select': 'both',
+                },
+                format='json',
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        export_detail_response = self.client.get(
+            response.json()['url'], headers={'accept': 'application/json'}
+        )
+        assert export_detail_response.status_code == status.HTTP_200_OK
+
+        export_content_response = self.client.get(
+            export_detail_response.json()['result']
+        )
+        assert export_content_response.status_code == status.HTTP_200_OK
+
+        export_content = ''.join(
+            line.decode() for line in export_content_response.streaming_content
+        )
+        assert '<Placemark' in export_content
+
+    @patch('kobo.apps.openrosa.apps.viewer.tasks.create_async_export')
+    def test_export_task_create_kml_does_not_hit_legacy_openrosa_kml_new_endpoint(
+        self, create_async_export_mock
+    ):
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'kml',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': False,
+            'fields_from_all_versions': False,
+            'multiple_select': 'both',
+        }
+
+        response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+        create_async_export_mock.assert_not_called()
+
+    def test_legacy_openrosa_kml_new_endpoint_is_blocked(self):
+        self.client.login(username='someuser', password='someuser')
+        xform = XForm.objects.get(kpi_asset_uid=self.asset.uid)
+        legacy_create_url = reverse(
+            'create_export',
+            kwargs={
+                'username': xform.user.username,
+                'id_string': xform.id_string,
+                'export_type': 'kml',
+            },
+        )
+
+        response = self.client.post(legacy_create_url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_export_task_create_with_name(self):
         self.client.login(username='someuser', password='someuser')
