@@ -461,6 +461,9 @@ class SearchFilter(filters.BaseFilterBackend):
                 min_search_characters=getattr(
                     view, 'min_search_characters', None
                 ),
+                allowed_lookup_fields=getattr(
+                    view, 'allowed_lookup_fields_override', None
+                ),
                 model=queryset.model,
                 user=request.user,
             )

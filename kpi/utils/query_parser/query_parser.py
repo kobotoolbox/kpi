@@ -56,11 +56,13 @@ class QueryParseActions:
         self,
         default_field_lookups: list,
         min_search_characters: int,
+        allowed_lookup_fields: dict = None,
         model=None,
         user=None,
     ):
         self.default_field_lookups = default_field_lookups
         self.min_search_characters = min_search_characters
+        self.allowed_lookup_fields = allowed_lookup_fields or {}
         self.model = model
         self.user = user
         self.has_term_with_sufficient_length = False
@@ -325,7 +327,13 @@ class QueryParseActions:
                 return
 
             model_label = current_model._meta.label_lower
-            allowed_fields = ALLOWED_LOOKUP_FIELDS.get(model_label, set())
+            allowed_fields = set(ALLOWED_LOOKUP_FIELDS.get(model_label, set()))
+            if model_label in self.allowed_lookup_fields:
+                allowed_fields.update(self.allowed_lookup_fields[model_label])
+
+            if '*' in allowed_fields:
+                raise ValueError("The asterisk wildcard ('*') is not permitted in the allowlist.")
+
             if segment not in allowed_fields:
                 raise QueryParserNotSupportedFieldLookup
 
@@ -372,6 +380,7 @@ def parse(
     default_field_lookups: list,
     model: ModelClass,
     min_search_characters: int = None,
+    allowed_lookup_fields: dict = None,
     user=None,
 ) -> Q:
     """
@@ -386,7 +395,11 @@ def parse(
         min_search_characters = settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS
 
     actions = QueryParseActions(
-        default_field_lookups, min_search_characters, model, user
+        default_field_lookups,
+        min_search_characters,
+        allowed_lookup_fields,
+        model,
+        user,
     )
     q_object = grammar_parse(query, actions)
 

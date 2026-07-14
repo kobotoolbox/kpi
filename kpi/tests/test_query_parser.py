@@ -165,3 +165,25 @@ def test_superuser_bypass():
         model=Asset, user=MockSuperUser(),
     )
     assert parsed_q is not None
+
+
+def test_viewset_level_allowlist_overrides():
+    """
+    Test that providing `allowed_lookup_fields` to `parse()` allows augmenting
+    the default allowlist on a per-viewset basis.
+    """
+    query = 'owner__first_name:foo'
+
+    # 1. By default, 'first_name' on 'auth.user' is not allowed for this lookup path
+    with pytest.raises(QueryParserNotSupportedFieldLookup):
+        parse(query, default_field_lookups=['name__icontains'], model=Asset, user=None)
+
+    # 2. When 'auth.user' is augmented with 'first_name', the query parses successfully
+    parsed_q = parse(
+        query,
+        default_field_lookups=['name__icontains'],
+        model=Asset,
+        allowed_lookup_fields={'auth.user': {'first_name'}},
+        user=None
+    )
+    assert parsed_q is not None
