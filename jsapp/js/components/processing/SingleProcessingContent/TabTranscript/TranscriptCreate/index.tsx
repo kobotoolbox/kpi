@@ -6,7 +6,10 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -54,7 +57,7 @@ export default function TranscriptCreate({
       activeBulkActions,
       actionType: 'transcript',
       fieldXpath: questionXpath,
-      submissionUuid: submission._uuid,
+      submissionUuid: getSubmissionRootUuid(submission),
       selectedLanguage: languageCode,
     })
 

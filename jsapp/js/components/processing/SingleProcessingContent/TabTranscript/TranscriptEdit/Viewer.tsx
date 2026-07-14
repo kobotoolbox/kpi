@@ -8,7 +8,10 @@ import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-d
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
-import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -42,7 +45,7 @@ export default function Viewer({
     activeBulkActions,
     actionType: 'transcript',
     fieldXpath: questionXpath,
-    submissionUuid: submission._uuid,
+    submissionUuid: getSubmissionRootUuid(submission),
     selectedLanguage: transcriptVersion._data.language,
   })
 

@@ -8,7 +8,10 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -61,7 +64,7 @@ export default function TranslationAdd({
       activeBulkActions,
       actionType: 'translation',
       fieldXpath: questionXpath,
-      submissionUuid: submission._uuid,
+      submissionUuid: getSubmissionRootUuid(submission),
       selectedLanguage: languageCode,
     })
 

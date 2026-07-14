@@ -2,6 +2,7 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { removeDefaultUuidPrefix } from '#/utils'
 
 interface IsConflictingOngoingJobArgs {
   activeBulkActions: BulkActionResponse[]
@@ -9,6 +10,17 @@ interface IsConflictingOngoingJobArgs {
   fieldXpath: string
   submissionUuid: string
   selectedLanguage?: LanguageCode
+}
+
+/**
+ * Bulk-action payloads use root UUIDs. Use this helper before comparing
+ * submission IDs from processing views, which may be edit UUIDs.
+ */
+export function getSubmissionRootUuid(submission: {
+  _uuid?: string
+  'meta/rootUuid'?: string
+}) {
+  return removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid || ''
 }
 
 // Pending and in-progress jobs can still write/update records, so only those

@@ -13,7 +13,10 @@ import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
-import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import type { TranslationVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -57,7 +60,7 @@ export default function Editor({
     activeBulkActions,
     actionType: 'translation',
     fieldXpath: questionXpath,
-    submissionUuid: submission._uuid,
+    submissionUuid: getSubmissionRootUuid(submission),
     selectedLanguage: translationVersion._data.language,
   })
 
