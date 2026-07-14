@@ -81,6 +81,7 @@ requests
 regex
 responses
 shortuuid
+simplekml
 sqlparse
 static3
 tabulate
