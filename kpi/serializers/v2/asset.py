@@ -870,28 +870,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context.get('request')
         return reverse('paired-data-list', args=(asset.uid,), request=request)
 
-    def _get_object_permission_assignments(self, asset):
-        """
-        Fetch the asset's non-denied assignments once per request (memoized), so
-        get_permissions and get_access_types share one query in the detail view.
-        """
-        cache = self.__dict__.setdefault(
-            '_object_permission_assignments_cache', {}
-        )
-        if asset.pk not in cache:
-            cache[asset.pk] = list(
-                asset.permissions.filter(deny=False)
-                .values(
-                    'uid',
-                    'user_id',
-                    'user__username',
-                    'user__is_active',
-                    'permission__codename',
-                )
-                .order_by('user__username', 'permission__codename')
-            )
-        return cache[asset.pk]
-
     @extend_schema_field(PermissionsField)
     def get_permissions(self, asset):
         context = self.context
@@ -1159,6 +1137,26 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _content(self, obj):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
+
+    def _get_object_permission_assignments(self, asset):
+        """
+        Fetch the asset's non-denied assignments once per request (memoized), so
+        get_permissions and get_access_types share one query in the detail view.
+        """
+        cache = self.__dict__.setdefault('_object_permission_assignments_cache', {})
+        if asset.pk not in cache:
+            cache[asset.pk] = list(
+                asset.permissions.filter(deny=False)
+                .values(
+                    'uid',
+                    'user_id',
+                    'user__username',
+                    'user__is_active',
+                    'permission__codename',
+                )
+                .order_by('user__username', 'permission__codename')
+            )
+        return cache[asset.pk]
 
     def _get_status(self, perm_assignments):
         """
