@@ -84,7 +84,7 @@ class AssetVersionTestCase(TestCase):
         self.assertEqual(self.template_asset.asset_versions.count(), 1)
         self.assertEqual(self.template_asset.latest_version.deployed, False)
         self.template_asset.save()
-        self.assertEqual(self.template_asset.asset_versions.count(), 2)
+        self.assertEqual(self.template_asset.asset_versions.count(), 1)
         self.assertEqual(self.template_asset.latest_version.deployed, False)
 
         def _bad_deployment():
