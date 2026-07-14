@@ -17,6 +17,10 @@ interface Options {
   firstPollDelayMs?: number
 }
 
+/**
+ * Shared polling loop for async supplement writes. Transcript and translation screens
+ * both use it so they stay in sync with the backend without duplicating the same timer code.
+ */
 export function useSupplementStatusPolling(asset: AssetResponse, submission: DataResponse, options: Options = {}) {
   const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
   const firstPollDelayMs = Math.max(0, options.firstPollDelayMs ?? POLL_INTERVAL)
