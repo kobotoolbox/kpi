@@ -9,16 +9,13 @@ export enum ExportTypeName {
   zip_legacy = 'zip_legacy',
 }
 
-type ExportTypeDefinitionBase<TName extends ExportTypeName, TLegacy extends boolean> = {
+interface ExportTypeDefinitionBase<TName extends ExportTypeName, TLegacy extends boolean> {
   value: TName
   label: string
   isLegacy: TLegacy
 }
 
-export type LegacyExportTypeName =
-  | ExportTypeName.csv_legacy
-  | ExportTypeName.xls_legacy
-  | ExportTypeName.zip_legacy
+export type LegacyExportTypeName = ExportTypeName.csv_legacy | ExportTypeName.xls_legacy | ExportTypeName.zip_legacy
 
 export type ModernExportTypeName = Exclude<ExportTypeName, LegacyExportTypeName>
 
