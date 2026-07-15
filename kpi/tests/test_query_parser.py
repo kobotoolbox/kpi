@@ -183,7 +183,7 @@ def test_viewset_level_allowlist_overrides():
         query,
         default_field_lookups=['name__icontains'],
         model=Asset,
-        allowed_lookup_fields={'auth.user': {'first_name'}},
+        allowed_lookup_fields={'kobo_auth.user': {'first_name'}},
         user=None
     )
     assert parsed_q is not None
