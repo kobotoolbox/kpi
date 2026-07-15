@@ -32,11 +32,9 @@ export function getApiErrorMessage(error: OrvalFetchError): string | null {
       }
     }
 
-    if (typeof error.detail === 'string' && error.detail.length > 0) {
-      return error.detail
-    }
-
-    return String(error)
+    // Keep this as null so callers can fall back to endpoint-specific
+    // user-facing messages (instead of a generic HTTP status string).
+    return null
   }
 
   if (error instanceof TypeError || error instanceof DOMException) {
