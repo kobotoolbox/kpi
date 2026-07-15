@@ -1,7 +1,4 @@
-from drf_spectacular.extensions import (
-    OpenApiSerializerExtension,
-    OpenApiSerializerFieldExtension,
-)
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
@@ -17,19 +14,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     USER_URL_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import (
-    ASSET_CLONE_FROM_SCHEMA,
-    ASSET_CONTENT_SCHEMA,
-    ASSET_ENABLED_SCHEMA,
-    ASSET_FIELDS_SCHEMA,
-    ASSET_NAME_SCHEMA,
-    ASSET_SETTINGS_SCHEMA,
-    ASSET_TAG_STRING_SCHEMA,
-    ASSET_TYPE_SCHEMA,
-    BULK_ACTION_SCHEMA,
-    BULK_ASSET_UIDS_SCHEMA,
-    BULK_CONFIRM_SCHEMA,
-)
+from .schema import ASSET_CLONE_FROM_SCHEMA, ASSET_FIELDS_SCHEMA, ASSET_SETTINGS_SCHEMA
 
 
 class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
