@@ -36,11 +36,13 @@ export function getAlertDefinitions(actionType: BulkActionType): AlertDefinition
       type: 'error',
       evaluator: evaluateNearLimit,
       messageTemplate: (values) => {
-        const remaining = isTranscription ? (values.remainingMinutes ?? '0') : (values.remainingCharacters ?? '0')
+        const remaining = isTranscription
+          ? formatTimeFromSeconds(Number(values.remainingSeconds ?? 0))
+          : (values.remainingCharacters ?? '0')
         return isTranscription
           ? t(
-              '##remainingMinutes## minutes of automated transcription left, that is not enough to process all selected submissions. Please select fewer files, purchase an add-on, or upgrade your plan.',
-            ).replace('##remainingMinutes##', String(remaining))
+              '##remainingDuration## of automated transcription left, that is not enough to process all selected submissions. Please select fewer files, purchase an add-on, or upgrade your plan.',
+            ).replace('##remainingDuration##', String(remaining))
           : t(
               '##remainingCharacters## characters of automated translation left, that is not enough to process all selected submissions. Please select fewer files, purchase an add-on, or upgrade your plan.',
             ).replace('##remainingCharacters##', String(remaining))

@@ -62,9 +62,8 @@ def create_async_export(xform, export_type, query, force_xlsx, options=None):
         result = create_zip_export.apply_async(
             (), arguments, countdown=10)
     elif export_type == Export.KML_EXPORT:
-        # start async export
-        result = create_kml_export.apply_async(
-            (), arguments, countdown=10)
+        # KML exports must be created through KPI v2 export tasks.
+        raise Export.ExportTypeError
     else:
         raise Export.ExportTypeError
     if result:
