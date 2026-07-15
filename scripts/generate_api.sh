@@ -28,6 +28,14 @@ fi
 echo "Enabling Stripe for schema generation…"
 export STRIPE_ENABLED=true
 echo "Stripe enabled: $STRIPE_ENABLED"
+
+# Override KOBOFORM_URL with canonical value for schema examples
+# This ensures generated schema examples use production-like URLs regardless of environment
+# To use a different URL, set SCHEMA_URL environment variable before running this script
+echo "Setting KOBOFORM_URL for schema generation…"
+export KOBOFORM_URL="${SCHEMA_URL:-https://kf.kobotoolbox.org}"
+echo "KOBOFORM_URL: $KOBOFORM_URL"
+
 echo "Generating v2 OpenAPI JSON schema with drf-spectacular…"
 run python manage.py generate_openapi_schema --file "$DESTINATION_FOLDER/schema_v2.json" --schema="api_v2" --format openapi-json
 echo "Generating v2 OpenAPI YAML schema with drf-spectacular…"

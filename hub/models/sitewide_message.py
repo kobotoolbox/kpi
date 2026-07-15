@@ -7,7 +7,7 @@ from kobo.apps.markdownx_uploader.models import AbstractMarkdownxModel
 
 class SitewideMessage(AbstractMarkdownxModel):
 
-    slug = models.CharField(max_length=50)
+    slug = models.CharField(max_length=50, unique=True)
     body = MarkdownxField()
 
     markdown_fields = ['body']

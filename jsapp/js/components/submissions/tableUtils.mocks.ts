@@ -1,23 +1,14 @@
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { ANY_ROW_TYPE_NAMES, AssetTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 
-export const assetWithBgAudioAndNLP: AssetResponse = {
-  url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt',
-  owner: 'http://kf.kobo.local/api/v2/users/kobo.json',
-  owner__username: 'kobo',
-  owner_label: 'kobo',
-  last_modified_by: null,
-  created_by: null,
-  parent: null,
-  settings: {
-    sector: {},
-    country: [],
-    description: '',
-    organization: '',
-    country_codes: [],
-  },
+export const assetWithBgAudioAndNLP = getApiV2AssetsRetrieveResponseMock({
+  uid: 'am5q2MmVckuLBXPKsbHjEt',
+  name: 'text and media projekt',
   asset_type: AssetTypeName.survey,
-  files: [],
+  deployment__active: true,
+  deployment__submission_count: 1,
+  has_deployment: true,
   summary: {
     geo: false,
     labels: ['Your name here', 'Your selfie goes here', 'A video? WTF', 'Secret password as an audio file'],
@@ -26,96 +17,9 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
     lock_any: false,
     languages: [],
     row_count: 5,
-    name_quality: {
-      ok: 0,
-      bad: 0,
-      good: 5,
-      total: 5,
-      firsts: {},
-    },
+    name_quality: { ok: 0, bad: 0, good: 5, total: 5, firsts: {} },
     default_translation: null,
   },
-  date_created: '2024-10-21T10:20:46.811112Z',
-  date_modified: '2024-10-23T13:54:50.828315Z',
-  date_deployed: '2024-10-21T10:21:16.157454Z',
-  version_id: 'vM3yepjgRLxbQfTy4V7JQ9',
-  version__content_hash: '8362f2d2c4100490fae4f811bad5296188421855',
-  version_count: 6,
-  has_deployment: true,
-  deployed_version_id: 'vsuXfYXtZpRaXdWcDQe8cS',
-  deployed_versions: {
-    count: 1,
-    next: null,
-    previous: null,
-    results: [
-      {
-        uid: 'vsuXfYXtZpRaXdWcDQe8cS',
-        url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/versions/vsuXfYXtZpRaXdWcDQe8cS/',
-        content_hash: '8362f2d2c4100490fae4f811bad5296188421855',
-        date_deployed: '2024-10-21T10:21:16.154074Z',
-        date_modified: '2024-10-21T10:21:16.154074Z',
-      },
-    ],
-  },
-  deployment__links: {
-    url: 'http://ee.kobo.local/YnqSWtB3',
-    single_url: 'http://ee.kobo.local/single/YnqSWtB3',
-    single_once_url: 'http://ee.kobo.local/single/9778636aa5d24eb2f0806bab320e7bc6',
-    offline_url: 'http://ee.kobo.local/x/YnqSWtB3',
-    preview_url: 'http://ee.kobo.local/preview/YnqSWtB3',
-    iframe_url: 'http://ee.kobo.local/i/YnqSWtB3',
-    single_iframe_url: 'http://ee.kobo.local/single/i/YnqSWtB3',
-    single_once_iframe_url: 'http://ee.kobo.local/single/i/9778636aa5d24eb2f0806bab320e7bc6',
-  },
-  deployment__active: true,
-  deployment__data_download_links: {
-    xls_legacy: 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/xls/',
-    csv_legacy: 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/csv/',
-    zip_legacy: 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/zip/',
-    kml_legacy: 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/kml/',
-    geojson: 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/geojson/',
-    spss_labels: 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/spss/',
-    xls: 'http://kc.kobo.local/kobo/reports/am5q2MmVckuLBXPKsbHjEt/export.xlsx',
-    csv: 'http://kc.kobo.local/kobo/reports/am5q2MmVckuLBXPKsbHjEt/export.csv',
-  },
-  deployment__submission_count: 1,
-  deployment_status: 'deployed',
-  report_styles: {
-    default: {},
-    specified: {
-      end: {},
-      audit: {},
-      start: {},
-      today: {},
-      deviceid: {},
-      username: {},
-      simserial: {},
-      A_video_WTF: {},
-      phonenumber: {},
-      subscriberid: {},
-      Your_name_here: {},
-      'background-audio': {},
-      Your_selfie_goes_here: {},
-      Secret_password_as_an_audio_file: {},
-    },
-    kuid_names: {
-      end: 'MlyFnjOHJ',
-      audit: 'QG4SJ5LYb',
-      start: 'M3AXQZPzW',
-      today: 'aBemgUnm5',
-      deviceid: 'SzW7bWk8N',
-      username: 'mQjEGodmD',
-      simserial: 'QsCIjT134',
-      A_video_WTF: 'alGpvxEVv',
-      phonenumber: 'UfrYC0nkS',
-      subscriberid: '6iTYT9Hk1',
-      Your_name_here: '25l27nQ3a',
-      'background-audio': 'dE9sDyVtS',
-      Your_selfie_goes_here: 'd0JxfaSC9',
-      Secret_password_as_an_audio_file: '2sN8g5yJ2',
-    },
-  },
-  report_custom: {},
   advanced_features: {
     qual: {
       qual_survey: [
@@ -193,8 +97,6 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
       },
     ],
   },
-  map_styles: {},
-  map_custom: {},
   content: {
     schema: '1',
     survey: [
@@ -299,195 +201,16 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
     translated: ['label'],
     translations: [null],
   },
-  downloads: [
-    {
-      format: 'xls',
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt.xls',
-    },
-    {
-      format: 'xml',
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt.xml',
-    },
-  ],
-  embeds: [
-    {
-      format: 'xls',
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/xls/',
-    },
-    {
-      format: 'xform',
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/xform/',
-    },
-  ],
-  xform_link: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/xform/',
-  hooks_link: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/hooks/',
-  tag_string: '',
-  uid: 'am5q2MmVckuLBXPKsbHjEt',
-  kind: 'asset',
-  xls_link: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/xls/',
-  name: 'text and media projekt',
-  assignable_permissions: [
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/view_asset/',
-      label: 'View form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/change_asset/',
-      label: 'Edit form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/manage_asset/',
-      label: 'Manage project',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/add_submissions/',
-      label: 'Add submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/view_submissions/',
-      label: 'View submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/partial_submissions/',
-      label: {
-        default: 'Act on submissions only from specific users',
-        view_submissions: 'View submissions only from specific users',
-        change_submissions: 'Edit submissions only from specific users',
-        delete_submissions: 'Delete submissions only from specific users',
-        validate_submissions: 'Validate submissions only from specific users',
-      },
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/change_submissions/',
-      label: 'Edit submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/delete_submissions/',
-      label: 'Delete submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
-      label: 'Validate submissions',
-    },
-  ],
-  permissions: [
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/pUmPzC6pFgDdcB2cxLn9QD/',
-      user: 'http://kf.kobo.local/api/v2/users/AnonymousUser.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/add_submissions.json',
-      label: 'Add submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/p6nyXrHUs5BpNJLZPaunvJ/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/add_submissions.json',
-      label: 'Add submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/pz7RvRMsYHuJL9TRyQyoDP/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/change_asset.json',
-      label: 'Edit form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/pM7p797FK3qQjCYADpxojX/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/change_submissions.json',
-      label: 'Edit submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/p8aL4ifctta3AxvRWeUwsz/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/delete_submissions.json',
-      label: 'Delete submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/paBd2H3gyWhZQBkGzGvfjE/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/manage_asset.json',
-      label: 'Manage project',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/pAdfYDhVHTWXNMv8CTZxFz/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/validate_submissions.json',
-      label: 'Validate submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/p782nm85UEcMy56EvxiNMz/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/view_asset.json',
-      label: 'View form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/permission-assignments/pPAFrcPkXTuQFWywccDzr7/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/view_submissions.json',
-      label: 'View submissions',
-    },
-  ],
-  effective_permissions: [
-    {
-      codename: 'delete_submissions',
-    },
-    {
-      codename: 'view_asset',
-    },
-    {
-      codename: 'change_asset',
-    },
-    {
-      codename: 'view_submissions',
-    },
-    {
-      codename: 'delete_asset',
-    },
-    {
-      codename: 'manage_asset',
-    },
-    {
-      codename: 'change_submissions',
-    },
-    {
-      codename: 'validate_submissions',
-    },
-    {
-      codename: 'add_submissions',
-    },
-  ],
-  exports: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/exports/',
-  export_settings: [],
-  data: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/data.json',
-  children: {
-    count: 0,
-  },
-  subscribers_count: 0,
-  status: 'shared',
-  access_types: null,
-  data_sharing: {},
-  paired_data: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt/paired-data/',
-  project_ownership: null,
-}
+  effective_permissions: [{ codename: 'change_submissions' }],
+}) as unknown as AssetResponse
 
-export const assetWithNestedGroupsAndNLP: AssetResponse = {
-  url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC.json',
-  owner: 'http://kf.kobo.local/api/v2/users/kobo.json',
-  owner__username: 'kobo',
-  owner_label: 'kobo',
-  last_modified_by: null,
-  created_by: null,
-  parent: null,
-  settings: {
-    sector: {},
-    country: [],
-    description: '',
-    collects_pii: null,
-    organization: '',
-    country_codes: [],
-    operational_purpose: null,
-  },
+export const assetWithNestedGroupsAndNLP = getApiV2AssetsRetrieveResponseMock({
+  uid: 'aRai4qmXVG4eukrzpHXAQC',
+  name: 'Project with audio inside nested group',
   asset_type: AssetTypeName.survey,
-  files: [],
+  deployment__active: true,
+  deployment__submission_count: 1,
+  has_deployment: true,
   summary: {
     geo: false,
     labels: ['What did you hear?'],
@@ -511,77 +234,6 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
     },
     default_translation: null,
   },
-  date_created: '2024-10-24T21:50:14.547659Z',
-  date_modified: '2024-10-24T22:10:01.271453Z',
-  date_deployed: '2024-10-24T21:52:53.487365Z',
-  version_id: 'veWGMzgZCdiNnDvBdxtrQj',
-  version__content_hash: '778df104b69459fe67b8431bb500433b82e2ee33',
-  version_count: 7,
-  has_deployment: true,
-  deployed_version_id: 'v4MNF9dNVo682gg2KZc5P7',
-  deployed_versions: {
-    count: 1,
-    next: null,
-    previous: null,
-    results: [
-      {
-        uid: 'v4MNF9dNVo682gg2KZc5P7',
-        url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/versions/v4MNF9dNVo682gg2KZc5P7/',
-        content_hash: '778df104b69459fe67b8431bb500433b82e2ee33',
-        date_deployed: '2024-10-24T21:52:53.478265Z',
-        date_modified: '2024-10-24T21:52:53.478265Z',
-      },
-    ],
-  },
-  deployment__links: {
-    url: 'http://ee.kobo.local/iQdYiTID',
-    single_url: 'http://ee.kobo.local/single/iQdYiTID',
-    single_once_url: 'http://ee.kobo.local/single/7edea25f7e36766e7558a8a9d2e015f0',
-    offline_url: 'http://ee.kobo.local/x/iQdYiTID',
-    preview_url: 'http://ee.kobo.local/preview/iQdYiTID',
-    iframe_url: 'http://ee.kobo.local/i/iQdYiTID',
-    single_iframe_url: 'http://ee.kobo.local/single/i/iQdYiTID',
-    single_once_iframe_url: 'http://ee.kobo.local/single/i/7edea25f7e36766e7558a8a9d2e015f0',
-  },
-  deployment__active: true,
-  deployment__data_download_links: {
-    xls_legacy: 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/xls/',
-    csv_legacy: 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/csv/',
-    zip_legacy: 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/zip/',
-    kml_legacy: 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/kml/',
-    geojson: 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/geojson/',
-    spss_labels: 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/spss/',
-    xls: 'http://kc.kobo.local/kobo/reports/aRai4qmXVG4eukrzpHXAQC/export.xlsx',
-    csv: 'http://kc.kobo.local/kobo/reports/aRai4qmXVG4eukrzpHXAQC/export.csv',
-  },
-  deployment__submission_count: 1,
-  deployment_status: 'deployed',
-  report_styles: {
-    default: {},
-    specified: {
-      end: {},
-      start: {},
-      sm28q44: {},
-      '/kx8rw55': {},
-      '/oh5pd61': {},
-      '/py8fl89': {},
-      inner_group: {},
-      outer_group: {},
-      middle_group: {},
-    },
-    kuid_names: {
-      end: 'wnxtTQ2B1',
-      start: 'D8zvSJsd3',
-      sm28q44: 'sm28q44',
-      '/kx8rw55': '/kx8rw55',
-      '/oh5pd61': '/oh5pd61',
-      '/py8fl89': '/py8fl89',
-      inner_group: 'oh5pd61',
-      outer_group: 'kx8rw55',
-      middle_group: 'py8fl89',
-    },
-  },
-  report_custom: {},
   advanced_features: {
     transcript: {
       languages: ['pl'],
@@ -610,8 +262,6 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
       },
     ],
   },
-  map_styles: {},
-  map_custom: {},
   content: {
     schema: '1',
     survey: [
@@ -664,166 +314,5 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
     translated: ['label'],
     translations: [null],
   },
-  downloads: [
-    {
-      format: 'xls',
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC.xls',
-    },
-    {
-      format: 'xml',
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC.xml',
-    },
-  ],
-  embeds: [
-    {
-      format: 'xls',
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/xls/',
-    },
-    {
-      format: 'xform',
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/xform/',
-    },
-  ],
-  xform_link: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/xform/',
-  hooks_link: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/hooks/',
-  tag_string: '',
-  uid: 'aRai4qmXVG4eukrzpHXAQC',
-  kind: 'asset',
-  xls_link: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/xls/',
-  name: 'Project with audio inside nested group',
-  assignable_permissions: [
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/view_asset/',
-      label: 'View form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/change_asset/',
-      label: 'Edit form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/manage_asset/',
-      label: 'Manage project',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/add_submissions/',
-      label: 'Add submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/view_submissions/',
-      label: 'View submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/partial_submissions/',
-      label: {
-        default: 'Act on submissions only from specific users',
-        view_submissions: 'View submissions only from specific users',
-        change_submissions: 'Edit submissions only from specific users',
-        delete_submissions: 'Delete submissions only from specific users',
-        validate_submissions: 'Validate submissions only from specific users',
-      },
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/change_submissions/',
-      label: 'Edit submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/delete_submissions/',
-      label: 'Delete submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
-      label: 'Validate submissions',
-    },
-  ],
-  permissions: [
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/pCYMKNGknBkN5vMpsFeBrL/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/add_submissions.json',
-      label: 'Add submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/pWH6k8kQyjT4z3WAheWhTH/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/change_asset.json',
-      label: 'Edit form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/pF4feraPmjmGwbs4XGGjMd/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/change_submissions.json',
-      label: 'Edit submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/pWXMaN6dAiwWv9kE5s2Mvn/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/delete_submissions.json',
-      label: 'Delete submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/peFnddaDPNehS3H95ZuVEe/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/manage_asset.json',
-      label: 'Manage project',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/pAqCW3fjVQLQNtBX4rxZjg/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/validate_submissions.json',
-      label: 'Validate submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/puB4cwPhyJFprC5zXcdD8K/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/view_asset.json',
-      label: 'View form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/permission-assignments/poNyR5qmXJ7Wjq99qMuncR/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo.json',
-      permission: 'http://kf.kobo.local/api/v2/permissions/view_submissions.json',
-      label: 'View submissions',
-    },
-  ],
-  effective_permissions: [
-    {
-      codename: 'view_submissions',
-    },
-    {
-      codename: 'validate_submissions',
-    },
-    {
-      codename: 'add_submissions',
-    },
-    {
-      codename: 'manage_asset',
-    },
-    {
-      codename: 'delete_submissions',
-    },
-    {
-      codename: 'delete_asset',
-    },
-    {
-      codename: 'view_asset',
-    },
-    {
-      codename: 'change_asset',
-    },
-    {
-      codename: 'change_submissions',
-    },
-  ],
-  exports: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/exports/',
-  export_settings: [],
-  data: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/data.json',
-  children: {
-    count: 0,
-  },
-  subscribers_count: 0,
-  status: 'private',
-  access_types: null,
-  data_sharing: {},
-  paired_data: 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC/paired-data/',
-  project_ownership: null,
-}
+  effective_permissions: [{ codename: 'change_submissions' }],
+}) as unknown as AssetResponse

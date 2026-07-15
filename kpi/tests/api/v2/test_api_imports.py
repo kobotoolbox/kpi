@@ -13,6 +13,7 @@ from rest_framework.reverse import reverse
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.models import Asset, ImportTask
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
@@ -1087,3 +1088,29 @@ class AssetImportTaskTest(BaseTestCase):
                 'project_owner': self.asset.owner.username,
             },
         )
+
+    def test_import_raises_error_with_invalid_names(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['today', 'today', ''],
+            ['begin group', 'this is a bad group name', 'Bad bad bad, no donut'],
+            ['note', 'note_1', 'Hi there 👋'],
+            ['end group', '', ''],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+        )
+
+        task_data = self._construct_xls_for_import(content, name='Bad file')
+        encoded_str = task_data['base64Encoded']
+        encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
+        task_data['base64Encoded'] = encoded_substr
+        task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
+        result = task.run()
+        assert result.status == ImportExportStatusChoices.ERROR
+        error_message = result.messages['error']
+        assert 'this is a bad group name' in error_message

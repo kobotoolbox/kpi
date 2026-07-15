@@ -50,6 +50,7 @@ from kpi.constants import (
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    GEO_QUESTION_TYPES,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
@@ -58,6 +59,7 @@ from kpi.constants import (
 from kpi.exceptions import ConcurrentExportException, XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
+from kpi.utils.autoname import _is_group_end
 from kpi.utils.data_exports import (
     ACCESS_LOGS_EXPORT_FIELDS,
     ASSET_FIELDS,
@@ -76,6 +78,7 @@ from kpi.utils.rename_xls_sheet import (
     rename_xls_sheet,
     rename_xlsx_sheet,
 )
+from kpi.utils.sluggify import is_valid_node_name
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
@@ -362,6 +365,7 @@ class ImportTask(ImportExportTask):
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
+                self._ensure_valid_node_names(kontent)
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
@@ -394,6 +398,14 @@ class ImportTask(ImportExportTask):
             orm_obj.parent = parent_item
             orm_obj.save()
 
+    @staticmethod
+    def _ensure_valid_node_names(survey_dict):
+        survey_list = survey_dict.get('survey', [])
+        for node in survey_list:
+            name = node.get('name')
+            if bool(name) and not _is_group_end(node) and not is_valid_node_name(name):
+                raise ValueError(f'Invalid node name: {name}')
+
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
         desired_type = kwargs.get('desired_type')
@@ -404,6 +416,7 @@ class ImportTask(ImportExportTask):
             filename = ''
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
+        self._ensure_valid_node_names(survey_dict)
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)
@@ -942,6 +955,64 @@ class SubmissionExportTaskBase(ImportExportTask):
         fields += list(field_groups) + additional_fields
         return fields
 
+    @staticmethod
+    def _get_geo_fields_from_survey(survey: list) -> List[str]:
+        """
+        Build full field paths for all geographic questions in the survey.
+        """
+        if not isinstance(survey, list):
+            return []
+
+        geo_fields = []
+        open_groups = []
+        for row in survey:
+            if not isinstance(row, dict):
+                continue
+
+            row_type = row.get('type')
+            row_name = row.get('name') or row.get('$autoname') or row.get('$xpath')
+
+            if row_type in ('begin_group', 'begin_repeat'):
+                if row_name:
+                    open_groups.append(row_name)
+                continue
+
+            if row_type in ('end_group', 'end_repeat'):
+                if open_groups:
+                    open_groups.pop()
+                continue
+
+            if row_type not in GEO_QUESTION_TYPES or not row_name:
+                continue
+
+            geo_fields.append('/'.join([*open_groups, row_name]))
+
+        return geo_fields
+
+    def _get_submission_fields(self, source: Asset, fields: List[str]) -> List[str]:
+        fields = self._get_fields_and_groups(fields)
+
+        if self.data.get('type', '').lower() != 'kml':
+            return fields
+
+        if not fields:
+            return fields
+
+        survey = source.content.get('survey', []) if source.content else []
+        geo_fields = self._get_geo_fields_from_survey(survey)
+        if not geo_fields:
+            return fields
+
+        ordered_fields = []
+        seen_fields = set()
+        for field in [*fields, *self._get_fields_and_groups(geo_fields)]:
+            if field in seen_fields:
+                continue
+            seen_fields.add(field)
+            ordered_fields.append(field)
+
+        return ordered_fields
+
     @property
     def _hierarchy_in_labels(self) -> bool:
         hierarchy_in_labels = self.data.get('hierarchy_in_labels', False)
@@ -986,9 +1057,9 @@ class SubmissionExportTaskBase(ImportExportTask):
             # Excel exports are always returned in XLSX format, but they're
             # referred to internally as `xls`
             export_type = 'xls'
-        if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
+        if export_type not in ('xls', 'csv', 'geojson', 'kml', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls`, `csv`, `geojson`, and `spss_labels` '
+                'only `xls`, `csv`, `geojson`, `kml`, and `spss_labels` '
                 'are valid export types'
             )
 
@@ -1001,8 +1072,12 @@ class SubmissionExportTaskBase(ImportExportTask):
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + '\r\n').encode('utf-8'))
             elif export_type == 'geojson':
-                for line in export.to_geojson(
-                    submission_stream, flatten=flatten
+                for line in export.to_geojson(submission_stream, flatten=flatten):
+                    output_file.write(line.encode('utf-8'))
+            elif export_type == 'kml':
+                for line in export.to_kml(
+                    submission_stream,
+                    flatten=True,
                 ):
                     output_file.write(line.encode('utf-8'))
             elif export_type == 'xls':
@@ -1079,7 +1154,7 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         # Include the group name in `fields` for Mongo to correctly filter
         # for repeat groups
-        fields = self._get_fields_and_groups(fields)
+        fields = self._get_submission_fields(source, fields)
 
         if source.has_advanced_features:
             # Use a cheap EXISTS query before the expensive full prefetch in

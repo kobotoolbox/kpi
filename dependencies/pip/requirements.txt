@@ -210,7 +210,7 @@ fido2==2.2.0
     # via django-allauth
 flower==2.0.1
     # via -r dependencies/pip/requirements.in
-formpack @ git+https://github.com/kobotoolbox/formpack.git@7e92685993f76a14b7772363edd9882dc50da18f#egg=formpack
+formpack @ git+https://github.com/kobotoolbox/formpack.git@3bf65b74fe876a514cff839fb10c24470dd63de2
     # via -r dependencies/pip/requirements.in
 frozenlist==1.8.0
     # via
@@ -220,10 +220,14 @@ funcsigs==1.0.2
     # via begins
 future==1.0.0
     # via -r dependencies/pip/requirements.in
+geojson==3.3.0
+    # via geojson2kml
 geojson-rewind==1.2.1
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
+geojson2kml==0.2.0
+    # via formpack
 google-api-core[grpc]==2.30.3
     # via
     #   google-api-python-client
@@ -470,6 +474,10 @@ setuptools-git==1.2
     # via django-author
 shortuuid==1.0.13
     # via -r dependencies/pip/requirements.in
+simplekml==1.3.6
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   geojson2kml
 six==1.17.0
     # via python-dateutil
 smsapi-client==2.9.7

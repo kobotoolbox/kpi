@@ -7,6 +7,11 @@ import type { PaginatedResponse } from '#/dataInterface'
  * Mock API for stripe subscriptions endpoint.
  * Use it in Storybook tests in `parameters.msw.handlers[]`.
  *
+ * Note: NOT migrated to Orval because the detailed Stripe types (SubscriptionInfo)
+ * contain more fields than Orval's generated Subscription type. The Stripe SDK types
+ * have nested structures for items, prices, products, etc. that would require
+ * significant type mapping to work with Orval's simpler schema.
+ *
  * @param overrideData - Partial override for the subscription response
  */
 const subscriptionMock = (overrideData?: Partial<PaginatedResponse<SubscriptionInfo>>) => {

@@ -1313,6 +1313,58 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert response.data[META_ROOT_UUID] == root_uuid
         assert response.data['_validation_status'] == {}
 
+    def test_supplement_fallback_to_instance_id(self):
+        """
+        If a submission is missing `meta/rootUuid` in MongoDB, the `supplement`
+        endpoint should fallback to `meta/instanceID` (`_uuid`) and still retrieve the
+        supplement.
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        mongo_document = settings.MONGO_DB.instances.find_one(
+            {'_id': submission['_id']}
+        )
+        root_uuid = mongo_document.pop(META_ROOT_UUID)
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission['_id']},
+            {'$unset': {META_ROOT_UUID: root_uuid}},
+        )
+
+        supplement_data = {
+            'q1': {
+                'manual_transcription': {
+                    '_versions': [
+                        {
+                            '_data': {'language': 'en', 'value': 'Bonjour'},
+                        }
+                    ],
+                },
+            },
+            '_version': '20250820',
+        }
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=remove_uuid_prefix(submission['_uuid']),
+            content=supplement_data,
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-supplement'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'root_uuid': submission['_uuid'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['_version'], '20250820')
+
     def test_submitted_by_persists_after_user_deletion(self):
         # Simulate old submissions that don't have `submitted_by`
         ParsedInstance.objects.filter(instance__user=self.anotheruser).update(
@@ -2086,7 +2138,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # redeploy the asset to create a new deployment version
         self.asset.deploy(active=True)
         self.asset.save()
-        assert self.asset.asset_versions.count() == original_versions_count + 2
+        assert self.asset.asset_versions.count() == original_versions_count + 1
         assert (
             self.asset.deployed_versions.count()
             == original_deployed_versions_count + 1

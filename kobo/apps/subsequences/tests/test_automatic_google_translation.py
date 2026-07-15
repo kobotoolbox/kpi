@@ -526,10 +526,11 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
 
-def test_async_translation_timeout_is_saved_as_failed():
+def test_async_translation_timeout_schedules_background_polling():
     """
-    Persist a failed result when async translation is still running so the user
-    must retry manually instead of relying on background polling
+    A still-running async translation is stored with status 'in_progress' and
+    schedules `poll_run_external_process` so the job finishes in the
+    background instead of requiring the user to manually retry
     """
     action = _get_action()
     mock_service = MagicMock()
@@ -539,13 +540,7 @@ def test_async_translation_timeout_is_saved_as_failed():
         'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
-        mock_service.process_data.return_value = {
-            'status': 'failed',
-            'error': (
-                'Timed out waiting for translation results. Translation may still '
-                'be running. Try again in 5 minutes.'
-            ),
-        }
+        mock_service.process_data.return_value = {'status': 'in_progress'}
         with patch(
             'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
@@ -555,14 +550,24 @@ def test_async_translation_timeout_is_saved_as_failed():
                 {'language': 'fr'},
             )
 
-        task_mock.apply_async.assert_not_called()
+        task_mock.apply_async.assert_called_once()
+        _, kwargs = task_mock.apply_async.call_args
+        assert kwargs['kwargs']['action_id'] == action.ID
+        assert kwargs['kwargs']['question_xpath'] == action.source_question_xpath
+        assert kwargs['kwargs']['submission'] == submission
+
         data = result['fr']['_versions'][0]['_data']
-        assert data['status'] == 'failed'
+        assert data['status'] == 'in_progress'
         assert data['language'] == 'fr'
-        assert 'Try again in 5 minutes.' in data['error']
 
 
-def test_google_quota_error_is_saved_as_failed_for_non_async_translation():
+def test_google_quota_error_schedules_background_polling_for_async_translation():
+    """
+    A quota-exceeded error during translation should not surface as a hard
+    failure. Since translation now allows async processing, it should be
+    stored as 'in_progress' and retried later via background polling, the
+    same way automatic transcription behaves
+    """
     action = _get_action()
     mock_service = MagicMock()
     submission = {'meta/rootUuid': '123-abdc'}
@@ -583,9 +588,10 @@ def test_google_quota_error_is_saved_as_failed_for_non_async_translation():
                 {'language': 'fr'},
             )
 
-    task_mock.apply_async.assert_not_called()
-    assert result['fr']['_versions'][0]['_data']['status'] == 'failed'
-    assert 'Retry after 123 seconds.' in result['fr']['_versions'][0]['_data']['error']
+    task_mock.apply_async.assert_called_once()
+    _, kwargs = task_mock.apply_async.call_args
+    assert kwargs['countdown'] == 123
+    assert result['fr']['_versions'][0]['_data']['status'] == 'in_progress'
 
 
 def test_transform_data_for_output():

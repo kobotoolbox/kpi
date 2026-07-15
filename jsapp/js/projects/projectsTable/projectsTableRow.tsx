@@ -64,7 +64,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
         }
       case 'dateModified':
-        return formatTime(props.asset.date_modified)
+        return props.asset.date_modified ? formatTime(props.asset.date_modified) : '-'
       case 'dateDeployed':
         if ('date_deployed' in props.asset && props.asset.date_deployed) {
           return formatTime(props.asset.date_deployed)

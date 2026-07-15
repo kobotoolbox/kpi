@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 
 import dateutil
 from constance.test import override_config
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
+from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -125,7 +127,7 @@ class CurrentUserAPITestCase(APITestCase):
     def test_accepted_tos(self):
         # Ensure accepted_tos is initially False
         response = self.client.get(self.url)
-        assert response.data['accepted_tos'] == False
+        assert response.data['accepted_tos'] is False
         assert (
             'last_tos_accept_time' not in self.user.extra_details.private_data
         )
@@ -146,7 +148,19 @@ class CurrentUserAPITestCase(APITestCase):
 
         # Ensure accepted_tos is now True after accepting ToS
         response = self.client.get(self.url)
-        assert response.data['accepted_tos'] == True
+        assert response.data['accepted_tos'] is True
+
+        # require reacceptance
+        with override_config(
+            LAST_TOS_UPDATE=timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        ):
+            response = self.client.get(self.url)
+            assert response.data['accepted_tos'] is False
+            # make it a bit later and re-accept
+            with freeze_time(timezone.now() + timedelta(seconds=1)):
+                self.client.post(reverse('tos'))
+            response = self.client.get(self.url)
+            assert response.data['accepted_tos'] is True
 
     @override_config(
         USER_METADATA_FIELDS=[

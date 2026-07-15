@@ -186,6 +186,29 @@ export function formatSeconds(seconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`
 }
 
+/*
+ * Formats seconds into a "<hours> hours, <minutes> minutes" structure, with "…" as a fallback
+ */
+export const formatTimeFromSeconds = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+
+  if (hours && !minutes) {
+    return t('##hours## hours').replace('##hours##', String(hours))
+  } else if (hours && minutes) {
+    return t('##hours## hours, ##minutes## minutes')
+      .replace('##hours##', String(hours))
+      .replace('##minutes##', String(minutes))
+  } else if (!hours && minutes) {
+    return t('##minutes## minutes').replace('##minutes##', String(minutes))
+  } else if (!hours && !minutes) {
+    return t('##seconds## seconds').replace('##seconds##', String(seconds))
+  } else {
+    // Fallback for typescript, should never happen.
+    return '…'
+  }
+}
+
 export function formatRelativeTime(timeStr: string, localize = true): string {
   let myMoment = moment.utc(timeStr)
   if (localize) {
