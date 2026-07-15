@@ -23661,8 +23661,12 @@ components:
           type: string
           readOnly: true
         date_deployed:
-          type: string
-          format: date-time
+          oneOf:
+          - type: string
+            format: date-time
+          - type: boolean
+            enum:
+            - false
           readOnly: true
         date_modified:
           type: string
@@ -23689,8 +23693,12 @@ components:
           type: string
           readOnly: true
         date_deployed:
-          type: string
-          format: date-time
+          oneOf:
+          - type: string
+            format: date-time
+          - type: boolean
+            enum:
+            - false
           readOnly: true
         date_modified:
           type: string
