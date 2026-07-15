@@ -3,7 +3,6 @@ export enum ExportTypeName {
   csv = 'csv',
   geojson = 'geojson',
   kml = 'kml',
-  kml_legacy = 'kml_legacy',
   spss_labels = 'spss_labels',
   xls_legacy = 'xls_legacy',
   xls = 'xls',
@@ -18,7 +17,6 @@ type ExportTypeDefinitionBase<TName extends ExportTypeName, TLegacy extends bool
 
 export type LegacyExportTypeName =
   | ExportTypeName.csv_legacy
-  | ExportTypeName.kml_legacy
   | ExportTypeName.xls_legacy
   | ExportTypeName.zip_legacy
 
@@ -33,7 +31,6 @@ export const EXPORT_TYPES = Object.freeze({
   csv: { value: ExportTypeName.csv, label: t('CSV'), isLegacy: false },
   geojson: { value: ExportTypeName.geojson, label: t('GeoJSON'), isLegacy: false },
   kml: { value: ExportTypeName.kml, label: t('KML'), isLegacy: false },
-  kml_legacy: { value: ExportTypeName.kml_legacy, label: t('GPS coordinates (KML)'), isLegacy: true },
   spss_labels: { value: ExportTypeName.spss_labels, label: t('SPSS Labels'), isLegacy: false },
   xls_legacy: { value: ExportTypeName.xls_legacy, label: t('XLS (legacy)'), isLegacy: true },
   xls: { value: ExportTypeName.xls, label: t('XLS'), isLegacy: false },
