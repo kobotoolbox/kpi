@@ -1,12 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
-
 import { Flex, Text } from '@mantine/core'
 import alertify from 'alertifyjs'
-import {
-  assetsExportsRetrieve,
-  useAssetsExportsDestroy,
-  useAssetsExportsList,
-} from '#/api/react-query/survey-data'
+import React, { useEffect, useRef, useState } from 'react'
+import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
 import bem from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
@@ -118,11 +113,12 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     dialog.set(opts).show()
   }
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       stopAllExportFetchers()
-    }
-  }, [props.asset.uid])
+    },
+    [props.asset.uid],
+  )
 
   useEffect(() => {
     if (exportsListQuery.isSuccess && exportsListQuery.data.status === 200) {

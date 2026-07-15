@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
-
 import * as Sentry from '@sentry/react'
+import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsCreate } from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import Button from '#/components/common/button'
@@ -79,11 +78,12 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
     }
   }
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       stopExportFetcher()
-    }
-  }, [props.asset.uid])
+    },
+    [props.asset.uid],
+  )
 
   useEffect(() => {
     setExportUrl(null)
