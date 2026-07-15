@@ -73,6 +73,9 @@ GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA = build_object_type(
 
 GENERIC_STRING_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
+# Orval requires both type: ['string', 'null'] AND nullable: True
+NULLABLE_STRING_SCHEMA = {'type': ['string', 'null'], 'nullable': True}
+
 GENERIC_INT_SCHEMA = build_basic_type(OpenApiTypes.INT)
 
 GENERIC_OBJECT_SCHEMA = build_object_type(properties={})
@@ -80,5 +83,12 @@ GENERIC_OBJECT_SCHEMA = build_object_type(properties={})
 GENERIC_UUID_SCHEMA = {'type': 'string', 'format': 'uuid'}
 
 GENERIC_DATETIME_SCHEMA = build_basic_type(OpenApiTypes.DATETIME)
+
+# Orval requires both type: ['array', 'null'] AND nullable: True for nullable arrays
+NULLABLE_ARRAY_SCHEMA = {
+    'type': ['array', 'null'],
+    'items': {'type': 'string'},
+    'nullable': True,
+}
 
 USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')

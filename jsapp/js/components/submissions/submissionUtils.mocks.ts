@@ -1,3 +1,4 @@
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import {
   AssetTypeName,
   GroupTypeBeginName,
@@ -74,47 +75,12 @@ export const simpleSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const simpleSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const simpleSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: simpleSurvey,
     choices: simpleSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
   report_custom: {},
   map_styles: {},
   map_custom: {},
@@ -124,7 +90,7 @@ export const simpleSurveyAsset = {
   export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const simpleSurveySubmission = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
@@ -294,56 +260,14 @@ export const repeatSurvey = [
   },
 ] as const satisfies SurveyRow[]
 
-export const repeatSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const repeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: repeatSurvey,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
 export const repeatSurveySubmission = {
@@ -493,56 +417,14 @@ export const nestedRepeatSurvey = [
   },
 ] as const satisfies SurveyRow[]
 
-export const nestedRepeatSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const nestedRepeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: nestedRepeatSurvey,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const nestedRepeatSurveySubmission = {
   __version__: 'v7sPQZCGQoW8JKYL5Kq79m',
@@ -787,57 +669,15 @@ export const matrixSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const matrixSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const matrixSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: matrixSurvey,
     choices: matrixSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const matrixSurveySubmission = {
   _id: 22,
@@ -1089,57 +929,15 @@ export const groupsSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const groupsSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const groupsSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: groupsSurvey,
     choices: groupsSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const groupsSurveySubmission = {
   _id: 23,
@@ -1670,57 +1468,15 @@ export const everythingSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const everythingSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const everythingSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: everythingSurvey,
     choices: everythingSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const everythingSurveySubmission = {
   _id: 25,
@@ -2123,57 +1879,15 @@ export const matrixRepeatSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const matrixRepeatSurveyAsset = {
-  url: '',
-  owner: '',
-  owner__username: '',
-  owner_label: '',
-  last_modified_by: null,
-  created_by: null,
-  date_created: '',
-  summary: {},
-  date_modified: '',
-  version_id: null,
-  has_deployment: false,
-  deployed_version_id: null,
-  deployment__active: false,
-  deployment__submission_count: 0,
-  deployment_status: 'deployed',
-  downloads: [],
-  uid: '',
-  kind: '',
-  assignable_permissions: [],
-  effective_permissions: [],
-  data: '',
-  children: {
-    count: 0,
-  },
+export const matrixRepeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
   content: {
     survey: matrixRepeatSurvey,
     choices: matrixRepeatSurveyChoices,
   },
-  subscribers_count: 0,
-  status: '',
-  access_types: null,
-  project_ownership: null,
-  parent: null,
-  settings: {},
   asset_type: AssetTypeName.survey,
-  report_styles: {
-    default: {},
-    specified: {},
-    kuid_names: {},
-  },
-  report_custom: {},
-  map_styles: {},
-  map_custom: {},
-  tag_string: '',
-  name: '',
-  permissions: [],
-  export_settings: [],
   data_sharing: {},
   files: [],
-} as const satisfies AssetResponse
+}) as unknown as AssetResponse
 
 export const matrixRepeatSurveySubmission = {
   _id: 16,
@@ -2372,144 +2086,25 @@ export const submissionWithAttachmentsWithUnicode = {
   _validation_status: {},
 } as const satisfies SubmissionResponse
 
-export const assetWithSupplementalDetails = {
-  url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/',
-  owner: 'http://kf.kobo.local/api/v2/users/kobo/',
-  owner__username: 'kobo',
-  owner_label: 'kobo',
-  last_modified_by: null,
-  created_by: null,
-  deployment_status: 'deployed',
-  effective_permissions: [
-    {
-      codename: 'manage_asset',
-    },
-    {
-      codename: 'validate_submissions',
-    },
-    {
-      codename: 'change_asset',
-    },
-    {
-      codename: 'add_submissions',
-    },
-    {
-      codename: 'delete_asset',
-    },
-    {
-      codename: 'view_asset',
-    },
-    {
-      codename: 'change_submissions',
-    },
-    {
-      codename: 'delete_submissions',
-    },
-    {
-      codename: 'view_submissions',
-    },
-  ],
-  project_ownership: null,
-  parent: null,
-  settings: {},
+export const assetWithSupplementalDetails = getApiV2AssetsRetrieveResponseMock({
+  uid: 'aDDywpeYGnvuDLTeiveyxZ',
+  name: 'text and media projekt',
   asset_type: AssetTypeName.survey,
-  date_created: '2022-05-12T10:40:02.952931Z',
+  deployment__active: true,
+  deployment__submission_count: 3,
+  has_deployment: true,
   summary: {
     geo: false,
     labels: ['Your name here', 'Your selfie goes here', 'A video? WTF', 'Secret password as an audio file'],
     columns: ['name', 'type', 'label', 'required', 'calculation'],
     lock_all: false,
     lock_any: false,
-    languages: [null],
+    languages: [],
     row_count: 6,
-    name_quality: {
-      ok: 0,
-      bad: 0,
-      good: 6,
-      total: 6,
-      firsts: {},
-    },
+    name_quality: { ok: 0, bad: 0, good: 6, total: 6, firsts: {} },
     naming_conflicts: ['__version__'],
     default_translation: null,
   },
-  date_modified: '2022-05-12T20:46:11.778140Z',
-  version_id: 'vMQQP3qgzfmC9XFUkaogSu',
-  version__content_hash: '85c5bee02e5c2061afb598870e0308e3e0f818b5',
-  version_count: 6,
-  has_deployment: true,
-  deployed_version_id: 'vFFTm5vKJURadwXxntZda6',
-  deployed_versions: {
-    count: 1,
-    next: null,
-    previous: null,
-    results: [
-      {
-        uid: 'vFFTm5vKJURadwXxntZda6',
-        url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/versions/vFFTm5vKJURadwXxntZda6/',
-        content_hash: '85c5bee02e5c2061afb598870e0308e3e0f818b5',
-        date_deployed: '2022-05-12T10:40:05.215293Z',
-        date_modified: '2022-05-12 10:40:05.215293+00:00',
-      },
-    ],
-  },
-  deployment__links: {
-    url: 'http://ee.kobo.local/6PTli7y9',
-    single_url: 'http://ee.kobo.local/single/6PTli7y9',
-    single_once_url: 'http://ee.kobo.local/single/fc64e066ac2314795f6f6afe049420dd',
-    offline_url: 'http://ee.kobo.local/x/6PTli7y9',
-    preview_url: 'http://ee.kobo.local/preview/6PTli7y9',
-    iframe_url: 'http://ee.kobo.local/i/6PTli7y9',
-    single_iframe_url: 'http://ee.kobo.local/single/i/6PTli7y9',
-    single_once_iframe_url: 'http://ee.kobo.local/single/i/fc64e066ac2314795f6f6afe049420dd',
-  },
-  deployment__active: true,
-  deployment__data_download_links: {
-    xls_legacy: 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/xls/',
-    csv_legacy: 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/csv/',
-    zip_legacy: 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/zip/',
-    kml_legacy: 'http://kc.kobo.local/kobo/exports/aDDywpeYGnvuDLTeiveyxZ/kml/',
-    xls: 'http://kc.kobo.local/kobo/reports/aDDywpeYGnvuDLTeiveyxZ/export.xlsx',
-    csv: 'http://kc.kobo.local/kobo/reports/aDDywpeYGnvuDLTeiveyxZ/export.csv',
-  },
-  deployment__submission_count: 3,
-  report_styles: {
-    default: {},
-    specified: {
-      end: {},
-      audit: {},
-      start: {},
-      today: {},
-      deviceid: {},
-      username: {},
-      _version_: {},
-      simserial: {},
-      A_video_WTF: {},
-      __version__: {},
-      phonenumber: {},
-      subscriberid: {},
-      Your_name_here: {},
-      Your_selfie_goes_here: {},
-      Secret_password_as_an_audio_file: {},
-    },
-    kuid_names: {
-      end: 'VpPsXe5aq',
-      audit: '4Fbwq3mxP',
-      start: '8sHgNqqM9',
-      today: 'HuEzX4mel',
-      deviceid: 'q8Rvs1sqk',
-      username: '4dINVeRnR',
-      _version_: 'kU3D6JQPQ',
-      simserial: 'WrxreUkAJ',
-      A_video_WTF: 'bMGj1HZfu',
-      __version__: 'Hd5Iz0aWv',
-      phonenumber: 'Oqbll19yc',
-      subscriberid: '8ojkWhAXU',
-      Your_name_here: 'RAeXenoDr',
-      Your_selfie_goes_here: 'MWflesBzX',
-      Secret_password_as_an_audio_file: '3VHKj8Kt4',
-    },
-  },
-  report_custom: {},
   advanced_features: {
     transcript: {
       values: ['A_video_WTF', 'Secret_password_as_an_audio_file'],
@@ -2666,8 +2261,6 @@ export const assetWithSupplementalDetails = {
       },
     ],
   },
-  map_styles: {},
-  map_custom: {},
   content: {
     schema: '1',
     survey: [
@@ -2711,140 +2304,8 @@ export const assetWithSupplementalDetails = {
     translated: ['label'],
     translations: [null],
   },
-  downloads: [
-    {
-      format: 'xls',
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ.xls',
-    },
-    {
-      format: 'xml',
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ.xml',
-    },
-  ],
-  embeds: [
-    {
-      format: 'xls',
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xls/',
-    },
-    {
-      format: 'xform',
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
-    },
-  ],
-  xform_link: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
-  hooks_link: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/hooks/',
-  tag_string: '',
-  uid: 'aDDywpeYGnvuDLTeiveyxZ',
-  kind: 'asset',
-  xls_link: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xls/',
-  name: 'text and media projekt',
-  assignable_permissions: [
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/view_asset/',
-      label: 'View form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/change_asset/',
-      label: 'Edit form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/manage_asset/',
-      label: 'Manage project',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/add_submissions/',
-      label: 'Add submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/view_submissions/',
-      label: 'View submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/partial_submissions/',
-      label: {
-        default: 'Act on submissions only from specific users',
-        view_submissions: 'View submissions only from specific users',
-        change_submissions: 'Edit submissions only from specific users',
-        delete_submissions: 'Delete submissions only from specific users',
-        validate_submissions: 'Validate submissions only from specific users',
-      },
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/change_submissions/',
-      label: 'Edit submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/delete_submissions/',
-      label: 'Delete submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
-      label: 'Validate submissions',
-    },
-  ],
-  permissions: [
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pDbXju7qDP7f4TiPnhvN2V/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/add_submissions/',
-      label: 'Add submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pRbazEkwqBFAT4K775yWK5/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/change_asset/',
-      label: 'Edit form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pAVAdfoKu2zHjgw2ZaPvKk/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/change_submissions/',
-      label: 'Edit submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pETWb6s6ezB9gs7vpMpHhZ/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/delete_submissions/',
-      label: 'Delete submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pQoaazdrQ2pBRjqiMpcyc2/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/manage_asset/',
-      label: 'Manage project',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pEqtSwGsEJzot98Ms3JJpL/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
-      label: 'Validate submissions',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/p62cADJonW8XuVPkaMSQcj/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/view_asset/',
-      label: 'View form',
-    },
-    {
-      url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/p6FKWfL4SuxUqXhsJWdkkB/',
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission: 'http://kf.kobo.local/api/v2/permissions/view_submissions/',
-      label: 'View submissions',
-    },
-  ],
-  exports: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/exports/',
-  export_settings: [],
-  data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/',
-  children: {
-    count: 0,
-  },
-  subscribers_count: 0,
-  status: 'private',
-  access_types: null,
-  data_sharing: {},
-  paired_data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
-  files: [],
-} as const satisfies AssetResponse
+  effective_permissions: [{ codename: 'change_submissions' }],
+}) as unknown as AssetResponse
 
 export const submissionWithSupplementalDetails = {
   _id: 3,
@@ -3460,7 +2921,7 @@ export const assetWithNestedSupplementalDetails = {
   owner_label: "uu's organization",
   last_modified_by: 'uu',
   created_by: null,
-} as const satisfies AssetResponse
+} as unknown as AssetResponse
 
 export const submissionWithNestedSupplementalDetails = {
   _id: 84,
@@ -4033,7 +3494,7 @@ export const assetWithAllQual = {
   owner_label: "uu's organization",
   last_modified_by: 'uu',
   created_by: null,
-} as const satisfies AssetResponse
+} as unknown as AssetResponse
 
 export const submissionWithAllQual = {
   _id: 81,
