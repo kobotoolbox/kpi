@@ -42,6 +42,8 @@ export interface ProjectTransferAssetDetail {
   sender: string
   recipient: string
   status: TransferStatuses
+  /** Allow additional properties for backend extensions */
+  [key: string]: unknown
 }
 
 export interface InvitesResponse {

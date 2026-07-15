@@ -1,9 +1,9 @@
-const { operationName } = require('./jsapp/js/api/orval.operationName')
+const { operationName } = require('./jsapp/js/api/orval.operationName.js')
 
 module.exports = {
   'kpi-v2': {
     output: {
-      mode: 'tags',
+      mode: 'tags-split',
       workspace: './jsapp/js/api/',
       target: './react-query',
       schemas: './models',
@@ -15,9 +15,13 @@ module.exports = {
         return generatorClients['react-query']
       },
       httpClient: 'fetch',
-      mock: false, // TODO: enable in later PRs separately.
+      // Generate mocks in separate .msw.ts files to avoid bundling faker/msw in production
+      // With mode: 'tags-split', mocks are generated separately from runtime code
+      mock: true,
       indexFiles: false,
-      biome: true,
+      // Disable built-in biome, as it is running before `afterAllFilesWrite`
+      // scripts - we run it manually after post-processing
+      biome: false,
 
       // baseUrl: 'https://api.example.com', // prepend https://api.example.com to all api calls
       urlEncodeParameters: true,
@@ -45,8 +49,18 @@ module.exports = {
     hooks: {
       // Orval has a bug that fails to generate imports for $ref in additionalProperties.
       // See https://github.com/orval-labs/orval/issues/1077.
-      // This is a workaround. Remove it once the underlying bug is fixed.
-      afterAllFilesWrite: 'node scripts/orval-fix-referenced-additional-properties.js',
+      // Also fix TypeScript errors in MSW mock factories for types with index signatures.
+      // Make trailing slashes optional in MSW handlers to match both /path and /path/
+      // Rename files to index.ts/msw.ts pattern for clean imports
+      // Run Biome last to format and organize imports after all modifications
+      afterAllFilesWrite: [
+        'node scripts/orval-rename-to-index.js',
+        'node scripts/orval-fix-referenced-additional-properties.js',
+        'node scripts/orval-fix-mock-factory-type-assertions.js',
+        'node scripts/orval-make-trailing-slash-optional.js',
+        'node scripts/orval-remove-mock-delays.js',
+        'npx biome check --write --unsafe jsapp/js/api/react-query jsapp/js/api/models',
+      ],
     },
   },
 }

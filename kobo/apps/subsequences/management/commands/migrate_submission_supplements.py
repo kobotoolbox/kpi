@@ -272,7 +272,6 @@ class Command(BaseCommand):
                         asset.advanced_features['_version'] = SCHEMA_VERSIONS[0]
                         asset.save(
                             update_fields=['advanced_features'],
-                            create_version=False,
                             adjust_content=False,
                         )
             except Exception as e:

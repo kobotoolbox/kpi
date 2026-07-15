@@ -23,7 +23,8 @@ export interface MeListResponse {
   date_joined: string
   projects_url: string
   gravatar: string
-  last_login: string
+  /** @nullable */
+  last_login: string | null
   extra_details: MeListResponseExtraDetails
   git_rev: MeListResponseGitRev
   social_accounts: MeListResponseSocialAccountsItem[]

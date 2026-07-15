@@ -1,14 +1,11 @@
-import { http, HttpResponse } from 'msw'
-import { endpoints } from '#/api.endpoints'
-import type { AccountResponse } from '#/dataInterface'
+import type { MeListResponse } from '#/api/models/meListResponse'
+import { getMeRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 
 /**
- * Mock API for session endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Mock response data for /me/ endpoint.
+ * Note: AccountResponse (legacy) is compatible with MeListResponse (Orval).
  */
-const meMock = http.get<never, never, AccountResponse>(endpoints.ME, () => HttpResponse.json(meMockResponse))
-export default meMock
-
-export const meMockResponse: AccountResponse = {
+export const meMockResponse: MeListResponse = {
   username: 'zefir',
   first_name: '',
   last_name: '',
@@ -39,3 +36,10 @@ export const meMockResponse: AccountResponse = {
   },
   extra_details__uid: 'uTcCX9wL5royoPb4mHWcBz',
 }
+
+/**
+ * Mock API for session endpoint using Orval-generated handler.
+ * Use it in Storybook tests in `parameters.msw.handlers[]`.
+ */
+const meMock = getMeRetrieveMockHandler(meMockResponse)
+export default meMock
