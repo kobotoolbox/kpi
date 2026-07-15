@@ -5,13 +5,13 @@ import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector
 import {
   EXPORT_TYPES,
   type ExportTypeDefinition,
-  type ExportTypeName,
+  type LegacyExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
 import type { AssetResponse } from '#/dataInterface'
 
 interface LegacyExportsProps {
   asset: AssetResponse
-  selectedExportType: ExportTypeDefinition
+  selectedExportType: LegacyExportTypeDefinition
   setSelectedExportType: (newType: ExportTypeDefinition) => void
 }
 
@@ -19,7 +19,7 @@ interface LegacyExportsProps {
  * A component for displaying the legacy exports iframe with an export type selector.
  */
 export default function LegacyExports(props: LegacyExportsProps) {
-  const exportType = props.selectedExportType.value as keyof typeof ExportTypeName
+  const exportType = props.selectedExportType.value
 
   return (
     <bem.FormView__cell m={['box', 'padding']}>

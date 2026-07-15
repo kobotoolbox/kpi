@@ -10,13 +10,25 @@ export enum ExportTypeName {
   zip_legacy = 'zip_legacy',
 }
 
-export interface ExportTypeDefinition {
-  value: ExportTypeName
+type ExportTypeDefinitionBase<TName extends ExportTypeName, TLegacy extends boolean> = {
+  value: TName
   label: string
-  isLegacy: boolean
+  isLegacy: TLegacy
 }
 
-export const EXPORT_TYPES: { [key in ExportTypeName]: ExportTypeDefinition } = Object.freeze({
+export type LegacyExportTypeName =
+  | ExportTypeName.csv_legacy
+  | ExportTypeName.kml_legacy
+  | ExportTypeName.xls_legacy
+  | ExportTypeName.zip_legacy
+
+export type ModernExportTypeName = Exclude<ExportTypeName, LegacyExportTypeName>
+
+export type LegacyExportTypeDefinition = ExportTypeDefinitionBase<LegacyExportTypeName, true>
+export type ModernExportTypeDefinition = ExportTypeDefinitionBase<ModernExportTypeName, false>
+export type ExportTypeDefinition = LegacyExportTypeDefinition | ModernExportTypeDefinition
+
+export const EXPORT_TYPES = Object.freeze({
   csv_legacy: { value: ExportTypeName.csv_legacy, label: t('CSV (legacy)'), isLegacy: true },
   csv: { value: ExportTypeName.csv, label: t('CSV'), isLegacy: false },
   geojson: { value: ExportTypeName.geojson, label: t('GeoJSON'), isLegacy: false },
@@ -26,7 +38,7 @@ export const EXPORT_TYPES: { [key in ExportTypeName]: ExportTypeDefinition } = O
   xls_legacy: { value: ExportTypeName.xls_legacy, label: t('XLS (legacy)'), isLegacy: true },
   xls: { value: ExportTypeName.xls, label: t('XLS'), isLegacy: false },
   zip_legacy: { value: ExportTypeName.zip_legacy, label: t('Media Attachments (ZIP)'), isLegacy: true },
-})
+} as const satisfies Record<ExportTypeName, ExportTypeDefinition>)
 
 export type ExportFormatName = '_default' | '_xml'
 
