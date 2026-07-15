@@ -3,6 +3,7 @@ import alertify from 'alertifyjs'
 import cx from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from 'react-select'
+import { type OrvalFetchError, getApiErrorMessage } from '#/api/onErrorDefaultHandler'
 import {
   useAssetsExportSettingsCreate,
   useAssetsExportSettingsDestroy,
@@ -242,8 +243,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
         uidAsset: props.asset.uid,
         data: response.export_settings as never,
       })
-    } catch {
-      const errorMessage = t('Failed to create export')
+    } catch (error: unknown) {
+      const errorMessage = getApiErrorMessage(error as OrvalFetchError) || t('Failed to create export')
       notify(errorMessage, 'error')
       Sentry.captureMessage(errorMessage)
       throw new Error(errorMessage)

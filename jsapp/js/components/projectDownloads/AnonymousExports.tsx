@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react'
 import React, { useEffect, useRef, useState } from 'react'
+import { type OrvalFetchError, getApiErrorMessage } from '#/api/onErrorDefaultHandler'
 import { assetsExportsRetrieve, useAssetsExportsCreate } from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import Button from '#/components/common/button'
@@ -74,7 +75,10 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
         setIsPending(false)
       }
     } catch {
-      setIsPending(false)
+      // Do not clear `isPending` here.
+      // This request is part of the active polling loop, so retries will keep running.
+      // If we unlock the button now, users can start another export while the old
+      // fetcher is still alive, and the new export might never get polled.
     }
   }
 
@@ -121,13 +125,7 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
           setIsPending(false)
         }
       } catch (error: unknown) {
-        let errorMessage = t('Failed to create export')
-        if (typeof error === 'object' && error !== null && 'responseJSON' in error) {
-          const responseJSON = (error as { responseJSON?: { error?: string } }).responseJSON
-          if (responseJSON?.error) {
-            errorMessage = responseJSON.error
-          }
-        }
+        const errorMessage = getApiErrorMessage(error as OrvalFetchError) || t('Failed to create export')
 
         notify(errorMessage, 'error')
         Sentry.captureMessage(errorMessage)
