@@ -50,15 +50,15 @@ class StripeSignalsTestCase(BaseTestCase):
         """
         mock_event = MagicMock()
         mock_event.data = {
-            "object": {
-                "id": self.subscription.id,
-                "status": "unpaid",
-                "items": {
-                    "data": [
+            'object': {
+                'id': self.subscription.id,
+                'status': 'unpaid',
+                'items': {
+                    'data': [
                         {
-                            "price": {
-                                "product": {
-                                    "metadata": {"preserve_unpaid_status": "true"}
+                            'price': {
+                                'product': {
+                                    'metadata': {'preserve_unpaid_status': 'true'}
                                 }
                             }
                         }
@@ -80,15 +80,15 @@ class StripeSignalsTestCase(BaseTestCase):
         """
         mock_event = MagicMock()
         mock_event.data = {
-            "object": {
-                "id": self.subscription.id,
-                "status": "unpaid",
-                "items": {
-                    "data": [
+            'object': {
+                'id': self.subscription.id,
+                'status': 'unpaid',
+                'items': {
+                    'data': [
                         {
-                            "price": {
-                                "product": {
-                                    "metadata": {"preserve_unpaid_status": "false"}
+                            'price': {
+                                'product': {
+                                    'metadata': {'preserve_unpaid_status': 'false'}
                                 }
                             }
                         }
