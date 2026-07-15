@@ -136,13 +136,11 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   const stateRef = useRef(state)
   const clearScheduledExportRef = useRef<Function | undefined>(undefined)
 
-  useEffect(() => {
-    stateRef.current = state
-  }, [state])
-
   function mergeState(newState: Partial<ProjectExportsCreatorState>) {
     setState((currentState) => {
-      return { ...currentState, ...newState }
+      const nextState = { ...currentState, ...newState }
+      stateRef.current = nextState
+      return nextState
     })
   }
 

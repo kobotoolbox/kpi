@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
+
+import * as Sentry from '@sentry/react'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Button from '#/components/common/button'
@@ -11,8 +13,14 @@ import {
 } from '#/components/projectDownloads/exportsConstants'
 import exportsStore from '#/components/projectDownloads/exportsStore'
 import { getContextualDefaultExportFormat } from '#/components/projectDownloads/exportsUtils'
-import { type AssetResponse, type ExportDataResponse, type ExportSettingSettings, dataInterface } from '#/dataInterface'
-import { downloadUrl } from '#/utils'
+import {
+  type AssetResponse,
+  type ExportDataResponse,
+  type ExportSettingSettings,
+  type FailResponse,
+  dataInterface,
+} from '#/dataInterface'
+import { downloadUrl, notify } from '#/utils'
 
 interface AnonymousExportsProps {
   asset: AssetResponse
@@ -70,6 +78,8 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
           if (exportData.result !== null) {
             downloadUrl(exportData.result)
           }
+        } else if (exportData.status === ExportStatusName.error) {
+          setIsPending(false)
         }
       }),
     ]
@@ -107,7 +117,13 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
         .done((exportData: ExportDataResponse) => {
           fetchExport(exportData.uid)
         })
-        .fail(() => {
+        .fail((response: FailResponse) => {
+          let errorMessage = t('Failed to create export')
+          if (typeof response === 'object' && response.responseJSON?.error) {
+            errorMessage = response.responseJSON.error
+          }
+          notify(errorMessage, 'error')
+          Sentry.captureMessage(errorMessage)
           setIsPending(false)
         })
     }
