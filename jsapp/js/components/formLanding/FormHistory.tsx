@@ -118,12 +118,7 @@ export default function FormHistory(props: FormHistoryProps) {
         key: 'version',
         label: t('Version'),
         cellFormatter: (value: VersionListResponse, index: number) => {
-          const versionName = getVersionName(
-            index,
-            props.deployedVersionsCount,
-            value.date_deployed !== false,
-            rowData,
-          )
+          const versionName = getVersionName(index, props.deployedVersionsCount, value.date_deployed !== false, rowData)
 
           return (
             <Group gap='xs'>
