@@ -112,6 +112,7 @@ export default function TranscriptCreate({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
           advancedFeatures={advancedFeatures}
         />
       )}
