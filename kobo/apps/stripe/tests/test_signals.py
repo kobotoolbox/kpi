@@ -101,3 +101,23 @@ class StripeSignalsTestCase(BaseTestCase):
             sender=None, event=mock_event, instance=self.subscription
         )
         mock_cancel.assert_called_once_with(at_period_end=False)
+
+    @patch('djstripe.models.Subscription.cancel')
+    def test_unpaid_subscription_canceled_when_key_absent(self, mock_cancel):
+        """
+        Ensure a subscription IS canceled if the
+        'preserve_unpaid_status' key is entirely absent from metadata.
+        """
+        mock_event = MagicMock()
+        mock_event.data = {
+            'object': {
+                'id': self.subscription.id,
+                'status': 'unpaid',
+                'items': {'data': [{'price': {'product': {'metadata': {}}}}]},
+            }
+        }
+
+        handle_unpaid_subscription(
+            sender=None, event=mock_event, instance=self.subscription
+        )
+        mock_cancel.assert_called_once_with(at_period_end=False)

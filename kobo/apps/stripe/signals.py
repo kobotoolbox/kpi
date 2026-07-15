@@ -6,6 +6,7 @@ from djstripe.models import Charge, Product, Subscription
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.models import ExceededLimitCounter, PlanAddOn
 from kobo.apps.stripe.utils.limit_enforcement import update_or_remove_limit_counter
+from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
@@ -56,30 +57,48 @@ def handle_unpaid_subscription(sender, **kwargs):
     if not items:
         return
 
-    price_data = items[0].get('price', {})
-    product_data = price_data.get('product')
+    preserve_status = False
 
-    product_metadata = {}
-    if isinstance(product_data, dict):
-        product_metadata = product_data.get('metadata', {})
-    elif isinstance(product_data, str):
-        # Fallback to local database lookup via djstripe's Product model
-        product = Product.objects.filter(id=product_data).first()
-        if product:
-            product_metadata = product.metadata or {}
+    for item in items:
+        price_data = item.get('price', {})
+        product_data = price_data.get('product')
 
-    if product_metadata.get('preserve_unpaid_status') == 'true':
+        product_metadata = {}
+        if isinstance(product_data, dict):
+            product_metadata = product_data.get('metadata', {})
+        elif isinstance(product_data, str):
+            product = Product.objects.filter(id=product_data).first()
+            if product:
+                product_metadata = product.metadata or {}
+
+        if product_metadata.get('preserve_unpaid_status') == 'true':
+            preserve_status = True
+            break
+
+    if preserve_status:
+        logging.info(
+            f'[Stripe Webhook] Preserving unpaid status for subscription '
+            f'{subscription_data.get("id")} due to "preserve_unpaid_status": '
+            f'"true" in associated product metadata.'
+        )
         return
 
     djstripe_sub = kwargs.get('instance')
+    stripe_id = subscription_data.get('id')
 
     if djstripe_sub and hasattr(djstripe_sub, 'cancel'):
+        logging.info(
+            f'[Stripe Webhook] Initiating cancellation for unpaid subscription '
+            f'{stripe_id} as it does not have the "preserve_unpaid_status" flag.'
+        )
         djstripe_sub.cancel(at_period_end=False)
     else:
-        # If your older djstripe version doesn't attach the instance cleanly,
-        # fall back to direct DB lookup
-        stripe_id = subscription_data.get('id')
         if stripe_id:
+            logging.info(
+                f'[Stripe Webhook] Initiating fallback cancellation for unpaid '
+                f'subscription {stripe_id} as it does not have the '
+                f'"preserve_unpaid_status" flag.'
+            )
             local_sub = Subscription.objects.filter(id=stripe_id).first()
             if local_sub:
                 local_sub.cancel(at_period_end=False)
