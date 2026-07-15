@@ -93,8 +93,9 @@ def get_asr_language_code_overrides() -> dict[str, str]:
     environment variable in the deployment config so all managed instances pick
     it up automatically.
 
-    Returns an empty dict (no overrides) on any parse error so that a
-    misconfigured value never silently breaks all transcription.
+    Malformed entries (missing `:`, empty source, or empty target) are
+    skipped individually and logged, so one bad entry in the Constance value
+    does not discard the other valid overrides.
     """
     raw = str(constance.config.ASR_LANGUAGE_CODE_OVERRIDES).strip()
     if not raw:

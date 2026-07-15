@@ -373,6 +373,8 @@ CONSTANCE_CONFIG = {
         ),
         'google_region_choice',
     ),
+    # TODO: remove this default override once Google fixes Speech-to-Text
+    # support for 'sw' and 'sw-KE' language codes
     'ASR_LANGUAGE_CODE_OVERRIDES': (
         env.str('CONSTANCE_ASR_LANGUAGE_CODE_OVERRIDES', 'sw:auto,sw-KE:auto'),
         (

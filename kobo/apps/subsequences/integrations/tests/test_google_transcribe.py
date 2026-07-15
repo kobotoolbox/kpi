@@ -3,6 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from google.api_core.exceptions import PermissionDenied
+from google.cloud import speech_v2 as speech
+from google.rpc import status_pb2
 
 from kobo.apps.subsequences.exceptions import (
     GoogleTranscriptionServiceNotConfigured,
@@ -59,6 +61,53 @@ def test_adapt_response_handles_nested_batch_result_payloads():
     }
 
     assert service.adapt_response(response) == 'Hello world'
+
+
+def test_extract_per_file_error_returns_none_for_empty_response():
+    service = object.__new__(GoogleTranscriptionService)
+
+    assert service._extract_per_file_error(None) is None
+    assert service._extract_per_file_error({}) is None
+
+
+def test_extract_per_file_error_returns_none_when_no_result_has_an_error():
+    service = object.__new__(GoogleTranscriptionService)
+    response = {'results': {'gs://bucket/file.flac': {}}}
+
+    assert service._extract_per_file_error(response) is None
+
+
+def test_extract_per_file_error_reads_message_from_dict_response():
+    service = object.__new__(GoogleTranscriptionService)
+    response = {
+        'results': {
+            'gs://bucket/file.flac': {'error': {'message': 'some google error'}},
+        }
+    }
+
+    assert service._extract_per_file_error(response) == 'some google error'
+
+
+def test_extract_per_file_error_reads_message_from_proto_response():
+    """
+    Exercise the real proto path returned by `operation.result()`, as opposed
+    to the dict path from the polling code (already covered by
+    `test_extract_per_file_error_reads_message_from_dict_response`).
+    `BatchRecognizeFileResult.error` is a generated protobuf field typed
+    `google.rpc.Status`, so it must be built from that message type rather
+    than a plain string or dict.
+    """
+
+    service = object.__new__(GoogleTranscriptionService)
+    response = speech.BatchRecognizeResponse(
+        results={
+            'gs://bucket/file.flac': speech.BatchRecognizeFileResult(
+                error=status_pb2.Status(message='some google error'),
+            ),
+        }
+    )
+
+    assert service._extract_per_file_error(response) == 'some google error'
 
 
 def test_read_batch_result_raises_when_no_json_result_files_exist():
