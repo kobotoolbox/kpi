@@ -210,7 +210,8 @@
       "react-dom": "$react-dom"
     },
     "storybook": "$storybook",
-    "coffee-script": "$coffeescript"
+    "coffee-script": "$coffeescript",
+    "minimist": "^1.2.6"
   },
   "scripts": {
     "preinstall": "npm run hint",
