@@ -93,6 +93,9 @@ BLOCKED_QUERIES = [
     (Asset, 'owner__last_name:x'),
     (Asset, 'owner__email:meg@example.com'),
     (Asset, 'owner__is_superuser:True'),
+    # Only `name`/`slug`/`website` are allowed on `Organization`; the walk must
+    # not hop from `Organization` onto its own relations (e.g. its owner).
+    (Asset, 'owner__organizations_organization__owner__username:x'),
 ]
 
 # Legitimate field-qualified terms that must keep working.
@@ -110,6 +113,9 @@ ALLOWED_QUERIES = [
     (User, 'extra_details__data__name:foo'),
     (Asset, 'search_field__owner_username__icontains:foo'),
     (Asset, 'search_field__organization_name__icontains:bar'),
+    # Live organization name via the real `Organization` table, reached through
+    # `owner` -> user -> `organizations_organization` -> `name`.
+    (Asset, 'owner__organizations_organization__name__icontains:acme'),
 ]
 
 

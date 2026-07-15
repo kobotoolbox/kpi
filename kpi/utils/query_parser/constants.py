@@ -1,3 +1,5 @@
+from kpi.type_aliases import LookupFieldsMap
+
 DENY_ALL = frozenset({'*'})  # Deny all fields in the table
 
 # LLM Prompt used to generate this allowlist:
@@ -34,7 +36,7 @@ DENY_ALL = frozenset({'*'})  # Deny all fields in the table
 # }
 # ```
 
-ALLOWED_LOOKUP_FIELDS = {
+ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
     'audit_log.accesslog': frozenset({
         'action',
         'date_created',
@@ -58,8 +60,9 @@ ALLOWED_LOOKUP_FIELDS = {
         'uid',
     }),
     'kobo_auth.user': frozenset({
-        'username',
         'extra_details',   # To allow extra_details__data
+        'organizations_organization',  # To allow organizations_organization__name
+        'username',
     }),
     'kpi.asset': frozenset({
         '_deployment_status',
@@ -121,6 +124,11 @@ ALLOWED_LOOKUP_FIELDS = {
         'code',
         'name',
     }),
+    'organizations.organization': frozenset({
+        'name',
+        'slug',
+        'website',
+    }),
     'project_views.projectview': frozenset({
         'name',
         'countries',
@@ -140,7 +148,7 @@ ALLOWED_LOOKUP_FIELDS = {
 }
 # The denylist is kept purely as documentation and does not participate in runtime
 # authorization. It records what is explicitly banned and why.
-DENIED_LOOKUP_FIELDS = {
+DENIED_LOOKUP_FIELDS: LookupFieldsMap = {
     # Models that must NEVER be traversed to protect sensitive data
     # (e.g., tokens, credentials):
     'account.emailconfirmation': DENY_ALL,
@@ -289,6 +297,22 @@ DENIED_LOOKUP_FIELDS = {
         'id',  # Internal system data
         'language',  # Unnecessary relational traversal
         'services',  # Unnecessary relational traversal
+    }),
+    'organizations.organization': frozenset({
+        'billingandusagesnapshot',  # Unnecessary relational traversal
+        'created',  # Internal system data
+        'djstripe_customers',  # Unnecessary relational traversal
+        'id',  # Internal system data
+        'is_active',  # Internal system data
+        'mmo_override',  # Internal system data
+        'modified',  # Internal system data
+        'organization_invites',  # Unnecessary relational traversal
+        'organization_type',  # Internal system data
+        'organization_users',  # Unnecessary relational traversal
+        'owner',  # Unnecessary relational traversal
+        'planaddon',  # Unnecessary relational traversal
+        'project_views',  # Unnecessary relational traversal
+        'users',  # Unnecessary relational traversal
     }),
     'project_views.projectview': frozenset({
         'assignmentprojectviewm2m',  # Unnecessary relational traversal
