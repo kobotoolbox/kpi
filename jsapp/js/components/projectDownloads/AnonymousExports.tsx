@@ -22,7 +22,7 @@ interface AnonymousExportsProps {
 }
 
 /**
- * A compontent that ROUTES.FORM_DOWNLOADS route is displaying for a not logged in
+ * A component that ROUTES.FORM_DOWNLOADS route is displaying for a not logged in
  * users. It allows to select an export type and download a file.
  * @prop {object} asset
  */
@@ -40,6 +40,7 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
   }
 
   function checkExportFetcher(exportUid: string, exportStatus: ExportStatusName) {
+    // Poll only while the export is still running. Terminal states should stop polling.
     if (
       exportStatus !== ExportStatusName.error &&
       exportStatus !== ExportStatusName.complete &&
@@ -82,13 +83,13 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
     return () => {
       stopExportFetcher()
     }
-  }, [])
+  }, [props.asset.uid])
 
   useEffect(() => {
     setExportUrl(null)
   }, [props.selectedExportType.value])
 
-  function onSubmit() {
+  async function onSubmit() {
     if (exportUrl) {
       // we remember the current type download to not make multiple calls
       downloadUrl(exportUrl)
@@ -108,31 +109,30 @@ export default function AnonymousExports(props: AnonymousExportsProps) {
 
       // NOTE: this wouldn't work for legacy formats, but luckily we don't allow
       // choosing legacy types in this component
-      createExportMutation
-        .mutateAsync({
+      try {
+        const response = await createExportMutation.mutateAsync({
           uidAsset: props.asset.uid,
           data: payload as never,
         })
-        .then((response) => {
-          if (response.status === 201) {
-            fetchExport(response.data.uid)
-          } else {
-            setIsPending(false)
-          }
-        })
-        .catch((error: unknown) => {
-          let errorMessage = t('Failed to create export')
-          if (typeof error === 'object' && error !== null && 'responseJSON' in error) {
-            const responseJSON = (error as { responseJSON?: { error?: string } }).responseJSON
-            if (responseJSON?.error) {
-              errorMessage = responseJSON.error
-            }
-          }
 
-          notify(errorMessage, 'error')
-          Sentry.captureMessage(errorMessage)
+        if (response.status === 201) {
+          void fetchExport(response.data.uid)
+        } else {
           setIsPending(false)
-        })
+        }
+      } catch (error: unknown) {
+        let errorMessage = t('Failed to create export')
+        if (typeof error === 'object' && error !== null && 'responseJSON' in error) {
+          const responseJSON = (error as { responseJSON?: { error?: string } }).responseJSON
+          if (responseJSON?.error) {
+            errorMessage = responseJSON.error
+          }
+        }
+
+        notify(errorMessage, 'error')
+        Sentry.captureMessage(errorMessage)
+        setIsPending(false)
+      }
     }
   }
 

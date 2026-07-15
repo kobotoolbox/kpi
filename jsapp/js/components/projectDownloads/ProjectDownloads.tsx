@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import bem from '#/bem'
 import AnonymousExports from '#/components/projectDownloads/AnonymousExports'
@@ -21,7 +21,13 @@ interface ProjectDownloadsProps {
  * @prop {object} asset
  */
 export default function ProjectDownloads(props: ProjectDownloadsProps) {
-  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE)
+  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(
+    DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE,
+  )
+
+  useEffect(() => {
+    setSelectedExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE)
+  }, [props.asset.uid])
 
   function renderLoggedInExports() {
     if (selectedExportType.isLegacy) {

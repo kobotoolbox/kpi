@@ -1,13 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import * as Sentry from '@sentry/react'
-import { useQueryClient } from '@tanstack/react-query'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import Select from 'react-select'
 import {
-  getAssetsExportSettingsListQueryKey,
-  getAssetsExportsListQueryKey,
   useAssetsExportSettingsCreate,
   useAssetsExportSettingsDestroy,
   useAssetsExportSettingsList,
@@ -90,12 +87,13 @@ interface DefinedExportOption {
  * weren't saved as named custom setting.
  */
 export default function ProjectExportsCreator(props: ProjectExportsCreatorProps) {
-  const queryClient = useQueryClient()
   const exportSettingsQuery = useAssetsExportSettingsList(props.asset.uid)
   const createExportMutation = useAssetsExportsCreate()
   const createExportSettingMutation = useAssetsExportSettingsCreate()
   const updateExportSettingMutation = useAssetsExportSettingsPartialUpdate()
   const deleteExportSettingMutation = useAssetsExportSettingsDestroy()
+  // This guard lets us auto-apply the latest saved settings once, without
+  // overriding user edits on every background refetch.
   const shouldPreselectLastSettingsRef = useRef(true)
 
   function getAllSelectableRows() {
@@ -152,6 +150,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   }
 
   const [state, setState] = useState<ProjectExportsCreatorState>(() => getInitialState())
+  // Async callbacks (submit/polling/dialog actions) can run after React state
+  // updates. Keep a ref in sync so those callbacks always read current values.
   const stateRef = useRef(state)
 
   function mergeState(newState: Partial<ProjectExportsCreatorState>) {
@@ -243,7 +243,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
         uidAsset: props.asset.uid,
         data: response.export_settings as never,
       })
-      await queryClient.invalidateQueries({ queryKey: getAssetsExportsListQueryKey(props.asset.uid) })
     } catch {
       const errorMessage = t('Failed to create export')
       notify(errorMessage, 'error')
@@ -255,7 +254,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   async function fetchExportSettings(preselectLastSettings = false) {
     shouldPreselectLastSettingsRef.current = preselectLastSettings
     mergeState({ isUpdatingDefinedExportsList: true })
-    await queryClient.invalidateQueries({ queryKey: getAssetsExportSettingsListQueryKey(props.asset.uid) })
     await exportSettingsQuery.refetch()
   }
 
@@ -385,6 +383,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     )
 
     if (foundDefinedExport?.data) {
+      // Keep backend-only fields from existing settings payloads so updating one
+      // option does not accidentally drop older settings fields.
       recordEntries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
         if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
           payload.export_settings[key] = value as never
@@ -759,6 +759,15 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       mergeState({ isComponentReady: true })
     }
   }, [exportSettingsQuery.data, exportSettingsQuery.isSuccess])
+
+  useEffect(() => {
+    if (exportSettingsQuery.isError) {
+      mergeState({
+        isUpdatingDefinedExportsList: false,
+        isComponentReady: true,
+      })
+    }
+  }, [exportSettingsQuery.isError])
 
   const formClassNames = ['project-downloads__exports-creator']
   if (!state.isComponentReady) {

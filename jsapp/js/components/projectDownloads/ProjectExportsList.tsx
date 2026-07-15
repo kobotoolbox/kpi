@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import { Flex, Text } from '@mantine/core'
-import { useQueryClient } from '@tanstack/react-query'
 import alertify from 'alertifyjs'
 import {
   assetsExportsRetrieve,
-  getAssetsExportsListQueryKey,
   useAssetsExportsDestroy,
   useAssetsExportsList,
 } from '#/api/react-query/survey-data'
@@ -35,7 +33,6 @@ interface ProjectExportsListProps {
  * Component that displays all available downloads (for logged in user only).
  */
 export default function ProjectExportsList(props: ProjectExportsListProps) {
-  const queryClient = useQueryClient()
   const [isComponentReady, setIsComponentReady] = useState(false)
   const [rows, setRows] = useState<ExportDataResponse[]>([])
   const exportFetchersRef = useRef<Map<string, ExportFetcher>>(new Map())
@@ -97,7 +94,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         return newRows
       })
     } catch {
-      // Keep polling loop alive unless backend returns a terminal export status.
+      // A temporary network error should not kill polling.
     }
   }
 
@@ -110,7 +107,6 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       onok: async () => {
         try {
           await deleteExportMutation.mutateAsync({ uidAsset: props.asset.uid, uidExport: exportUid })
-          await queryClient.invalidateQueries({ queryKey: getAssetsExportsListQueryKey(props.asset.uid) })
         } catch {
           notify(t('Failed to delete export'), 'error')
         }
@@ -126,7 +122,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     return () => {
       stopAllExportFetchers()
     }
-  }, [])
+  }, [props.asset.uid])
 
   useEffect(() => {
     if (exportsListQuery.isSuccess && exportsListQuery.data.status === 200) {
@@ -140,6 +136,13 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       setIsComponentReady(true)
     }
   }, [exportsListQuery.data, exportsListQuery.isSuccess])
+
+  useEffect(() => {
+    if (exportsListQuery.isError) {
+      setRows([])
+      setIsComponentReady(true)
+    }
+  }, [exportsListQuery.isError])
 
   /**
    * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
