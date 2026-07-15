@@ -336,6 +336,8 @@ export interface LabelValuePair {
 
 export interface PartialPermissionFilterByUsers {
   _submitted_by?: string | { $in: string[] }
+  /** Allow additional question response filters */
+  [key: string]: unknown
 }
 
 export type PartialPermissionFilterByResponses = Record<string, string>
@@ -427,6 +429,8 @@ export interface ExportSettingSettings {
   query?: MongoQuery
   /** Only for GeoJSON */
   flatten?: boolean
+  /** Allow additional export setting properties */
+  [key: string]: unknown
 }
 
 /**
@@ -485,6 +489,8 @@ export interface SurveyRow {
   select_from_list_name?: string
   /** Used by `file` type to list accepted extensions */
   'body::accept'?: string
+  /** Allow additional properties for XLSForm custom fields */
+  [key: string]: unknown
 }
 
 export interface SurveyChoice {
@@ -497,6 +503,8 @@ export interface SurveyChoice {
   // Possibly deprecated? Most code doesn't use it at all, old reports code was
   // using it as fallback.
   $autoname?: string
+  /** Allow additional properties for XLSForm custom fields */
+  [key: string]: unknown
 }
 
 export interface AssetContentSettings {
@@ -537,25 +545,27 @@ interface AssetSummary {
   columns?: string[]
   lock_all?: boolean
   lock_any?: boolean
-  languages?: Array<LangString | null>
+  // Backend returns languages as string[] (never null elements)
+  // Note: OpenAPI schema correctly specifies string[], this legacy type matches it now
+  languages?: LangString[]
   row_count?: number
   default_translation?: string | null
   /** To be used in a warning about missing or poorly written question names. */
   name_quality?: {
-    ok: number
-    bad: number
-    good: number
-    total: number
-    firsts: {
+    ok?: number
+    bad?: number
+    good?: number
+    total?: number
+    firsts?: {
       ok?: {
-        name: string
-        index: number
-        label: string[]
+        name?: string
+        index?: number
+        label?: string[]
       }
       bad?: {
-        name: string
-        index: number
-        label: string[]
+        name?: string
+        index?: number
+        label?: string[]
       }
     }
   }
@@ -610,7 +620,10 @@ export interface AssetTableSettings extends AssetTableSettingsObject {
 
 export interface AssetSettings {
   sector?: LabelValuePair | null | {}
-  country?: LabelValuePair | LabelValuePair[] | null
+  // Backend schema specifies array, but old assets (pre-Dec 2022) may still have
+  // single object if not updated since standardization or if migration was skipped.
+  // Runtime: LabelValuePair[] | LabelValuePair | null, but typed as array for new code.
+  country?: LabelValuePair[] | null
   description?: string
   'data-table'?: AssetTableSettings
   organization?: string
@@ -641,7 +654,7 @@ export interface AssetRequestObject {
     enabled?: boolean
     fields?: string[]
   }
-  paired_data?: string
+  paired_data: string
   advanced_features?: AssetAdvancedFeatures
 }
 
@@ -685,21 +698,25 @@ export interface AssetResponse extends AssetRequestObject {
   owner: string
   owner__username: string
   owner_label: string
-  date_created: string
+  // Always present in GET responses (Django auto-populates on creation)
+  // OpenAPI marks optional because POST/PATCH don't require it (has default value)
+  date_created?: string
   last_modified_by: string | null
   created_by: string | null
   summary: AssetSummary
-  date_modified: string
-  date_deployed?: string
+  // Always present in GET responses (Django auto-updates on save)
+  // OpenAPI marks optional because POST/PATCH don't require it (has default value)
+  date_modified?: string
+  date_deployed?: string | null
   version_id: string | null
-  version__content_hash?: string | null
-  version_count?: number
+  version__content_hash: string | null
+  version_count: number
   has_deployment: boolean
   deployed_version_id: string | null
-  analysis_form_json?: {
+  analysis_form_json: {
     additional_fields: AnalysisFormJsonField[]
   }
-  deployed_versions?: {
+  deployed_versions: {
     count: number
     next: string | null
     previous: string | null
@@ -711,7 +728,7 @@ export interface AssetResponse extends AssetRequestObject {
       date_modified: string
     }>
   }
-  deployment__links?: {
+  deployment__links: {
     url?: string
     single_url?: string
     single_once_url?: string
@@ -722,7 +739,7 @@ export interface AssetResponse extends AssetRequestObject {
     single_once_iframe_url?: string
   }
   deployment__active: boolean
-  deployment__data_download_links?: {
+  deployment__data_download_links: {
     csv_legacy: string
     csv: string
     geojson?: string
@@ -732,21 +749,21 @@ export interface AssetResponse extends AssetRequestObject {
     xls: string
     zip_legacy: string
   }
-  deployment__uuid?: string
-  deployment__encrypted?: boolean
+  deployment__uuid: string | null
+  deployment__encrypted: boolean
   deployment__submission_count: number
-  deployment__last_submission_time?: string
-  deployment_status: 'archived' | 'deployed' | 'draft'
+  deployment__last_submission_time: string | null
+  deployment_status: 'archived' | 'deployed' | 'draft' | '-'
   downloads: AssetDownloads
-  embeds?: Array<{
+  embeds: Array<{
     format: string
     url: string
   }>
-  xform_link?: string
-  hooks_link?: string
+  xform_link: string
+  hooks_link: string
   uid: string
   kind: string
-  xls_link?: string
+  xls_link: string
   assignable_permissions: AssignablePermission[]
   /**
    * A list of all permissions (their codenames) that current user has in
@@ -754,7 +771,7 @@ export interface AssetResponse extends AssetRequestObject {
    * that user and ones coming from the Project View definition.
    */
   effective_permissions: Array<{ codename: PermissionCodename }>
-  exports?: string
+  exports: string
   data: string
   children: {
     count: number
@@ -829,7 +846,7 @@ export interface ProjectViewAsset {
   has_deployment: boolean
   deployment__active: boolean
   deployment__submission_count: number
-  deployment_status: 'archived' | 'deployed' | 'draft'
+  deployment_status: 'archived' | 'deployed' | 'draft' | '-'
 }
 
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {

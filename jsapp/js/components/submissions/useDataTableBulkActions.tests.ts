@@ -6,13 +6,15 @@ import {
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
-import bulkActionFactory from '#/endpoints/bulkAction.factory'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { useFeatureFlag } from '#/featureFlags'
 import { useSession } from '#/stores/useSession'
 import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
 
 jest.mock('#/api/react-query/survey-data', () => {
+  const actual = jest.requireActual('#/api/react-query/survey-data')
   return {
+    ...actual,
     getAssetsAdvancedFeaturesBulkActionsListQueryKey: jest.fn(
       (uidAsset: string, params?: unknown) =>
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
@@ -47,16 +49,27 @@ jest.mock('#/envStore', () => {
   }
 })
 
+// Use Orval-generated mock factory for type-safe bulk action mocks
 function buildBulkAction(
   status: BulkActionResponseStatusEnum,
   createdByUsername: string,
   overrides: Partial<BulkActionResponse> = {},
 ): BulkActionResponse {
-  // Reuse shared factory defaults, overriding only fields relevant to this hook.
-  return bulkActionFactory('submission-1', 'fr', {
+  return getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
     uid: `bulk-${status}-${createdByUsername}`,
     status,
-    created_by: { username: createdByUsername },
+    action_id: ActionIdEnum.automatic_google_transcription,
+    question_xpath: 'Your_name',
+    submission_uuids: ['submission-1'],
+    params: {
+      language: 'fr',
+    },
+    progress: 0,
+    created_by: {
+      username: createdByUsername,
+    },
+    date_created: '2026-01-01T00:00:00Z',
+    date_modified: '2026-01-01T00:00:00Z',
     ...overrides,
   })
 }
@@ -99,7 +112,7 @@ describe('useDataTableBulkActions', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     getBulkActionsListQueryKeyMock.mockImplementation(
-      (uidAsset: string, params) =>
+      (uidAsset: string, params?: unknown) =>
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     )
     envStore.data.asr_mt_features_enabled = true

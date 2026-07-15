@@ -3,9 +3,9 @@ import { http, HttpResponse } from 'msw'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, waitFor, within } from 'storybook/test'
 import { endpoints } from '#/api.endpoints'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { MetaQuestionTypeName, QuestionTypeName } from '#/constants'
-import type { PaginatedResponse, SubmissionResponse } from '#/dataInterface'
-import assetFactory from '#/endpoints/asset.factory'
+import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
@@ -14,13 +14,17 @@ import FormMapWrapper from './formMapWrapper'
 
 const mockAssetUid = 'aTestMapAssetUid123'
 
+// Cast Orval-generated Assets to legacy AssetResponse type
+// The types are structurally compatible at runtime (see DataTableWrapper.stories.tsx for details)
+
 // Asset with only start-geopoint (no regular geopoint question)
-const assetWithOnlyStartGeopoint = assetFactory({
+const assetWithOnlyStartGeopoint = getApiV2AssetsRetrieveResponseMock({
   uid: mockAssetUid,
   name: 'Test Form with Start-Geopoint Only',
   deployment__active: true,
   deployment__submission_count: 2,
   has_deployment: true,
+  map_styles: {},
   summary: {
     geo: true,
     labels: ['Your name'],
@@ -30,7 +34,7 @@ const assetWithOnlyStartGeopoint = assetFactory({
     languages: [],
     row_count: 2,
     name_quality: { ok: 2, bad: 0, good: 0, total: 2, firsts: {} },
-    default_translation: null,
+    default_translation: undefined,
   },
   content: {
     survey: [
@@ -49,15 +53,16 @@ const assetWithOnlyStartGeopoint = assetFactory({
     ],
     choices: [],
   },
-})
+}) as unknown as AssetResponse
 
 // Asset with both start-geopoint AND regular geopoint
-const assetWithBothGeopointTypes = assetFactory({
+const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
   uid: mockAssetUid,
   name: 'Test Form with Both Geopoint Types',
   deployment__active: true,
   deployment__submission_count: 2,
   has_deployment: true,
+  map_styles: {},
   summary: {
     geo: true,
     labels: ['Your name', 'Where are you?'],
@@ -67,7 +72,7 @@ const assetWithBothGeopointTypes = assetFactory({
     languages: [],
     row_count: 3,
     name_quality: { ok: 3, bad: 0, good: 0, total: 3, firsts: {} },
-    default_translation: null,
+    default_translation: undefined,
   },
   content: {
     survey: [
@@ -93,7 +98,7 @@ const assetWithBothGeopointTypes = assetFactory({
     ],
     choices: [],
   },
-})
+}) as unknown as AssetResponse
 
 // Submission data with populated start-geopoint
 const submissionsWithStartGeopoint: SubmissionResponse[] = [
