@@ -71,7 +71,7 @@ class AssetVersionTestCase(TestCase):
         self.assertEqual(self.asset.latest_version.deployed, False)
 
         self.asset.deploy(backend='mock', active=True)
-        self.asset.save(create_version=False, adjust_content=False)
+        self.asset.save(adjust_content=False)
         # version did not increment
         self.assertEqual(self.asset.asset_versions.count(), 2)
 
@@ -84,7 +84,7 @@ class AssetVersionTestCase(TestCase):
         self.assertEqual(self.template_asset.asset_versions.count(), 1)
         self.assertEqual(self.template_asset.latest_version.deployed, False)
         self.template_asset.save()
-        self.assertEqual(self.template_asset.asset_versions.count(), 2)
+        self.assertEqual(self.template_asset.asset_versions.count(), 1)
         self.assertEqual(self.template_asset.latest_version.deployed, False)
 
         def _bad_deployment():

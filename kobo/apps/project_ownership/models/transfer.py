@@ -232,7 +232,6 @@ class Transfer(AbstractTimeStampedModel):
 
         self.asset.save(
             update_fields=['owner', '_deployment_data', 'search_field'],
-            create_version=False,
             adjust_content=False,
         )
         self.asset.assign_perm(
@@ -364,9 +363,7 @@ class Transfer(AbstractTimeStampedModel):
         if self.asset.is_excluded_from_projects_list != is_excluded:
             self.asset.is_excluded_from_projects_list = is_excluded
             self.asset.save(
-                update_fields=['is_excluded_from_projects_list'],
-                adjust_content=False,
-                create_version=False
+                update_fields=['is_excluded_from_projects_list'], adjust_content=False
             )
 
 

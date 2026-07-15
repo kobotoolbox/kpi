@@ -486,9 +486,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
         # Simulate old data
         self.asset.save(
-            update_fields=['advanced_features', 'known_cols'],
-            create_version=False,
-            adjust_content=False,
+            update_fields=['advanced_features', 'known_cols'], adjust_content=False
         )
 
         SubmissionSupplement.objects.create(
