@@ -94,11 +94,17 @@ def handle_unpaid_subscription(sender, **kwargs):
         djstripe_sub.cancel(at_period_end=False)
     else:
         if stripe_id:
-            logging.info(
-                f'[Stripe Webhook] Initiating fallback cancellation for unpaid '
-                f'subscription {stripe_id} as it does not have the '
-                f'"preserve_unpaid_status" flag.'
-            )
             local_sub = Subscription.objects.filter(id=stripe_id).first()
             if local_sub:
+                logging.info(
+                    f'[Stripe Webhook] Initiating fallback cancellation for unpaid '
+                    f'subscription {stripe_id} as it does not have the '
+                    f'"preserve_unpaid_status" flag.'
+                )
                 local_sub.cancel(at_period_end=False)
+            else:
+                logging.warning(
+                    f'[Stripe Webhook] Failed to execute fallback cancellation for '
+                    f'unpaid subscription {stripe_id}. The subscription could not be '
+                    f'found in the local database.'
+                )
