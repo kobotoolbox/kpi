@@ -1534,6 +1534,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         }
         self.assertEqual(resp.data['settings'], expected)
 
+    def test_update_settings_does_not_produce_new_version(self):
+        initial_version_count = self.asset.asset_versions.count()
+        data = {
+            'settings': json.dumps({
+                'mysetting': 'value'
+            }),
+        }
+        self.client.patch(self.asset_url, data, format='json')
+        self.asset.refresh_from_db()
+        assert self.asset.asset_versions.count() == initial_version_count
+
     def test_asset_has_deployment_data(self):
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
