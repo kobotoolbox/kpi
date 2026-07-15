@@ -96,15 +96,25 @@ class Migrate0024QpathsTestCase(TestCase):
         self.assertIn(XPATH, supplement.content)
         self.assertNotIn(QPATH, supplement.content)
 
-    def test_legacy_googlets_action_is_skipped_not_fatal(self):
-        # Reproduces the real prod failure: a supplement still carrying the
-        # pre-migration action ID 'googlets' made get_or_create -> QAF.save()
-        # raise `KeyError: 'googlets'` and abort the whole migration. The action
-        # is now skipped, and the qpath key is still rewritten to its xpath.
+    def test_bare_googlets_is_converted_to_automatic_google_transcription(self):
+        # The real prod failure: a supplement carrying the pre-migration action
+        # ID 'googlets' made get_or_create -> QAF.save() raise `KeyError:
+        # 'googlets'` and abort the whole migration. A bare 'googlets' (no
+        # 'transcript') is now rebuilt into 'automatic_google_transcription'
+        # rather than skipped, so the transcription data is preserved.
         asset = self._make_asset()
         supplement = self._make_supplement(
             asset,
-            {'_version': '20250820', QPATH: {'googlets': {'value': 'x'}}},
+            {
+                '_version': '20250820',
+                QPATH: {
+                    'googlets': {
+                        'languageCode': 'en',
+                        'value': 'hello there',
+                        'status': 'complete',
+                    }
+                },
+            },
         )
 
         self.migration.execute()
@@ -112,10 +122,62 @@ class Migrate0024QpathsTestCase(TestCase):
         self.migration.refresh_from_db()
         self.assertEqual(self.migration.status, LongRunningMigrationStatus.COMPLETED)
         supplement.refresh_from_db()
-        # outer qpath -> xpath rewrite still happened despite the legacy action
-        self.assertIn(XPATH, supplement.content)
-        self.assertNotIn(QPATH, supplement.content)
-        # no QuestionAdvancedFeature was created for the unknown legacy action
-        self.assertFalse(
-            QuestionAdvancedFeature.objects.filter(action='googlets').exists()
+        content = supplement.content
+        # outer qpath -> xpath rewrite happened, legacy key is gone
+        self.assertIn(XPATH, content)
+        self.assertNotIn(QPATH, content)
+        self.assertNotIn('googlets', content[XPATH])
+        # the automatic transcription is preserved under the new action ID
+        auto = content[XPATH]['automatic_google_transcription']
+        self.assertEqual(auto['_versions'][0]['_data']['value'], 'hello there')
+        self.assertEqual(auto['_versions'][0]['_data']['language'], 'en')
+        # and its QuestionAdvancedFeature was created under the new action ID
+        self.assertTrue(
+            QuestionAdvancedFeature.objects.filter(
+                asset=asset,
+                question_xpath=XPATH,
+                action='automatic_google_transcription',
+            ).exists()
+        )
+
+    def test_googlets_with_transcript_converts_manual_and_automatic(self):
+        # googlets (automatic result) + transcript (manual history) go through
+        # the canonical converter: the manual text becomes manual_transcription,
+        # and the automatic result becomes automatic_google_transcription.
+        asset = self._make_asset()
+        supplement = self._make_supplement(
+            asset,
+            {
+                '_version': '20250820',
+                QPATH: {
+                    'googlets': {
+                        'languageCode': 'en',
+                        'value': 'auto text',
+                        'status': 'complete',
+                    },
+                    'transcript': {
+                        'languageCode': 'en',
+                        'value': 'manual text',
+                        'dateModified': '2025-01-01T00:00:00Z',
+                        'revisions': [],
+                    },
+                },
+            },
+        )
+
+        self.migration.execute()
+
+        self.migration.refresh_from_db()
+        self.assertEqual(self.migration.status, LongRunningMigrationStatus.COMPLETED)
+        supplement.refresh_from_db()
+        actions = supplement.content[XPATH]
+        self.assertNotIn('googlets', actions)
+        self.assertNotIn('transcript', actions)
+        self.assertEqual(
+            actions['manual_transcription']['_versions'][0]['_data']['value'],
+            'manual text',
+        )
+        self.assertEqual(
+            actions['automatic_google_transcription']['_versions'][0]['_data']['value'],
+            'auto text',
         )

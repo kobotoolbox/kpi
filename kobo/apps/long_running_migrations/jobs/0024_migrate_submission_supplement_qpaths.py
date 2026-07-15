@@ -7,10 +7,20 @@ from kobo.apps.long_running_migrations.models import (
     LongRunningMigration,
     LongRunningMigrationStatus,
 )
-from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
-from kobo.apps.subsequences.utils.versioning import build_params
+from kobo.apps.subsequences.utils.versioning import (
+    _new_revision_from_old,
+    _version_list_to_summary_dict,
+    build_params,
+    migrate_submission_supplementals,
+)
 from kpi.utils.log import logging
+
+# Pre-migration action IDs the schema converter knows how to consume.
+LEGACY_ACTION_IDS = frozenset(
+    {'googlets', 'googletx', 'transcript', 'translation', 'qual'}
+)
 
 
 def run(dry_run: bool = False):
@@ -53,8 +63,11 @@ def run(dry_run: bool = False):
     for supplement in supplements_with_qpaths:
         logging.info(f'{logging_prefix} - updating supplement {migrated+1}/{total}')
         asset = supplement.asset
+        # First bring any leftover pre-migration action IDs (e.g. 'googlets')
+        # into the current schema, then rewrite qpath keys to xpath.
+        converted_content = _convert_legacy_content(supplement.content)
         new_content = get_sanitized_dict_keys(
-            logging_prefix, supplement.content, supplement.asset
+            logging_prefix, converted_content, asset
         )
         with transaction.atomic():
             for xpath, actions_for_xpath in new_content.items():
@@ -62,19 +75,6 @@ def run(dry_run: bool = False):
                     continue
                 for action_id in actions_for_xpath.keys():
                     if (asset.uid, xpath, action_id) not in existing_qafs:
-                        # Legacy content may still carry pre-migration action IDs
-                        # (e.g. 'googlets'/'googletx') that 0023 didn't convert.
-                        # They aren't in ACTION_IDS_TO_CLASSES, so creating a
-                        # QuestionAdvancedFeature for them raises KeyError in its
-                        # save(). Skip them like the migrate_submission_supplements
-                        # management command does.
-                        if action_id not in ACTION_IDS_TO_CLASSES:
-                            logging.warning(
-                                f'{logging_prefix} - skipping unknown action '
-                                f'{action_id} for {xpath}'
-                            )
-                            existing_qafs.add((asset.uid, xpath, action_id))
-                            continue
                         try:
                             params = build_params(asset, xpath, action_id)
                         except ValueError as ve:
@@ -108,6 +108,65 @@ def run(dry_run: bool = False):
             migrated += 1
 
     logging.info(f'{logging_prefix} - Done')
+
+
+def _automatic_transcription_from_googlets(googlets: dict) -> dict | None:
+    """
+    Rebuild an `automatic_google_transcription` from a bare `googlets` value.
+
+    The canonical converter reconstructs the automatic transcription from the
+    `transcript` revision history and only tags the revision that matches the
+    `googlets` result. A `googlets` with no accompanying `transcript` — a valid
+    "auto-transcribed, never manually transcribed" state — therefore produces
+    nothing, so we build the automatic version straight from the `googlets`
+    value using the same helpers the converter uses.
+    """
+    revision = _new_revision_from_old(
+        {
+            'languageCode': googlets.get('languageCode'),
+            'value': googlets.get('value'),
+            'dateModified': googlets.get('dateModified'),
+        }
+    )
+    if revision is None:
+        return None
+    revision['_data']['status'] = 'complete'
+    return _version_list_to_summary_dict([revision])
+
+
+def _convert_legacy_content(content: dict) -> dict:
+    """
+    Bring any question still holding pre-migration action IDs into the current
+    schema via the canonical converter, one question at a time so questions that
+    have no legacy data are left untouched. A bare `googlets` (which the
+    converter drops for lack of a `transcript` to rebuild from) is filled in
+    explicitly.
+    """
+    has_legacy = any(
+        isinstance(actions, dict) and LEGACY_ACTION_IDS & actions.keys()
+        for key, actions in content.items()
+        if key != '_version'
+    )
+    if not has_legacy:
+        return content
+
+    result = {'_version': SCHEMA_VERSIONS[0]}
+    for key, actions in content.items():
+        if key == '_version':
+            continue
+        if not (isinstance(actions, dict) and LEGACY_ACTION_IDS & actions.keys()):
+            result[key] = actions
+            continue
+        # deepcopy: the converter mutates the revision dicts it is handed
+        converted = migrate_submission_supplementals({key: deepcopy(actions)}).get(
+            key, {}
+        )
+        if 'googlets' in actions and 'automatic_google_transcription' not in converted:
+            automatic = _automatic_transcription_from_googlets(actions['googlets'])
+            if automatic is not None:
+                converted['automatic_google_transcription'] = automatic
+        result[key] = converted
+    return result
 
 
 def get_sanitized_dict_keys(
