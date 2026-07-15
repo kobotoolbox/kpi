@@ -131,25 +131,34 @@ ALLOWED_LOOKUP_FIELDS = {
 DENIED_LOOKUP_FIELDS = {
     # Models that must NEVER be traversed to protect sensitive data
     # (e.g., tokens, credentials):
-    'account.emailconfirmation': frozenset({'*'}),
-    'accounts_mfa.mfamethodswrapper': frozenset({'*'}),
-    'authtoken.token': frozenset({'*'}),
+    'account.emailconfirmation': DENY_ALL,
+    'accounts_mfa.mfamethodswrapper': DENY_ALL,
+    'authtoken.token': DENY_ALL,
     'auth.user': frozenset({
+        'email',
+        'is_superuser',
+        'is_staff',
+        'is_active',
         'password',
+        'date_joined',
+        'last_login',
     }),
-    'django_digest.partialdigest': frozenset({'*'}),
+    'django_digest.partialdigest': DENY_ALL,
     'kobo_auth.user': frozenset({
+        'email',
+        'is_superuser',
+        'is_staff',
+        'is_active',
         'password',
+        'date_joined',
+        'last_login',
+        'uid',  # We don't want people to try to guess the uid
     }),
     'hub.extrauserdetail': frozenset({
-        'private_data',
+        'private_data',  # Private user data
     }),
-    'mfa.authenticator': frozenset({'*'}),
-    'socialaccount.socialaccount': frozenset({'*'}),
-    'socialaccount.socialtoken': frozenset({'*'}),
-    'socialaccount.socialapp': frozenset({'*'}),
-    '*': frozenset({
-        'secret',
-        'token',
-    }),
+    'mfa.authenticator': DENY_ALL,
+    'socialaccount.socialaccount': DENY_ALL,
+    'socialaccount.socialtoken': DENY_ALL,
+    'socialaccount.socialapp': DENY_ALL,
 }
