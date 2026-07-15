@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import bem from '#/bem'
 import AnonymousExports from '#/components/projectDownloads/AnonymousExports'
 import LegacyExports from '#/components/projectDownloads/LegacyExports'
 import ProjectExportsCreator from '#/components/projectDownloads/ProjectExportsCreator'
 import ProjectExportsList from '#/components/projectDownloads/ProjectExportsList'
-import exportsStore from '#/components/projectDownloads/exportsStore'
+import { DEFAULT_EXPORT_SETTINGS } from '#/components/projectDownloads/exportsConstants'
 import type { AssetResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import type { ExportTypeDefinition } from './exportsConstants'
@@ -21,27 +21,27 @@ interface ProjectDownloadsProps {
  * @prop {object} asset
  */
 export default function ProjectDownloads(props: ProjectDownloadsProps) {
-  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(exportsStore.getExportType())
-
-  useEffect(() => {
-    const unlisten = exportsStore.listen(() => {
-      setSelectedExportType(exportsStore.getExportType())
-    }, null)
-
-    return () => {
-      unlisten()
-    }
-  }, [])
+  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE)
 
   function renderLoggedInExports() {
     if (selectedExportType.isLegacy) {
-      return <LegacyExports asset={props.asset} />
+      return (
+        <LegacyExports
+          asset={props.asset}
+          selectedExportType={selectedExportType}
+          setSelectedExportType={setSelectedExportType}
+        />
+      )
     }
 
     return (
       <React.Fragment>
-        <ProjectExportsCreator asset={props.asset} />
-        <ProjectExportsList asset={props.asset} />
+        <ProjectExportsCreator
+          asset={props.asset}
+          selectedExportType={selectedExportType}
+          setSelectedExportType={setSelectedExportType}
+        />
+        <ProjectExportsList asset={props.asset} selectedExportType={selectedExportType} />
       </React.Fragment>
     )
   }
@@ -56,7 +56,13 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
 
           {sessionStore.isLoggedIn && renderLoggedInExports()}
 
-          {!sessionStore.isLoggedIn && <AnonymousExports asset={props.asset} />}
+          {!sessionStore.isLoggedIn && (
+            <AnonymousExports
+              asset={props.asset}
+              selectedExportType={selectedExportType}
+              setSelectedExportType={setSelectedExportType}
+            />
+          )}
         </bem.FormView__row>
       </bem.FormView>
     </DocumentTitle>

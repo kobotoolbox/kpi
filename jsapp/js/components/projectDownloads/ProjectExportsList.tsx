@@ -1,8 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import { Flex, Text } from '@mantine/core'
+import { useQueryClient } from '@tanstack/react-query'
 import alertify from 'alertifyjs'
-import { actions } from '#/actions'
+import {
+  assetsExportsRetrieve,
+  getAssetsExportsListQueryKey,
+  useAssetsExportsDestroy,
+  useAssetsExportsList,
+} from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
 import bem from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
@@ -17,22 +23,24 @@ import {
   ExportStatusName,
   type ExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
-import exportsStore from '#/components/projectDownloads/exportsStore'
-import type { AssetResponse, ExportDataLang, ExportDataResponse, PaginatedResponse } from '#/dataInterface'
-import { formatTime } from '#/utils'
+import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
+import { formatTime, notify } from '#/utils'
 
 interface ProjectExportsListProps {
   asset: AssetResponse
+  selectedExportType: ExportTypeDefinition
 }
 
 /**
  * Component that displays all available downloads (for logged in user only).
  */
 export default function ProjectExportsList(props: ProjectExportsListProps) {
+  const queryClient = useQueryClient()
   const [isComponentReady, setIsComponentReady] = useState(false)
   const [rows, setRows] = useState<ExportDataResponse[]>([])
-  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(exportsStore.getExportType())
   const exportFetchersRef = useRef<Map<string, ExportFetcher>>(new Map())
+  const exportsListQuery = useAssetsExportsList(props.asset.uid)
+  const deleteExportMutation = useAssetsExportsDestroy()
 
   function stopExportFetcher(exportUid: string) {
     const exportFetcher = exportFetchersRef.current.get(exportUid)
@@ -49,7 +57,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   function addExportFetcher(exportUid: string) {
-    exportFetchersRef.current.set(exportUid, new ExportFetcher(props.asset.uid, exportUid))
+    exportFetchersRef.current.set(exportUid, new ExportFetcher(() => fetchExport(exportUid)))
   }
 
   function checkExportFetcher(exportUid: string, exportStatus: ExportStatusName) {
@@ -66,12 +74,31 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     }
   }
 
-  function fetchExport(exportUid: string) {
-    actions.exports.getExport(props.asset.uid, exportUid)
-  }
+  async function fetchExport(exportUid: string) {
+    try {
+      const response = await assetsExportsRetrieve(props.asset.uid, exportUid)
+      if (response.status !== 200) {
+        return
+      }
 
-  function fetchExports() {
-    actions.exports.getExports(props.asset.uid)
+      const exportData = response.data as unknown as ExportDataResponse
+      checkExportFetcher(exportData.uid, exportData.status)
+
+      setRows((currentRows) => {
+        const newRows = [...currentRows]
+        const existingIndex = newRows.findIndex((rowData) => rowData.uid === exportData.uid)
+
+        if (existingIndex >= 0) {
+          newRows[existingIndex] = exportData
+        } else {
+          newRows.unshift(exportData)
+        }
+
+        return newRows
+      })
+    } catch {
+      // Keep polling loop alive unless backend returns a terminal export status.
+    }
   }
 
   function deleteExport(exportUid: string) {
@@ -80,8 +107,13 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       title: t('Delete export?'),
       message: t('Are you sure you want to delete this export? This action is not reversible.'),
       labels: { ok: t('Delete'), cancel: t('Cancel') },
-      onok: () => {
-        actions.exports.deleteExport(props.asset.uid, exportUid)
+      onok: async () => {
+        try {
+          await deleteExportMutation.mutateAsync({ uidAsset: props.asset.uid, uidExport: exportUid })
+          await queryClient.invalidateQueries({ queryKey: getAssetsExportsListQueryKey(props.asset.uid) })
+        } catch {
+          notify(t('Failed to delete export'), 'error')
+        }
       },
       oncancel: () => {
         dialog.destroy()
@@ -91,51 +123,23 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   useEffect(() => {
-    const unlisteners = [
-      exportsStore.listen(() => {
-        setSelectedExportType(exportsStore.getExportType())
-      }, null),
-      actions.exports.getExports.completed.listen((response: PaginatedResponse<ExportDataResponse>) => {
-        response.results.forEach((exportData) => {
-          checkExportFetcher(exportData.uid, exportData.status)
-        })
-
-        setIsComponentReady(true)
-        setRows(response.results)
-      }),
-      actions.exports.createExport.completed.listen((response: ExportDataResponse) => {
-        fetchExport(response.uid)
-      }),
-      actions.exports.deleteExport.completed.listen(() => {
-        fetchExports()
-      }),
-      actions.exports.getExport.completed.listen((exportData: ExportDataResponse) => {
-        checkExportFetcher(exportData.uid, exportData.status)
-
-        setRows((currentRows) => {
-          const newRows = [...currentRows]
-          const existingIndex = newRows.findIndex((rowData) => rowData.uid === exportData.uid)
-
-          if (existingIndex >= 0) {
-            newRows[existingIndex] = exportData
-          } else {
-            newRows.unshift(exportData)
-          }
-
-          return newRows
-        })
-      }),
-    ]
-
-    fetchExports()
-
     return () => {
-      unlisteners.forEach((unlisten) => {
-        unlisten()
-      })
       stopAllExportFetchers()
     }
-  }, [props.asset.uid])
+  }, [])
+
+  useEffect(() => {
+    if (exportsListQuery.isSuccess && exportsListQuery.data.status === 200) {
+      const exportRows = exportsListQuery.data.data.results as unknown as ExportDataResponse[]
+
+      exportRows.forEach((exportData) => {
+        checkExportFetcher(exportData.uid, exportData.status)
+      })
+
+      setRows(exportRows)
+      setIsComponentReady(true)
+    }
+  }, [exportsListQuery.data, exportsListQuery.isSuccess])
 
   /**
    * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
@@ -220,7 +224,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     )
   }
 
-  if (rows.length === 0 || selectedExportType.isLegacy) {
+  if (rows.length === 0 || props.selectedExportType.isLegacy) {
     return null
   }
 

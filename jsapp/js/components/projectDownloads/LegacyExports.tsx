@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import bem from '#/bem'
 import InlineMessage from '#/components/common/inlineMessage'
 import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
@@ -7,35 +7,27 @@ import {
   type ExportTypeDefinition,
   type ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
-import exportsStore from '#/components/projectDownloads/exportsStore'
 import type { AssetResponse } from '#/dataInterface'
 
 interface LegacyExportsProps {
   asset: AssetResponse
+  selectedExportType: ExportTypeDefinition
+  setSelectedExportType: (newType: ExportTypeDefinition) => void
 }
 
 /**
  * A component for displaying the legacy exports iframe with an export type selector.
  */
 export default function LegacyExports(props: LegacyExportsProps) {
-  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(exportsStore.getExportType())
-
-  useEffect(() => {
-    const unlisten = exportsStore.listen(() => {
-      setSelectedExportType(exportsStore.getExportType())
-    }, null)
-
-    return () => {
-      unlisten()
-    }
-  }, [])
-
-  const exportType = selectedExportType.value as keyof typeof ExportTypeName
+  const exportType = props.selectedExportType.value as keyof typeof ExportTypeName
 
   return (
     <bem.FormView__cell m={['box', 'padding']}>
       <bem.ProjectDownloads__selectorRow>
-        <ExportTypeSelector />
+        <ExportTypeSelector
+          selectedExportType={props.selectedExportType}
+          onSelectedExportTypeChange={props.setSelectedExportType}
+        />
       </bem.ProjectDownloads__selectorRow>
 
       {exportType !== EXPORT_TYPES.zip_legacy.value && (
