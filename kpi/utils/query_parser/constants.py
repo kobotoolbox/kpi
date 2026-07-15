@@ -204,7 +204,7 @@ DENIED_LOOKUP_FIELDS: LookupFieldsMap = {
     }),
     'kobo_auth.user': frozenset({
         'date_joined',  # Private user data
-        'email',  # Private user data
+        'email',  # Private user data (but explicitly allowed in ProjectViewViewSet)
         'first_name',  # Private user data
         'last_name',  # Private user data
         'groups',  # Private user data
