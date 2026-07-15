@@ -78,74 +78,6 @@ class AssetCloneFieldExtension(OpenApiSerializerFieldExtension):
         return ASSET_CLONE_FROM_SCHEMA
 
 
-class AssetCreateRequestSerializerExtension(OpenApiSerializerExtension):
-
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetCreateRequest'
-
-    def map_serializer(self, auto_schema, direction):
-
-        return {
-            'oneOf': [
-                build_object_type(
-                    required=[
-                        'name',
-                        'clone_from',
-                        'asset_type',
-                    ],
-                    properties={
-                        'name': ASSET_NAME_SCHEMA,
-                        'clone_from': ASSET_CLONE_FROM_SCHEMA,
-                        'asset_type': ASSET_TYPE_SCHEMA,
-                    },
-                ),
-                build_object_type(
-                    required=[
-                        'name',
-                        'settings',
-                        'asset_type',
-                    ],
-                    properties={
-                        'name': ASSET_NAME_SCHEMA,
-                        'settings': ASSET_SETTINGS_SCHEMA,
-                        'asset_type': ASSET_TYPE_SCHEMA,
-                    },
-                ),
-            ]
-        }
-
-
-class AssetPatchRequestSerializerExtension(OpenApiSerializerExtension):
-
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetPatchRequest'
-
-    def map_serializer(self, auto_schema, direction):
-
-        return {
-            'oneOf': [
-                build_object_type(
-                    required=['content', 'name'],
-                    properties={
-                        'content': ASSET_CONTENT_SCHEMA,
-                        'name': ASSET_NAME_SCHEMA,
-                    },
-                ),
-                build_object_type(
-                    required=['enabled', 'fields'],
-                    properties={
-                        'enabled': ASSET_ENABLED_SCHEMA,
-                        'fields': ASSET_FIELDS_SCHEMA,
-                    },
-                ),
-                build_object_type(
-                    required=['tag_string'],
-                    properties={
-                        'tag_string': ASSET_TAG_STRING_SCHEMA,
-                    },
-                ),
-            ]
-        }
-
-
 class AssetFieldsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetFieldsField'
 
@@ -177,7 +109,7 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
 class BulkActionFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.BulkActionField'
 
-    def map_serializer(self, auto_schema, direction):
+    def map_serializer_field(self, auto_schema, direction):
         return GENERIC_STRING_SCHEMA
 
 
@@ -199,32 +131,6 @@ class BulkConfirmFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_basic_type(OpenApiTypes.BOOL)
-
-
-class BulkPayloadSerializerExtension(OpenApiSerializerExtension):
-
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetBulkRequest'
-
-    def map_serializer(self, auto_schema, direction):
-
-        return {
-            'oneOf': [
-                build_object_type(
-                    required=['asset_uids', 'action'],
-                    properties={
-                        'asset_uids': BULK_ASSET_UIDS_SCHEMA,
-                        'action': BULK_ACTION_SCHEMA,
-                    },
-                ),
-                build_object_type(
-                    required=['confirm', 'action'],
-                    properties={
-                        'confirm': BULK_CONFIRM_SCHEMA,
-                        'action': BULK_ACTION_SCHEMA,
-                    },
-                ),
-            ]
-        }
 
 
 class ChildrenFieldExtension(OpenApiSerializerFieldExtension):
