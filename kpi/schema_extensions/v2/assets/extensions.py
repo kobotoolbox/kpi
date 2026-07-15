@@ -21,7 +21,6 @@ from kpi.schema_extensions.v2.generic.schema import (
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import (
     ADVANCED_FEATURES_SCHEMA,
-    ASSIGNABLE_PERMISSION_SCHEMA,
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_REQUEST_SCHEMA,
     ASSET_CONTENT_RESPONSE_SCHEMA,
@@ -31,9 +30,7 @@ from .schema import (
     ASSET_SETTINGS_SCHEMA,
     ASSET_TAG_STRING_SCHEMA,
     ASSET_TYPE_SCHEMA,
-    BULK_ACTION_SCHEMA,
-    BULK_ASSET_UIDS_SCHEMA,
-    BULK_CONFIRM_SCHEMA,
+    ASSIGNABLE_PERMISSION_SCHEMA,
     MAP_STYLES_SCHEMA,
     PERMISSION_ASSIGNMENT_SCHEMA,
     REPORT_STYLE_SCHEMA,
@@ -92,7 +89,7 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
                         'qualAutoKeywordCount',
                         'qualSelectMultiple',
                         'qualSelectOne',
-                    ]
+                    ],
                 },  # required: type of additional field
                 'name': GENERIC_STRING_SCHEMA,  # required
                 'dtpath': GENERIC_STRING_SCHEMA,  # required: data table path
@@ -110,10 +107,10 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
                                 },
                                 additionalProperties=GENERIC_STRING_SCHEMA,
                             ),  # {_default: string, [key: string]: string}
-                        }
+                        },
                     )
                 ),  # optional: for single/multi choice qual questions
-            }
+            },
         )
 
         return build_object_type(
@@ -351,7 +348,7 @@ class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension)
                 'xls_legacy': GENERIC_STRING_SCHEMA,
                 'xls': GENERIC_STRING_SCHEMA,
                 'zip_legacy': GENERIC_STRING_SCHEMA,
-            }
+            },
         )
 
 
