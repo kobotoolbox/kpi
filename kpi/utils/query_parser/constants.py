@@ -1,3 +1,4 @@
+DENY_ALL = frozenset({'*'})  # Deny all fields in the table
 
 # LLM Prompt used to generate this allowlist:
 #
@@ -17,11 +18,8 @@
 #     ...
 # }
 # ```
+
 ALLOWED_LOOKUP_FIELDS = {
-    'auth.user': frozenset({
-        'username',
-        'extra_details',   # To allow extra_details__data
-    }),
     'audit_log.accesslog': frozenset({
         'action',
         'date_created',
@@ -42,9 +40,12 @@ ALLOWED_LOOKUP_FIELDS = {
     }),
     'hub.extrauserdetail': frozenset({
         'data',
+        'uid',
     }),
     'kobo_auth.user': frozenset({
         'username',
+        'first_name',
+        'last_name',
         'extra_details',   # To allow extra_details__data
     }),
     'kpi.asset': frozenset({
@@ -65,17 +66,12 @@ ALLOWED_LOOKUP_FIELDS = {
         'data_sharing',    # To allow data_sharing__enabled
         'last_modified_by',
     }),
-    'kpi.importexporttask': frozenset({
-        'data',
-        'date_created',
-        'status',
-        'user',
-    }),
     'kpi.importtask': frozenset({
         'data',
         'date_created',
         'status',
         'user',
+        'uid',
     }),
     'kpi.submissionexporttask': frozenset({
         'data',
@@ -89,11 +85,13 @@ ALLOWED_LOOKUP_FIELDS = {
         'date_created',
         'status',
         'user',
+        'uid',
     }),
     'kpi.userassetsubscription': frozenset({
         'id',
         'status',
         'subscribed_date',
+        'uid',
     }),
     'languages.language': frozenset({
         'code',
@@ -116,6 +114,7 @@ ALLOWED_LOOKUP_FIELDS = {
         'organizations',
         'permissions',
         'users',
+        'uid',
     }),
     'user_reports.userreports': frozenset({
         'username',
@@ -134,16 +133,11 @@ DENIED_LOOKUP_FIELDS = {
     'account.emailconfirmation': DENY_ALL,
     'accounts_mfa.mfamethodswrapper': DENY_ALL,
     'authtoken.token': DENY_ALL,
-    'auth.user': frozenset({
-        'email',
-        'is_superuser',
-        'is_staff',
-        'is_active',
-        'password',
-        'date_joined',
-        'last_login',
-    }),
     'django_digest.partialdigest': DENY_ALL,
+    'mfa.authenticator': DENY_ALL,
+    'socialaccount.socialaccount': DENY_ALL,
+    'socialaccount.socialtoken': DENY_ALL,
+    'socialaccount.socialapp': DENY_ALL,
     'kobo_auth.user': frozenset({
         'email',
         'is_superuser',
@@ -157,8 +151,4 @@ DENIED_LOOKUP_FIELDS = {
     'hub.extrauserdetail': frozenset({
         'private_data',  # Private user data
     }),
-    'mfa.authenticator': DENY_ALL,
-    'socialaccount.socialaccount': DENY_ALL,
-    'socialaccount.socialtoken': DENY_ALL,
-    'socialaccount.socialapp': DENY_ALL,
 }
