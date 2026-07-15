@@ -189,8 +189,8 @@ const bulkUsernames = [
 export const BulkColorsTest: Story = {
   render: () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-      {bulkUsernames.map((username) => (
-        <div key={username}>
+      {bulkUsernames.map((username, index) => (
+        <div key={index}>
           <Avatar size='m' username={username} />
         </div>
       ))}

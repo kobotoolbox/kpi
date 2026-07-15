@@ -1,19 +1,23 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
-import assetFactory from '#/endpoints/asset.factory'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openAssetTagsModal } from './openAssetTagsModal'
 
-const mockAsset = assetFactory({
+// Cast Orval-generated Asset to legacy AssetResponse type
+// The types are structurally compatible at runtime, differences are:
+// - Optional fields (date_created, date_modified) that are always present in responses
+// - Legacy type has looser field types for backward compatibility
+const mockAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'storyAssetTagsUid',
   name: 'Storybook Asset Tags',
   tag_string: 'alpha,beta',
-})
+}) as unknown as AssetResponse
 const mockAssetUid = mockAsset.uid
 const onAssetPatched = fn()
 

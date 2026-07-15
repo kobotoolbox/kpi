@@ -63,6 +63,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
             limit: ITEMS_PER_PAGE,
           })
 
+  // queryFilter and props.context are embedded in queryKey via Orval helper params and branching
   const query = useInfiniteQuery<
     SidebarFormsListCategoryResponse,
     Error,
@@ -70,7 +71,6 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
     readonly unknown[],
     number
   >({
-    // eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryFilter and props.context are embedded in queryKey via Orval helper params and branching
     queryKey,
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }: { pageParam: number }) => {

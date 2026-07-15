@@ -96,20 +96,19 @@ export const Preview = () => (
       padding: '10px',
     }}
   >
-    {actionIconVariants.map((variant) =>
-      actionIconSizes.map((size) => {
+    {actionIconVariants.map((variant, index1) =>
+      actionIconSizes.map((size, index2) => {
         const actionIconProps: ActionIconProps = {
           variant,
           size: size,
           iconName: 'more',
         }
-        return (
-          <>
-            <ActionIcon {...actionIconProps} />
-            <ActionIcon {...actionIconProps} loading />
-            <ActionIcon {...actionIconProps} disabled />
-          </>
-        )
+        // Returning as array rather than wrapped in React.Fragment for the key uniqueness to work
+        return [
+          <ActionIcon {...actionIconProps} key={`${index1}-${index2}-default`} />,
+          <ActionIcon {...actionIconProps} key={`${index1}-${index2}-loading`} loading />,
+          <ActionIcon {...actionIconProps} key={`${index1}-${index2}-disabled`} disabled />,
+        ]
       }),
     )}
   </div>

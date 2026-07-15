@@ -448,6 +448,21 @@ class AdvancedSubmissionPermission(SubmissionPermission):
         return super(SubmissionPermission, self)._get_user_permissions(asset, user)
 
 
+class QATagTrackerPermission(AdvancedSubmissionPermission):
+    """
+    Listing tracked QA tags is meant only for users who can submit answers to
+    QA questions, which requires `change_submissions`. `AdvancedSubmissionPermission`
+    only overrides the POST mapping and otherwise inherits `view_submissions` for
+    reads, which would let read-only submission viewers retrieve the data. Override
+    the read mappings so `change_submissions` is required
+    """
+
+    perms_map = deepcopy(AdvancedSubmissionPermission.perms_map)
+    perms_map['GET'] = ['%(app_label)s.change_%(model_name)s']
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+
+
 class AttachmentDeletionPermission(SubmissionPermission):
     """
     Permissions for deleting attachments.

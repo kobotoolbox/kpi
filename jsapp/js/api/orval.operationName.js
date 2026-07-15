@@ -1,7 +1,7 @@
-import { keyword } from 'esutils'
+const { keyword } = require('esutils')
 
 /**
- * Copied some orvel internals and modified one line in order to drop the annoying `ApiV2` prefix to everything.
+ * Copied some orval internals and modified one line in order to drop the annoying `ApiV2` prefix to everything.
  */
 
 const unicodes = (s, prefix) => {
@@ -109,7 +109,7 @@ const getOperationId = (operation, route, verb) => {
   )
 }
 
-module.exports = {
-  operationName: (operation, route, verb) =>
-    sanitize(camel(getOperationId(operation, route, verb)), { es5keyword: true }),
-}
+const operationName = (operation, route, verb) =>
+  sanitize(camel(getOperationId(operation, route, verb)), { es5keyword: true })
+
+module.exports = { operationName }
