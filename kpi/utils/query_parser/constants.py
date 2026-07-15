@@ -59,8 +59,6 @@ ALLOWED_LOOKUP_FIELDS = {
     }),
     'kobo_auth.user': frozenset({
         'username',
-        'first_name',
-        'last_name',
         'extra_details',   # To allow extra_details__data
     }),
     'kpi.asset': frozenset({
@@ -155,19 +153,6 @@ DENIED_LOOKUP_FIELDS = {
     'socialaccount.socialapp': DENY_ALL,
 
     # --- Partially allowed models (missing fields denied) ---
-    'kobo_auth.user': frozenset({
-        'date_joined',  # Private user data
-        'email',  # Private user data
-        'groups',  # Private user data
-        'id',  # Internal system data
-        'is_active',  # Private user data
-        'is_staff',  # Private user data
-        'is_superuser',  # Private user data
-        'last_login',  # Private user data
-        'password',  # Private user data
-        'uid',  # Internal system data
-        'user_permissions',  # Private user data
-    }),
     'audit_log.accesslog': frozenset({
         'app_label',  # Internal system data
         'id',  # Internal system data
@@ -208,6 +193,21 @@ DENIED_LOOKUP_FIELDS = {
         'user',  # Unnecessary relational traversal
         'user_id',  # Internal system data
         'validated_password',  # Private user data
+    }),
+    'kobo_auth.user': frozenset({
+        'date_joined',  # Private user data
+        'email',  # Private user data
+        'first_name',  # Private user data
+        'last_name',  # Private user data
+        'groups',  # Private user data
+        'id',  # Internal system data
+        'is_active',  # Private user data
+        'is_staff',  # Private user data
+        'is_superuser',  # Private user data
+        'last_login',  # Private user data
+        'password',  # Private user data
+        'uid',  # Internal system data
+        'user_permissions',  # Private user data
     }),
     'kpi.asset': frozenset({
         '_deployment_data',  # Internal system data
