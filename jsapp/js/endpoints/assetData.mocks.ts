@@ -6,6 +6,12 @@ import assetDataFactory from './assetData.factory'
 /**
  * MSW handler factory for /api/v2/assets/:uid/data/ endpoint.
  * Returns a paginated response with one submission, unless overriden.
+ *
+ * Note: NOT migrated to Orval because SubmissionResponse is a legacy type
+ * representing dynamic form submission data. This mock uses assetData.factory.ts
+ * which cannot be replaced with Orval since submission data has arbitrary fields
+ * based on form questions (not statically typed in OpenAPI).
+ *
  * @param assetUid
  * @param submissions - A list of `SubmissionResponse`s to be returned
  * @param override - Optional override for the paginated response

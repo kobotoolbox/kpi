@@ -289,6 +289,27 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertEqual('`paired_data` is already used',
                          str(response.data['filename'][0]))
 
+    def test_list_with_deleted_source(self):
+        # anotheruser pairs their form with someuser's source asset
+        self.toggle_source_sharing(enabled=True)
+        self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        response = self.paired_data()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # someuser deletes the source (parent) project. There is no FK cascade,
+        # so the destination asset still references it in its `paired_data` dict.
+        self.source_asset.delete()
+
+        # The destination owner lists their paired data. The deleted source must
+        # be reported with a null `source` (not just a null `source__name`).
+        self.login_as_other_user('anotheruser', 'anotheruser')
+        response = self.client.get(self.destination_asset_paired_data_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        result = response.data['results'][0]
+        self.assertIsNone(result['source'])
+        self.assertIsNone(result['source__name'])
+
     def test_create_paired_data_anonymous(self):
         self.toggle_source_sharing(enabled=True)
         payload = {

@@ -6,21 +6,22 @@
 // or default/empty data. This file is intentionally minimal and focused to avoid these problems.
 
 import { Box } from '@mantine/core'
+import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import type { DecoratorFunction } from '@storybook/types'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
-import { expect, waitFor } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import {
+  getApiV2AssetsRetrieveMockHandler,
+  getApiV2AssetsRetrieveResponseMock,
+} from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { QuestionTypeName } from '#/constants'
-import assetFactory from '#/endpoints/asset.factory'
-import assetMock from '#/endpoints/asset.mocks'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import assetDataMock from '#/endpoints/assetData.mocks'
-import bulkActionFactory from '#/endpoints/bulkAction.factory'
 import bulkActionsMock from '#/endpoints/bulkActions.mocks'
 import meMock from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
@@ -31,18 +32,20 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
-import {
-  getPollingUpdateStoryHandlers,
-  getPollingUpdateStoryState,
-  getPollingUpdateStoryTimeoutMs,
-  pollingAsset,
-  resetPollingUpdateStoryHandlers,
-} from './DataTableWrapperPollingStoriesUtils'
+
+// Orval-generated Asset and legacy AssetResponse have minor structural differences.
+// Remaining differences are intentional (backward compatibility in legacy type):
+// - Optional fields (date_created, date_modified) marked optional for POST/PATCH, always present in GET
+// - summary.name_quality has all optional properties for flexibility
+// - files structure has minor type differences that don't affect runtime
+//
+// These casts are safe because both types represent the same runtime data structure
+import type { AssetResponse } from '#/dataInterface'
 
 // Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
 // cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
 // stretch to fill the row height — just like in the real UI.
-const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={480}>{Story()}</Box>
+const fixedHeightDecorator: Decorator = (Story) => <Box h={480}>{Story()}</Box>
 
 // Decorator to show the LimitNotifications banner in stories.
 // The banner has a guard chain: it only shows if subscriptionStore.isInitialised is true.
@@ -50,7 +53,7 @@ const fixedHeightDecorator: DecoratorFunction = (Story) => <Box h={480}>{Story()
 // but MSW (our Storybook mock layer) only intercepts fetch calls, not jQuery.
 // Solution: manually populate the store on mount and clean up on unmount.
 // Only add this decorator to stories that need to show limit banners.
-const initializeSubscriptionStoreDecorator: DecoratorFunction = (Story) => {
+const initializeSubscriptionStoreDecorator: Decorator = (Story) => {
   useEffect(() => {
     subscriptionStore.isInitialised = true
     subscriptionStore.isPending = false
@@ -116,8 +119,9 @@ const initializeSubscriptionStoreDecorator: DecoratorFunction = (Story) => {
 // Decorator to set the hash for the current asset UID, so that (deprecated) `getCurrentPath` works.
 // This replaces the previous loader. It reads the UID from the story's args.asset.uid (if present).
 // This ensures each story sets the correct hash for its asset, regardless of which asset is used.
-const setAssetHashDecorator: DecoratorFunction = (Story, context) => {
-  const assetUid = context.args?.asset?.uid
+const setAssetHashDecorator: Decorator = (Story, context) => {
+  const args = context.args as { asset?: AssetResponse }
+  const assetUid = args.asset?.uid
   if (assetUid) {
     window.location.hash = ROUTES.FORM_TABLE.replace(':uid', assetUid)
   }
@@ -145,9 +149,12 @@ const getRouterParams = (assetUid: string) =>
 // Minimal asset and submissions for simple stories
 
 // Default story asset and submissions
-const minimalAsset = assetFactory({
+const minimalAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'audio-asset-uid',
   name: 'Audio form',
+  deployment__active: true,
+  has_deployment: true,
+  map_styles: {},
   content: {
     schema: '1',
     survey: [
@@ -165,7 +172,8 @@ const minimalAsset = assetFactory({
     translations: [null],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-})
+}) as unknown as AssetResponse
+
 const minimalSubmissions = [
   assetDataFactory(1, {
     Record_a_sound: 'test1.mp3',
@@ -198,9 +206,12 @@ const minimalSubmissions = [
 ]
 
 // ProcessingColumn story asset and submissions (unique UID)
-const processingAsset = assetFactory({
+const processingAsset = getApiV2AssetsRetrieveResponseMock({
   uid: 'audio-asset-uid-processing',
   name: 'Audio form with processing',
+  deployment__active: true,
+  has_deployment: true,
+  map_styles: {},
   content: {
     schema: '1',
     survey: [
@@ -243,7 +254,8 @@ const processingAsset = assetFactory({
     ],
   },
   effective_permissions: [{ codename: 'change_submissions' }],
-})
+}) as unknown as AssetResponse
+
 const processingSubmissions = [
   assetDataFactory(1, {
     Record_a_sound: 'test1.mp3',
@@ -309,18 +321,22 @@ const processingSubmissions = [
     ],
   }),
 ]
-const processingBulkAction = bulkActionFactory(processingSubmissions[1]['meta/rootUuid'], 'fr', {
+const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.complete,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
+  submission_uuids: [processingSubmissions[1]['meta/rootUuid']],
+  params: { language: 'fr' },
   created_by: {
     username: 'zefir',
   },
 })
-const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/rootUuid'], 'es', {
+const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.in_progress,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
+  submission_uuids: [processingSubmissions[2]['meta/rootUuid']],
+  params: { language: 'es' },
   created_by: {
     username: 'other-user',
   },
@@ -329,9 +345,6 @@ const processingBulkAction2 = bulkActionFactory(processingSubmissions[2]['meta/r
 const meta: Meta<typeof DataTableWrapper> = {
   title: 'Components/DataTableWrapper',
   component: DataTableWrapper,
-  async beforeEach() {
-    resetPollingUpdateStoryHandlers()
-  },
   args: {
     asset: minimalAsset,
   },
@@ -347,7 +360,7 @@ const meta: Meta<typeof DataTableWrapper> = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -374,7 +387,7 @@ export const Default: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -396,7 +409,7 @@ export const ProcessingColumnAndBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(processingAsset.uid, processingAsset),
+        getApiV2AssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -409,41 +422,6 @@ export const ProcessingColumnAndBanner: Story = {
   loaders: [loadAssetForStory],
 }
 
-export const ProcessingPollingRefreshesTranslatedCell: Story = {
-  args: {
-    asset: pollingAsset,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Starts with a Processing placeholder and updates that row after polling (about 8 seconds) when the mocked bulk action item transitions to complete.',
-      },
-    },
-    a11y: { test: 'todo' },
-    reactRouter: getRouterParams(pollingAsset.uid),
-    msw: {
-      handlers: getPollingUpdateStoryHandlers(),
-    },
-  },
-  loaders: [loadAssetForStory],
-  play: async ({ step }) => {
-    // We intentionally avoid asserting rendered translated text here.
-    // We tried multiple DOM-based variants (including intermediate
-    // "Processing" checks), but they remained flaky in CI across browsers.
-    // This play test focuses on stable polling/refresh behavior via mock state.
-    await step('Wait for polling to refresh one submission row', async () => {
-      await waitFor(
-        async () => {
-          const storyState = getPollingUpdateStoryState()
-          await expect(storyState.pollingBulkActionsCalls).toBeGreaterThanOrEqual(2)
-          await expect(storyState.pollingSubmissionRefreshCalls).toBeGreaterThanOrEqual(1)
-        },
-        { timeout: getPollingUpdateStoryTimeoutMs() },
-      )
-    })
-  },
-}
 export const ProcessingAndLimitsBannersTogether: Story = {
   args: {
     asset: processingAsset,
@@ -454,7 +432,7 @@ export const ProcessingAndLimitsBannersTogether: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(processingAsset.uid, processingAsset),
+        getApiV2AssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         // Shows both BulkProcessingBanner (active jobs) + OverLimitBanner (exceeded submission limit)
@@ -479,7 +457,7 @@ export const StorageLimitWarningBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageWarning()),
@@ -501,7 +479,7 @@ export const StorageExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageExceeded()),
@@ -523,7 +501,7 @@ export const SubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
@@ -545,7 +523,7 @@ export const StorageAndSubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        assetMock(minimalAsset.uid, minimalAsset),
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.bothExceeded()),

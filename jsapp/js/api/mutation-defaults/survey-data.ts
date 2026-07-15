@@ -266,8 +266,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
                   if (response?.status !== 200) return response // just a typeguard, UI shouldn't allow to mutate if error.
                   let _versions = response?.data?.[questionXpath]?.[action]?._versions ?? []
 
-                  // TODO OpenAPI: see DEV-1722
-                  if ((datumTyped as any).value === null) {
+                  if (datumTyped.value === null) {
                     // If discarding/deleting (value: null), clear all versions for this language
                     _versions = []
                   } else if (datumTyped.accepted === true) {
@@ -327,8 +326,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
                   if (response?.status !== 200) return response // just a typeguard, UI shouldn't allow to mutate if error.
                   let _versions = response?.data?.[questionXpath]?.[action]?.[language]?._versions ?? []
 
-                  // TODO OpenAPI: see DEV-1722
-                  if ((datumTyped as any).value === null) {
+                  if (datumTyped.value === null) {
                     // If discarding/deleting (value: null), clear all versions for this language
                     _versions = []
                   } else if (datumTyped.accepted === true) {

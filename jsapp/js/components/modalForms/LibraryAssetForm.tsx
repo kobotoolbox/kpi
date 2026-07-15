@@ -162,11 +162,13 @@ export const LibraryAssetForm = ({ asset, assetType, onSetModalTitle: _onSetModa
       return []
     }
 
+    // Backend schema specifies array, but old assets may have single object
     if (Array.isArray(value)) {
       return value.map((item) => item.value)
     }
 
-    return [value.value]
+    // Legacy fallback: single object from pre-Dec 2022 assets
+    return [(value as any).value]
   }
 
   const fromSingleSelectValue = (newValue: string | null, option?: LabelValuePair): LabelValuePair | null => {
