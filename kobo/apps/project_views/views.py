@@ -182,6 +182,13 @@ class ProjectViewViewSet(
     search_default_field_lookups = [
         'name__icontains',
     ]
+    allowed_lookup_fields_override = {
+        'kobo_auth.user': {
+            'email',
+            'username',
+            'extra_details',
+        }
+    }
     min_search_characters = 2
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()
