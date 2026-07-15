@@ -331,9 +331,6 @@ class QueryParseActions:
             if model_label in self.allowed_lookup_fields:
                 allowed_fields.update(self.allowed_lookup_fields[model_label])
 
-            if '*' in allowed_fields:
-                raise ValueError("The asterisk wildcard ('*') is not permitted in the allowlist.")
-
             if segment not in allowed_fields:
                 raise QueryParserNotSupportedFieldLookup
 

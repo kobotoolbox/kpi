@@ -441,6 +441,12 @@ class SearchFilter(filters.BaseFilterBackend):
     parseable, references a field that does not exist, or specifies an invalid
     value for a field (e.g. text for an integer field), return an empty
     queryset to make the problem obvious.
+
+    Special notes:
+        * `allowed_lookup_fields_override` can be defined on a ViewSet as a
+        dictionary mapping model labels to a set of field names. This allows
+        specific views to securely augment the global `ALLOWED_LOOKUP_FIELDS`
+        with additional fields that are safe to expose in that context.
     """
 
     def filter_queryset(self, request, queryset, view):

@@ -9,8 +9,23 @@ DENY_ALL = frozenset({'*'})  # Deny all fields in the table
 # for disallowed paths. Only whitelist explicitly what is allowed. Make a comprehensive
 # search across the codebase for all instances of SearchFilter to identify any views
 # that use the query parser in order to make sure we don't miss anything. The list will
-# be maintained in `kpi.contants.ALLOWED_LOOKUP_FIELDS`. The idea is to block
-# sensitive data from being used with search filters
+# be maintained in `kpi.utils.query_parser.constants.ALLOWED_LOOKUP_FIELDS`. The idea is
+# to block sensitive data from being used with search filters.
+# NOTE: The prompt should search for overrides, readmes, openapi docs, js/ts files.
+# When inspecting frontend TS/JS files for potential filters, you should look broadly
+# for patterns where parameters are mapped to the backend `q` query string.
+# Check for properties like `apiFilteringName` (e.g. in `projectViews/constants.ts`),
+# `filterBy` (e.g. `summary__languages__icontains` in `assetsTableConstants.ts`),
+# or how things like `SearchAssetsPredefinedParams.filterProperty` are constructed.
+#
+# OVERRIDING / AUGMENTING:
+# If you need to expose fields for a specific DRF ViewSet that shouldn't be allowed
+# globally, you can define `allowed_lookup_fields_override` on the ViewSet.
+# It should be a dictionary mapping model labels to a set of field names. For example:
+#     allowed_lookup_fields_override = {
+#         'kpi.asset': {'deployment'}
+#     }
+#
 # Granularity is at the explicit model level.
 # ```
 # ALLOWED_LOOKUP_FIELDS = {
