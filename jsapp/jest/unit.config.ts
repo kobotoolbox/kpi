@@ -27,11 +27,11 @@ const config: Config = {
   },
 
   // Extensions to try in order (for import statements with no extension)
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'coffee'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'coffee'],
 
   // Transformers (SWC for JS/TS, CoffeeScript for .coffee)
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': '@swc/jest',
+    '^.+\\.(mjs|js|jsx|ts|tsx)$': '@swc/jest',
     '^.+\\.coffee$': '<rootDir>/coffeeTransformer.js',
   },
 
@@ -41,8 +41,12 @@ const config: Config = {
     ...defaults.testPathIgnorePatterns, // 📦 exclude '/node_modules/'
   ],
 
-  // Transform ESM modules from node_modules (MSW and its dependencies, faker's rettime)
-  transformIgnorePatterns: ['node_modules/(?!(msw|@mswjs|@bundled-es-modules|statuses|until-async|rettime)/)'],
+  // By default Jest skips transforming node_modules.
+  // These packages are explicitly allowlisted because they can publish ESM output,
+  // which otherwise causes parse errors like "unexpected token export/import" in tests.
+  transformIgnorePatterns: [
+    'node_modules/(?!(msw|@mswjs|@open-draft|@bundled-es-modules|headers-polyfill|outvariant|is-node-process|strict-event-emitter|statuses|until-async|rettime)/)',
+  ],
 
   // Set up test environment
   testEnvironment: 'jsdom',
