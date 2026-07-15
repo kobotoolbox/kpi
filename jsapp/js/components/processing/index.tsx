@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-
 import DocumentTitle from 'react-document-title'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
@@ -14,11 +13,12 @@ import {
 import assetStore from '#/assetStore'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { addDefaultUuidPrefix, removeDefaultUuidPrefix } from '#/utils'
+import { addDefaultUuidPrefix } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
+import { getSubmissionRootUuid } from './common/conflictingOngoingJob'
 import styles from './index.module.scss'
 
 interface RouteParams extends Record<string, string | undefined> {
@@ -72,7 +72,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
 
   // Bulk-action rows store submission_root_uuid, so normalize the selected
   // submission to root UUID form before filtering.
-  const submissionRootUuid = submission ? removeDefaultUuidPrefix(submission['meta/rootUuid']) : undefined
+  const submissionRootUuid = submission ? getSubmissionRootUuid(submission) : undefined
 
   const bulkActionsParams = {
     status: `${BulkActionResponseStatusEnum.pending},${BulkActionResponseStatusEnum.in_progress}`,

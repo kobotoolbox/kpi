@@ -17,9 +17,10 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Button from '#/components/common/button'
 import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
+import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
@@ -121,7 +122,7 @@ export default function StepCreateAutomated({
 
     await mutationCreateAutomaticTranscript.mutateAsync({
       uidAsset: asset.uid,
-      rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+      rootUuid: getSubmissionRootUuid(submission),
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {

@@ -20,7 +20,7 @@ import {
 import type { TranslationVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './HeaderLanguageAndDate'
@@ -108,12 +108,14 @@ export default function Editor({
   }
 
   const handleSave = async () => {
+    // Button state can lag behind fresh data for a moment, so keep this check
+    // here too and bail out if a conflicting job has just appeared.
     if (hasConflictingOngoingJob) return
     if (!value) return // Just a typeguard, button is disabled.
     if (value === initialValue && isSupplementVersionAutomatic(translationVersion)) {
       await patch.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
@@ -128,7 +130,7 @@ export default function Editor({
       await assertManualAdvancedFeature(translationVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
@@ -160,7 +162,7 @@ export default function Editor({
       await assertManualAdvancedFeature(translationVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {

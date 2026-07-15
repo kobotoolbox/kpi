@@ -16,7 +16,6 @@ import {
 import type { TranslationVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './HeaderLanguageAndDate'
@@ -61,7 +60,7 @@ export default function Viewer({
     destroyConfirm(() => {
       mutateTrash.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {

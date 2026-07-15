@@ -20,10 +20,11 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { notify } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
@@ -115,9 +116,7 @@ export default function StepCreateAutomated({
   async function handleCreateTranslation() {
     // Keep a runtime guard in addition to disabled UI controls.
     // This protects against stale state and accidental double-trigger paths.
-    if (hasConflictingOngoingJob) {
-      return
-    }
+    if (hasConflictingOngoingJob) return
 
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
@@ -150,7 +149,7 @@ export default function StepCreateAutomated({
     try {
       await mutationCreateAutomaticTranslation.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {

@@ -1,6 +1,7 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { removeDefaultUuidPrefix } from '#/utils'
 
@@ -13,15 +14,12 @@ interface IsConflictingOngoingJobArgs {
 }
 
 /**
- * Bulk-action payloads use root UUIDs. Use this helper before comparing
- * submission IDs from processing views, which may be edit UUIDs.
+ * For lock checks and supplement mutations we use the root UUID form. In this
+ * code path `submission` is a `DataResponse`, so `meta/rootUuid` is required,
+ * and this helper is just the single place where we strip its prefix.
  */
-export function getSubmissionRootUuid(submission: {
-  _uuid?: string
-  'meta/rootUuid'?: string
-}) {
-  const rootUuid = submission['meta/rootUuid']
-  return (rootUuid ? removeDefaultUuidPrefix(rootUuid) : undefined) || submission._uuid || ''
+export function getSubmissionRootUuid(submission: DataResponse) {
+  return removeDefaultUuidPrefix(submission['meta/rootUuid'])
 }
 
 // Pending and in-progress jobs can still write/update records, so only those
