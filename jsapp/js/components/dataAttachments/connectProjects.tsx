@@ -225,7 +225,10 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
         {
           onSuccess: (response) => {
             // Derive state from the canonical server value rather than the optimistic `data` object
-            const serverSharing = response.status === 200 ? response.data.data_sharing : undefined
+            const serverSharing =
+              response.status === 200
+                ? (response.data.data_sharing as { enabled?: boolean; fields?: string[] } | undefined)
+                : undefined
             const nextEnabled = serverSharing?.enabled ?? data.enabled
             const nextFields = serverSharing?.fields ?? data.fields
             setIsShared(nextEnabled)
