@@ -209,6 +209,9 @@ class DataSupplementPayloadExtension(
                 'language': GENERIC_STRING_SCHEMA,
                 'locale': GENERIC_STRING_SCHEMA,
                 'accepted': {'type': 'boolean'},
+                # `value` is only ever null: passing `{value: null}` deletes the
+                # automatic transcription/translation (see DEV-1722).
+                'value': {'enum': [None], 'nullable': True},
             },
             required=['language'],
         )

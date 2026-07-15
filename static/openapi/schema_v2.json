@@ -28654,6 +28654,12 @@
                             },
                             "accepted": {
                                 "type": "boolean"
+                            },
+                            "value": {
+                                "enum": [
+                                    null
+                                ],
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,
@@ -28672,6 +28678,12 @@
                             },
                             "accepted": {
                                 "type": "boolean"
+                            },
+                            "value": {
+                                "enum": [
+                                    null
+                                ],
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,
