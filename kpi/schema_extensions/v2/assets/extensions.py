@@ -1,7 +1,4 @@
-from drf_spectacular.extensions import (
-    OpenApiSerializerExtension,
-    OpenApiSerializerFieldExtension,
-)
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
@@ -29,7 +26,6 @@ from .schema import (
     ASSET_NAME_SCHEMA,
     ASSET_SETTINGS_SCHEMA,
     ASSET_TAG_STRING_SCHEMA,
-    ASSET_TYPE_SCHEMA,
     ASSIGNABLE_PERMISSION_SCHEMA,
     MAP_STYLES_SCHEMA,
     PERMISSION_ASSIGNMENT_SCHEMA,
