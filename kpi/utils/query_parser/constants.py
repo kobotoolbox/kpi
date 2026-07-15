@@ -138,17 +138,178 @@ DENIED_LOOKUP_FIELDS = {
     'socialaccount.socialaccount': DENY_ALL,
     'socialaccount.socialtoken': DENY_ALL,
     'socialaccount.socialapp': DENY_ALL,
+
+    # --- Partially allowed models (missing fields denied) ---
     'kobo_auth.user': frozenset({
-        'email',
-        'is_superuser',
-        'is_staff',
-        'is_active',
-        'password',
-        'date_joined',
-        'last_login',
-        'uid',  # We don't want people to try to guess the uid
+        'date_joined',  # Private user data
+        'email',  # Private user data
+        'groups',  # Private user data
+        'id',  # Internal system data
+        'is_active',  # Private user data
+        'is_staff',  # Private user data
+        'is_superuser',  # Private user data
+        'last_login',  # Private user data
+        'password',  # Private user data
+        'uid',  # Internal system data
+        'user_permissions',  # Private user data
+    }),
+    'audit_log.accesslog': frozenset({
+        'app_label',  # Internal system data
+        'id',  # Internal system data
+        'log_type',  # Internal system data
+        'model_name',  # Internal system data
+        'object_id',  # Internal system data
+        'object_id_legacy',  # Internal system data
+        'user_id',  # Internal system data
+        'user_uid',  # Internal system data
+    }),
+    'audit_log.auditlog': frozenset({
+        'app_label',  # Internal system data
+        'id',  # Internal system data
+        'log_type',  # Internal system data
+        'model_name',  # Internal system data
+        'object_id',  # Internal system data
+        'object_id_legacy',  # Internal system data
+        'user_id',  # Internal system data
+        'user_uid',  # Internal system data
+    }),
+    'audit_log.projecthistorylog': frozenset({
+        'app_label',  # Internal system data
+        'id',  # Internal system data
+        'log_type',  # Internal system data
+        'model_name',  # Internal system data
+        'object_id',  # Internal system data
+        'object_id_legacy',  # Internal system data
+        'user_id',  # Internal system data
+        'user_uid',  # Internal system data
     }),
     'hub.extrauserdetail': frozenset({
+        'date_removal_requested',  # Internal system data
+        'date_removed',  # Internal system data
+        'id',  # Internal system data
+        'last_project_activity',  # Internal system data
+        'password_date_changed',  # Private user data
         'private_data',  # Private user data
+        'user',  # Unnecessary relational traversal
+        'user_id',  # Internal system data
+        'validated_password',  # Private user data
+    }),
+    'kpi.asset': frozenset({
+        '_deployment_data',  # Internal system data
+        'advanced_features',  # Unnecessary relational traversal
+        'advanced_features_set',  # Unnecessary relational traversal
+        'asset_export_settings',  # Unnecessary relational traversal
+        'asset_files',  # Unnecessary relational traversal
+        'asset_partial_permissions',  # Unnecessary relational traversal
+        'asset_versions',  # Unnecessary relational traversal
+        'assetsnapshot',  # Unnecessary relational traversal
+        'children',  # Unnecessary relational traversal
+        'content',  # Internal system data
+        'created_by',  # Unnecessary relational traversal
+        'data_collector_group',  # Unnecessary relational traversal
+        'data_collector_group_id',  # Internal system data
+        'disclaimers',  # Unnecessary relational traversal
+        'hooks',  # Unnecessary relational traversal
+        'id',  # Internal system data
+        'is_excluded_from_projects_list',  # Internal system data
+        'known_cols',  # Internal system data
+        'map_custom',  # Internal system data
+        'map_styles',  # Internal system data
+        'nlpusagecounter',  # Unnecessary relational traversal
+        'owner_id',  # Internal system data
+        'paired_data',  # Unnecessary relational traversal
+        'parent_id',  # Internal system data
+        'pending_delete',  # Internal system data
+        'permissions',  # Unnecessary relational traversal
+        'report_custom',  # Internal system data
+        'report_styles',  # Internal system data
+        'submission_extras',  # Internal system data
+        'subsequence_bulk_actions',  # Unnecessary relational traversal
+        'tagged_items',  # Unnecessary relational traversal
+        'transfers',  # Unnecessary relational traversal
+        'trash',  # Unnecessary relational traversal
+        'userassetsubscription',  # Unnecessary relational traversal
+    }),
+    'kpi.importtask': frozenset({
+        'id',  # Internal system data
+        'messages',  # Internal system data
+        'user_id',  # Internal system data
+    }),
+    'kpi.submissionexporttask': frozenset({
+        'id',  # Internal system data
+        'last_submission_time',  # Internal system data
+        'messages',  # Internal system data
+        'result',  # Internal system data
+        'user_id',  # Internal system data
+    }),
+    'kpi.submissionsynchronousexport': frozenset({
+        'asset_export_settings',  # Unnecessary relational traversal
+        'asset_export_settings_id',  # Internal system data
+        'format_type',  # Internal system data
+        'id',  # Internal system data
+        'last_submission_time',  # Internal system data
+        'messages',  # Internal system data
+        'result',  # Internal system data
+        'user_id',  # Internal system data
+    }),
+    'kpi.userassetsubscription': frozenset({
+        'asset',  # Unnecessary relational traversal
+        'asset_id',  # Internal system data
+        'user',  # Unnecessary relational traversal
+        'user_id',  # Internal system data
+    }),
+    'languages.language': frozenset({
+        'id',  # Internal system data
+        'languages',  # Unnecessary relational traversal
+        'regions',  # Unnecessary relational traversal
+        'transcriptionservicelanguagem2m',  # Unnecessary relational traversal
+        'translationservicelanguagem2m',  # Unnecessary relational traversal
+    }),
+    'languages.transcriptionservice': frozenset({
+        'id',  # Internal system data
+        'language',  # Unnecessary relational traversal
+        'services',  # Unnecessary relational traversal
+    }),
+    'languages.translationservice': frozenset({
+        'id',  # Internal system data
+        'language',  # Unnecessary relational traversal
+        'services',  # Unnecessary relational traversal
+    }),
+    'project_views.projectview': frozenset({
+        'assignmentprojectviewm2m',  # Unnecessary relational traversal
+        'id',  # Internal system data
+    }),
+    'user_reports.userreports': frozenset({
+        'accepted_tos',  # Private user data
+        'active_project_count',  # Private user data
+        'asset_count',  # Private user data
+        'current_period_end',  # Internal system data
+        'current_period_start',  # Internal system data
+        'date_joined',  # Private user data
+        'email',  # Private user data
+        'extra_details',  # Unnecessary relational traversal
+        'id',  # Internal system data
+        'is_active',  # Private user data
+        'is_staff',  # Private user data
+        'is_superuser',  # Private user data
+        'last_login',  # Private user data
+        'last_updated',  # Internal system data
+        'mfa_is_active',  # Private user data
+        'organization',  # Private user data
+        'service_usage',  # Private user data
+        'social_accounts',  # Private user data
+        'sso_is_active',  # Private user data
+        'subscriptions',  # Private user data
+        'user_uid',  # Internal system data
+        'validated_email',  # Private user data
+    }),
+    'taggit.tag': frozenset({
+        'asset',  # Unnecessary relational traversal
+        'id',  # Internal system data
+        'instance',  # Unnecessary relational traversal
+        'slug',  # Internal system data
+        'taggit_taggeditem_items',  # Unnecessary relational traversal
+        'taguid',  # Unnecessary relational traversal
+        'xform',  # Unnecessary relational traversal
     }),
 }
