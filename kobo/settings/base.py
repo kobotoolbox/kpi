@@ -220,7 +220,7 @@ CONSTANCE_CONFIG = {
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
-        '1970-01-01',
+        '1970-01-01T00:00:00Z',
         'Date of the most recent update to the terms of service. '
         "DO NOT EDIT HERE. Instead, use the 'Require "
         "all users to reaccept the Terms of Service' action in "
