@@ -309,8 +309,10 @@ from kpi.utils.strings import strtobool
             OpenApiExample(
                 name='Data sharing of the project',
                 value={
-                    'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
-                    'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
+                    'data_sharing': {
+                        'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
+                        'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
+                    }
                 },
                 request_only=True,
             ),
