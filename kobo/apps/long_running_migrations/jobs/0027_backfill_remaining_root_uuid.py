@@ -118,6 +118,25 @@ def _check_lrm_0005_is_completed():
         )
 
 
+def _find_timeout_in_chain(exc: BaseException) -> BaseException | None:
+    """
+    Walk the exception's cause/context chain and return the first Celery
+    timeout found, or `None`. A lower layer may catch a timeout and re-raise it
+    wrapped in another exception type, which would otherwise be mistaken for an
+    unrecoverable data error.
+    """
+
+    seen = set()
+    current = exc
+    while current is not None and id(current) not in seen:
+        if isinstance(current, (SoftTimeLimitExceeded, TimeLimitExceeded)):
+            return current
+        seen.add(id(current))
+        current = current.__cause__ or current.__context__
+
+    return None
+
+
 def _process_instances_batch(
     xform: XForm, instance_queryset: QuerySet, first_try=True
 ) -> bool:
@@ -140,6 +159,10 @@ def _process_instances_batch(
         Instance.objects.bulk_update(instance_batch, fields=['root_uuid'])
     except IntegrityError:
         if first_try:
+            logging.info(
+                f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - '
+                f'Cleaning duplicated submissions'
+            )
             try:
                 call_command(
                     'clean_duplicated_submissions_root_uuid',
@@ -153,11 +176,21 @@ def _process_instances_batch(
                 # Celery beat cycle.
                 raise
             except Exception as e:
+                # A lower layer may have caught a Celery timeout and re-raised
+                # it wrapped in another exception type (e.g. CommandError).
+                # Treat it as a timeout, not an unrecoverable data error.
+                if timeout := _find_timeout_in_chain(e):
+                    raise timeout
                 logging.error(
                     f'[LRM 0027] - Failed to clean duplicated submissions: {str(e)}'
                 )
                 xform.tags.add(FAILED_TAG)
                 return False
+
+            logging.info(
+                f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - '
+                f'Cleaned duplicated submissions!'
+            )
 
             # Need to reload instance_batch to get updated root_uuids
             instance_batch_retry = Instance.objects.only(
