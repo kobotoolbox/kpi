@@ -211,6 +211,109 @@ export function selectNestedRow(row: SubmissionResponse, key: string, rootParent
   return row[key]
 }
 
+function hasNonEmptyValue(value: unknown): boolean {
+  return value !== undefined && value !== null && value !== ''
+}
+
+/**
+ * Checks attachment metadata for one legacy/current key pair and one file basename.
+ *
+ * Why this exists:
+ * We do not want to dedupe columns based on equal cell values alone. Two real
+ * questions can share the same filename by coincidence. This helper looks at
+ * `_attachments.question_xpath` to see which path the file is tied to.
+ *
+ * Return values:
+ * - `none`: no matching attachment metadata for either path
+ * - `single`: attachment metadata points to exactly one of the two paths
+ * - `both`: attachment metadata points to both paths (ambiguous, keep both)
+ */
+function getAttachmentPathEvidence(
+  submission: SubmissionResponse,
+  legacyKey: string,
+  currentPath: string,
+  basename: string,
+): 'none' | 'single' | 'both' {
+  const matchingAttachments = (submission._attachments || []).filter(
+    (attachment) =>
+      !attachment.is_deleted &&
+      attachment.media_file_basename === basename &&
+      (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
+  )
+
+  const hasLegacyPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === legacyKey)
+  const hasCurrentPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === currentPath)
+
+  if (hasLegacyPathAttachment && hasCurrentPathAttachment) {
+    return 'both'
+  }
+
+  if (hasLegacyPathAttachment || hasCurrentPathAttachment) {
+    return 'single'
+  }
+
+  return 'none'
+}
+
+/**
+ * Decides whether a legacy attachment column should remain visible.
+ *
+ * Rule of thumb:
+ * - Keep the legacy column when there is any sign we are looking at two
+ *   distinct questions.
+ * - Drop the legacy column only when we have attachment metadata evidence that
+ *   legacy/current paths are the same field represented under different paths.
+ *
+ * Decision details:
+ * 1. If legacy and current values differ in any submission, keep legacy.
+ * 2. If attachment metadata maps same basename to both paths, keep legacy
+ *    (ambiguous/distinct).
+ * 3. If attachment metadata maps same basename to only one path while values
+ *    are equal, count it as mirrored stale/current evidence.
+ * 4. After scanning all submissions, drop legacy only if mirrored evidence was
+ *    found and no "keep" condition was hit.
+ */
+function shouldKeepLegacyAttachmentKey(
+  submissions: SubmissionResponse[],
+  legacyKey: string,
+  matchingCurrentPaths: string[],
+): boolean {
+  // Only collapse legacy path when there is strong evidence from attachment
+  // metadata that old/new keys mirror the same field.
+  // Keep the legacy key if values differ, or if attachment metadata indicates
+  // both paths are genuinely present.
+  let hasMirroredAttachmentEvidence = false
+
+  for (const submission of submissions) {
+    const legacyValue = submission[legacyKey]
+    if (!hasNonEmptyValue(legacyValue)) {
+      continue
+    }
+
+    for (const currentPath of matchingCurrentPaths) {
+      const currentValue = submission[currentPath]
+      if (!hasNonEmptyValue(currentValue)) {
+        continue
+      }
+
+      if (legacyValue !== currentValue) {
+        return true
+      }
+
+      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath, String(legacyValue))
+      if (evidence === 'both') {
+        return true
+      }
+
+      if (evidence === 'single') {
+        hasMirroredAttachmentEvidence = true
+      }
+    }
+  }
+
+  return !hasMirroredAttachmentEvidence
+}
+
 /**
  * Returns a complete and unique list of columns (keys) that contain displayable
  * data that is useful for users.
@@ -260,6 +363,53 @@ export function getAllDataColumns(
 
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
+
+  // Deduplicate stale attachment keys from old submissions when current schema
+  // has the same question under a different (usually renamed-group) path.
+  // Keep this conservative by collapsing only when old and current keys share
+  // a non-empty overlapping value in at least one submission.
+  const attachmentQuestionTypes = new Set<AnyRowTypeName>([
+    QUESTION_TYPES.audio.id,
+    QUESTION_TYPES['background-audio'].id,
+    QUESTION_TYPES.image.id,
+    QUESTION_TYPES.video.id,
+    QUESTION_TYPES.file.id,
+  ])
+
+  const currentAttachmentPathsByLeaf = new Map<string, string[]>()
+  asset.content.survey.forEach((row) => {
+    if (!attachmentQuestionTypes.has(row.type)) {
+      return
+    }
+
+    const rowName = getRowName(row)
+    const currentPath = flatPaths[rowName]
+    if (!currentPath) {
+      return
+    }
+
+    const existingPaths = currentAttachmentPathsByLeaf.get(rowName) || []
+    if (!existingPaths.includes(currentPath)) {
+      currentAttachmentPathsByLeaf.set(rowName, [...existingPaths, currentPath])
+    }
+  })
+
+  output = output.filter((key) => {
+    const keyParts = key.split('/')
+    const leafName = keyParts[keyParts.length - 1]
+    const currentPaths = currentAttachmentPathsByLeaf.get(leafName)
+
+    if (!currentPaths || currentPaths.includes(key)) {
+      return true
+    }
+
+    const matchingCurrentPaths = currentPaths.filter((currentPath) => output.includes(currentPath))
+    if (matchingCurrentPaths.length === 0 || !submissions || submissions.length === 0) {
+      return true
+    }
+
+    return shouldKeepLegacyAttachmentKey(submissions, key, matchingCurrentPaths)
+  })
 
   // exclude notes
   output = output.filter((key) => {
