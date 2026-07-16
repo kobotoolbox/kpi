@@ -36,12 +36,6 @@ def async_execute(migration_id: int):
             migration.execute()
         finally:
             stop_event.set()
-            # Cap the wait so a stuck cache or DB call in the heartbeat can
-            # never hang the worker here. If the thread is mid cache.set when
-            # the wait elapses, the lock may be re-set right after we delete it
-            # and linger until HEARTBEAT_TTL expires. That is harmless: a
-            # re-dispatch is blocked by the lock, and execute() skips a
-            # COMPLETED migration anyway.
             heartbeat.join(timeout=5)
             cache.delete(lock_key)
 
@@ -64,8 +58,10 @@ def execute_long_running_migrations():
     # without refreshing the heartbeat.
     for migration in LongRunningMigration.objects.filter(
         Q(status=LongRunningMigrationStatus.CREATED)
-        | Q(status=LongRunningMigrationStatus.IN_PROGRESS)
-        & Q(date_modified__lte=task_expiry_time)
+        | (
+            Q(status=LongRunningMigrationStatus.IN_PROGRESS)
+            & Q(date_modified__lte=task_expiry_time)
+        )
     ).order_by('date_created'):
         async_execute.delay(migration.pk)
 
