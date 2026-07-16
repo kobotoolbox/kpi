@@ -85,20 +85,27 @@ def _heartbeat(stop_event: threading.Event, lock_key: str, migration_id: int):
         # server-side: over a 24h lifetime a persistent connection cannot be
         # trusted, and a broken one would fail every subsequent heartbeat.
         close_old_connections()
+        # The lock and the timestamp guard against a premature re-dispatch
+        # through two independent backends, so refresh them independently. If
+        # the cache is down the lock may expire, but a fresh `date_modified`
+        # still keeps `execute_long_running_migrations` from re-dispatching us.
+        # If the DB is down the lock is still held, so `cache.add` blocks it.
+        # Never let one bad iteration kill the heartbeat.
         try:
             cache.set(lock_key, 'true', timeout=ttl)
+        except Exception as e:
+            logging.warning(
+                f'LongRunningMigration #{migration_id} heartbeat '
+                f'cache refresh failed: {e}'
+            )
+        try:
             LongRunningMigration.objects.filter(pk=migration_id).update(
                 date_modified=timezone.now()
             )
         except Exception as e:
-            # A failed DB write is harmless: the lock is still refreshed, so a
-            # premature re-dispatch is blocked by `cache.add`. A failed cache
-            # write is worse: the lock can expire and the migration may run a
-            # second time in parallel. We accept that because migrations are
-            # written to be safe to re-run. Either way, never let one bad
-            # iteration kill the heartbeat.
             logging.warning(
-                f'LongRunningMigration #{migration_id} heartbeat failed: {e}'
+                f'LongRunningMigration #{migration_id} heartbeat '
+                f'DB update failed: {e}'
             )
 
     # Release this thread's connection on exit.
