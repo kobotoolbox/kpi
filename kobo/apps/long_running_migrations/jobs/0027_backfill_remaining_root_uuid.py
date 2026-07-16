@@ -1,5 +1,6 @@
 # Generated on 2026-06-23
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
 from django.core.management import call_command
 from django.db import IntegrityError
@@ -145,6 +146,12 @@ def _process_instances_batch(
                     xform=xform.id_string,
                     verbosity=2,
                 )
+            except (SoftTimeLimitExceeded, TimeLimitExceeded):
+                # Celery interrupted the command mid-run: this is not an
+                # unrecoverable data error, so do not tag the XForm as failed.
+                # Let it propagate to `execute()`, which resumes on the next
+                # Celery beat cycle.
+                raise
             except Exception as e:
                 logging.error(
                     f'[LRM 0027] - Failed to clean duplicated submissions: {str(e)}'
