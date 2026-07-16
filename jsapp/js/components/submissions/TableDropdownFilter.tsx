@@ -26,10 +26,17 @@ const TableDropdownFilter: FilterRender = (props: TableDropdownFilterProps) => {
   const selectFromListName = 'selectFromListName' in props.column ? props.column.selectFromListName : undefined
   const translationIndex = 'translationIndex' in props.column ? props.column.translationIndex || 0 : 0
 
+  // Duplicate values can exist in the choices array, so we use a Set to filter them out
+  const seenValues = new Set<string>()
   const data = [
     { value: SHOW_ALL_VALUE, label: t('Show All') },
     ...choices
       .filter((choiceItem) => choiceItem.list_name === selectFromListName)
+      .filter((item) => {
+        if (seenValues.has(item.name)) return false
+        seenValues.add(item.name)
+        return true
+      })
       .map((item) => {
         return {
           value: item.name,
