@@ -1486,10 +1486,12 @@
                                 },
                                 "DataSharingOfTheProject": {
                                     "value": {
-                                        "enabled": true,
-                                        "fields": [
-                                            "string"
-                                        ]
+                                        "data_sharing": {
+                                            "enabled": true,
+                                            "fields": [
+                                                "string"
+                                            ]
+                                        }
                                     },
                                     "summary": "Data sharing of the project"
                                 }

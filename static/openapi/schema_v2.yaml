@@ -1061,9 +1061,10 @@ paths:
                 summary: Updating an asset
               DataSharingOfTheProject:
                 value:
-                  enabled: true
-                  fields:
-                  - string
+                  data_sharing:
+                    enabled: true
+                    fields:
+                    - string
                 summary: Data sharing of the project
       security:
       - BasicAuth: []
