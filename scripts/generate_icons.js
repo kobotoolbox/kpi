@@ -6,8 +6,9 @@ const { generateFonts } = require('fantasticon')
 const fs = require('fs')
 const path = require('path')
 
-const sourceDir = 'jsapp/svg-icons'
-const destDir = 'jsapp/fonts'
+const root = path.resolve(__dirname, '..')
+const sourceDir = path.join(root, 'jsapp/svg-icons')
+const destDir = path.join(root, 'jsapp/fonts')
 
 console.warn(
   '\x1b[31m***\n',
@@ -15,6 +16,8 @@ console.warn(
   '\n***',
   '\x1b[0m',
 )
+
+fs.mkdirSync(destDir, { recursive: true })
 
 console.info('Generating fonts…')
 generateFonts({
@@ -44,7 +47,7 @@ generateFonts({
     },
   },
   templates: {
-    css: path.resolve('jsapp/k-icons-css-template.hbs'),
+    css: path.join(root, 'jsapp/k-icons-css-template.hbs'),
     html: undefined,
   },
 })
@@ -57,9 +60,13 @@ generateFonts({
 
     console.info('Generating TypeScript definitions…')
     const icons = Object.keys(codepoints)
+    // Quoted keys are required because icon names contain hyphens (e.g. 'qt-file')
     const typeParts = icons.map((name) => `'${name}'`)
     const enumParts = icons.map((name) => `'${name}' = '${name}'`)
-    const fileContent = `export type IconName = ${typeParts.join(' | ')}\nexport enum IconNames {${enumParts.join(', ')}}`
+    const fileContent = [
+      `export type IconName = ${typeParts.join(' | ')}`,
+      `export enum IconNames {${enumParts.join(', ')}}`,
+    ].join('\n')
     fs.writeFileSync(path.join(destDir, 'k-icons.ts'), fileContent)
 
     console.info('Done.')
