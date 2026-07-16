@@ -26,6 +26,7 @@ USERFORM_ID = '_userform_id'
 DATE = '_date'
 GEOLOCATION = '_geolocation'
 SUBMISSION_TIME = '_submission_time'
+DATE_MODIFIED = '_date_modified'
 DELETEDAT = '_deleted_at'  # no longer used but may persist in old submissions
 SUBMITTED_BY = '_submitted_by'
 VALIDATION_STATUS = '_validation_status'

@@ -4,6 +4,7 @@ import time
 from django.conf import settings
 from django.db import DEFAULT_DB_ALIAS, transaction
 from django.db.models.signals import post_delete, pre_delete
+from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 from django_userforeignkey.request import get_current_request
 
@@ -266,8 +267,15 @@ def set_instance_validation_statuses(
             )
             for record in records_queryset.values('id', 'root_uuid', 'json')
         }
+    # A queryset update bypasses `AbstractTimeStampedModel.save()`, so
+    # `date_modified` must be refreshed explicitly to keep the bulk path
+    # consistent with `add_validation_status_to_instance()`
+    date_modified = timezone.now()
     updated_records_count = records_queryset.update(
-        validation_status=new_validation_status
+        validation_status=new_validation_status,
+        date_modified=date_modified,
     )
-    ParsedInstance.bulk_update_validation_statuses(mongo_query, new_validation_status)
+    ParsedInstance.bulk_update_validation_statuses(
+        mongo_query, new_validation_status, date_modified=date_modified
+    )
     return updated_records_count

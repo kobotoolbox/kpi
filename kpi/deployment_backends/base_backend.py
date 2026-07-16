@@ -25,7 +25,12 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
 )
-from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    DATE_MODIFIED,
+    META_INSTANCE_ID,
+    META_ROOT_UUID,
+    SUBMISSION_TIME,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
@@ -832,11 +837,25 @@ class BaseDeploymentBackend(abc.ABC):
             submission, all_attachment_xpaths
         )
         submission = self._inject_root_uuid(submission)
+        submission = self._inject_date_modified(submission)
         submission['_validation_status'] = (
             submission.get('_validation_status', None) or {}
         )
         submission.pop('_tags', None)
         submission.pop('_notes', None)
+        return submission
+
+    def _inject_date_modified(self, submission: dict) -> dict:
+
+        if submission.get(DATE_MODIFIED):
+            return submission
+
+        # Documents written before `_date_modified` was introduced do not
+        # carry the key; fall back to the creation time so consumers always
+        # see a value
+        if submission_time := submission.get(SUBMISSION_TIME):
+            submission[DATE_MODIFIED] = submission_time
+
         return submission
 
     def _inject_root_uuid(self, submission: dict) -> dict:
