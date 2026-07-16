@@ -17,7 +17,7 @@ module.exports = do ->
   class viewRowDetailValidationLogic.ValidationLogicCriterionBuilder extends $skipLogicView.SkipLogicCriterionBuilderView
     render: () ->
       super()
-      @$el.html(@$el.html().replace 'only be displayed', 'be valid only')
+      @$el.find('p').first().html(t("This question will be valid only if the following conditions apply"))
 
       @
 
