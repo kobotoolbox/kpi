@@ -38,6 +38,12 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     return PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid)
   }
 
+  const onCustomViewClick = (viewUid: string) => {
+    if (viewUid !== props.selectedViewUid) {
+      projectViews.fetchData()
+    }
+  }
+
   const displayMyOrgOption =
     organization.is_mmo &&
     (organization.request_user_role === MemberRoleEnum.admin || organization.request_user_role === MemberRoleEnum.owner)
@@ -108,7 +114,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
                 key={view.uid}
                 className={styles.menuOption}
                 to={getOptionRoute(view.uid)}
-                onClick={() => projectViews.fetchData()}
+                onClick={() => onCustomViewClick(view.uid)}
               >
                 {view.name}
               </Link>
