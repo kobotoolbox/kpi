@@ -232,9 +232,21 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f'\t\tOld UUID: {old_uuid}, New UUID: {instance.uuid}'
                     )
-                instance.xml = set_meta(instance.xml, 'instanceID', instance.uuid)
+                try:
+                    instance.xml = set_meta(
+                        instance.xml, 'instanceID', instance.uuid
+                    )
+                except ValueError:
+                    # Legacy submission without an instanceID node in its XML.
+                    # The DB `uuid` update above already resolves the collision.
+                    pass
                 instance.xml_hash = instance.get_hash(instance.xml)
-                instance._populate_root_uuid()  # noqa
+                try:
+                    instance._populate_root_uuid()  # noqa
+                except AssertionError:
+                    # No derivable root_uuid on this legacy submission; fall
+                    # back to its uuid, as LRM 0027 does.
+                    instance.root_uuid = instance.uuid
                 instances_to_update.append(instance)
 
                 # Save the parsed instance to sync MongoDB
