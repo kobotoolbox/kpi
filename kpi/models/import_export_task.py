@@ -406,8 +406,6 @@ class ImportTask(ImportExportTask):
             name = node.get('name')
             if not name or _is_group_end(node):
                 continue
-            if not name:
-                continue
             if not is_valid_node_name(name):
                 raise ValueError(f'Invalid node name: {name}')
             if name in names:
