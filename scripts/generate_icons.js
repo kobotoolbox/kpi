@@ -2,11 +2,12 @@
  * This scripts generates icon font from our SVG icons to be used in the app.
  */
 
-const webfontsGenerator = require('@vusion/webfonts-generator')
-const replaceInFile = require('replace-in-file')
+const { generateFonts } = require('fantasticon')
 const fs = require('fs')
-const sourceDir = 'jsapp/svg-icons/'
-const destDir = 'jsapp/fonts/'
+const path = require('path')
+
+const sourceDir = 'jsapp/svg-icons'
+const destDir = 'jsapp/fonts'
 
 console.warn(
   '\x1b[31m***\n',
@@ -15,110 +16,54 @@ console.warn(
   '\x1b[0m',
 )
 
-console.info('Reading files…')
-const files = []
-const icons = []
-fs.readdirSync(sourceDir).forEach((file) => {
-  if (file.endsWith('.svg')) {
-    files.push(`${sourceDir}${file}`)
-    icons.push(file.replace('.svg', ''))
-  }
-})
-console.info(`${files.length} SVGs found.`)
-
 console.info('Generating fonts…')
-webfontsGenerator(
-  {
-    files: files,
-    dest: destDir,
-    fontName: 'k-icons',
-    cssFontsUrl: '../fonts/',
-    css: true,
-    cssTemplate: './jsapp/k-icons-css-template.hbs',
-    html: true,
-    types: ['eot', 'svg', 'ttf', 'woff2', 'woff'],
-    order: ['woff2', 'woff', 'ttf', 'eot', 'svg'],
-    templateOptions: {
-      classPrefix: 'k-icon-',
-      baseSelector: '.k-icon',
-      baseClassName: 'k-icon',
-    },
-    formatOptions: {
-      svg: {
-        fontStyle: 'normal',
-        fontWeight: 'normal',
-        fixedWidth: true,
-        centerHorizontally: false,
-        normalize: false,
-        height: 10000,
-        round: 0,
-        descent: 0,
-        ascent: 0,
-      },
-      ttf: {},
-      woff2: {},
-      woff: {},
-      eot: {},
+generateFonts({
+  name: 'k-icons',
+  inputDir: sourceDir,
+  outputDir: destDir,
+  fontTypes: ['eot', 'svg', 'ttf', 'woff', 'woff2'],
+  assetTypes: ['css', 'html'],
+  prefix: 'k-icon',
+  selector: '.k-icon',
+  fontsUrl: '../fonts/',
+  normalize: false,
+  fontHeight: 10000,
+  descent: 0,
+  round: 0,
+  formatOptions: {
+    svg: {
+      fontStyle: 'normal',
+      fontWeight: 'normal',
+      fixedWidth: true,
+      centerHorizontally: false,
+      normalize: false,
+      height: 10000,
+      round: 0,
+      descent: 0,
+      ascent: undefined,
     },
   },
-  (error) => {
-    if (error) {
-      throw new Error('Fail!', error)
-    } else {
-      try {
-        /*
-         * We load styles by importing into React.
-         * It puts the contents of the generated CSS in an inline style tag,
-         * which somehow causes hash in query parameters to be lost.
-         * Our HACKFIX is manually adding timestamps to filenames.
-         */
-        console.info('Adding timestamp to files…')
-        const timestamp = Date.now()
-        ;['eot', 'svg', 'ttf', 'woff', 'woff2'].forEach((ext) => {
-          const oldName = `k-icons.${ext}`
-          const newName = `k-icons.${timestamp}.${ext}`
-          fs.renameSync(`${destDir}${oldName}`, `${destDir}${newName}`)
-          replaceInFile.sync({
-            files: [`${destDir}k-icons.css`],
-            // Use additional "?" to differentiate woff and woff2
-            from: [`${oldName}?`],
-            to: [`${newName}?`],
-          })
-        })
-
-        /*
-         * This is needed because we use @extend on k-icons selectors, and it
-         * sadly doesn't work with a regular CSS file.
-         */
-        console.info('Copying k-icons.css to SCSS file…')
-        fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}k-icons.scss`)
-
-        generateDefinitions(icons)
-      } catch (e) {
-        console.warn('\x1b[31m***\n', e, '\n***', '\x1b[0m')
-      }
-    }
+  templates: {
+    css: path.resolve('jsapp/k-icons-css-template.hbs'),
+    html: undefined,
   },
-)
+})
+  .then(({ codepoints }) => {
+    console.info('Copying k-icons.css to SCSS file…')
+    fs.copyFileSync(
+      path.join(destDir, 'k-icons.css'),
+      path.join(destDir, 'k-icons.scss'),
+    )
 
-/**
- * This makes a file with `export type IconName = 'one' | 'two' | …` and an
- * array of all names.
- */
-function generateDefinitions(iconsList) {
-  console.info('Generating definition file…')
-  const typeParts = []
-  const enumParts = []
-  iconsList.forEach((iconName) => {
-    typeParts.push(`'${iconName}'`)
-    enumParts.push(`'${iconName}' = '${iconName}'`)
-  })
-  const fileContent = `export type IconName = ${typeParts.join(' | ')}
-export enum IconNames {${enumParts.join(', ')}}`
+    console.info('Generating TypeScript definitions…')
+    const icons = Object.keys(codepoints)
+    const typeParts = icons.map((name) => `'${name}'`)
+    const enumParts = icons.map((name) => `'${name}' = '${name}'`)
+    const fileContent = `export type IconName = ${typeParts.join(' | ')}\nexport enum IconNames {${enumParts.join(', ')}}`
+    fs.writeFileSync(path.join(destDir, 'k-icons.ts'), fileContent)
 
-  fs.writeFile(`${destDir}/k-icons.ts`, fileContent, (err) => {
-    if (err) {
-      throw new Error('Fail!', err)
-    }
+    console.info('Done.')
   })
-}
+  .catch((error) => {
+    throw new Error('Font generation failed', { cause: error })
+  })
