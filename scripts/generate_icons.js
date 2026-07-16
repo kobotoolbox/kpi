@@ -52,12 +52,6 @@ generateFonts({
   },
 })
   .then(({ codepoints }) => {
-    console.info('Copying k-icons.css to SCSS file…')
-    fs.copyFileSync(
-      path.join(destDir, 'k-icons.css'),
-      path.join(destDir, 'k-icons.scss'),
-    )
-
     console.info('Generating TypeScript definitions…')
     const icons = Object.keys(codepoints)
     // Quoted keys are required because icon names contain hyphens (e.g. 'qt-file')
