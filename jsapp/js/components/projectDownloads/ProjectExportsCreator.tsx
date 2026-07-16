@@ -359,6 +359,10 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       payload.export_settings.flatten = currentState.isFlattenGeoJsonEnabled
     }
 
+    if (currentState.selectedExportType.value === EXPORT_TYPES.kml.value) {
+      payload.export_settings.flatten = true
+    }
+
     if (currentState.selectedExportType.value === EXPORT_TYPES.xls.value) {
       payload.export_settings.xls_types_as_text = currentState.isXlsTypesAsTextEnabled
     }
