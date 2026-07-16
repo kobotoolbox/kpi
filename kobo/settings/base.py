@@ -219,7 +219,14 @@ CONSTANCE_CONFIG = {
         'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
-    'LAST_TOS_UPDATE': ('', 'Date of the most recent update to the terms of service'),
+    'LAST_TOS_UPDATE': (
+        '',
+        'Date of the most recent update to the terms of service. '
+        "DO NOT EDIT HERE. Instead, use the 'Require "
+        "all users to reaccept the Terms of Service' action in "
+        'Sitewide messages',
+        'disabled',
+    ),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
         'https://github.com/kobotoolbox/',
@@ -711,21 +718,11 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
     'long_metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 45}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 45}}},
     ],
     'long_textfield': [
         'django.forms.fields.CharField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 30}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 30}}},
     ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
@@ -743,6 +740,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             ),
         },
     ],
+    'disabled': [
+        'django.forms.fields.CharField',
+        {'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -753,6 +754,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
+        'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
