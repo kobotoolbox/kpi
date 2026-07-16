@@ -89,8 +89,12 @@ def _heartbeat(stop_event: threading.Event, lock_key: str, migration_id: int):
                 date_modified=timezone.now()
             )
         except Exception as e:
-            # A transient failure here only risks a spurious re-dispatch, which
-            # the lock guards against. Never let it kill the heartbeat.
+            # A failed DB write is harmless: the lock is still refreshed, so a
+            # premature re-dispatch is blocked by `cache.add`. A failed cache
+            # write is worse: the lock can expire and the migration may run a
+            # second time in parallel. We accept that because migrations are
+            # written to be safe to re-run. Either way, never let one bad
+            # iteration kill the heartbeat.
             logging.warning(
                 f'LongRunningMigration #{migration_id} heartbeat failed: {e}'
             )
