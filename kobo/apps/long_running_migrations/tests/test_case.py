@@ -13,9 +13,7 @@ from ..tasks import _heartbeat, async_execute, execute_long_running_migrations
 FIXTURES_DIR = os.path.join(
     'kobo', 'apps', 'long_running_migrations', 'tests', 'fixtures'
 )
-LOCMEM_CACHE = {
-    'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}
-}
+LOCMEM_CACHE = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
 
 
 @override_settings(
@@ -170,9 +168,7 @@ class LongRunningMigrationLockTestCase(TestCase):
         first = LongRunningMigration.objects.create(name='sample_task')
         second = LongRunningMigration.objects.create(name='sample_task_2')
         # Hold the lock of the first migration only.
-        cache.add(
-            f'execute_long_running_migrations:{first.name}', 'true', timeout=300
-        )
+        cache.add(f'execute_long_running_migrations:{first.name}', 'true', timeout=300)
         async_execute(first.pk)
         async_execute(second.pk)
         first.refresh_from_db()

@@ -1733,14 +1733,16 @@ CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT = int(
 # the interval to tolerate a briefly stalled worker without expiring the lock of
 # a task that is still alive.
 CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL = int(
-    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL', 60)  # seconds
+    os.environ.get(
+        'CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL', 60  # 60 seconds
+    )
 )
 
 CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL = int(
-    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # seconds
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # 300 sec
 )
 
-CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # seconds
+CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 seconds
 
 """ Django allauth configuration """
 # User.email should continue to be used instead of the EmailAddress model
