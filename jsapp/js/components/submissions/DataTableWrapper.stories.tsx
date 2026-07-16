@@ -154,6 +154,7 @@ const minimalAsset = getApiV2AssetsRetrieveResponseMock({
   name: 'Audio form',
   deployment__active: true,
   has_deployment: true,
+  settings: {},
   map_styles: {},
   content: {
     schema: '1',
@@ -211,6 +212,7 @@ const processingAsset = getApiV2AssetsRetrieveResponseMock({
   name: 'Audio form with processing',
   deployment__active: true,
   has_deployment: true,
+  settings: {},
   map_styles: {},
   content: {
     schema: '1',
