@@ -72,5 +72,6 @@ generateFonts({
     console.info('Done.')
   })
   .catch((error) => {
-    throw new Error('Font generation failed', { cause: error })
+    console.error('Font generation failed:', error)
+    process.exit(1)
   })
