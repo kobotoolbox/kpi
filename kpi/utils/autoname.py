@@ -6,7 +6,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from formpack.utils.json_hash import json_hash
-from kpi.utils.sluggify import is_valid_node_name, sluggify, sluggify_label
+from kpi.utils.sluggify import sluggify, sluggify_label
 
 
 def _increment(name):
@@ -95,6 +95,9 @@ def autoname_fields_in_place(surv_content, destination_key):
     # rows_needing_names is all rows needing a valid and unique name
     # end_group, etc. do not need valid names
     rows_needing_names = [r for r in surv_list if not _is_group_end(r)]
+    for row in [r for r in rows_needing_names if _has_name(r)]:
+        _assign_row_to_name(row, row['name'])
+
     for row in [r for r in rows_needing_names if not _has_name(r)]:
         if 'label' in row:
             if isinstance(row['label'], list):
