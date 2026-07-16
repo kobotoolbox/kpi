@@ -23426,7 +23426,6 @@ components:
       required:
       - _data
       - _dateCreated
-      - _dependency
       - _uuid
     SupplementalDataVersionItemManual:
       type: object
@@ -23469,7 +23468,6 @@ components:
       - _data
       - _dateAccepted
       - _dateCreated
-      - _dependency
       - _uuid
     SupplementalDataVersionItemQual:
       type: object
