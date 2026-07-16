@@ -70,41 +70,47 @@ def handle_unpaid_subscription(sender, **kwargs):
             product = Product.objects.filter(id=product_data).first()
             if product:
                 product_metadata = product.metadata or {}
+            else:
+                logging.warning(
+                    f'[Stripe Webhook] Product {product_data} missing in local '
+                    f'djstripe sync. Fail-safe triggered: preserving unpaid status.'
+                )
+                preserve_status = True
+                break
 
-        if product_metadata.get('preserve_unpaid_status') == 'true':
+        val = str(product_metadata.get('preserve_unpaid_status', '')).strip().lower()
+        if val == 'true':
             preserve_status = True
             break
+
+    stripe_id = subscription_data.get('id')
 
     if preserve_status:
         logging.info(
             f'[Stripe Webhook] Preserving unpaid status for subscription '
-            f'{subscription_data.get("id")} due to "preserve_unpaid_status": '
-            f'"true" in associated product metadata.'
+            f'{stripe_id} due to product metadata configuration.'
         )
         return
 
     djstripe_sub = kwargs.get('instance')
-    stripe_id = subscription_data.get('id')
+
+    if not djstripe_sub and stripe_id:
+        djstripe_sub = Subscription.objects.filter(id=stripe_id).first()
 
     if djstripe_sub and hasattr(djstripe_sub, 'cancel'):
         logging.info(
-            f'[Stripe Webhook] Initiating cancellation for unpaid subscription '
-            f'{stripe_id} as it does not have the "preserve_unpaid_status" flag.'
+            f'[Stripe Webhook] Initiating API cancellation on Stripe for '
+            f'unpaid subscription {stripe_id}.'
         )
-        djstripe_sub.cancel(at_period_end=False)
+        try:
+            djstripe_sub.cancel(at_period_end=False)
+        except Exception as e:
+            logging.error(
+                f'[Stripe Webhook] Failed to cancel unpaid subscription {stripe_id} '
+                f'on Stripe: {e}'
+            )
     else:
-        if stripe_id:
-            local_sub = Subscription.objects.filter(id=stripe_id).first()
-            if local_sub:
-                logging.info(
-                    f'[Stripe Webhook] Initiating fallback cancellation for unpaid '
-                    f'subscription {stripe_id} as it does not have the '
-                    f'"preserve_unpaid_status" flag.'
-                )
-                local_sub.cancel(at_period_end=False)
-            else:
-                logging.warning(
-                    f'[Stripe Webhook] Failed to execute fallback cancellation for '
-                    f'unpaid subscription {stripe_id}. The subscription could not be '
-                    f'found in the local database.'
-                )
+        logging.warning(
+            f'[Stripe Webhook] Unable to cancel unpaid subscription {stripe_id}; '
+            f'no local Subscription instance found to execute .cancel()'
+        )
