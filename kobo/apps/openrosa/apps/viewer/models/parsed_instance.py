@@ -478,10 +478,10 @@ class ParsedInstance(models.Model):
             )
 
         if attachments_to_update:
-            xform_instances.bulk_write(attachments_to_update)
             Instance.objects.filter(pk__in=instance_ids).update(
                 date_modified=date_modified
             )
+            xform_instances.bulk_write(attachments_to_update)
 
 
 def _get_attachments_from_instance(instance_id) -> list[dict]:
