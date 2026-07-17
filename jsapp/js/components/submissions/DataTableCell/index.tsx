@@ -35,6 +35,22 @@ export default function DataTableCell(props: DataTableCellProps) {
   const submissionIndex = props.reactTableRow.index + 1
   const columnName = getColumnLabel(props.asset, props.columnKey, props.showGroupName, props.translationIndex)
 
+  const shouldRenderUndefinedNestedKeyAsRepeat = (() => {
+    if (props.reactTableRow.value !== undefined || !props.columnKey.includes('/')) {
+      return false
+    }
+
+    const keyPathSegments = props.columnKey.split('/')
+    for (let i = keyPathSegments.length - 1; i >= 1; i--) {
+      const parentPath = keyPathSegments.slice(0, i).join('/')
+      if (Array.isArray(submission[parentPath])) {
+        return true
+      }
+    }
+
+    return false
+  })()
+
   if (
     props.isBulkProcessingInProgress &&
     props.reactTableRow.value === undefined &&
@@ -47,7 +63,12 @@ export default function DataTableCell(props: DataTableCellProps) {
     )
   }
 
-  if (typeof props.reactTableRow.value === 'object' && !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+  // Some repeat answers are stored under related nested keys, so a direct lookup for this column key can be
+  // undefined even though repeat data exists in the submission payload.
+  if (
+    !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP) &&
+    (typeof props.reactTableRow.value === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
+  ) {
     return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
   }
 

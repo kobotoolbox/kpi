@@ -4,6 +4,11 @@ import type { ServiceUsageResponse } from '#/api/models/serviceUsageResponse'
  * Factory functions for creating mock service usage data with different limit scenarios.
  * Useful for testing bulk processing alerts for ASR (transcription) and MT (translation).
  *
+ * Note: NOT migrated to Orval because this file provides valuable domain-specific
+ * presets (asrExceeded, mtExceeded, asrNearLimit, etc.) that calculate percentage-based
+ * quotas. These presets encode business logic about ASR (transcription) and MT (translation)
+ * service limits and make tests more readable than passing raw quota values to Orval mocks.
+ *
  * Instead of writing out full balance objects with calculated values, just call
  * the preset that matches your scenario:
  *   - asrExceeded() for transcription quota exceeded

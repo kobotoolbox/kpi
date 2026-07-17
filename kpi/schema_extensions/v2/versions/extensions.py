@@ -55,7 +55,14 @@ class DateDeployedFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.DateDeployedField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.DATETIME)
+        # Deployment datetime, or `false` when the version was never deployed
+        # (see `AssetVersionListSerializer.get_date_deployed`).
+        return {
+            'oneOf': [
+                build_basic_type(OpenApiTypes.DATETIME),
+                {'type': 'boolean', 'enum': [False]},
+            ]
+        }
 
 
 class DateModifiedFieldExtension(OpenApiSerializerFieldExtension):

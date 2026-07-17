@@ -20,7 +20,19 @@ export type AssetsAdvancedFeaturesBulkActionsListParams = {
    */
   offset?: number
   /**
+   * Filter jobs to this question xpath.
+   */
+  question_xpath?: string
+  /**
    * The initial index from which to return the results. Use with `limit`.
    */
   start?: number
+  /**
+   * Filter by parent job status. Accepts comma-separated values, e.g. "pending,in_progress".
+   */
+  status?: string
+  /**
+   * Filter jobs to those containing this submission UUID.
+   */
+  submission_uuid?: string
 }

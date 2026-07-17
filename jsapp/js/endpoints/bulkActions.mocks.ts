@@ -1,9 +1,11 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionListResponse } from '#/api/models/bulkActionListResponse'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
-import bulkActionFactory from './bulkAction.factory'
+import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 
 /**
  * Mock API for bulk actions list. Use it in Storybook tests in `parameters.msw.handlers.bulkActions`.
@@ -30,7 +32,31 @@ const defaultBulkActionsResponse: BulkActionListResponse = {
   count: 1,
   next: null,
   previous: null,
-  results: [bulkActionFactory('uuid:mock-uuid-1', 'fr')],
+  results: [
+    getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+      uid: 'bulk-action-uid',
+      status: BulkActionResponseStatusEnum.in_progress,
+      action_id: ActionIdEnum.automatic_google_transcription,
+      question_xpath: 'Your_name',
+      submission_uuids: ['uuid:mock-uuid-1'],
+      submission_statuses: [
+        {
+          uuid: 'uuid:mock-uuid-1',
+          status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+          error: null,
+        },
+      ],
+      params: {
+        language: 'fr',
+      },
+      progress: 0,
+      created_by: {
+        username: 'zefir',
+      },
+      date_created: '2026-01-01T00:00:00Z',
+      date_modified: '2026-01-01T00:00:00Z',
+    }),
+  ],
 }
 
 /**

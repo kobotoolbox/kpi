@@ -46,14 +46,17 @@ function detectInterfaceWithIndex(source) {
 function ensureTypeImportAfterHeader(source, typeName, importPath) {
   const importLine = `import type { ${typeName} } from '${importPath}'`
 
-  // Already imported?
+  // Check if this type is already imported
   const hasImport = new RegExp(`\\bimport\\s+type\\s*\\{\\s*${typeName}\\s*\\}\\s+from\\s+['"]`).test(source)
   if (hasImport) return source
 
+  // Split the file into Orval's header comment and the rest
   const { header, rest } = splitHeader(source)
+
+  // If no header exists, add import at the top
   if (!header) return `${importLine}\n${source}`
 
-  // Ensure one blank line after the Orval header for readability
+  // Insert import right after the Orval header with one blank line for readability
   return `${header}\n${importLine}\n${rest}`
 }
 
@@ -64,14 +67,19 @@ for (const file of FILES) {
   const source = fs.readFileSync(filePath, 'utf8')
 
   const detected = detectInterfaceWithIndex(source)
-  if (!fs.existsSync(filePath)) throw new Error(`File ${file} doesn't have an interface within`)
+  if (!detected) {
+    // File already processed (converted from interface to type)
+    continue
+  }
 
   const { name, versionType, valueType, interfaceBlock } = detected
 
   const importPath = inferImportPath(valueType)
   let patched = ensureTypeImportAfterHeader(source, valueType, importPath)
 
-  // Note: the workaround with index signatures is partial: `|` works only for assignment and `&` works for reading.
+  // TypeScript index signatures behave differently with unions vs intersections:
+  // - Use `|` (union) for Payload types: allows assigning objects without all Record keys
+  // - Use `&` (intersection) for Response types: allows reading all properties safely
   const operator = file.includes('Payload') ? '|' : '&'
 
   const replacement =

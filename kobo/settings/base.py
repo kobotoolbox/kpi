@@ -18,6 +18,7 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
+from .utils import constance_env, dj_stripe_request_callback_method
 
 env = environ.Env()
 
@@ -218,7 +219,14 @@ CONSTANCE_CONFIG = {
         'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
-    'LAST_TOS_UPDATE': ('', 'Date of the most recent update to the terms of service'),
+    'LAST_TOS_UPDATE': (
+        '',
+        'Date of the most recent update to the terms of service. '
+        "DO NOT EDIT HERE. Instead, use the 'Require "
+        "all users to reaccept the Terms of Service' action in "
+        'Sitewide messages',
+        'disabled',
+    ),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
         'https://github.com/kobotoolbox/',
@@ -226,21 +234,39 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')),
+        constance_env(
+            env.str,
+            'CONSTANCE_SUPPORT_EMAIL',
+            'KOBO_SUPPORT_EMAIL',
+            env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
+        ),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        constance_env(
+            env.str,
+            'CONSTANCE_SUPPORT_URL',
+            'KOBO_SUPPORT_URL',
+            'https://support.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
+        constance_env(
+            env.str,
+            'CONSTANCE_ACADEMY_URL',
+            'KOBO_ACADEMY_URL',
+            'https://academy.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
-        env.str(
-            'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
+        constance_env(
+            env.str,
+            'CONSTANCE_COMMUNITY_URL',
+            'KOBO_COMMUNITY_URL',
+            'https://community.kobotoolbox.org/',
         ),
         'URL for "KoboToolbox Community Forum"',
     ),
@@ -329,7 +355,12 @@ CONSTANCE_CONFIG = {
         'Require MFA for superusers with a usable password',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
-        env.bool('USAGE_LIMIT_ENFORCEMENT', False),
+        constance_env(
+            env.bool,
+            'CONSTANCE_USAGE_LIMIT_ENFORCEMENT',
+            'USAGE_LIMIT_ENFORCEMENT',
+            False,
+        ),
         'For Stripe-enabled instances, determines whether usage limits will be enforced'
         'by blocking submissions/NLP actions or deleting stored files.',
     ),
@@ -346,10 +377,6 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
-    # We are adopting the `CONSTANCE_` prefix as the new standard for all env
-    # variables that override Constance defaults. Legacy variables (e.g., KOBO_*)
-    # will be deprecated and migrated to this new pattern after the upcoming
-    # migration to Constance 4.x
     'ASR_MT_GOOGLE_PROJECT_ID': (
         env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
@@ -373,6 +400,20 @@ CONSTANCE_CONFIG = {
             'languages only available outside the EU become unsupported.'
         ),
         'google_region_choice',
+    ),
+    # TODO: remove this default override once Google fixes Speech-to-Text
+    # support for 'sw' and 'sw-KE' language codes
+    'ASR_LANGUAGE_CODE_OVERRIDES': (
+        env.str('CONSTANCE_ASR_LANGUAGE_CODE_OVERRIDES', 'sw:auto,sw-KE:auto'),
+        (
+            'Comma-separated mappings that override the language code sent to '
+            'Google Speech-to-Text. Works around known Google-side pipeline '
+            'failures for specific languages. Useful for temporary workarounds '
+            'when Google Speech-to-Text does not correctly support a specific '
+            'language code. Format: source_language:google_language. '
+            'Example: sw:auto,sw-KE:auto'
+        ),
+        str,
     ),
     'ASR_MT_GOOGLE_CREDENTIALS': (
         '',
@@ -677,21 +718,11 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
     'long_metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 45}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 45}}},
     ],
     'long_textfield': [
         'django.forms.fields.CharField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 30}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 30}}},
     ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
@@ -709,6 +740,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             ),
         },
     ],
+    'disabled': [
+        'django.forms.fields.CharField',
+        {'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -719,6 +754,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
+        'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
@@ -746,6 +782,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_PROJECT_ID',
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
         'ASR_MT_GOOGLE_REGION',
+        'ASR_LANGUAGE_CODE_OVERRIDES',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
         'AUTOMATIC_QA_REQUESTS_PER_SECOND'
@@ -1254,16 +1291,6 @@ Stripe configuration intended for kf.kobotoolbox.org only,
 tracks usage limit exceptions
 """
 STRIPE_ENABLED = env.bool('STRIPE_ENABLED', False)
-
-
-def dj_stripe_request_callback_method():
-    # This method exists because dj-stripe's documentation doesn't reflect reality.
-    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
-    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
-    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
-    # It doesn't need to do anything other than exist
-    # https://github.com/dj-stripe/dj-stripe/issues/1900
-    pass
 
 
 BULK_ACTION_RATE_LIMITS = {
