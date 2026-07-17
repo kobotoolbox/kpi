@@ -10,29 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type AssetsAdvancedFeaturesBulkActionsListParams = {
-  /**
-   * Number of results to return per page. Use with `start`.
-   */
-  limit?: number
-  /**
-   * Deprecated alias of `start`.
-   */
-  offset?: number
-  /**
-   * Filter jobs to this question xpath.
-   */
-  question_xpath?: string
-  /**
-   * The initial index from which to return the results. Use with `limit`.
-   */
-  start?: number
-  /**
-   * Filter by parent job status. Accepts comma-separated values, e.g. "pending,in_progress".
-   */
-  status?: string
-  /**
-   * Filter jobs to those containing this submission UUID.
-   */
-  submission_uuid?: string
+export interface AssetBulkRequestWithConfirm {
+  confirm: boolean
+  action: string
 }

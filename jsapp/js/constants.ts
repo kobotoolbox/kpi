@@ -150,6 +150,8 @@ export enum AssetTypeName {
   template = 'template',
   survey = 'survey',
   collection = 'collection',
+  // Sometimes an empty asset is possible to be created by some funky import flows
+  // empty = 'empty'
 }
 
 export interface AssetTypeDefinition {

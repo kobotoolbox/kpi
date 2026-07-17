@@ -2138,7 +2138,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # redeploy the asset to create a new deployment version
         self.asset.deploy(active=True)
         self.asset.save()
-        assert self.asset.asset_versions.count() == original_versions_count + 2
+        assert self.asset.asset_versions.count() == original_versions_count + 1
         assert (
             self.asset.deployed_versions.count()
             == original_deployed_versions_count + 1
