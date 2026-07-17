@@ -4008,7 +4008,10 @@ export const getApiV2AssetsVersionsListResponseMock = (
     uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     url: faker.internet.url(),
     content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_deployed: faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      faker.datatype.boolean(),
+    ]),
     date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   })),
   ...overrideResponse,
@@ -4020,7 +4023,10 @@ export const getApiV2AssetsVersionsRetrieveResponseMock = (
   uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   url: faker.internet.url(),
   content_hash: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_deployed: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    faker.datatype.boolean(),
+  ]),
   date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   content: {
     schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
