@@ -119,6 +119,19 @@ class ProjectViewsApiTestCase(BaseTestCase):
         self.assertNotIn(self.asset_org_fra.uid, uids)
         self.assertNotIn(self.asset_ext_esp.uid, uids)
 
+    def test_project_view_users_list(self):
+        self.client.force_login(self.regular_user)
+        url = reverse(
+            self._get_endpoint('projectview-users'),
+            kwargs={'uid_project_view': self.pv_org.uid},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # `asset_count` is serialized without the precomputed attribute the
+        # `/api/v2/users/` list injects (regression from #6447)
+        self.assertTrue(all('asset_count' in user for user in response.data['results']))
+
     def test_asset_permissions(self):
         # We test that get_project_view_user_permissions_for_asset correctly returns
         # permissions. Regular user should have PERM_VIEW_ASSET for asset_org_esp
