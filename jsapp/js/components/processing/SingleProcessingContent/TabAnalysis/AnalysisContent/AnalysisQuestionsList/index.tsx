@@ -19,10 +19,11 @@ import {
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
+import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { notify } from '#/utils'
 import NlpUsageLimitBlockModal from '../../../components/nlpUsageLimitBlockModal'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
@@ -62,7 +63,7 @@ export default function AnalysisQuestionsList({
     (feature) => feature.action === ActionEnum.automatic_bedrock_qual && feature.question_xpath === questionXpath,
   ) as AdvancedFeatureResponseManualQual | undefined
 
-  const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
+  const rootUuid = getSubmissionRootUuid(submission)
   const queryClient = useQueryClient()
 
   const mutationCreateBedrockFeature = useAssetsAdvancedFeaturesCreate({
