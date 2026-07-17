@@ -92,8 +92,9 @@ export const UserOwnsMMO: Story = {
 export const UserHasOnlyNonProjectAssets: Story = {
   parameters: {
     msw: {
-      handlers: {
-        assets: http.get(endpoints.ASSETS_URL, (info) => {
+      handlers: [
+        organizationMock(),
+        http.get(endpoints.ASSETS_URL, (info) => {
           const query = new URL(info.request.url).searchParams.get('q')
 
           if (query?.includes('asset_type:survey')) {
@@ -112,7 +113,7 @@ export const UserHasOnlyNonProjectAssets: Story = {
             results: [],
           })
         }),
-      },
+      ],
     },
   },
   play: async ({ canvasElement }) => {
