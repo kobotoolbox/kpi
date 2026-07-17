@@ -32823,7 +32823,6 @@
                 "required": [
                     "_data",
                     "_dateCreated",
-                    "_dependency",
                     "_uuid"
                 ]
             },
@@ -32881,7 +32880,6 @@
                     "_data",
                     "_dateAccepted",
                     "_dateCreated",
-                    "_dependency",
                     "_uuid"
                 ]
             },
