@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { http, HttpResponse } from 'msw'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import { expect, waitFor, within } from 'storybook/test'
+import { endpoints } from '#/api.endpoints'
 import assetsMock from '#/endpoints/assets.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
@@ -91,5 +93,42 @@ export const UserOwnsMMO: Story = {
     const deleteButton = await canvas.findByRole('button', { name: /delete account/i })
     expect(canvas.getByText(/transfer ownership of your organization/i)).toBeInTheDocument()
     expect(deleteButton).toBeDisabled()
+  },
+}
+
+export const UserHasOnlyNonProjectAssets: Story = {
+  parameters: {
+    msw: {
+      handlers: {
+        assets: http.get(endpoints.ASSETS_URL, (info) => {
+          const query = new URL(info.request.url).searchParams.get('q')
+
+          if (query?.includes('asset_type:survey')) {
+            return HttpResponse.json({
+              count: 0,
+              next: null,
+              previous: null,
+              results: [],
+            })
+          }
+
+          return HttpResponse.json({
+            count: 2,
+            next: null,
+            previous: null,
+            results: [],
+          })
+        }),
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await canvas.findByRole('button', { name: /delete account/i })
+    await waitFor(() => expect(canvas.queryByText('…')).not.toBeInTheDocument())
+
+    expect(canvas.getByText(/delete your account and all your account data/i)).toBeInTheDocument()
+    expect(canvas.getByRole('button', { name: /delete account/i })).toBeEnabled()
   },
 }
