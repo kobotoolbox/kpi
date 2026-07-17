@@ -8,7 +8,7 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.models import Asset, TagUid
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.tags.fields import ParentUrlField, TagUrlField
-from kpi.utils.object_permission import get_database_user, get_objects_for_user
+from kpi.utils.object_permission import get_objects_for_user
 
 
 class TagSerializer(serializers.ModelSerializer):
