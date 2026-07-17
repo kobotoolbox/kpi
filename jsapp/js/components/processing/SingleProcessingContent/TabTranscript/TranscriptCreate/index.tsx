@@ -2,9 +2,14 @@ import React, { useState } from 'react'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
 import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -21,6 +26,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   supplement: DataSupplementResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
@@ -30,6 +36,7 @@ export default function TranscriptCreate({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   supplement,
   onUnsavedWorkChange,
   advancedFeatures,
@@ -43,6 +50,17 @@ export default function TranscriptCreate({
     '##type##',
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
+
+  const hasConflictingOngoingJob =
+    languageCode !== null &&
+    isConflictingOngoingJobForSubmission({
+      activeBulkActions,
+      actionType: 'transcript',
+      fieldXpath: questionXpath,
+      submissionUuid: getSubmissionRootUuid(submission),
+      selectedLanguage: languageCode,
+    })
+
   const attachment = getAttachmentForProcessing(questionXpath, submission)
 
   function goBackToLanguageStep() {
@@ -67,9 +85,11 @@ export default function TranscriptCreate({
           suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           titleOverride={languageSelectorTitle}
           singleManualButtonLabel={t('transcribe')}
+          disableManual={hasConflictingOngoingJob}
           disableAutomatic={
             !envStore.data.asr_mt_features_enabled || typeof attachment === 'string' || !!attachment.is_deleted
           }
+          showConflictingOngoingJobAlert={hasConflictingOngoingJob}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (
@@ -80,6 +100,7 @@ export default function TranscriptCreate({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
+          activeBulkActions={activeBulkActions}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
         />
@@ -91,6 +112,7 @@ export default function TranscriptCreate({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
           advancedFeatures={advancedFeatures}
         />
       )}

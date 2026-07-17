@@ -2843,7 +2843,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_list",
-                "description": "## List bulk processing jobs on an asset\n\nReturns paginated bulk processing jobs associated with the specified asset. Each\njob is organized around one action, one question, and many submissions.\n\nUse this endpoint to monitor recently-created bulk transcription and translation\njobs. Each result includes the parent job status, per-submission statuses, the\noriginal deterministic params, the user who created the job, cancellation\nmetadata, and integer `progress` from `0` to `100`.\n\nJob statuses:\n\n* `pending`: the job exists but has not started.\n* `in_progress`: one or more child submissions are still active.\n* `complete`: every child submission has reached a terminal state.\n* `cancelled`: the job was cancelled.\n\nChild submission statuses:\n\n* `pending`\n* `in_progress`\n* `complete`\n* `failed`\n* `cancelled`\n",
+                "description": "## List bulk processing jobs on an asset\n\nReturns paginated bulk processing jobs associated with the specified asset. Each\njob is organized around one action, one question, and many submissions.\n\nUse this endpoint to monitor recently-created bulk transcription and translation\njobs. Each result includes the parent job status, per-submission statuses, the\noriginal deterministic params, the user who created the job, cancellation\nmetadata, and integer `progress` from `0` to `100`.\n\nOptional query params:\n\n* `status`: Filter by parent job status. Accepts a comma-separated list,\n  for example `status=pending,in_progress`.\n* `submission_uuid`: Return only jobs that include this submission.\n* `question_xpath`: Return only jobs for this question xpath.\n\nJob statuses:\n\n* `pending`: the job exists but has not started.\n* `in_progress`: one or more child submissions are still active.\n* `complete`: every child submission has reached a terminal state.\n* `cancelled`: the job was cancelled.\n\nChild submission statuses:\n\n* `pending`\n* `in_progress`\n* `complete`\n* `failed`\n* `cancelled`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -2864,6 +2864,14 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "question_xpath",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter jobs to this question xpath."
+                    },
+                    {
                         "name": "start",
                         "required": false,
                         "in": "query",
@@ -2871,6 +2879,22 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by parent job status. Accepts comma-separated values, e.g. \"pending,in_progress\"."
+                    },
+                    {
+                        "in": "query",
+                        "name": "submission_uuid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter jobs to those containing this submission UUID."
                     },
                     {
                         "in": "path",
