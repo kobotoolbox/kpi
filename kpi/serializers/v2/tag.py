@@ -32,10 +32,10 @@ class TagSerializer(serializers.ModelSerializer):
 
         user = get_database_user(request.user)
         accessible_assets = get_objects_for_user(user, PERM_VIEW_ASSET, Asset)
-
+        assets_uids = accessible_assets.filter(tags=obj).values_list('uid', flat=True)
         return [
             reverse('asset-detail', args=(asset_uid,), request=request)
-            for asset_uid in accessible_assets.filter(tags=obj).values_list('uid', flat=True)
+            for asset_uid in assets_uids
         ]
 
     @extend_schema_field(TagUrlField)
