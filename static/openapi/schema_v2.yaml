@@ -1061,9 +1061,10 @@ paths:
                 summary: Updating an asset
               DataSharingOfTheProject:
                 value:
-                  enabled: true
-                  fields:
-                  - string
+                  data_sharing:
+                    enabled: true
+                    fields:
+                    - string
                 summary: Data sharing of the project
       security:
       - BasicAuth: []
@@ -1956,6 +1957,13 @@ paths:
         original deterministic params, the user who created the job, cancellation
         metadata, and integer `progress` from `0` to `100`.
 
+        Optional query params:
+
+        * `status`: Filter by parent job status. Accepts a comma-separated list,
+          for example `status=pending,in_progress`.
+        * `submission_uuid`: Return only jobs that include this submission.
+        * `question_xpath`: Return only jobs for this question xpath.
+
         Job statuses:
 
         * `pending`: the job exists but has not started.
@@ -1983,6 +1991,11 @@ paths:
         description: Deprecated alias of `start`.
         schema:
           type: integer
+      - in: query
+        name: question_xpath
+        schema:
+          type: string
+        description: Filter jobs to this question xpath.
       - name: start
         required: false
         in: query
@@ -1990,6 +2003,17 @@ paths:
           `limit`.
         schema:
           type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Filter by parent job status. Accepts comma-separated values,
+          e.g. "pending,in_progress".
+      - in: query
+        name: submission_uuid
+        schema:
+          type: string
+        description: Filter jobs to those containing this submission UUID.
       - in: path
         name: uid_asset
         schema:
@@ -16069,29 +16093,33 @@ components:
       - total
     AssetBulkRequest:
       oneOf:
-      - type: object
-        properties:
-          asset_uids:
-            type: object
-            properties:
-              asset_uids:
-                type: array
-                items:
-                  type: object
-          action:
-            type: string
-        required:
-        - action
-        - asset_uids
-      - type: object
-        properties:
-          confirm:
-            type: boolean
-          action:
-            type: string
-        required:
-        - action
-        - confirm
+      - $ref: '#/components/schemas/AssetBulkRequestWithUids'
+      - $ref: '#/components/schemas/AssetBulkRequestWithConfirm'
+    AssetBulkRequestWithConfirm:
+      type: object
+      properties:
+        confirm:
+          type: boolean
+        action:
+          type: string
+      required:
+      - action
+      - confirm
+    AssetBulkRequestWithUids:
+      type: object
+      properties:
+        asset_uids:
+          type: object
+          properties:
+            asset_uids:
+              type: array
+              items:
+                type: object
+        action:
+          type: string
+      required:
+      - action
+      - asset_uids
     AssetBulkResponse:
       type: object
       properties:
@@ -16114,39 +16142,43 @@ components:
       - total_submission_count
     AssetCreateRequest:
       oneOf:
-      - type: object
-        properties:
-          name:
-            type: string
-          clone_from:
-            type: string
-          asset_type:
-            type: string
-        required:
-        - asset_type
-        - clone_from
-        - name
-      - type: object
-        properties:
-          name:
-            type: string
-          settings:
-            type: object
-            properties:
-              description:
-                type: string
-              sector:
-                type: string
-              country:
-                type: string
-              share-metadata:
-                type: boolean
-          asset_type:
-            type: string
-        required:
-        - asset_type
-        - name
-        - settings
+      - $ref: '#/components/schemas/AssetCreateRequestClone'
+      - $ref: '#/components/schemas/AssetCreateRequestSettings'
+    AssetCreateRequestClone:
+      type: object
+      properties:
+        name:
+          type: string
+        clone_from:
+          type: string
+        asset_type:
+          type: string
+      required:
+      - asset_type
+      - clone_from
+      - name
+    AssetCreateRequestSettings:
+      type: object
+      properties:
+        name:
+          type: string
+        settings:
+          type: object
+          properties:
+            description:
+              type: string
+            sector:
+              type: string
+            country:
+              type: string
+            share-metadata:
+              type: boolean
+        asset_type:
+          type: string
+      required:
+      - asset_type
+      - name
+      - settings
     AssetDeploymentStatusEnum:
       enum:
       - archived
@@ -16255,6 +16287,18 @@ components:
       - deployment_status
       - name
       - uid
+    AssetPatchRequestDataSharingFields:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        fields:
+          type: array
+          items:
+            type: string
+      required:
+      - enabled
+      - fields
     AssetSnapshotCreateRequest:
       oneOf:
       - type: object
@@ -20828,32 +20872,26 @@ components:
             - $ref: '#/components/schemas/RequestAutomaticQualActionParams'
     PatchedAssetPatchRequest:
       oneOf:
-      - type: object
-        properties:
-          content:
-            type: string
-          name:
-            type: string
-        required:
-        - content
-        - name
-      - type: object
-        properties:
-          enabled:
-            type: boolean
-          fields:
-            type: array
-            items:
-              type: string
-        required:
-        - enabled
-        - fields
-      - type: object
-        properties:
-          tag_string:
-            type: string
-        required:
-        - tag_string
+      - $ref: '#/components/schemas/PatchedAssetPatchRequestContent'
+      - $ref: '#/components/schemas/PatchedAssetPatchRequestDataSharing'
+      - $ref: '#/components/schemas/PatchedAssetPatchRequestTagString'
+    PatchedAssetPatchRequestContent:
+      type: object
+      properties:
+        content:
+          type: string
+        name:
+          type: string
+    PatchedAssetPatchRequestDataSharing:
+      type: object
+      properties:
+        data_sharing:
+          $ref: '#/components/schemas/AssetPatchRequestDataSharingFields'
+    PatchedAssetPatchRequestTagString:
+      type: object
+      properties:
+        tag_string:
+          type: string
     PatchedBulkActionPatchRequest:
       type: object
       properties:
@@ -24157,8 +24195,12 @@ components:
           type: string
           readOnly: true
         date_deployed:
-          type: string
-          format: date-time
+          oneOf:
+          - type: string
+            format: date-time
+          - type: boolean
+            enum:
+            - false
           readOnly: true
         date_modified:
           type: string
@@ -24185,8 +24227,12 @@ components:
           type: string
           readOnly: true
         date_deployed:
-          type: string
-          format: date-time
+          oneOf:
+          - type: string
+            format: date-time
+          - type: boolean
+            enum:
+            - false
           readOnly: true
         date_modified:
           type: string

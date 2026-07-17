@@ -244,7 +244,7 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
               if (reason.messages?.error) {
                 errLines.push(
                   <code>
-                    ${reason.messages.error_type}: ${escapeHtml(reason.messages.error)}
+                    {reason.messages.error_type}: {escapeHtml(reason.messages.error)}
                   </code>,
                 )
               }

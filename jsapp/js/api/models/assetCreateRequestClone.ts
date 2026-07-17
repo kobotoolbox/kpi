@@ -10,7 +10,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type PatchedAssetPatchRequestOneOfTwo = {
-  enabled: boolean
-  fields: string[]
+export interface AssetCreateRequestClone {
+  name: string
+  clone_from: string
+  asset_type: string
 }
