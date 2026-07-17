@@ -100,3 +100,21 @@ class TagDetailTestCase(BaseTagTestCase):
         response = self.client.get(self.url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_only_asset_objects_for_user_are_listed(self):
+        # Create an asset that is NOT tagged with `self.tag`, but belongs to the owner
+        Asset.objects.create(owner=User.objects.get(username='someuser'))
+
+        # Create an asset that belongs to another user and IS tagged with `self.tag`
+        another_user = User.objects.get(username='anotheruser')
+        another_user_asset = Asset.objects.create(owner=another_user)
+        another_user_asset.tags.add(self.tag)
+
+        response = self.client.get(self.url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['name'] == self.tag.name
+
+        # Only the original `self.asset` should be returned,
+        # since it belongs to 'someuser' and has `self.tag`
+        assert len(response.data.get('assets', [])) == 1
