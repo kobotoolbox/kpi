@@ -58,7 +58,7 @@ ASSIGNABLE_PERMISSION_PARTIAL_LABEL_SCHEMA = build_object_type(
         'change_submissions': build_basic_type(OpenApiTypes.STR),
         'delete_submissions': build_basic_type(OpenApiTypes.STR),
         'validate_submissions': build_basic_type(OpenApiTypes.STR),
-    }
+    },
 )
 
 ASSIGNABLE_PERMISSION_SCHEMA = build_object_type(
@@ -71,7 +71,7 @@ ASSIGNABLE_PERMISSION_SCHEMA = build_object_type(
                 ASSIGNABLE_PERMISSION_PARTIAL_LABEL_SCHEMA,
             ]
         },
-    }
+    },
 )
 
 # Permission assignment response (actual permission grants)
@@ -97,7 +97,7 @@ PERMISSION_ASSIGNMENT_SCHEMA = build_object_type(
                 ASSIGNABLE_PERMISSION_PARTIAL_LABEL_SCHEMA,
             ]
         },
-    }
+    },
 )
 
 REPORT_STYLE_SCHEMA = build_object_type(
@@ -128,7 +128,7 @@ ANALYSIS_QUESTION_CHOICE_SCHEMA = build_object_type(
                 'deleted': build_basic_type(OpenApiTypes.BOOL),
             }
         ),
-    }
+    },
 )
 
 ANALYSIS_QUESTION_SCHEMA = build_object_type(
@@ -145,16 +145,14 @@ ANALYSIS_QUESTION_SCHEMA = build_object_type(
         'xpath': build_basic_type(OpenApiTypes.STR),
         'scope': build_basic_type(OpenApiTypes.STR),
         'choices': build_array_type(schema=ANALYSIS_QUESTION_CHOICE_SCHEMA),
-    }
+    },
 )
 
 ADVANCED_FEATURES_SCHEMA = build_object_type(
     properties={
         'transcript': build_object_type(
             properties={
-                'values': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
+                'values': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
                 'languages': build_array_type(
                     schema=build_basic_type(OpenApiTypes.STR)
                 ),
@@ -162,9 +160,7 @@ ADVANCED_FEATURES_SCHEMA = build_object_type(
         ),
         'translation': build_object_type(
             properties={
-                'values': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
+                'values': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
                 'languages': build_array_type(
                     schema=build_basic_type(OpenApiTypes.STR)
                 ),

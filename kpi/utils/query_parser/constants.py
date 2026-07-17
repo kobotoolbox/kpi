@@ -66,6 +66,7 @@ ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
     }),
     'kpi.asset': frozenset({
         '_deployment_status',
+        '_deployment_data',
         'asset_type',
         'date_created',
         'date_deployed',
@@ -218,7 +219,6 @@ DENIED_LOOKUP_FIELDS: LookupFieldsMap = {
         'user_permissions',  # Private user data
     }),
     'kpi.asset': frozenset({
-        '_deployment_data',  # Internal system data
         'advanced_features',  # Unnecessary relational traversal
         'advanced_features_set',  # Unnecessary relational traversal
         'asset_export_settings',  # Unnecessary relational traversal

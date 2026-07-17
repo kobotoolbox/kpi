@@ -18,7 +18,7 @@ export default function DeleteAccountBanner() {
 
   const username = session.currentLoggedAccount.username
   const { data: assetsData, isPending } = useAssetsList({
-    q: `(owner__username:${username})`,
+    q: `(owner__username:${username} AND asset_type:survey)`,
     limit: 1,
   })
 

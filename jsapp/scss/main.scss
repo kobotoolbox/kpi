@@ -8,7 +8,7 @@
 
 @include meta.load-css('./libs/mdl');
 
-@include meta.load-css('../fonts/k-icons');
+@include meta.load-css('../fonts/k-icons.css');
 
 @include meta.load-css('/node_modules/alertifyjs/build/css/alertify.css');
 @include meta.load-css('./libs/alertify.overrides');
