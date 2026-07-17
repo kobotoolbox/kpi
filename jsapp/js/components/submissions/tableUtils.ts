@@ -276,7 +276,7 @@ function getAttachmentPathEvidence(
  * are the same field. Any conflict (different values or evidence on both
  * paths) keeps the legacy column.
  */
-function shouldDropLegacyAttachmentColumn(
+export function shouldDropLegacyAttachmentColumn(
   submissions: SubmissionResponse[],
   legacyKey: string,
   matchingCurrentPaths: string[],
@@ -291,6 +291,13 @@ function shouldDropLegacyAttachmentColumn(
     const legacyValue = submission[legacyKey]
     if (!hasNonEmptyValue(legacyValue)) {
       continue
+    }
+
+    // If this submission only has legacy data and no current-path value,
+    // dropping legacy would hide data from pre-rename submissions.
+    const hasAnyCurrentValue = matchingCurrentPaths.some((currentPath) => hasNonEmptyValue(submission[currentPath]))
+    if (!hasAnyCurrentValue) {
+      return false
     }
 
     for (const currentPath of matchingCurrentPaths) {

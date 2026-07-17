@@ -1,6 +1,12 @@
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionResponse } from '#/dataInterface'
-import { getAllDataColumns, getColumnLabel, isTableColumnFilterableByTextInput, selectNestedRow } from './tableUtils'
+import {
+  getAllDataColumns,
+  getColumnLabel,
+  isTableColumnFilterableByTextInput,
+  selectNestedRow,
+  shouldDropLegacyAttachmentColumn,
+} from './tableUtils'
 import { assetWithBgAudioAndNLP, assetWithNestedGroupsAndNLP } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
@@ -80,6 +86,22 @@ describe('tableUtils', () => {
 
   describe('getAllDataColumns', () => {
     const attachmentCases = [
+      {
+        title: 'audio',
+        currentKey: 'Secret_password_as_an_audio_file',
+        legacyKey: 'old_group/Secret_password_as_an_audio_file',
+        mirroredValue: 'secret-password.mp3',
+        currentOnlyValue: 'new-secret-password.mp3',
+        legacyOnlyValue: 'old-secret-password.mp3',
+      },
+      {
+        title: 'background-audio',
+        currentKey: 'background-audio',
+        legacyKey: 'old_group/background-audio',
+        mirroredValue: 'ambient.mp3',
+        currentOnlyValue: 'new-ambient.mp3',
+        legacyOnlyValue: 'old-ambient.mp3',
+      },
       {
         title: 'image',
         currentKey: 'Your_selfie_goes_here',
@@ -200,6 +222,69 @@ describe('tableUtils', () => {
         chai.expect(columns).to.include(currentKey)
         chai.expect(columns).to.include(legacyKey)
       })
+
+      it(`should keep legacy ${title} column when some submissions have only legacy values`, () => {
+        const submissions = [
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [legacyKey]: mirroredValue,
+          },
+          {
+            _attachments: [
+              {
+                question_xpath: legacyKey,
+                media_file_basename: mirroredValue,
+                is_deleted: false,
+              },
+            ],
+            [currentKey]: mirroredValue,
+            [legacyKey]: mirroredValue,
+          },
+        ] as unknown as SubmissionResponse[]
+
+        const columns = getAllDataColumns(getAssetForCase(title), submissions)
+
+        chai.expect(columns).to.include(currentKey)
+        chai.expect(columns).to.include(legacyKey)
+      })
+    })
+
+    it('should keep legacy when one of several matching current paths has no value in a submission', () => {
+      const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+      const currentPaths = ['Secret_password_as_an_audio_file', 'another_group/Secret_password_as_an_audio_file']
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+          Secret_password_as_an_audio_file: 'secret-password.mp3',
+        },
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const shouldDrop = shouldDropLegacyAttachmentColumn(submissions, legacyKey, currentPaths)
+
+      chai.expect(shouldDrop).to.equal(false)
     })
   })
 
