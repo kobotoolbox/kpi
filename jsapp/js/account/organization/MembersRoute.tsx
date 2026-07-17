@@ -7,7 +7,7 @@ import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import type { ErrorObject } from '#/api/models/errorObject'
+import type { ErrorDetail } from '#/api/models/errorDetail'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import type { MemberListResponse } from '#/api/models/memberListResponse'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -233,7 +233,7 @@ export default function MembersRoute() {
         </Box>
       )}
 
-      <UniversalTable<MemberListResponse, ErrorObject>
+      <UniversalTable<MemberListResponse, ErrorDetail>
         columns={columns}
         queryResult={membersQuery}
         pagination={pagination}

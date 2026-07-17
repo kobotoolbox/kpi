@@ -25,7 +25,7 @@ import type { AuditLogsListParams } from '../../models/auditLogsListParams'
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { ExportCreateResponse } from '../../models/exportCreateResponse'
 
@@ -986,7 +986,7 @@ export type userReportsListResponse200 = {
 }
 
 export type userReportsListResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1034,7 +1034,7 @@ export const getUserReportsListQueryKey = (params?: UserReportsListParams) => {
 
 export const getUserReportsListQueryOptions = <
   TData = Awaited<ReturnType<typeof userReportsList>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   params?: UserReportsListParams,
   options?: {
@@ -1057,11 +1057,11 @@ export const getUserReportsListQueryOptions = <
 }
 
 export type UserReportsListQueryResult = NonNullable<Awaited<ReturnType<typeof userReportsList>>>
-export type UserReportsListQueryError = ErrorObject | ErrorDetail
+export type UserReportsListQueryError = ErrorValidation | ErrorDetail
 
 export function useUserReportsList<
   TData = Awaited<ReturnType<typeof userReportsList>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   params?: UserReportsListParams,
   options?: {

@@ -21,7 +21,7 @@ import type {
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { PatchedPermissionAssignmentCloneRequest } from '../../models/patchedPermissionAssignmentCloneRequest'
 
@@ -138,7 +138,7 @@ export type assetsPermissionAssignmentsCreateResponse200 = {
 }
 
 export type assetsPermissionAssignmentsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -174,7 +174,7 @@ export const assetsPermissionAssignmentsCreate = async (
 }
 
 export const getAssetsPermissionAssignmentsCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -213,9 +213,12 @@ export type AssetsPermissionAssignmentsCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>
 >
 export type AssetsPermissionAssignmentsCreateMutationBody = PermissionAssignmentCreateRequest
-export type AssetsPermissionAssignmentsCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsPermissionAssignmentsCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsPermissionAssignmentsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsPermissionAssignmentsCreate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
     TError,
@@ -430,7 +433,7 @@ export type assetsPermissionAssignmentsBulkCreateResponse200 = {
 }
 
 export type assetsPermissionAssignmentsBulkCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -469,7 +472,7 @@ export const assetsPermissionAssignmentsBulkCreate = async (
 }
 
 export const getAssetsPermissionAssignmentsBulkCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -508,10 +511,10 @@ export type AssetsPermissionAssignmentsBulkCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>
 >
 export type AssetsPermissionAssignmentsBulkCreateMutationBody = PermissionAssignmentBulkRequest[]
-export type AssetsPermissionAssignmentsBulkCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsPermissionAssignmentsBulkCreateMutationError = ErrorValidation | ErrorDetail
 
 export const useAssetsPermissionAssignmentsBulkCreate = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -549,7 +552,7 @@ export type assetsPermissionAssignmentsBulkDestroyResponse204 = {
 }
 
 export type assetsPermissionAssignmentsBulkDestroyResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -585,7 +588,7 @@ export const assetsPermissionAssignmentsBulkDestroy = async (
 }
 
 export const getAssetsPermissionAssignmentsBulkDestroyMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -624,10 +627,10 @@ export type AssetsPermissionAssignmentsBulkDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>
 >
 
-export type AssetsPermissionAssignmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
+export type AssetsPermissionAssignmentsBulkDestroyMutationError = ErrorValidation | ErrorDetail
 
 export const useAssetsPermissionAssignmentsBulkDestroy = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -654,7 +657,7 @@ export type assetsPermissionAssignmentsClonePartialUpdateResponse200 = {
 }
 
 export type assetsPermissionAssignmentsClonePartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -694,7 +697,7 @@ export const assetsPermissionAssignmentsClonePartialUpdate = async (
 }
 
 export const getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -733,10 +736,10 @@ export type AssetsPermissionAssignmentsClonePartialUpdateMutationResult = NonNul
   Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>
 >
 export type AssetsPermissionAssignmentsClonePartialUpdateMutationBody = PatchedPermissionAssignmentCloneRequest
-export type AssetsPermissionAssignmentsClonePartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsPermissionAssignmentsClonePartialUpdateMutationError = ErrorValidation | ErrorDetail
 
 export const useAssetsPermissionAssignmentsClonePartialUpdate = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
