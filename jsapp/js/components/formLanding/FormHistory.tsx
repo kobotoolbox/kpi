@@ -118,12 +118,7 @@ export default function FormHistory(props: FormHistoryProps) {
         key: 'version',
         label: t('Version'),
         cellFormatter: (value: VersionListResponse, index: number) => {
-          const versionName = getVersionName(
-            index,
-            props.deployedVersionsCount,
-            (value.date_deployed as string | false) !== false,
-            rowData,
-          )
+          const versionName = getVersionName(index, props.deployedVersionsCount, value.date_deployed !== false, rowData)
 
           return (
             <Group gap='xs'>
@@ -140,8 +135,7 @@ export default function FormHistory(props: FormHistoryProps) {
         key: 'date_deployed',
         label: t('Type'),
         cellFormatter: (value: VersionListResponse) => {
-          // TODO remove that casting after DEV-1823 is done
-          if ((value.date_deployed as string | false) === false) {
+          if (value.date_deployed === false) {
             return t('Form change')
           }
           return t('Deployment')
