@@ -740,7 +740,10 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             ),
         },
     ],
-    'disabled': ['django.forms.fields.CharField', {'disabled': True}],
+    'disabled': [
+        'django.forms.fields.CharField',
+        {'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
