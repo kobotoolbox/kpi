@@ -4,8 +4,10 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from taggit.models import Tag
 
+from kpi.constants import PERM_VIEW_ASSET
 from kpi.models import Asset, TagUid
 from kpi.schema_extensions.v2.tags.fields import ParentUrlField, TagUrlField
+from kpi.utils.object_permission import get_database_user, get_objects_for_user
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -25,9 +27,15 @@ class TagSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_assets(self, obj):
         request = self.context.get('request', None)
+        if not request or not request.user.is_authenticated:
+            return []
+
+        user = get_database_user(request.user)
+        accessible_assets = get_objects_for_user(user, PERM_VIEW_ASSET, Asset)
+
         return [
             reverse('asset-detail', args=(asset_uid,), request=request)
-            for asset_uid in Asset.objects.values_list('uid', flat=True)
+            for asset_uid in accessible_assets.filter(tags=obj).values_list('uid', flat=True)
         ]
 
     @extend_schema_field(TagUrlField)
