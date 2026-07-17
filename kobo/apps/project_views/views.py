@@ -182,6 +182,16 @@ class ProjectViewViewSet(
     search_default_field_lookups = [
         'name__icontains',
     ]
+    # Project views are configured by an admin and scoped to their members, so
+    # exposing the owner's email as a filterable field is acceptable here even
+    # though it is denied globally.
+    allowed_lookup_fields_override = {
+        'kobo_auth.user': frozenset({
+            'email',
+            'extra_details',
+            'username',
+        })
+    }
     min_search_characters = 2
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()

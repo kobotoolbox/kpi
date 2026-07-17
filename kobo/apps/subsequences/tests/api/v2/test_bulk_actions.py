@@ -142,6 +142,57 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
             self.second_submission_uuid,
         }
 
+    def test_list_bulk_actions_filters_by_status_submission_and_question(self):
+        matching_action = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.second_submission_uuid],
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q2',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+            status=BulkActionStatus.IN_PROGRESS,
+        )
+        SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by='someuser',
+            submission_root_uuids=[self.submission_uuid],
+            status=BulkActionStatus.COMPLETE,
+        )
+
+        response = self.client.get(
+            self.list_url,
+            {
+                'status': 'pending,in_progress',
+                'submission_uuid': self.submission_uuid,
+                'question_xpath': 'q1',
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['uid'] == matching_action.uid
+
     def test_retrieve_bulk_action(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,

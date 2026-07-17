@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from '../../common/conflictingOngoingJob'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import {
@@ -22,6 +23,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
   advancedFeatures: AdvancedFeatureResponse[]
@@ -31,6 +33,7 @@ export default function TranslationTab({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   onUnsavedWorkChange,
   supplement,
   advancedFeatures,
@@ -71,7 +74,7 @@ export default function TranslationTab({
 
     // If URL had a language code that doesn't exist in this submission, update URL to match the fallback
     if (urlLanguageCode && fallbackLanguage) {
-      const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+      const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
       goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, fallbackLanguage)
     }
   }, [
@@ -116,6 +119,7 @@ export default function TranslationTab({
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
+          activeBulkActions={activeBulkActions}
           onCreate={(newLanguageCode: LanguageCode, context: 'automated' | 'manual') => {
             // After creating automated translation, go straight into 'edit' mode
             if (context === 'automated') {
@@ -125,7 +129,7 @@ export default function TranslationTab({
             }
             setLanguageCode(newLanguageCode)
             // Update URL to reflect the newly created translation language
-            const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+            const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
             goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
           }}
           onBack={() => {
@@ -150,11 +154,12 @@ export default function TranslationTab({
             supplement={supplement}
             translationVersion={translationVersion}
             translationVersions={translationVersions}
+            activeBulkActions={activeBulkActions}
             onEdit={() => setMode('edit')}
             onAdd={() => setMode('add')}
             onChangeLanguageCode={(newLanguageCode: LanguageCode) => {
               // Update browser URL to reflect the new language selection
-              const submissionEditId = removeDefaultUuidPrefix(submission['meta/rootUuid']) || submission._uuid
+              const submissionEditId = getSubmissionRootUuid(submission) || submission._uuid
               goToProcessing(asset.uid, questionXpath, submissionEditId, ProcessingTab.Translations, newLanguageCode)
               // Update local state (navigation will cause re-render, but this provides immediate feedback)
               setLanguageCode(newLanguageCode)
@@ -169,6 +174,7 @@ export default function TranslationTab({
             questionXpath={questionXpath}
             submission={submission}
             supplement={supplement}
+            activeBulkActions={activeBulkActions}
             translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
             onBack={() => setMode('view')}
             onSave={() => {

@@ -9,30 +9,10 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { AssetCreateRequestSettingsSettings } from './assetCreateRequestSettingsSettings'
 
-export type AssetsAdvancedFeaturesBulkActionsListParams = {
-  /**
-   * Number of results to return per page. Use with `start`.
-   */
-  limit?: number
-  /**
-   * Deprecated alias of `start`.
-   */
-  offset?: number
-  /**
-   * Filter jobs to this question xpath.
-   */
-  question_xpath?: string
-  /**
-   * The initial index from which to return the results. Use with `limit`.
-   */
-  start?: number
-  /**
-   * Filter by parent job status. Accepts comma-separated values, e.g. "pending,in_progress".
-   */
-  status?: string
-  /**
-   * Filter jobs to those containing this submission UUID.
-   */
-  submission_uuid?: string
+export interface AssetCreateRequestSettings {
+  name: string
+  settings: AssetCreateRequestSettingsSettings
+  asset_type: string
 }

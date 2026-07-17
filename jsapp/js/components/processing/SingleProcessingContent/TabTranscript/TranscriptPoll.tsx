@@ -11,7 +11,8 @@ import {
 } from '#/api/react-query/survey-data'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration, removeDefaultUuidPrefix } from '#/utils'
+import { getAudioDuration } from '#/utils'
+import { getSubmissionRootUuid } from '../../common/conflictingOngoingJob'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from './transcript.utils'
 
@@ -34,20 +35,13 @@ export default function AutomaticTranscriptionInProgress({ asset, questionXpath,
     queryClient.isMutating({ mutationKey: getAssetsDataSupplementPartialUpdateMutationOptions().mutationKey! }) > 0
 
   // Don't race mutations, mutation response will Directly Update this.
-  const querySupplement = useAssetsDataSupplementRetrieve(
-    asset.uid,
-    removeDefaultUuidPrefix(submission['meta/rootUuid']),
-    {
-      query: {
-        queryKey: getAssetsDataSupplementRetrieveQueryKey(
-          asset.uid,
-          removeDefaultUuidPrefix(submission['meta/rootUuid']),
-        ),
-        staleTime: Number.POSITIVE_INFINITY,
-        enabled: !mutationPending,
-      },
+  const querySupplement = useAssetsDataSupplementRetrieve(asset.uid, getSubmissionRootUuid(submission), {
+    query: {
+      queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, getSubmissionRootUuid(submission)),
+      staleTime: Number.POSITIVE_INFINITY,
+      enabled: !mutationPending,
     },
-  )
+  })
 
   useEffect(() => {
     if (mutationPending) return // Start polling only after the initial mutation(s) are done.

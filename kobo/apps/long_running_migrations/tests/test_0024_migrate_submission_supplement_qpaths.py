@@ -64,7 +64,7 @@ class Migrate0024QpathsTestCase(TestCase):
                 }
             ],
         }
-        asset.save(adjust_content=False, create_version=False)
+        asset.save(adjust_content=False)
         return asset
 
     def _make_supplement(self, asset, content):

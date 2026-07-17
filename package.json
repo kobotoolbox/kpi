@@ -135,7 +135,6 @@
     "@types/reflux": "^6.4.6",
     "@types/rtl-detect": "^1.0.3",
     "@types/zxcvbn": "^4.4.4",
-    "@vusion/webfonts-generator": "^0.8.0",
     "autoprefixer": "^10.4.19",
     "chai": "^4.2.0",
     "chai-exclude": "^2.1.0",
@@ -156,6 +155,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-storybook": "^10.4.6",
+    "fantasticon": "^3.0.0",
     "fork-ts-checker-webpack-plugin": "^9.1.0",
     "git-cliff": "^2.10.0",
     "globals": "^15.14.0",
@@ -176,7 +176,6 @@
     "postcss-simple-vars": "^7.0.1",
     "react-docgen-typescript-plugin": "^1.0.8",
     "react-refresh": "^0.17.0",
-    "replace-in-file": "^6.3.5",
     "sass": "^1.92.1",
     "sass-loader": "^16.0.5",
     "speed-measure-webpack-plugin": "^1.5.0",
@@ -210,7 +209,8 @@
       "react-dom": "$react-dom"
     },
     "storybook": "$storybook",
-    "coffee-script": "$coffeescript"
+    "coffee-script": "$coffeescript",
+    "minimist": "^1.2.6"
   },
   "scripts": {
     "preinstall": "npm run hint",

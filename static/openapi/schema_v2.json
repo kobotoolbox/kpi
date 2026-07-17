@@ -1486,10 +1486,12 @@
                                 },
                                 "DataSharingOfTheProject": {
                                     "value": {
-                                        "enabled": true,
-                                        "fields": [
-                                            "string"
-                                        ]
+                                        "data_sharing": {
+                                            "enabled": true,
+                                            "fields": [
+                                                "string"
+                                            ]
+                                        }
                                     },
                                     "summary": "Data sharing of the project"
                                 }
@@ -2841,7 +2843,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/bulk-actions/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_bulk_actions_list",
-                "description": "## List bulk processing jobs on an asset\n\nReturns paginated bulk processing jobs associated with the specified asset. Each\njob is organized around one action, one question, and many submissions.\n\nUse this endpoint to monitor recently-created bulk transcription and translation\njobs. Each result includes the parent job status, per-submission statuses, the\noriginal deterministic params, the user who created the job, cancellation\nmetadata, and integer `progress` from `0` to `100`.\n\nJob statuses:\n\n* `pending`: the job exists but has not started.\n* `in_progress`: one or more child submissions are still active.\n* `complete`: every child submission has reached a terminal state.\n* `cancelled`: the job was cancelled.\n\nChild submission statuses:\n\n* `pending`\n* `in_progress`\n* `complete`\n* `failed`\n* `cancelled`\n",
+                "description": "## List bulk processing jobs on an asset\n\nReturns paginated bulk processing jobs associated with the specified asset. Each\njob is organized around one action, one question, and many submissions.\n\nUse this endpoint to monitor recently-created bulk transcription and translation\njobs. Each result includes the parent job status, per-submission statuses, the\noriginal deterministic params, the user who created the job, cancellation\nmetadata, and integer `progress` from `0` to `100`.\n\nOptional query params:\n\n* `status`: Filter by parent job status. Accepts a comma-separated list,\n  for example `status=pending,in_progress`.\n* `submission_uuid`: Return only jobs that include this submission.\n* `question_xpath`: Return only jobs for this question xpath.\n\nJob statuses:\n\n* `pending`: the job exists but has not started.\n* `in_progress`: one or more child submissions are still active.\n* `complete`: every child submission has reached a terminal state.\n* `cancelled`: the job was cancelled.\n\nChild submission statuses:\n\n* `pending`\n* `in_progress`\n* `complete`\n* `failed`\n* `cancelled`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -2862,6 +2864,14 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "question_xpath",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter jobs to this question xpath."
+                    },
+                    {
                         "name": "start",
                         "required": false,
                         "in": "query",
@@ -2869,6 +2879,22 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by parent job status. Accepts comma-separated values, e.g. \"pending,in_progress\"."
+                    },
+                    {
+                        "in": "query",
+                        "name": "submission_uuid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter jobs to those containing this submission UUID."
                     },
                     {
                         "in": "path",
@@ -22456,43 +22482,49 @@
             "AssetBulkRequest": {
                 "oneOf": [
                     {
+                        "$ref": "#/components/schemas/AssetBulkRequestWithUids"
+                    },
+                    {
+                        "$ref": "#/components/schemas/AssetBulkRequestWithConfirm"
+                    }
+                ]
+            },
+            "AssetBulkRequestWithConfirm": {
+                "type": "object",
+                "properties": {
+                    "confirm": {
+                        "type": "boolean"
+                    },
+                    "action": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "action",
+                    "confirm"
+                ]
+            },
+            "AssetBulkRequestWithUids": {
+                "type": "object",
+                "properties": {
+                    "asset_uids": {
                         "type": "object",
                         "properties": {
                             "asset_uids": {
-                                "type": "object",
-                                "properties": {
-                                    "asset_uids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
                                 }
-                            },
-                            "action": {
-                                "type": "string"
                             }
-                        },
-                        "required": [
-                            "action",
-                            "asset_uids"
-                        ]
+                        }
                     },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "confirm": {
-                                "type": "boolean"
-                            },
-                            "action": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "action",
-                            "confirm"
-                        ]
+                    "action": {
+                        "type": "string"
                     }
+                },
+                "required": [
+                    "action",
+                    "asset_uids"
                 ]
             },
             "AssetBulkResponse": {
@@ -22529,57 +22561,63 @@
             "AssetCreateRequest": {
                 "oneOf": [
                     {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            },
-                            "clone_from": {
-                                "type": "string"
-                            },
-                            "asset_type": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "asset_type",
-                            "clone_from",
-                            "name"
-                        ]
+                        "$ref": "#/components/schemas/AssetCreateRequestClone"
                     },
                     {
+                        "$ref": "#/components/schemas/AssetCreateRequestSettings"
+                    }
+                ]
+            },
+            "AssetCreateRequestClone": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "clone_from": {
+                        "type": "string"
+                    },
+                    "asset_type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "asset_type",
+                    "clone_from",
+                    "name"
+                ]
+            },
+            "AssetCreateRequestSettings": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "settings": {
                         "type": "object",
                         "properties": {
-                            "name": {
+                            "description": {
                                 "type": "string"
                             },
-                            "settings": {
-                                "type": "object",
-                                "properties": {
-                                    "description": {
-                                        "type": "string"
-                                    },
-                                    "sector": {
-                                        "type": "string"
-                                    },
-                                    "country": {
-                                        "type": "string"
-                                    },
-                                    "share-metadata": {
-                                        "type": "boolean"
-                                    }
-                                }
-                            },
-                            "asset_type": {
+                            "sector": {
                                 "type": "string"
+                            },
+                            "country": {
+                                "type": "string"
+                            },
+                            "share-metadata": {
+                                "type": "boolean"
                             }
-                        },
-                        "required": [
-                            "asset_type",
-                            "name",
-                            "settings"
-                        ]
+                        }
+                    },
+                    "asset_type": {
+                        "type": "string"
                     }
+                },
+                "required": [
+                    "asset_type",
+                    "name",
+                    "settings"
                 ]
             },
             "AssetDeploymentStatusEnum": {
@@ -22722,6 +22760,24 @@
                     "deployment_status",
                     "name",
                     "uid"
+                ]
+            },
+            "AssetPatchRequestDataSharingFields": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "fields"
                 ]
             },
             "AssetSnapshotCreateRequest": {
@@ -29180,50 +29236,42 @@
             "PatchedAssetPatchRequest": {
                 "oneOf": [
                     {
-                        "type": "object",
-                        "properties": {
-                            "content": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "content",
-                            "name"
-                        ]
+                        "$ref": "#/components/schemas/PatchedAssetPatchRequestContent"
                     },
                     {
-                        "type": "object",
-                        "properties": {
-                            "enabled": {
-                                "type": "boolean"
-                            },
-                            "fields": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "required": [
-                            "enabled",
-                            "fields"
-                        ]
+                        "$ref": "#/components/schemas/PatchedAssetPatchRequestDataSharing"
                     },
                     {
-                        "type": "object",
-                        "properties": {
-                            "tag_string": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "tag_string"
-                        ]
+                        "$ref": "#/components/schemas/PatchedAssetPatchRequestTagString"
                     }
                 ]
+            },
+            "PatchedAssetPatchRequestContent": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PatchedAssetPatchRequestDataSharing": {
+                "type": "object",
+                "properties": {
+                    "data_sharing": {
+                        "$ref": "#/components/schemas/AssetPatchRequestDataSharingFields"
+                    }
+                }
+            },
+            "PatchedAssetPatchRequestTagString": {
+                "type": "object",
+                "properties": {
+                    "tag_string": {
+                        "type": "string"
+                    }
+                }
             },
             "PatchedBulkActionPatchRequest": {
                 "type": "object",
@@ -33820,8 +33868,18 @@
                         "readOnly": true
                     },
                     "date_deployed": {
-                        "type": "string",
-                        "format": "date-time",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "boolean",
+                                "enum": [
+                                    false
+                                ]
+                            }
+                        ],
                         "readOnly": true
                     },
                     "date_modified": {
@@ -33856,8 +33914,18 @@
                         "readOnly": true
                     },
                     "date_deployed": {
-                        "type": "string",
-                        "format": "date-time",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "boolean",
+                                "enum": [
+                                    false
+                                ]
+                            }
+                        ],
                         "readOnly": true
                     },
                     "date_modified": {
