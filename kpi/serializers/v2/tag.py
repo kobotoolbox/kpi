@@ -6,6 +6,7 @@ from taggit.models import Tag
 
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.models import Asset, TagUid
+from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.tags.fields import ParentUrlField, TagUrlField
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 
@@ -15,6 +16,7 @@ class TagSerializer(serializers.ModelSerializer):
     assets = serializers.SerializerMethodField()
     parent = serializers.SerializerMethodField()
     uid = serializers.ReadOnlyField(source='taguid.uid')
+    permission_classes = (IsAuthenticated,)
 
     class Meta:
         model = Tag
@@ -27,11 +29,7 @@ class TagSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_assets(self, obj):
         request = self.context.get('request', None)
-        if not request or not request.user.is_authenticated:
-            return []
-
-        user = get_database_user(request.user)
-        accessible_assets = get_objects_for_user(user, PERM_VIEW_ASSET, Asset)
+        accessible_assets = get_objects_for_user(request.user, PERM_VIEW_ASSET, Asset)
         assets_uids = accessible_assets.filter(tags=obj).values_list('uid', flat=True)
         return [
             reverse('asset-detail', args=(asset_uid,), request=request)

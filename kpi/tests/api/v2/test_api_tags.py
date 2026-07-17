@@ -117,4 +117,6 @@ class TagDetailTestCase(BaseTagTestCase):
 
         # Only the original `self.asset` should be returned,
         # since it belongs to 'someuser' and has `self.tag`
-        assert len(response.data.get('assets', [])) == 1
+        assets = response.data.get('assets', [])
+        assert len(assets) == 1
+        assert self.asset.uid in assets[0]
