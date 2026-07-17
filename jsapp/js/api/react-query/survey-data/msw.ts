@@ -654,10 +654,10 @@ export const getApiV2AssetsDataListResponseMock = (
                   _dateCreated: `${faker.date.past().toISOString().split('.')[0]}Z`,
                   _uuid: faker.string.uuid(),
                   _dateAccepted: `${faker.date.past().toISOString().split('.')[0]}Z`,
-                  _dependency: {
-                    _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }),
-                    _uuid: faker.string.uuid(),
-                  },
+                  _dependency: faker.helpers.arrayElement([
+                    { _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }), _uuid: faker.string.uuid() },
+                    undefined,
+                  ]),
                   _data: {
                     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                     locale: faker.helpers.arrayElement([
@@ -706,10 +706,10 @@ export const getApiV2AssetsDataListResponseMock = (
                     `${faker.date.past().toISOString().split('.')[0]}Z`,
                     undefined,
                   ]),
-                  _dependency: {
-                    _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }),
-                    _uuid: faker.string.uuid(),
-                  },
+                  _dependency: faker.helpers.arrayElement([
+                    { _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }), _uuid: faker.string.uuid() },
+                    undefined,
+                  ]),
                   _data: faker.helpers.arrayElement([
                     { ...getApiV2AssetsDataListResponseSupplementalDataContentAutomaticInProgressMock() },
                     { ...getApiV2AssetsDataListResponseSupplementalDataContentAutomaticFailedMock() },
@@ -1012,10 +1012,10 @@ export const getApiV2AssetsDataRetrieveResponseMock = (overrideResponse: Partial
                 _dateCreated: `${faker.date.past().toISOString().split('.')[0]}Z`,
                 _uuid: faker.string.uuid(),
                 _dateAccepted: `${faker.date.past().toISOString().split('.')[0]}Z`,
-                _dependency: {
-                  _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }),
-                  _uuid: faker.string.uuid(),
-                },
+                _dependency: faker.helpers.arrayElement([
+                  { _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }), _uuid: faker.string.uuid() },
+                  undefined,
+                ]),
                 _data: {
                   language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                   locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
@@ -1061,10 +1061,10 @@ export const getApiV2AssetsDataRetrieveResponseMock = (overrideResponse: Partial
                   `${faker.date.past().toISOString().split('.')[0]}Z`,
                   undefined,
                 ]),
-                _dependency: {
-                  _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }),
-                  _uuid: faker.string.uuid(),
-                },
+                _dependency: faker.helpers.arrayElement([
+                  { _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }), _uuid: faker.string.uuid() },
+                  undefined,
+                ]),
                 _data: faker.helpers.arrayElement([
                   { ...getApiV2AssetsDataRetrieveResponseSupplementalDataContentAutomaticInProgressMock() },
                   { ...getApiV2AssetsDataRetrieveResponseSupplementalDataContentAutomaticFailedMock() },
@@ -1370,10 +1370,10 @@ export const getApiV2AssetsDataDuplicateCreateResponseMock = (
                 _dateCreated: `${faker.date.past().toISOString().split('.')[0]}Z`,
                 _uuid: faker.string.uuid(),
                 _dateAccepted: `${faker.date.past().toISOString().split('.')[0]}Z`,
-                _dependency: {
-                  _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }),
-                  _uuid: faker.string.uuid(),
-                },
+                _dependency: faker.helpers.arrayElement([
+                  { _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }), _uuid: faker.string.uuid() },
+                  undefined,
+                ]),
                 _data: {
                   language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                   locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
@@ -1419,10 +1419,10 @@ export const getApiV2AssetsDataDuplicateCreateResponseMock = (
                   `${faker.date.past().toISOString().split('.')[0]}Z`,
                   undefined,
                 ]),
-                _dependency: {
-                  _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }),
-                  _uuid: faker.string.uuid(),
-                },
+                _dependency: faker.helpers.arrayElement([
+                  { _actionId: faker.string.alpha({ length: { min: 10, max: 20 } }), _uuid: faker.string.uuid() },
+                  undefined,
+                ]),
                 _data: faker.helpers.arrayElement([
                   { ...getApiV2AssetsDataDuplicateCreateResponseSupplementalDataContentAutomaticInProgressMock() },
                   { ...getApiV2AssetsDataDuplicateCreateResponseSupplementalDataContentAutomaticFailedMock() },

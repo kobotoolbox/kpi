@@ -19,13 +19,13 @@ import {
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
+import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import type { ManualQualValue } from '#/components/processing/common/types'
 import { getLatestQualVersionItem, getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getEmptyAnswer, isAnswerAIGenerated } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import ConfirmEditModal from './ConfirmEditModal'
@@ -79,7 +79,7 @@ export default function AnalysisQuestionListItem({
   isAnyQuestionBeingEdited,
   onGenerateWithAI,
 }: Props) {
-  const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
+  const rootUuid = getSubmissionRootUuid(submission)
 
   const hasTranscript = getLatestTranscriptVersionItem(supplement, questionXpath) !== undefined
 

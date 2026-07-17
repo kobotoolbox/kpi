@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import {
@@ -11,10 +12,15 @@ import {
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
@@ -24,6 +30,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   transcriptVersion: TranscriptVersionItem
   onBack: () => void
   onSave?: () => void
@@ -36,6 +43,7 @@ export default function Editor({
   questionXpath,
   submission,
   supplement,
+  activeBulkActions,
   transcriptVersion,
   onBack,
   onSave,
@@ -46,6 +54,15 @@ export default function Editor({
   const unacceptedAutomaticTranscript =
     isSupplementVersionAutomatic(transcriptVersion) && !transcriptVersion._dateAccepted
   const [value, setValue] = useState(initialValue)
+  const hasUnsavedChanges = value !== initialValue || unacceptedAutomaticTranscript
+
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+    selectedLanguage: transcriptVersion._data.language,
+  })
 
   // Track unsaved work when value changes from initial
   useEffect(() => {
@@ -91,11 +108,14 @@ export default function Editor({
   }
 
   const handleSave = async () => {
+    // Button state can lag behind fresh data for a moment, so keep this check
+    // here too and bail out if a conflicting job has just appeared.
+    if (hasConflictingOngoingJob) return
     if (!value) return // Just a typeguard, button is disabled.
     if (value === initialValue && isSupplementVersionAutomatic(transcriptVersion)) {
       await patch.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
@@ -110,7 +130,7 @@ export default function Editor({
       await assertManualAdvancedFeature(transcriptVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
@@ -132,11 +152,17 @@ export default function Editor({
   }
 
   const handleDiscard = async () => {
+    // While a conflicting job is active, avoid all write operations from edit mode.
+    if (hasConflictingOngoingJob) {
+      onBack()
+      return
+    }
+
     if (unacceptedAutomaticTranscript) {
       await assertManualAdvancedFeature(transcriptVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
@@ -164,9 +190,9 @@ export default function Editor({
           <Button
             type='secondary'
             size='s'
-            label={value !== initialValue || unacceptedAutomaticTranscript ? t('Discard') : t('Back')}
+            label={hasConflictingOngoingJob ? t('Back') : hasUnsavedChanges ? t('Discard') : t('Back')}
             onClick={handleDiscard}
-            isDisabled={patch.isPending || !userCan('change_submissions', asset)}
+            isDisabled={patch.isPending || (!hasConflictingOngoingJob && !userCan('change_submissions', asset))}
           />
 
           <Button
@@ -176,6 +202,7 @@ export default function Editor({
             onClick={handleSave}
             isPending={patch.isPending}
             isDisabled={
+              hasConflictingOngoingJob ||
               !value ||
               (value === initialValue && !unacceptedAutomaticTranscript) ||
               !userCan('change_submissions', asset)
@@ -184,11 +211,13 @@ export default function Editor({
         </nav>
       </header>
 
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mb='md' />}
+
       <textarea
         className={bodyStyles.textarea}
         value={value || ''}
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => setValue(evt.target.value)}
-        disabled={false}
+        disabled={hasConflictingOngoingJob}
         dir='auto'
       />
     </>

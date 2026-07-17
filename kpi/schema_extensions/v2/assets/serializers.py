@@ -1,8 +1,10 @@
+from drf_spectacular.utils import PolymorphicProxySerializer
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetCloneField,
+    AssetFieldsField,
     AssetSettingsField,
     BulkActionField,
     BulkAssetConfirmField,
@@ -18,36 +20,98 @@ from .fields import (
     ValidContentDataField,
 )
 
-AssetCreateRequest = inline_serializer_class(
-    name='AssetCreateRequest',
+AssetCreateRequestClone = inline_serializer_class(
+    name='AssetCreateRequestClone',
     fields={
         'name': serializers.CharField(),
         'clone_from': AssetCloneField(),
+        'asset_type': serializers.CharField(),
+    },
+)
+
+AssetCreateRequestSettings = inline_serializer_class(
+    name='AssetCreateRequestSettings',
+    fields={
+        'name': serializers.CharField(),
         'settings': AssetSettingsField(),
         'asset_type': serializers.CharField(),
     },
 )
 
-
-AssetPatchRequest = inline_serializer_class(
-    name='AssetPatchRequest',
-    fields={
-        'content': serializers.CharField(),
-        'name': serializers.CharField(),
-        'enabled': serializers.BooleanField(),
-        'fields': serializers.CharField(),
-        'tag_string': serializers.CharField(required=False),
-    },
+AssetCreateRequest = PolymorphicProxySerializer(
+    component_name='AssetCreateRequest',
+    serializers=[
+        AssetCreateRequestClone,
+        AssetCreateRequestSettings,
+    ],
+    resource_type_field_name=None,
 )
 
 
-AssetBulkRequest = inline_serializer_class(
-    name='AssetBulkRequest',
+AssetPatchRequestContent = inline_serializer_class(
+    name='AssetPatchRequestContent',
+    fields={
+        'content': serializers.CharField(),
+        'name': serializers.CharField(),
+    },
+)
+
+AssetPatchRequestDataSharingFields = inline_serializer_class(
+    name='AssetPatchRequestDataSharingFields',
+    fields={
+        'enabled': serializers.BooleanField(),
+        'fields': AssetFieldsField(),
+    },
+)
+
+AssetPatchRequestDataSharing = inline_serializer_class(
+    name='AssetPatchRequestDataSharing',
+    fields={
+        'data_sharing': AssetPatchRequestDataSharingFields(),
+    },
+)
+
+AssetPatchRequestTagString = inline_serializer_class(
+    name='AssetPatchRequestTagString',
+    fields={
+        'tag_string': serializers.CharField(),
+    },
+)
+
+AssetPatchRequest = PolymorphicProxySerializer(
+    component_name='AssetPatchRequest',
+    serializers=[
+        AssetPatchRequestContent,
+        AssetPatchRequestDataSharing,
+        AssetPatchRequestTagString,
+    ],
+    resource_type_field_name=None,
+)
+
+
+AssetBulkRequestWithUids = inline_serializer_class(
+    name='AssetBulkRequestWithUids',
     fields={
         'asset_uids': BulkAssetUidsField(),
+        'action': BulkActionField(),
+    },
+)
+
+AssetBulkRequestWithConfirm = inline_serializer_class(
+    name='AssetBulkRequestWithConfirm',
+    fields={
         'confirm': BulkAssetConfirmField(),
         'action': BulkActionField(),
     },
+)
+
+AssetBulkRequest = PolymorphicProxySerializer(
+    component_name='AssetBulkRequest',
+    serializers=[
+        AssetBulkRequestWithUids,
+        AssetBulkRequestWithConfirm,
+    ],
+    resource_type_field_name=None,
 )
 
 

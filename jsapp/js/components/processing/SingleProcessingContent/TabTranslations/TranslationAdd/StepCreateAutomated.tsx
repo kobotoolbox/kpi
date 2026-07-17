@@ -19,10 +19,12 @@ import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { notify } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
@@ -30,6 +32,7 @@ interface Props {
   questionXpath: string
   languageCode: LanguageCode
   submission: DataResponse
+  hasConflictingOngoingJob: boolean
   onBack: () => void
   onLimitExceeded: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -41,6 +44,7 @@ export default function StepCreateAutomated({
   questionXpath,
   languageCode,
   submission,
+  hasConflictingOngoingJob,
   onBack,
   onLimitExceeded,
   onCreate,
@@ -110,6 +114,10 @@ export default function StepCreateAutomated({
   }
 
   async function handleCreateTranslation() {
+    // Keep a runtime guard in addition to disabled UI controls.
+    // This protects against stale state and accidental double-trigger paths.
+    if (hasConflictingOngoingJob) return
+
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
       await mutationCreateAF.mutateAsync({
@@ -141,7 +149,7 @@ export default function StepCreateAutomated({
     try {
       await mutationCreateAutomaticTranslation.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
@@ -221,6 +229,8 @@ export default function StepCreateAutomated({
         </div>
       )}
 
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mt='md' />}
+
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
           <Button type='secondary' size='m' label={t('cancel')} onClick={handleClickBack} isDisabled={anyPending} />
@@ -230,7 +240,7 @@ export default function StepCreateAutomated({
             size='m'
             label={t('create translation')}
             onClick={handleCreateTranslation}
-            isDisabled={anyPending}
+            isDisabled={anyPending || hasConflictingOngoingJob}
           />
         </div>
       </footer>
