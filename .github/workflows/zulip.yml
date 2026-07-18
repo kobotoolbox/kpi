@@ -44,7 +44,7 @@ jobs:
         } >> $GITHUB_OUTPUT
 
     - name: Send a stream message
-      uses: zulip/github-actions-zulip/send-message@v1
+      uses: zulip/github-actions-zulip/send-message@v2
       with:
         api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
         email: "github-actions-bot@chat.kobotoolbox.org"
