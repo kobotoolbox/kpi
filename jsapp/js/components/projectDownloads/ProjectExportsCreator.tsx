@@ -1,12 +1,10 @@
 import * as Sentry from '@sentry/react'
-import alertify from 'alertifyjs'
 import cx from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from 'react-select'
 import { type OrvalFetchError, getApiErrorMessage } from '#/api/onErrorDefaultHandler'
 import {
   useAssetsExportSettingsCreate,
-  useAssetsExportSettingsDestroy,
   useAssetsExportSettingsList,
   useAssetsExportSettingsPartialUpdate,
   useAssetsExportsCreate,
@@ -34,6 +32,7 @@ import {
   getContextualDefaultExportFormat,
   getExportFormatOptions,
 } from '#/components/projectDownloads/exportsUtils'
+import { openDeleteExportSettingModal } from '#/components/projectDownloads/openDeleteExportSettingModal'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery } from '#/dataInterface'
@@ -91,7 +90,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   const createExportMutation = useAssetsExportsCreate()
   const createExportSettingMutation = useAssetsExportSettingsCreate()
   const updateExportSettingMutation = useAssetsExportSettingsPartialUpdate()
-  const deleteExportSettingMutation = useAssetsExportSettingsDestroy()
   // This guard lets us auto-apply the latest saved settings once, without
   // overriding user edits on every background refetch.
   const shouldPreselectLastSettingsRef = useRef(true)
@@ -192,6 +190,12 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   function applyExportSettingToState(data: ExportSetting) {
     const exportType = EXPORT_TYPES[data.export_settings.type]
 
+    // If the saved export type is no longer valid, fall back to default
+    if (!exportType) {
+      console.warn(`Invalid export type "${data.export_settings.type}" in saved settings, falling back to default`)
+      return
+    }
+
     const exportFormatOptions = getExportFormatOptions(props.asset)
     let selectedExportFormat = exportFormatOptions.find((option) => option.value === data.export_settings.lang)
 
@@ -257,29 +261,11 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     await exportSettingsQuery.refetch()
   }
 
-  function safeDeleteExportSetting(exportSettingUid: string) {
-    const dialog = alertify.dialog('confirm')
-    const opts = {
-      title: t('Delete export settings?'),
-      message: t('Are you sure you want to delete this settings? This action is not reversible.'),
-      labels: { ok: t('Delete'), cancel: t('Cancel') },
-      onok: async () => {
-        try {
-          await deleteExportSettingMutation.mutateAsync({
-            uidAsset: props.asset.uid,
-            uidExportSetting: exportSettingUid,
-          })
-          clearSelectedDefinedExport()
-          await fetchExportSettings()
-        } catch {
-          notify(t('Failed to delete export setting'), 'error')
-        }
-      },
-      oncancel: () => {
-        dialog.destroy()
-      },
-    }
-    dialog.set(opts).show()
+  function safeDeleteExportSetting(exportSettingUid: string, exportSettingName: string) {
+    openDeleteExportSettingModal(props.asset.uid, exportSettingUid, exportSettingName, async () => {
+      clearSelectedDefinedExport()
+      await fetchExportSettings()
+    })
   }
 
   function onSelectedDefinedExportChange(newDefinedExport: DefinedExportOption | null) {
@@ -844,7 +830,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                     onClick={(evt: React.TouchEvent) => {
                       evt.preventDefault()
                       if (state.selectedDefinedExport?.data?.uid) {
-                        safeDeleteExportSetting(state.selectedDefinedExport.data.uid)
+                        safeDeleteExportSetting(state.selectedDefinedExport.data.uid, state.selectedDefinedExport.label)
                       }
                     }}
                     startIcon='trash'
@@ -860,7 +846,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
             size='l'
             isSubmit
             onClick={onSubmit}
-            isDisabled={(state.isCustomSelectionEnabled && state.selectedRows.size === 0) || state.isPending}
+            isDisabled={state.isCustomSelectionEnabled && state.selectedRows.size === 0}
+            isPending={state.isPending}
             label={t('Export')}
           />
         </bem.ProjectDownloads__submitRow>

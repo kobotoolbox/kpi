@@ -29,13 +29,17 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
     setSelectedExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE)
   }, [props.asset.uid])
 
+  function onSetSelectedExportType(newType: ExportTypeDefinition) {
+    setSelectedExportType(newType)
+  }
+
   function renderLoggedInExports() {
     if (selectedExportType.isLegacy) {
       return (
         <LegacyExports
           asset={props.asset}
           selectedExportType={selectedExportType}
-          setSelectedExportType={setSelectedExportType}
+          setSelectedExportType={onSetSelectedExportType}
         />
       )
     }
@@ -45,7 +49,7 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
         <ProjectExportsCreator
           asset={props.asset}
           selectedExportType={selectedExportType}
-          setSelectedExportType={setSelectedExportType}
+          setSelectedExportType={onSetSelectedExportType}
         />
         <ProjectExportsList asset={props.asset} selectedExportType={selectedExportType} />
       </React.Fragment>
@@ -66,7 +70,7 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
             <AnonymousExports
               asset={props.asset}
               selectedExportType={selectedExportType}
-              setSelectedExportType={setSelectedExportType}
+              setSelectedExportType={onSetSelectedExportType}
             />
           )}
         </bem.FormView__row>
