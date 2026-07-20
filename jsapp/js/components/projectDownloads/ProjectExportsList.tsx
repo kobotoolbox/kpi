@@ -122,6 +122,15 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     if (exportsListQuery.isSuccess && exportsListQuery.data.status === 200) {
       const exportRows = exportsListQuery.data.data.results as unknown as ExportDataResponse[]
 
+      // Stop fetchers for exports that are no longer in the list
+      const currentExportUids = new Set(exportRows.map((row) => row.uid))
+      for (const fetcherUid of exportFetchersRef.current.keys()) {
+        if (!currentExportUids.has(fetcherUid)) {
+          stopExportFetcher(fetcherUid)
+        }
+      }
+
+      // Start/check fetchers for exports in the list
       exportRows.forEach((exportData) => {
         checkExportFetcher(exportData.uid, exportData.status)
       })
