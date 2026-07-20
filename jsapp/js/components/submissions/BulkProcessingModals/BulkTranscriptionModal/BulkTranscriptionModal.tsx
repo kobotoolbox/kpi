@@ -1,7 +1,7 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
@@ -98,8 +98,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     },
   })
   const serviceCode = 'goog'
-
-  const navigate = useNavigate()
 
   // Get organization ID to check ASR limits
   const session = useSession()
@@ -247,11 +245,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     })
   }
 
-  const handleNavigateToAddOn = () => {
-    navigate(ACCOUNT_ROUTES.ADD_ONS)
-    props.onRequestClose()
-  }
-
   const handleWarningContinue = () => {
     setShowWarningModal(!showWarningModal)
   }
@@ -329,7 +322,14 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               </ButtonNew>
             )}
             {hasExceededLimit && (
-              <ButtonNew loading={isLoadingUsage} type='button' onClick={handleNavigateToAddOn} variant='light'>
+              <ButtonNew
+                loading={isLoadingUsage}
+                type='button'
+                variant='light'
+                component={Link}
+                to={ACCOUNT_ROUTES.ADD_ONS}
+                onClick={props.onRequestClose}
+              >
                 {t('Purchase add-on')}
               </ButtonNew>
             )}

@@ -153,8 +153,9 @@
     margin-top: -10px;
     opacity: 0.5;
 
-    // FIXME: .k-icon-close is only defined in languageSelector.scss, and it seems to do nothing here
-    @extend .k-icon, .k-icon-close !optional;
+    font-family: k-icons, sans-serif;
+    font-style: normal;
+    font-weight: normal;
 
     color: colors.$kobo-white;
   }
