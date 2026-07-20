@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { RecurringInterval, UsageLimitTypes } from '#/account/stripe.types'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -18,8 +18,6 @@ interface NlpUsageLimitBlockModalProps {
 }
 
 function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
-  const navigate = useNavigate()
-
   const handleClose = () => {
     props.dismissed()
   }
@@ -47,11 +45,11 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
           </div>
         </section>
         <KoboModalFooter alignment='end'>
-          <ButtonNew type='button' size='lg' onClick={() => navigate(ACCOUNT_ROUTES.ADD_ONS)} variant='light'>
+          <ButtonNew type='button' size='lg' variant='light' component={Link} to={ACCOUNT_ROUTES.ADD_ONS}>
             {t('Buy add-on')}
           </ButtonNew>
 
-          <ButtonNew type='button' size='lg' onClick={() => navigate(ACCOUNT_ROUTES.PLAN)} variant='filled'>
+          <ButtonNew type='button' size='lg' variant='filled' component={Link} to={ACCOUNT_ROUTES.PLAN}>
             {t('Upgrade now')}
           </ButtonNew>
         </KoboModalFooter>

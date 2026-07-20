@@ -1,13 +1,13 @@
 import cx from 'classnames'
 import Markdown from 'react-markdown'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { shouldUseTeamLabel } from '#/account/organization/organization.utils'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { UsageLimitTypes } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import Button from '#/components/common/button'
+import Button from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
 import envStore from '#/envStore'
 import { getAllLimitsText as getLimitsListText, pluralizeLimit } from './limitNotificationUtils'
@@ -88,8 +88,6 @@ function getMessage(
 }
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
-  const navigate = useNavigate()
-
   // Careful: using `useOrganizationAssumed` because parent component `LimitNotifications` will handle fetching it.
   const [organization] = useOrganizationAssumed()
 
@@ -131,25 +129,29 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       </div>
       {shouldDisplayCTA && props.warning && !props.accountPage && (
         <Button
-          type='text'
-          endIcon='arrow-right'
-          size='m'
-          label={t('Monitor usage')}
-          onClick={() => navigate(ACCOUNT_ROUTES.USAGE)}
+          variant='transparent'
+          rightIcon='arrow-right'
+          size='md'
+          component={Link}
+          to={ACCOUNT_ROUTES.USAGE}
           aria-label={t('monitor usage')}
           className={styles.bannerBtn}
-        />
+        >
+          {t('Monitor usage')}
+        </Button>
       )}
       {shouldDisplayCTA && (!props.warning || props.accountPage) && (
         <Button
-          type='text'
-          endIcon='arrow-right'
-          size='m'
-          label={t('Upgrade now')}
-          onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
+          variant='transparent'
+          rightIcon='arrow-right'
+          size='md'
+          component={Link}
+          to={ACCOUNT_ROUTES.PLAN}
           aria-label={t('upgrade now')}
           className={styles.bannerBtn}
-        />
+        >
+          {t('Upgrade now')}
+        </Button>
       )}
     </div>
   )
