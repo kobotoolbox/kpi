@@ -85,8 +85,6 @@ import type { ProjectInviteResponse } from '../models/projectInviteResponse'
 
 import type { ProjectOwnershipInvitesListParams } from '../models/projectOwnershipInvitesListParams'
 
-import type { TagRetrieveResponse } from '../models/tagRetrieveResponse'
-
 import type { TagsListParams } from '../models/tagsListParams'
 
 import type { TransferListResponse } from '../models/transferListResponse'
@@ -2588,81 +2586,6 @@ export function useTagsList<TData = Awaited<ReturnType<typeof tagsList>>, TError
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getTagsListQueryOptions(params, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * ## Retrieve a tag's data
-
- */
-export type tagsRetrieveResponse200 = {
-  data: TagRetrieveResponse
-  status: 200
-}
-
-export type tagsRetrieveResponse401 = {
-  data: ErrorDetail
-  status: 401
-}
-
-export type tagsRetrieveResponseComposite = tagsRetrieveResponse200 | tagsRetrieveResponse401
-
-export type tagsRetrieveResponse = tagsRetrieveResponseComposite & {
-  headers: Headers
-}
-
-export const getTagsRetrieveUrl = (taguidUid: string) => {
-  return `/api/v2/tags/${taguidUid}/`
-}
-
-export const tagsRetrieve = async (taguidUid: string, options?: RequestInit): Promise<tagsRetrieveResponse> => {
-  return fetchWithAuth<tagsRetrieveResponse>(getTagsRetrieveUrl(taguidUid), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getTagsRetrieveQueryKey = (taguidUid: string) => {
-  return ['api', 'v2', 'tags', taguidUid] as const
-}
-
-export const getTagsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof tagsRetrieve>>, TError = ErrorDetail>(
-  taguidUid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof tagsRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getTagsRetrieveQueryKey(taguidUid)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof tagsRetrieve>>> = ({ signal }) =>
-    tagsRetrieve(taguidUid, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!taguidUid, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof tagsRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type TagsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof tagsRetrieve>>>
-export type TagsRetrieveQueryError = ErrorDetail
-
-export function useTagsRetrieve<TData = Awaited<ReturnType<typeof tagsRetrieve>>, TError = ErrorDetail>(
-  taguidUid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof tagsRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getTagsRetrieveQueryOptions(taguidUid, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
