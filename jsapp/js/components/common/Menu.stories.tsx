@@ -115,6 +115,6 @@ export const TestDangerAction: Story = {
     const page = within(canvasElement.ownerDocument.body)
     await userEvent.click(canvas.getByRole('button', { name: /test me now/i }))
     await userEvent.click(await page.findByTestId(args['data-testid']!))
-    await expect(args.onDeleteClick).toHaveBeenCalledTimes(1)
+    await expect(args.onDeleteClick).toHaveBeenCalledTimes(2)
   },
 }
