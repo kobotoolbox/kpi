@@ -1714,7 +1714,35 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
     os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
 )
 
-CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # seconds
+# Dedicated, much longer limits for long-running migrations only. Unlike the
+# generic limits above (shared by many tasks), a single migration run may need
+# to churn through a whole table, so it is allowed up to ~24h in one pass.
+CELERY_LONG_RUNNING_MIGRATION_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_TIME_LIMIT', 86460)  # 24h + 1min
+)
+
+CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT', 86400)  # 24h
+)
+
+# Heartbeat that keeps a running migration's lock and `date_modified` fresh from
+# a background thread. The lock TTL is tied to this heartbeat, not to the task
+# time limit, so a hard-killed worker (e.g. a Kubernetes pod eviction that skips
+# the `finally` cleanup) releases the lock within a few heartbeats instead of
+# blocking re-execution for the whole 24h. The TTL is deliberately a few times
+# the interval to tolerate a briefly stalled worker without expiring the lock of
+# a task that is still alive.
+CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL = int(
+    os.environ.get(
+        'CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL', 60  # 60 seconds
+    )
+)
+
+CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # 300 sec
+)
+
+CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 seconds
 
 """ Django allauth configuration """
 # User.email should continue to be used instead of the EmailAddress model
