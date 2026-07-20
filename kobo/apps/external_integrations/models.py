@@ -23,7 +23,7 @@ class CorsModel(models.Model):
 
     def clean(self):
         super().clean()
-        for scheme, port in {'http:': '80', 'https:': '443'}:
+        for scheme, port in ('http:', '80'), ('https:', '443'):
             if self.cors.startswith(scheme) and self.cors.endswith(f':{port}'):
                 raise ValidationError(
                     {
