@@ -1,0 +1,18 @@
+.input {
+  border-color: var(--mantine-color-gray-7);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-3);
+    opacity: 1;
+  }
+}
+
+.input[data-disabled] {
+  background-color: var(--mantine-color-gray-7);
+  border-color: var(--mantine-color-gray-5);
+  color: var(--mantine-color-gray-3);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-2);
+  }
+}
