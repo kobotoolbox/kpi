@@ -55,7 +55,11 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import ConcurrentExportException, XlsFormatException, DuplicateNameException
+from kpi.exceptions import (
+    ConcurrentExportException,
+    DuplicateNameException,
+    XlsFormatException,
+)
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.autoname import _is_group_end
