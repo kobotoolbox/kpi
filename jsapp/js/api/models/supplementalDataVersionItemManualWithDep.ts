@@ -16,6 +16,6 @@ export interface SupplementalDataVersionItemManualWithDep {
   _dateCreated: string
   _uuid: string
   _dateAccepted: string
-  _dependency: SupplementalDataDependency
+  _dependency?: SupplementalDataDependency
   _data: SupplementalDataContentManual
 }
