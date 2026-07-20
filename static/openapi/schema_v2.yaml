@@ -17594,8 +17594,8 @@ components:
         result:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.orguser/export/NEW PROJECT - all versions - False
-            - 2025-01-01-01-01.csv
+          example: https://kf.kobotoolbox.org/user/export/NEW PROJECT - all versions
+            - False - 2025-01-01-01-01.csv
         data:
           type: object
           properties:
