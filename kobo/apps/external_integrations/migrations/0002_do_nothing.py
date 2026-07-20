@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='corsmodel',
             name='cors',
-            field=models.CharField(help_text='Must contain exactly the URI scheme, host, and port, e.g. https://example.com:1234. Standard ports (80 for http and 443 for https) may be omitted.', max_length=255, verbose_name='allowed origin'),
+            field=models.CharField(help_text='Must contain exactly the URI scheme and host, e.g. https://example.com. Include a port only if it is non-standard, e.g. https://example.com:1234. Do not include the default port for the scheme (80 for http, 443 for https): browsers never send it in the `Origin` header, so it would never match.', max_length=255, verbose_name='allowed origin'),
         ),
     ]

@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -38,3 +39,21 @@ class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
         self.assertTrue(response.has_header(self.cors_response_header_name))
         self.assertEqual(response[self.cors_response_header_name],
                          trusted_origin)
+
+    def test_origin_is_case_insensitive(self):
+        CorsModel.objects.create(cors='https://www.fsf.org')
+        response = self.client.get(
+            self.innocuous_url, headers={'origin': 'https://WWW.FSF.org'}
+        )
+        self.assertTrue(response.has_header(self.cors_response_header_name))
+
+    def test_default_http_port_rejected(self):
+        with self.assertRaises(ValidationError):
+            CorsModel(cors='http://example.com:80').full_clean()
+
+    def test_default_https_port_rejected(self):
+        with self.assertRaises(ValidationError):
+            CorsModel(cors='https://example.com:443').full_clean()
+
+    def test_non_standard_port_allowed(self):
+        CorsModel(cors='https://example.com:1234').full_clean()
