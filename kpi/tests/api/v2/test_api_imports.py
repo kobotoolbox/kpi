@@ -1126,12 +1126,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['note', 'note_1', 'Hi there, from group 2'],
             ['end group', '', ''],
         ]
-        choices_sheet_content = [
-            ['list_name', 'name', 'label::English (en)'],
-        ]
+
         content = (
             ('survey', survey_sheet_content),
-            ('choices', choices_sheet_content),
         )
 
         task_data = self._construct_xls_for_import(content, name='Bad file')

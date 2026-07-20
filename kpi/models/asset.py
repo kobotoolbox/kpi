@@ -498,7 +498,7 @@ class Asset(
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
-        self._autoname(self.content)
+        self._autoname(self.content, raise_on_error=False)
         self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
