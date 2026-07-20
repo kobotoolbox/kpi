@@ -16415,82 +16415,6 @@
                 }
             }
         },
-        "/api/v2/tags/{taguid__uid}/": {
-            "get": {
-                "operationId": "api_v2_tags_retrieve",
-                "description": "## Retrieve a tag's data\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "taguid__uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TagRetrieveResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/api/v2/terms-of-service/": {
             "get": {
                 "operationId": "api_v2_terms_of_service_list",
@@ -24668,7 +24592,7 @@
                     "result": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.orguser/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
+                        "example": "https://kf.kobotoolbox.org/user/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
                     },
                     "data": {
                         "type": "object",
@@ -32092,51 +32016,13 @@
                     "name": {
                         "type": "string"
                     },
-                    "url": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
-                    }
-                },
-                "required": [
-                    "name",
-                    "url"
-                ]
-            },
-            "TagRetrieveResponse": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "url": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
-                    },
-                    "assets": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/"
-                        }
-                    },
-                    "parent": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/"
-                    },
                     "uid": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "assets",
                     "name",
-                    "parent",
-                    "uid",
-                    "url"
+                    "uid"
                 ]
             },
             "TermsOfServiceResponse": {

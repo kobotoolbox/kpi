@@ -12,7 +12,7 @@ from .v1.object_permission import (
     ObjectPermissionNestedSerializer,
     ObjectPermissionSerializer,
 )
-from .v1.tag import TagListSerializer, TagSerializer
+from .v1.tag import TagListSerializer
 from .v1.user_asset_subscription import UserAssetSubscriptionSerializer
 
 __all__ = [
@@ -33,6 +33,5 @@ __all__ = [
     'ObjectPermissionNestedSerializer',
     'ObjectPermissionSerializer',
     'TagListSerializer',
-    'TagSerializer',
     'UserAssetSubscriptionSerializer',
 ]
