@@ -1,5 +1,4 @@
 import { Flex, Text } from '@mantine/core'
-import alertify from 'alertifyjs'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
@@ -16,6 +15,7 @@ import {
   ExportStatusName,
   type ExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
+import { openDeleteExportModal } from '#/components/projectDownloads/openDeleteExportModal'
 import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
 import { formatTime, notify } from '#/utils'
 
@@ -30,6 +30,7 @@ interface ProjectExportsListProps {
 export default function ProjectExportsList(props: ProjectExportsListProps) {
   const [isComponentReady, setIsComponentReady] = useState(false)
   const [rows, setRows] = useState<ExportDataResponse[]>([])
+  const [deletingExports, setDeletingExports] = useState<Set<string>>(new Set())
   const exportFetchersRef = useRef<Map<string, ExportFetcher>>(new Map())
   const exportsListQuery = useAssetsExportsList(props.asset.uid)
   const deleteExportMutation = useAssetsExportsDestroy()
@@ -94,23 +95,20 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   function deleteExport(exportUid: string) {
-    const dialog = alertify.dialog('confirm')
-    const opts = {
-      title: t('Delete export?'),
-      message: t('Are you sure you want to delete this export? This action is not reversible.'),
-      labels: { ok: t('Delete'), cancel: t('Cancel') },
-      onok: async () => {
-        try {
-          await deleteExportMutation.mutateAsync({ uidAsset: props.asset.uid, uidExport: exportUid })
-        } catch {
-          notify(t('Failed to delete export'), 'error')
-        }
-      },
-      oncancel: () => {
-        dialog.destroy()
-      },
-    }
-    dialog.set(opts).show()
+    openDeleteExportModal(async () => {
+      setDeletingExports((prev) => new Set(prev).add(exportUid))
+      try {
+        await deleteExportMutation.mutateAsync({ uidAsset: props.asset.uid, uidExport: exportUid })
+      } catch {
+        notify(t('Failed to delete export'), 'error')
+      } finally {
+        setDeletingExports((prev) => {
+          const next = new Set(prev)
+          next.delete(exportUid)
+          return next
+        })
+      }
+    })
   }
 
   useEffect(
@@ -207,7 +205,13 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         )}
 
         {userCan(PERMISSIONS_CODENAMES.view_submissions, props.asset) && (
-          <Button type='secondary-danger' size='m' startIcon='trash' onClick={() => deleteExport(exportData.uid)} />
+          <Button
+            type='secondary-danger'
+            size='m'
+            startIcon='trash'
+            isPending={deletingExports.has(exportData.uid)}
+            onClick={() => deleteExport(exportData.uid)}
+          />
         )}
       </Flex>,
     ])
