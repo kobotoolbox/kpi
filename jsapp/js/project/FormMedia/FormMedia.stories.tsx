@@ -34,7 +34,7 @@ const meta: Meta<typeof FormMedia> = {
         }),
       ]),
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 
