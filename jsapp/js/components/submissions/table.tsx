@@ -102,6 +102,7 @@ import LimitNotifications from '../usageLimits/limitNotifications.component'
 import { openBulkApproveModal } from './BulkProcessingModals/BulkApproveModal'
 import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
 import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
+import { openTableSettingsModal } from './openTableSettingsModal'
 
 const DEFAULT_PAGE_SIZE = 30
 const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
@@ -161,6 +162,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   private lastRowRefreshErrorNotifiedAt = 0
 
   private unlisteners: Function[] = []
+
+  private closeTableSettingsModal: (() => void) | null = null
 
   constructor(props: DataTableProps) {
     super(props)
@@ -1160,7 +1163,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onTableUpdateSettingsCompleted() {
     // Close table settings modal after settings are saved.
-    pageState.hideModal()
+    this.closeTableSettingsModal?.()
+    this.closeTableSettingsModal = null
     // Any updates after table settings are saved are handled by `componentDidUpdate`.
   }
 
@@ -1218,10 +1222,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   showTableColumnsOptionsModal() {
-    pageState.showModal({
-      type: MODAL_TYPES.TABLE_SETTINGS,
+    const { close } = openTableSettingsModal({
       asset: this.props.asset,
     })
+    this.closeTableSettingsModal = close
   }
 
   launchEditSubmission(sid: string) {
