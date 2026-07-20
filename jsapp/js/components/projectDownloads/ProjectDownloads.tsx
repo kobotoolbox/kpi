@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import bem from '#/bem'
 import AnonymousExports from '#/components/projectDownloads/AnonymousExports'
@@ -14,65 +14,51 @@ interface ProjectDownloadsProps {
   asset: AssetResponse
 }
 
-interface ProjectDownloadsState {
-  selectedExportType: ExportTypeDefinition
-}
-
 /**
  * This is the ROUTES.FORM_DOWNLOADS route component. It will check whether the
  * user is logged in or not and display proper child components.
  *
  * @prop {object} asset
  */
-export default class ProjectDownloads extends React.Component<ProjectDownloadsProps, ProjectDownloadsState> {
-  constructor(props: ProjectDownloadsProps) {
-    super(props)
-    this.state = { selectedExportType: exportsStore.getExportType() }
-  }
+export default function ProjectDownloads(props: ProjectDownloadsProps) {
+  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(exportsStore.getExportType())
 
-  private unlisteners: Function[] = []
+  useEffect(() => {
+    const unlisten = exportsStore.listen(() => {
+      setSelectedExportType(exportsStore.getExportType())
+    }, null)
 
-  componentDidMount() {
-    this.unlisteners.push(exportsStore.listen(this.onExportsStoreChange.bind(this), this))
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
-  }
-
-  onExportsStoreChange() {
-    this.setState({ selectedExportType: exportsStore.getExportType() })
-  }
-
-  renderLoggedInExports() {
-    if (this.state.selectedExportType.isLegacy) {
-      return <LegacyExports asset={this.props.asset} />
-    } else {
-      return (
-        <React.Fragment>
-          <ProjectExportsCreator asset={this.props.asset} />
-          <ProjectExportsList asset={this.props.asset} />
-        </React.Fragment>
-      )
+    return () => {
+      unlisten()
     }
-  }
+  }, [])
 
-  render() {
-    const docTitle = this.props.asset.name || t('Untitled')
+  function renderLoggedInExports() {
+    if (selectedExportType.isLegacy) {
+      return <LegacyExports asset={props.asset} />
+    }
+
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView className='project-downloads'>
-          <bem.FormView__row>
-            <bem.FormView__cell m={['page-title']}>{t('Downloads')}</bem.FormView__cell>
-
-            {sessionStore.isLoggedIn && this.renderLoggedInExports()}
-
-            {!sessionStore.isLoggedIn && <AnonymousExports asset={this.props.asset} />}
-          </bem.FormView__row>
-        </bem.FormView>
-      </DocumentTitle>
+      <React.Fragment>
+        <ProjectExportsCreator asset={props.asset} />
+        <ProjectExportsList asset={props.asset} />
+      </React.Fragment>
     )
   }
+
+  const docTitle = props.asset.name || t('Untitled')
+
+  return (
+    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <bem.FormView className='project-downloads'>
+        <bem.FormView__row>
+          <bem.FormView__cell m={['page-title']}>{t('Downloads')}</bem.FormView__cell>
+
+          {sessionStore.isLoggedIn && renderLoggedInExports()}
+
+          {!sessionStore.isLoggedIn && <AnonymousExports asset={props.asset} />}
+        </bem.FormView__row>
+      </bem.FormView>
+    </DocumentTitle>
+  )
 }
