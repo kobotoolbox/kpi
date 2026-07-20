@@ -18,7 +18,7 @@ module.exports = do ->
     render: () ->
       super()
       textEl = @$el.find('.skipLogic__description')
-      textEl.text t('This question will be valid ojdasf;jasdklfnly if the following conditions')
+      textEl.text t('This question will be valid only if the following conditions')
 
       @
 
