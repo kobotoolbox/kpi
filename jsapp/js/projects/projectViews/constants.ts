@@ -210,7 +210,7 @@ export const PROJECT_FIELDS: ProjectFields = {
   ownerOrganization: {
     name: 'ownerOrganization',
     label: t('Owner organization'),
-    apiFilteringName: 'owner__extra_details__data__organization',
+    apiFilteringName: 'owner__organizations_organization__name',
     apiOrderingName: 'owner__extra_details__data__organization',
     availableConditions: [
       'contains',
