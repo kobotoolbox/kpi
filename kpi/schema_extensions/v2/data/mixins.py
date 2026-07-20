@@ -154,11 +154,11 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                     '_dependency': references['dependency'],
                     '_data': references['content_manual'],
                 },
+                # `_dependency` is optional: deleted versions omit it
                 required=[
                     '_dateCreated',
                     '_uuid',
                     '_dateAccepted',
-                    '_dependency',
                     '_data',
                 ],
             ),
@@ -193,7 +193,8 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                     '_dependency': references['dependency'],
                     '_data': references['content_automatic'],
                 },
-                required=['_dateCreated', '_uuid', '_dependency', '_data'],
+                # `_dependency` is optional: deleted versions omit it
+                required=['_dateCreated', '_uuid', '_data'],
             ),
         )
 
