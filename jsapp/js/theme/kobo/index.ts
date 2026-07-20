@@ -16,6 +16,7 @@ import { MultiSelectThemeKobo } from './MultiSelect'
 import { NotificationThemeKobo } from './Notification'
 import { NumberInputThemeKobo } from './NumberInput'
 import { PaperThemeKobo } from './Paper'
+import { PasswordInputThemeKobo } from './PasswordInput'
 import { PillThemeKobo } from './Pill'
 import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
@@ -167,6 +168,7 @@ export const themeKobo = createTheme({
     Dropzone: DropzoneThemeKobo,
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
+    PasswordInput: PasswordInputThemeKobo,
     NumberInput: NumberInputThemeKobo,
     Textarea: TextareaThemeKobo,
     Paper: PaperThemeKobo,
