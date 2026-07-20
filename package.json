@@ -217,7 +217,7 @@
     "postinstall": "patch-package && npm run copy-fonts",
     "build": "npm run hint build && npm run build:app && npm run build:storybook-with-playwright",
     "build:app": "webpack --config webpack/prod.config.js",
-    "build:storybook": "storybook build",
+    "build:storybook": "storybook build --quiet",
     "build:storybook-with-playwright": "npm run build:storybook && playwright install",
     "build:orval": "orval",
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
