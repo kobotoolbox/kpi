@@ -1,5 +1,6 @@
 import time
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
@@ -43,6 +44,11 @@ class Command(BaseCommand):
                 verbosity=self._verbosity,
                 xform=xform_id_string,
             )
+        except (SoftTimeLimitExceeded, TimeLimitExceeded):
+            # A Celery timeout is not a data error. Let it propagate as-is
+            # instead of swallowing it into a CommandError, so the caller can
+            # tell a timeout apart from an unrecoverable failure.
+            raise
         except Exception as e:
             exit_code = 1
             error = str(e)
