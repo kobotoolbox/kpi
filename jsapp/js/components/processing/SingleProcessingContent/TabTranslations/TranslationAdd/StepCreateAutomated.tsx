@@ -25,7 +25,7 @@ import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/cons
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
