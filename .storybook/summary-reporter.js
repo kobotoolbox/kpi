@@ -9,8 +9,8 @@ class SummaryReporter {
   }
 
   onTestResult(test, testResult, aggregatedResult) {
-    // Collect failures
-    if (testResult.numFailingTests > 0) {
+    // Collect failures (both individual test failures and suite-level errors)
+    if (testResult.numFailingTests > 0 || testResult.testExecError) {
       this._failures.push({ test, testResult });
     }
   }
@@ -32,6 +32,18 @@ class SummaryReporter {
       console.log('\n');
       this._failures.forEach(({ test, testResult }) => {
         console.log(`FAIL! (⦿∩⦿) ${test.path}`);
+
+        // Handle suite-level errors (e.g., import errors, setup failures)
+        if (testResult.testExecError) {
+          console.log(`  ● Suite-level error\n`);
+          console.log(testResult.testExecError.message);
+          if (testResult.testExecError.stack) {
+            console.log(testResult.testExecError.stack);
+          }
+          console.log('');
+        }
+
+        // Handle individual test failures
         testResult.testResults.forEach((result) => {
           if (result.status === 'failed') {
             console.log(`  ● ${result.ancestorTitles.join(' → ')} → ${result.title}\n`);
