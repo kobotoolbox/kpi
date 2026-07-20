@@ -6,6 +6,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 from formpack.utils.json_hash import json_hash
+from kpi.exceptions import DuplicateNameException
 from kpi.utils.sluggify import sluggify, sluggify_label
 
 
@@ -82,13 +83,15 @@ def autoname_fields(surv_content, in_place=False):
         return _content_copy.get('survey')
 
 
-def autoname_fields_in_place(surv_content, destination_key):
+def autoname_fields_in_place(surv_content, destination_key, raise_on_error=True):
     surv_list = surv_content.get('survey')
     other_names = OrderedDict()
 
     def _assign_row_to_name(row, suggested_name):
-        if suggested_name in other_names:
-            raise ValueError('Duplicate name error: {}'.format(suggested_name))
+        if raise_on_error and suggested_name in other_names:
+            raise DuplicateNameException(
+                'Duplicate name error: {}'.format(suggested_name)
+            )
         other_names[suggested_name] = row
         row[destination_key] = suggested_name
 

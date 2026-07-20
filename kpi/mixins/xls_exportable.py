@@ -7,14 +7,15 @@ from io import BytesIO
 
 import six
 import xlsxwriter
-
 from formpack.utils.kobo_locking import (
     revert_kobo_lock_structure,
 )
 
 
 class XlsExportableMixin:
-    def ordered_xlsform_content(self, kobo_specific_types=False, append=None):
+    def ordered_xlsform_content(
+        self, kobo_specific_types=False, append=None, raise_on_autoname_error=True
+    ):
         # currently, this method depends on "FormpackXLSFormUtilsMixin"
         content = copy.deepcopy(self.content)
         if append:
@@ -22,7 +23,7 @@ class XlsExportableMixin:
         self._standardize(content)
         if not kobo_specific_types:
             self._expand_kobo_qs(content)
-            self._autoname(content)
+            self._autoname(content, raise_on_error=raise_on_autoname_error)
             self._populate_fields_with_autofields(content)
             self._strip_dollar_fields(content)
             revert_kobo_lock_structure(content)
@@ -49,7 +50,7 @@ class XlsExportableMixin:
             append_survey.append(
                 {
                     'name': '__version__',
-                    'calculation': '\'{}\''.format(self.version_id),
+                    'calculation': "'{}'".format(self.version_id),
                     'type': 'calculate',
                 }
             )
@@ -88,8 +89,7 @@ class XlsExportableMixin:
             six.reraise(
                 type(e),
                 type(e)(
-                    "asset.content improperly formatted for XLS "
-                    "export: %s" % repr(e)
+                    'asset.content improperly formatted for XLS ' 'export: %s' % repr(e)
                 ),
                 sys.exc_info()[2],
             )

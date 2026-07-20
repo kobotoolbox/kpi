@@ -55,7 +55,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import ConcurrentExportException, XlsFormatException
+from kpi.exceptions import ConcurrentExportException, XlsFormatException, DuplicateNameException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.autoname import _is_group_end
@@ -409,7 +409,7 @@ class ImportTask(ImportExportTask):
             if not is_valid_node_name(name):
                 raise ValueError(f'Invalid node name: {name}')
             if name in names:
-                raise ValueError(f'Duplicate node name: {name}')
+                raise DuplicateNameException(f'Duplicate node name: {name}')
             names.add(name)
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
