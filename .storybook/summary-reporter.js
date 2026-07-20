@@ -52,7 +52,7 @@ class SummaryReporter {
     console.log(`Test Suites: ${numPassedTestSuites} passed, ${numFailedTestSuites} failed, ${numTotalTestSuites} total`);
     console.log(`Tests:       ${numPassedTests} passed, ${numFailedTests} failed, ${numTotalTests} total`);
     console.log(`Time:        ${duration} s`);
-    console.log('✓ Ran all test suites.');
+    console.log(numFailedTestSuites > 0 ? '✗ Some test suites failed.' : '✓ Ran all test suites.');
     console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
     console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
   }
