@@ -638,7 +638,7 @@ export interface AssetRequestObject {
   // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null
-  settings: AssetSettings
+  settings?: AssetSettings
   asset_type: AssetTypeName
   report_styles: AssetResponseReportStyles
   report_custom: AssetResponseReportCustom
@@ -703,6 +703,7 @@ export interface AssetResponse extends AssetRequestObject {
   date_created?: string
   last_modified_by: string | null
   created_by: string | null
+  settings: AssetSettings
   summary: AssetSummary
   // Always present in GET responses (Django auto-updates on save)
   // OpenAPI marks optional because POST/PATCH don't require it (has default value)
