@@ -80,7 +80,11 @@ class XlsExportableMixin:
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
             output = BytesIO()
-            with xlsxwriter.Workbook(output) as workbook:
+            # Keep values like `=foo` as literal strings; XLSForm cells are
+            # never Excel formulas (DEV-1235).
+            with xlsxwriter.Workbook(
+                output, {'strings_to_formulas': False}
+            ) as workbook:
                 for sheet_name, contents in ss_dict.items():
                     cur_sheet = workbook.add_worksheet(sheet_name)
                     _add_contents_to_sheet(cur_sheet, contents)

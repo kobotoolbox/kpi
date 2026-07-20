@@ -509,6 +509,32 @@ class AssetContentTests(AssetsTestCase):
         version_string = settings_sheet[version_col][1].value
         assert version_string == f'1 ({date_string})'
 
+    def test_to_xlsx_io_preserves_leading_equals_in_label(self):
+        # DEV-1235: a cell starting with `=` must stay a literal string, not
+        # become an Excel formula (else `Err:520` in XLSForm, `0` in Enketo).
+        asset = Asset.objects.create(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': '=foo', 'name': 'q1'},
+                ]
+            },
+            owner=self.user,
+            asset_type='survey',
+        )
+        xlsx_io = asset.to_xlsx_io()
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        header = [cell.value for cell in survey_sheet[1]]
+        label_col = next(
+            i
+            for i, col in enumerate(header, start=1)
+            if col and col.startswith('label')
+        )
+        label_cell = survey_sheet.cell(row=2, column=label_col)
+        # 's' == string; a formula cell would be 'f'
+        assert label_cell.data_type == 's'
+        assert label_cell.value == '=foo'
+
     def test_unique__version__field_on_import_with_version(self):
             xlsx_io = self.asset.to_xlsx_io(versioned=True)
             workbook = openpyxl.load_workbook(xlsx_io)
