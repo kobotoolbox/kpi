@@ -14,6 +14,7 @@ import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import {
   getApiV2AssetsRetrieveMockHandler,
   getApiV2AssetsRetrieveResponseMock,
@@ -328,6 +329,13 @@ const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveRe
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   submission_uuids: [processingSubmissions[1]['meta/rootUuid']],
+  submission_statuses: [
+    {
+      uuid: processingSubmissions[1]['meta/rootUuid'],
+      status: BulkActionSubmissionStatusResponseStatusEnum.complete,
+      error: null,
+    },
+  ],
   params: { language: 'fr' },
   created_by: {
     username: 'zefir',
@@ -338,6 +346,13 @@ const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveR
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   submission_uuids: [processingSubmissions[2]['meta/rootUuid']],
+  submission_statuses: [
+    {
+      uuid: processingSubmissions[2]['meta/rootUuid'],
+      status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+      error: null,
+    },
+  ],
   params: { language: 'es' },
   created_by: {
     username: 'other-user',
