@@ -5,6 +5,7 @@ from django.db.models import FileField
 from django.db.models.fields.files import FieldFile
 from storages.backends.s3 import ClientError
 
+from kpi.exceptions import SourceFileMissingError
 from kpi.utils.log import logging
 from kpi.utils.storage import is_s3_storage
 
@@ -30,6 +31,12 @@ class ExtendedFieldFile(FieldFile):
                 self.storage.bucket.copy(copy_source, new_path)
                 self.storage.delete(old_path)
             except ClientError as e:
+                error_code = e.response.get('Error', {}).get('Code')
+                if error_code in ('NoSuchKey', 'NoSuchBucket', '404'):
+                    logging.warning(f'Source file {old_path} no longer exists: {e}')
+                    if reraise_errors:
+                        raise SourceFileMissingError(old_path) from e
+                    return False
                 logging.error(
                     f'Error copying {old_path} to {new_path}: {e}', exc_info=True
                 )
@@ -51,9 +58,9 @@ class ExtendedFieldFile(FieldFile):
             self.storage.delete(old_path)
             success = True
         except FileNotFoundError as fe:
-            logging.error(fe, exc_info=True)
+            logging.warning(f'Source file {old_path} no longer exists: {fe}')
             if reraise_errors:
-                raise fe
+                raise SourceFileMissingError(old_path) from fe
         finally:
             # Restore `upload_to`
             self.field.upload_to = upload_to
