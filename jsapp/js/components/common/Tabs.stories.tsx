@@ -1,4 +1,4 @@
-import { Box, Group, Stack, Tabs, type TabsProps, Title } from '@mantine/core'
+import { Box, Group, Stack, Tabs, type TabsProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 
 const tabsVariants = ['default', 'pills', 'bubble'] as const
