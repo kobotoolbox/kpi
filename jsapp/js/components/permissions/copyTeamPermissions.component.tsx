@@ -178,16 +178,17 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
   ])
 
   return (
-    <Box>
-      <ButtonNew
-        size='md'
-        variant='transparent'
-        p='0'
-        onClick={isFormOpened ? closeForm : openForm}
-        rightIcon={isFormOpened ? 'angle-up' : 'angle-down'}
-      >
-        {t('Copy team from another project')}
-      </ButtonNew>
+    <Stack gap='sm'>
+      <Box>
+        <ButtonNew
+          size='md'
+          variant='light'
+          onClick={isFormOpened ? closeForm : openForm}
+          rightIcon={isFormOpened ? 'angle-up' : 'angle-down'}
+        >
+          {t('Copy team from another project')}
+        </ButtonNew>
+      </Box>
 
       {isFormOpened && (
         <Stack gap='md'>
@@ -249,6 +250,6 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
           </Group>
         </Stack>
       )}
-    </Box>
+    </Stack>
   )
 }

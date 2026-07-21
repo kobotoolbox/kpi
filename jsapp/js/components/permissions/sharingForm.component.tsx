@@ -1,4 +1,4 @@
-import { Box, Divider, Group, Stack, Title } from '@mantine/core'
+import { Box, Group, Stack, Title } from '@mantine/core'
 import { IconX } from '@tabler/icons-react'
 import React from 'react'
 import { actions } from '#/actions'
@@ -180,7 +180,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     const isManagingPossible = userCan('manage_asset', this.state.asset)
 
     return (
-      <Stack gap='md'>
+      <Stack gap='xl'>
         <Box p='md' bg='gray.7' bdrs='sm'>
           <Title order={3} dir='auto'>
             <AssetName asset={this.state.asset} />
@@ -260,10 +260,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
         {/* copying permissions from other assets */}
         {isManagingPossible && assetType !== ASSET_TYPES.collection.id && (
-          <>
-            <Divider />
-            <CopyTeamPermissions asset={this.state.asset} />
-          </>
+          <CopyTeamPermissions asset={this.state.asset} />
         )}
       </Stack>
     )
