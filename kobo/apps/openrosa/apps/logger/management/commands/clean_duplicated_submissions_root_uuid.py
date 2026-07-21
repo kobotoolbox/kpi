@@ -1,5 +1,3 @@
-import time
-
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
 from django.core.management import call_command
@@ -8,10 +6,8 @@ from django.db.utils import IntegrityError
 from pymongo import UpdateOne
 
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
-    add_uuid_prefix,
-    set_meta,
-)
+from kobo.apps.openrosa.apps.logger.utils import resolve_root_uuid_conflict
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 
@@ -112,34 +108,12 @@ class Command(BaseCommand):
 
             # Load XML only now, when we actually need it for conflict resolution
             instance = Instance.objects.only('pk', 'uuid', 'xml', 'xml_hash').get(pk=pk)
-
             old_uuid = instance.uuid
-            now = int(time.time() * 1000)
-            new_root_uuid = f'CONFLICT-{now}-{xform_id_string}-{old_uuid}'
-            try:
-                instance.xml = set_meta(
-                    instance.xml,
-                    'rootUuid',
-                    add_uuid_prefix(new_root_uuid),
-                )
-            except ValueError:
-                # instance has never been edited
-                pass
-
-            instance.xml_hash = instance.get_hash(instance.xml)
+            new_root_uuid = resolve_root_uuid_conflict(instance, xform_id_string)
             if self._verbosity >= 2:
                 self.stdout.write(
                     f'\tOld root_uuid: {old_uuid}, ' f'New root_uuid: {new_root_uuid}'
                 )
-            Instance.objects.filter(pk=pk).update(
-                xml=instance.xml,
-                xml_hash=instance.xml_hash,
-                root_uuid=new_root_uuid,
-            )
-            doc = settings.MONGO_DB.instances.find_one({'_id': pk})
-            if doc is not None:
-                doc['meta/rootUuid'] = add_uuid_prefix(new_root_uuid)
-                settings.MONGO_DB.instances.replace_one({'_id': pk}, doc)
 
     @staticmethod
     def _update_mongo_batch(update_data: list):

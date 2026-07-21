@@ -1,5 +1,7 @@
+import hashlib
 import logging
 import time
+from uuid import uuid4
 
 from django.conf import settings
 from django.db import DEFAULT_DB_ALIAS, transaction
@@ -30,6 +32,7 @@ from ..exceptions import (
 )
 from ..models.instance import Instance
 from ..models.xform import XForm
+from ..xform_instance_parser import add_uuid_prefix, set_meta
 from .database_query import build_db_queries
 
 
@@ -226,6 +229,47 @@ def remove_validation_status_from_instance(instance: Instance) -> bool:
     instance.validation_status = {}
     instance.save(update_fields=['validation_status', 'date_modified'])
     return instance.parsed_instance.update_mongo(asynchronous=False)
+
+
+def resolve_root_uuid_conflict(instance: Instance, xform_id_string: str) -> str:
+    """
+    Give `instance` a unique `CONFLICT-` `root_uuid` when its intended one is
+    already used by another submission in the same xform, keeping Postgres, the
+    XML and Mongo in sync. Returns the new `root_uuid`.
+    """
+
+    # A uuid4 guarantees uniqueness per xform. Keep the value within the
+    # `root_uuid` CharField max_length: when the descriptive form is too long,
+    # fall back to a hash of it (not the sequential pk) so it still fits.
+    max_length = Instance._meta.get_field('root_uuid').max_length
+    conflict_root_uuid = (
+        f'CONFLICT-{uuid4().hex}-{xform_id_string}-{instance.uuid}'
+    )
+    if len(conflict_root_uuid) > max_length:
+        conflict_root_uuid = (
+            f'CONFLICT-{hashlib.sha256(conflict_root_uuid.encode()).hexdigest()}'
+        )
+    fields = {'root_uuid': conflict_root_uuid}
+    try:
+        instance.xml = set_meta(
+            instance.xml, 'rootUuid', add_uuid_prefix(conflict_root_uuid)
+        )
+    except ValueError:
+        # Legacy submission without a rootUuid node; the DB field alone enforces
+        # uniqueness.
+        pass
+    else:
+        fields['xml'] = instance.xml
+        fields['xml_hash'] = instance.get_hash(instance.xml)
+
+    Instance.objects.filter(pk=instance.pk).update(**fields)
+
+    doc = settings.MONGO_DB.instances.find_one({'_id': instance.pk})
+    if doc is not None:
+        doc['meta/rootUuid'] = add_uuid_prefix(conflict_root_uuid)
+        settings.MONGO_DB.instances.replace_one({'_id': instance.pk}, doc)
+
+    return conflict_root_uuid
 
 
 def set_instance_validation_statuses(

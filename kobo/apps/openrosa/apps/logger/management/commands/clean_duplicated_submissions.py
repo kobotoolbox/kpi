@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 from django.db.models import F, QuerySet
 from django.db.models.aggregates import Count
 from more_itertools import chunked
@@ -13,8 +14,14 @@ from kobo.apps.openrosa.apps.logger.models import (
 )
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.logger.utils import delete_instances
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
+from kobo.apps.openrosa.apps.logger.utils import (
+    delete_instances,
+    resolve_root_uuid_conflict,
+)
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    set_meta,
+)
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
@@ -150,9 +157,17 @@ class Command(BaseCommand):
         # held the same value.
         ref_instance = parsed_instance.instance
         if not ref_instance.root_uuid:
-            Instance.objects.filter(pk=ref_instance.pk).update(
-                root_uuid=ref_instance.uuid
-            )
+            try:
+                # Savepoint so a unique-constraint violation rolls back only
+                # this statement instead of aborting the surrounding transaction.
+                with kc_transaction_atomic():
+                    Instance.objects.filter(pk=ref_instance.pk).update(
+                        root_uuid=ref_instance.uuid
+                    )
+            except IntegrityError:
+                # Another submission in this xform already holds this root_uuid;
+                # give the reference a unique one instead.
+                resolve_root_uuid_conflict(ref_instance, xform.id_string)
 
         if self._verbosity > 1:
             self.stdout.write(
@@ -208,6 +223,7 @@ class Command(BaseCommand):
             duplicated_instances, settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
         ):
             instances_to_update = []
+            parsed_instances_to_sync = []
             for duplicated_instance in duplicated_instance_batch:
                 try:
                     instance = Instance.objects.get(pk=duplicated_instance['id'])
@@ -236,28 +252,29 @@ class Command(BaseCommand):
                     instance.xml = set_meta(
                         instance.xml, 'instanceID', instance.uuid
                     )
+                    instance.xml = set_meta(
+                        instance.xml, 'rootUuid', add_uuid_prefix(instance.uuid)
+                    )
                 except ValueError:
-                    # Legacy submission without an instanceID node in its XML.
-                    # The DB `uuid` update above already resolves the collision.
+                    # Legacy submission without an instanceID/rootUuid node in
+                    # its XML; the DB fields below are what enforce uniqueness.
                     pass
+                # The new uuid makes this a distinct submission, so its
+                # root_uuid must follow it to stay unique per xform.
+                instance.root_uuid = instance.uuid
                 instance.xml_hash = instance.get_hash(instance.xml)
-                try:
-                    instance._populate_root_uuid()  # noqa
-                except AssertionError:
-                    # No derivable root_uuid on this legacy submission; fall
-                    # back to its uuid, as LRM 0027 does.
-                    instance.root_uuid = instance.uuid
                 instances_to_update.append(instance)
 
-                # Save the parsed instance to sync MongoDB
+                # Collect the parsed instances; Mongo is synced only after the
+                # bulk Postgres update below, so a failed bulk_update never
+                # leaves Mongo ahead of the database.
                 try:
-                    parsed_instance = instance.parsed_instance
+                    parsed_instances_to_sync.append(instance.parsed_instance)
                 except Instance.parsed_instance.RelatedObjectDoesNotExist:
-                    pass
-                else:
-                    parsed_instance.update_mongo(
-                        asynchronous=False, use_cached_parser=True
+                    self.stderr.write(
+                        f'Instance {instance.pk} does not have ParsedInstance'
                     )
+
                 idx += 1
 
             if self._verbosity >= 3:
@@ -265,3 +282,7 @@ class Command(BaseCommand):
             Instance.objects.bulk_update(
                 instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
             )
+            for parsed_instance in parsed_instances_to_sync:
+                parsed_instance.update_mongo(
+                    asynchronous=False, use_cached_parser=True
+                )
