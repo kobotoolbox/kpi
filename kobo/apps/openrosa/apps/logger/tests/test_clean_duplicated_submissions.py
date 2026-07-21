@@ -1,6 +1,7 @@
 import os
 import uuid as uuid_module
 
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -13,6 +14,8 @@ from kobo.apps.openrosa.apps.logger.models import (
     SurveyType,
 )
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
+from kobo.apps.openrosa.apps.logger.utils import resolve_root_uuid_conflict
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
@@ -51,18 +54,21 @@ class TestCleanDuplicatedSubmissions(TestBase):
         )
 
     # ------------------------------------------------------------------ helpers
-
-    def _make_xml(self, instance_uuid, name='Test'):
-        """
-        Minimal valid XML submission for the tutorial form.
-        """
-        return (
-            f'<?xml version="1.0" ?>'
-            f'<{self.xform.id_string} id="{self.xform.id_string}">'
-            f'<meta><instanceID>uuid:{instance_uuid}</instanceID></meta>'
-            f'<name>{name}</name>'
-            f'</{self.xform.id_string}>'
+    def _add_attachment(self, instance):
+        fake_file = SimpleUploadedFile(
+            'test.txt', b'content', content_type='text/plain'
         )
+        return Attachment.objects.create(
+            instance=instance,
+            xform=self.xform,
+            media_file=fake_file,
+            mimetype='text/plain',
+            media_file_size=7,
+        )
+
+    def _add_parsed_instance(self, instance):
+        parsed, _ = ParsedInstance.objects.get_or_create(instance=instance)
+        return parsed
 
     def _create_instance(self, xml, instance_uuid):
         """
@@ -84,39 +90,32 @@ class TestCleanDuplicatedSubmissions(TestBase):
         results = Instance.objects.bulk_create([instance])
         return results[0]
 
-    def _add_attachment(self, instance):
-        fake_file = SimpleUploadedFile(
-            'test.txt', b'content', content_type='text/plain'
-        )
-        return Attachment.objects.create(
-            instance=instance,
-            xform=self.xform,
-            media_file=fake_file,
-            mimetype='text/plain',
-            media_file_size=7,
+    def _make_xml(self, instance_uuid, name='Test'):
+        """
+        Minimal valid XML submission for the tutorial form.
+        """
+        return (
+            f'<?xml version="1.0" ?>'
+            f'<{self.xform.id_string} id="{self.xform.id_string}">'
+            f'<meta><instanceID>uuid:{instance_uuid}</instanceID></meta>'
+            f'<name>{name}</name>'
+            f'</{self.xform.id_string}>'
         )
 
-    def _add_parsed_instance(self, instance):
-        parsed, _ = ParsedInstance.objects.get_or_create(instance=instance)
-        return parsed
+    def _make_xml_with_root_uuid(self, instance_uuid, root_uuid, name='Test'):
+        """
+        Submission XML that also carries a `meta/rootUuid` node.
+        """
 
-    def _setup_counters(self, count):
-        """
-        Pre-populate Monthly/Daily counters for today.
-        """
-        today = timezone.now().date()
-        MonthlyXFormSubmissionCounter.objects.update_or_create(
-            year=today.year,
-            month=today.month,
-            user_id=self.user.pk,
-            xform_id=self.xform.pk,
-            defaults={'counter': count},
-        )
-        DailyXFormSubmissionCounter.objects.update_or_create(
-            date=today,
-            user_id=self.user.pk,
-            xform_id=self.xform.pk,
-            defaults={'counter': count},
+        return (
+            f'<?xml version="1.0" ?>'
+            f'<{self.xform.id_string} id="{self.xform.id_string}">'
+            f'<meta>'
+            f'<instanceID>uuid:{instance_uuid}</instanceID>'
+            f'<rootUuid>uuid:{root_uuid}</rootUuid>'
+            f'</meta>'
+            f'<name>{name}</name>'
+            f'</{self.xform.id_string}>'
         )
 
     def _make_group_a(self):
@@ -144,6 +143,24 @@ class TestCleanDuplicatedSubmissions(TestBase):
             self._add_attachment(inst)
             self._add_parsed_instance(inst)
 
+    def _setup_counters(self, count):
+        """
+        Pre-populate Monthly/Daily counters for today.
+        """
+        today = timezone.now().date()
+        MonthlyXFormSubmissionCounter.objects.update_or_create(
+            year=today.year,
+            month=today.month,
+            user_id=self.user.pk,
+            xform_id=self.xform.pk,
+            defaults={'counter': count},
+        )
+        DailyXFormSubmissionCounter.objects.update_or_create(
+            date=today,
+            user_id=self.user.pk,
+            xform_id=self.xform.pk,
+            defaults={'counter': count},
+        )
     # -------------------------------------------------------- _delete_duplicates
 
     def test_delete_duplicates_removes_extras_and_keeps_reference(self):
@@ -324,3 +341,124 @@ class TestCleanDuplicatedSubmissions(TestBase):
         self.assertEqual(updated.count(), 2)
         for instance in updated:
             self.assertTrue(instance.uuid.startswith('DUPLICATE-'))
+
+    # ------------------------------------------ root_uuid conflict resolution
+
+    def test_replace_duplicates_gives_each_a_unique_root_uuid(self):
+        """
+        Divergent duplicates whose XML rootUuid points to the same value used to
+        collide on `unique_root_uuid_per_xform`. Each must now get a root_uuid
+        matching its own new DUPLICATE- uuid, and the XML rootUuid must follow.
+        """
+
+        uid = str(uuid_module.uuid4())
+        shared_root = str(uuid_module.uuid4())
+        b1 = self._create_instance(
+            self._make_xml_with_root_uuid(uid, shared_root, 'V1'), uid
+        )
+        b2 = self._create_instance(
+            self._make_xml_with_root_uuid(uid, shared_root, 'V2'), uid
+        )
+        for inst in (b1, b2):
+            self._add_parsed_instance(inst)
+
+        # Must not raise a unique constraint violation.
+        call_command('clean_duplicated_submissions', xform=self.xform.id_string)
+
+        b1.refresh_from_db()
+        b2.refresh_from_db()
+        self.assertEqual(b1.root_uuid, b1.uuid)
+        self.assertEqual(b2.root_uuid, b2.uuid)
+        self.assertNotEqual(b1.root_uuid, b2.root_uuid)
+        # The XML rootUuid now carries the new uuid, not the shared one.
+        self.assertIn(b1.uuid, b1.xml)
+        self.assertNotIn(shared_root, b1.xml)
+
+    def test_delete_duplicates_resolves_root_uuid_conflict(self):
+        """
+        If another submission in the xform already holds the reference's uuid as
+        its root_uuid, the reference must get a unique CONFLICT- root_uuid
+        instead of raising `unique_root_uuid_per_xform`.
+        """
+
+        self._make_group_a()
+        conflicting = self.a1.uuid
+        other = self._create_instance(
+            self._make_xml(str(uuid_module.uuid4()), 'Other'),
+            str(uuid_module.uuid4()),
+        )
+        Instance.objects.filter(pk=other.pk).update(root_uuid=conflicting)
+
+        call_command('clean_duplicated_submissions', xform=self.xform.id_string)
+
+        ref = Instance.objects.get(pk=self.a1.pk)
+        self.assertTrue(ref.root_uuid.startswith('CONFLICT-'))
+        self.assertNotEqual(ref.root_uuid, conflicting)
+        # The other submission keeps its root_uuid untouched.
+        other.refresh_from_db()
+        self.assertEqual(other.root_uuid, conflicting)
+
+    def test_resolve_root_uuid_conflict_syncs_xml_and_db(self):
+        """
+        The helper assigns a CONFLICT- root_uuid and writes it to the XML
+        rootUuid node when present.
+        """
+
+        uid = str(uuid_module.uuid4())
+        inst = self._create_instance(
+            self._make_xml_with_root_uuid(uid, str(uuid_module.uuid4()), 'V'), uid
+        )
+        self._add_parsed_instance(inst)
+
+        new_root = resolve_root_uuid_conflict(inst, self.xform.id_string)
+
+        inst.refresh_from_db()
+        self.assertEqual(inst.root_uuid, new_root)
+        self.assertTrue(new_root.startswith('CONFLICT-'))
+        self.assertIn(new_root, inst.xml)
+
+    def test_resolve_root_uuid_conflict_hashes_when_too_long(self):
+        """
+        When the descriptive form would exceed the `root_uuid` column length, a
+        hash form is used so it stays unique and within max_length.
+        """
+
+        long_uuid = 'x' * 249
+        inst = self._create_instance(self._make_xml('short', 'V'), long_uuid)
+        self._add_parsed_instance(inst)
+
+        resolve_root_uuid_conflict(inst, self.xform.id_string)
+
+        inst.refresh_from_db()
+        max_length = Instance._meta.get_field('root_uuid').max_length
+        self.assertTrue(inst.root_uuid.startswith('CONFLICT-'))
+        self.assertLessEqual(len(inst.root_uuid), max_length)
+        # Hash fallback: "CONFLICT-" + a 64-char sha256 hexdigest.
+        self.assertEqual(len(inst.root_uuid), len('CONFLICT-') + 64)
+
+    def test_replace_duplicates_syncs_mongo_identity_fields(self):
+        """
+        The renamed identity fields (`_uuid`, `meta/instanceID`,
+        `meta/rootUuid`) must be updated on the existing Mongo documents.
+        """
+
+        self._make_group_b()
+        # Submissions already exist in Mongo before the repair runs.
+        for pk in (self.b1.pk, self.b2.pk, self.b3.pk):
+            Instance.objects.get(pk=pk).parsed_instance.update_mongo(
+                asynchronous=False
+            )
+
+        call_command('clean_duplicated_submissions', xform=self.xform.id_string)
+
+        for pk in (self.b1.pk, self.b2.pk, self.b3.pk):
+            instance = Instance.objects.get(pk=pk)
+            doc = settings.MONGO_DB.instances.find_one({'_id': pk})
+            self.assertIsNotNone(doc)
+            self.assertEqual(doc['_uuid'], instance.uuid)
+            self.assertEqual(
+                doc['meta/instanceID'], add_uuid_prefix(instance.uuid)
+            )
+            self.assertEqual(
+                doc['meta/rootUuid'], add_uuid_prefix(instance.root_uuid)
+            )
