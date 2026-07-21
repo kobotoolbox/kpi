@@ -1,6 +1,7 @@
 import chai from 'chai'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { QuestionTypeName } from '#/constants'
-import assetFactory from '#/endpoints/asset.factory'
+import type { AssetResponse } from '#/dataInterface'
 import { reportStyleFactory, reportsResponseDataFactory } from './reports.factory'
 import { buildEffectiveReportStyle, getEffectiveRowReportStyle, populateSelectQuestionLabels } from './reports.utils'
 import type { ReportsResponse } from './reportsConstants'
@@ -134,7 +135,9 @@ describe('populateSelectQuestionLabels', () => {
       style: reportStyleFactory(),
     }
 
-    const asset = assetFactory({
+    // TODO: Improve backend OpenAPI schema for Asset
+    // - Make date_created and date_modified required (they're auto-populated by Django)
+    const asset = getApiV2AssetsRetrieveResponseMock({
       content: {
         survey: [
           {
@@ -161,7 +164,7 @@ describe('populateSelectQuestionLabels', () => {
           },
         ],
       },
-    })
+    }) as unknown as AssetResponse
 
     populateSelectQuestionLabels(row, asset, 1)
 

@@ -6,6 +6,9 @@ from datetime import datetime
 import dateutil.parser
 from ddt import data, ddt, unpack
 from django.conf import settings
+from django.db import connection
+from django.test import RequestFactory
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -17,6 +20,7 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kpi.constants import (
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -32,7 +36,7 @@ from kpi.constants import (
 )
 from kpi.models import Asset, AssetFile, AssetVersion
 from kpi.models.asset import AssetDeploymentStatus
-from kpi.serializers.v2.asset import AssetListSerializer
+from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
 from kpi.tests.base_test_case import (
     BaseAssetDetailTestCase,
     BaseAssetTestCase,
@@ -1534,6 +1538,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         }
         self.assertEqual(resp.data['settings'], expected)
 
+    def test_update_settings_does_not_produce_new_version(self):
+        initial_version_count = self.asset.asset_versions.count()
+        data = {
+            'settings': json.dumps({
+                'mysetting': 'value'
+            }),
+        }
+        self.client.patch(self.asset_url, data, format='json')
+        self.asset.refresh_from_db()
+        assert self.asset.asset_versions.count() == initial_version_count
+
     def test_asset_has_deployment_data(self):
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2191,6 +2206,37 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         usernames = self._get_perm_usernames(response.data['permissions'])
         self.assertIn('someuser', usernames)
         self.assertIn(self.thirduser.username, usernames)
+
+    def test_detail_access_types_reuses_permission_fetch(self):
+        """
+        On the detail endpoint, get_access_types reuses the per-request
+        permission-assignment fetch that get_permissions also uses, instead of
+        issuing its own query (DEV-1833): once the fetch is primed, it triggers
+        no further object-permission query.
+        """
+        collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            owner=self.asset.owner,
+            name='shared-fetch collection',
+        )
+        collection.assign_perm(self.thirduser, PERM_VIEW_ASSET)
+
+        request = RequestFactory().get('/')
+        request.user = self.asset.owner
+        serializer = AssetSerializer(collection, context={'request': request})
+
+        # Prime the shared, memoized fetch (the same one get_permissions reads).
+        serializer._get_object_permission_assignments(collection)
+        with CaptureQueriesContext(connection) as context:
+            access_types = serializer.get_access_types(collection)
+
+        object_permission_queries = [
+            q['sql']
+            for q in context.captured_queries
+            if 'kpi_objectpermission' in q['sql']
+        ]
+        self.assertEqual(object_permission_queries, [])
+        self.assertEqual(access_types, ['owned'])
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

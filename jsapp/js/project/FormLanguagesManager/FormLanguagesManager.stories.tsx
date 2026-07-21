@@ -2,7 +2,10 @@ import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import type { AssetContentSurveyItem } from '#/api/models/assetContentSurveyItem'
+import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import ButtonNew from '#/components/common/ButtonNew'
+import { QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { withMinHeightWrapper } from '#/storybookUtils'
@@ -13,17 +16,19 @@ const mockAssetUid = 'storyFormLanguagesManagerUid'
 const onAssetPatched = fn()
 
 function buildInitialAsset(): AssetResponse {
-  const survey = Array.from({ length: 11 }, (_, idx) => {
+  const survey: AssetContentSurveyItem[] = Array.from({ length: 11 }, (_, idx) => {
     const index = idx + 1
     return {
-      type: 'text',
+      $kuid: `kuid_question_${index}`,
+      type: QuestionTypeName.text,
       name: `question_${index}`,
       $autoname: `question_${index}`,
       label: [`Question ${index}`],
     }
   })
 
-  return {
+  // Cast Orval Asset to legacy AssetResponse (see DataTableWrapper.stories.tsx for details)
+  return getApiV2AssetsRetrieveResponseMock({
     uid: mockAssetUid,
     name: 'Storybook Form Languages',
     content: {
@@ -34,7 +39,7 @@ function buildInitialAsset(): AssetResponse {
       choices: [],
       settings: {},
     },
-  } as unknown as AssetResponse
+  }) as unknown as AssetResponse
 }
 
 function createAssetPatchHandler(initialAsset: AssetResponse) {

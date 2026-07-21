@@ -1,7 +1,7 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { ServerError } from '#/api/ServerError'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
@@ -41,6 +41,12 @@ function getAlreadyTranscribedMessage(count: number, duration: string): string {
   )
     .replace('##count##', String(count))
     .replace('##duration##', duration)
+}
+
+function isAlreadyTranscribedSubmission(submission: SubmissionResponse, sourceRowPath: string): boolean {
+  const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
+
+  return Boolean(transcript?.value || transcript?.pendingReview)
 }
 
 export interface BulkTranscriptionModalProps {
@@ -93,8 +99,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   })
   const serviceCode = 'goog'
 
-  const navigate = useNavigate()
-
   // Get organization ID to check ASR limits
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
@@ -113,17 +117,39 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const advancedFeatures = advancedFeaturesData?.status === 200 ? advancedFeaturesData.data : []
   const suggestedLanguages = getSuggestedLanguages(advancedFeatures)
 
+  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
+
+  // Keep the quota estimate aligned with the rows that will actually be sent.
+  // The alert hook filters already-transcribed submissions later, so we mirror
+  // that exclusion here instead of counting every selected row up front.
+  const transcribableSubmissions = useMemo(
+    () => props.selectedSubmissions.filter((submission) => !isAlreadyTranscribedSubmission(submission, sourceRowPath)),
+    [props.selectedSubmissions, sourceRowPath],
+  )
+
+  const {
+    duration: totalSelectedAudioDuration,
+    isLoading: isTotalSelectedAudioDurationLoading,
+    isError: isTotalSelectedAudioDurationError,
+  } = useCalculateAudioDuration({
+    selectedSubmissions: transcribableSubmissions,
+    fieldId: sourceRowPath,
+    assetUid: props.assetUid,
+  })
+
+  const requiredSeconds =
+    isTotalSelectedAudioDurationLoading || isTotalSelectedAudioDurationError ? undefined : totalSelectedAudioDuration
+
   const { activeAlerts, hasErrors, hasBlockingError, eligibleSubmissions } = useBulkProcessingAlerts({
     actionType: 'transcript',
     selectedSubmissions: props.selectedSubmissions,
     selectedLanguage: selectedLanguage || undefined,
     selectedRegion: selectedRegion || undefined,
     fieldXpath: props.fieldXpath,
+    requiredAmount: requiredSeconds,
     serviceUsageData: serviceUsageData || undefined,
     activeBulkActions: props.activeBulkActions,
   })
-
-  const { sourceRowPath } = getSupplementalPathParts(props.fieldXpath)
 
   const eligibleSubmissionUuids = eligibleSubmissions.map((s) => s._uuid)
 
@@ -219,11 +245,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
     })
   }
 
-  const handleNavigateToAddOn = () => {
-    navigate(ACCOUNT_ROUTES.ADD_ONS)
-    props.onRequestClose()
-  }
-
   const handleWarningContinue = () => {
     setShowWarningModal(!showWarningModal)
   }
@@ -240,7 +261,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
       {!showWarningModal && (
         <Stack gap='md'>
-          {/* Legacy alert - will be removed once audio duration evaluators are implemented see DEV-1399 */}
           {isAudioDurationError && audioDurationErrorMesssage && (
             <Alert type='warning' iconName='information'>
               {audioDurationErrorMesssage}
@@ -280,13 +300,6 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
 
           <BulkProcessingAlerts activeAlerts={activeAlertsWithResolvedMinutes} />
 
-          {/* Legacy alert - will be removed once evaluators are implemented */}
-          {hasExceededLimit && activeAlertsWithResolvedMinutes.length === 0 && (
-            <Alert type='warning' iconName='information' mt={12} mb={12}>
-              {t("You've reached your automatic transcription limit. Please purchase an add‑on to continue.")}
-            </Alert>
-          )}
-
           <Text size='xs'>
             {t('Automatic transcription is provided by Google Cloud Platform.')}
             &nbsp;
@@ -309,7 +322,14 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               </ButtonNew>
             )}
             {hasExceededLimit && (
-              <ButtonNew loading={isLoadingUsage} type='button' onClick={handleNavigateToAddOn} variant='light'>
+              <ButtonNew
+                loading={isLoadingUsage}
+                type='button'
+                variant='light'
+                component={Link}
+                to={ACCOUNT_ROUTES.ADD_ONS}
+                onClick={props.onRequestClose}
+              >
                 {t('Purchase add-on')}
               </ButtonNew>
             )}

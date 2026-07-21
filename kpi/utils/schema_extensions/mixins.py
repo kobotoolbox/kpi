@@ -112,6 +112,11 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                             required=['status', 'error', 'uuid'],
                         ),
                     ],
+                    # Tell code generators that 'status' discriminates
+                    # between the oneOf branches
+                    'discriminator': {
+                        'propertyName': 'status',
+                    },
                 }
 
                 references[f'automatic_qual_{q_type}'] = (

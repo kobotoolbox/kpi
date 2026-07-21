@@ -41,7 +41,7 @@ function createMockAlert(
 
 // Mock alerts
 const mockErrorAlert = createMockAlert('reached-limit', {})
-const mockNearLimitAlert = createMockAlert('near-limit', { remainingMinutes: 5 })
+const mockNearLimitAlert = createMockAlert('near-limit', { remainingSeconds: 5 })
 const mockWarningAlreadyTranscribed = createMockAlert('already-transcribed', { count: 3, duration: '15 minutes' })
 const mockWarningNoSource = createMockAlert('no-source', { count: 2 })
 const mockWarningConflicting = createMockAlert('conflicting-job', {})

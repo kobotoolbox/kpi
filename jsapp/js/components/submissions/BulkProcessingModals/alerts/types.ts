@@ -23,17 +23,17 @@ export interface AlertEvaluationContext {
   /** For transcription only */
   selectedRegion?: string
   actionType: BulkActionType
+  /** Required amount to process all selected submissions in base units: seconds (transcription) or characters (translation). */
+  requiredAmount?: number
   serviceUsageData?: ServiceUsageResponse
   activeBulkActions: BulkActionResponse[]
   previouslyFilteredSubmissionUuids: Set<string>
 }
 
 /**
- * Result returned by alert evaluators
+ * A "show alert" result returned by alert evaluators (otherwise it returns `null`)
  */
 export interface AlertEvaluationResult {
-  /** Whether this alert should be displayed */
-  shouldShow: boolean
   type: AlertSeverity
   /** Submission Uuids filtered out by this evaluator */
   filteredSubmissionUuids: string[]
@@ -49,7 +49,7 @@ export interface AlertDefinition {
   /** Unique alert identifier */
   id: string
   type: AlertSeverity
-  evaluator: (context: AlertEvaluationContext) => AlertEvaluationResult
+  evaluator: (context: AlertEvaluationContext) => AlertEvaluationResult | null
   messageTemplate: (values: Record<string, any>) => string
 }
 

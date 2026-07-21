@@ -163,6 +163,19 @@ class CreateAssetVersions(AssetsTestCase):
         anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
 
+    def test_asset_versions_only_created_when_necessary(self):
+        asset = Asset.objects.create(name='Asset', content=self.asset.content)
+        assert asset.asset_versions.count() == 1
+        asset.name = 'New name'
+        asset.save()
+        assert asset.asset_versions.count() == 2
+        asset.content = {}
+        asset.save()
+        assert asset.asset_versions.count() == 3
+        asset.settings = {}
+        asset.save()
+        assert asset.asset_versions.count() == 3
+
 
 class AssetContentTests(AssetsTestCase):
     def _wrap_field(self, field_name, value):
@@ -534,6 +547,32 @@ class AssetContentTests(AssetsTestCase):
         survey_sheet = workbook['survey']
         node_names = [c.value for c in survey_sheet['B'] if c.value == 'q1']
         assert len(node_names) == 2
+    
+    def test_to_xlsx_io_preserves_leading_equals_in_label(self):
+        # DEV-1235: a cell starting with `=` must stay a literal string, not
+        # become an Excel formula (else `Err:520` in XLSForm, `0` in Enketo).
+        asset = Asset.objects.create(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': '=foo', 'name': 'q1'},
+                ]
+            },
+            owner=self.user,
+            asset_type='survey',
+        )
+        xlsx_io = asset.to_xlsx_io()
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        header = [cell.value for cell in survey_sheet[1]]
+        label_col = next(
+            i
+            for i, col in enumerate(header, start=1)
+            if col and col.startswith('label')
+        )
+        label_cell = survey_sheet.cell(row=2, column=label_col)
+        # 's' == string; a formula cell would be 'f'
+        assert label_cell.data_type == 's'
+        assert label_cell.value == '=foo'
 
     def test_unique__version__field_on_import_with_version(self):
         xlsx_io = self.asset.to_xlsx_io(versioned=True)

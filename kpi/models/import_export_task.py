@@ -50,6 +50,7 @@ from kpi.constants import (
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    GEO_QUESTION_TYPES,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
@@ -965,6 +966,64 @@ class SubmissionExportTaskBase(ImportExportTask):
         fields += list(field_groups) + additional_fields
         return fields
 
+    @staticmethod
+    def _get_geo_fields_from_survey(survey: list) -> List[str]:
+        """
+        Build full field paths for all geographic questions in the survey.
+        """
+        if not isinstance(survey, list):
+            return []
+
+        geo_fields = []
+        open_groups = []
+        for row in survey:
+            if not isinstance(row, dict):
+                continue
+
+            row_type = row.get('type')
+            row_name = row.get('name') or row.get('$autoname') or row.get('$xpath')
+
+            if row_type in ('begin_group', 'begin_repeat'):
+                if row_name:
+                    open_groups.append(row_name)
+                continue
+
+            if row_type in ('end_group', 'end_repeat'):
+                if open_groups:
+                    open_groups.pop()
+                continue
+
+            if row_type not in GEO_QUESTION_TYPES or not row_name:
+                continue
+
+            geo_fields.append('/'.join([*open_groups, row_name]))
+
+        return geo_fields
+
+    def _get_submission_fields(self, source: Asset, fields: List[str]) -> List[str]:
+        fields = self._get_fields_and_groups(fields)
+
+        if self.data.get('type', '').lower() != 'kml':
+            return fields
+
+        if not fields:
+            return fields
+
+        survey = source.content.get('survey', []) if source.content else []
+        geo_fields = self._get_geo_fields_from_survey(survey)
+        if not geo_fields:
+            return fields
+
+        ordered_fields = []
+        seen_fields = set()
+        for field in [*fields, *self._get_fields_and_groups(geo_fields)]:
+            if field in seen_fields:
+                continue
+            seen_fields.add(field)
+            ordered_fields.append(field)
+
+        return ordered_fields
+
     @property
     def _hierarchy_in_labels(self) -> bool:
         hierarchy_in_labels = self.data.get('hierarchy_in_labels', False)
@@ -1009,9 +1068,9 @@ class SubmissionExportTaskBase(ImportExportTask):
             # Excel exports are always returned in XLSX format, but they're
             # referred to internally as `xls`
             export_type = 'xls'
-        if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
+        if export_type not in ('xls', 'csv', 'geojson', 'kml', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls`, `csv`, `geojson`, and `spss_labels` '
+                'only `xls`, `csv`, `geojson`, `kml`, and `spss_labels` '
                 'are valid export types'
             )
 
@@ -1024,8 +1083,12 @@ class SubmissionExportTaskBase(ImportExportTask):
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + '\r\n').encode('utf-8'))
             elif export_type == 'geojson':
-                for line in export.to_geojson(
-                    submission_stream, flatten=flatten
+                for line in export.to_geojson(submission_stream, flatten=flatten):
+                    output_file.write(line.encode('utf-8'))
+            elif export_type == 'kml':
+                for line in export.to_kml(
+                    submission_stream,
+                    flatten=True,
                 ):
                     output_file.write(line.encode('utf-8'))
             elif export_type == 'xls':
@@ -1102,7 +1165,7 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         # Include the group name in `fields` for Mongo to correctly filter
         # for repeat groups
-        fields = self._get_fields_and_groups(fields)
+        fields = self._get_submission_fields(source, fields)
 
         if source.has_advanced_features:
             # Use a cheap EXISTS query before the expensive full prefetch in

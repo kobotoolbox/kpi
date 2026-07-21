@@ -65,6 +65,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
     post_assign_partial_perm,
@@ -867,6 +868,23 @@ class Asset(
         elif not isinstance(extra_metadata, dict):
             self.settings['extra_metadata'] = {}
 
+    def new_version_required(self):
+        # don't use self.latest_version or self.version__content_hash to avoid
+        # loading potentially large version_content field
+        latest_version = (
+            self.asset_versions.only('name', '_content_hash')
+            .order_by('-date_created')
+            .first()
+        )
+        if not latest_version:
+            return True
+        current_content_hash = calculate_content_hash(self.content)
+        previous_version_name = latest_version.name
+        return (
+            self.name != previous_version_name
+            or latest_version.content_hash != current_content_hash
+        )
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """Used by serializers to improve performance when listing assets"""
@@ -933,10 +951,9 @@ class Asset(
         force_update=False,
         update_fields=None,
         adjust_content=True,
-        create_version=True,
         update_parent_languages=True,
         *args,
-        **kwargs
+        **kwargs,
     ):
         is_new = self.pk is None
 
@@ -1093,8 +1110,7 @@ class Asset(
 
         if self.has_deployment:
             self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
-
-        if create_version:
+        if self.new_version_required():
             self.create_version()
 
     def set_deployment_status(self):
