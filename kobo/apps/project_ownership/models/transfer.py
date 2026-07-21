@@ -415,14 +415,11 @@ class TransferStatus(AbstractTimeStampedModel):
             transfer_status = cls.objects.select_for_update().get(
                 transfer_id=transfer_id, status_type=status_type
             )
-            if (
-                transfer_status.status == TransferStatusChoices.SUCCESS
-                and status != TransferStatusChoices.SUCCESS
-            ):
-                cls._add_error(
-                    transfer_status,
-                    f'Updating status of previously successful transfer to {status}',
-                )
+            # `success` is terminal: once a sub-task has completed, a late or
+            # duplicate retry (or a stray task_failure/task_retry signal) must
+            # not downgrade it or flip the invite to `failed`.
+            if transfer_status.status == TransferStatusChoices.SUCCESS:
+                return
             transfer_status.status = status
             transfer_status.date_modified = timezone.now()
             if error:
