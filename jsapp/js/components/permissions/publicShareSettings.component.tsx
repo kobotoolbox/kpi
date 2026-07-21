@@ -1,7 +1,6 @@
-import { Box, Stack, Title } from '@mantine/core'
+import { Box, Checkbox, Stack, Title } from '@mantine/core'
 import React from 'react'
 import { actions } from '#/actions'
-import Checkbox from '#/components/common/checkbox'
 import TextBox from '#/components/common/textBox'
 import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import { ROOT_URL } from '#/constants'
@@ -73,7 +72,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           <Checkbox
             checked={anonCanView}
             disabled={!this.props.userCanShare}
-            onChange={this.togglePerms.bind(this, 'view_asset')}
+            onChange={() => this.togglePerms('view_asset')}
             label={t('Anyone can view this form')}
           />
         </Box>
@@ -82,7 +81,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           <Checkbox
             checked={anonCanViewData}
             disabled={!this.props.userCanShare}
-            onChange={this.togglePerms.bind(this, 'view_submissions')}
+            onChange={() => this.togglePerms('view_submissions')}
             label={t('Anyone can view submissions made to this form')}
           />
         </Box>

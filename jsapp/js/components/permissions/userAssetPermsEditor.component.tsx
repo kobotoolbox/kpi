@@ -1,11 +1,11 @@
+import { Checkbox } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import React from 'react'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import { getSurveyFlatPaths } from '#/assetUtils'
+import ButtonNew from '#/components/common/ButtonNew'
 import AriaText from '#/components/common/ariaText'
-import Button from '#/components/common/button'
-import Checkbox from '#/components/common/checkbox'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
@@ -315,7 +315,7 @@ export default class UserAssetPermsEditor extends React.Component<
       <Checkbox
         checked={this.state[checkboxName]}
         disabled={isDisabled}
-        onChange={this.onCheckboxChange.bind(this, checkboxName)}
+        onChange={(event) => this.onCheckboxChange(checkboxName, event.currentTarget.checked)}
         label={checkboxLabel}
       />
     )
@@ -418,10 +418,9 @@ export default class UserAssetPermsEditor extends React.Component<
                 />
               </span>
 
-              <Button
-                type='text'
-                size='m'
-                label={t('Reset changes')}
+              <ButtonNew
+                variant='light'
+                size='md'
                 onClick={() => {
                   // Update state object in non mutable way
                   let output = clonedeep(this.state)
@@ -431,7 +430,9 @@ export default class UserAssetPermsEditor extends React.Component<
                   })
                   this.setState(output)
                 }}
-              />
+              >
+                {t('Reset changes')}
+              </ButtonNew>
             </div>
           )}
         </div>
@@ -491,15 +492,9 @@ export default class UserAssetPermsEditor extends React.Component<
         </div>
 
         <div className={styles.row}>
-          <Button
-            type='primary'
-            size='l'
-            onClick={this.onSubmit.bind(this)}
-            label={isNew ? t('Grant permissions') : t('Update permissions')}
-            isDisabled={!this.isSubmitEnabled()}
-            isPending={this.state.isSubmitPending}
-            isSubmit
-          />
+          <ButtonNew type='submit' size='md' disabled={!this.isSubmitEnabled()} loading={this.state.isSubmitPending}>
+            {isNew ? t('Grant permissions') : t('Update permissions')}
+          </ButtonNew>
         </div>
       </form>
     )

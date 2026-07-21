@@ -94,6 +94,7 @@ interface KoboSelectState {
 
 /**
  * A select component. Uses `KoboDropdown` as base.
+ * @deprecated use Mantine's Select instead
  */
 class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   constructor(props: KoboSelectProps) {

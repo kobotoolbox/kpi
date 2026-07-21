@@ -1,8 +1,40 @@
+.root,
+.body,
+.inner,
+.input,
 .label {
+  cursor: pointer;
+}
+
+.label {
+  color: var(--mantine-color-gray-1);
   padding-inline-start: 8px;
 }
 
 .input:focus-visible {
   outline: var(--kobo-focus-ring);
   outline-offset: var(--kobo-focus-ring-offset);
+}
+
+.root[data-disabled],
+.body[data-disabled],
+.inner[data-disabled],
+.input[data-disabled],
+.label[data-disabled] {
+  cursor: not-allowed;
+}
+
+.input[data-disabled],
+.input:disabled {
+  background-color: var(--mantine-color-gray-8);
+  border-color: var(--mantine-color-gray-5);
+}
+
+.icon[data-disabled] {
+  color: var(--mantine-color-gray-4);
+}
+
+.label[data-disabled] {
+  color: var(--mantine-color-gray-2);
+  opacity: 1;
 }
