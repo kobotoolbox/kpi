@@ -1,6 +1,5 @@
-import React from 'react'
-
 import { modals } from '@mantine/modals'
+import React from 'react'
 import { actions } from '#/actions'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import { QUESTION_TYPES } from '#/constants'

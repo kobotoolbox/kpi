@@ -1,5 +1,4 @@
 import React from 'react'
-
 import Button from '#/components/common/button'
 import { QUESTION_TYPES } from '#/constants'
 import { openTableMediaPreviewModal } from './TableMediaPreview'

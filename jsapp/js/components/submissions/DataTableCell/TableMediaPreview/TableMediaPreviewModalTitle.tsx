@@ -1,6 +1,5 @@
-import React from 'react'
-
 import { Group, Stack, Text } from '@mantine/core'
+import React from 'react'
 import Icon from '#/components/common/icon'
 import type { IconName } from '#/k-icons'
 import classes from './TableMediaPreview.module.scss'

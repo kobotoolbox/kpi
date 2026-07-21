@@ -1,7 +1,5 @@
 import './MediaCell.scss'
-
 import React from 'react'
-
 import autoBind from 'react-autobind'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'

@@ -1,6 +1,5 @@
-import React from 'react'
-
 import { Text } from '@mantine/core'
+import React from 'react'
 import KoboImage from '#/components/common/koboImage'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
