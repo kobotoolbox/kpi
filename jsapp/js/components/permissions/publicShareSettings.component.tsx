@@ -1,7 +1,6 @@
+import { Box, Stack, Title } from '@mantine/core'
 import React from 'react'
-
 import { actions } from '#/actions'
-import bem from '#/bem'
 import Checkbox from '#/components/common/checkbox'
 import TextBox from '#/components/common/textBox'
 import NewFeatureDialog from '#/components/newFeatureDialog.component'
@@ -23,15 +22,15 @@ interface PublicShareSettingsProps {
 
 class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
   togglePerms(permCodename: PermissionCodename) {
-    const permission = this.props.publicPerms.filter(
-      (perm) => perm.permission === permConfig.getPermissionByCodename(permCodename)?.url,
-    )[0]
+    const permissionUrl = permConfig.getPermissionByCodename(permCodename)?.url
+    const permission = this.props.publicPerms.find((perm) => perm.permission === permissionUrl)
+
     if (permission) {
       actions.permissions.removeAssetPermission(this.props.assetUid, permission.url, undefined, undefined, undefined)
     } else {
       actions.permissions.assignAssetPermission(this.props.assetUid, {
         user: ANON_USERNAME_URL,
-        permission: permConfig.getPermissionByCodename(permCodename)?.url,
+        permission: permissionUrl,
       })
     }
   }
@@ -44,15 +43,13 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
     const anonCanAddPermUrl = permConfig.getPermissionByCodename('add_submissions')?.url
     const anonCanViewDataPermUrl = permConfig.getPermissionByCodename('view_submissions')?.url
 
-    const anonCanView = Boolean(this.props.publicPerms.filter((perm) => perm.permission === anonCanViewPermUrl)[0])
-    const anonCanViewData = Boolean(
-      this.props.publicPerms.filter((perm) => perm.permission === anonCanViewDataPermUrl)[0],
-    )
-    const anonCanAddData = Boolean(this.props.publicPerms.filter((perm) => perm.permission === anonCanAddPermUrl)[0])
+    const anonCanView = Boolean(this.props.publicPerms.find((perm) => perm.permission === anonCanViewPermUrl))
+    const anonCanViewData = Boolean(this.props.publicPerms.find((perm) => perm.permission === anonCanViewDataPermUrl))
+    const anonCanAddData = Boolean(this.props.publicPerms.find((perm) => perm.permission === anonCanAddPermUrl))
 
     return (
-      <bem.FormModal__item m='permissions'>
-        <bem.FormModal__item m='anonymous-submissions'>
+      <Stack gap='sm'>
+        <Box>
           <NewFeatureDialog
             content={t(
               'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.',
@@ -68,30 +65,30 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
               onChange={this.togglePerms.bind(this, 'add_submissions')}
             />
           </NewFeatureDialog>
-        </bem.FormModal__item>
+        </Box>
 
-        <bem.FormModal__item m='permissions-header'>{t('Share publicly by link')}</bem.FormModal__item>
+        <Title order={4}>{t('Share publicly by link')}</Title>
 
-        <bem.FormModal__item>
+        <Box>
           <Checkbox
             checked={anonCanView}
             disabled={!this.props.userCanShare}
             onChange={this.togglePerms.bind(this, 'view_asset')}
             label={t('Anyone can view this form')}
           />
-        </bem.FormModal__item>
+        </Box>
 
-        <bem.FormModal__item>
+        <Box>
           <Checkbox
             checked={anonCanViewData}
             disabled={!this.props.userCanShare}
             onChange={this.togglePerms.bind(this, 'view_submissions')}
             label={t('Anyone can view submissions made to this form')}
           />
-        </bem.FormModal__item>
+        </Box>
 
         {anonCanView && <TextBox label={t('Shareable link')} type='text' readOnly value={url} />}
-      </bem.FormModal__item>
+      </Stack>
     )
   }
 }

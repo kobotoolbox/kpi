@@ -1,11 +1,8 @@
-import React from 'react'
-
-import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
+import React from 'react'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import { getSurveyFlatPaths } from '#/assetUtils'
-import bem from '#/bem'
 import AriaText from '#/components/common/ariaText'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
@@ -95,9 +92,7 @@ export default class UserAssetPermsEditor extends React.Component<
   constructor(props: UserAssetPermsEditorProps) {
     super(props)
 
-    this.state = clonedeep(EMPTY_EDITOR_STATE)
-
-    this.applyPropsData()
+    this.state = this.applyPropsData(clonedeep(EMPTY_EDITOR_STATE))
   }
 
   /**
@@ -114,7 +109,7 @@ export default class UserAssetPermsEditor extends React.Component<
   /**
    * Fills up form with provided user name and permissions (if applicable)
    */
-  applyPropsData() {
+  applyPropsData(baseState: UserAssetPermsEditorState) {
     // Build form data from given existing permissions (e.g. when this component
     // is being used to edit existing permissions)
     const formData = buildFormData(this.props.permissions || [], this.props.username)
@@ -122,7 +117,7 @@ export default class UserAssetPermsEditor extends React.Component<
     // Merge built form data with existing state (with defaults) and then apply
     // validity rules (handles disabling and checking/unchecking properties
     // based on implied/contradictory rules from `permConfig`).
-    this.state = applyValidityRules(Object.assign(this.state, formData), this.props.assignablePerms)
+    return applyValidityRules(Object.assign(baseState, formData), this.props.assignablePerms)
   }
 
   componentDidMount() {
@@ -449,16 +444,14 @@ export default class UserAssetPermsEditor extends React.Component<
   render() {
     const isNew = typeof this.props.username === 'undefined'
 
-    const formModifiers = []
-    if (this.state.isSubmitPending) {
-      formModifiers.push('pending')
-    }
-
     return (
-      <bem.FormModal__form m={formModifiers} className='user-permissions-editor' onSubmit={this.onSubmit.bind(this)}>
+      <form
+        onSubmit={this.onSubmit.bind(this)}
+        style={this.state.isSubmitPending ? { pointerEvents: 'none', opacity: 0.8 } : undefined}
+      >
         {isNew && (
           // don't display username editor when editing existing user
-          <div className={cx([styles.row, styles.rowUsername])}>
+          <div className={styles.row}>
             <TextBox
               size='m'
               placeholder={t('username')}
@@ -508,7 +501,7 @@ export default class UserAssetPermsEditor extends React.Component<
             isSubmit
           />
         </div>
-      </bem.FormModal__form>
+      </form>
     )
   }
 }

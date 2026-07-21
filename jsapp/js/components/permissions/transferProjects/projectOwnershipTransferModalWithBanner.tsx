@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-
 import { useSearchParams } from 'react-router-dom'
 import ProjectTransferInviteBanner from './projectTransferInviteBanner'
 import type { TransferInviteState } from './projectTransferInviteBanner'
