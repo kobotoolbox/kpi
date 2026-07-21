@@ -88,9 +88,7 @@ class XlsExportableMixin:
         except Exception as e:
             six.reraise(
                 type(e),
-                type(e)(
-                    'asset.content improperly formatted for XLS ' 'export: %s' % repr(e)
-                ),
+                type(e)(f'asset.content improperly formatted for XLS export: {e}'),
                 sys.exc_info()[2],
             )
 

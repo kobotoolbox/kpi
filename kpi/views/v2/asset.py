@@ -1065,9 +1065,7 @@ class AssetViewSet(
         md_table = ss_structure_to_mdtable(
             sa.ordered_xlsform_content(raise_on_autoname_error=False)
         )
-        return Response(
-            '<!doctype html>\n' '<html><body><code><pre>' + md_table.strip()
-        )
+        return Response('<!doctype html>\n<html><body><code><pre>' + md_table.strip())
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
