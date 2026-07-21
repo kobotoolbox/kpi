@@ -34,6 +34,8 @@ export default function TextModalCell(props: TextModalCellProps) {
     )
   }
 
+  const displayValue = props.text
+
   return (
     <div className={styles.cell} dir='auto'>
       <span className={styles.textContent}>{props.text}</span>
@@ -45,7 +47,7 @@ export default function TextModalCell(props: TextModalCellProps) {
         onClick={() => {
           openTableMediaPreviewModal({
             questionType: QUESTION_TYPES.text.id,
-            displayValue: props.text,
+            displayValue,
             columnName: props.columnName,
             submissionIndex: props.submissionIndex,
             submissionTotal: props.submissionTotal,
