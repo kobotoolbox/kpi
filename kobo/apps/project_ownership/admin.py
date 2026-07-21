@@ -1,12 +1,17 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 from django.contrib import admin
-from django.utils.html import linebreaks
+from django.urls import reverse
+from django.utils.html import format_html, linebreaks
 from django.utils.safestring import mark_safe
 
 from .models import Invite, Transfer
 from .models.invite import InviteType
-from .models.transfer import TransferStatusTypeChoices
+from .models.transfer import (
+    TransferStatus,
+    TransferStatusError,
+    TransferStatusTypeChoices,
+)
 
 
 class InviteTypeFilter(admin.SimpleListFilter):
@@ -67,13 +72,9 @@ class InviteAdmin(admin.ModelAdmin):
             'Transfers',
             {
                 'fields': ('get_transfers',),
-                'classes': ('kobo-pot-transfers',),
             },
         ),
     )
-
-    class Media:
-        css = {'all': ('admin/css/transfers_as_inline.css',)}
 
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(request, extra_context)
@@ -96,36 +97,37 @@ class InviteAdmin(admin.ModelAdmin):
            linebreaks('\n'.join(self._asset_names_by_invite.get(obj.id, [])))
         )
 
-    @admin.display(description='Project')
+    @admin.display(description='Transfers')
     def get_transfers(self, obj):
-        date_format = '%Y-%m-%d %H:%M:%S'
-        html = '<ul>'
-        for transfer in obj.transfers.all():
-            html += f'<li>{transfer.asset.name} #{transfer.asset.uid}</li>'
-            html += '<ol>'
-            for status in transfer.statuses.exclude(
-                status_type=TransferStatusTypeChoices.GLOBAL
-            ):
-                errors = [
-                    f'[{error.date_created.strftime(date_format)}] - {error.error}'
-                    for error in status.errors.filter(error__isnull=False)
-                ]
-                if status.error:
-                    # if we have the old deprecated 'error' field on the TransferStatus,
-                    # include that too
-                    errors = [status.error] + errors
-                if len(errors) > 100:
-                    # don't overwhelm the display
-                    errors = errors[0:100]
-                    errors.append('...')
+        # Summary only — the full per-transfer status/error detail lives on the
+        # read-only TransferAdmin, linked below. This keeps the invite page
+        # readable (org invites can have 100+ transfers) and stops false-positive
+        # error noise from reaching support by default.
+        status_counts = Counter(
+            TransferStatus.objects.filter(
+                transfer__invite_id=obj.id,
+                status_type=TransferStatusTypeChoices.GLOBAL,
+            ).values_list('status', flat=True)
+        )
+        transfer_total = sum(status_counts.values())
+        error_total = TransferStatusError.objects.filter(
+            transfer_status__transfer__invite_id=obj.id
+        ).count()
 
-                error = '<br/>'.join(errors)
-                error = f'<br><span class="error">{error}</span></i>' if error else ''
-                html += f'<li>{status.status_type}: <i>{status.status}</i>{error}</li>'
-            html += '</ol>'
-        html += '</ul>'
-        return mark_safe(html)
+        summary = ' · '.join(
+            f'{count} {status}' for status, count in sorted(status_counts.items())
+        )
+        changelist_url = reverse('admin:project_ownership_transfer_changelist')
+        link = f'{changelist_url}?invite__id__exact={obj.id}'
 
+        return format_html(
+            '{} transfer(s): {} — {} error record(s). '
+            '<a href="{}">View transfers</a>',
+            transfer_total,
+            summary or '—',
+            error_total,
+            link,
+        )
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -152,3 +154,67 @@ class InviteAdmin(admin.ModelAdmin):
             asset_map[invite_id].append(asset_name or '-')
 
         self._asset_names_by_invite = dict(asset_map)
+
+
+@admin.register(Transfer)
+class TransferAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'uid',
+        'get_asset',
+        'invite',
+        'get_status',
+        'date_created',
+    )
+    list_select_related = ('asset', 'invite')
+    search_fields = ('uid', 'asset__uid', 'asset__name', 'invite__uid')
+    readonly_fields = ('uid', 'asset', 'invite', 'invite_type', 'get_statuses')
+    fields = ('uid', 'asset', 'invite', 'invite_type', 'get_statuses')
+
+    def lookup_allowed(self, lookup, value, request=None):
+        # Allow the deep-link from InviteAdmin.get_transfers.
+        return lookup == 'invite__id__exact' or super().lookup_allowed(
+            lookup, value, request
+        )
+
+    @admin.display(description='Asset')
+    def get_asset(self, obj):
+        return f'{obj.asset.name} #{obj.asset.uid}'
+
+    @admin.display(description='Status')
+    def get_status(self, obj):
+        return obj.status
+
+    @admin.display(description='Statuses')
+    def get_statuses(self, obj):
+        date_format = '%Y-%m-%d %H:%M:%S'
+        html = '<ol>'
+        for status in obj.statuses.exclude(
+            status_type=TransferStatusTypeChoices.GLOBAL
+        ):
+            errors = [
+                f'[{error.date_created.strftime(date_format)}] - {error.error}'
+                for error in status.errors.filter(error__isnull=False)
+            ]
+            if status.error:
+                # legacy deprecated `error` field on TransferStatus
+                errors = [status.error] + errors
+            if len(errors) > 100:
+                # don't overwhelm the display
+                errors = errors[0:100]
+                errors.append('...')
+
+            error = '<br/>'.join(errors)
+            error = f'<br><span class="error">{error}</span>' if error else ''
+            html += f'<li>{status.status_type}: <i>{status.status}</i>{error}</li>'
+        html += '</ol>'
+        return mark_safe(html)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
