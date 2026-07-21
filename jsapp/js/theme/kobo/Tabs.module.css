@@ -25,6 +25,10 @@
 .root[data-variant='pills'] .tab {
   border-radius: var(--mantine-radius-sm);
 
+  &:hover {
+    background-color: var(--mantine-color-gray-8);
+  }
+
   &[data-active] {
     color: var(--mantine-color-gray-9);
     background-color: var(--mantine-color-blue-6);
