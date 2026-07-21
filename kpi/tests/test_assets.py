@@ -541,11 +541,11 @@ class AssetContentTests(AssetsTestCase):
         survey_sheet = workbook['survey']
         xls_version_row = [cell.value for cell in survey_sheet[survey_sheet.max_row]]
         expected_row = [
-                'calculate',
-                '__version__',
-                None,
-                f"'{self.asset.latest_version.uid}'"
-            ]
+            'calculate',
+            '__version__',
+            None,
+            f"'{self.asset.latest_version.uid}'",
+        ]
         current_version_id = self.asset.latest_version.uid
         assert xls_version_row == expected_row
 
@@ -558,13 +558,14 @@ class AssetContentTests(AssetsTestCase):
         workbook = openpyxl.load_workbook(xlsx_io)
         survey_sheet = workbook['survey']
         xls_new_version_row = [
-                cell.value for cell in survey_sheet[survey_sheet.max_row]]
+            cell.value for cell in survey_sheet[survey_sheet.max_row]
+        ]
         new_version_expected_row = [
-                'calculate',
-                '__version__',
-                None,
-                f"'{self.asset.latest_version.uid}'"
-            ]
+            'calculate',
+            '__version__',
+            None,
+            f"'{self.asset.latest_version.uid}'",
+        ]
         # Ensure last row is '__version__' (not '_version_' or '_version_001_')
         # and it equals the asset's latest version
         assert current_version_id != self.asset.latest_version.uid
