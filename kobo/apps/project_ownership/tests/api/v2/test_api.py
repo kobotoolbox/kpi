@@ -762,6 +762,16 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         )
         assert skip_errors.exists()
 
+        # Attachment ownership still moved to the recipient, even though the
+        # source files were missing and could not be relocated on disk.
+        submission_ids = [submission['_id'] for submission in self.submissions]
+        attachments = Attachment.objects.filter(instance_id__in=submission_ids)
+        assert attachments.exists()
+        assert not attachments.filter(user=self.someuser).exists()
+        assert all(
+            attachment.user_id == self.anotheruser.pk for attachment in attachments
+        )
+
 
 class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
 
