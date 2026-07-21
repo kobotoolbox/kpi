@@ -1,0 +1,71 @@
+.list {
+  border-color: var(--mantine-color-gray-6);
+}
+
+.tab {
+  color: var(--tab-color);
+  font-size: var(--mantine-font-size-md);
+  font-weight: 500;
+}
+
+.tab:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: calc(var(--kobo-focus-ring-offset) * -1);
+}
+
+/* default variant — underline indicator */
+.root[data-variant='default'] .tab {
+  &:hover {
+    color: var(--mantine-color-gray-1);
+    background: transparent;
+  }
+
+  &[data-active] {
+    color: var(--tabs-color);
+    border-color: var(--tabs-color);
+  }
+}
+
+/* pills variant — button style */
+.root[data-variant='pills'] .tab {
+  border-radius: var(--mantine-radius-xl);
+}
+
+/* bubble variant — quote bubble */
+.root[data-variant='bubble'] {
+  .list {
+    gap: var(--mantine-spacing-xxs);
+    border: none;
+  }
+
+  .tab {
+    border: none;
+    border-radius: var(--mantine-radius-xl);
+    padding: var(--mantine-spacing-xxs) var(--mantine-spacing-md);
+    background: transparent;
+    color: var(--tab-color);
+
+    &:hover:not([data-active]) {
+      background: var(--tab-hover-color);
+      color: var(--mantine-color-gray-1);
+    }
+
+    &[data-active] {
+      background: var(--tabs-color);
+      color: var(--tabs-text-color);
+    }
+  }
+}
+
+/* Size variants done with font sizes, default is --mantine-font-size-sm */
+.root[data-size='md'] {
+  .tab {
+    font-size: var(--mantine-font-size-md);
+  }
+}
+
+.root[data-size='lg'] {
+  .tab {
+    font-size: var(--mantine-font-size-lg);
+  }
+}
