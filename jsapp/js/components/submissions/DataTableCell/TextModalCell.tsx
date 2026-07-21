@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import Button from '#/components/common/button'
-import KoboModal from '#/components/modals/koboModal'
-import KoboModalContent from '#/components/modals/koboModalContent'
-import KoboModalHeader from '#/components/modals/koboModalHeader'
+import { QUESTION_TYPES } from '#/constants'
+import { openTableMediaPreviewModal } from './TableMediaPreview'
 import styles from './TextModalCell.module.scss'
 
 interface TextModalCellProps {
@@ -24,12 +23,10 @@ interface TextModalCellProps {
  * in a modal - useful to read a long text in full.
  */
 export default function TextModalCell(props: TextModalCellProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
   // If there is no actual content, we display sweet short "not availabe"
   // without all the modal code
-  if (!props.text) {
-    let textToDisplay = props.text
+  if (props.text === null || props.text === '') {
+    let textToDisplay: string | null = props.text
     if (props.text === null) {
       textToDisplay = t('N/A')
     }
@@ -41,6 +38,8 @@ export default function TextModalCell(props: TextModalCellProps) {
     )
   }
 
+  const modalText = props.text
+
   return (
     <>
       <div className={styles.cell} dir='auto'>
@@ -50,30 +49,19 @@ export default function TextModalCell(props: TextModalCellProps) {
           type='text'
           size='s'
           startIcon='expand-arrow'
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            openTableMediaPreviewModal({
+              questionType: QUESTION_TYPES.text.id,
+              displayValue: modalText,
+              columnName: props.columnName,
+              submissionIndex: props.submissionIndex,
+              submissionTotal: props.submissionTotal,
+              modalContent: props.modalContent,
+            })
+          }}
           className={styles.modalOpener}
         />
       </div>
-
-      <KoboModal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} isDismissableByDefaultMeans>
-        <KoboModalHeader onRequestCloseByX={() => setIsModalOpen(false)}>
-          <div className={styles.modalHeaderText}>
-            <span>
-              {t('Submission ##submissionIndex## of ##submissionTotal##')
-                .replace('##submissionIndex##', String(props.submissionIndex))
-                .replace('##submissionTotal##', String(props.submissionTotal))}
-            </span>
-
-            <span dir='auto'>{props.columnName}</span>
-          </div>
-        </KoboModalHeader>
-
-        <KoboModalContent>
-          <div className={styles.modalContent} dir='auto'>
-            {props.modalContent ?? props.text}
-          </div>
-        </KoboModalContent>
-      </KoboModal>
     </>
   )
 }

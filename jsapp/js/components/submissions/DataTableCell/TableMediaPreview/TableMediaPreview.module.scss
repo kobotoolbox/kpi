@@ -1,0 +1,44 @@
+.root {
+  width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.image {
+  width: 100%;
+}
+
+.video {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+}
+
+.text {
+  padding: 16px;
+  white-space: pre-wrap;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.titleLabel {
+  min-width: 0;
+}
+
+.header {
+  width: 100%;
+}
+
+.titleStack {
+  min-width: 0;
+}
+
+.headerOptions {
+  display: flex;
+  align-items: center;
+}
