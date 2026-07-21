@@ -23,13 +23,9 @@ interface TextModalCellProps {
  * in a modal - useful to read a long text in full.
  */
 export default function TextModalCell(props: TextModalCellProps) {
-  // If there is no actual content, we display sweet short "not availabe"
-  // without all the modal code
+  // If there is no actual content, render a compact fallback and skip modal logic.
   if (props.text === null || props.text === '') {
-    let textToDisplay: string | null = props.text
-    if (props.text === null) {
-      textToDisplay = t('N/A')
-    }
+    const textToDisplay = props.text === null ? t('N/A') : ''
 
     return (
       <div className={styles.cell}>
@@ -38,30 +34,26 @@ export default function TextModalCell(props: TextModalCellProps) {
     )
   }
 
-  const modalText = props.text
-
   return (
-    <>
-      <div className={styles.cell} dir='auto'>
-        <span className={styles.textContent}>{props.text}</span>
+    <div className={styles.cell} dir='auto'>
+      <span className={styles.textContent}>{props.text}</span>
 
-        <Button
-          type='text'
-          size='s'
-          startIcon='expand-arrow'
-          onClick={() => {
-            openTableMediaPreviewModal({
-              questionType: QUESTION_TYPES.text.id,
-              displayValue: modalText,
-              columnName: props.columnName,
-              submissionIndex: props.submissionIndex,
-              submissionTotal: props.submissionTotal,
-              modalContent: props.modalContent,
-            })
-          }}
-          className={styles.modalOpener}
-        />
-      </div>
-    </>
+      <Button
+        type='text'
+        size='s'
+        startIcon='expand-arrow'
+        onClick={() => {
+          openTableMediaPreviewModal({
+            questionType: QUESTION_TYPES.text.id,
+            displayValue: props.text,
+            columnName: props.columnName,
+            submissionIndex: props.submissionIndex,
+            submissionTotal: props.submissionTotal,
+            modalContent: props.modalContent,
+          })
+        }}
+        className={styles.modalOpener}
+      />
+    </div>
   )
 }

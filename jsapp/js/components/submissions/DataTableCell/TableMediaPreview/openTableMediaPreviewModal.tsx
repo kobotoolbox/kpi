@@ -38,6 +38,8 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
   let modalId = ''
 
   if ('mediaAttachment' in args) {
+    // If attachment URLs are unavailable (e.g. stale/deleted attachment metadata),
+    // use submission position text instead of a file-name-based title.
     const titleText = args.mediaAttachment.download_url
       ? truncateString(args.displayValue, 30)
       : getSubmissionPositionLabel(args.submissionIndex, args.submissionTotal)
@@ -85,11 +87,7 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
         />
       ),
       children: args.modalContent ?? (
-        <TableMediaPreview
-          questionType={QUESTION_TYPES.text.id}
-          mediaAttachment={undefined}
-          displayValue={args.displayValue}
-        />
+        <TableMediaPreview questionType={QUESTION_TYPES.text.id} displayValue={args.displayValue} />
       ),
     })
   }

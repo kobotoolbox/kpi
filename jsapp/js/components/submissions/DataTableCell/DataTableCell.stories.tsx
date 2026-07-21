@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { CellInfo } from 'react-table'
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import type { SubmissionResponse } from '#/dataInterface'
+import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import {
@@ -24,6 +24,37 @@ const TINY_IMAGE_DATA_URI =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Crect width='12' height='12' fill='%2300A3E0'/%3E%3C/svg%3E"
 const TINY_AUDIO_DATA_URI = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA='
 const TINY_VIDEO_DATA_URI = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb20='
+
+function buildMediaQuestion(type: QuestionTypeName, xpath: string, label: string, kuid: string) {
+  return {
+    type,
+    $kuid: kuid,
+    $autoname: xpath,
+    $xpath: xpath,
+    label: [label],
+  } as const
+}
+
+function buildMediaSubmission(xpath: string, filename: string, mimetype: string, downloadUrl: string, uid: string) {
+  const attachment: SubmissionAttachment = {
+    download_url: downloadUrl,
+    download_medium_url: downloadUrl,
+    download_small_url: downloadUrl,
+    download_large_url: downloadUrl,
+    mimetype,
+    filename: `attachments/${filename}`,
+    media_file_basename: filename,
+    question_xpath: xpath,
+    uid,
+    is_deleted: false,
+  }
+
+  return {
+    ...simpleSurveySubmission,
+    [xpath]: filename,
+    _attachments: [attachment],
+  } as SubmissionResponse
+}
 
 function buildReactTableRow(submission: SubmissionResponse, value: unknown, index = 0): CellInfo {
   return {
@@ -73,86 +104,33 @@ const missingAttachmentSubmission = {
   _attachments: [],
 } as SubmissionResponse
 
-const imageQuestion = {
-  type: QuestionTypeName.image,
-  $kuid: 'imageQuestion',
-  $autoname: 'Photo_question',
-  $xpath: 'Photo_question',
-  label: ['Photo question'],
-} as const
+const imageQuestion = buildMediaQuestion(QuestionTypeName.image, 'Photo_question', 'Photo question', 'imageQuestion')
+const audioQuestion = buildMediaQuestion(QuestionTypeName.audio, 'Audio_question', 'Audio question', 'audioQuestion')
+const videoQuestion = buildMediaQuestion(QuestionTypeName.video, 'Video_question', 'Video question', 'videoQuestion')
 
-const audioQuestion = {
-  type: QuestionTypeName.audio,
-  $kuid: 'audioQuestion',
-  $autoname: 'Audio_question',
-  $xpath: 'Audio_question',
-  label: ['Audio question'],
-} as const
+const imageSubmission = buildMediaSubmission(
+  'Photo_question',
+  'tiny-image.svg',
+  'image/svg+xml',
+  TINY_IMAGE_DATA_URI,
+  'attachment-image-1',
+)
 
-const videoQuestion = {
-  type: QuestionTypeName.video,
-  $kuid: 'videoQuestion',
-  $autoname: 'Video_question',
-  $xpath: 'Video_question',
-  label: ['Video question'],
-} as const
+const audioSubmission = buildMediaSubmission(
+  'Audio_question',
+  'tiny-audio.wav',
+  'audio/wav',
+  TINY_AUDIO_DATA_URI,
+  'attachment-audio-1',
+)
 
-const imageSubmission = {
-  ...simpleSurveySubmission,
-  Photo_question: 'tiny-image.svg',
-  _attachments: [
-    {
-      download_url: TINY_IMAGE_DATA_URI,
-      download_medium_url: TINY_IMAGE_DATA_URI,
-      download_small_url: TINY_IMAGE_DATA_URI,
-      download_large_url: TINY_IMAGE_DATA_URI,
-      mimetype: 'image/svg+xml',
-      filename: 'attachments/tiny-image.svg',
-      media_file_basename: 'tiny-image.svg',
-      question_xpath: 'Photo_question',
-      uid: 'attachment-image-1',
-      is_deleted: false,
-    },
-  ],
-} as SubmissionResponse
-
-const audioSubmission = {
-  ...simpleSurveySubmission,
-  Audio_question: 'tiny-audio.wav',
-  _attachments: [
-    {
-      download_url: TINY_AUDIO_DATA_URI,
-      download_medium_url: TINY_AUDIO_DATA_URI,
-      download_small_url: TINY_AUDIO_DATA_URI,
-      download_large_url: TINY_AUDIO_DATA_URI,
-      mimetype: 'audio/wav',
-      filename: 'attachments/tiny-audio.wav',
-      media_file_basename: 'tiny-audio.wav',
-      question_xpath: 'Audio_question',
-      uid: 'attachment-audio-1',
-      is_deleted: false,
-    },
-  ],
-} as SubmissionResponse
-
-const videoSubmission = {
-  ...simpleSurveySubmission,
-  Video_question: 'tiny-video.mp4',
-  _attachments: [
-    {
-      download_url: TINY_VIDEO_DATA_URI,
-      download_medium_url: TINY_VIDEO_DATA_URI,
-      download_small_url: TINY_VIDEO_DATA_URI,
-      download_large_url: TINY_VIDEO_DATA_URI,
-      mimetype: 'video/mp4',
-      filename: 'attachments/tiny-video.mp4',
-      media_file_basename: 'tiny-video.mp4',
-      question_xpath: 'Video_question',
-      uid: 'attachment-video-1',
-      is_deleted: false,
-    },
-  ],
-} as SubmissionResponse
+const videoSubmission = buildMediaSubmission(
+  'Video_question',
+  'tiny-video.mp4',
+  'video/mp4',
+  TINY_VIDEO_DATA_URI,
+  'attachment-video-1',
+)
 
 const meta: Meta<typeof DataTableCell> = {
   title: 'Components/DataTableCell',
