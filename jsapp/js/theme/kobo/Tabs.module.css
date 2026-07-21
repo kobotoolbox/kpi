@@ -1,34 +1,34 @@
-.list {
-  border-color: var(--mantine-color-gray-6);
-}
-
 .tab {
-  color: var(--tab-color);
+  /* Global color of the non active tabs */
+  color: var(--mantine-color-gray-2);
   font-size: var(--mantine-font-size-md);
   font-weight: 500;
 }
 
-.tab:focus-visible {
-  outline: var(--kobo-focus-ring);
-  outline-offset: calc(var(--kobo-focus-ring-offset) * -1);
-}
-
 /* default variant — underline indicator */
 .root[data-variant='default'] .tab {
+  /* Color of the non-active unline */
+  border-color: var(--mantine-color-gray-6);
+
   &:hover {
     color: var(--mantine-color-gray-1);
     background: transparent;
   }
 
   &[data-active] {
-    color: var(--tabs-color);
-    border-color: var(--tabs-color);
+    color: var(--mantine-color-blue-5);
+    border-color: var(--mantine-color-blue-5);
   }
 }
 
 /* pills variant — button style */
 .root[data-variant='pills'] .tab {
   border-radius: var(--mantine-radius-sm);
+
+  &[data-active] {
+    color: var(--mantine-color-gray-9);
+    background-color: var(--mantine-color-blue-6);
+  }
 }
 
 /* bubble variant — speech bubble */
