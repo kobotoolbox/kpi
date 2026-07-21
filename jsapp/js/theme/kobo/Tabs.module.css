@@ -28,32 +28,33 @@
 
 /* pills variant — button style */
 .root[data-variant='pills'] .tab {
-  border-radius: var(--mantine-radius-xl);
+  border-radius: var(--mantine-radius-sm);
 }
 
-/* bubble variant — quote bubble */
+/* bubble variant — speech bubble */
 .root[data-variant='bubble'] {
-  .list {
-    gap: var(--mantine-spacing-xxs);
-    border: none;
+  .tab {
+    position: relative;
+    border-radius: var(--mantine-radius-sm);
+    color: var(--mantine-color-teal-2);
   }
 
-  .tab {
-    border: none;
-    border-radius: var(--mantine-radius-xl);
-    padding: var(--mantine-spacing-xxs) var(--mantine-spacing-md);
-    background: transparent;
-    color: var(--tab-color);
+  .tab[data-active='true'] {
+    background: var(--mantine-color-teal-6);
+  }
 
-    &:hover:not([data-active]) {
-      background: var(--tab-hover-color);
-      color: var(--mantine-color-gray-1);
-    }
-
-    &[data-active] {
-      background: var(--tabs-color);
-      color: var(--tabs-text-color);
-    }
+  /* Speech bubble triangle */
+  .tab[data-active='true']::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -10px;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 10px solid var(--mantine-color-teal-6);
   }
 }
 
