@@ -11,6 +11,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
+from kpi.exceptions import SourceFileMissingError
 from kpi.models.asset import Asset, AssetFile
 from kpi.utils.log import logging
 from .constants import ASYNC_TASK_HEARTBEAT
@@ -117,23 +118,33 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                     media_file_path,
                 )
             ):
-                # There is no way to ensure atomicity when moving the file and saving
-                # the object to the database. Fingers crossed that the process doesn't
-                # get interrupted between these two operations.
-                if attachment.media_file.move(target_folder, reraise_errors=True):
+                # There is no way to ensure atomicity when moving the file and
+                # saving the object to the database. Fingers crossed that the
+                # process doesn't get interrupted between these two operations.
+                try:
+                    moved = attachment.media_file.move(
+                        target_folder, reraise_errors=True
+                    )
+                except SourceFileMissingError:
+                    # Source is already gone — not a transfer failure. Keep a
+                    # debug record but let the task succeed.
+                    moved = False
+                    TransferStatus._add_error(
+                        transfer_status,
+                        f'Source file {attachment.media_file_basename} '
+                        f'(#{attachment.pk}) no longer exists — skipped '
+                        f'(data already gone)',
+                    )
+                    logging.warning(
+                        f'Source file {media_file_path} (#{attachment.pk}) '
+                        f'no longer exists — skipped'
+                    )
+                if moved:
                     update_fields.append('media_file')
                     _delete_thumbnails(media_file_path)
-                    # attachment.save(update_fields=['media_file'])
                     logging.info(
                         f'Successfully migrated {media_file_path} to {target_folder}'
                     )
-                else:
-                    errors = True
-                    error = (
-                        f'File {attachment.media_file_basename} (#{attachment.pk})'
-                        f' could not be moved to {target_folder}'
-                    )
-                    TransferStatus._add_error(transfer_status, error)
 
             attachment.user_id = transfer.invite.recipient.pk
             attachment.save(update_fields=update_fields)
@@ -230,6 +241,19 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                                 kc_obj.save(update_fields=['file_hash', 'data_file'])
 
                 heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
+        except SourceFileMissingError:
+            # Source is already gone — not a transfer failure. Keep a debug
+            # record but let the task succeed.
+            TransferStatus._add_error(
+                transfer_status,
+                f'Source file {media_file.content.name} (#{media_file.pk}) '
+                f'no longer exists — skipped (data already gone)',
+            )
+            logging.warning(
+                f'Source file {media_file.content.name} (#{media_file.pk}) '
+                f'no longer exists — skipped'
+            )
+            continue
         except Exception as e:
             TransferStatus._add_error(
                 transfer_status, f'Error moving {media_file.content.name}: {e}'

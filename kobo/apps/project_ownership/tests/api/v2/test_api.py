@@ -12,11 +12,14 @@ from rest_framework.reverse import reverse
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
+from kobo.apps.project_ownership.models.transfer import TransferStatusError
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.exceptions import SourceFileMissingError
+from kpi.fields.file import ExtendedFieldFile
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
@@ -714,6 +717,50 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert asset_another.deployment.xform.id_string == 'foo'
         # Make sure XForm id_string does not equal 'foo' anymore
         assert asset_someuser.deployment.xform.id_string == asset_someuser.uid
+
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_missing_source_file_does_not_fail_invite(self):
+        # A gone source file must be a non-failing skip: the invite completes,
+        # ownership still moves to the recipient, and a debug record is kept.
+        original_move = ExtendedFieldFile.move
+
+        def fake_move(self, target_folder, reraise_errors=False):
+            # Only the attachment/media movers pass reraise_errors=True; the
+            # xform.xls move (reraise_errors=False) must keep working.
+            if reraise_errors:
+                raise SourceFileMissingError(self.name)
+            return original_move(self, target_folder, reraise_errors=reraise_errors)
+
+        self.client.login(username='someuser', password='someuser')
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username],
+            ),
+            'assets': [self.asset.uid],
+        }
+
+        with patch.object(ExtendedFieldFile, 'move', fake_move):
+            with immediate_on_commit():
+                response = self.client.post(
+                    self.invite_url, data=payload, format='json'
+                )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        invite = Invite.objects.get(transfers__asset=self.asset)
+        # The invite is NOT failed even though every source file was missing.
+        assert invite.status == InviteStatusChoices.COMPLETE
+
+        # Ownership still moved to the recipient.
+        self.asset.refresh_from_db()
+        assert self.asset.owner == self.anotheruser
+
+        # A debug trace was kept for support.
+        skip_errors = TransferStatusError.objects.filter(
+            transfer_status__transfer__invite=invite,
+            error__contains='no longer exists',
+        )
+        assert skip_errors.exists()
 
 
 class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
