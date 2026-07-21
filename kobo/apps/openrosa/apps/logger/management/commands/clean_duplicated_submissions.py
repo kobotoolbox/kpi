@@ -158,8 +158,12 @@ class Command(BaseCommand):
         ref_instance = parsed_instance.instance
         if not ref_instance.root_uuid:
             try:
-                # Savepoint so a unique-constraint violation rolls back only
-                # this statement instead of aborting the surrounding transaction.
+                # Isolate the write in its own atomic block so a caught
+                # IntegrityError cannot poison an enclosing transaction: a
+                # savepoint when the command runs inside one (e.g. under
+                # TestCase), or its own transaction when run standalone.
+                # Otherwise the conflict resolution below would run on an
+                # aborted transaction.
                 with kc_transaction_atomic():
                     Instance.objects.filter(pk=ref_instance.pk).update(
                         root_uuid=ref_instance.uuid
