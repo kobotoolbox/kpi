@@ -58,15 +58,15 @@
   }
 }
 
-/* Size variants done with font sizes, default is --mantine-font-size-sm */
+/* Size variants done with font sizes, default is --mantine-font-size-md */
 .root[data-size='md'] {
   .tab {
-    font-size: var(--mantine-font-size-md);
+    font-size: var(--mantine-font-size-lg);
   }
 }
 
 .root[data-size='lg'] {
   .tab {
-    font-size: var(--mantine-font-size-lg);
+    font-size: var(--mantine-font-size-xl);
   }
 }
