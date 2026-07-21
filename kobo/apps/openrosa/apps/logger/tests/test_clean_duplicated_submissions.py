@@ -436,20 +436,29 @@ class TestCleanDuplicatedSubmissions(TestBase):
         # Hash fallback: "CONFLICT-" + a 64-char sha256 hexdigest.
         self.assertEqual(len(inst.root_uuid), len('CONFLICT-') + 64)
 
-    def test_replace_duplicates_syncs_mongo_root_uuid(self):
+    def test_replace_duplicates_syncs_mongo_identity_fields(self):
         """
-        Even without a rootUuid node in the XML (a non-edited submission), the
-        Mongo `meta/rootUuid` must be backfilled from the new root_uuid, since
-        it is built from the DB field, not the XML.
+        The renamed identity fields (`_uuid`, `meta/instanceID`,
+        `meta/rootUuid`) must be updated on the existing Mongo documents.
         """
 
         self._make_group_b()
+        # Submissions already exist in Mongo before the repair runs.
+        for pk in (self.b1.pk, self.b2.pk, self.b3.pk):
+            Instance.objects.get(pk=pk).parsed_instance.update_mongo(
+                asynchronous=False
+            )
+
         call_command('clean_duplicated_submissions', xform=self.xform.id_string)
 
         for pk in (self.b1.pk, self.b2.pk, self.b3.pk):
             instance = Instance.objects.get(pk=pk)
             doc = settings.MONGO_DB.instances.find_one({'_id': pk})
             self.assertIsNotNone(doc)
+            self.assertEqual(doc['_uuid'], instance.uuid)
+            self.assertEqual(
+                doc['meta/instanceID'], add_uuid_prefix(instance.uuid)
+            )
             self.assertEqual(
                 doc['meta/rootUuid'], add_uuid_prefix(instance.root_uuid)
             )

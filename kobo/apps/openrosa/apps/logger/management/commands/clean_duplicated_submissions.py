@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.db.models import F, QuerySet
 from django.db.models.aggregates import Count
 from more_itertools import chunked
+from pymongo import UpdateOne
 
 from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
@@ -23,6 +24,11 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     set_meta,
 )
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    META_INSTANCE_ID,
+    META_ROOT_UUID,
+    UUID,
+)
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 
@@ -227,7 +233,6 @@ class Command(BaseCommand):
             duplicated_instances, settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
         ):
             instances_to_update = []
-            parsed_instances_to_sync = []
             for duplicated_instance in duplicated_instance_batch:
                 try:
                     instance = Instance.objects.get(pk=duplicated_instance['id'])
@@ -268,17 +273,6 @@ class Command(BaseCommand):
                 instance.root_uuid = instance.uuid
                 instance.xml_hash = instance.get_hash(instance.xml)
                 instances_to_update.append(instance)
-
-                # Collect the parsed instances; Mongo is synced only after the
-                # bulk Postgres update below, so a failed bulk_update never
-                # leaves Mongo ahead of the database.
-                try:
-                    parsed_instances_to_sync.append(instance.parsed_instance)
-                except Instance.parsed_instance.RelatedObjectDoesNotExist:
-                    self.stderr.write(
-                        f'Instance {instance.pk} does not have ParsedInstance'
-                    )
-
                 idx += 1
 
             if self._verbosity >= 3:
@@ -286,7 +280,22 @@ class Command(BaseCommand):
             Instance.objects.bulk_update(
                 instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
             )
-            for parsed_instance in parsed_instances_to_sync:
-                parsed_instance.update_mongo(
-                    asynchronous=False, use_cached_parser=True
+            # Only the identity fields changed, so sync just those to Mongo with
+            # a single bulk `$set` (after Postgres is committed) instead of a
+            # full `update_mongo()` per instance. The submission data and
+            # `_submitted_by` are untouched.
+            mongo_updates = [
+                UpdateOne(
+                    {'_id': instance.pk},
+                    {
+                        '$set': {
+                            UUID: instance.uuid,
+                            META_INSTANCE_ID: add_uuid_prefix(instance.uuid),
+                            META_ROOT_UUID: add_uuid_prefix(instance.root_uuid),
+                        }
+                    },
                 )
+                for instance in instances_to_update
+            ]
+            if mongo_updates:
+                settings.MONGO_DB.instances.bulk_write(mongo_updates, ordered=False)
