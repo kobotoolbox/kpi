@@ -5,6 +5,7 @@ from pyxform.validators.odk_validate import ODKValidateError
 from rest_framework import serializers
 from xlsxwriter.exceptions import DuplicateWorksheetName
 
+from ...exceptions import DuplicateNameException
 from .asset import AssetSerializer
 
 
@@ -43,6 +44,7 @@ class DeploymentSerializer(serializers.Serializer):
             EnketoValidateError,
             PyXFormError,
             ODKValidateError,
+            DuplicateNameException,
         ) as e:
             raise serializers.ValidationError({'error': str(e)})
         return asset.deployment
@@ -87,6 +89,7 @@ class DeploymentSerializer(serializers.Serializer):
             EnketoValidateError,
             PyXFormError,
             ODKValidateError,
+            DuplicateNameException,
         ) as e:
             raise serializers.ValidationError({'error': str(e)})
 

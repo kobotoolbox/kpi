@@ -33,6 +33,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
 )
 from kpi.deployment_backends.mock_backend import MockDeploymentBackend
+from kpi.exceptions import DuplicateNameException
 from kpi.models import Asset, ImportTask
 from kpi.utils.object_permission import get_all_objects_for_user
 
@@ -509,6 +510,44 @@ class AssetContentTests(AssetsTestCase):
         version_string = settings_sheet[version_col][1].value
         assert version_string == f'1 ({date_string})'
 
+    def test_to_xlsx_io_with_duplicate_node_names(self):
+        self.asset.content = {
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'g1',
+                    'type': 'begin_group',
+                    'label': 'Group 1',
+                },
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': 'Group 1 Q1',
+                },
+                {'type': 'end_group'},
+                {
+                    'name': 'g2',
+                    'type': 'begin_group',
+                    'label': 'Group 2',
+                },
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': 'Group 2 Q1',
+                },
+                {'type': 'end_group'},
+            ],
+        }
+        self.asset.save()
+        with self.assertRaises(DuplicateNameException):
+            self.asset.to_xlsx_io(versioned=True)
+        xlsx_io = self.asset.to_xlsx_io(versioned=True, raise_on_autoname_error=False)
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        node_names = [c.value for c in survey_sheet['B'] if c.value == 'q1']
+        assert len(node_names) == 2
+
     def test_to_xlsx_io_preserves_leading_equals_in_label(self):
         # DEV-1235: a cell starting with `=` must stay a literal string, not
         # become an Excel formula (else `Err:520` in XLSForm, `0` in Enketo).
@@ -536,42 +575,42 @@ class AssetContentTests(AssetsTestCase):
         assert label_cell.value == '=foo'
 
     def test_unique__version__field_on_import_with_version(self):
-            xlsx_io = self.asset.to_xlsx_io(versioned=True)
-            workbook = openpyxl.load_workbook(xlsx_io)
-            survey_sheet = workbook['survey']
-            xls_version_row = [
-                cell.value for cell in survey_sheet[survey_sheet.max_row]]
-            expected_row = [
-                'calculate',
-                '__version__',
-                None,
-                f"'{self.asset.latest_version.uid}'"
-            ]
-            current_version_id = self.asset.latest_version.uid
-            assert xls_version_row == expected_row
+        xlsx_io = self.asset.to_xlsx_io(versioned=True)
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        xls_version_row = [cell.value for cell in survey_sheet[survey_sheet.max_row]]
+        expected_row = [
+            'calculate',
+            '__version__',
+            None,
+            f"'{self.asset.latest_version.uid}'",
+        ]
+        current_version_id = self.asset.latest_version.uid
+        assert xls_version_row == expected_row
 
-            xlsx_io.seek(0)
-            # Replace XLSForm with new one which contains a row with the '__version__'
-            import_task = self._create_import_task(xlsx_io)
-            self.asset.refresh_from_db()
+        xlsx_io.seek(0)
+        # Replace XLSForm with new one which contains a row with the '__version__'
+        import_task = self._create_import_task(xlsx_io)
+        self.asset.refresh_from_db()
 
-            xlsx_io = self.asset.to_xlsx_io(versioned=True)
-            workbook = openpyxl.load_workbook(xlsx_io)
-            survey_sheet = workbook['survey']
-            xls_new_version_row = [
-                cell.value for cell in survey_sheet[survey_sheet.max_row]]
-            new_version_expected_row = [
-                'calculate',
-                '__version__',
-                None,
-                f"'{self.asset.latest_version.uid}'"
-            ]
-            # Ensure last row is '__version__' (not '_version_' or '_version_001_')
-            # and it equals the asset's latest version
-            assert current_version_id != self.asset.latest_version.uid
-            assert xls_new_version_row == new_version_expected_row
-            # clean-up
-            import_task.delete()
+        xlsx_io = self.asset.to_xlsx_io(versioned=True)
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        xls_new_version_row = [
+            cell.value for cell in survey_sheet[survey_sheet.max_row]
+        ]
+        new_version_expected_row = [
+            'calculate',
+            '__version__',
+            None,
+            f"'{self.asset.latest_version.uid}'",
+        ]
+        # Ensure last row is '__version__' (not '_version_' or '_version_001_')
+        # and it equals the asset's latest version
+        assert current_version_id != self.asset.latest_version.uid
+        assert xls_new_version_row == new_version_expected_row
+        # clean-up
+        import_task.delete()
 
     def _create_import_task(self, xlsx_file: bytes) -> ImportTask:
         encoded_xls = base64.b64encode(xlsx_file.read()).decode('utf-8')
