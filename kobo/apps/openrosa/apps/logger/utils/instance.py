@@ -264,10 +264,13 @@ def resolve_root_uuid_conflict(instance: Instance, xform_id_string: str) -> str:
 
     Instance.objects.filter(pk=instance.pk).update(**fields)
 
-    doc = settings.MONGO_DB.instances.find_one({'_id': instance.pk})
-    if doc is not None:
-        doc['meta/rootUuid'] = add_uuid_prefix(conflict_root_uuid)
-        settings.MONGO_DB.instances.replace_one({'_id': instance.pk}, doc)
+    # Targeted `$set` (not read-modify-write with replace_one) so a concurrent
+    # update to another field of the document is not clobbered. If this Mongo
+    # write is missed, LRM 0028 syncs `meta/rootUuid` from the DB afterwards.
+    settings.MONGO_DB.instances.update_one(
+        {'_id': instance.pk},
+        {'$set': {'meta/rootUuid': add_uuid_prefix(conflict_root_uuid)}},
+    )
 
     return conflict_root_uuid
 

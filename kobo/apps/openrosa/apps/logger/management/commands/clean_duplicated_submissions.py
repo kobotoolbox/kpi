@@ -281,9 +281,10 @@ class Command(BaseCommand):
                 instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
             )
             # Only the identity fields changed, so sync just those to Mongo with
-            # a single bulk `$set` (after Postgres is committed) instead of a
-            # full `update_mongo()` per instance. The submission data and
-            # `_submitted_by` are untouched.
+            # a single bulk `$set` instead of a full `update_mongo()` per
+            # instance; the submission data and `_submitted_by` are untouched.
+            # If a Mongo write is missed, LRM 0028 syncs `meta/rootUuid` from the
+            # DB afterwards.
             mongo_updates = [
                 UpdateOne(
                     {'_id': instance.pk},
