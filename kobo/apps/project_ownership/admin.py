@@ -1,6 +1,7 @@
 from collections import Counter, defaultdict
 
 from django.contrib import admin
+from django.db.models import Prefetch
 from django.urls import reverse
 from django.utils.html import format_html, linebreaks
 from django.utils.safestring import mark_safe
@@ -110,9 +111,13 @@ class InviteAdmin(admin.ModelAdmin):
             ).values_list('status', flat=True)
         )
         transfer_total = sum(status_counts.values())
-        error_total = TransferStatusError.objects.filter(
-            transfer_status__transfer__invite_id=obj.id
-        ).count()
+        error_total = (
+            TransferStatusError.objects.filter(
+                transfer_status__transfer__invite_id=obj.id
+            )
+            .exclude(transfer_status__status_type=TransferStatusTypeChoices.GLOBAL)
+            .count()
+        )
 
         summary = ' · '.join(
             f'{count} {status}' for status, count in sorted(status_counts.items())
@@ -177,12 +182,30 @@ class TransferAdmin(admin.ModelAdmin):
             lookup, value, request
         )
 
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related(
+                Prefetch(
+                    'statuses',
+                    queryset=TransferStatus.objects.filter(
+                        status_type=TransferStatusTypeChoices.GLOBAL
+                    ),
+                    to_attr='_global_statuses',
+                )
+            )
+        )
+
     @admin.display(description='Asset')
     def get_asset(self, obj):
         return f'{obj.asset.name} #{obj.asset.uid}'
 
     @admin.display(description='Status')
     def get_status(self, obj):
+        global_statuses = getattr(obj, '_global_statuses', None)
+        if global_statuses:
+            return global_statuses[0].status
         return obj.status
 
     @admin.display(description='Statuses')

@@ -6,6 +6,7 @@ from django.test import TestCase
 from kpi.models import Asset
 from ..admin import InviteAdmin
 from ..models import Invite, Transfer
+from ..models.transfer import TransferStatusError, TransferStatusTypeChoices
 
 
 class ProjectOwnershipAdminTestCase(TestCase):
@@ -35,3 +36,25 @@ class ProjectOwnershipAdminTestCase(TestCase):
         assert f'invite__id__exact={self.invite.id}' in html
         # The per-status error blocks are no longer dumped inline.
         assert '<ol>' not in html
+
+    def test_invite_get_transfers_error_count_excludes_global_status(self):
+        submissions_status = self.transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.SUBMISSIONS
+        )
+        global_status = self.transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.GLOBAL
+        )
+        TransferStatusError.objects.create(
+            transfer_status=submissions_status, error='sub-task failed'
+        )
+        TransferStatusError.objects.create(
+            transfer_status=global_status, error='global failure'
+        )
+
+        invite_admin = InviteAdmin(Invite, AdminSite())
+        html = invite_admin.get_transfers(self.invite)
+
+        # Only the non-GLOBAL error should be counted, matching what
+        # TransferAdmin.get_statuses actually displays on the drill-down page.
+        assert '1 error record' in html
+        assert '2 error record' not in html
