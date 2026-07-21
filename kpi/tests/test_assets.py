@@ -547,7 +547,7 @@ class AssetContentTests(AssetsTestCase):
         survey_sheet = workbook['survey']
         node_names = [c.value for c in survey_sheet['B'] if c.value == 'q1']
         assert len(node_names) == 2
-    
+
     def test_to_xlsx_io_preserves_leading_equals_in_label(self):
         # DEV-1235: a cell starting with `=` must stay a literal string, not
         # become an Excel formula (else `Err:520` in XLSForm, `0` in Enketo).
