@@ -28,17 +28,17 @@
   cursor: not-allowed;
 }
 
-.input[data-disabled],
-.input:disabled {
-  background-color: var(--mantine-color-gray-8);
-  border-color: var(--mantine-color-gray-5);
+.radio[data-disabled],
+.radio:disabled {
+  background-color: var(--kobo-choice-control-disabled-bg);
+  border-color: var(--kobo-choice-control-disabled-border);
 }
 
 .icon[data-disabled] {
-  color: var(--mantine-color-gray-4);
+  color: var(--kobo-choice-control-disabled-icon);
 }
 
 .label[data-disabled] {
-  color: var(--mantine-color-gray-2);
+  color: var(--kobo-choice-control-disabled-label);
   opacity: 1;
 }
