@@ -373,7 +373,6 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       csv_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
       csv: faker.string.alpha({ length: { min: 10, max: 20 } }),
       geojson: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
-      kml_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
       spss_labels: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       xls_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
       xls: faker.string.alpha({ length: { min: 10, max: 20 } }),

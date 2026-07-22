@@ -13,8 +13,7 @@ from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
 from kobo.apps.openrosa.libs.utils.export_tools import (
     generate_export,
-    generate_attachments_zip_export,
-    generate_kml_export
+    generate_attachments_zip_export
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     mongo_sync_status,
@@ -61,9 +60,6 @@ def create_async_export(xform, export_type, query, force_xlsx, options=None):
         # start async export
         result = create_zip_export.apply_async(
             (), arguments, countdown=10)
-    elif export_type == Export.KML_EXPORT:
-        # KML exports must be created through KPI v2 export tasks.
-        raise Export.ExportTypeError
     else:
         raise Export.ExportTypeError
     if result:
@@ -148,38 +144,6 @@ def create_csv_export(username, id_string, export_id, query=None,
         report_exception("CSV Export Exception: Export ID - "
                          "%(export_id)s, /%(username)s/%(id_string)s"
                          % details, e, sys.exc_info())
-        raise
-    else:
-        return gen_export.id
-
-
-@celery_app.task()
-def create_kml_export(username, id_string, export_id, query=None):
-    # we re-query the db instead of passing model objects according to
-    # http://docs.celeryproject.org/en/latest/userguide/tasks.html#state
-
-    export = Export.objects.get(id=export_id)
-    try:
-        # though export is not available when for has 0 submissions, we
-        # catch this since it potentially stops celery
-        gen_export = generate_kml_export(
-            Export.KML_EXPORT, 'kml', username, id_string, export_id, query
-        )
-    except (Exception, NoRecordsFoundError) as e:
-        export.internal_status = Export.FAILED
-        export.save()
-        # mail admins
-        details = {
-            'export_id': export_id,
-            'username': username,
-            'id_string': id_string
-        }
-        report_exception(
-            "KML Export Exception: Export ID - "
-            "%(export_id)s, /%(username)s/%(id_string)s" % details,
-            e,
-            sys.exc_info(),
-        )
         raise
     else:
         return gen_export.id

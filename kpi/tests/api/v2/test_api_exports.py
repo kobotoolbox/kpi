@@ -639,43 +639,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         )
         assert '<Placemark' in export_content
 
-    @patch('kobo.apps.openrosa.apps.viewer.tasks.create_async_export')
-    def test_export_task_create_kml_does_not_hit_legacy_openrosa_kml_new_endpoint(
-        self, create_async_export_mock
-    ):
-        self.client.login(username='someuser', password='someuser')
-        list_url = reverse(
-            self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
-        )
-        data = {
-            'type': 'kml',
-            'lang': '_default',
-            'group_sep': '/',
-            'hierarchy_in_labels': False,
-            'fields_from_all_versions': False,
-            'multiple_select': 'both',
-        }
-
-        response = self.client.post(list_url, data=data, format='json')
-        assert response.status_code == status.HTTP_201_CREATED
-        create_async_export_mock.assert_not_called()
-
-    def test_legacy_openrosa_kml_new_endpoint_is_blocked(self):
-        self.client.login(username='someuser', password='someuser')
-        xform = XForm.objects.get(kpi_asset_uid=self.asset.uid)
-        legacy_create_url = reverse(
-            'create_export',
-            kwargs={
-                'username': xform.user.username,
-                'id_string': xform.id_string,
-                'export_type': 'kml',
-            },
-        )
-
-        response = self.client.post(legacy_create_url)
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
     def test_export_task_create_with_name(self):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
