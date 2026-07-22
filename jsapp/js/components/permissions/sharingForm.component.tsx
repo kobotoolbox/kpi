@@ -19,6 +19,7 @@ import type {
 } from '#/dataInterface'
 import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
 import { recordValues } from '#/utils'
+import AnonymousSubmissionSettings from './AnonymousSubmissionSettings'
 import CopyTeamPermissions from './copyTeamPermissions.component'
 import { parseBackendData, parseUserWithPermsList } from './permParser'
 import type { UserWithPerms } from './permParser'
@@ -242,13 +243,19 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
         {/* public sharing settings */}
         {assetType === ASSET_TYPES.survey.id && (
-          <Box>
+          <>
+            <AnonymousSubmissionSettings
+              publicPerms={this.state.publicPerms}
+              assetUid={this.props.assetUid}
+              userCanShare={isManagingPossible}
+            />
+
             <PublicShareSettings
               publicPerms={this.state.publicPerms}
               assetUid={this.props.assetUid}
               userCanShare={isManagingPossible}
             />
-          </Box>
+          </>
         )}
 
         {/* copying permissions from other assets */}
