@@ -6,7 +6,6 @@ import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
-import AssetName from '#/components/common/assetName'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import { userCan } from '#/components/permissions/utils'
@@ -181,12 +180,6 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
     return (
       <Stack gap='xl'>
-        <Box p='md' bg='gray.7' bdrs='sm'>
-          <Title order={3} dir='auto'>
-            <AssetName asset={this.state.asset} />
-          </Title>
-        </Box>
-
         {/* list of users and their permissions */}
         <Stack gap='sm'>
           <Title order={4}>{t('Who has access')}</Title>

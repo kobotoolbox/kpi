@@ -397,8 +397,8 @@ export function deployAsset(
 }
 
 /** Opens a modal for sharing asset. */
-export function manageAssetSharing(uid: string) {
-  openSharingModal({ assetUid: uid })
+export function manageAssetSharing(asset: AssetResponse | ProjectViewAsset) {
+  openSharingModal({ asset: asset })
 }
 
 /** Opens a modal for replacing an asset using a file. */

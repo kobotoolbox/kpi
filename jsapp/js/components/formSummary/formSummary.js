@@ -131,7 +131,7 @@ class FormSummary extends React.Component {
 
   sharingModal(evt) {
     evt.preventDefault()
-    openSharingModal({ assetUid: this.state.uid })
+    openSharingModal({ asset: this.state })
   }
 
   enketoPreviewModal(evt) {

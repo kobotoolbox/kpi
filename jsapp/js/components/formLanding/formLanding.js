@@ -153,7 +153,7 @@ class FormLanding extends React.Component {
   }
   showSharingModal(evt) {
     evt.preventDefault()
-    openSharingModal({ assetUid: this.state.uid })
+    openSharingModal({ asset: this.state })
   }
   showReplaceProjectModal(evt) {
     evt.preventDefault()
