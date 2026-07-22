@@ -81,7 +81,7 @@ import type { EnketoViewResponse } from '../../models/enketoViewResponse'
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { ExportCreatePayload } from '../../models/exportCreatePayload'
 
@@ -260,7 +260,7 @@ export type assetsAdvancedFeaturesCreateResponse201 = {
 }
 
 export type assetsAdvancedFeaturesCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -296,7 +296,7 @@ export const assetsAdvancedFeaturesCreate = async (
 }
 
 export const getAssetsAdvancedFeaturesCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -335,9 +335,9 @@ export type AssetsAdvancedFeaturesCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>
 >
 export type AssetsAdvancedFeaturesCreateMutationBody = AdvancedFeaturePostRequest
-export type AssetsAdvancedFeaturesCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsAdvancedFeaturesCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsAdvancedFeaturesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsAdvancedFeaturesCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
     TError,
@@ -470,7 +470,7 @@ export type assetsAdvancedFeaturesPartialUpdateResponse200 = {
 }
 
 export type assetsAdvancedFeaturesPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -510,7 +510,7 @@ export const assetsAdvancedFeaturesPartialUpdate = async (
 }
 
 export const getAssetsAdvancedFeaturesPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -549,10 +549,10 @@ export type AssetsAdvancedFeaturesPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>
 >
 export type AssetsAdvancedFeaturesPartialUpdateMutationBody = PatchedAdvancedFeaturePatchRequest
-export type AssetsAdvancedFeaturesPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsAdvancedFeaturesPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
 export const useAssetsAdvancedFeaturesPartialUpdate = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -739,7 +739,7 @@ export type assetsAdvancedFeaturesBulkActionsCreateResponse201 = {
 }
 
 export type assetsAdvancedFeaturesBulkActionsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -779,7 +779,7 @@ export const assetsAdvancedFeaturesBulkActionsCreate = async (
 }
 
 export const getAssetsAdvancedFeaturesBulkActionsCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -818,10 +818,10 @@ export type AssetsAdvancedFeaturesBulkActionsCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsAdvancedFeaturesBulkActionsCreate>>
 >
 export type AssetsAdvancedFeaturesBulkActionsCreateMutationBody = BulkActionCreateRequest
-export type AssetsAdvancedFeaturesBulkActionsCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsAdvancedFeaturesBulkActionsCreateMutationError = ErrorValidation | ErrorDetail
 
 export const useAssetsAdvancedFeaturesBulkActionsCreate = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1067,7 +1067,7 @@ export type assetsAttachmentsDestroyResponse204 = {
 }
 
 export type assetsAttachmentsDestroyResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1101,7 +1101,7 @@ export const assetsAttachmentsDestroy = async (
 }
 
 export const getAssetsAttachmentsDestroyMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1138,9 +1138,9 @@ export const getAssetsAttachmentsDestroyMutationOptions = <
 
 export type AssetsAttachmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>>
 
-export type AssetsAttachmentsDestroyMutationError = ErrorObject | ErrorDetail
+export type AssetsAttachmentsDestroyMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsAttachmentsDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsAttachmentsDestroy = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
     TError,
@@ -1320,7 +1320,7 @@ export type assetsAttachmentsBulkDestroyResponse202 = {
 }
 
 export type assetsAttachmentsBulkDestroyResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1353,7 +1353,7 @@ export const assetsAttachmentsBulkDestroy = async (
 }
 
 export const getAssetsAttachmentsBulkDestroyMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1391,9 +1391,9 @@ export type AssetsAttachmentsBulkDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>
 >
 
-export type AssetsAttachmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
+export type AssetsAttachmentsBulkDestroyMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsAttachmentsBulkDestroy = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
     TError,
@@ -2739,7 +2739,7 @@ export type assetsDataSupplementRetrieveResponse200 = {
 }
 
 export type assetsDataSupplementRetrieveResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -2778,7 +2778,7 @@ export const getAssetsDataSupplementRetrieveQueryKey = (uidAsset: string, rootUu
 
 export const getAssetsDataSupplementRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   rootUuid: string,
@@ -2804,11 +2804,11 @@ export const getAssetsDataSupplementRetrieveQueryOptions = <
 export type AssetsDataSupplementRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>
 >
-export type AssetsDataSupplementRetrieveQueryError = ErrorObject | ErrorDetail
+export type AssetsDataSupplementRetrieveQueryError = ErrorValidation | ErrorDetail
 
 export function useAssetsDataSupplementRetrieve<
   TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   rootUuid: string,
@@ -2853,7 +2853,7 @@ export type assetsDataSupplementPartialUpdateResponse200 = {
 }
 
 export type assetsDataSupplementPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -2893,7 +2893,7 @@ export const assetsDataSupplementPartialUpdate = async (
 }
 
 export const getAssetsDataSupplementPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2932,9 +2932,12 @@ export type AssetsDataSupplementPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>
 >
 export type AssetsDataSupplementPartialUpdateMutationBody = PatchedDataSupplementPayload
-export type AssetsDataSupplementPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsDataSupplementPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsDataSupplementPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsDataSupplementPartialUpdate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
     TError,
@@ -2974,7 +2977,7 @@ export type assetsDataAttachmentsListResponse200 = {
 }
 
 export type assetsDataAttachmentsListResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -3034,7 +3037,7 @@ export const getAssetsDataAttachmentsListQueryKey = (
 
 export const getAssetsDataAttachmentsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   uidData: string,
@@ -3059,11 +3062,11 @@ export const getAssetsDataAttachmentsListQueryOptions = <
 }
 
 export type AssetsDataAttachmentsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataAttachmentsList>>>
-export type AssetsDataAttachmentsListQueryError = ErrorObject | ErrorDetail
+export type AssetsDataAttachmentsListQueryError = ErrorValidation | ErrorDetail
 
 export function useAssetsDataAttachmentsList<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   uidData: string,
@@ -3114,7 +3117,7 @@ export type attachmentRetrieveResponse200 = {
 }
 
 export type attachmentRetrieveResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -3177,7 +3180,7 @@ export const getAttachmentRetrieveQueryKey = (
 
 export const getAttachmentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof attachmentRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   uidData: string,
@@ -3203,11 +3206,11 @@ export const getAttachmentRetrieveQueryOptions = <
 }
 
 export type AttachmentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentRetrieve>>>
-export type AttachmentRetrieveQueryError = ErrorObject | ErrorDetail
+export type AttachmentRetrieveQueryError = ErrorValidation | ErrorDetail
 
 export function useAttachmentRetrieve<
   TData = Awaited<ReturnType<typeof attachmentRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   uidData: string,
@@ -3599,7 +3602,7 @@ export type assetsDataSupplementsBulkCreateResponse200 = {
 }
 
 export type assetsDataSupplementsBulkCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -3635,7 +3638,7 @@ export const assetsDataSupplementsBulkCreate = async (
 }
 
 export const getAssetsDataSupplementsBulkCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -3674,9 +3677,12 @@ export type AssetsDataSupplementsBulkCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>
 >
 export type AssetsDataSupplementsBulkCreateMutationBody = BulkAcceptRequest
-export type AssetsDataSupplementsBulkCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsDataSupplementsBulkCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsDataSupplementsBulkCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsDataSupplementsBulkCreate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataSupplementsBulkCreate>>,
     TError,
@@ -4080,7 +4086,7 @@ export type assetsExportSettingsCreateResponse201 = {
 }
 
 export type assetsExportSettingsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -4116,7 +4122,7 @@ export const assetsExportSettingsCreate = async (
 }
 
 export const getAssetsExportSettingsCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -4155,9 +4161,9 @@ export type AssetsExportSettingsCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsCreate>>
 >
 export type AssetsExportSettingsCreateMutationBody = ExportSettingCreatePayload
-export type AssetsExportSettingsCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsExportSettingsCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsExportSettingsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsExportSettingsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportSettingsCreate>>,
     TError,
@@ -4278,7 +4284,7 @@ export type assetsExportSettingsPartialUpdateResponse200 = {
 }
 
 export type assetsExportSettingsPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -4318,7 +4324,7 @@ export const assetsExportSettingsPartialUpdate = async (
 }
 
 export const getAssetsExportSettingsPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -4357,9 +4363,12 @@ export type AssetsExportSettingsPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>
 >
 export type AssetsExportSettingsPartialUpdateMutationBody = PatchedExportSettingUpdatePayload
-export type AssetsExportSettingsPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsExportSettingsPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsExportSettingsPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsExportSettingsPartialUpdate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>,
     TError,
@@ -4483,7 +4492,7 @@ export type assetsExportSettingsDataRetrieveResponse200 = {
 }
 
 export type assetsExportSettingsDataRetrieveResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -4555,7 +4564,7 @@ export const getAssetsExportSettingsDataRetrieveQueryKey = (
 
 export const getAssetsExportSettingsDataRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   uidExportSetting: string,
@@ -4583,11 +4592,11 @@ export const getAssetsExportSettingsDataRetrieveQueryOptions = <
 export type AssetsExportSettingsDataRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>
 >
-export type AssetsExportSettingsDataRetrieveQueryError = ErrorObject | ErrorDetail
+export type AssetsExportSettingsDataRetrieveQueryError = ErrorValidation | ErrorDetail
 
 export function useAssetsExportSettingsDataRetrieve<
   TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidAsset: string,
   uidExportSetting: string,
@@ -4755,7 +4764,7 @@ export type assetsExportsCreateResponse201 = {
 }
 
 export type assetsExportsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -4791,7 +4800,7 @@ export const assetsExportsCreate = async (
 }
 
 export const getAssetsExportsCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -4828,9 +4837,9 @@ export const getAssetsExportsCreateMutationOptions = <
 
 export type AssetsExportsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportsCreate>>>
 export type AssetsExportsCreateMutationBody = ExportCreatePayload
-export type AssetsExportsCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsExportsCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsExportsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsExportsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportsCreate>>,
     TError,
@@ -5150,7 +5159,7 @@ export type assetsFilesCreateResponse201 = {
 }
 
 export type assetsFilesCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -5185,7 +5194,10 @@ export const assetsFilesCreate = async (
   })
 }
 
-export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getAssetsFilesCreateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesCreate>>,
     TError,
@@ -5220,9 +5232,9 @@ export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject | Error
 
 export type AssetsFilesCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesCreate>>>
 export type AssetsFilesCreateMutationBody = CreateFilePayload
-export type AssetsFilesCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsFilesCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsFilesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsFilesCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesCreate>>,
     TError,
@@ -5609,7 +5621,7 @@ export type assetsPairedDataCreateResponse201 = {
 }
 
 export type assetsPairedDataCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -5645,7 +5657,7 @@ export const assetsPairedDataCreate = async (
 }
 
 export const getAssetsPairedDataCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -5682,9 +5694,9 @@ export const getAssetsPairedDataCreateMutationOptions = <
 
 export type AssetsPairedDataCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataCreate>>>
 export type AssetsPairedDataCreateMutationBody = NonReadonly<PairedData>
-export type AssetsPairedDataCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsPairedDataCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsPairedDataCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsPairedDataCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataCreate>>,
     TError,
@@ -5798,7 +5810,7 @@ export type assetsPairedDataPartialUpdateResponse200 = {
 }
 
 export type assetsPairedDataPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -5838,7 +5850,7 @@ export const assetsPairedDataPartialUpdate = async (
 }
 
 export const getAssetsPairedDataPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -5877,9 +5889,9 @@ export type AssetsPairedDataPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>
 >
 export type AssetsPairedDataPartialUpdateMutationBody = PatchedPairedDataPatchPayload
-export type AssetsPairedDataPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsPairedDataPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsPairedDataPartialUpdate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
     TError,

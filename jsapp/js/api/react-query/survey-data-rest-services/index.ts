@@ -25,7 +25,7 @@ import type { AssetsHooksLogsListParams } from '../../models/assetsHooksLogsList
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { Hook } from '../../models/hook'
 
@@ -202,7 +202,7 @@ export type assetsHooksCreateResponse201 = {
 }
 
 export type assetsHooksCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -237,7 +237,10 @@ export const assetsHooksCreate = async (
   })
 }
 
-export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getAssetsHooksCreateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
@@ -272,9 +275,9 @@ export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject | Error
 
 export type AssetsHooksCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksCreate>>>
 export type AssetsHooksCreateMutationBody = NonReadonly<Hook>
-export type AssetsHooksCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsHooksCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsHooksCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsHooksCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
@@ -381,7 +384,7 @@ export type assetsHooksPartialUpdateResponse200 = {
 }
 
 export type assetsHooksPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -418,7 +421,7 @@ export const assetsHooksPartialUpdate = async (
 }
 
 export const getAssetsHooksPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -455,9 +458,9 @@ export const getAssetsHooksPartialUpdateMutationOptions = <
 
 export type AssetsHooksPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksPartialUpdate>>>
 export type AssetsHooksPartialUpdateMutationBody = NonReadonly<PatchedHook>
-export type AssetsHooksPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsHooksPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsHooksPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsHooksPartialUpdate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
     TError,

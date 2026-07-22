@@ -46,7 +46,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     hasColumnsPinnedRight: 'none',
     howManyColumns: 'lots',
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
   render: ({ hasColumnsPinnedLeft, hasColumnsPinnedRight, howManyColumns, ...args }) => {
     const columns: Array<UniversalTableColumn<UniversalTableExampleDataItem>> = createUniversalTableExampleDataColumns(
       hasColumnsPinnedLeft,

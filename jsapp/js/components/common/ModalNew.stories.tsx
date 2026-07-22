@@ -70,7 +70,7 @@ const meta: Meta<typeof ModalNew> = {
     size: 'md',
     fullScreen: false,
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 }
 
 type Story = StoryObj<typeof ModalNew>

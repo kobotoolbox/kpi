@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
-
 import { Flex, Text } from '@mantine/core'
-import alertify from 'alertifyjs'
-import { actions } from '#/actions'
+import React, { useEffect, useRef, useState } from 'react'
+import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
 import bem from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
@@ -16,13 +14,15 @@ import {
   EXPORT_TYPES,
   ExportStatusName,
   type ExportTypeDefinition,
+  ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
-import exportsStore from '#/components/projectDownloads/exportsStore'
-import type { AssetResponse, ExportDataLang, ExportDataResponse, PaginatedResponse } from '#/dataInterface'
-import { formatTime } from '#/utils'
+import { openDeleteExportModal } from '#/components/projectDownloads/openDeleteExportModal'
+import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
+import { formatTime, notify } from '#/utils'
 
 interface ProjectExportsListProps {
   asset: AssetResponse
+  selectedExportType: ExportTypeDefinition
 }
 
 /**
@@ -31,8 +31,10 @@ interface ProjectExportsListProps {
 export default function ProjectExportsList(props: ProjectExportsListProps) {
   const [isComponentReady, setIsComponentReady] = useState(false)
   const [rows, setRows] = useState<ExportDataResponse[]>([])
-  const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(exportsStore.getExportType())
+  const [deletingExports, setDeletingExports] = useState<Set<string>>(new Set())
   const exportFetchersRef = useRef<Map<string, ExportFetcher>>(new Map())
+  const exportsListQuery = useAssetsExportsList(props.asset.uid)
+  const deleteExportMutation = useAssetsExportsDestroy()
 
   function stopExportFetcher(exportUid: string) {
     const exportFetcher = exportFetchersRef.current.get(exportUid)
@@ -49,7 +51,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   function addExportFetcher(exportUid: string) {
-    exportFetchersRef.current.set(exportUid, new ExportFetcher(props.asset.uid, exportUid))
+    exportFetchersRef.current.set(exportUid, new ExportFetcher(() => fetchExport(exportUid)))
   }
 
   function checkExportFetcher(exportUid: string, exportStatus: ExportStatusName) {
@@ -66,76 +68,85 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     }
   }
 
-  function fetchExport(exportUid: string) {
-    actions.exports.getExport(props.asset.uid, exportUid)
-  }
+  async function fetchExport(exportUid: string) {
+    try {
+      const response = await assetsExportsRetrieve(props.asset.uid, exportUid)
+      if (response.status !== 200) {
+        return
+      }
 
-  function fetchExports() {
-    actions.exports.getExports(props.asset.uid)
+      const exportData = response.data as unknown as ExportDataResponse
+      checkExportFetcher(exportData.uid, exportData.status)
+
+      setRows((currentRows) => {
+        const newRows = [...currentRows]
+        const existingIndex = newRows.findIndex((rowData) => rowData.uid === exportData.uid)
+
+        if (existingIndex >= 0) {
+          newRows[existingIndex] = exportData
+        } else {
+          newRows.unshift(exportData)
+        }
+
+        return newRows
+      })
+    } catch {
+      // A temporary network error should not kill polling.
+    }
   }
 
   function deleteExport(exportUid: string) {
-    const dialog = alertify.dialog('confirm')
-    const opts = {
-      title: t('Delete export?'),
-      message: t('Are you sure you want to delete this export? This action is not reversible.'),
-      labels: { ok: t('Delete'), cancel: t('Cancel') },
-      onok: () => {
-        actions.exports.deleteExport(props.asset.uid, exportUid)
-      },
-      oncancel: () => {
-        dialog.destroy()
-      },
-    }
-    dialog.set(opts).show()
+    openDeleteExportModal(async () => {
+      setDeletingExports((prev) => new Set(prev).add(exportUid))
+      try {
+        await deleteExportMutation.mutateAsync({ uidAsset: props.asset.uid, uidExport: exportUid })
+      } catch {
+        notify(t('Failed to delete export'), 'error')
+      } finally {
+        setDeletingExports((prev) => {
+          const next = new Set(prev)
+          next.delete(exportUid)
+          return next
+        })
+      }
+    })
   }
 
-  useEffect(() => {
-    const unlisteners = [
-      exportsStore.listen(() => {
-        setSelectedExportType(exportsStore.getExportType())
-      }, null),
-      actions.exports.getExports.completed.listen((response: PaginatedResponse<ExportDataResponse>) => {
-        response.results.forEach((exportData) => {
-          checkExportFetcher(exportData.uid, exportData.status)
-        })
-
-        setIsComponentReady(true)
-        setRows(response.results)
-      }),
-      actions.exports.createExport.completed.listen((response: ExportDataResponse) => {
-        fetchExport(response.uid)
-      }),
-      actions.exports.deleteExport.completed.listen(() => {
-        fetchExports()
-      }),
-      actions.exports.getExport.completed.listen((exportData: ExportDataResponse) => {
-        checkExportFetcher(exportData.uid, exportData.status)
-
-        setRows((currentRows) => {
-          const newRows = [...currentRows]
-          const existingIndex = newRows.findIndex((rowData) => rowData.uid === exportData.uid)
-
-          if (existingIndex >= 0) {
-            newRows[existingIndex] = exportData
-          } else {
-            newRows.unshift(exportData)
-          }
-
-          return newRows
-        })
-      }),
-    ]
-
-    fetchExports()
-
-    return () => {
-      unlisteners.forEach((unlisten) => {
-        unlisten()
-      })
+  useEffect(
+    () => () => {
       stopAllExportFetchers()
+    },
+    [props.asset.uid],
+  )
+
+  useEffect(() => {
+    if (exportsListQuery.isSuccess && exportsListQuery.data.status === 200) {
+      const exportRows = exportsListQuery.data.data.results as unknown as ExportDataResponse[]
+
+      // Stop fetchers for exports that are no longer in the list
+      const currentExportUids = new Set(exportRows.map((row) => row.uid))
+      for (const fetcherUid of exportFetchersRef.current.keys()) {
+        if (!currentExportUids.has(fetcherUid)) {
+          stopExportFetcher(fetcherUid)
+        }
+      }
+
+      // Start/check fetchers for exports in the list
+      exportRows.forEach((exportData) => {
+        checkExportFetcher(exportData.uid, exportData.status)
+      })
+
+      setRows(exportRows)
+      setIsComponentReady(true)
     }
-  }, [props.asset.uid])
+  }, [exportsListQuery.data, exportsListQuery.isSuccess])
+
+  useEffect(() => {
+    if (exportsListQuery.isError) {
+      setRows([])
+      setIsComponentReady(true)
+    }
+  }, [exportsListQuery.isError])
 
   /**
    * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
@@ -168,46 +179,60 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   function getRows() {
-    return rows.map((exportData) => [
-      EXPORT_TYPES[exportData.data.type]?.label,
-      formatTime(exportData.date_created),
-      renderLanguage(exportData.data.lang),
-      <Text key='include-groups' ta='center'>
-        {renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
-      </Text>,
-      <Text key='multiple-versions' ta='center'>
-        {renderBooleanAnswer(exportData.data.fields_from_all_versions)}
-      </Text>,
-      <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
-        {exportData.status === ExportStatusName.complete && (
-          <Button
-            type='secondary'
-            size='m'
-            startIcon='download'
-            label={t('Download')}
-            onClick={() => {
-              if (exportData.result !== null) {
-                window.open(exportData.result, '_blank')
-              }
-            }}
-          />
-        )}
+    return rows.map((exportData) => {
+      // Remap legacy kml_legacy to kml for display
+      let exportType = exportData.data.type
+      if ((exportType as ExportTypeName | 'kml_legacy') === 'kml_legacy') {
+        exportType = ExportTypeName.kml
+      }
 
-        {exportData.status === ExportStatusName.error && (
-          <span className='right-tooltip' data-tip={exportData.messages?.error}>
-            {t('Export Failed')}
-          </span>
-        )}
+      return [
+        EXPORT_TYPES[exportType]?.label || t('Unknown format'),
+        formatTime(exportData.date_created),
+        renderLanguage(exportData.data.lang),
+        <Text key='include-groups' ta='center'>
+          {renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
+        </Text>,
+        <Text key='multiple-versions' ta='center'>
+          {renderBooleanAnswer(exportData.data.fields_from_all_versions)}
+        </Text>,
+        <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
+          {exportData.status === ExportStatusName.complete && (
+            <Button
+              type='secondary'
+              size='m'
+              startIcon='download'
+              label={t('Download')}
+              onClick={() => {
+                if (exportData.result !== null) {
+                  window.open(exportData.result, '_blank')
+                }
+              }}
+            />
+          )}
 
-        {exportData.status !== ExportStatusName.complete && exportData.status !== ExportStatusName.error && (
-          <span className='animate-processing'>{t('Processing…')}</span>
-        )}
+          {exportData.status === ExportStatusName.error && (
+            <span className='right-tooltip' data-tip={exportData.messages?.error}>
+              {t('Export Failed')}
+            </span>
+          )}
 
-        {userCan(PERMISSIONS_CODENAMES.view_submissions, props.asset) && (
-          <Button type='secondary-danger' size='m' startIcon='trash' onClick={() => deleteExport(exportData.uid)} />
-        )}
-      </Flex>,
-    ])
+          {exportData.status !== ExportStatusName.complete && exportData.status !== ExportStatusName.error && (
+            <span className='animate-processing'>{t('Processing…')}</span>
+          )}
+
+          {userCan(PERMISSIONS_CODENAMES.view_submissions, props.asset) && (
+            <Button
+              type='secondary-danger'
+              size='m'
+              startIcon='trash'
+              isPending={deletingExports.has(exportData.uid)}
+              onClick={() => deleteExport(exportData.uid)}
+            />
+          )}
+        </Flex>,
+      ]
+    })
   }
 
   if (!isComponentReady) {
@@ -220,7 +245,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     )
   }
 
-  if (rows.length === 0 || selectedExportType.isLegacy) {
+  if (rows.length === 0 || props.selectedExportType.isLegacy) {
     return null
   }
 
