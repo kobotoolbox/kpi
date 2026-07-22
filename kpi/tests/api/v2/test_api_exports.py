@@ -676,7 +676,6 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.post(legacy_create_url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-
     def test_export_task_create_with_name(self):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
