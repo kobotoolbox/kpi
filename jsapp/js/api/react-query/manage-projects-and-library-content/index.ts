@@ -47,7 +47,7 @@ import type { DeploymentResponse } from '../../models/deploymentResponse'
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { HashResponse } from '../../models/hashResponse'
 
@@ -242,7 +242,7 @@ export type assetsCreateResponse201 = {
 }
 
 export type assetsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -273,7 +273,7 @@ export const assetsCreate = async (
   })
 }
 
-export const getAssetsCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getAssetsCreateMutationOptions = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsCreate>>,
     TError,
@@ -302,9 +302,9 @@ export const getAssetsCreateMutationOptions = <TError = ErrorObject | ErrorDetai
 
 export type AssetsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsCreate>>>
 export type AssetsCreateMutationBody = AssetCreateRequest
-export type AssetsCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsCreate>>,
     TError,
@@ -429,7 +429,7 @@ export type assetsPartialUpdateResponse200 = {
 }
 
 export type assetsPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -465,7 +465,7 @@ export const assetsPartialUpdate = async (
 }
 
 export const getAssetsPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -502,9 +502,9 @@ export const getAssetsPartialUpdateMutationOptions = <
 
 export type AssetsPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPartialUpdate>>>
 export type AssetsPartialUpdateMutationBody = PatchedAssetPatchRequest
-export type AssetsPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsPartialUpdate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPartialUpdate>>,
     TError,
@@ -785,7 +785,7 @@ export type assetsDeploymentCreateResponse200 = {
 }
 
 export type assetsDeploymentCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -821,7 +821,7 @@ export const assetsDeploymentCreate = async (
 }
 
 export const getAssetsDeploymentCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -858,9 +858,9 @@ export const getAssetsDeploymentCreateMutationOptions = <
 
 export type AssetsDeploymentCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDeploymentCreate>>>
 export type AssetsDeploymentCreateMutationBody = DeploymentCreateRequest
-export type AssetsDeploymentCreateMutationError = ErrorObject | ErrorDetail
+export type AssetsDeploymentCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsDeploymentCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsDeploymentCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDeploymentCreate>>,
     TError,
@@ -887,7 +887,7 @@ export type assetsDeploymentPartialUpdateResponse200 = {
 }
 
 export type assetsDeploymentPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -923,7 +923,7 @@ export const assetsDeploymentPartialUpdate = async (
 }
 
 export const getAssetsDeploymentPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -962,9 +962,9 @@ export type AssetsDeploymentPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>
 >
 export type AssetsDeploymentPartialUpdateMutationBody = PatchedDeploymentPatchRequest
-export type AssetsDeploymentPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type AssetsDeploymentPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetsDeploymentPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsDeploymentPartialUpdate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
     TError,
@@ -1745,7 +1745,7 @@ export type importsCreateResponse201 = {
 }
 
 export type importsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1786,7 +1786,7 @@ export const importsCreate = async (
   })
 }
 
-export const getImportsCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getImportsCreateMutationOptions = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof importsCreate>>,
     TError,
@@ -1815,9 +1815,9 @@ export const getImportsCreateMutationOptions = <TError = ErrorObject | ErrorDeta
 
 export type ImportsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof importsCreate>>>
 export type ImportsCreateMutationBody = ImportCreateRequest
-export type ImportsCreateMutationError = ErrorObject | ErrorDetail
+export type ImportsCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useImportsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useImportsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof importsCreate>>,
     TError,
@@ -2031,7 +2031,7 @@ export type projectOwnershipInvitesCreateResponse201 = {
 }
 
 export type projectOwnershipInvitesCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -2066,7 +2066,7 @@ export const projectOwnershipInvitesCreate = async (
 }
 
 export const getProjectOwnershipInvitesCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2105,9 +2105,9 @@ export type ProjectOwnershipInvitesCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof projectOwnershipInvitesCreate>>
 >
 export type ProjectOwnershipInvitesCreateMutationBody = ProjectInviteCreatePayload
-export type ProjectOwnershipInvitesCreateMutationError = ErrorObject | ErrorDetail
+export type ProjectOwnershipInvitesCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useProjectOwnershipInvitesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useProjectOwnershipInvitesCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesCreate>>,
     TError,
@@ -2232,7 +2232,7 @@ export type projectOwnershipInvitesPartialUpdateResponse200 = {
 }
 
 export type projectOwnershipInvitesPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -2271,7 +2271,7 @@ export const projectOwnershipInvitesPartialUpdate = async (
 }
 
 export const getProjectOwnershipInvitesPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2310,10 +2310,10 @@ export type ProjectOwnershipInvitesPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>
 >
 export type ProjectOwnershipInvitesPartialUpdateMutationBody = PatchedInviteUpdatePayload
-export type ProjectOwnershipInvitesPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type ProjectOwnershipInvitesPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
 export const useProjectOwnershipInvitesPartialUpdate = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<

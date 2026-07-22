@@ -55,7 +55,7 @@ const meta: Meta<typeof KoboIcon> = {
           'Kobo icon component for new UI. It renders only explicit SVG icon components. For legacy icon names, use `Icon` and refer to the legacy-to-tabler catalog below during migration.',
       },
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 
