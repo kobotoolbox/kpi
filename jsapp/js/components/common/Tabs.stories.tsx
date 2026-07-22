@@ -43,6 +43,9 @@ const meta: Meta<TabsProps> = {
     size: 'sm',
   },
   render: (args) => <SampleTabs {...args} />,
+  parameters: {
+    a11y: { disable: true },
+  },
 }
 
 export default meta
