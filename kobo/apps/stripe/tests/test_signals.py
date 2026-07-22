@@ -64,7 +64,8 @@ class StripeSignalsTestCase(BaseTestCase):
                         }
                     ]
                 },
-            }
+            },
+            'previous_attributes': {'status': 'past_due'},
         }
 
         handle_unpaid_subscription(
