@@ -16,6 +16,7 @@ from kobo.apps.project_ownership.models.choices import (
     TransferStatusErrorLevelChoices,
 )
 from kobo.apps.project_ownership.models.transfer import TransferStatusError
+from kobo.apps.project_ownership.utils import move_attachments
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.deployment_backends.kc_access.storage import (
@@ -776,6 +777,45 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert all(
             attachment.user_id == self.anotheruser.pk for attachment in attachments
         )
+
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_interrupted_move_is_completed_on_retry(self):
+        # A run that moved the file then died before saving leaves the file at
+        # the new path and the row at the old one. The retry must repoint the
+        # row rather than treat the source as gone.
+        self.client.login(username='someuser', password='someuser')
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username],
+            ),
+            'assets': [self.asset.uid],
+        }
+        with immediate_on_commit():
+            response = self.client.post(self.invite_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+        submission_ids = [submission['_id'] for submission in self.submissions]
+        attachment = Attachment.objects.filter(instance_id__in=submission_ids).first()
+        moved_path = attachment.media_file.name
+        assert moved_path.startswith(f'{self.anotheruser.username}/')
+
+        # Rewind the database row only; the file stays where it was moved to.
+        old_path = moved_path.replace(
+            f'{self.anotheruser.username}/', f'{self.someuser.username}/', 1
+        )
+        Attachment.all_objects.filter(pk=attachment.pk).update(media_file=old_path)
+
+        transfer = Transfer.objects.get(asset=self.asset)
+        move_attachments(transfer)
+
+        attachment.refresh_from_db()
+        assert attachment.media_file.name == moved_path
+        # Nothing was skipped: the file was found and the row completed.
+        assert not TransferStatusError.objects.filter(
+            transfer_status__transfer=transfer,
+            level=TransferStatusErrorLevelChoices.INFO,
+        ).exists()
 
 
 class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):

@@ -29,12 +29,15 @@ class ProjectOwnershipAdminTestCase(TestCase):
         assert transfer_admin.has_change_permission(request=None) is False
         assert transfer_admin.has_delete_permission(request=None) is False
 
-    def test_invite_get_transfers_shows_summary_and_link(self):
+    def test_invite_get_transfers_shows_summary_and_links(self):
         invite_admin = InviteAdmin(Invite, AdminSite())
         html = invite_admin.get_transfers(self.invite)
-        # A summary line + a link to the filtered transfer changelist, not a dump.
+        # A summary line + links to the transfers and the logs, both filtered
+        # to this invite, not a dump.
         assert 'View transfers' in html
         assert f'invite__id__exact={self.invite.id}' in html
+        assert 'View logs' in html
+        assert f'transfer_status__transfer__invite__id__exact={self.invite.id}' in html
         # The per-status error blocks are no longer dumped inline.
         assert '<ol>' not in html
 
@@ -139,10 +142,3 @@ class ProjectOwnershipAdminTestCase(TestCase):
         assert log_admin.lookup_allowed(
             'transfer_status__transfer__invite__id__exact', '1', None
         )
-
-    def test_invite_get_transfers_links_to_logs(self):
-        invite_admin = InviteAdmin(Invite, AdminSite())
-        html = invite_admin.get_transfers(self.invite)
-
-        assert 'View logs' in html
-        assert f'transfer_status__transfer__invite__id__exact={self.invite.id}' in html

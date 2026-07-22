@@ -29,7 +29,7 @@ class TransferStatusErrorLevelChoices(models.TextChoices):
     """
 
     ERROR = 'error'
-    INFO = 'info'
+    INFO = 'info', 'Skipped'
 
 
 class TransferStatusTypeChoices(models.TextChoices):
