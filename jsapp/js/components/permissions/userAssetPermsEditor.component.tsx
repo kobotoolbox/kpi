@@ -422,7 +422,7 @@ export default class UserAssetPermsEditor extends React.Component<
               </span>
 
               <ButtonNew
-                variant='light'
+                variant='transparent'
                 size='md'
                 onClick={() => {
                   // Update state object in non mutable way
