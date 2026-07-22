@@ -178,23 +178,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
             text/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
         '202':
@@ -547,23 +545,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
             text/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
         '202':
@@ -846,23 +842,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
             text/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
         '202':
@@ -3153,12 +3147,12 @@ components:
           type: string
       required:
       - detail
-    ErrorObject:
+    ErrorValidation:
       type: object
-      properties:
-        detail: {}
-      required:
-      - detail
+      additionalProperties:
+        type: array
+        items:
+          type: string
     JSONSubmissionPayload:
       type: object
       properties:
