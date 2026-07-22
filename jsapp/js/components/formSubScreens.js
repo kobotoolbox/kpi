@@ -1,5 +1,5 @@
+import { Box } from '@mantine/core'
 import React, { Suspense } from 'react'
-
 import autoBind from 'react-autobind'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
@@ -120,9 +120,12 @@ export class FormSubScreens extends React.Component {
     return (
       <bem.FormView m='form-settings-sharing'>
         <LimitNotifications />
+
         <SharingForm assetUid={uid} />
 
-        <TransferProjects asset={this.state} />
+        <Box mt='xl'>
+          <TransferProjects asset={this.state} />
+        </Box>
       </bem.FormView>
     )
   }

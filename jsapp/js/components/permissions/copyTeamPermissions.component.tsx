@@ -191,7 +191,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
       </Box>
 
       {isFormOpened && (
-        <Stack gap='md'>
+        <Stack gap='sm'>
           <Text>{t('This will overwrite any existing sharing settings defined in this project.')}</Text>
 
           <Group p='md' bg='gray.7' bdrs='sm'>
