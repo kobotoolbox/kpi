@@ -420,4 +420,5 @@ class XlsRenderer(renderers.BaseRenderer):
         return asset.to_xlsx_io(
             versioned=False,
             kobo_specific_types=self.kobo_specific_types,
+            raise_on_autoname_error=False,
         )

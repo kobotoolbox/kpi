@@ -27,7 +27,7 @@ import type { AssetSubscriptionsListParams } from '../../models/assetSubscriptio
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { PaginatedAssetSubscriptionResponseList } from '../../models/paginatedAssetSubscriptionResponseList'
 
@@ -135,7 +135,7 @@ export type assetSubscriptionsCreateResponse201 = {
 }
 
 export type assetSubscriptionsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -163,7 +163,7 @@ export const assetSubscriptionsCreate = async (
   })
 }
 
-export const getAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetSubscriptionsCreateMutationOptions = <TError = ErrorValidation, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsCreate>>,
     TError,
@@ -198,9 +198,9 @@ export const getAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject,
 
 export type AssetSubscriptionsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsCreate>>>
 export type AssetSubscriptionsCreateMutationBody = AssetSubscriptionRequest
-export type AssetSubscriptionsCreateMutationError = ErrorObject
+export type AssetSubscriptionsCreateMutationError = ErrorValidation
 
-export const useAssetSubscriptionsCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetSubscriptionsCreate = <TError = ErrorValidation, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsCreate>>,
     TError,

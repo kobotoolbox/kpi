@@ -184,16 +184,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -201,16 +199,14 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -665,16 +661,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -682,16 +676,14 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -1044,16 +1036,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -1061,16 +1051,14 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorValidation"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
+                                            "field_name": [
+                                                "Error message"
+                                            ]
                                         },
                                         "summary": "Bad request"
                                     }
@@ -4366,14 +4354,14 @@
                     "detail"
                 ]
             },
-            "ErrorObject": {
+            "ErrorValidation": {
                 "type": "object",
-                "properties": {
-                    "detail": {}
-                },
-                "required": [
-                    "detail"
-                ]
+                "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             },
             "JSONSubmissionPayload": {
                 "type": "object",

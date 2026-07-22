@@ -53,7 +53,7 @@ class TableStore extends Reflux.Store {
 
     // We clone settings, as we will possibly overwrite some of them. If there
     // are no settings yet, we start with empty object.
-    const tableSettings: AssetTableSettings = clonedeep(asset?.settings[DATA_TABLE_SETTING]) || {}
+    const tableSettings: AssetTableSettings = clonedeep(asset?.settings?.[DATA_TABLE_SETTING]) || {}
 
     // overrides take precedense over asset endpoint settings
     if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {

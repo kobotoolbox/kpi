@@ -12,8 +12,17 @@ class ErrorDetailSerializer(serializers.Serializer):
     detail = serializers.CharField()
 
 
-class ErrorObjectSerializer(serializers.Serializer):
-    detail = serializers.JSONField()
+class ErrorValidationSerializer(serializers.Serializer):
+    """
+    Represents a DRF validation error response: a mapping of field names to
+    lists of error messages, e.g. ``{'field_name': ['Error message']}``.
+
+    DRF's default exception handler returns serializer ``ValidationError``
+    payloads unwrapped (there is no ``detail`` envelope), so the schema is a
+    free-form ``Record<string, string[]>``. The concrete schema is defined by
+    ``ErrorValidationSerializerExtension``; this serializer has no fields and
+    only exists so drf-spectacular registers the ``ErrorValidation`` component.
+    """
 
 
 class ErrorSerializer(serializers.Serializer):
@@ -223,11 +232,11 @@ def open_api_error_responses(
             'validations_errors', {'field_name': ['Error message']}
         )
         response[(status.HTTP_400_BAD_REQUEST, error_media_type)] = OpenApiResponse(
-            response=ErrorObjectSerializer(),
+            response=ErrorValidationSerializer(),
             examples=[
                 OpenApiExample(
                     name='Bad request',
-                    value={'detail': validation_errors},
+                    value=validation_errors,
                     response_only=True,
                     media_type=error_media_type,
                 )

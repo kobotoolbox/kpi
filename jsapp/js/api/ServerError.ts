@@ -1,7 +1,6 @@
 import type { ErrorDetail } from './models/errorDetail'
-import type { ErrorObject } from './models/errorObject'
 
-export class ServerError extends Error implements ErrorObject, ErrorDetail {
+export class ServerError extends Error implements ErrorDetail {
   static async new(response: Response) {
     let parsedResponse: any
     let detail: any

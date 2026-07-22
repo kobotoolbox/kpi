@@ -33,7 +33,7 @@ import type { ContentResponse } from '../../models/contentResponse'
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { OpenRosaXFormResponse } from '../../models/openRosaXFormResponse'
 
@@ -151,7 +151,7 @@ export type assetSnapshotsCreateResponse201 = {
 }
 
 export type assetSnapshotsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -186,7 +186,7 @@ export const assetSnapshotsCreate = async (
 }
 
 export const getAssetSnapshotsCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -223,9 +223,9 @@ export const getAssetSnapshotsCreateMutationOptions = <
 
 export type AssetSnapshotsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetSnapshotsCreate>>>
 export type AssetSnapshotsCreateMutationBody = AssetSnapshotCreateRequest
-export type AssetSnapshotsCreateMutationError = ErrorObject | ErrorDetail
+export type AssetSnapshotsCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useAssetSnapshotsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetSnapshotsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSnapshotsCreate>>,
     TError,
