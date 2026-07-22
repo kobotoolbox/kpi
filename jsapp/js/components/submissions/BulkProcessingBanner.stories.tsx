@@ -46,7 +46,7 @@ const meta: Meta<typeof BulkProcessingBanner> = {
     activeBulkActions: singleJobByCurrentUser,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 

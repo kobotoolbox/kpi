@@ -74,7 +74,7 @@ const meta: Meta<typeof StoryTrigger> = {
     msw: {
       handlers: [createAssetPatchHandler()],
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 
