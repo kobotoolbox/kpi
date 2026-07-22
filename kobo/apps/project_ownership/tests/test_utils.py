@@ -7,10 +7,8 @@ from ..utils import _recover_moved_file
 
 class RecoverMovedFileTestCase(TestCase):
     """
-    A move is two non-atomic operations: relocate the file, then save the row.
-    When the process dies in between (a recycled pod), the retry finds the
-    source gone. Telling that apart from a genuinely missing file is what keeps
-    the record pointing at the file instead of at nothing.
+    A move relocates the file then saves the row. A crash in between leaves the
+    source gone but the file present at the target.
     """
 
     def test_repoints_record_when_file_is_already_at_target(self):
@@ -22,7 +20,6 @@ class RecoverMovedFileTestCase(TestCase):
         )
 
         assert recovered is True
-        # The caller saves `name`, so the row now points at the real location.
         assert field_file.name == 'anotheruser/attachments/photo.jpg'
         field_file.storage.exists.assert_called_once_with(
             'anotheruser/attachments/photo.jpg'
@@ -37,6 +34,5 @@ class RecoverMovedFileTestCase(TestCase):
         )
 
         assert recovered is False
-        # Nothing to point at, so the field is left untouched and the caller
-        # records the skip.
+        # Nothing to point at, so the field is left untouched.
         assert field_file.name != 'anotheruser/attachments/photo.jpg'

@@ -120,8 +120,8 @@ class ProjectOwnershipTransferStatusTestCase(TestCase):
             assert transfer_status.status == TransferStatusChoices.SUCCESS
 
     def test_update_status_of_previously_succeeded_transfer_is_noop(self):
-        # `success` is terminal: a later (e.g. concurrent-retry) update must
-        # not downgrade the row, write a marker error, or flip the invite.
+        # `success` is terminal: a later update must not downgrade the row or
+        # write an error.
         submissions_status = self.transfer.statuses.get(
             status_type=TransferStatusTypeChoices.SUBMISSIONS
         )

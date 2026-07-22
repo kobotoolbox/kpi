@@ -723,13 +723,12 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
 
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_missing_source_file_does_not_fail_invite(self):
-        # A gone source file must be a non-failing skip: the invite completes,
-        # ownership still moves to the recipient, and a debug record is kept.
+        # A gone source file is a non-failing skip.
         original_move = ExtendedFieldFile.move
 
         def fake_move(self, target_folder, reraise_errors=False):
-            # Only the attachment/media movers pass reraise_errors=True; the
-            # xform.xls move (reraise_errors=False) must keep working.
+            # Only the movers pass reraise_errors=True; the xform.xls move
+            # must keep working.
             if reraise_errors:
                 raise SourceFileMissingError(self.name)
             return original_move(self, target_folder, reraise_errors=reraise_errors)
@@ -758,20 +757,18 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.asset.refresh_from_db()
         assert self.asset.owner == self.anotheruser
 
-        # A debug trace was kept for support.
+        # The skip is still recorded.
         skip_errors = TransferStatusError.objects.filter(
             transfer_status__transfer__invite=invite,
             error__contains='no longer exists',
         )
         assert skip_errors.exists()
-        # Recorded as `info`, never `error`: that is what keeps a skipped file
-        # out of the error count support reads on the invite page.
+        # Recorded as `info`, never `error`.
         assert not skip_errors.exclude(
             level=TransferStatusErrorLevelChoices.INFO
         ).exists()
 
-        # Attachment ownership still moved to the recipient, even though the
-        # source files were missing and could not be relocated on disk.
+        # Ownership still moves even though the files were missing.
         submission_ids = [submission['_id'] for submission in self.submissions]
         attachments = Attachment.objects.filter(instance_id__in=submission_ids)
         assert attachments.exists()

@@ -15,8 +15,7 @@ from .models.transfer import (
     TransferStatusTypeChoices,
 )
 
-# Cap on how many records a single status renders inline, so one noisy transfer
-# cannot blow up the page.
+# Max records rendered inline per status.
 MAX_DISPLAYED_RECORDS = 100
 
 
@@ -105,10 +104,8 @@ class InviteAdmin(admin.ModelAdmin):
 
     @admin.display(description='Transfers')
     def get_transfers(self, obj):
-        # Summary only — the full per-transfer status/error detail lives on the
-        # read-only TransferAdmin, linked below. This keeps the invite page
-        # readable (org invites can have 100+ transfers) and stops false-positive
-        # error noise from reaching support by default.
+        # Summary only; per-transfer detail lives on TransferAdmin, linked
+        # below. Org invites can have 100+ transfers.
         status_counts = Counter(
             TransferStatus.objects.filter(
                 transfer__invite_id=obj.id,
@@ -116,9 +113,7 @@ class InviteAdmin(admin.ModelAdmin):
             ).values_list('status', flat=True)
         )
         transfer_total = sum(status_counts.values())
-        # Only real errors are counted. Skipped files (`info`) are false
-        # positives by definition — surfacing them here is what sent support
-        # chasing transfers that were actually fine.
+        # Skipped files (`info`) are not failures and are not counted.
         error_total = TransferStatusError.objects.filter(
             transfer_status__transfer__invite_id=obj.id,
             level=TransferStatusErrorLevelChoices.ERROR,
@@ -129,14 +124,17 @@ class InviteAdmin(admin.ModelAdmin):
         )
         changelist_url = reverse('admin:project_ownership_transfer_changelist')
         link = f'{changelist_url}?invite__id__exact={obj.id}'
+        log_url = reverse('admin:project_ownership_transferstatuserror_changelist')
+        log_link = f'{log_url}?transfer_status__transfer__invite__id__exact={obj.id}'
 
         return format_html(
             '{} transfer(s): {} — {} error record(s). '
-            '<a href="{}">View transfers</a>',
+            '<a href="{}">View transfers</a> · <a href="{}">View logs</a>',
             transfer_total,
             summary or '—',
             error_total,
             link,
+            log_link,
         )
 
     def has_add_permission(self, request, obj=None):
@@ -225,9 +223,8 @@ class TransferAdmin(admin.ModelAdmin):
             )
         html += '</ol>'
 
-        # Errors recorded on the global status belong to no sub-task (e.g. an
-        # unhandled failure in `transfer_project`), so a `failed` transfer would
-        # otherwise show no reason at all.
+        # Global-status errors belong to no sub-task, e.g. an unhandled failure
+        # in `transfer_project`.
         global_status = obj.statuses.filter(
             status_type=TransferStatusTypeChoices.GLOBAL
         ).first()
@@ -247,11 +244,8 @@ class TransferAdmin(admin.ModelAdmin):
 
     def _render_records(self, status) -> str:
         """
-        Render a status' records.
-
-        Real errors keep the error styling. Skipped files are shown as a plain
-        collapsed count: they are false positives, and rendering them like
-        failures is what drove the unnecessary support requests.
+        Render a status' records: errors keep the error styling, skipped files
+        collapse to a count.
         """
         date_format = '%Y-%m-%d %H:%M:%S'
         html = ''
@@ -283,3 +277,62 @@ class TransferAdmin(admin.ModelAdmin):
             )
 
         return html
+
+
+@admin.register(TransferStatusError)
+class TransferStatusErrorAdmin(admin.ModelAdmin):
+    """
+    Read-only log of transfer records, filterable per project.
+    """
+
+    list_display = (
+        'date_created',
+        'get_project',
+        'get_invite',
+        'get_status_type',
+        'level',
+        'error',
+    )
+    list_filter = ('level', 'transfer_status__status_type', 'transfer_status__status')
+    search_fields = (
+        'error',
+        'transfer_status__transfer__asset__uid',
+        'transfer_status__transfer__asset__name',
+        'transfer_status__transfer__invite__uid',
+    )
+    list_select_related = (
+        'transfer_status',
+        'transfer_status__transfer',
+        'transfer_status__transfer__asset',
+        'transfer_status__transfer__invite',
+    )
+    date_hierarchy = 'date_created'
+
+    def lookup_allowed(self, lookup, value, request=None):
+        # Allow the deep-links from InviteAdmin and TransferAdmin.
+        return lookup in (
+            'transfer_status__transfer__invite__id__exact',
+            'transfer_status__transfer__id__exact',
+        ) or super().lookup_allowed(lookup, value, request)
+
+    @admin.display(description='Invite')
+    def get_invite(self, obj):
+        return obj.transfer_status.transfer.invite
+
+    @admin.display(description='Project')
+    def get_project(self, obj):
+        asset = obj.transfer_status.transfer.asset
+        return f'{asset.name} #{asset.uid}'
+
+    @admin.display(description='Type')
+    def get_status_type(self, obj):
+        return obj.transfer_status.status_type
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

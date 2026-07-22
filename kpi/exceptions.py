@@ -197,9 +197,8 @@ class SearchQueryTooShortException(InvalidSearchException):
 
 class SourceFileMissingError(Exception):
     """
-    Raised by ExtendedFieldFile.move() when the source object no longer exists
-    (S3 NoSuchKey/404 or local FileNotFoundError). Callers may treat this as a
-    non-failing skip: a file that is already gone cannot be moved.
+    Raised by `ExtendedFieldFile.move()` when the source object no longer
+    exists (S3 NoSuchKey/404 or local FileNotFoundError).
     """
 
     pass

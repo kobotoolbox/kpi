@@ -24,9 +24,8 @@ class TransferStatusChoices(models.TextChoices):
 
 class TransferStatusErrorLevelChoices(models.TextChoices):
     """
-    `INFO` records something that was skipped on purpose and is NOT a failure,
-    e.g. a source file that no longer exists. Keeping it out of `ERROR` is what
-    stops false positives from reaching support.
+    `INFO` records an intentional skip, e.g. a source file that no longer
+    exists. It is not a failure.
     """
 
     ERROR = 'error'

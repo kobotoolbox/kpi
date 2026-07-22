@@ -55,9 +55,7 @@ class ProjectOwnershipAdminTestCase(TestCase):
         invite_admin = InviteAdmin(Invite, AdminSite())
         html = invite_admin.get_transfers(self.invite)
 
-        # Both errors should be counted, matching what
-        # TransferAdmin.get_statuses actually displays on the drill-down page,
-        # now that GLOBAL-status errors are rendered there too.
+        # The count must match what the drill-down displays.
         assert '— 2 error record(s).' in html
 
     def test_transfer_admin_get_statuses_shows_global_error(self):
@@ -72,13 +70,11 @@ class ProjectOwnershipAdminTestCase(TestCase):
         transfer_admin = TransferAdmin(Transfer, AdminSite())
         html = transfer_admin.get_statuses(self.transfer)
 
-        # A failed transfer must never be left without a visible reason, even
-        # when every sub-status is `success` and only GLOBAL has an error.
+        # Only GLOBAL carries an error; it must still be visible.
         assert 'Error occurred while processing transfer' in html
 
     def test_transfer_admin_get_statuses_escapes_error_text(self):
-        # Error text can carry user-influenced content (e.g. uploaded
-        # filenames), so it must be escaped rather than rendered as markup.
+        # Error text can contain user input, e.g. an uploaded filename.
         submissions_status = self.transfer.statuses.get(
             status_type=TransferStatusTypeChoices.SUBMISSIONS
         )
@@ -94,8 +90,7 @@ class ProjectOwnershipAdminTestCase(TestCase):
         assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
 
     def test_invite_get_transfers_error_count_ignores_skipped_files(self):
-        # Skipped files are false positives by definition. Counting them is
-        # what sent support chasing transfers that were actually fine.
+        # Skips are not failures and must not be counted.
         submissions_status = self.transfer.statuses.get(
             status_type=TransferStatusTypeChoices.SUBMISSIONS
         )
@@ -116,8 +111,7 @@ class ProjectOwnershipAdminTestCase(TestCase):
         assert '— 1 error record(s).' in html
 
     def test_transfer_admin_get_statuses_shows_skips_as_neutral_count(self):
-        # A skipped file must not be rendered with the error styling, or a
-        # healthy transfer still reads as a broken one.
+        # A skip must not be rendered with the error styling.
         attachments_status = self.transfer.statuses.get(
             status_type=TransferStatusTypeChoices.ATTACHMENTS
         )
@@ -132,5 +126,23 @@ class ProjectOwnershipAdminTestCase(TestCase):
 
         assert '1 file(s) skipped' in html
         assert 'class="error"' not in html
-        # The raw message is collapsed into the count, not dumped as a line.
+        # Collapsed into the count, not dumped as a line.
         assert 'Source file photo.jpg' not in html
+
+    def test_transfer_status_error_log_admin_is_registered_and_read_only(self):
+        assert TransferStatusError in django_admin.site._registry
+        log_admin = django_admin.site._registry[TransferStatusError]
+        assert log_admin.has_add_permission(request=None) is False
+        assert log_admin.has_change_permission(request=None) is False
+        assert log_admin.has_delete_permission(request=None) is False
+        # The per-invite deep link from the invite page must resolve.
+        assert log_admin.lookup_allowed(
+            'transfer_status__transfer__invite__id__exact', '1', None
+        )
+
+    def test_invite_get_transfers_links_to_logs(self):
+        invite_admin = InviteAdmin(Invite, AdminSite())
+        html = invite_admin.get_transfers(self.invite)
+
+        assert 'View logs' in html
+        assert f'transfer_status__transfer__invite__id__exact={self.invite.id}' in html

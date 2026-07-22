@@ -416,9 +416,8 @@ class TransferStatus(AbstractTimeStampedModel):
             transfer_status = cls.objects.select_for_update().get(
                 transfer_id=transfer_id, status_type=status_type
             )
-            # `success` is terminal: once a sub-task has completed, a late or
-            # duplicate retry (or a stray task_failure/task_retry signal) must
-            # not downgrade it or flip the invite to `failed`.
+            # `success` is terminal: a late or duplicate retry must not
+            # downgrade it, nor flip the invite to `failed`.
             if transfer_status.status == TransferStatusChoices.SUCCESS:
                 return
             transfer_status.status = status
@@ -464,9 +463,8 @@ class TransferStatusError(AbstractTimeStampedModel):
         TransferStatus, related_name='errors', on_delete=models.CASCADE
     )
     error = models.CharField(null=True, blank=True)
-    # No index on purpose: only two values, so it is not selective enough to
-    # help, and creating one on a large `TransferStatusError` table would lock
-    # writes during deploy. The selective filter is always the transfer/invite.
+    # No index: two values is not selective, and `CREATE INDEX` would lock
+    # writes on a large table.
     level = models.CharField(
         max_length=5,
         choices=TransferStatusErrorLevelChoices.choices,
