@@ -244,11 +244,14 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
         {/* public sharing settings */}
         {assetType === ASSET_TYPES.survey.id && (
           <>
-            <AnonymousSubmissionSettings
-              publicPerms={this.state.publicPerms}
-              assetUid={this.props.assetUid}
-              userCanShare={isManagingPossible}
-            />
+            <Stack gap='sm'>
+              <Title order={4}>{t('Who can submit')}</Title>
+              <AnonymousSubmissionSettings
+                publicPerms={this.state.publicPerms}
+                assetUid={this.props.assetUid}
+                userCanShare={isManagingPossible}
+              />
+            </Stack>
 
             <PublicShareSettings
               publicPerms={this.state.publicPerms}
