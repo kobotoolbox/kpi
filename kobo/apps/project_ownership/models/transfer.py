@@ -24,6 +24,7 @@ from ..utils import get_target_folder
 from .choices import (
     InviteStatusChoices,
     TransferStatusChoices,
+    TransferStatusErrorLevelChoices,
     TransferStatusTypeChoices,
 )
 from .invite import Invite, InviteType, OrgMembershipAutoInvite
@@ -446,10 +447,15 @@ class TransferStatus(AbstractTimeStampedModel):
             self.transfer.status = TransferStatusChoices.SUCCESS
 
     @classmethod
-    def _add_error(cls, transfer_status, error):
+    def _add_error(
+        cls,
+        transfer_status,
+        error,
+        level=TransferStatusErrorLevelChoices.ERROR,
+    ):
         if error:
             TransferStatusError.objects.create(
-                transfer_status=transfer_status, error=error
+                transfer_status=transfer_status, error=error, level=level
             )
 
 
@@ -458,3 +464,9 @@ class TransferStatusError(AbstractTimeStampedModel):
         TransferStatus, related_name='errors', on_delete=models.CASCADE
     )
     error = models.CharField(null=True, blank=True)
+    level = models.CharField(
+        max_length=5,
+        choices=TransferStatusErrorLevelChoices.choices,
+        default=TransferStatusErrorLevelChoices.ERROR,
+        db_index=True,
+    )

@@ -12,6 +12,9 @@ from rest_framework.reverse import reverse
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
+from kobo.apps.project_ownership.models.choices import (
+    TransferStatusErrorLevelChoices,
+)
 from kobo.apps.project_ownership.models.transfer import TransferStatusError
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.constants import PERM_VIEW_ASSET
@@ -761,6 +764,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             error__contains='no longer exists',
         )
         assert skip_errors.exists()
+        # Recorded as `info`, never `error`: that is what keeps a skipped file
+        # out of the error count support reads on the invite page.
+        assert not skip_errors.exclude(
+            level=TransferStatusErrorLevelChoices.INFO
+        ).exists()
 
         # Attachment ownership still moved to the recipient, even though the
         # source files were missing and could not be relocated on disk.

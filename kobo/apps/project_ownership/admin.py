@@ -7,12 +7,17 @@ from django.utils.html import escape, format_html, linebreaks
 from django.utils.safestring import mark_safe
 
 from .models import Invite, Transfer
+from .models.choices import TransferStatusErrorLevelChoices
 from .models.invite import InviteType
 from .models.transfer import (
     TransferStatus,
     TransferStatusError,
     TransferStatusTypeChoices,
 )
+
+# Cap on how many records a single status renders inline, so one noisy transfer
+# cannot blow up the page. The full history lives in the log admin.
+MAX_DISPLAYED_RECORDS = 100
 
 
 class InviteTypeFilter(admin.SimpleListFilter):
@@ -111,8 +116,12 @@ class InviteAdmin(admin.ModelAdmin):
             ).values_list('status', flat=True)
         )
         transfer_total = sum(status_counts.values())
+        # Only real errors are counted. Skipped files (`info`) are false
+        # positives by definition — surfacing them here is what sent support
+        # chasing transfers that were actually fine.
         error_total = TransferStatusError.objects.filter(
-            transfer_status__transfer__invite_id=obj.id
+            transfer_status__transfer__invite_id=obj.id,
+            level=TransferStatusErrorLevelChoices.ERROR,
         ).count()
 
         summary = ' · '.join(
@@ -120,14 +129,17 @@ class InviteAdmin(admin.ModelAdmin):
         )
         changelist_url = reverse('admin:project_ownership_transfer_changelist')
         link = f'{changelist_url}?invite__id__exact={obj.id}'
+        log_url = reverse('admin:project_ownership_transferstatuserror_changelist')
+        log_link = f'{log_url}?transfer_status__transfer__invite__id__exact={obj.id}'
 
         return format_html(
             '{} transfer(s): {} — {} error record(s). '
-            '<a href="{}">View transfers</a>',
+            '<a href="{}">View transfers</a> · <a href="{}">View logs</a>',
             transfer_total,
             summary or '—',
             error_total,
             link,
+            log_link,
         )
 
     def has_add_permission(self, request, obj=None):
@@ -206,51 +218,126 @@ class TransferAdmin(admin.ModelAdmin):
 
     @admin.display(description='Statuses')
     def get_statuses(self, obj):
-        date_format = '%Y-%m-%d %H:%M:%S'
         html = '<ol>'
         for status in obj.statuses.exclude(
             status_type=TransferStatusTypeChoices.GLOBAL
         ):
-            errors = [
-                f'[{error.date_created.strftime(date_format)}] - '
-                f'{escape(error.error)}'
-                for error in status.errors.filter(error__isnull=False)
-            ]
-            if status.error:
-                # legacy deprecated `error` field on TransferStatus
-                errors = [escape(status.error)] + errors
-            if len(errors) > 100:
-                # don't overwhelm the display
-                errors = errors[0:100]
-                errors.append('...')
-
-            error = '<br/>'.join(errors)
-            error = f'<br><span class="error">{error}</span>' if error else ''
-            html += f'<li>{status.status_type}: <i>{status.status}</i>{error}</li>'
+            html += (
+                f'<li>{status.status_type}: <i>{status.status}</i>'
+                f'{self._render_records(status)}</li>'
+            )
         html += '</ol>'
 
-        global_errors = []
-        for status in obj.statuses.filter(status_type=TransferStatusTypeChoices.GLOBAL):
-            global_errors += [
-                f'[{error.date_created.strftime(date_format)}] - '
-                f'{escape(error.error)}'
-                for error in status.errors.filter(error__isnull=False)
-            ]
-            if status.error:
-                # legacy deprecated `error` field on TransferStatus
-                global_errors = [escape(status.error)] + global_errors
-        if len(global_errors) > 100:
-            # don't overwhelm the display
-            global_errors = global_errors[0:100]
-            global_errors.append('...')
-
-        if global_errors:
-            html += (
-                '<p><strong>Global errors:</strong><br>'
-                f'<span class="error">{"<br/>".join(global_errors)}</span></p>'
-            )
+        # Errors recorded on the global status belong to no sub-task (e.g. an
+        # unhandled failure in `transfer_project`), so a `failed` transfer would
+        # otherwise show no reason at all.
+        global_status = obj.statuses.filter(
+            status_type=TransferStatusTypeChoices.GLOBAL
+        ).first()
+        if global_status and (records := self._render_records(global_status)):
+            html += f'<p><strong>Global:</strong>{records}</p>'
 
         return mark_safe(html)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def _render_records(self, status) -> str:
+        """
+        Render a status' records.
+
+        Real errors keep the error styling. Skipped files are shown as a plain
+        collapsed count: they are false positives, and rendering them like
+        failures is what drove the unnecessary support requests.
+        """
+        date_format = '%Y-%m-%d %H:%M:%S'
+        html = ''
+
+        errors = [
+            f'[{record.date_created.strftime(date_format)}] - '
+            f'{escape(record.error)}'
+            for record in status.errors.filter(
+                error__isnull=False,
+                level=TransferStatusErrorLevelChoices.ERROR,
+            )
+        ]
+        if status.error:
+            # legacy deprecated `error` field on TransferStatus
+            errors = [escape(status.error)] + errors
+        if len(errors) > MAX_DISPLAYED_RECORDS:
+            errors = errors[0:MAX_DISPLAYED_RECORDS]
+            errors.append('...')
+        if errors:
+            html += f'<br><span class="error">{"<br/>".join(errors)}</span>'
+
+        skipped = status.errors.filter(
+            level=TransferStatusErrorLevelChoices.INFO
+        ).count()
+        if skipped:
+            html += (
+                f'<br><small>{skipped} file(s) skipped — source already gone, '
+                f'not a failure</small>'
+            )
+
+        return html
+
+
+@admin.register(TransferStatusError)
+class TransferStatusErrorAdmin(admin.ModelAdmin):
+    """
+    Read-only log of everything recorded during transfers, filterable per
+    project, so support can answer "what happened to this project?" without
+    reading an invite page full of false positives.
+    """
+
+    list_display = (
+        'date_created',
+        'get_project',
+        'get_invite',
+        'get_status_type',
+        'level',
+        'error',
+    )
+    list_filter = ('level', 'transfer_status__status_type', 'transfer_status__status')
+    search_fields = (
+        'error',
+        'transfer_status__transfer__asset__uid',
+        'transfer_status__transfer__asset__name',
+        'transfer_status__transfer__invite__uid',
+    )
+    list_select_related = (
+        'transfer_status',
+        'transfer_status__transfer',
+        'transfer_status__transfer__asset',
+        'transfer_status__transfer__invite',
+    )
+    date_hierarchy = 'date_created'
+
+    def lookup_allowed(self, lookup, value, request=None):
+        # Allow the deep-links from InviteAdmin and TransferAdmin.
+        return lookup in (
+            'transfer_status__transfer__invite__id__exact',
+            'transfer_status__transfer__id__exact',
+        ) or super().lookup_allowed(lookup, value, request)
+
+    @admin.display(description='Invite')
+    def get_invite(self, obj):
+        return obj.transfer_status.transfer.invite
+
+    @admin.display(description='Project')
+    def get_project(self, obj):
+        asset = obj.transfer_status.transfer.asset
+        return f'{asset.name} #{asset.uid}'
+
+    @admin.display(description='Type')
+    def get_status_type(self, obj):
+        return obj.transfer_status.status_type
 
     def has_add_permission(self, request, obj=None):
         return False

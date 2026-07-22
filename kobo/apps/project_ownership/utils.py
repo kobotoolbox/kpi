@@ -16,7 +16,11 @@ from kpi.models.asset import Asset, AssetFile
 from kpi.utils.log import logging
 from .constants import ASYNC_TASK_HEARTBEAT
 from .exceptions import AsyncTaskException
-from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
+from .models.choices import (
+    TransferStatusChoices,
+    TransferStatusErrorLevelChoices,
+    TransferStatusTypeChoices,
+)
 
 
 def create_invite(
@@ -134,6 +138,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                         f'Source file {attachment.media_file_basename} '
                         f'(#{attachment.pk}) no longer exists — skipped '
                         f'(data already gone)',
+                        level=TransferStatusErrorLevelChoices.INFO,
                     )
                     logging.warning(
                         f'Source file {media_file_path} (#{attachment.pk}) '
@@ -248,6 +253,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                 transfer_status,
                 f'Source file {media_file.content.name} (#{media_file.pk}) '
                 f'no longer exists — skipped (data already gone)',
+                level=TransferStatusErrorLevelChoices.INFO,
             )
             logging.warning(
                 f'Source file {media_file.content.name} (#{media_file.pk}) '

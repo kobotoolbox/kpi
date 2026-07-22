@@ -22,6 +22,17 @@ class TransferStatusChoices(models.TextChoices):
     SUCCESS = 'success'
 
 
+class TransferStatusErrorLevelChoices(models.TextChoices):
+    """
+    `INFO` records something that was skipped on purpose and is NOT a failure,
+    e.g. a source file that no longer exists. Keeping it out of `ERROR` is what
+    stops false positives from reaching support.
+    """
+
+    ERROR = 'error'
+    INFO = 'info'
+
+
 class TransferStatusTypeChoices(models.TextChoices):
 
     ATTACHMENTS = 'attachments'

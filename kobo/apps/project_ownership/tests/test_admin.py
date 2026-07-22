@@ -6,6 +6,7 @@ from django.test import TestCase
 from kpi.models import Asset
 from ..admin import InviteAdmin, TransferAdmin
 from ..models import Invite, Transfer
+from ..models.choices import TransferStatusErrorLevelChoices
 from ..models.transfer import TransferStatusError, TransferStatusTypeChoices
 
 
@@ -91,3 +92,56 @@ class ProjectOwnershipAdminTestCase(TestCase):
 
         assert '<script>' not in html
         assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
+
+    def test_invite_get_transfers_error_count_ignores_skipped_files(self):
+        # Skipped files are false positives by definition. Counting them is
+        # what sent support chasing transfers that were actually fine.
+        submissions_status = self.transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.SUBMISSIONS
+        )
+        TransferStatusError.objects.create(
+            transfer_status=submissions_status,
+            error='Error moving roster.csv: connection reset by peer',
+        )
+        TransferStatusError.objects.create(
+            transfer_status=submissions_status,
+            error='Source file photo.jpg (#1) no longer exists — skipped',
+            level=TransferStatusErrorLevelChoices.INFO,
+        )
+
+        invite_admin = InviteAdmin(Invite, AdminSite())
+        html = invite_admin.get_transfers(self.invite)
+
+        # Two records exist, only the genuine error is counted.
+        assert '— 1 error record(s).' in html
+
+    def test_transfer_admin_get_statuses_shows_skips_as_neutral_count(self):
+        # A skipped file must not be rendered with the error styling, or a
+        # healthy transfer still reads as a broken one.
+        attachments_status = self.transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.ATTACHMENTS
+        )
+        TransferStatusError.objects.create(
+            transfer_status=attachments_status,
+            error='Source file photo.jpg (#1) no longer exists — skipped',
+            level=TransferStatusErrorLevelChoices.INFO,
+        )
+
+        transfer_admin = TransferAdmin(Transfer, AdminSite())
+        html = transfer_admin.get_statuses(self.transfer)
+
+        assert '1 file(s) skipped' in html
+        assert 'class="error"' not in html
+        # The raw message is collapsed into the count, not dumped as a line.
+        assert 'Source file photo.jpg' not in html
+
+    def test_transfer_status_error_log_admin_is_registered_and_read_only(self):
+        assert TransferStatusError in django_admin.site._registry
+        log_admin = django_admin.site._registry[TransferStatusError]
+        assert log_admin.has_add_permission(request=None) is False
+        assert log_admin.has_change_permission(request=None) is False
+        assert log_admin.has_delete_permission(request=None) is False
+        # The per-invite deep link from the invite page must resolve.
+        assert log_admin.lookup_allowed(
+            'transfer_status__transfer__invite__id__exact', '1', None
+        )
