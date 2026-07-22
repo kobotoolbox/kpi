@@ -1,7 +1,7 @@
 @use 'scss/mixins';
 @use 'scss/colors';
 
-.form-view--form-media {
+.form-view.form-view--form-media {
   background-color: colors.$kobo-white;
 }
 

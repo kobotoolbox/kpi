@@ -230,7 +230,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
                 </Box>
 
                 <ActionIcon
-                  variant='subtle'
+                  variant='transparent'
                   size='md'
                   aria-label={t('Close add user editor')}
                   onClick={this.toggleAddUserEditor.bind(this)}

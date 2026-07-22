@@ -156,7 +156,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
               {this.props.userCanEditPerms && (
                 <Group gap={6} wrap='nowrap'>
                   <ActionIcon
-                    variant='subtle'
+                    variant='light'
                     size='md'
                     aria-label={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
                     tooltip={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
@@ -165,7 +165,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
                   />
 
                   <ActionIcon
-                    variant='subtle'
+                    variant='danger-secondary'
                     size='md'
                     color='red'
                     aria-label={t('Remove all permissions')}
