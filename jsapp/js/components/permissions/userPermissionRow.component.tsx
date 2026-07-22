@@ -1,4 +1,4 @@
-import { Box, Divider, Group, Stack, Text } from '@mantine/core'
+import { Box, Group, Paper, Stack, Text } from '@mantine/core'
 import { IconPencil, IconTrash, IconX } from '@tabler/icons-react'
 import alertify from 'alertifyjs'
 import React from 'react'
@@ -135,65 +135,65 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     const isPending = this.state.isBeingDeleted
 
     return (
-      <Stack gap='xs'>
-        <Group
-          justify='space-between'
-          align='center'
-          wrap='nowrap'
-          style={{ opacity: isPending ? 0.5 : 1, pointerEvents: isPending ? 'none' : 'auto' }}
-        >
-          <Box miw={200}>
-            <Avatar size='m' username={this.props.username} isUsernameVisible />
-          </Box>
+      <Paper withBorder p='sm'>
+        <Stack gap='xs'>
+          <Group
+            justify='space-between'
+            align='center'
+            wrap='nowrap'
+            style={{ opacity: isPending ? 0.5 : 1, pointerEvents: isPending ? 'none' : 'auto' }}
+          >
+            <Box miw={200}>
+              <Avatar size='m' username={this.props.username} isUsernameVisible />
+            </Box>
 
-          {this.props.isUserOwner && <Text size='sm'>{t('is owner')}</Text>}
+            {this.props.isUserOwner && <Text size='sm'>{t('is owner')}</Text>}
 
-          {this.props.isPendingOwner && <Text size='sm'>{t('Pending owner')}</Text>}
+            {this.props.isPendingOwner && <Text size='sm'>{t('Pending owner')}</Text>}
 
-          {!this.props.isUserOwner && !this.props.isPendingOwner && (
-            <Group gap='xs' align='center' wrap='nowrap'>
-              {this.renderPermissions(this.props.permissions)}
-              {this.props.userCanEditPerms && (
-                <Group gap={6} wrap='nowrap'>
-                  <ActionIcon
-                    variant='light'
-                    size='md'
-                    aria-label={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
-                    tooltip={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
-                    onClick={this.toggleEditForm.bind(this)}
-                    icon={this.state.isEditFormVisible ? IconX : IconPencil}
-                  />
+            {!this.props.isUserOwner && !this.props.isPendingOwner && (
+              <Group gap='xs' align='center' wrap='nowrap'>
+                {this.renderPermissions(this.props.permissions)}
+                {this.props.userCanEditPerms && (
+                  <Group gap={6} wrap='nowrap'>
+                    <ActionIcon
+                      variant='light'
+                      size='md'
+                      aria-label={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
+                      tooltip={this.state.isEditFormVisible ? t('Close permission editor') : t('Edit permissions')}
+                      onClick={this.toggleEditForm.bind(this)}
+                      icon={this.state.isEditFormVisible ? IconX : IconPencil}
+                    />
 
-                  <ActionIcon
-                    variant='danger-secondary'
-                    size='md'
-                    color='red'
-                    aria-label={t('Remove all permissions')}
-                    tooltip={t('Remove all permissions')}
-                    onClick={this.showRemovePermissionsPrompt.bind(this)}
-                    icon={IconTrash}
-                  />
-                </Group>
-              )}
-            </Group>
+                    <ActionIcon
+                      variant='danger-secondary'
+                      size='md'
+                      color='red'
+                      aria-label={t('Remove all permissions')}
+                      tooltip={t('Remove all permissions')}
+                      onClick={this.showRemovePermissionsPrompt.bind(this)}
+                      icon={IconTrash}
+                    />
+                  </Group>
+                )}
+              </Group>
+            )}
+          </Group>
+
+          {this.state.isEditFormVisible && (
+            <Box p='md' bg='gray.7' bdrs='sm'>
+              <UserAssetPermsEditor
+                asset={this.props.asset}
+                username={this.props.username}
+                permissions={this.props.permissions}
+                assignablePerms={this.props.assignablePerms}
+                nonOwnerPerms={this.props.nonOwnerPerms}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
+              />
+            </Box>
           )}
-        </Group>
-
-        {this.state.isEditFormVisible && (
-          <Box p='md' bg='gray.7' bdrs='sm'>
-            <UserAssetPermsEditor
-              asset={this.props.asset}
-              username={this.props.username}
-              permissions={this.props.permissions}
-              assignablePerms={this.props.assignablePerms}
-              nonOwnerPerms={this.props.nonOwnerPerms}
-              onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
-            />
-          </Box>
-        )}
-
-        <Divider />
-      </Stack>
+        </Stack>
+      </Paper>
     )
   }
 }

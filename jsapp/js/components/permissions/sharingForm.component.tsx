@@ -183,7 +183,9 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
       <Stack gap='xl'>
         {/* list of users and their permissions */}
         <Stack gap='sm'>
-          <Title order={4}>{t('Who has access')}</Title>
+          <Title order={3} fz='inherit' fw='400'>
+            {t('Who has access')}
+          </Title>
 
           {this.state.permissions.map((perm) => {
             // don't show anonymous user permissions in UI
@@ -243,22 +245,19 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
         {/* public sharing settings */}
         {assetType === ASSET_TYPES.survey.id && (
-          <>
-            <Stack gap='sm'>
-              <Title order={4}>{t('Who can submit')}</Title>
-              <AnonymousSubmissionSettings
-                publicPerms={this.state.publicPerms}
-                assetUid={this.props.assetUid}
-                userCanShare={isManagingPossible}
-              />
-            </Stack>
+          <Stack gap='sm'>
+            <AnonymousSubmissionSettings
+              publicPerms={this.state.publicPerms}
+              assetUid={this.props.assetUid}
+              userCanShare={isManagingPossible}
+            />
 
             <PublicShareSettings
               publicPerms={this.state.publicPerms}
               assetUid={this.props.assetUid}
               userCanShare={isManagingPossible}
             />
-          </>
+          </Stack>
         )}
 
         {/* copying permissions from other assets */}

@@ -1,4 +1,4 @@
-import { Box, Checkbox, Stack, Title } from '@mantine/core'
+import { Checkbox, Stack } from '@mantine/core'
 import React from 'react'
 import { actions } from '#/actions'
 import TextBox from '#/components/common/textBox'
@@ -41,25 +41,19 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
 
     return (
       <Stack gap='sm'>
-        <Title order={4}>{t('Share publicly by link')}</Title>
+        <Checkbox
+          checked={anonCanView}
+          disabled={!this.props.userCanShare}
+          onChange={() => this.togglePerms('view_asset')}
+          label={t('Anyone can view this form')}
+        />
 
-        <Box>
-          <Checkbox
-            checked={anonCanView}
-            disabled={!this.props.userCanShare}
-            onChange={() => this.togglePerms('view_asset')}
-            label={t('Anyone can view this form')}
-          />
-        </Box>
-
-        <Box>
-          <Checkbox
-            checked={anonCanViewData}
-            disabled={!this.props.userCanShare}
-            onChange={() => this.togglePerms('view_submissions')}
-            label={t('Anyone can view submissions made to this form')}
-          />
-        </Box>
+        <Checkbox
+          checked={anonCanViewData}
+          disabled={!this.props.userCanShare}
+          onChange={() => this.togglePerms('view_submissions')}
+          label={t('Anyone can view submissions made to this form')}
+        />
 
         {anonCanView && <TextBox label={t('Shareable link')} type='text' readOnly value={url} />}
       </Stack>
