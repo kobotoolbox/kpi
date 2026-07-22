@@ -475,6 +475,7 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
+.form-view.form-view--form-settings,
 .form-view.form-view--form-settings-sharing {
   background: colors.$kobo-white;
   padding: 40px;
@@ -644,7 +645,8 @@ $side-tabs-width-mobile: 70px;
     margin-left: 20px;
   }
 
-  .form-view--form-settings {
+  .form-view.form-view--form-settings,
+  .form-view.form-view--form-settings-sharing {
     padding: 20px;
   }
 
