@@ -63,6 +63,7 @@ export interface UserAssetPermsEditorState extends PermsFormData {
   // permissions to Back end, when we're not sure if user exists.
   isEditingUsername: boolean
   isCheckingUsername: boolean
+  isUsernamePristine: boolean
   // All the other properties for configuring the permission in the form are defined in `PermsFormData`
   formViewDisabled: boolean
   formEditDisabled: boolean
@@ -157,7 +158,8 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   onCheckboxChange(checkboxName: CheckboxNameAll, isChecked: boolean) {
     let output = clonedeep(this.state)
-    output = Object.assign(output, { [checkboxName]: isChecked })
+    // Mark username as not pristine to make it clear the input needs to be filled in
+    output = Object.assign(output, { [checkboxName]: isChecked, isUsernamePristine: false })
     this.setState(applyValidityRules(output, this.props.assignablePerms))
   }
 
@@ -169,6 +171,7 @@ export default class UserAssetPermsEditor extends React.Component<
     this.setState({
       username: username,
       isEditingUsername: true,
+      isUsernamePristine: false,
     })
   }
 
@@ -176,7 +179,7 @@ export default class UserAssetPermsEditor extends React.Component<
    * Checks if username exist on the Back end, and clears input if doesn't.
    */
   async onUsernameChangeEnd() {
-    this.setState({ isEditingUsername: false })
+    this.setState({ isEditingUsername: false, isUsernamePristine: false })
 
     const usernameToCheck = this.state.username
 
@@ -460,7 +463,7 @@ export default class UserAssetPermsEditor extends React.Component<
               onChange={this.onUsernameChange.bind(this)}
               onBlur={this.onUsernameChangeEnd.bind(this)}
               onKeyPress={this.onInputKeyPress.bind(this)}
-              errors={this.state.username.length === 0}
+              errors={!this.state.isUsernamePristine && this.state.username.length === 0}
             />
           </div>
         )}
