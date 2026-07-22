@@ -110,8 +110,9 @@ class ProjectOwnershipAdminTestCase(TestCase):
         # Two records exist, only the genuine error is counted.
         assert '— 1 error record(s).' in html
 
-    def test_transfer_admin_get_statuses_shows_skips_as_neutral_count(self):
-        # A skip must not be rendered with the error styling.
+    def test_transfer_admin_get_statuses_hides_skipped_files(self):
+        # A skip is not a failure: the transfer reads as a plain success and
+        # the detail stays in the log admin.
         attachments_status = self.transfer.statuses.get(
             status_type=TransferStatusTypeChoices.ATTACHMENTS
         )
@@ -124,10 +125,9 @@ class ProjectOwnershipAdminTestCase(TestCase):
         transfer_admin = TransferAdmin(Transfer, AdminSite())
         html = transfer_admin.get_statuses(self.transfer)
 
-        assert '1 file(s) skipped' in html
-        assert 'class="error"' not in html
-        # Collapsed into the count, not dumped as a line.
+        assert 'skipped' not in html
         assert 'Source file photo.jpg' not in html
+        assert 'class="error"' not in html
 
     def test_transfer_status_error_log_admin_is_registered_and_read_only(self):
         assert TransferStatusError in django_admin.site._registry

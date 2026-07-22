@@ -244,8 +244,8 @@ class TransferAdmin(admin.ModelAdmin):
 
     def _render_records(self, status) -> str:
         """
-        Render a status' records: errors keep the error styling, skipped files
-        collapse to a count.
+        Render a status' errors. Skipped files are not failures and are not
+        shown here; they are listed in the log admin.
         """
         date_format = '%Y-%m-%d %H:%M:%S'
         html = ''
@@ -266,15 +266,6 @@ class TransferAdmin(admin.ModelAdmin):
             errors.append('...')
         if errors:
             html += f'<br><span class="error">{"<br/>".join(errors)}</span>'
-
-        skipped = status.errors.filter(
-            level=TransferStatusErrorLevelChoices.INFO
-        ).count()
-        if skipped:
-            html += (
-                f'<br><small>{skipped} file(s) skipped — source already gone, '
-                f'not a failure</small>'
-            )
 
         return html
 
