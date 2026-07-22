@@ -26,6 +26,7 @@ import {
   EXPORT_TYPES,
   type ExportMultiOption,
   type ExportTypeDefinition,
+  ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
 import {
   type ExportFormatOption,
@@ -188,11 +189,19 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   }
 
   function applyExportSettingToState(data: ExportSetting) {
-    const exportType = EXPORT_TYPES[data.export_settings.type]
+    // Remap legacy kml_legacy to kml
+    let exportTypeName = data.export_settings.type
+    if ((exportTypeName as ExportTypeName | 'kml_legacy') === 'kml_legacy') {
+      console.warn('Remapping legacy export type "kml_legacy" to "kml"')
+      exportTypeName = ExportTypeName.kml
+    }
 
-    // If the saved export type is no longer valid, fall back to default
+    const exportType = EXPORT_TYPES[exportTypeName]
+
+    // If the saved export type is still invalid after remapping, fall back to default
     if (!exportType) {
-      console.warn(`Invalid export type "${data.export_settings.type}" in saved settings, falling back to default`)
+      console.warn(`Invalid export type "${data.export_settings.type}" in saved settings, using default settings`)
+      setDefaultExportSettings()
       return
     }
 

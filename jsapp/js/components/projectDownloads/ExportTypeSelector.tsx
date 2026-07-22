@@ -28,13 +28,13 @@ export default function ExportTypeSelector(props: ExportTypeSelectorProps) {
     EXPORT_TYPES.xls,
     EXPORT_TYPES.csv,
     EXPORT_TYPES.geojson,
+    EXPORT_TYPES.kml,
     EXPORT_TYPES.spss_labels,
   ]
 
   // legacy options are optional
   if (!props.noLegacy) {
     exportTypesOptions.push(EXPORT_TYPES.csv_legacy)
-    exportTypesOptions.push(EXPORT_TYPES.kml_legacy)
     exportTypesOptions.push(EXPORT_TYPES.xls_legacy)
     exportTypesOptions.push(EXPORT_TYPES.zip_legacy)
   }

@@ -14,6 +14,7 @@ import {
   EXPORT_TYPES,
   ExportStatusName,
   type ExportTypeDefinition,
+  ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
 import { openDeleteExportModal } from '#/components/projectDownloads/openDeleteExportModal'
 import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
@@ -178,52 +179,60 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   function getRows() {
-    return rows.map((exportData) => [
-      EXPORT_TYPES[exportData.data.type]?.label,
-      formatTime(exportData.date_created),
-      renderLanguage(exportData.data.lang),
-      <Text key='include-groups' ta='center'>
-        {renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
-      </Text>,
-      <Text key='multiple-versions' ta='center'>
-        {renderBooleanAnswer(exportData.data.fields_from_all_versions)}
-      </Text>,
-      <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
-        {exportData.status === ExportStatusName.complete && (
-          <Button
-            type='secondary'
-            size='m'
-            startIcon='download'
-            label={t('Download')}
-            onClick={() => {
-              if (exportData.result !== null) {
-                window.open(exportData.result, '_blank')
-              }
-            }}
-          />
-        )}
+    return rows.map((exportData) => {
+      // Remap legacy kml_legacy to kml for display
+      let exportType = exportData.data.type
+      if ((exportType as ExportTypeName | 'kml_legacy') === 'kml_legacy') {
+        exportType = ExportTypeName.kml
+      }
 
-        {exportData.status === ExportStatusName.error && (
-          <span className='right-tooltip' data-tip={exportData.messages?.error}>
-            {t('Export Failed')}
-          </span>
-        )}
+      return [
+        EXPORT_TYPES[exportType]?.label || t('Unknown format'),
+        formatTime(exportData.date_created),
+        renderLanguage(exportData.data.lang),
+        <Text key='include-groups' ta='center'>
+          {renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
+        </Text>,
+        <Text key='multiple-versions' ta='center'>
+          {renderBooleanAnswer(exportData.data.fields_from_all_versions)}
+        </Text>,
+        <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
+          {exportData.status === ExportStatusName.complete && (
+            <Button
+              type='secondary'
+              size='m'
+              startIcon='download'
+              label={t('Download')}
+              onClick={() => {
+                if (exportData.result !== null) {
+                  window.open(exportData.result, '_blank')
+                }
+              }}
+            />
+          )}
 
-        {exportData.status !== ExportStatusName.complete && exportData.status !== ExportStatusName.error && (
-          <span className='animate-processing'>{t('Processing…')}</span>
-        )}
+          {exportData.status === ExportStatusName.error && (
+            <span className='right-tooltip' data-tip={exportData.messages?.error}>
+              {t('Export Failed')}
+            </span>
+          )}
 
-        {userCan(PERMISSIONS_CODENAMES.view_submissions, props.asset) && (
-          <Button
-            type='secondary-danger'
-            size='m'
-            startIcon='trash'
-            isPending={deletingExports.has(exportData.uid)}
-            onClick={() => deleteExport(exportData.uid)}
-          />
-        )}
-      </Flex>,
-    ])
+          {exportData.status !== ExportStatusName.complete && exportData.status !== ExportStatusName.error && (
+            <span className='animate-processing'>{t('Processing…')}</span>
+          )}
+
+          {userCan(PERMISSIONS_CODENAMES.view_submissions, props.asset) && (
+            <Button
+              type='secondary-danger'
+              size='m'
+              startIcon='trash'
+              isPending={deletingExports.has(exportData.uid)}
+              onClick={() => deleteExport(exportData.uid)}
+            />
+          )}
+        </Flex>,
+      ]
+    })
   }
 
   if (!isComponentReady) {
