@@ -16,7 +16,7 @@ from .models.transfer import (
 )
 
 # Cap on how many records a single status renders inline, so one noisy transfer
-# cannot blow up the page. The full history lives in the log admin.
+# cannot blow up the page.
 MAX_DISPLAYED_RECORDS = 100
 
 
@@ -129,17 +129,14 @@ class InviteAdmin(admin.ModelAdmin):
         )
         changelist_url = reverse('admin:project_ownership_transfer_changelist')
         link = f'{changelist_url}?invite__id__exact={obj.id}'
-        log_url = reverse('admin:project_ownership_transferstatuserror_changelist')
-        log_link = f'{log_url}?transfer_status__transfer__invite__id__exact={obj.id}'
 
         return format_html(
             '{} transfer(s): {} — {} error record(s). '
-            '<a href="{}">View transfers</a> · <a href="{}">View logs</a>',
+            '<a href="{}">View transfers</a>',
             transfer_total,
             summary or '—',
             error_total,
             link,
-            log_link,
         )
 
     def has_add_permission(self, request, obj=None):
@@ -286,64 +283,3 @@ class TransferAdmin(admin.ModelAdmin):
             )
 
         return html
-
-
-@admin.register(TransferStatusError)
-class TransferStatusErrorAdmin(admin.ModelAdmin):
-    """
-    Read-only log of everything recorded during transfers, filterable per
-    project, so support can answer "what happened to this project?" without
-    reading an invite page full of false positives.
-    """
-
-    list_display = (
-        'date_created',
-        'get_project',
-        'get_invite',
-        'get_status_type',
-        'level',
-        'error',
-    )
-    list_filter = ('level', 'transfer_status__status_type', 'transfer_status__status')
-    search_fields = (
-        'error',
-        'transfer_status__transfer__asset__uid',
-        'transfer_status__transfer__asset__name',
-        'transfer_status__transfer__invite__uid',
-    )
-    list_select_related = (
-        'transfer_status',
-        'transfer_status__transfer',
-        'transfer_status__transfer__asset',
-        'transfer_status__transfer__invite',
-    )
-    date_hierarchy = 'date_created'
-
-    def lookup_allowed(self, lookup, value, request=None):
-        # Allow the deep-links from InviteAdmin and TransferAdmin.
-        return lookup in (
-            'transfer_status__transfer__invite__id__exact',
-            'transfer_status__transfer__id__exact',
-        ) or super().lookup_allowed(lookup, value, request)
-
-    @admin.display(description='Invite')
-    def get_invite(self, obj):
-        return obj.transfer_status.transfer.invite
-
-    @admin.display(description='Project')
-    def get_project(self, obj):
-        asset = obj.transfer_status.transfer.asset
-        return f'{asset.name} #{asset.uid}'
-
-    @admin.display(description='Type')
-    def get_status_type(self, obj):
-        return obj.transfer_status.status_type
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False

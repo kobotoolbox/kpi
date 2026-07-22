@@ -464,9 +464,11 @@ class TransferStatusError(AbstractTimeStampedModel):
         TransferStatus, related_name='errors', on_delete=models.CASCADE
     )
     error = models.CharField(null=True, blank=True)
+    # No index on purpose: only two values, so it is not selective enough to
+    # help, and creating one on a large `TransferStatusError` table would lock
+    # writes during deploy. The selective filter is always the transfer/invite.
     level = models.CharField(
         max_length=5,
         choices=TransferStatusErrorLevelChoices.choices,
         default=TransferStatusErrorLevelChoices.ERROR,
-        db_index=True,
     )

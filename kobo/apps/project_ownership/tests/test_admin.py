@@ -134,14 +134,3 @@ class ProjectOwnershipAdminTestCase(TestCase):
         assert 'class="error"' not in html
         # The raw message is collapsed into the count, not dumped as a line.
         assert 'Source file photo.jpg' not in html
-
-    def test_transfer_status_error_log_admin_is_registered_and_read_only(self):
-        assert TransferStatusError in django_admin.site._registry
-        log_admin = django_admin.site._registry[TransferStatusError]
-        assert log_admin.has_add_permission(request=None) is False
-        assert log_admin.has_change_permission(request=None) is False
-        assert log_admin.has_delete_permission(request=None) is False
-        # The per-invite deep link from the invite page must resolve.
-        assert log_admin.lookup_allowed(
-            'transfer_status__transfer__invite__id__exact', '1', None
-        )

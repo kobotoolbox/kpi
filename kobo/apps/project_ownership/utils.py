@@ -130,20 +130,26 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                         target_folder, reraise_errors=True
                     )
                 except SourceFileMissingError:
-                    # Source is already gone — not a transfer failure. Keep a
-                    # debug record but let the task succeed.
-                    moved = False
-                    TransferStatus._add_error(
-                        transfer_status,
-                        f'Source file {attachment.media_file_basename} '
-                        f'(#{attachment.pk}) no longer exists — skipped '
-                        f'(data already gone)',
-                        level=TransferStatusErrorLevelChoices.INFO,
+                    # The source is gone, but that has two very different
+                    # causes: either a previous run already moved the file and
+                    # was interrupted before saving the row (a recycled pod
+                    # between the two operations above), or the file is
+                    # genuinely gone. Only the target tells them apart.
+                    moved = _recover_moved_file(
+                        attachment.media_file, target_folder, media_file_path
                     )
-                    logging.warning(
-                        f'Source file {media_file_path} (#{attachment.pk}) '
-                        f'no longer exists — skipped'
-                    )
+                    if not moved:
+                        TransferStatus._add_error(
+                            transfer_status,
+                            f'Source file {attachment.media_file_basename} '
+                            f'(#{attachment.pk}) no longer exists — skipped '
+                            f'(data already gone)',
+                            level=TransferStatusErrorLevelChoices.INFO,
+                        )
+                        logging.warning(
+                            f'Source file {media_file_path} (#{attachment.pk}) '
+                            f'no longer exists — skipped'
+                        )
                 if moved:
                     update_fields.append('media_file')
                     _delete_thumbnails(media_file_path)
@@ -212,7 +218,29 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                 # There is no way to ensure atomicity when moving the file and saving
                 # the object to the database. Fingers crossed that the process doesn't
                 # get interrupted between these two operations.
-                if not media_file.content.move(target_folder, reraise_errors=True):
+                old_path = media_file.content.name
+                try:
+                    moved = media_file.content.move(target_folder, reraise_errors=True)
+                except SourceFileMissingError:
+                    # Either a previous run already moved the file and was
+                    # interrupted before saving, or it is genuinely gone.
+                    moved = _recover_moved_file(
+                        media_file.content, target_folder, old_path
+                    )
+                    if not moved:
+                        TransferStatus._add_error(
+                            transfer_status,
+                            f'Source file {old_path} (#{media_file.pk}) no '
+                            f'longer exists — skipped (data already gone)',
+                            level=TransferStatusErrorLevelChoices.INFO,
+                        )
+                        logging.warning(
+                            f'Source file {old_path} (#{media_file.pk}) no '
+                            f'longer exists — skipped'
+                        )
+                        continue
+
+                if not moved:
                     success = False
                     TransferStatus._add_error(
                         transfer_status,
@@ -247,8 +275,8 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
 
                 heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
         except SourceFileMissingError:
-            # Source is already gone — not a transfer failure. Keep a debug
-            # record but let the task succeed.
+            # Raised by the KoboCAT `data_file` move above (the AssetFile one is
+            # handled inline). Already gone is not a transfer failure.
             TransferStatus._add_error(
                 transfer_status,
                 f'Source file {media_file.content.name} (#{media_file.pk}) '
@@ -353,6 +381,29 @@ def _delete_thumbnails(media_file_path: str):
                 default_kobocat_storage.delete(thumb_path)
             except Exception as e:
                 logging.warning(f'Could not delete thumbnail: {thumb_path} ({e})')
+
+
+def _recover_moved_file(field_file, target_folder: str, old_path: str) -> bool:
+    """
+    Complete a move that already happened on storage but whose database write
+    never ran, e.g. the pod was recycled between moving the file and saving the
+    object.
+
+    Return `True` when the file is found at the target and the field has been
+    repointed to it, so the caller only has to save. Return `False` when the
+    source is genuinely gone. Without this, a retry would see a missing source,
+    skip it, and leave the record pointing at a path that holds no file.
+    """
+    new_path = f'{target_folder}/{os.path.basename(old_path)}'
+    if not field_file.storage.exists(new_path):
+        return False
+
+    field_file.name = new_path
+    logging.info(
+        f'{old_path} was already moved to {new_path}; completing the '
+        f'interrupted database update'
+    )
+    return True
 
 
 def _update_heartbeat(
