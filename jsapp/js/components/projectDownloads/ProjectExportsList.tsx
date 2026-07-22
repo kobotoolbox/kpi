@@ -180,11 +180,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
 
   function getRows() {
     return rows.map((exportData) => {
-      // Remap legacy kml_legacy to kml for display
       let exportType = exportData.data.type
-      if ((exportType as ExportTypeName | 'kml_legacy') === 'kml_legacy') {
-        exportType = ExportTypeName.kml
-      }
 
       return [
         EXPORT_TYPES[exportType]?.label || t('Unknown format'),

@@ -8,7 +8,6 @@ from bson import json_util
 from django.conf import settings
 from django.core.files.base import File
 from django.core.files.temp import NamedTemporaryFile
-from django.shortcuts import render
 from django.utils.text import slugify
 from openpyxl.utils.datetime import time_to_days, timedelta_to_days, to_excel
 from openpyxl.workbook import Workbook
@@ -16,8 +15,7 @@ from pyxform.constants import SELECT_ALL_THAT_APPLY
 from pyxform.question import Question
 from pyxform.section import RepeatingSection, Section
 
-from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import get_abbreviated_xpath
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.utils.common_tags import (
