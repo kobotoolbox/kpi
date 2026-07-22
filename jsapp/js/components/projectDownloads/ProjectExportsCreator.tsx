@@ -26,7 +26,6 @@ import {
   EXPORT_TYPES,
   type ExportMultiOption,
   type ExportTypeDefinition,
-  ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
 import {
   type ExportFormatOption,
@@ -189,7 +188,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   }
 
   function applyExportSettingToState(data: ExportSetting) {
-    let exportTypeName = data.export_settings.type
+    const exportTypeName = data.export_settings.type
 
     const exportType = EXPORT_TYPES[exportTypeName]
 

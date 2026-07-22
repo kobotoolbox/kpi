@@ -14,7 +14,6 @@ import {
   EXPORT_TYPES,
   ExportStatusName,
   type ExportTypeDefinition,
-  ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
 import { openDeleteExportModal } from '#/components/projectDownloads/openDeleteExportModal'
 import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
@@ -180,7 +179,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
 
   function getRows() {
     return rows.map((exportData) => {
-      let exportType = exportData.data.type
+      const exportType = exportData.data.type
 
       return [
         EXPORT_TYPES[exportType]?.label || t('Unknown format'),
