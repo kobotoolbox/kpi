@@ -27,6 +27,7 @@ export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
         variant='transparent'
         icon={IconHelpCircleFilled}
         component={Link}
+        aria-label={t('Learn more about anonymous submissions')}
         to={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
         target='_blank'
         tooltip={t(
