@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kpi.models import Asset
-from ..admin import InviteAdmin
+from ..admin import InviteAdmin, TransferAdmin
 from ..models import Invite, Transfer
 from ..models.transfer import TransferStatusError, TransferStatusTypeChoices
 
@@ -37,7 +37,7 @@ class ProjectOwnershipAdminTestCase(TestCase):
         # The per-status error blocks are no longer dumped inline.
         assert '<ol>' not in html
 
-    def test_invite_get_transfers_error_count_excludes_global_status(self):
+    def test_invite_get_transfers_error_count_matches_drill_down(self):
         submissions_status = self.transfer.statuses.get(
             status_type=TransferStatusTypeChoices.SUBMISSIONS
         )
@@ -54,7 +54,40 @@ class ProjectOwnershipAdminTestCase(TestCase):
         invite_admin = InviteAdmin(Invite, AdminSite())
         html = invite_admin.get_transfers(self.invite)
 
-        # Only the non-GLOBAL error should be counted, matching what
-        # TransferAdmin.get_statuses actually displays on the drill-down page.
-        assert '1 error record' in html
-        assert '2 error record' not in html
+        # Both errors should be counted, matching what
+        # TransferAdmin.get_statuses actually displays on the drill-down page,
+        # now that GLOBAL-status errors are rendered there too.
+        assert '— 2 error record(s).' in html
+
+    def test_transfer_admin_get_statuses_shows_global_error(self):
+        global_status = self.transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.GLOBAL
+        )
+        TransferStatusError.objects.create(
+            transfer_status=global_status,
+            error='Error occurred while processing transfer',
+        )
+
+        transfer_admin = TransferAdmin(Transfer, AdminSite())
+        html = transfer_admin.get_statuses(self.transfer)
+
+        # A failed transfer must never be left without a visible reason, even
+        # when every sub-status is `success` and only GLOBAL has an error.
+        assert 'Error occurred while processing transfer' in html
+
+    def test_transfer_admin_get_statuses_escapes_error_text(self):
+        # Error text can carry user-influenced content (e.g. uploaded
+        # filenames), so it must be escaped rather than rendered as markup.
+        submissions_status = self.transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.SUBMISSIONS
+        )
+        TransferStatusError.objects.create(
+            transfer_status=submissions_status,
+            error='Error moving <script>alert(1)</script>',
+        )
+
+        transfer_admin = TransferAdmin(Transfer, AdminSite())
+        html = transfer_admin.get_statuses(self.transfer)
+
+        assert '<script>' not in html
+        assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html

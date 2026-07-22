@@ -3,7 +3,7 @@ from collections import Counter, defaultdict
 from django.contrib import admin
 from django.db.models import Prefetch
 from django.urls import reverse
-from django.utils.html import format_html, linebreaks
+from django.utils.html import escape, format_html, linebreaks
 from django.utils.safestring import mark_safe
 
 from .models import Invite, Transfer
@@ -111,13 +111,9 @@ class InviteAdmin(admin.ModelAdmin):
             ).values_list('status', flat=True)
         )
         transfer_total = sum(status_counts.values())
-        error_total = (
-            TransferStatusError.objects.filter(
-                transfer_status__transfer__invite_id=obj.id
-            )
-            .exclude(transfer_status__status_type=TransferStatusTypeChoices.GLOBAL)
-            .count()
-        )
+        error_total = TransferStatusError.objects.filter(
+            transfer_status__transfer__invite_id=obj.id
+        ).count()
 
         summary = ' · '.join(
             f'{count} {status}' for status, count in sorted(status_counts.items())
@@ -216,12 +212,13 @@ class TransferAdmin(admin.ModelAdmin):
             status_type=TransferStatusTypeChoices.GLOBAL
         ):
             errors = [
-                f'[{error.date_created.strftime(date_format)}] - {error.error}'
+                f'[{error.date_created.strftime(date_format)}] - '
+                f'{escape(error.error)}'
                 for error in status.errors.filter(error__isnull=False)
             ]
             if status.error:
                 # legacy deprecated `error` field on TransferStatus
-                errors = [status.error] + errors
+                errors = [escape(status.error)] + errors
             if len(errors) > 100:
                 # don't overwhelm the display
                 errors = errors[0:100]
@@ -231,6 +228,28 @@ class TransferAdmin(admin.ModelAdmin):
             error = f'<br><span class="error">{error}</span>' if error else ''
             html += f'<li>{status.status_type}: <i>{status.status}</i>{error}</li>'
         html += '</ol>'
+
+        global_errors = []
+        for status in obj.statuses.filter(status_type=TransferStatusTypeChoices.GLOBAL):
+            global_errors += [
+                f'[{error.date_created.strftime(date_format)}] - '
+                f'{escape(error.error)}'
+                for error in status.errors.filter(error__isnull=False)
+            ]
+            if status.error:
+                # legacy deprecated `error` field on TransferStatus
+                global_errors = [escape(status.error)] + global_errors
+        if len(global_errors) > 100:
+            # don't overwhelm the display
+            global_errors = global_errors[0:100]
+            global_errors.append('...')
+
+        if global_errors:
+            html += (
+                '<p><strong>Global errors:</strong><br>'
+                f'<span class="error">{"<br/>".join(global_errors)}</span></p>'
+            )
+
         return mark_safe(html)
 
     def has_add_permission(self, request, obj=None):
