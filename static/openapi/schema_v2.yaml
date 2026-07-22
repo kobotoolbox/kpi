@@ -407,13 +407,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/asset_snapshots/{uid_asset_snapshot}/:
@@ -684,13 +683,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/asset_subscriptions/{uid_asset_subscription}/:
@@ -969,13 +967,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/:
@@ -1102,13 +1099,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -1490,13 +1486,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/advanced-features/{uid_advanced_feature}/:
@@ -1934,13 +1929,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/advanced-features/bulk-actions/:
@@ -2301,13 +2295,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/advanced-features/bulk-actions/{action_uid}/:
@@ -2595,13 +2588,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/attachments/audio-duration/:
@@ -2739,13 +2731,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/content/:
@@ -4001,13 +3992,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     patch:
@@ -4494,13 +4484,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/:
@@ -4573,13 +4562,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/:
@@ -4658,13 +4646,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/{suffix}/:
@@ -4972,13 +4959,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/data/validation_statuses/:
@@ -5200,13 +5186,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     patch:
@@ -5266,13 +5251,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/export-settings/:
@@ -5414,13 +5398,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/export-settings/{uid_export_setting}/:
@@ -5517,13 +5500,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -5621,13 +5603,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/exports/:
@@ -5799,13 +5780,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/exports/{uid_export}/:
@@ -6061,13 +6041,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/files/{uid_file}/:
@@ -6624,13 +6603,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/hooks/{uid_hook}/:
@@ -6729,13 +6707,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -7173,13 +7150,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/paired-data/{uid_paired_data}/:
@@ -7274,13 +7250,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -7488,13 +7463,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/:
@@ -7658,13 +7632,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -7725,13 +7698,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/permission-assignments/clone/:
@@ -7793,13 +7765,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/qual-questions/{uid_qa_question}/tags/:
@@ -8552,13 +8523,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/imports/{uid_import}/:
@@ -8849,13 +8819,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/organizations/{uid_organization}/asset_usage/:
@@ -9147,13 +9116,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/organizations/{uid_organization}/invites/{guid}/:
@@ -9270,13 +9238,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -9493,13 +9460,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -10095,13 +10061,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/project-ownership/invites/{uid_invite}/:
@@ -10216,13 +10181,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -10489,13 +10453,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     post:
@@ -10565,13 +10528,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/project-views/{uid_project_view}/assets/:
@@ -10633,13 +10595,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/project-views/{uid_project_view}/assets/counts/:
@@ -11685,13 +11646,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/stripe/products/:
@@ -12186,13 +12146,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/translation-services/{code}/:
@@ -12396,13 +12355,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /api/v2/users/:
@@ -12574,13 +12532,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
     delete:
@@ -12630,13 +12587,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /me/emails/:
@@ -12727,13 +12683,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorValidation'
               examples:
                 BadRequest:
                   value:
-                    detail:
-                      field_name:
-                      - Error message
+                    field_name:
+                    - Error message
                   summary: Bad request
           description: ''
   /me/social-accounts/:
@@ -18140,12 +18095,12 @@ components:
           type: string
       required:
       - detail
-    ErrorObject:
+    ErrorValidation:
       type: object
-      properties:
-        detail: {}
-      required:
-      - detail
+      additionalProperties:
+        type: array
+        items:
+          type: string
     ExportCreatePayload:
       type: object
       properties:
@@ -23464,7 +23419,6 @@ components:
       required:
       - _data
       - _dateCreated
-      - _dependency
       - _uuid
     SupplementalDataVersionItemManual:
       type: object
@@ -23507,7 +23461,6 @@ components:
       - _data
       - _dateAccepted
       - _dateCreated
-      - _dependency
       - _uuid
     SupplementalDataVersionItemQual:
       type: object

@@ -29,7 +29,7 @@ import type { EmailRequestPayload } from '../../models/emailRequestPayload'
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { InviteCreatePayload } from '../../models/inviteCreatePayload'
 
@@ -409,7 +409,7 @@ export type organizationsPartialUpdateResponse200 = {
 }
 
 export type organizationsPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -445,7 +445,7 @@ export const organizationsPartialUpdate = async (
 }
 
 export const getOrganizationsPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -484,9 +484,9 @@ export type OrganizationsPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsPartialUpdate>>
 >
 export type OrganizationsPartialUpdateMutationBody = PatchedOrganizationPatchPayload
-export type OrganizationsPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type OrganizationsPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useOrganizationsPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useOrganizationsPartialUpdate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
     TError,
@@ -1037,7 +1037,7 @@ export type organizationsInvitesCreateResponse201 = {
 }
 
 export type organizationsInvitesCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1073,7 +1073,7 @@ export const organizationsInvitesCreate = async (
 }
 
 export const getOrganizationsInvitesCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1112,9 +1112,9 @@ export type OrganizationsInvitesCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesCreate>>
 >
 export type OrganizationsInvitesCreateMutationBody = InviteCreatePayload
-export type OrganizationsInvitesCreateMutationError = ErrorObject | ErrorDetail
+export type OrganizationsInvitesCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useOrganizationsInvitesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useOrganizationsInvitesCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
@@ -1235,7 +1235,7 @@ export type organizationsInvitesPartialUpdateResponse200 = {
 }
 
 export type organizationsInvitesPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1275,7 +1275,7 @@ export const organizationsInvitesPartialUpdate = async (
 }
 
 export const getOrganizationsInvitesPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1314,9 +1314,12 @@ export type OrganizationsInvitesPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesPartialUpdate>>
 >
 export type OrganizationsInvitesPartialUpdateMutationBody = PatchedInvitePatchPayload
-export type OrganizationsInvitesPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type OrganizationsInvitesPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useOrganizationsInvitesPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useOrganizationsInvitesPartialUpdate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesPartialUpdate>>,
     TError,
@@ -1638,7 +1641,7 @@ export type organizationsMembersPartialUpdateResponse200 = {
 }
 
 export type organizationsMembersPartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1678,7 +1681,7 @@ export const organizationsMembersPartialUpdate = async (
 }
 
 export const getOrganizationsMembersPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1717,9 +1720,12 @@ export type OrganizationsMembersPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>
 >
 export type OrganizationsMembersPartialUpdateMutationBody = PatchedMemberPatchRequest
-export type OrganizationsMembersPartialUpdateMutationError = ErrorObject | ErrorDetail
+export type OrganizationsMembersPartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useOrganizationsMembersPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useOrganizationsMembersPartialUpdate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
     TError,
@@ -2110,7 +2116,7 @@ export type projectViewsExportRetrieveResponse200 = {
 }
 
 export type projectViewsExportRetrieveResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -2149,7 +2155,7 @@ export const getProjectViewsExportRetrieveQueryKey = (uidProjectView: string, ob
 
 export const getProjectViewsExportRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidProjectView: string,
   objType: string,
@@ -2173,11 +2179,11 @@ export const getProjectViewsExportRetrieveQueryOptions = <
 }
 
 export type ProjectViewsExportRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportRetrieve>>>
-export type ProjectViewsExportRetrieveQueryError = ErrorObject | ErrorDetail
+export type ProjectViewsExportRetrieveQueryError = ErrorValidation | ErrorDetail
 
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidProjectView: string,
   objType: string,
@@ -2207,7 +2213,7 @@ export type projectViewsExportCreateResponse200 = {
 }
 
 export type projectViewsExportCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -2241,7 +2247,7 @@ export const projectViewsExportCreate = async (
 }
 
 export const getProjectViewsExportCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2278,9 +2284,9 @@ export const getProjectViewsExportCreateMutationOptions = <
 
 export type ProjectViewsExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportCreate>>>
 
-export type ProjectViewsExportCreateMutationError = ErrorObject | ErrorDetail
+export type ProjectViewsExportCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useProjectViewsExportCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useProjectViewsExportCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
     TError,
@@ -2303,7 +2309,7 @@ export type projectViewsAssetsRetrieveResponse200 = {
 }
 
 export type projectViewsAssetsRetrieveResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -2357,7 +2363,7 @@ export const getProjectViewsAssetsRetrieveQueryKey = (
 
 export const getProjectViewsAssetsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
@@ -2381,11 +2387,11 @@ export const getProjectViewsAssetsRetrieveQueryOptions = <
 }
 
 export type ProjectViewsAssetsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>>
-export type ProjectViewsAssetsRetrieveQueryError = ErrorObject | ErrorDetail
+export type ProjectViewsAssetsRetrieveQueryError = ErrorValidation | ErrorDetail
 
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
@@ -3055,7 +3061,7 @@ export type mePartialUpdateResponse200 = {
 }
 
 export type mePartialUpdateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -3089,7 +3095,10 @@ export const mePartialUpdate = async (
   })
 }
 
-export const getMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getMePartialUpdateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof mePartialUpdate>>,
     TError,
@@ -3124,9 +3133,9 @@ export const getMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDe
 
 export type MePartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof mePartialUpdate>>>
 export type MePartialUpdateMutationBody = NonReadonly<PatchedCurrentUser>
-export type MePartialUpdateMutationError = ErrorObject | ErrorDetail
+export type MePartialUpdateMutationError = ErrorValidation | ErrorDetail
 
-export const useMePartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useMePartialUpdate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof mePartialUpdate>>,
     TError,
@@ -3158,7 +3167,7 @@ export type meDestroyResponse204 = {
 }
 
 export type meDestroyResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -3184,7 +3193,7 @@ export const meDestroy = async (options?: RequestInit): Promise<meDestroyRespons
   })
 }
 
-export const getMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getMeDestroyMutationOptions = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext> => {
@@ -3204,9 +3213,9 @@ export const getMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, 
 
 export type MeDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof meDestroy>>>
 
-export type MeDestroyMutationError = ErrorObject | ErrorDetail
+export type MeDestroyMutationError = ErrorValidation | ErrorDetail
 
-export const useMeDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useMeDestroy = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
@@ -3315,7 +3324,7 @@ export type meEmailsCreateResponse201 = {
 }
 
 export type meEmailsCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -3349,7 +3358,7 @@ export const meEmailsCreate = async (
   })
 }
 
-export const getMeEmailsCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getMeEmailsCreateMutationOptions = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meEmailsCreate>>,
     TError,
@@ -3378,9 +3387,9 @@ export const getMeEmailsCreateMutationOptions = <TError = ErrorObject | ErrorDet
 
 export type MeEmailsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof meEmailsCreate>>>
 export type MeEmailsCreateMutationBody = EmailRequestPayload
-export type MeEmailsCreateMutationError = ErrorObject | ErrorDetail
+export type MeEmailsCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useMeEmailsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useMeEmailsCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meEmailsCreate>>,
     TError,

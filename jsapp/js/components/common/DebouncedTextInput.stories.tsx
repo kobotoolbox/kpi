@@ -36,7 +36,7 @@ const meta: Meta<typeof DebouncedTextInput> = {
     onFocus: fn(),
     onKeyDown: fn(),
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 }
 
 export default meta

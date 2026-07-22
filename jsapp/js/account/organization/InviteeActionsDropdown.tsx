@@ -4,7 +4,7 @@ import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { ServerError } from '#/api/ServerError'
 import type { ErrorDetail } from '#/api/models/errorDetail'
-import type { ErrorObject } from '#/api/models/errorObject'
+import type { ErrorValidation } from '#/api/models/errorValidation'
 import type { InviteResponse } from '#/api/models/inviteResponse'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import {
@@ -32,7 +32,7 @@ export default function InviteeActionsDropdown({
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
     mutation: {
       onSuccess: () => notify(t('The invitation was resent'), 'success'),
-      onError: (error: ErrorObject | ErrorDetail | ServerError) => {
+      onError: (error: ErrorValidation | ErrorDetail | ServerError) => {
         const retryAfter =
           error instanceof ServerError && error.response.status === 429
             ? error.response.headers?.get('Retry-After')

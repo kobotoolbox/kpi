@@ -29,7 +29,7 @@ import type { CustomerPortalPostResponse } from '../../models/customerPortalPost
 
 import type { ErrorDetail } from '../../models/errorDetail'
 
-import type { ErrorObject } from '../../models/errorObject'
+import type { ErrorValidation } from '../../models/errorValidation'
 
 import type { Language } from '../../models/language'
 
@@ -760,7 +760,7 @@ export type stripeCustomerPortalCreateResponse200 = {
 }
 
 export type stripeCustomerPortalCreateResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -795,7 +795,7 @@ export const stripeCustomerPortalCreate = async (
 }
 
 export const getStripeCustomerPortalCreateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -834,9 +834,9 @@ export type StripeCustomerPortalCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof stripeCustomerPortalCreate>>
 >
 export type StripeCustomerPortalCreateMutationBody = CustomerPortal
-export type StripeCustomerPortalCreateMutationError = ErrorObject | ErrorDetail
+export type StripeCustomerPortalCreateMutationError = ErrorValidation | ErrorDetail
 
-export const useStripeCustomerPortalCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useStripeCustomerPortalCreate = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
     TError,
@@ -1526,7 +1526,7 @@ export type translationServicesListResponse200 = {
 }
 
 export type translationServicesListResponse400 = {
-  data: ErrorObject
+  data: ErrorValidation
   status: 400
 }
 
@@ -1576,7 +1576,7 @@ export const getTranslationServicesListQueryKey = (params?: TranslationServicesL
 
 export const getTranslationServicesListQueryOptions = <
   TData = Awaited<ReturnType<typeof translationServicesList>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   params?: TranslationServicesListParams,
   options?: {
@@ -1599,11 +1599,11 @@ export const getTranslationServicesListQueryOptions = <
 }
 
 export type TranslationServicesListQueryResult = NonNullable<Awaited<ReturnType<typeof translationServicesList>>>
-export type TranslationServicesListQueryError = ErrorObject | ErrorDetail
+export type TranslationServicesListQueryError = ErrorValidation | ErrorDetail
 
 export function useTranslationServicesList<
   TData = Awaited<ReturnType<typeof translationServicesList>>,
-  TError = ErrorObject | ErrorDetail,
+  TError = ErrorValidation | ErrorDetail,
 >(
   params?: TranslationServicesListParams,
   options?: {

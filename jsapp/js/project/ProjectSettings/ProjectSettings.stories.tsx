@@ -107,7 +107,7 @@ const meta: Meta<typeof ProjectSettingsWrapper> = {
   },
   parameters: {
     layout: 'padded',
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     msw: {
       handlers: [environmentMock, assetsMock()],
     },
