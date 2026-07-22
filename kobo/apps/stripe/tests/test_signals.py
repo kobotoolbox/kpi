@@ -94,7 +94,8 @@ class StripeSignalsTestCase(BaseTestCase):
                         }
                     ]
                 },
-            }
+            },
+            'previous_attributes': {'status': 'past_due'},
         }
 
         handle_unpaid_subscription(
@@ -114,10 +115,42 @@ class StripeSignalsTestCase(BaseTestCase):
                 'id': self.subscription.id,
                 'status': 'unpaid',
                 'items': {'data': [{'price': {'product': {'metadata': {}}}}]},
-            }
+            },
+            'previous_attributes': {'status': 'past_due'},
         }
 
         handle_unpaid_subscription(
             sender=None, event=mock_event, instance=self.subscription
         )
         mock_cancel.assert_called_once_with(at_period_end=False)
+
+    @patch('djstripe.models.Subscription.cancel')
+    def test_receiver_returns_early_if_status_not_changed(self, mock_cancel):
+        """
+        Ensure the unpaid subscription handler returns early when
+        'status' is not present in previous_attributes.
+        """
+        mock_event = MagicMock()
+        mock_event.data = {
+            'object': {
+                'id': self.subscription.id,
+                'status': 'unpaid',
+                'items': {
+                    'data': [
+                        {
+                            'price': {
+                                'product': {
+                                    'metadata': {'preserve_unpaid_status': 'false'}
+                                }
+                            }
+                        }
+                    ]
+                },
+            },
+            'previous_attributes': {'metadata': {'test': 'test'}},
+        }
+
+        handle_unpaid_subscription(
+            sender=None, event=mock_event, instance=self.subscription
+        )
+        mock_cancel.assert_not_called()

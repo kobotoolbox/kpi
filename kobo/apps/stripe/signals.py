@@ -49,6 +49,10 @@ def handle_unpaid_subscription(sender, **kwargs):
     if not event:
         return
 
+    previous = event.data.get('previous_attributes', {})
+    if 'status' not in previous:
+        return
+
     subscription_data = event.data.get('object', {})
     if subscription_data.get('status') != 'unpaid':
         return
