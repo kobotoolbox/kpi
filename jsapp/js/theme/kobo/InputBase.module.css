@@ -3,6 +3,16 @@
   outline-offset: var(--kobo-focus-ring-offset);
 }
 
+.input:focus-within:not([data-error]) {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
+.control:focus-visible:not([data-error]) {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
 .input {
   border-color: var(--mantine-color-gray-6);
 
@@ -26,8 +36,36 @@
   border-color: var(--mantine-color-red-7);
 }
 
+.control {
+  border-color: var(--mantine-color-gray-6);
+}
+
+.control[data-disabled] {
+  background-color: var(--mantine-color-gray-7);
+  border-color: var(--mantine-color-gray-3);
+  color: var(--mantine-color-gray-3);
+}
+
+.control[data-error] {
+  border-color: var(--mantine-color-red-7);
+}
+
+.control:hover {
+  background-color: var(--mantine-color-gray-6);
+}
+
 .section {
   color: var(--mantine-color-gray-2);
+}
+
+.visibilityToggle {
+  color: var(--mantine-color-gray-2);
+  background-color: transparent;
+}
+
+.visibilityToggle:hover {
+  color: var(--mantine-color-gray-2);
+  background-color: transparent;
 }
 
 .label {

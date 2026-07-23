@@ -16,7 +16,8 @@
 .mantine-Textarea-input:focus-visible:not([data-error]),
 .mantine-TextInput-input:focus-visible:not([data-error]),
 .mantine-NumberInput-input:focus-visible:not([data-error]),
-.mantine-PasswordInput-input:focus-visible:not([data-error]) {
+.mantine-PasswordInput-input:focus-visible:not([data-error]),
+.mantine-PasswordInput-innerInput:focus-visible:not([data-error]) {
   outline: var(--kobo-focus-ring);
   outline-offset: var(--kobo-focus-ring-offset);
 }
