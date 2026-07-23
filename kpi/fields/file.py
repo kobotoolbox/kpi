@@ -1,6 +1,7 @@
 import os
 import posixpath
 
+from azure.core.exceptions import ResourceNotFoundError
 from django.db.models import FileField
 from django.db.models.fields.files import FieldFile
 from storages.backends.s3 import ClientError
@@ -57,7 +58,8 @@ class ExtendedFieldFile(FieldFile):
                 self.save(filename, f, save=False)
             self.storage.delete(old_path)
             success = True
-        except FileNotFoundError as fe:
+        # Azure raises `ResourceNotFoundError`, not `FileNotFoundError`.
+        except (FileNotFoundError, ResourceNotFoundError) as fe:
             logging.warning(f'Source file {old_path} no longer exists: {fe}')
             if reraise_errors:
                 raise SourceFileMissingError(old_path) from fe

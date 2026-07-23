@@ -96,3 +96,29 @@ class ExtendedFileFieldTestCase(TestCase):
             path = f'someuser/asset_files/{asset.uid}/form_media/foo.txt'
             if default_storage.exists(path):
                 default_storage.delete(path)
+
+    def test_move_reraises_source_missing_for_azure_resource_not_found(self):
+        # Azure signals a missing blob with its own exception, so it needs the
+        # same treatment as S3 and the filesystem.
+        from unittest.mock import MagicMock, patch
+
+        from azure.core.exceptions import ResourceNotFoundError
+
+        asset = Asset.objects.get(pk=1)
+        asset_file = AssetFile(
+            asset=asset, user=asset.owner, file_type=AssetFile.FORM_MEDIA
+        )
+        asset_file.content = ContentFile(b'foo', name='foo.txt')
+        asset_file.save()
+
+        fake_storage = MagicMock()
+        fake_storage.open.side_effect = ResourceNotFoundError('gone')
+
+        try:
+            with patch.object(asset_file.content, 'storage', fake_storage):
+                with self.assertRaises(SourceFileMissingError):
+                    asset_file.content.move('__pytest_moved', reraise_errors=True)
+        finally:
+            path = f'someuser/asset_files/{asset.uid}/form_media/foo.txt'
+            if default_storage.exists(path):
+                default_storage.delete(path)
