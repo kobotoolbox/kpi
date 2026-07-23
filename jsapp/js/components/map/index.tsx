@@ -111,11 +111,11 @@ type MapValueCounts = Record<string, { count: number; id: number }>
 
 function parseKmlDom(dom: Document): GeoJSON.GeoJsonObject {
   if (dom.getElementsByTagName('parsererror').length > 0) {
-    throw new Error('Invalid KML: XML parse error')
+    throw new Error(t('Could not parse KML file'))
   }
   const result = toGeoJsonKml(dom)
   if (!result.features.length) {
-    throw new Error('KML contained no features')
+    throw new Error(t('KML contained no features'))
   }
   return result as GeoJSON.GeoJsonObject
 }
@@ -350,7 +350,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       this.loadOverlayLayer(layer).catch((err) => {
         console.error(err)
-        notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+        const detail = err instanceof Error ? err.message : undefined
+        const message = OVERLAY_ERROR.replace('##name##', layer.description)
+        notify.error(detail ? `${message}: ${detail}` : message)
       })
     })
   }
@@ -379,7 +381,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         const latField = parsed.meta.fields?.find((f) => /^lat/i.test(f))
         const lonField = parsed.meta.fields?.find((f) => /^lo?n/i.test(f))
         if (!latField || !lonField) {
-          throw new Error('No latitude/longitude columns found')
+          throw new Error(t('No latitude/longitude columns found'))
         }
         geoJson = {
           type: 'FeatureCollection',
@@ -406,7 +408,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
         const text = await response.text()
         if (!isValidGeoJSON(text)) {
-          throw new Error('Invalid GeoJSON')
+          throw new Error(t('Invalid GeoJSON'))
         }
         geoJson = JSON.parse(text) as GeoJSON.GeoJsonObject
         break
@@ -423,7 +425,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         const kmlFile = zip.file('doc.kml') ?? zip.file(/\.kml$/i)[0]
         const kmlContent = await kmlFile?.async('string')
         if (!kmlContent) {
-          throw new Error('No KML file found in KMZ archive')
+          throw new Error(t('No KML file found in KMZ archive'))
         }
         const dom = new DOMParser().parseFromString(kmlContent, 'text/xml')
         geoJson = parseKmlDom(dom)
