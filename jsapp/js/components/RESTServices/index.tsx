@@ -1,7 +1,4 @@
-import './RESTServices.scss'
-
 import React from 'react'
-
 import DocumentTitle from 'react-document-title'
 import type { AssetResponse } from '#/dataInterface'
 import RESTServiceLogs from './RESTServiceLogs'
@@ -17,10 +14,10 @@ export default class RESTServices extends React.Component<RESTServicesProps> {
     const docTitle = this.props.asset.name || t('Untitled')
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <React.Fragment>
+        <div className='rest-services form-view form-view--rest-services'>
           {this.props.hookUid && <RESTServiceLogs assetUid={this.props.asset.uid} hookUid={this.props.hookUid} />}
           {!this.props.hookUid && <RESTServicesList assetUid={this.props.asset.uid} />}
-        </React.Fragment>
+        </div>
       </DocumentTitle>
     )
   }
