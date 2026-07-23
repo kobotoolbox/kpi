@@ -244,7 +244,6 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                 else:
                     old_md5 = media_file.metadata.pop('hash', None)
                     media_file.set_md5_hash()
-                    media_file.save(update_fields=['content', 'metadata'])
 
                     if old_md5 in kc_files.keys():
                         kc_obj = kc_files[old_md5]
@@ -276,6 +275,10 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                             if kc_moved:
                                 kc_obj.file_hash = media_file.md5_hash
                                 kc_obj.save(update_fields=['file_hash', 'data_file'])
+
+                    # Saved last: this row keeps the file in the retry queryset,
+                    # so it moves to the new path only once KoboCAT is done.
+                    media_file.save(update_fields=['content', 'metadata'])
 
                 heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
         except Exception as e:

@@ -270,8 +270,9 @@ class TransferAdmin(admin.ModelAdmin):
         if status.error:
             # legacy deprecated `error` field on TransferStatus
             errors = [escape(status.error)] + errors
-        if len(errors) > settings.PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS:
-            errors = errors[0 : settings.PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS]
+        max_logs = settings.PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS
+        if len(errors) > max_logs:
+            errors = errors[0:max_logs]
             errors.append('...')
         if errors:
             html += f'<br><span class="error">{"<br/>".join(errors)}</span>'
