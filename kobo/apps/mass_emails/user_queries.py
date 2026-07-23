@@ -123,6 +123,7 @@ def get_users_within_range_of_usage_limit(
         UsageType.STORAGE_BYTES: get_storage_usage_by_user_id,
         UsageType.ASR_SECONDS: get_nlp_usage_method(UsageType.ASR_SECONDS),
         UsageType.MT_CHARACTERS: get_nlp_usage_method(UsageType.MT_CHARACTERS),
+        UsageType.LLM_REQUESTS: get_nlp_usage_method(UsageType.LLM_REQUESTS),
     }
 
     minimum = minimum or 0
@@ -132,6 +133,7 @@ def get_users_within_range_of_usage_limit(
         UsageType.SUBMISSION in usage_types
         or UsageType.ASR_SECONDS in usage_types
         or UsageType.MT_CHARACTERS in usage_types
+        or UsageType.LLM_REQUESTS in usage_types
     )
     org_ids_with_no_owner = list(
         Organization.objects.filter(owner__isnull=True).values_list('pk', flat=True)
@@ -224,6 +226,27 @@ def get_users_over_90_percent_of_nlp_limits() -> QuerySet:
 def get_users_over_100_percent_of_nlp_limits() -> QuerySet:
     return get_users_within_range_of_usage_limit(
         usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS], minimum=1
+    )
+
+def get_users_over_80_percent_of_auto_qa_limits() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.LLM_REQUESTS],
+        minimum=0.8,
+        maximum=0.9,
+    )
+
+
+def get_users_over_90_percent_of_auto_qa_limits() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.LLM_REQUESTS],
+        minimum=0.9,
+        maximum=1,
+    )
+
+
+def get_users_over_100_percent_of_auto_qa_limits() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.LLM_REQUESTS], minimum=1
     )
 
 
