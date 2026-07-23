@@ -692,6 +692,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             'xls_legacy': '/'.join((exports_base_url, 'xls/')),
             'csv_legacy': '/'.join((exports_base_url, 'csv/')),
             'zip_legacy': '/'.join((exports_base_url, 'zip/')),
+            'kml_legacy': '/'.join((exports_base_url, 'kml/')),
             # For GET requests that return files directly
             'xls': '/'.join((reports_base_url, 'export.xlsx')),
             'csv': '/'.join((reports_base_url, 'export.csv')),
