@@ -1,6 +1,6 @@
 import { Anchor, Box, Group, Stack, Text, Title } from '@mantine/core'
 import { IconHelpCircleFilled, IconPencil, IconTrash } from '@tabler/icons-react'
-import React from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
 import ActionIcon from '#/components/common/ActionIcon'
@@ -22,48 +22,36 @@ interface RESTServicesListProps {
   assetUid: string
 }
 
-interface RESTServicesListState {
-  isLoadingHooks: boolean
-  assetUid: string
-  hooks: ExternalServiceHookResponse[]
-}
+export default function RESTServicesList({ assetUid }: RESTServicesListProps) {
+  const [isLoadingHooks, setIsLoadingHooks] = useState(true)
+  const [hooks, setHooks] = useState<ExternalServiceHookResponse[]>([])
 
-export default class RESTServicesList extends React.Component<RESTServicesListProps, RESTServicesListState> {
-  constructor(props: RESTServicesListProps) {
-    super(props)
-    this.state = {
-      isLoadingHooks: true,
-      assetUid: props.assetUid,
-      hooks: [],
-    }
-  }
+  useEffect(() => {
+    const unlisteners = [
+      actions.hooks.getAll.completed.listen((data: PaginatedResponse<ExternalServiceHookResponse>) => {
+        setIsLoadingHooks(false)
+        setHooks(data.results)
+      }),
+    ]
 
-  componentDidMount() {
-    actions.hooks.getAll.completed.listen(this.onHooksUpdate.bind(this))
-
-    actions.hooks.getAll(this.state.assetUid, {
+    actions.hooks.getAll(assetUid, {
       onComplete: (data: PaginatedResponse<ExternalServiceHookResponse>) => {
-        this.setState({
-          isLoadingHooks: false,
-          hooks: data.results,
-        })
+        setIsLoadingHooks(false)
+        setHooks(data.results)
       },
       onFail: () => {
-        this.setState({ isLoadingHooks: false })
+        setIsLoadingHooks(false)
         notify.error(t('Could not load REST Services'))
       },
     })
-  }
 
-  onHooksUpdate(data: PaginatedResponse<ExternalServiceHookResponse>) {
-    this.setState({
-      isLoadingHooks: false,
-      hooks: data.results,
-    })
-  }
+    return () => {
+      unlisteners.forEach((clb) => clb())
+    }
+  }, [assetUid])
 
-  deleteHookSafe(hookUid: string, hookName: string) {
-    if (!this.state.assetUid) {
+  const deleteHookSafe = (hookUid: string, hookName: string) => {
+    if (!assetUid) {
       return
     }
 
@@ -79,137 +67,135 @@ export default class RESTServicesList extends React.Component<RESTServicesListPr
         </Text>
       ),
       onConfirm: () => {
-        actions.hooks.delete(this.state.assetUid, hookUid)
+        actions.hooks.delete(assetUid, hookUid)
       },
     })
   }
 
-  getSupportUrl() {
+  const getSupportUrl = () => {
     if (envStore.isReady && envStore.data.support_url) {
       return envStore.data.support_url + REST_SERVICES_SUPPORT_URL
     }
     return undefined
   }
 
-  render() {
-    if (this.state.isLoadingHooks) {
-      return <LoadingSpinner />
-    }
+  if (isLoadingHooks) {
+    return <LoadingSpinner />
+  }
 
-    const supportUrl = this.getSupportUrl()
+  const supportUrl = getSupportUrl()
 
-    const columns: Array<UniversalTableColumn<ExternalServiceHookResponse>> = [
-      {
-        key: 'name',
-        label: t('Service Name'),
-        grow: true,
-        cellFormatter: (hook) => (
-          <Anchor
-            component={Link}
-            to={ROUTES.FORM_REST_HOOK.replace(':uid', this.state.assetUid).replace(':hookUid', hook.uid)}
-            c={hook.active ? 'gray.2' : 'gray.4'}
-            underline='not-hover'
-          >
-            {hook.name}
-          </Anchor>
-        ),
-      },
-      { key: 'success_count', label: t('Success'), size: 100 },
-      { key: 'pending_count', label: t('Pending'), size: 100 },
-      { key: 'failed_count', label: t('Failed'), size: 100 },
-      {
-        key: 'actions',
-        label: '',
-        size: 100,
-        cellFormatter: (hook) => (
-          <Group gap='xs' justify='flex-end' wrap='nowrap'>
-            <ActionIcon
-              variant='light'
-              size='md'
-              icon={IconPencil}
-              tooltip={t('Edit')}
-              onClick={() => {
-                openRESTServicesModal({
-                  assetUid: this.state.assetUid,
-                  hookUid: hook.uid,
-                })
-              }}
-            />
-
-            <ActionIcon
-              variant='danger-secondary'
-              size='md'
-              icon={IconTrash}
-              tooltip={t('Delete')}
-              onClick={() => this.deleteHookSafe(hook.uid, hook.name)}
-            />
-          </Group>
-        ),
-      },
-    ]
-
-    return (
-      <Stack gap='md'>
-        {this.state.hooks.length === 0 && (
-          <Stack align='center' gap='md' p='xl' ta='center'>
-            <Box c='gray.4'>
-              <KoboIcon icon={resolveLegacySvgIconByName('data-sync')} size={120} />
-            </Box>
-
-            <Title order={2} fw={400}>
-              {t("This project doesn't have any REST Services yet!")}
-            </Title>
-
-            <Text>
-              {t('You can use REST Services to automatically post submissions to a third-party application.')}
-              &nbsp;
-              {supportUrl && (
-                <Anchor href={supportUrl} target='_blank'>
-                  {t('Learn more')}
-                </Anchor>
-              )}
-            </Text>
-          </Stack>
-        )}
-
-        {this.state.hooks.length !== 0 && (
-          <Stack gap='md'>
-            <Group>
-              <Title order={2} fz='inherit' flex={1}>
-                {t('REST Services: ##number##').replace('##number##', String(this.state.hooks.length))}
-              </Title>
-
-              {supportUrl && (
-                <ButtonNew
-                  variant='transparent'
-                  to={supportUrl}
-                  component={Link}
-                  target='_blank'
-                  leftIcon={IconHelpCircleFilled}
-                >
-                  {t('Need help?')}
-                </ButtonNew>
-              )}
-            </Group>
-
-            <UniversalTableCore<ExternalServiceHookResponse> columns={columns} data={this.state.hooks} />
-          </Stack>
-        )}
-
-        <Group justify='flex-end'>
-          <ButtonNew
+  const columns: Array<UniversalTableColumn<ExternalServiceHookResponse>> = [
+    {
+      key: 'name',
+      label: t('Service Name'),
+      grow: true,
+      cellFormatter: (hook) => (
+        <Anchor
+          component={Link}
+          to={ROUTES.FORM_REST_HOOK.replace(':uid', assetUid).replace(':hookUid', hook.uid)}
+          c={hook.active ? 'gray.2' : 'gray.4'}
+          underline='not-hover'
+        >
+          {hook.name}
+        </Anchor>
+      ),
+    },
+    { key: 'success_count', label: t('Success'), size: 100 },
+    { key: 'pending_count', label: t('Pending'), size: 100 },
+    { key: 'failed_count', label: t('Failed'), size: 100 },
+    {
+      key: 'actions',
+      label: '',
+      size: 100,
+      cellFormatter: (hook) => (
+        <Group gap='xs' justify='flex-end' wrap='nowrap'>
+          <ActionIcon
+            variant='light'
+            size='md'
+            icon={IconPencil}
+            tooltip={t('Edit')}
             onClick={() => {
               openRESTServicesModal({
-                assetUid: this.state.assetUid,
-                // hookUid: not provided intentionally
+                assetUid: assetUid,
+                hookUid: hook.uid,
               })
             }}
-            size='lg'
-          >
-            {t('Register a New Service')}
-          </ButtonNew>
+          />
+
+          <ActionIcon
+            variant='danger-secondary'
+            size='md'
+            icon={IconTrash}
+            tooltip={t('Delete')}
+            onClick={() => deleteHookSafe(hook.uid, hook.name)}
+          />
         </Group>
-      </Stack>
-    )
-  }
+      ),
+    },
+  ]
+
+  return (
+    <Stack gap='md'>
+      {hooks.length === 0 && (
+        <Stack align='center' gap='md' p='xl' ta='center'>
+          <Box c='gray.4'>
+            <KoboIcon icon={resolveLegacySvgIconByName('data-sync')} size={120} />
+          </Box>
+
+          <Title order={2} fw={400}>
+            {t("This project doesn't have any REST Services yet!")}
+          </Title>
+
+          <Text>
+            {t('You can use REST Services to automatically post submissions to a third-party application.')}
+            &nbsp;
+            {supportUrl && (
+              <Anchor href={supportUrl} target='_blank'>
+                {t('Learn more')}
+              </Anchor>
+            )}
+          </Text>
+        </Stack>
+      )}
+
+      {hooks.length !== 0 && (
+        <Stack gap='md'>
+          <Group>
+            <Title order={2} fz='inherit' flex={1}>
+              {t('REST Services: ##number##').replace('##number##', String(hooks.length))}
+            </Title>
+
+            {supportUrl && (
+              <ButtonNew
+                variant='transparent'
+                to={supportUrl}
+                component={Link}
+                target='_blank'
+                leftIcon={IconHelpCircleFilled}
+              >
+                {t('Need help?')}
+              </ButtonNew>
+            )}
+          </Group>
+
+          <UniversalTableCore<ExternalServiceHookResponse> columns={columns} data={hooks} />
+        </Stack>
+      )}
+
+      <Group justify='flex-end'>
+        <ButtonNew
+          onClick={() => {
+            openRESTServicesModal({
+              assetUid: assetUid,
+              // hookUid: not provided intentionally
+            })
+          }}
+          size='lg'
+        >
+          {t('Register a New Service')}
+        </ButtonNew>
+      </Group>
+    </Stack>
+  )
 }

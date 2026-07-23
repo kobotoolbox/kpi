@@ -1,4 +1,3 @@
-import React from 'react'
 import DocumentTitle from 'react-document-title'
 import type { AssetResponse } from '#/dataInterface'
 import RESTServiceLogs from './RESTServiceLogs'
@@ -9,16 +8,14 @@ interface RESTServicesProps {
   hookUid: string
 }
 
-export default class RESTServices extends React.Component<RESTServicesProps> {
-  render() {
-    const docTitle = this.props.asset.name || t('Untitled')
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <div className='rest-services form-view form-view--rest-services'>
-          {this.props.hookUid && <RESTServiceLogs assetUid={this.props.asset.uid} hookUid={this.props.hookUid} />}
-          {!this.props.hookUid && <RESTServicesList assetUid={this.props.asset.uid} />}
-        </div>
-      </DocumentTitle>
-    )
-  }
+export default function RESTServices({ asset, hookUid }: RESTServicesProps) {
+  const docTitle = asset.name || t('Untitled')
+  return (
+    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <div className='rest-services form-view form-view--rest-services'>
+        {hookUid && <RESTServiceLogs assetUid={asset.uid} hookUid={hookUid} />}
+        {!hookUid && <RESTServicesList assetUid={asset.uid} />}
+      </div>
+    </DocumentTitle>
+  )
 }
