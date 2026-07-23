@@ -67,7 +67,7 @@ export default class RESTServicesList extends React.Component<RESTServicesListPr
       return
     }
 
-    const [before, after] = t('You are about to delete ##target. This action cannot be undone.').split('##target')
+    const [before, after = ''] = t('You are about to delete ##target. This action cannot be undone.').split('##target')
 
     openKoboConfirmModal({
       title: t('Are you sure you want to delete ##target?').replace('##target', hookName),

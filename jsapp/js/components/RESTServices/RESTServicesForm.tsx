@@ -1,5 +1,5 @@
 import { Box, Checkbox, Group, PasswordInput, Radio, Stack } from '@mantine/core'
-import { useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { actions } from '#/actions'
 import { cleanupAndUniqueTags } from '#/assetUtils'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -164,7 +164,7 @@ export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: 
     return isValid
   }
 
-  const onSubmit = (evt: React.FormEvent) => {
+  const onSubmit = (evt: FormEvent) => {
     evt.preventDefault()
 
     if (!validateForm()) {

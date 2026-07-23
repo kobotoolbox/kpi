@@ -1,4 +1,4 @@
-import { Anchor, Box, Group, Stack, Text, Title } from '@mantine/core'
+import { Group, Stack, Text, Title } from '@mantine/core'
 import { IconChevronLeft, IconRefresh } from '@tabler/icons-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -215,9 +215,9 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
         grow: true,
         cellFormatter: (log) =>
           log.status === HOOK_LOG_STATUSES.SUCCESS ? (
-            <Anchor c='gray.2' underline='hover' onClick={() => this.openSubmissionModal(log)}>
+            <ButtonNew variant='transparent' onClick={() => this.openSubmissionModal(log)}>
               {log.submission_id}
-            </Anchor>
+            </ButtonNew>
           ) : (
             log.submission_id
           ),
@@ -256,50 +256,48 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
     ]
 
     return (
-      <Box bg='white' p='lg'>
-        <Stack gap='md'>
-          <Group>
-            <ButtonNew
-              size='md'
-              variant='light'
-              component={Link}
-              to={ROUTES.FORM_REST.replace(':uid', this.state.assetUid)}
-              leftIcon={IconChevronLeft}
-            >
-              {t('Back to REST Services')}
-            </ButtonNew>
+      <Stack gap='md'>
+        <Group>
+          <ButtonNew
+            size='md'
+            variant='light'
+            component={Link}
+            to={ROUTES.FORM_REST.replace(':uid', this.state.assetUid)}
+            leftIcon={IconChevronLeft}
+          >
+            {t('Back to REST Services')}
+          </ButtonNew>
 
-            <Title order={2} fz='inherit'>
-              {this.state.hookName}
-            </Title>
-          </Group>
+          <Title order={2} fz='inherit'>
+            {this.state.hookName}
+          </Title>
+        </Group>
 
-          {this.state.logs.length === 0 ? (
-            <Text ta='center' p='xl'>
-              {t('There are no logs yet')}
-            </Text>
-          ) : (
-            <UniversalTableCore<ExternalServiceLogResponse>
-              columns={columns}
-              data={this.state.logs}
-              bottomContent={
-                this.state.nextPageUrl !== null && (
-                  <Group justify='center'>
-                    <ButtonNew
-                      variant='light'
-                      size='md'
-                      loading={this.state.isLoadingLogs}
-                      onClick={this.loadMore.bind(this)}
-                    >
-                      {t('Load more')}
-                    </ButtonNew>
-                  </Group>
-                )
-              }
-            />
-          )}
-        </Stack>
-      </Box>
+        {this.state.logs.length === 0 ? (
+          <Text ta='center' p='xl'>
+            {t('There are no logs yet')}
+          </Text>
+        ) : (
+          <UniversalTableCore<ExternalServiceLogResponse>
+            columns={columns}
+            data={this.state.logs}
+            bottomContent={
+              this.state.nextPageUrl !== null && (
+                <Group justify='center'>
+                  <ButtonNew
+                    variant='light'
+                    size='md'
+                    loading={this.state.isLoadingLogs}
+                    onClick={this.loadMore.bind(this)}
+                  >
+                    {t('Load more')}
+                  </ButtonNew>
+                </Group>
+              )
+            }
+          />
+        )}
+      </Stack>
     )
   }
 }
