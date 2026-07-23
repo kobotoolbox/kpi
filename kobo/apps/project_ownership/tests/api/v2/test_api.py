@@ -780,9 +780,8 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
 
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_interrupted_move_is_completed_on_retry(self):
-        # A run that moved the file then died before saving leaves the file at
-        # the new path and the row at the old one. The retry must repoint the
-        # row rather than treat the source as gone.
+        # A run that died after moving leaves the file at the new path and the
+        # row at the old one. The retry must repoint it, not skip it.
         self.client.login(username='someuser', password='someuser')
         payload = {
             'recipient': self.absolute_reverse(

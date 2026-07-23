@@ -55,7 +55,7 @@ class Transfer(AbstractTimeStampedModel):
     )
 
     class Meta:
-        verbose_name = 'project ownership transfer'
+        verbose_name = 'transfer'
 
     def __str__(self) -> str:
         return (
@@ -463,10 +463,14 @@ class TransferStatusError(AbstractTimeStampedModel):
         TransferStatus, related_name='errors', on_delete=models.CASCADE
     )
     error = models.CharField(null=True, blank=True)
-    # No index: two values is not selective, and `CREATE INDEX` would lock
-    # writes on a large table.
+    # Skips vastly outnumber errors, so filtering on `error` is selective.
+    # Index is created concurrently, see migration 0008.
     level = models.CharField(
         max_length=5,
         choices=TransferStatusErrorLevelChoices.choices,
         default=TransferStatusErrorLevelChoices.ERROR,
+        db_index=True,
     )
+
+    class Meta:
+        verbose_name = 'log'

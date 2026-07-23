@@ -1,11 +1,13 @@
-from collections import Counter, defaultdict
+from collections import Counter
 
+from django.conf import settings
 from django.contrib import admin
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
 from django.urls import reverse
-from django.utils.html import escape, format_html, linebreaks
+from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
 
+from kobo.apps.organizations.models import Organization
 from .models import Invite, Transfer
 from .models.choices import TransferStatusErrorLevelChoices
 from .models.invite import InviteType
@@ -14,9 +16,6 @@ from .models.transfer import (
     TransferStatusError,
     TransferStatusTypeChoices,
 )
-
-# Max records rendered inline per status.
-MAX_DISPLAYED_RECORDS = 100
 
 
 class InviteTypeFilter(admin.SimpleListFilter):
@@ -52,9 +51,10 @@ class InviteAdmin(admin.ModelAdmin):
     ]
 
     list_display = (
-        'get_projects',
+        'uid',
+        'get_project_count',
         'sender',
-        'recipient',
+        'get_recipient',
         'status',
         'invite_type',
         'date_created',
@@ -86,26 +86,31 @@ class InviteAdmin(admin.ModelAdmin):
 
         try:
             cl = response.context_data['cl']  # ChangeList instance
-            self._get_cached_asset_names_by_invite(list(cl.result_list))
+            self._get_cached_organization_names(list(cl.result_list))
         except (AttributeError, KeyError):
-            self._asset_names_by_invite = {}
+            self._organization_names_by_user = {}
 
         return response
 
     def get_queryset(self, request):
-        return Invite.all_objects.all()
-
-    @admin.display(description='Projects')
-    def get_projects(self, obj):
-
-        return mark_safe(
-           linebreaks('\n'.join(self._asset_names_by_invite.get(obj.id, [])))
+        return Invite.all_objects.select_related('sender', 'recipient').annotate(
+            project_count=Count('transfers')
         )
+
+    @admin.display(description='Projects', ordering='project_count')
+    def get_project_count(self, obj):
+        return obj.project_count
+
+    @admin.display(description='Recipient')
+    def get_recipient(self, obj):
+        # Org-membership invites transfer to the organization, not the account.
+        if obj.invite_type == InviteType.ORG_MEMBERSHIP:
+            return self._organization_names_by_user.get(obj.recipient_id, obj.recipient)
+        return obj.recipient
 
     @admin.display(description='Transfers')
     def get_transfers(self, obj):
-        # Summary only; per-transfer detail lives on TransferAdmin, linked
-        # below. Org invites can have 100+ transfers.
+        # Summary only; per-transfer detail lives on TransferAdmin, linked below.
         status_counts = Counter(
             TransferStatus.objects.filter(
                 transfer__invite_id=obj.id,
@@ -123,9 +128,9 @@ class InviteAdmin(admin.ModelAdmin):
             f'{count} {status}' for status, count in sorted(status_counts.items())
         )
         changelist_url = reverse('admin:project_ownership_transfer_changelist')
-        link = f'{changelist_url}?invite__id__exact={obj.id}'
+        link = f'{changelist_url}?invite_id={obj.id}'
         log_url = reverse('admin:project_ownership_transferstatuserror_changelist')
-        log_link = f'{log_url}?transfer_status__transfer__invite__id__exact={obj.id}'
+        log_link = f'{log_url}?transfer_status__transfer__invite_id={obj.id}'
 
         return format_html(
             '{} transfer(s): {} — {} error record(s). '
@@ -146,22 +151,26 @@ class InviteAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def _get_cached_asset_names_by_invite(
-        self, paginated_invites: list[Invite]
-    ) -> dict[int, list[str]]:
-        invite_ids = [invite.pk for invite in paginated_invites]
+    def _get_cached_organization_names(self, paginated_invites: list[Invite]):
+        # `User.organization` queries per user; resolve the whole page at once.
+        recipient_ids = [
+            invite.recipient_id
+            for invite in paginated_invites
+            if invite.invite_type == InviteType.ORG_MEMBERSHIP
+        ]
 
         rows = (
-            Transfer.objects.filter(invite_id__in=invite_ids)
-            .select_related('asset')
-            .values_list('invite_id', 'asset__name')
+            Organization.objects.filter(organization_users__user_id__in=recipient_ids)
+            .order_by('-organization_users__created')
+            .values_list('organization_users__user_id', 'name')
         )
 
-        asset_map = defaultdict(list)
-        for invite_id, asset_name in rows:
-            asset_map[invite_id].append(asset_name or '-')
+        # Same "most recent membership wins" rule as `User.organization`.
+        organization_names = {}
+        for user_id, name in rows:
+            organization_names.setdefault(user_id, name)
 
-        self._asset_names_by_invite = dict(asset_map)
+        self._organization_names_by_user = organization_names
 
 
 @admin.register(Transfer)
@@ -174,21 +183,21 @@ class TransferAdmin(admin.ModelAdmin):
         'get_status',
         'date_created',
     )
-    list_select_related = ('asset', 'invite')
     search_fields = ('uid', 'asset__uid', 'asset__name', 'invite__uid')
     readonly_fields = ('uid', 'asset', 'invite', 'invite_type', 'get_statuses')
     fields = ('uid', 'asset', 'invite', 'invite_type', 'get_statuses')
 
     def lookup_allowed(self, lookup, value, request=None):
         # Allow the deep-link from InviteAdmin.get_transfers.
-        return lookup == 'invite__id__exact' or super().lookup_allowed(
-            lookup, value, request
-        )
+        return lookup == 'invite_id' or super().lookup_allowed(lookup, value, request)
 
     def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
+            # `asset.content` can be huge and is never displayed here.
+            .select_related('asset', 'invite')
+            .defer('asset__content')
             .prefetch_related(
                 Prefetch(
                     'statuses',
@@ -261,8 +270,8 @@ class TransferAdmin(admin.ModelAdmin):
         if status.error:
             # legacy deprecated `error` field on TransferStatus
             errors = [escape(status.error)] + errors
-        if len(errors) > MAX_DISPLAYED_RECORDS:
-            errors = errors[0:MAX_DISPLAYED_RECORDS]
+        if len(errors) > settings.PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS:
+            errors = errors[0 : settings.PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS]
             errors.append('...')
         if errors:
             html += f'<br><span class="error">{"<br/>".join(errors)}</span>'
@@ -291,19 +300,27 @@ class TransferStatusErrorAdmin(admin.ModelAdmin):
         'transfer_status__transfer__asset__name',
         'transfer_status__transfer__invite__uid',
     )
-    list_select_related = (
-        'transfer_status',
-        'transfer_status__transfer',
-        'transfer_status__transfer__asset',
-        'transfer_status__transfer__invite',
-    )
     date_hierarchy = 'date_created'
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            # `asset.content` can be huge and is not displayed here.
+            .select_related(
+                'transfer_status',
+                'transfer_status__transfer',
+                'transfer_status__transfer__asset',
+                'transfer_status__transfer__invite',
+            )
+            .defer('transfer_status__transfer__asset__content')
+        )
 
     def lookup_allowed(self, lookup, value, request=None):
         # Allow the deep-links from InviteAdmin and TransferAdmin.
         return lookup in (
-            'transfer_status__transfer__invite__id__exact',
-            'transfer_status__transfer__id__exact',
+            'transfer_status__transfer__invite_id',
+            'transfer_status__transfer_id',
         ) or super().lookup_allowed(lookup, value, request)
 
     @admin.display(description='Invite')

@@ -35,9 +35,9 @@ class ProjectOwnershipAdminTestCase(TestCase):
         # A summary line + links to the transfers and the logs, both filtered
         # to this invite, not a dump.
         assert 'View transfers' in html
-        assert f'invite__id__exact={self.invite.id}' in html
+        assert f'invite_id={self.invite.id}' in html
         assert 'View logs' in html
-        assert f'transfer_status__transfer__invite__id__exact={self.invite.id}' in html
+        assert f'transfer_status__transfer__invite_id={self.invite.id}' in html
         # The per-status error blocks are no longer dumped inline.
         assert '<ol>' not in html
 
@@ -140,5 +140,5 @@ class ProjectOwnershipAdminTestCase(TestCase):
         assert log_admin.has_delete_permission(request=None) is False
         # The per-invite deep link from the invite page must resolve.
         assert log_admin.lookup_allowed(
-            'transfer_status__transfer__invite__id__exact', '1', None
+            'transfer_status__transfer__invite_id', '1', None
         )

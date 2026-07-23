@@ -136,6 +136,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                         attachment.media_file, target_folder, media_file_path
                     )
                     if not moved:
+                        # Already logged by `ExtendedFieldFile.move()`.
                         TransferStatus._add_error(
                             transfer_status,
                             f'Source file {attachment.media_file_basename} '
@@ -143,16 +144,15 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                             f'(data already gone)',
                             level=TransferStatusErrorLevelChoices.INFO,
                         )
-                        logging.warning(
-                            f'Source file {media_file_path} (#{attachment.pk}) '
-                            f'no longer exists — skipped'
-                        )
                 if moved:
                     update_fields.append('media_file')
-                    _delete_thumbnails(media_file_path)
                     logging.info(
                         f'Successfully migrated {media_file_path} to {target_folder}'
                     )
+
+                # Runs even when the file did not move: thumbnails of a gone
+                # source would be orphaned.
+                _delete_thumbnails(media_file_path)
 
             attachment.user_id = transfer.invite.recipient.pk
             attachment.save(update_fields=update_fields)
@@ -225,15 +225,12 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                         media_file.content, target_folder, old_path
                     )
                     if not moved:
+                        # Already logged by `ExtendedFieldFile.move()`.
                         TransferStatus._add_error(
                             transfer_status,
                             f'Source file {old_path} (#{media_file.pk}) no '
                             f'longer exists — skipped (data already gone)',
                             level=TransferStatusErrorLevelChoices.INFO,
-                        )
-                        logging.warning(
-                            f'Source file {old_path} (#{media_file.pk}) no '
-                            f'longer exists — skipped'
                         )
                         continue
 
@@ -256,35 +253,31 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                             transfer.invite.recipient.username,
                             kc_obj.data_file.name,
                         ):
-                            if not kc_obj.data_file.move(
-                                kc_target_folder, reraise_errors=True
-                            ):
-                                success = False
-                                TransferStatus._add_error(
-                                    transfer_status,
-                                    f'Kobocat file {kc_obj.data_file.name}'
-                                    f' (#{media_file.pk})'
-                                    f' could not be moved to {kc_target_folder}',
+                            kc_old_path = kc_obj.data_file.name
+                            try:
+                                kc_moved = kc_obj.data_file.move(
+                                    kc_target_folder, reraise_errors=True
                                 )
-                            else:
+                            except SourceFileMissingError:
+                                # Same interrupted-move case as above.
+                                kc_moved = _recover_moved_file(
+                                    kc_obj.data_file, kc_target_folder, kc_old_path
+                                )
+                                if not kc_moved:
+                                    # Already logged by `ExtendedFieldFile.move()`.
+                                    TransferStatus._add_error(
+                                        transfer_status,
+                                        f'Kobocat source file {kc_old_path} '
+                                        f'(#{media_file.pk}) no longer exists — '
+                                        f'skipped (data already gone)',
+                                        level=TransferStatusErrorLevelChoices.INFO,
+                                    )
+
+                            if kc_moved:
                                 kc_obj.file_hash = media_file.md5_hash
                                 kc_obj.save(update_fields=['file_hash', 'data_file'])
 
                 heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
-        except SourceFileMissingError:
-            # Raised by the KoboCAT `data_file` move; the AssetFile one is
-            # handled inline above.
-            TransferStatus._add_error(
-                transfer_status,
-                f'Source file {media_file.content.name} (#{media_file.pk}) '
-                f'no longer exists — skipped (data already gone)',
-                level=TransferStatusErrorLevelChoices.INFO,
-            )
-            logging.warning(
-                f'Source file {media_file.content.name} (#{media_file.pk}) '
-                f'no longer exists — skipped'
-            )
-            continue
         except Exception as e:
             TransferStatus._add_error(
                 transfer_status, f'Error moving {media_file.content.name}: {e}'
