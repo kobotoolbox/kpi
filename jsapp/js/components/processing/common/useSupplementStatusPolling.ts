@@ -9,7 +9,7 @@ import {
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { getSubmissionRootUuid } from './conflictingOngoingJob'
 
 const POLL_INTERVAL = 3000
 
@@ -22,7 +22,7 @@ interface Options {
  * both use it so they stay in sync with the backend without duplicating the same timer code.
  */
 export function useSupplementStatusPolling(asset: AssetResponse, submission: DataResponse, options: Options = {}) {
-  const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
+  const rootUuid = getSubmissionRootUuid(submission)
   const firstPollDelayMs = Math.max(0, options.firstPollDelayMs ?? POLL_INTERVAL)
 
   const mutationPending =
