@@ -119,7 +119,6 @@ function isValidGeoJSON(geojson: string): boolean {
 }
 
 const OVERLAY_ERROR = t('Error loading overlay layer "##name##"')
-const OVERLAY_ERROR_INVALID_GEOJSON = t('Error loading overlay layer "##name##" (invalid GeoJSON)')
 
 interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
@@ -361,13 +360,15 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       }
       case 'csv': {
         const response = await fetch(layer.content)
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
         const text = await response.text()
         const parsed = Papa.parse<Record<string, string>>(text, { header: true, skipEmptyLines: true })
         const latField = parsed.meta.fields?.find((f) => /^lat/i.test(f))
         const lonField = parsed.meta.fields?.find((f) => /^lo?n/i.test(f))
         if (!latField || !lonField) {
-          notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
-          return
+          throw new Error('No latitude/longitude columns found')
         }
         geoJson = {
           type: 'FeatureCollection',
@@ -389,10 +390,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       case 'json':
       case 'geojson': {
         const response = await fetch(layer.content)
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
         const text = await response.text()
         if (!isValidGeoJSON(text)) {
-          notify.error(OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
-          return
+          throw new Error('Invalid GeoJSON')
         }
         geoJson = JSON.parse(text) as GeoJSON.GeoJsonObject
         break
@@ -400,7 +403,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       case 'kmz': {
         // KMZ files are zipped KMLs — unzip in the browser then parse as KML
         const response = await fetch(layer.content)
-        if (response.status !== 200 && response.status !== 0) {
+        if (!response.ok) {
           throw new Error(response.statusText)
         }
         const blob = await response.blob()
@@ -409,16 +412,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         const kmlFile = zip.file('doc.kml') ?? zip.file(/\.kml$/i)[0]
         const kmlContent = await kmlFile?.async('string')
         if (!kmlContent) {
-          notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
-          return
+          throw new Error('No KML file found in KMZ archive')
         }
         const dom = new DOMParser().parseFromString(kmlContent, 'text/xml')
         geoJson = toGeoJsonKml(dom) as GeoJSON.GeoJsonObject
         break
       }
       default:
-        notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
-        return
+        throw new Error(`Unsupported overlay file type: ${layer.metadata.type}`)
     }
 
     if (geoJson) {
