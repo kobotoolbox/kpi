@@ -1,14 +1,18 @@
 import json
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.utils import timezone
+
+from rest_framework.request import Request
 
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import BadAssetTypeException
+from kpi.serializers.v2.asset_version import AssetVersionListSerializer
+from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.utils.hash import calculate_hash
 from ..models import Asset, AssetVersion
 
@@ -145,6 +149,85 @@ class AssetVersionTestCase(TestCase):
 
         version.refresh_from_db()
         assert version._content_hash is not None
+
+    def test_version_number(self):
+        """
+        Test that `AssetVersionListSerializer.get_version_number()` returns the
+        correct major/minor version label ("1", "2.1", "3", etc.) for a realistic
+        chronological sequence of deployed and undeployed versions
+
+        This covers two separate concerns:
+        1. Correctness of the numbering logic itself, via the fallback path (no
+        window annotations) - deployed versions get a running major number,
+        undeployed versions get a minor number that resets after each
+        deployment, and versions created before the first deployment are
+        correctly numbered under major "0".
+
+        2. That the production `list` endpoint path (`get_queryset()` +
+        `annotate_version_numbers()`) computes identical numbers via window
+        function annotations, and that reading those annotations during
+        serialization fires zero additional queries - i.e. the version numbers
+        for a full page are resolved without any N+1 query per version, which
+        is the whole reason this was implemented as an annotated queryset
+        rather than per-object lookups.
+        """
+        asset = Asset.objects.create(asset_type='survey')
+        # Remove the version created alongside the asset so we fully control
+        # the sequence below
+        asset.asset_versions.all().delete()
+
+        base_date = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))
+
+        # A chronological sequence of (deployed?, expected version_number)
+        sequence = [
+            (False, '0.1'),  # undeployed change before any deployment
+            (True, '1'),     # first deployment
+            (True, '2'),     # second deployment
+            (False, '2.1'),  # form change after the 2nd deployment
+            (False, '2.2'),
+            (True, '3'),     # third deployment
+            (False, '3.1'),
+        ]
+
+        expected_by_uid = {}
+        for index, (deployed, expected) in enumerate(sequence):
+            version = AssetVersion.objects.create(
+                asset=asset,
+                version_content={'survey': []},
+                deployed=deployed,
+            )
+            # `date_modified` is auto-set, so force a strictly increasing value
+            AssetVersion.objects.filter(pk=version.pk).update(
+                date_modified=base_date + timedelta(minutes=index)
+            )
+            expected_by_uid[version.uid] = expected
+
+        # The endpoint returns versions newest-first, and the version number
+        # must not depend on which page a version lands on
+        serializer = AssetVersionListSerializer()
+
+        # Fallback path (e.g. the `retrieve` action): no `_version_major`
+        # annotation, so the major number is computed with a count query
+        computed_by_uid = {
+            version.uid: serializer.get_version_number(version)
+            for version in asset.asset_versions.all()
+        }
+        self.assertEqual(computed_by_uid, expected_by_uid)
+
+        # Production `list` path: both numbers arrive as window annotations, so
+        # serializing the whole page must not fire a single extra query (no
+        # N+1). One query fetches + computes the windows; serialization adds 0
+        view = AssetVersionViewSet()
+        view.action = 'list'
+        view.request = Request(RequestFactory().get('/'))
+        view._asset_uid = asset.uid
+        rows = list(view.get_queryset())
+        with self.assertNumQueries(0):
+            annotated_by_uid = {
+                version.uid: serializer.get_version_number(version)
+                for version in rows
+            }
+        self.assertEqual(annotated_by_uid, expected_by_uid)
 
     def test_version_date_modified(self):
         date_forced = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))

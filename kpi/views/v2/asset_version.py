@@ -98,6 +98,13 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
             _queryset = _queryset.only(
                 'uid', 'deployed', 'date_modified', 'asset_id', '_content_hash'
             )
+            # Compute each version's major/minor number across every version of
+            # the asset in a single query (two window functions), evaluated
+            # before pagination slices the page so the numbers stay stable
+            # across pages and the serializer needs no per-row query
+            _queryset = AssetVersionListSerializer.annotate_version_numbers(
+                _queryset
+            )
         # `AssetVersionListSerializer.get_url()` asks for the asset UID
         _queryset = _queryset.select_related('asset')
         return _queryset

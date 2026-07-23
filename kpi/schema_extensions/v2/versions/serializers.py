@@ -6,6 +6,7 @@ from .fields import (
     DateModifiedField,
     UidField,
     UrlField,
+    VersionNumberField,
 )
 
 VersionListResponse = inline_serializer_class(
@@ -16,6 +17,7 @@ VersionListResponse = inline_serializer_class(
         'content_hash': ContentHashField(),
         'date_deployed': DateDeployedField(),
         'date_modified': DateModifiedField(),
+        'version_number': VersionNumberField(),
     },
 )
 
