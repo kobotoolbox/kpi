@@ -11,8 +11,8 @@ def manually_create_indexes_instructions(apps, schema_editor):
         Run the SQL queries below in PostgreSQL directly:
 
             ```sql
-            CREATE INDEX CONCURRENTLY "project_ownership_transferstatuserror_level_00e8616d" ON "project_ownership_transferstatuserror" ("level");
-            CREATE INDEX CONCURRENTLY "project_ownership_transferstatuserror_level_00e8616d_like" ON "project_ownership_transferstatuserror" ("level" varchar_pattern_ops);
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS "project_ownership_transferstatuserror_level_00e8616d" ON "project_ownership_transferstatuserror" ("level");
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS "project_ownership_transferstatuserror_level_00e8616d_like" ON "project_ownership_transferstatuserror" ("level" varchar_pattern_ops);
             ```
 
         """)
