@@ -1,21 +1,17 @@
-import React from 'react'
-
-import clonedeep from 'lodash.clonedeep'
+import { Box, Checkbox, Group, PasswordInput, Radio, Stack } from '@mantine/core'
+import { type FormEvent, useEffect, useState } from 'react'
 import { actions } from '#/actions'
 import { cleanupAndUniqueTags } from '#/assetUtils'
-import bem from '#/bem'
+import ButtonNew from '#/components/common/ButtonNew'
+import Select from '#/components/common/Select'
 import TagsInput from '#/components/common/TagsInput'
-import Button from '#/components/common/button'
-import Checkbox from '#/components/common/checkbox'
+import TextInput from '#/components/common/TextInput'
+import Textarea from '#/components/common/Textarea'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import Radio from '#/components/common/radio'
-import TextBox from '#/components/common/textBox'
-import WrappedSelect from '#/components/common/wrappedSelect'
-import { KEY_CODES } from '#/constants'
 import { type ExternalServiceHookResponse, type FailResponse, dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
 import { notify } from '#/utils'
+import RESTServicesCustomHeaders, { type CustomHeader, getEmptyHeaderRow } from './RESTServicesCustomHeaders'
 
 export enum HookExportTypeName {
   json = 'json',
@@ -33,6 +29,8 @@ const EXPORT_TYPES = {
   },
 }
 
+const TYPE_OPTIONS = [EXPORT_TYPES.json, EXPORT_TYPES.xml]
+
 export enum HookAuthLevelName {
   no_auth = 'no_auth',
   basic_auth = 'basic_auth',
@@ -49,522 +47,289 @@ const AUTH_OPTIONS = {
   },
 }
 
+const AUTH_OPTIONS_LIST = [AUTH_OPTIONS.no_auth, AUTH_OPTIONS.basic_auth]
+
 interface RESTServicesFormProps {
   assetUid: string
   hookUid?: string
+  onRequestClose: () => void
 }
 
-interface RESTServicesFormState {
-  isLoadingHook: boolean
-  isSubmitPending: boolean
-  assetUid: string
-  hookUid?: string
-  name: string
-  nameError?: string
-  endpoint: string
-  endpointError?: string
-  type: HookExportTypeName
-  typeOptions: Array<{ value: HookExportTypeName; label: string }>
-  isActive: boolean
-  emailNotification: boolean
-  authLevel: { value: HookAuthLevelName; label: string } | null
-  authOptions: Array<{ value: HookAuthLevelName; label: string }>
-  authUsername: string
-  authPassword: string
-  subsetFields: string[]
-  customHeaders: Array<{ name: string; value: string }>
-  payloadTemplate: string
-  payloadTemplateErrors: string | string[]
+// The backend stores custom headers as a plain object (`{ "X-Foo": "bar" }`),
+// but our headers editor works with an array of name/value pairs so it can have
+// blank/duplicate rows while the user is typing. These two helpers convert
+// between the two shapes: `Obj -> Arr` when loading, `Arr -> Obj` when saving.
+
+function headersObjToArr(headersObj: { [key: string]: string }): CustomHeader[] {
+  const headersArr: CustomHeader[] = []
+  for (const header in headersObj) {
+    // Guard against inherited prototype keys; only take the object's own keys.
+    if (Object.prototype.hasOwnProperty.call(headersObj, header)) {
+      headersArr.push({ name: header, value: headersObj[header] })
+    }
+  }
+  return headersArr
 }
 
-export default class RESTServicesForm extends React.Component<RESTServicesFormProps, RESTServicesFormState> {
-  constructor(props: RESTServicesFormProps) {
-    super(props)
-    this.state = {
-      isLoadingHook: true,
-      isSubmitPending: false,
-      assetUid: props.assetUid,
-      hookUid: props.hookUid,
-      name: '',
-      nameError: undefined,
-      endpoint: '',
-      endpointError: undefined,
-      type: EXPORT_TYPES.json.value,
-      typeOptions: [EXPORT_TYPES.json, EXPORT_TYPES.xml],
-      isActive: true,
-      emailNotification: true,
-      authLevel: null,
-      authOptions: [AUTH_OPTIONS.no_auth, AUTH_OPTIONS.basic_auth],
-      authUsername: '',
-      authPassword: '',
-      subsetFields: [],
-      customHeaders: [this.getEmptyHeaderRow()],
-      payloadTemplate: '',
-      payloadTemplateErrors: [],
+function headersArrToObj(headersArr: CustomHeader[]) {
+  const headersObj: { [key: string]: string } = {}
+  for (const header of headersArr) {
+    // Skip rows with no name — those are blank/unfinished and can't be a key.
+    if (header.name) {
+      headersObj[header.name] = header.value
     }
   }
+  return headersObj
+}
 
-  componentDidMount() {
-    if (this.state.hookUid) {
-      dataInterface
-        .getHook(this.state.assetUid, this.state.hookUid)
-        .done((data: ExternalServiceHookResponse) => {
-          const stateUpdate: Partial<RESTServicesFormState> = {
-            isLoadingHook: false,
-            name: data.name,
-            endpoint: data.endpoint,
-            isActive: data.active,
-            emailNotification: data.email_notification,
-            subsetFields: data.subset_fields || [],
-            type: data.export_type,
-            authLevel: AUTH_OPTIONS[data.auth_level] || null,
-            customHeaders: this.headersObjToArr(data.settings.custom_headers),
-            payloadTemplate: data.payload_template,
-          }
+/**
+ * The form for creating or editing a single REST Service, shown inside a modal.
+ * Passing a `hookUid` puts it in "edit" mode: it fetches that service and fills
+ * the fields in; without one it's a blank "create" form.
+ *
+ * Every field is a piece of local `useState`. On submit we bundle them into the
+ * shape the backend expects (see `getDataForBackend`) and call the matching
+ * add/update action, then close the modal via `onRequestClose`.
+ */
+export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: RESTServicesFormProps) {
+  const isEditingExistingHook = Boolean(hookUid)
 
-          if (stateUpdate.customHeaders?.length === 0) {
-            stateUpdate.customHeaders.push(this.getEmptyHeaderRow())
-          }
-          if (data.settings.username) {
-            stateUpdate.authUsername = data.settings.username
-          }
-          if (data.settings.password) {
-            stateUpdate.authPassword = data.settings.password
-          }
+  const [isLoadingHook, setIsLoadingHook] = useState(isEditingExistingHook)
+  const [isSubmitPending, setIsSubmitPending] = useState(false)
+  const [name, setName] = useState('')
+  const [nameError, setNameError] = useState<string | undefined>(undefined)
+  const [endpoint, setEndpoint] = useState('')
+  const [endpointError, setEndpointError] = useState<string | undefined>(undefined)
+  const [type, setType] = useState<HookExportTypeName>(EXPORT_TYPES.json.value)
+  const [isActive, setIsActive] = useState(true)
+  const [emailNotification, setEmailNotification] = useState(true)
+  const [authLevel, setAuthLevel] = useState<HookAuthLevelName | null>(null)
+  const [authUsername, setAuthUsername] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [subsetFields, setSubsetFields] = useState<string[]>([])
+  const [customHeaders, setCustomHeaders] = useState<CustomHeader[]>([getEmptyHeaderRow()])
+  const [payloadTemplate, setPayloadTemplate] = useState('')
+  const [payloadTemplateErrors, setPayloadTemplateErrors] = useState<string | string[]>([])
 
-          this.setState(stateUpdate as RESTServicesFormState)
-        })
-        .fail(() => {
-          this.setState({ isSubmitPending: false })
-          notify.error(t('Could not load REST Service'))
-        })
-    } else {
-      this.setState({ isLoadingHook: false })
-    }
-  }
-
-  /*
-   * helpers
-   */
-
-  getEmptyHeaderRow() {
-    return { name: '', value: '' }
-  }
-
-  headersObjToArr(headersObj: { [key: string]: string }) {
-    const headersArr: Array<{ name: string; value: string }> = []
-    for (const header in headersObj) {
-      if (Object.prototype.hasOwnProperty.call(headersObj, header)) {
-        headersArr.push({
-          name: header,
-          value: headersObj[header],
-        })
-      }
-    }
-    return headersArr
-  }
-
-  headersArrToObj(headersArr: Array<{ name: string; value: string }>) {
-    const headersObj: { [key: string]: string } = {}
-    for (const header of headersArr) {
-      if (header.name) {
-        headersObj[header.name] = header.value
-      }
-    }
-    return headersObj
-  }
-
-  /*
-   * user input handling
-   */
-
-  handleNameChange(newName: string) {
-    this.setState({
-      name: newName,
-      nameError: undefined,
-    })
-  }
-
-  handleEndpointChange(newEndpoint: string) {
-    this.setState({
-      endpoint: newEndpoint,
-      endpointError: undefined,
-    })
-  }
-
-  handleAuthTypeChange(evt: unknown) {
-    const newVal = evt as { value: HookAuthLevelName; label: string }
-    this.setState({ authLevel: newVal })
-  }
-
-  handleAuthUsernameChange(newUsername: string) {
-    this.setState({ authUsername: newUsername })
-  }
-
-  handleAuthPasswordChange(newPassword: string) {
-    this.setState({ authPassword: newPassword })
-  }
-
-  handleActiveChange(isChecked: boolean) {
-    this.setState({ isActive: isChecked })
-  }
-
-  handleEmailNotificationChange(isChecked: boolean) {
-    this.setState({ emailNotification: isChecked })
-  }
-
-  handleTypeRadioChange(value: string, name: string) {
-    this.setState({ [name]: value } as unknown as Pick<RESTServicesFormState, keyof RESTServicesFormState>)
-  }
-
-  handleCustomHeaderNameChange(headerIndex: number, newName: string) {
-    const newCustomHeaders = clonedeep(this.state.customHeaders)
-    newCustomHeaders[headerIndex].name = newName
-    this.setState({ customHeaders: newCustomHeaders })
-  }
-
-  handleCustomHeaderValueChange(headerIndex: number, newValue: string) {
-    const newCustomHeaders = clonedeep(this.state.customHeaders)
-    newCustomHeaders[headerIndex].value = newValue
-    this.setState({ customHeaders: newCustomHeaders })
-  }
-
-  handleCustomWrapperChange(newVal: string) {
-    this.setState({
-      payloadTemplate: newVal,
-      payloadTemplateErrors: [],
-    })
-  }
-
-  /*
-   * submitting form
-   */
-
-  getDataForBackend() {
-    let authLevel = AUTH_OPTIONS.no_auth.value
-    if (this.state.authLevel !== null) {
-      authLevel = this.state.authLevel.value
+  // In edit mode, load the existing service and populate every field from it.
+  // In create mode there's nothing to fetch, so we bail early and keep the
+  // defaults set in `useState` above.
+  useEffect(() => {
+    if (!hookUid) {
+      return
     }
 
+    dataInterface
+      .getHook(assetUid, hookUid)
+      .done((data: ExternalServiceHookResponse) => {
+        const loadedHeaders = headersObjToArr(data.settings.custom_headers)
+        setName(data.name)
+        setEndpoint(data.endpoint)
+        setIsActive(data.active)
+        setEmailNotification(data.email_notification)
+        setSubsetFields(data.subset_fields || [])
+        setType(data.export_type)
+        // Only accept an auth level we actually offer; otherwise fall back to none.
+        setAuthLevel(AUTH_OPTIONS[data.auth_level] ? data.auth_level : null)
+        // Always show at least one header row, even if the service has none saved.
+        setCustomHeaders(loadedHeaders.length === 0 ? [getEmptyHeaderRow()] : loadedHeaders)
+        setPayloadTemplate(data.payload_template)
+        if (data.settings.username) {
+          setAuthUsername(data.settings.username)
+        }
+        if (data.settings.password) {
+          setAuthPassword(data.settings.password)
+        }
+        setIsLoadingHook(false)
+      })
+      .fail(() => {
+        setIsSubmitPending(false)
+        notify.error(t('Could not load REST Service'))
+      })
+  }, [assetUid, hookUid])
+
+  const getDataForBackend = () => {
     const data: Partial<ExternalServiceHookResponse> = {
-      name: this.state.name,
-      endpoint: this.state.endpoint,
-      active: this.state.isActive,
-      subset_fields: this.state.subsetFields,
-      email_notification: this.state.emailNotification,
-      export_type: this.state.type,
-      auth_level: authLevel,
+      name: name,
+      endpoint: endpoint,
+      active: isActive,
+      subset_fields: subsetFields,
+      email_notification: emailNotification,
+      export_type: type,
+      auth_level: authLevel || AUTH_OPTIONS.no_auth.value,
       settings: {
-        custom_headers: this.headersArrToObj(this.state.customHeaders),
+        custom_headers: headersArrToObj(customHeaders),
       },
-      payload_template: this.state.payloadTemplate,
+      payload_template: payloadTemplate,
     }
 
-    if (this.state.authUsername && data.settings !== undefined) {
-      data.settings.username = this.state.authUsername
+    if (authUsername && data.settings !== undefined) {
+      data.settings.username = authUsername
     }
-    if (this.state.authPassword && data.settings !== undefined) {
-      data.settings.password = this.state.authPassword
+    if (authPassword && data.settings !== undefined) {
+      data.settings.password = authPassword
     }
     return data
   }
 
-  validateForm() {
+  const validateForm = () => {
     let isValid = true
-    if (this.state.name.trim() === '') {
-      this.setState({ nameError: t('Name required') })
+    if (name.trim() === '') {
+      setNameError(t('Name required'))
       isValid = false
     }
-    if (this.state.endpoint.trim() === '') {
-      this.setState({ endpointError: t('URL required') })
+    if (endpoint.trim() === '') {
+      setEndpointError(t('URL required'))
       isValid = false
     }
     return isValid
   }
 
-  onSubmit(evt: React.FormEvent) {
+  const onSubmit = (evt: FormEvent) => {
     evt.preventDefault()
 
-    if (!this.validateForm()) {
+    if (!validateForm()) {
       notify.error(t('Please enter both name and url of your service.'))
       return
     }
 
     const callbacks = {
       onComplete: () => {
-        pageState.hideModal()
-        actions.resources.loadAsset({ id: this.state.assetUid })
+        onRequestClose()
+        actions.resources.loadAsset({ id: assetUid })
       },
       onFail: (data: FailResponse) => {
-        let payloadTemplateErrors: string | string[] = []
+        let newPayloadTemplateErrors: string | string[] = []
         if (data.responseJSON?.payload_template?.length !== 0) {
-          payloadTemplateErrors = data.responseJSON?.payload_template || []
+          newPayloadTemplateErrors = data.responseJSON?.payload_template || []
         }
-        this.setState({
-          payloadTemplateErrors: payloadTemplateErrors,
-          isSubmitPending: false,
-        })
+        setPayloadTemplateErrors(newPayloadTemplateErrors)
+        setIsSubmitPending(false)
       },
     }
 
-    this.setState({ isSubmitPending: true })
-    if (this.state.hookUid) {
-      actions.hooks.update(this.state.assetUid, this.state.hookUid, this.getDataForBackend(), callbacks)
+    setIsSubmitPending(true)
+    // Editing hits the update action; creating hits add. Both share the callbacks.
+    if (hookUid) {
+      actions.hooks.update(assetUid, hookUid, getDataForBackend(), callbacks)
     } else {
-      actions.hooks.add(this.state.assetUid, this.getDataForBackend(), callbacks)
-    }
-    return false
-  }
-
-  /*
-   * handle custom headers
-   */
-
-  onCustomHeaderInputKeyPress(evt: React.KeyboardEvent<HTMLInputElement>) {
-    // Pressing ENTER key while editing the name, moves focus to the input for the value
-    if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
-      evt.preventDefault()
-      ;(evt.currentTarget.parentElement?.querySelector('input[name="headerValue"]') as HTMLInputElement).focus()
-    }
-    // Pressing ENTER key while editing the value, adds a new row and moves focus to its name input
-    if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
-      evt.preventDefault()
-      this.addNewCustomHeaderRow()
+      actions.hooks.add(assetUid, getDataForBackend(), callbacks)
     }
   }
 
-  addNewCustomHeaderRow(evt?: React.MouseEvent<HTMLButtonElement>) {
-    if (evt) {
-      evt.preventDefault()
-    }
-    const newCustomHeaders = this.state.customHeaders
-    newCustomHeaders.push(this.getEmptyHeaderRow())
-    this.setState({ customHeaders: newCustomHeaders })
-    setTimeout(() => {
-      const inputs = document.querySelectorAll('input[name="headerName"]')
-      const lastEl = inputs[inputs.length - 1]
-      if (lastEl !== null) {
-        ;(lastEl as HTMLInputElement).focus()
-      }
-    }, 0)
+  if (isLoadingHook) {
+    return <LoadingSpinner />
   }
 
-  removeCustomHeaderRow(headerIndex: number) {
-    const newCustomHeaders = clonedeep(this.state.customHeaders)
-    newCustomHeaders.splice(Number(headerIndex), 1)
-    if (newCustomHeaders.length === 0) {
-      newCustomHeaders.push(this.getEmptyHeaderRow())
-    }
-    this.setState({ customHeaders: newCustomHeaders })
+  let submissionPlaceholder = '%SUBMISSION%'
+  if (envStore.isReady && envStore.data.submission_placeholder) {
+    submissionPlaceholder = envStore.data.submission_placeholder
   }
 
-  renderCustomHeaders() {
-    return (
-      <bem.FormModal__item m='http-headers'>
-        <label>{t('Custom HTTP Headers')}</label>
+  // The backend may hand back template errors as either a single string or a
+  // list of them; flatten to one string so the Textarea can show it.
+  const payloadTemplateError = Array.isArray(payloadTemplateErrors)
+    ? payloadTemplateErrors.join(' ')
+    : payloadTemplateErrors
 
-        {this.state.customHeaders.map((_item, n) => (
-          <bem.FormModal__item m='http-header-row' key={n}>
-            <input
-              type='text'
-              placeholder={t('Name')}
-              id={`headerName-${n}`}
-              name='headerName'
-              value={this.state.customHeaders[n].name}
-              onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.handleCustomHeaderNameChange(n, evt.target.value)
-              }}
-              onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
-            />
-
-            <input
-              type='text'
-              placeholder={t('Value')}
-              id={`headerValue-${n}`}
-              name='headerValue'
-              value={this.state.customHeaders[n].value}
-              onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                this.handleCustomHeaderValueChange(n, evt.target.value)
-              }}
-              onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
-            />
-
-            <Button
-              type='secondary-danger'
-              size='m'
-              className='http-header-row-remove'
-              startIcon='trash'
-              onClick={(evt: React.ChangeEvent<HTMLButtonElement>) => {
-                evt.preventDefault()
-                this.removeCustomHeaderRow(n)
-              }}
-            />
-          </bem.FormModal__item>
-        ))}
-
-        <Button
-          type='secondary'
-          size='s'
-          startIcon='plus'
-          onClick={this.addNewCustomHeaderRow.bind(this)}
-          label={t('Add header')}
+  return (
+    <Box component='form' onSubmit={onSubmit}>
+      <Stack gap='md'>
+        <TextInput
+          label={t('Name')}
+          placeholder={t('Service Name')}
+          value={name}
+          error={nameError}
+          onChange={(evt) => {
+            setName(evt.currentTarget.value)
+            setNameError(undefined)
+          }}
         />
-      </bem.FormModal__item>
-    )
-  }
 
-  /*
-   * handle fields
-   */
+        <TextInput
+          label={t('Endpoint URL')}
+          placeholder={t('https://')}
+          value={endpoint}
+          error={endpointError}
+          onChange={(evt) => {
+            setEndpoint(evt.currentTarget.value)
+            setEndpointError(undefined)
+          }}
+        />
 
-  onSubsetFieldsChange(newValue: string[]) {
-    this.setState({ subsetFields: cleanupAndUniqueTags(newValue) })
-  }
+        <Checkbox checked={isActive} onChange={(evt) => setIsActive(evt.currentTarget.checked)} label={t('Enabled')} />
 
-  renderFieldsSelector() {
-    return (
-      <bem.FormModal__item>
+        <Checkbox
+          checked={emailNotification}
+          onChange={(evt) => setEmailNotification(evt.currentTarget.checked)}
+          label={t('Receive emails notifications')}
+        />
+
+        <Radio.Group label={t('Type')} value={type} onChange={(newType) => setType(newType as HookExportTypeName)}>
+          <Group gap='lg' mt='xxs'>
+            {TYPE_OPTIONS.map((option) => (
+              <Radio key={option.value} value={option.value} label={option.label} />
+            ))}
+          </Group>
+        </Radio.Group>
+
+        <Select
+          label={t('Security')}
+          data={AUTH_OPTIONS_LIST}
+          value={authLevel}
+          onChange={(newVal) => setAuthLevel((newVal as HookAuthLevelName) || null)}
+          searchable={false}
+        />
+
+        {authLevel === HookAuthLevelName.basic_auth && (
+          <Group grow align='flex-start'>
+            <TextInput
+              label={t('Username')}
+              value={authUsername}
+              onChange={(evt) => setAuthUsername(evt.currentTarget.value)}
+            />
+
+            <PasswordInput
+              label={t('Password')}
+              value={authPassword}
+              onChange={(evt) => setAuthPassword(evt.currentTarget.value)}
+            />
+          </Group>
+        )}
+
         <TagsInput
-          value={this.state.subsetFields}
-          onChange={this.onSubsetFieldsChange.bind(this)}
+          value={subsetFields}
+          onChange={(newValue) => setSubsetFields(cleanupAndUniqueTags(newValue))}
           placeholder={t('Add field(s)')}
           label={t('Select fields subset')}
         />
-      </bem.FormModal__item>
-    )
-  }
 
-  /*
-   * rendering
-   */
+        <RESTServicesCustomHeaders headers={customHeaders} onChange={setCustomHeaders} />
 
-  render() {
-    const isEditingExistingHook = Boolean(this.state.hookUid)
-
-    if (this.state.isLoadingHook) {
-      return <LoadingSpinner />
-    } else {
-      let submissionPlaceholder = '%SUBMISSION%'
-      if (envStore.isReady && envStore.data.submission_placeholder) {
-        submissionPlaceholder = envStore.data.submission_placeholder
-      }
-
-      return (
-        <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
-          <bem.FormModal__item m='wrapper'>
-            <bem.FormModal__item>
-              <TextBox
-                label={t('Name')}
-                type='text'
-                placeholder={t('Service Name')}
-                value={this.state.name}
-                errors={this.state.nameError}
-                onChange={this.handleNameChange.bind(this)}
-              />
-            </bem.FormModal__item>
-
-            <bem.FormModal__item>
-              <TextBox
-                label={t('Endpoint URL')}
-                type='text'
-                placeholder={t('https://')}
-                value={this.state.endpoint}
-                errors={this.state.endpointError}
-                onChange={this.handleEndpointChange.bind(this)}
-              />
-            </bem.FormModal__item>
-
-            <bem.FormModal__item>
-              <Checkbox
-                name='isActive'
-                onChange={this.handleActiveChange.bind(this)}
-                checked={this.state.isActive}
-                label={t('Enabled')}
-              />
-            </bem.FormModal__item>
-
-            <bem.FormModal__item>
-              <Checkbox
-                name='emailNotification'
-                onChange={this.handleEmailNotificationChange.bind(this)}
-                checked={this.state.emailNotification}
-                label={t('Receive emails notifications')}
-              />
-            </bem.FormModal__item>
-
-            <bem.FormModal__item>
-              <Radio
-                name='type'
-                options={this.state.typeOptions}
-                onChange={this.handleTypeRadioChange.bind(this)}
-                selected={this.state.type}
-                title={t('Type')}
-              />
-            </bem.FormModal__item>
-
-            <bem.FormModal__item>
-              <WrappedSelect
-                label={t('Security')}
-                value={this.state.authLevel}
-                options={this.state.authOptions}
-                onChange={this.handleAuthTypeChange.bind(this)}
-                id='rest-service-form--security'
-                name='authLevel'
-                isSearchable={false}
-                isLimitedHeight
-              />
-            </bem.FormModal__item>
-
-            {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value && (
-              <bem.FormModal__item>
-                <TextBox
-                  label={t('Username')}
-                  type='text'
-                  value={this.state.authUsername}
-                  onChange={this.handleAuthUsernameChange.bind(this)}
-                />
-
-                <TextBox
-                  label={t('Password')}
-                  type='text'
-                  value={this.state.authPassword}
-                  onChange={this.handleAuthPasswordChange.bind(this)}
-                />
-              </bem.FormModal__item>
+        {type === EXPORT_TYPES.json.value && (
+          <Textarea
+            autosize
+            minRows={2}
+            label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace(
+              '%SUBMISSION%',
+              submissionPlaceholder,
             )}
+            placeholder={t('Add Custom Wrapper')}
+            value={payloadTemplate}
+            error={payloadTemplateError || undefined}
+            onChange={(evt) => {
+              setPayloadTemplate(evt.currentTarget.value)
+              setPayloadTemplateErrors([])
+            }}
+          />
+        )}
+      </Stack>
 
-            {this.renderFieldsSelector()}
-
-            {this.renderCustomHeaders()}
-
-            {this.state.type === EXPORT_TYPES.json.value && (
-              <bem.FormModal__item m='rest-custom-wrapper'>
-                <TextBox
-                  label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace(
-                    '%SUBMISSION%',
-                    submissionPlaceholder,
-                  )}
-                  type='text-multiline'
-                  placeholder={t('Add Custom Wrapper')}
-                  value={this.state.payloadTemplate}
-                  errors={this.state.payloadTemplateErrors}
-                  onChange={this.handleCustomWrapperChange.bind(this)}
-                />
-              </bem.FormModal__item>
-            )}
-          </bem.FormModal__item>
-
-          <bem.Modal__footer>
-            <Button
-              type='primary'
-              size='l'
-              onClick={this.onSubmit.bind(this)}
-              isDisabled={this.state.isSubmitPending}
-              label={isEditingExistingHook ? t('Save') : t('Create')}
-            />
-          </bem.Modal__footer>
-        </bem.FormModal__form>
-      )
-    }
-  }
+      <Group justify='flex-end' mt='lg'>
+        <ButtonNew type='submit' size='lg' loading={isSubmitPending}>
+          {isEditingExistingHook ? t('Save') : t('Create')}
+        </ButtonNew>
+      </Group>
+    </Box>
+  )
 }

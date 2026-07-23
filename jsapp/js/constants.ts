@@ -81,7 +81,6 @@ export const MODAL_TYPES = {
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
   TABLE_SETTINGS: 'table-settings',
-  REST_SERVICES: 'rest-services',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
