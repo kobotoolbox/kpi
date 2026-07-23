@@ -24204,12 +24204,16 @@ components:
           type: string
           format: date-time
           readOnly: true
+        version_number:
+          type: string
+          readOnly: true
       required:
       - content_hash
       - date_deployed
       - date_modified
       - uid
       - url
+      - version_number
     VersionRetrieveResponse:
       type: object
       properties:
@@ -24235,6 +24239,9 @@ components:
         date_modified:
           type: string
           format: date-time
+          readOnly: true
+        version_number:
+          type: string
           readOnly: true
         content:
           type: object
@@ -24285,6 +24292,7 @@ components:
       - date_modified
       - uid
       - url
+      - version_number
     historyExportResponse:
       type: object
       properties:

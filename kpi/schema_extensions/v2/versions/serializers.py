@@ -30,6 +30,7 @@ VersionRetrieveResponse = inline_serializer_class(
         'content_hash': ContentHashField(),
         'date_deployed': DateDeployedField(),
         'date_modified': DateModifiedField(),
+        'version_number': VersionNumberField(),
         'content': ContentField(),
     },
 )
