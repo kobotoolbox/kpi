@@ -9,149 +9,317 @@ concurrency:
 on:
   push:
     tags:
-      - v2.0**
+      - '2.0**'
 
 
 jobs:
 
-  darker:
-    uses: ./.github/workflows/darker.yml
-
-  biome:
-    uses: ./.github/workflows/biome.yml
-
-  openapi:
-    uses: ./.github/workflows/openapi.yml
-
-  pytest:
-    uses: ./.github/workflows/pytest.yml
-
-  npm-test:
-    uses: ./.github/workflows/npm-test.yml
-
-  version:
+  current-branch:
     runs-on: ubuntu-24.04
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - uses: actions/checkout@v6
-    - name: Formats the version number
-      id: version
+    - name: Derive release branch from tag
+      id: branch
       run: |
         set -xe
-        TAG=$GITHUB_REF
-        VERSION=$(echo "$TAG" | sed 's/v//')
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        # Extract minor version from tag (e.g. 2.026.27 from 2.026.27b)
+        MINOR=$(echo "${GITHUB_REF_NAME}" | grep -oP '^\d+\.\d+\.\d+')
+        echo "current_branch=release/$MINOR" >> "$GITHUB_OUTPUT"
 
-  ## TODO
-  # sync-transifex:
-  #   needs:
-  #     - version
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #   - name: Push to Transifex
-  #     uses: transifex/cli-action@v2
-  #     with:
-  #       token: ${{ secrets.TRANSIFEX_API }}
-  #       args: 'push -s'
 
-  #   - name: Pull Transifex
-  #     uses: transifex/cli-action@v2
-  #     with:
-  #       token: ${{ secrets.TRANSIFEX_API }}
-  #       args: 'pull -a -f --mode reviewed'
-
-  #   - name: Bail if nothing changed.
-  #     id: pull-changed
-  #     run: |
-  #       CHANGED=$(git diff-index --exit-code HEAD &>/dev/null && echo "false" || echo "true")
-  #       echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
-
-  #   - name: commit the translateble strings
-  #     if: ${{ steps.pull-changed.outputs.changed == "true" }}
-  #     run: |
-  #       git add .
-  #       git commit -m "chore: update transifex translations"
-  #       git push
-
-  deploy-to-master:
-    runs-on: ubuntu-24.04
+  version:
     needs:
-      - darker
-      - pytest
-      - npm-test
+      - current-branch
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+    with:
+      current_branch: ${{ needs.current-branch.outputs.current_branch }}
+
+
+  # TODO DEV-1916
+  pull-transifex:
+    needs:
+      - version
     if: ${{ !cancelled() && !failure() }}
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: deploy to master
+    - name: Pull Transifex translations
+      uses: transifex/cli-action@v2
+      with:
+        token: ${{ secrets.TRANSIFEX_API }}
+        args: 'pull -a -f --mode reviewed'
+
+    - name: Check if translations changed
+      id: pull-changed
       run: |
-        echo 'TODO, for now deploy manually on kf.master.kbtdev'
-        ## see https://github.com/kobotoolbox/kobo-deployments
-        ## see https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/2.2E024.2E33.20Release/near/472818
-        ## Note: script does two things - deploys and updates docker-compose - see if can seperate that for easier reruns
-        ## Note: this server has lots of data, run migrations or smtg with a 1 minute timeout to flag if some migrations run too long
-        # pipenv shell
-        # fab update_kpi:$VERSION
-        # fab dev_deploy:master,kpi,$GITHUB_REF
+        CHANGED=$(git diff-index --exit-code HEAD &>/dev/null && echo "false" || echo "true")
+        echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
+
+    - name: Commit translations, move tag
+      if: ${{ steps.pull-changed.outputs.changed == 'true' }}
+      env:
+        VERSION: ${{ github.ref_name }}
+        # GITHUB_TOKEN pushes do NOT trigger workflows, so the tag move won't re-trigger this job.
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Order: commit first (safe), then move tag.
+        # If interrupted after commit but before tag move, recovery is: re-push the tag.
+        git add .
+        git commit -m "chore: pull transifex translations for $VERSION"
+        git push
+        # Move tag to new commit. Use gh api to push via GITHUB_TOKEN (no workflow re-trigger).
+        NEW_SHA=$(git rev-parse HEAD)
+        gh api -X PATCH "repos/${{ github.repository }}/git/refs/tags/$VERSION" \
+          -f sha="$NEW_SHA" -F force=true
+
+
+  build-image:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - pull-transifex
+    if: ${{ !cancelled() && !failure() }}
+    permissions:
+      contents: write
+      packages: write
+    env:
+      CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        # Re-fetch the tag in case pull-transifex moved it to a new commit
+        ref: refs/tags/${{ github.ref_name }}
+        fetch-depth: 1
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push image
+      env:
+        VERSION: ${{ github.ref_name }}
+      run: |
+        set -xe
+        # Pull previous release branch image for cache (best-effort)
+        BRANCH_TAG=$(echo "${{ needs.version.outputs.current_branch }}" | tr '/' '-')
+        docker pull "$CI_REGISTRY_IMAGE:$BRANCH_TAG" || true
+        # Build the production image
+        docker build \
+          --cache-from "$CI_REGISTRY_IMAGE:$BRANCH_TAG" \
+          --tag "$CI_REGISTRY_IMAGE:$VERSION" \
+          .
+        # Verify the image contains the expected commit
+        EXPECTED_SHA=$(git rev-parse HEAD)
+        IMAGE_SHA=$(docker run --rm "$CI_REGISTRY_IMAGE:$VERSION" bash -c \
+          "cd /srv/src/kpi && git rev-parse --verify HEAD 2>/dev/null || cat .commit_sha 2>/dev/null || echo unknown")
+        if [ "$IMAGE_SHA" != "unknown" ] && [ "$IMAGE_SHA" != "$EXPECTED_SHA" ]; then
+          echo "::error::Image contains commit $IMAGE_SHA but expected $EXPECTED_SHA"
+          exit 1
+        fi
+        # Push the image
+        docker push "$CI_REGISTRY_IMAGE:$VERSION"
+
+    - name: Delete tag on build failure
+      if: failure()
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "::warning::Image build failed. Deleting tag so it can be re-pushed to retry."
+        gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ github.ref_name }}" || true
+
 
   bump:
     runs-on: ubuntu-24.04
     needs:
-      - deploy-to-master
+      - version
+      - build-image
+    if: ${{ !cancelled() && !failure() }}
     steps:
     - uses: actions/checkout@v6
 
-    - name: Bump Kobotoolbox version in kobo-docker repo and tag it
+    - name: Generate cross-repo token
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        owner: kobotoolbox
+        repositories: "kobo-docker,kobo-install"
+
+    - name: Configure git identity
       run: |
-        echo 'TODO, lets test this later with a real release branch'
-        echo 'see for example https://github.com/kobotoolbox/kobo-docker/commit/8d964e51c8a82ae74f19154fc5e895ae1db6854d'
+        git config --global user.name 'kobo-bot[bot]'
+        git config --global user.email '200aborting+kobo-bot[bot]@users.noreply.github.com'
 
-    - name: Bump Kobotoolbox version in kobo-install repo and tag it
+    - name: Bump KoboToolbox version in kobo-docker and tag it
+      env:
+        VERSION: ${{ github.ref_name }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        echo 'TODO, lets test this later with a real release branch'
-        echo 'see for example https://github.com/kobotoolbox/kobo-install/commit/90f63c477480c1f6771c3e9ff2295046b2d99dae'
+        set -xe
+        TMPDIR=$(mktemp -d)
+        git clone --depth=1 --branch=master \
+          "https://x-access-token:${GH_TOKEN}@github.com/kobotoolbox/kobo-docker.git" "$TMPDIR"
+        cd "$TMPDIR"
+
+        # Update image tag in docker-compose.frontend.yml
+        sed -i -E "s|(image: kobotoolbox/kpi:).*|\1${VERSION}|" docker-compose.frontend.yml
+
+        # Commit if changed
+        if git diff --quiet; then
+          echo "No changes needed in kobo-docker (already at $VERSION)"
+        else
+          git add docker-compose.frontend.yml
+          git commit -m "Upgrade KPI to ${VERSION}"
+          git push origin master
+        fi
+
+        # Create and push annotated tag
+        if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
+          echo "Tag ${VERSION} already exists on kobo-docker. Skipping."
+        else
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "refs/tags/${VERSION}"
+        fi
+
+    - name: Bump KoboToolbox version in kobo-install and tag it
+      env:
+        VERSION: ${{ github.ref_name }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        set -xe
+        TMPDIR=$(mktemp -d)
+        git clone --depth=1 --branch=master \
+          "https://x-access-token:${GH_TOKEN}@github.com/kobotoolbox/kobo-install.git" "$TMPDIR"
+        cd "$TMPDIR"
+
+        # Update KOBO_DOCKER_BRANCH in helpers/config.py
+        sed -i -E "s|(KOBO_DOCKER_BRANCH = ')[^']*('.*)|\\1${VERSION}\\2|" helpers/config.py
+
+        # Commit if changed
+        if git diff --quiet; then
+          echo "No changes needed in kobo-install (already at $VERSION)"
+        else
+          git add helpers/config.py
+          git commit -m "Use release ${VERSION} of kobo-docker"
+          git push origin master
+        fi
+
+        # Create and push annotated tag
+        if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
+          echo "Tag ${VERSION} already exists on kobo-install. Skipping."
+        else
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "refs/tags/${VERSION}"
+        fi
 
 
-  queue-deploy-to-production:
+  linear:
     runs-on: ubuntu-24.04
+    needs:
+      - version
+      - build-image
+    if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
-
-    - name: create Linear issue to deploy on Global
+    # TODO: Implement Linear GraphQL API integration.
+    # Requirements:
+    #   - Secret: LINEAR_API_KEY_GITHUB_ACTIONS_BOT
+    #   - Find the Linear project release by name matching $VERSION
+    #   - Update its status to "Pending Release"
+    # Linear GraphQL endpoint: https://api.linear.app/graphql
+    # Relevant mutations: updateProjectUpdate, or project status field update
+    - name: Set Linear release status to "Pending Release"
+      env:
+        VERSION: ${{ github.ref_name }}
+        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
       run: |
-        echo 'TODO, for now do it manually'
+        echo "::notice::TODO: set Linear release status to 'Pending Release' for $VERSION"
+        echo "Requires Linear GraphQL API integration (see workflow comments)"
 
-    - name: create Linear issue to deploy on EU a day later
+    # TODO DEV-653: Implement Linear issue creation for Infra deployment.
+    # Requirements:
+    #   - Secret: LINEAR_API_KEY_GITHUB_ACTIONS_BOT
+    #   - Create issue in Infra team with deployment checklist
+    #   - Detect SKIP_HEAVY_MIGRATIONS by analyzing migration files between prev and current tag
+    #   - Include per-instance deployment steps from design doc
+    # Linear GraphQL mutation: issueCreate
+    - name: Create Linear issue for Infra to deploy
+      env:
+        VERSION: ${{ github.ref_name }}
+        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
       run: |
-        echo 'TODO, for now do it manually'
+        echo "::notice::TODO DEV-653: create Linear issue for Infra team to deploy $VERSION"
+        echo "Requires Linear GraphQL API integration and migration analysis (see workflow comments)"
 
-    - name: create Linear issue to deploy on private servers a week later
-      run: |
-        echo 'TODO, for now do it manually'
+
+  deploy-to-master:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - build-image
+    if: ${{ !cancelled() && !failure() }}
+    steps:
+    - name: Generate cross-repo token
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        owner: kobotoolbox
+        repositories: "devops"
+
+    - name: Trigger kfmaster deploy
+      uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: deploy-kfmaster.yml
+        repo: kobotoolbox/devops
+        ref: instance/kfmaster
+        token: ${{ steps.app-token.outputs.token }}
+        inputs: |
+          {
+            "kpi_image_sha": "${{ github.ref_name }}"
+          }
 
 
   notify:
     needs:
       - version
+      - build-image
+      - bump
+      - linear
+      - deploy-to-master
+    if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.version.outputs.version }} release"
-      content: ":label: Release branch tagged and passes CI. Please deploy to master, bump and tag kobo-docker and kobo-install, and deploy to production. (TODO: automate)"
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":label: `${{ github.ref_name }}` tagged, image built and pushed to GHCR. Bumped kobo-docker and kobo-install. Triggered deploy to kf.master."
 
 
   on-failure:
     needs:
       - version
-      - darker
-      - pytest
-      - npm-test
-      - deploy-to-master
+      - pull-transifex
+      - build-image
       - bump
+      - linear
+      - deploy-to-master
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
-      topic: "${{ needs.version.outputs.version }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release pipeline failed for `${{ github.ref_name }}`. @*devs* please investigate."
