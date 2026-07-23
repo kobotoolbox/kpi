@@ -744,6 +744,7 @@ export interface AssetResponse extends AssetRequestObject {
     csv_legacy: string
     csv: string
     geojson?: string
+    kml_legacy: string
     spss_labels?: string
     xls_legacy: string
     xls: string
