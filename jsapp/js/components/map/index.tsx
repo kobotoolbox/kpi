@@ -109,6 +109,17 @@ type MarkerMap = Array<{
 
 type MapValueCounts = Record<string, { count: number; id: number }>
 
+function parseKmlDom(dom: Document): GeoJSON.GeoJsonObject {
+  if (dom.getElementsByTagName('parsererror').length > 0) {
+    throw new Error('Invalid KML: XML parse error')
+  }
+  const result = toGeoJsonKml(dom)
+  if (!result.features.length) {
+    throw new Error('KML contained no features')
+  }
+  return result as GeoJSON.GeoJsonObject
+}
+
 function isValidGeoJSON(geojson: string): boolean {
   try {
     return Boolean(check(geojson))
@@ -355,7 +366,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
         const text = await response.text()
         const dom = new DOMParser().parseFromString(text, 'text/xml')
-        geoJson = toGeoJsonKml(dom) as GeoJSON.GeoJsonObject
+        geoJson = parseKmlDom(dom)
         break
       }
       case 'csv': {
@@ -415,7 +426,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           throw new Error('No KML file found in KMZ archive')
         }
         const dom = new DOMParser().parseFromString(kmlContent, 'text/xml')
-        geoJson = toGeoJsonKml(dom) as GeoJSON.GeoJsonObject
+        geoJson = parseKmlDom(dom)
         break
       }
       default:
