@@ -94,26 +94,11 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
             _queryset = _queryset.filter(deployed=_deployed)
         if self.action == 'list':
             # Save time by only retrieving fields from the DB that the
-            # serializer will use
+            # serializer will use. The `version_number` is derived from the
+            # asset's full history by `AssetVersionListSerializer` (one memoized
+            # query per request), so no queryset annotation is needed here
             _queryset = _queryset.only(
                 'uid', 'deployed', 'date_modified', 'asset_id', '_content_hash'
-            )
-            # Compute each version's major/minor number across every version of
-            # the asset in a single query, evaluated before pagination slices
-            # the page so the numbers stay stable across pages and the
-            # serializer needs no per-row query. The major number is a
-            # filter-independent subquery, so it stays correct even under a
-            # `?deployed=` filter; the minor number is a window.
-            _queryset = AssetVersionListSerializer.annotate_version_numbers(
-                _queryset
-            )
-        else:
-            # Other actions (e.g. `retrieve`) serialize a single object, where a
-            # window cannot see sibling rows; the major number, being a
-            # subquery, is still correct, and the minor number falls back to a
-            # count query in the serializer.
-            _queryset = AssetVersionListSerializer.annotate_major_number(
-                _queryset
             )
         # `AssetVersionListSerializer.get_url()` asks for the asset UID
         _queryset = _queryset.select_related('asset')

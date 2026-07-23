@@ -3,16 +3,13 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 from django.utils import timezone
-
-from rest_framework.request import Request
 
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import BadAssetTypeException
 from kpi.serializers.v2.asset_version import AssetVersionListSerializer
-from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.utils.hash import calculate_hash
 from ..models import Asset, AssetVersion
 
@@ -150,27 +147,38 @@ class AssetVersionTestCase(TestCase):
         version.refresh_from_db()
         assert version._content_hash is not None
 
+    def _make_versions(self, asset, sequence, base_date, tied=False):
+        """
+        Create versions from a list of (deployed?, expected_label) tuples and
+        return `{version_uid: expected_label}`. When `tied` is True every
+        version shares `base_date`; otherwise `date_modified` increases by a
+        minute per row (creation/`id` order still breaks ties)
+        """
+        expected_by_uid = {}
+        for index, (deployed, expected) in enumerate(sequence):
+            version = AssetVersion.objects.create(
+                asset=asset, version_content={'survey': []}, deployed=deployed
+            )
+            date_modified = base_date if tied else (
+                base_date + timedelta(minutes=index)
+            )
+            # `date_modified` is auto-set, so force our controlled value
+            AssetVersion.objects.filter(pk=version.pk).update(
+                date_modified=date_modified
+            )
+            expected_by_uid[version.uid] = expected
+        return expected_by_uid
+
     def test_version_number(self):
         """
-        Test that `AssetVersionListSerializer.get_version_number()` returns the
-        correct major/minor version label ("1", "2.1", "3", etc.) for a realistic
-        chronological sequence of deployed and undeployed versions
+        `get_version_number()` returns the correct major/minor label ("1",
+        "2.1", "3", ...) for a realistic sequence of deployed and undeployed
+        versions: deployments get a running major number, drafts get a minor
+        number that resets after each deployment, and drafts before the first
+        deployment fall under major "0"
 
-        This covers two separate concerns:
-        1. Correctness of the numbering logic itself, via the fallback path (no
-        annotations) - deployed versions get a running major number, undeployed
-        versions get a minor number that resets after each deployment, and
-        versions created before the first deployment are correctly numbered
-        under major "0".
-
-        2. That the production `list` endpoint path (`get_queryset()` +
-        `annotate_version_numbers()`) computes identical numbers via its
-        annotations (a subquery for the major number, a window for the minor),
-        and that reading those annotations during serialization fires zero
-        additional queries - i.e. the version numbers for a full page are
-        resolved without any N+1 query per version, which is the whole reason
-        this was implemented as an annotated queryset rather than per-object
-        lookups.
+        Also asserts that serializing a whole page costs exactly one query (the
+        memoized full-history label map), i.e. there is no N+1 per version.
         """
         asset = Asset.objects.create(asset_type='survey')
         # Remove the version created alongside the asset so we fully control
@@ -178,117 +186,97 @@ class AssetVersionTestCase(TestCase):
         asset.asset_versions.all().delete()
 
         base_date = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))
+        expected_by_uid = self._make_versions(
+            asset,
+            [
+                (False, '0.1'),  # undeployed change before any deployment
+                (True, '1'),     # first deployment
+                (True, '2'),     # second deployment
+                (False, '2.1'),  # form change after the 2nd deployment
+                (False, '2.2'),
+                (True, '3'),     # third deployment
+                (False, '3.1'),
+            ],
+            base_date,
+        )
 
-        # A chronological sequence of (deployed?, expected version_number)
-        sequence = [
-            (False, '0.1'),  # undeployed change before any deployment
-            (True, '1'),     # first deployment
-            (True, '2'),     # second deployment
-            (False, '2.1'),  # form change after the 2nd deployment
-            (False, '2.2'),
-            (True, '3'),     # third deployment
-            (False, '3.1'),
-        ]
-
-        expected_by_uid = {}
-        for index, (deployed, expected) in enumerate(sequence):
-            version = AssetVersion.objects.create(
-                asset=asset,
-                version_content={'survey': []},
-                deployed=deployed,
-            )
-            # `date_modified` is auto-set, so force a strictly increasing value
-            AssetVersion.objects.filter(pk=version.pk).update(
-                date_modified=base_date + timedelta(minutes=index)
-            )
-            expected_by_uid[version.uid] = expected
-
-        # The endpoint returns versions newest-first, and the version number
-        # must not depend on which page a version lands on
+        # A single serializer instance memoizes the label map per asset, so a
+        # whole page resolves in exactly one query - no per-row N+1
         serializer = AssetVersionListSerializer()
-
-        # Fallback path (e.g. the `retrieve` action): no `_version_major`
-        # annotation, so the major number is computed with a count query
-        computed_by_uid = {
-            version.uid: serializer.get_version_number(version)
-            for version in asset.asset_versions.all()
-        }
-        self.assertEqual(computed_by_uid, expected_by_uid)
-
-        # Production `list` path: both numbers arrive as window annotations, so
-        # serializing the whole page must not fire a single extra query (no
-        # N+1). One query fetches + computes the windows; serialization adds 0
-        view = AssetVersionViewSet()
-        view.action = 'list'
-        view.request = Request(RequestFactory().get('/'))
-        view._asset_uid = asset.uid
-        rows = list(view.get_queryset())
-        with self.assertNumQueries(0):
-            annotated_by_uid = {
+        rows = list(asset.asset_versions.all())
+        with self.assertNumQueries(1):
+            computed_by_uid = {
                 version.uid: serializer.get_version_number(version)
                 for version in rows
             }
-        self.assertEqual(annotated_by_uid, expected_by_uid)
-
-        # `retrieve` path: the major number is annotated (a filter-independent
-        # subquery) and the minor number falls back to a count query. It must
-        # match the numbers reported by `list` for every version
-        retrieve_view = AssetVersionViewSet()
-        retrieve_view.action = 'retrieve'
-        retrieve_view.request = Request(RequestFactory().get('/'))
-        retrieve_view._asset_uid = asset.uid
-        retrieve_by_uid = {
-            version.uid: serializer.get_version_number(version)
-            for version in retrieve_view.get_queryset()
-        }
-        self.assertEqual(retrieve_by_uid, expected_by_uid)
+        self.assertEqual(computed_by_uid, expected_by_uid)
 
     def test_version_number_with_deployed_filter(self):
         """
-        The version number must stay correct when the list is filtered with
-        `?deployed=`, even though that removes rows before the numbers are
-        computed. The major number is a filter-independent subquery, so drafts
-        keep the major of the deployment that precedes them (e.g. "2.1", not
-        "0.1")
+        The label is derived from the asset's full history, so it stays correct
+        even when the page is filtered with `?deployed=`: a draft keeps the
+        major of the deployment that precedes it (e.g. "2.1", not "0.1")
         """
         asset = Asset.objects.create(asset_type='survey')
         asset.asset_versions.all().delete()
         base_date = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))
-        # (deployed?, expected number when unfiltered)
-        sequence = [
-            (False, '0.1'),
-            (True, '1'),
-            (True, '2'),
-            (False, '2.1'),
-            (False, '2.2'),
-            (True, '3'),
-            (False, '3.1'),
-        ]
-        for index, (deployed, _expected) in enumerate(sequence):
-            version = AssetVersion.objects.create(
-                asset=asset, version_content={'survey': []}, deployed=deployed
-            )
-            AssetVersion.objects.filter(pk=version.pk).update(
-                date_modified=base_date + timedelta(minutes=index)
-            )
+        self._make_versions(
+            asset,
+            [
+                (False, '0.1'),
+                (True, '1'),
+                (True, '2'),
+                (False, '2.1'),
+                (False, '2.2'),
+                (True, '3'),
+                (False, '3.1'),
+            ],
+            base_date,
+        )
 
         serializer = AssetVersionListSerializer()
 
         def numbers_for(deployed):
-            # Mirror `get_queryset()` for a `?deployed=` request: the rows are
-            # filtered before the numbers are annotated
-            queryset = AssetVersionListSerializer.annotate_version_numbers(
-                AssetVersion.objects.filter(
-                    asset_id=asset.id, deployed=deployed
-                )
-            )
-            return [
-                serializer.get_version_number(version)
-                for version in queryset.order_by('date_modified', 'id')
-            ]
+            # Mirror `get_queryset()` for a `?deployed=` request: the page is
+            # filtered, but the label map still spans the full history
+            queryset = AssetVersion.objects.filter(
+                asset_id=asset.id, deployed=deployed
+            ).order_by('date_modified', 'id')
+            return [serializer.get_version_number(v) for v in queryset]
 
         self.assertEqual(numbers_for(False), ['0.1', '2.1', '2.2', '3.1'])
         self.assertEqual(numbers_for(True), ['1', '2', '3'])
+
+    def test_version_number_with_tied_timestamps(self):
+        """
+        Versions are ordered by `(date_modified, id)`, so even when several
+        share `date_modified` the numbering respects id (creation) order: a
+        draft ordered before a same-timestamp deployment stays under the
+        pre-deployment major and must not inflate the minor of the draft that
+        comes after the deployment
+        """
+        asset = Asset.objects.create(asset_type='survey')
+        asset.asset_versions.all().delete()
+        tied = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))
+        # All three share one timestamp; id order decides:
+        # draft-before, deployment, draft-after
+        expected_by_uid = self._make_versions(
+            asset,
+            [
+                (False, '0.1'),  # draft before the deployment
+                (True, '1'),     # deployment
+                (False, '1.1'),  # draft after the deployment (not "1.2")
+            ],
+            tied,
+            tied=True,
+        )
+
+        serializer = AssetVersionListSerializer()
+        numbers = {
+            version.uid: serializer.get_version_number(version)
+            for version in asset.asset_versions.all()
+        }
+        self.assertEqual(numbers, expected_by_uid)
 
     def test_version_date_modified(self):
         date_forced = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))
