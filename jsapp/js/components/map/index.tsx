@@ -351,6 +351,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     switch (layer.metadata.type) {
       case 'kml': {
         const response = await fetch(layer.content)
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
         const text = await response.text()
         const dom = new DOMParser().parseFromString(text, 'text/xml')
         geoJson = toGeoJsonKml(dom) as GeoJSON.GeoJsonObject
@@ -402,7 +405,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
         const blob = await response.blob()
         const zip = await JSZip.loadAsync(blob)
-        const kmlContent = await zip.file(/\.kml$/i)[0]?.async('string')
+        // By convention, doc.kml is the main KML file, but if it doesn't exist, just take the first KML file
+        const kmlFile = zip.file('doc.kml') ?? zip.file(/\.kml$/i)[0]
+        const kmlContent = await kmlFile?.async('string')
         if (!kmlContent) {
           notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
           return
