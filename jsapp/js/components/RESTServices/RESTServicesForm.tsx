@@ -55,9 +55,15 @@ interface RESTServicesFormProps {
   onRequestClose: () => void
 }
 
+// The backend stores custom headers as a plain object (`{ "X-Foo": "bar" }`),
+// but our headers editor works with an array of name/value pairs so it can have
+// blank/duplicate rows while the user is typing. These two helpers convert
+// between the two shapes: `Obj -> Arr` when loading, `Arr -> Obj` when saving.
+
 function headersObjToArr(headersObj: { [key: string]: string }): CustomHeader[] {
   const headersArr: CustomHeader[] = []
   for (const header in headersObj) {
+    // Guard against inherited prototype keys; only take the object's own keys.
     if (Object.prototype.hasOwnProperty.call(headersObj, header)) {
       headersArr.push({ name: header, value: headersObj[header] })
     }
@@ -68,6 +74,7 @@ function headersObjToArr(headersObj: { [key: string]: string }): CustomHeader[] 
 function headersArrToObj(headersArr: CustomHeader[]) {
   const headersObj: { [key: string]: string } = {}
   for (const header of headersArr) {
+    // Skip rows with no name — those are blank/unfinished and can't be a key.
     if (header.name) {
       headersObj[header.name] = header.value
     }
@@ -75,6 +82,15 @@ function headersArrToObj(headersArr: CustomHeader[]) {
   return headersObj
 }
 
+/**
+ * The form for creating or editing a single REST Service, shown inside a modal.
+ * Passing a `hookUid` puts it in "edit" mode: it fetches that service and fills
+ * the fields in; without one it's a blank "create" form.
+ *
+ * Every field is a piece of local `useState`. On submit we bundle them into the
+ * shape the backend expects (see `getDataForBackend`) and call the matching
+ * add/update action, then close the modal via `onRequestClose`.
+ */
 export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: RESTServicesFormProps) {
   const isEditingExistingHook = Boolean(hookUid)
 
@@ -95,6 +111,9 @@ export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: 
   const [payloadTemplate, setPayloadTemplate] = useState('')
   const [payloadTemplateErrors, setPayloadTemplateErrors] = useState<string | string[]>([])
 
+  // In edit mode, load the existing service and populate every field from it.
+  // In create mode there's nothing to fetch, so we bail early and keep the
+  // defaults set in `useState` above.
   useEffect(() => {
     if (!hookUid) {
       return
@@ -110,7 +129,9 @@ export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: 
         setEmailNotification(data.email_notification)
         setSubsetFields(data.subset_fields || [])
         setType(data.export_type)
+        // Only accept an auth level we actually offer; otherwise fall back to none.
         setAuthLevel(AUTH_OPTIONS[data.auth_level] ? data.auth_level : null)
+        // Always show at least one header row, even if the service has none saved.
         setCustomHeaders(loadedHeaders.length === 0 ? [getEmptyHeaderRow()] : loadedHeaders)
         setPayloadTemplate(data.payload_template)
         if (data.settings.username) {
@@ -188,6 +209,7 @@ export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: 
     }
 
     setIsSubmitPending(true)
+    // Editing hits the update action; creating hits add. Both share the callbacks.
     if (hookUid) {
       actions.hooks.update(assetUid, hookUid, getDataForBackend(), callbacks)
     } else {
@@ -204,6 +226,8 @@ export default function RESTServicesForm({ assetUid, hookUid, onRequestClose }: 
     submissionPlaceholder = envStore.data.submission_placeholder
   }
 
+  // The backend may hand back template errors as either a single string or a
+  // list of them; flatten to one string so the Textarea can show it.
   const payloadTemplateError = Array.isArray(payloadTemplateErrors)
     ? payloadTemplateErrors.join(' ')
     : payloadTemplateErrors

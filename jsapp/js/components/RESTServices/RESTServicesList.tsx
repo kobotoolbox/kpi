@@ -22,11 +22,23 @@ interface RESTServicesListProps {
   assetUid: string
 }
 
+/**
+ * Lists all REST Services registered for a project. This is the landing view of
+ * the project's REST Services settings: it shows each service with its
+ * success/pending/failed counts and edit/delete actions, or an empty state when
+ * there are none. From here you can register a new service or open one to edit.
+ *
+ * Data comes from the Reflux `hooks` actions (a legacy global store), not from
+ * props, so we both fetch on mount and subscribe to updates.
+ */
 export default function RESTServicesList({ assetUid }: RESTServicesListProps) {
   const [isLoadingHooks, setIsLoadingHooks] = useState(true)
   const [hooks, setHooks] = useState<ExternalServiceHookResponse[]>([])
 
   useEffect(() => {
+    // Subscribe to the shared store so the list refreshes when a hook is added,
+    // updated, or deleted elsewhere. `listen()` returns an unsubscribe function,
+    // which we collect and call in the cleanup below to avoid a memory leak.
     const unlisteners = [
       actions.hooks.getAll.completed.listen((data: PaginatedResponse<ExternalServiceHookResponse>) => {
         setIsLoadingHooks(false)
@@ -34,6 +46,7 @@ export default function RESTServicesList({ assetUid }: RESTServicesListProps) {
       }),
     ]
 
+    // Kick off the initial load.
     actions.hooks.getAll(assetUid, {
       onComplete: (data: PaginatedResponse<ExternalServiceHookResponse>) => {
         setIsLoadingHooks(false)
@@ -55,6 +68,10 @@ export default function RESTServicesList({ assetUid }: RESTServicesListProps) {
       return
     }
 
+    // We want the service name shown in bold *inside* the sentence, so we split
+    // the translated string on the `##target` placeholder and drop the bold name
+    // between the two halves. `after = ''` guards against a translation that's
+    // missing the placeholder (in which case `split` returns a single piece).
     const [before, after = ''] = t('You are about to delete ##target. This action cannot be undone.').split('##target')
 
     openKoboConfirmModal({

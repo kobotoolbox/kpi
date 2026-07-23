@@ -8,6 +8,12 @@ interface RESTServicesProps {
   hookUid: string
 }
 
+/**
+ * Entry point for a project's REST Services section. It's a simple router
+ * between two views: if a `hookUid` is present we're looking at one service's
+ * delivery logs; otherwise we show the list of all services. The URL is what
+ * decides which one — the parent route passes `hookUid` when it's in the path.
+ */
 export default function RESTServices({ asset, hookUid }: RESTServicesProps) {
   const docTitle = asset.name || t('Untitled')
   return (

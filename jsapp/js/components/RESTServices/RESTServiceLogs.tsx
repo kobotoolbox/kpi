@@ -29,15 +29,29 @@ interface RESTServiceLogsProps {
   hookUid: string
 }
 
+/**
+ * Shows the delivery logs for a single REST Service (identified by `hookUid`).
+ * Each row is one attempt to send a submission to the service's endpoint, with
+ * its status and date. Failed attempts can be retried individually or all at
+ * once, and logs with a message can be expanded for the failure detail.
+ *
+ * Logs are paginated: we load the first page on mount and append more via the
+ * "Load more" button. Like the list view, data lives in the Reflux `hooks`
+ * store rather than in props.
+ */
 export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsProps) {
   const [hookName, setHookName] = useState<string | null>(null)
   const [isHookActive, setIsHookActive] = useState(false)
   const [isLoadingHook, setIsLoadingHook] = useState(true)
   const [isLoadingLogs, setIsLoadingLogs] = useState(true)
   const [logs, setLogs] = useState<ExternalServiceLogResponse[]>([])
+  // URL of the next page of logs, or null when we've reached the end.
   const [nextPageUrl, setNextPageUrl] = useState<string | null>(null)
 
   useEffect(() => {
+    // Subscribe to log updates from the shared store, then load the hook's
+    // details and its first page of logs. `listen()` returns an unsubscribe
+    // function that we call in the cleanup below.
     const unlisteners = [
       actions.hooks.getLogs.completed.listen((data: PaginatedResponse<ExternalServiceLogResponse>) => {
         setLogs(data.results)
@@ -82,6 +96,7 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
     ;(dataInterface.loadNextPageUrl(nextPageUrl) as JQuery.jqXHR<PaginatedResponse<ExternalServiceLogResponse>>)
       .done((data) => {
         setIsLoadingLogs(false)
+        // Append the new page to the logs we already have, rather than replacing.
         setLogs((currentLogs) => [...currentLogs, ...data.results])
         setNextPageUrl(data.next)
       })
@@ -91,8 +106,11 @@ export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsPr
       })
   }
 
-  // useful to mark logs as pending, before BE tells about it
-  // NOTE: logUids is an array
+  // Optimistically flip the given logs to a new status locally, so the UI reacts
+  // immediately (e.g. show "Pending" the moment you click retry) instead of
+  // waiting for the backend to confirm. `map` builds a new array with new objects
+  // for the changed rows — React only re-renders when the reference changes, so
+  // we must not mutate the existing logs in place.
   const overrideLogsStatus = (logUids: string[], newStatus: number) => {
     setLogs((currentLogs) =>
       currentLogs.map((log) => (logUids.includes(log.uid) ? { ...log, status: newStatus } : log)),

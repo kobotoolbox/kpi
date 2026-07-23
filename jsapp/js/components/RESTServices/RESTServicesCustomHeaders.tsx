@@ -5,11 +5,13 @@ import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
 
+/** A single custom HTTP header: a name/value pair, e.g. `Authorization: Bearer …`. */
 export interface CustomHeader {
   name: string
   value: string
 }
 
+/** Returns a fresh, blank header row. Handy as an initial value or when adding a row. */
 export function getEmptyHeaderRow(): CustomHeader {
   return { name: '', value: '' }
 }
@@ -19,12 +21,27 @@ interface RESTServicesCustomHeadersProps {
   onChange: (headers: CustomHeader[]) => void
 }
 
+/**
+ * The "Custom HTTP Headers" editor used inside the REST Service form. It renders
+ * one name/value input pair per header, plus buttons to add and remove rows.
+ *
+ * This is a controlled component: it doesn't hold the headers itself. The parent
+ * owns the `headers` array and passes a new one back through `onChange` on every
+ * edit. That keeps a single source of truth in the parent form.
+ */
 export default function RESTServicesCustomHeaders({ headers, onChange }: RESTServicesCustomHeadersProps) {
+  // Points at the <Stack> that wraps the rows, so we can find inputs inside it
+  // (and only inside it) rather than searching the whole page.
   const containerRef = useRef<HTMLDivElement>(null)
   // Set when `addRow` runs, so the effect below focuses the newly added name
   // input once it's rendered (rather than querying the whole document).
   const shouldFocusLastRow = useRef(false)
 
+  // After a row is added, move focus into the new row's name input. We do it in
+  // an effect (not in `addRow`) because the new input doesn't exist in the DOM
+  // until React re-renders. Keying on `headers.length` runs this right after
+  // that render; the `shouldFocusLastRow` flag makes sure we only steal focus
+  // when the user actually added a row, not on every headers change.
   useEffect(() => {
     if (!shouldFocusLastRow.current) {
       return
@@ -49,6 +66,7 @@ export default function RESTServicesCustomHeaders({ headers, onChange }: RESTSer
 
   const removeRow = (index: number) => {
     const newHeaders = headers.filter((_header, n) => n !== index)
+    // Always keep at least one (empty) row so there's something to type into.
     if (newHeaders.length === 0) {
       newHeaders.push(getEmptyHeaderRow())
     }
