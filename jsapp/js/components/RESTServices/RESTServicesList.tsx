@@ -204,6 +204,7 @@ export default class RESTServicesList extends React.Component<RESTServicesListPr
                 // hookUid: not provided intentionally
               })
             }}
+            size='lg'
           >
             {t('Register a New Service')}
           </ButtonNew>
