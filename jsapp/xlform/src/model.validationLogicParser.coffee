@@ -8,7 +8,7 @@ module.exports = do ->
         (?:                              #   start of a non-matching group
           date\(\'\d{4}-\d{2}-\d{2}\'\)) #     something resembling a date: date('xxxx-xx-xx')
         |                                #   or
-          (?:-?(?:\d+\.\d+|\.\d+|\d+.?)) #     a signed integer or decimal
+          (?:-?(?:\d+\.\d+|\.\d+|\d+))   #     a signed integer or decimal
         |                                #   or
           (?:\'[^']+\')                  #     a string surrounded by single quotes (careful: the quotes are included in the match!)
       )                                  # end of the value group
