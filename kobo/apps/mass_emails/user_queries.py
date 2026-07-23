@@ -228,6 +228,7 @@ def get_users_over_100_percent_of_nlp_limits() -> QuerySet:
         usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS], minimum=1
     )
 
+
 def get_users_over_80_percent_of_auto_qa_limits() -> QuerySet:
     return get_users_within_range_of_usage_limit(
         usage_types=[UsageType.LLM_REQUESTS],
