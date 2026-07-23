@@ -6,6 +6,10 @@ concurrency:
   cancel-in-progress: true
 
 
+# Triggered when Release Manager pushes a version tag (e.g. 2.026.27, 2.026.27a)
+# to the release branch. This is the "Pending Image" phase from the design doc.
+#
+# Pipeline: pull-transifex → build-image → [bump, linear, deploy-to-master] → notify
 on:
   push:
     tags:
@@ -14,6 +18,9 @@ on:
 
 jobs:
 
+  # Since the workflow is triggered by a tag (not a branch), we need to derive
+  # which release branch this tag belongs to, so find-releases.yml can compute
+  # prev/next versions.
   current-branch:
     runs-on: ubuntu-24.04
     outputs:
@@ -37,7 +44,13 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
-  # TODO DEV-1916
+  # Design doc step: "pull transifex translations, if there's any to commit:
+  #   1. delete the tag  2. commit changes to release branch  3. create the tag on the new commit"
+  #
+  # Implementation note: instead of delete+recreate, we commit then move the tag
+  # via GitHub API (using GITHUB_TOKEN which doesn't re-trigger workflows).
+  # Recovery if interrupted: re-push the tag manually.
+  # TODO DEV-1916: validate this works end-to-end with real Transifex config.
   pull-transifex:
     needs:
       - version
@@ -48,6 +61,7 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
+    # Uses GitHub App token so the push triggers downstream workflows (merge-forward etc.)
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
@@ -83,6 +97,13 @@ jobs:
           -f sha="$NEW_SHA" -F force=true
 
 
+  # Design doc step: "create and upload image to github"
+  #
+  # Adapted from John's kobo-deployments/fabfile/docker_utils.py publish_docker_image():
+  # - Clone at tag → pull base images → build → verify hash → push
+  # But simplified for GHA context (no fabric, no Docker Hub, uses GHCR instead).
+  #
+  # Design doc: "on failure, delete the tag (push it again to retry)"
   build-image:
     runs-on: ubuntu-24.04
     needs:
@@ -90,14 +111,15 @@ jobs:
       - pull-transifex
     if: ${{ !cancelled() && !failure() }}
     permissions:
-      contents: write
-      packages: write
+      contents: write   # needed for tag deletion on failure
+      packages: write   # needed for GHCR push
     env:
       CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
     steps:
     - uses: actions/checkout@v6
       with:
-        # Re-fetch the tag in case pull-transifex moved it to a new commit
+        # Re-fetch the tag in case pull-transifex moved it to a new commit.
+        # actions/checkout resolves refs at runtime, not at workflow start.
         ref: refs/tags/${{ github.ref_name }}
         fetch-depth: 1
 
@@ -113,15 +135,18 @@ jobs:
         VERSION: ${{ github.ref_name }}
       run: |
         set -xe
-        # Pull previous release branch image for cache (best-effort)
+        # Pull previous release branch image for cache (best-effort, speeds up builds).
+        # Uses the sanitized branch name as tag (e.g. "release-2.026.27").
         BRANCH_TAG=$(echo "${{ needs.version.outputs.current_branch }}" | tr '/' '-')
         docker pull "$CI_REGISTRY_IMAGE:$BRANCH_TAG" || true
-        # Build the production image
+        # Build the production image tagged with the version (e.g. ghcr.io/kobotoolbox/kpi:2.026.27b)
         docker build \
           --cache-from "$CI_REGISTRY_IMAGE:$BRANCH_TAG" \
           --tag "$CI_REGISTRY_IMAGE:$VERSION" \
           .
-        # Verify the image contains the expected commit
+        # Verify the image contains the expected commit (from John's script logic).
+        # The Dockerfile may embed the git hash in /srv/src/kpi or .commit_sha.
+        # If neither exists (e.g. .dockerignore excludes .git), skip verification.
         EXPECTED_SHA=$(git rev-parse HEAD)
         IMAGE_SHA=$(docker run --rm "$CI_REGISTRY_IMAGE:$VERSION" bash -c \
           "cd /srv/src/kpi && git rev-parse --verify HEAD 2>/dev/null || cat .commit_sha 2>/dev/null || echo unknown")
@@ -129,9 +154,10 @@ jobs:
           echo "::error::Image contains commit $IMAGE_SHA but expected $EXPECTED_SHA"
           exit 1
         fi
-        # Push the image
+        # Push the image to GHCR
         docker push "$CI_REGISTRY_IMAGE:$VERSION"
 
+    # Design doc: "on failure, delete the tag (push it again to retry)"
     - name: Delete tag on build failure
       if: failure()
       env:
@@ -141,6 +167,15 @@ jobs:
         gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ github.ref_name }}" || true
 
 
+  # Design doc step: "tag/push to kobo-docker, update/commit/tag/push to kobo-install"
+  #
+  # Replaces the manual create-kobo-release.sh from release-notes-writer repo.
+  # Uses a cross-repo GitHub App token to push to kobotoolbox/kobo-docker and kobo-install.
+  #
+  # What create-kobo-release.sh did:
+  #   kobo-docker: tag master with version
+  #   kobo-install: update KOBO_DOCKER_BRANCH in config.py, commit, tag, push
+  #   Both: merge master→local (skipped here — that's a self-hosted deployment concern)
   bump:
     runs-on: ubuntu-24.04
     needs:
@@ -150,6 +185,8 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    # Generate a token scoped to kobo-docker and kobo-install repos.
+    # The kobo-bot GitHub App must be installed on both repos.
     - name: Generate cross-repo token
       id: app-token
       uses: actions/create-github-app-token@v3
@@ -164,6 +201,8 @@ jobs:
         git config --global user.name 'kobo-bot[bot]'
         git config --global user.email '200aborting+kobo-bot[bot]@users.noreply.github.com'
 
+    # Mirrors what create-kobo-release.sh does for kobo-docker:
+    # Updates the kpi image reference in docker-compose.frontend.yml, then tags.
     - name: Bump KoboToolbox version in kobo-docker and tag it
       env:
         VERSION: ${{ github.ref_name }}
@@ -176,9 +215,10 @@ jobs:
         cd "$TMPDIR"
 
         # Update image tag in docker-compose.frontend.yml
+        # e.g. "image: kobotoolbox/kpi:2.026.27a" → "image: kobotoolbox/kpi:2.026.27b"
         sed -i -E "s|(image: kobotoolbox/kpi:).*|\1${VERSION}|" docker-compose.frontend.yml
 
-        # Commit if changed
+        # Commit if changed (idempotent — safe to re-run)
         if git diff --quiet; then
           echo "No changes needed in kobo-docker (already at $VERSION)"
         else
@@ -187,7 +227,7 @@ jobs:
           git push origin master
         fi
 
-        # Create and push annotated tag
+        # Create and push annotated tag (idempotent — skips if exists)
         if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
           echo "Tag ${VERSION} already exists on kobo-docker. Skipping."
         else
@@ -195,6 +235,8 @@ jobs:
           git push origin "refs/tags/${VERSION}"
         fi
 
+    # Mirrors what create-kobo-release.sh does for kobo-install:
+    # Updates KOBO_DOCKER_BRANCH in helpers/config.py, commits, tags.
     - name: Bump KoboToolbox version in kobo-install and tag it
       env:
         VERSION: ${{ github.ref_name }}
@@ -207,9 +249,10 @@ jobs:
         cd "$TMPDIR"
 
         # Update KOBO_DOCKER_BRANCH in helpers/config.py
+        # e.g. "KOBO_DOCKER_BRANCH = '2.026.27a'" → "KOBO_DOCKER_BRANCH = '2.026.27b'"
         sed -i -E "s|(KOBO_DOCKER_BRANCH = ')[^']*('.*)|\\1${VERSION}\\2|" helpers/config.py
 
-        # Commit if changed
+        # Commit if changed (idempotent — safe to re-run)
         if git diff --quiet; then
           echo "No changes needed in kobo-install (already at $VERSION)"
         else
@@ -218,7 +261,7 @@ jobs:
           git push origin master
         fi
 
-        # Create and push annotated tag
+        # Create and push annotated tag (idempotent — skips if exists)
         if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
           echo "Tag ${VERSION} already exists on kobo-install. Skipping."
         else
@@ -227,6 +270,12 @@ jobs:
         fi
 
 
+  # Design doc steps:
+  #   - "set Linear release status to 'Pending Release'"
+  #   - "create Linear issue for Infra team to deploy it, and detect SKIP_HEAVY_MIGRATIONS"
+  #
+  # Both require Linear GraphQL API integration which is not yet implemented.
+  # The stubs below document the requirements for future implementation.
   linear:
     runs-on: ubuntu-24.04
     needs:
@@ -265,6 +314,9 @@ jobs:
         echo "Requires Linear GraphQL API integration and migration analysis (see workflow comments)"
 
 
+  # Deploys the newly-built image to kf.master.kbtdev (internal test instance).
+  # Uses the same pattern as nonprod-releases.yml's trigger-main-deploy job:
+  # dispatches a workflow in the kobotoolbox/devops repo.
   deploy-to-master:
     runs-on: ubuntu-24.04
     needs:
@@ -294,6 +346,8 @@ jobs:
           }
 
 
+  # Design doc step: "notify on zulip"
+  # Waits for ALL downstream jobs to succeed before announcing.
   notify:
     needs:
       - version
@@ -309,6 +363,7 @@ jobs:
       content: ":label: `${{ github.ref_name }}` tagged, image built and pushed to GHCR. Bumped kobo-docker and kobo-install. Triggered deploy to kf.master."
 
 
+  # Catch-all failure notification. Lists all jobs so any failure is reported.
   on-failure:
     needs:
       - version

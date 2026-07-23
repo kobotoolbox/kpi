@@ -1,84 +1,225 @@
 name: 'CD: create Github releases'
 
 
-on: workflow_dispatch
+# Triggered manually by Release Manager after the image is built and deployed.
+# This is the "Pending Release" phase from the design doc.
+#
+# Design doc: "Usually we post release notes right after building an image and
+# well before deployment."
+#
+# Pipeline: validate tag → generate changelog → [kpi, kobo-docker, kobo-install] → linear → notify
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The release tag to announce (e.g. 2.026.27a)'
+        required: true
+        type: string
 
 
 jobs:
 
-  version:
+  # Validate that the tag actually exists and derive the release branch from it.
+  current-branch:
     runs-on: ubuntu-24.04
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
     - uses: actions/checkout@v6
-    - name: Formats the version number
-      id: version
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Validate tag and derive release branch
+      id: branch
+      env:
+        TAG: ${{ inputs.tag }}
       run: |
-        VERSION="todo" # TODO
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        set -xe
+        if ! git rev-parse "refs/tags/$TAG" &>/dev/null; then
+          echo "::error::Tag '$TAG' does not exist."
+          exit 1
+        fi
+        MINOR=$(echo "$TAG" | grep -oP '^\d+\.\d+\.\d+')
+        echo "current_branch=release/$MINOR" >> "$GITHUB_OUTPUT"
 
+
+  version:
+    needs:
+      - current-branch
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+    with:
+      current_branch: ${{ needs.current-branch.outputs.current_branch }}
+
+
+  # Generate changelog using git-cliff (same tool used in release-2-stabilize.yml).
+  # This replaces the approach in create-gh-releases.py which fetched CHANGELOG.md
+  # from the changelog/<tag> branch. Generating on-the-fly is more reliable and
+  # doesn't depend on a pre-existing branch.
   changelog:
     runs-on: ubuntu-24.04
+    needs:
+      - version
+    outputs:
+      body: ${{ steps.changelog.outputs.body }}
     steps:
-    - name: generate changelog for github releases
-      run: |
-        echo 'TODO, for now generate changelog manually'
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
 
+    - name: Generate changelog for this release
+      id: changelog
+      env:
+        VERSION: ${{ inputs.tag }}
+      run: |
+        BODY=$(npx git-cliff@2.10.0 -u --tag "$VERSION")
+        {
+          echo 'body<<EOF'
+          echo "${BODY}"
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
+
+
+  # Design doc step: "create GitHub releases with a changelog"
+  # Creates the primary release on kpi with the full changelog body.
   kpi:
     runs-on: ubuntu-24.04
     needs:
+      - version
       - changelog
+    permissions:
+      contents: write
     steps:
-    - name: make a Github release for kpi
+    - uses: actions/checkout@v6
+
+    - name: Create GitHub release for kpi
+      env:
+        VERSION: ${{ inputs.tag }}
+        BODY: ${{ needs.changelog.outputs.body }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo 'TODO, for now release it manually'
+        gh release create "$VERSION" \
+          --title "$VERSION" \
+          --notes "$BODY" \
+          --verify-tag
 
 
+  # Creates a GitHub release on kobo-docker that links back to the kpi release.
+  # This mirrors what create-gh-releases.py did:
+  #   "body": f"For more information, please see {kpi_release_link}"
+  #
+  # Uses a cross-repo GitHub App token since we're creating releases on another repo.
   kobo-docker:
     runs-on: ubuntu-24.04
     needs:
+      - version
       - changelog
     steps:
-    - name: make a Github release for kobo-docker
+    - name: Generate cross-repo token
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        owner: kobotoolbox
+        repositories: "kobo-docker"
+
+    - name: Create GitHub release for kobo-docker
+      env:
+        VERSION: ${{ inputs.tag }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        echo 'TODO, for now release it manually'
+        KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
+        gh release create "$VERSION" \
+          --repo kobotoolbox/kobo-docker \
+          --title "$VERSION" \
+          --notes "For more information, please see ${KPI_RELEASE_URL}" \
+          --verify-tag
 
 
+  # Same as kobo-docker above, but for kobo-install.
   kobo-install:
     runs-on: ubuntu-24.04
     needs:
+      - version
       - changelog
     steps:
-    - name: make a Github release for kobo-install
+    - name: Generate cross-repo token
+      id: app-token
+      uses: actions/create-github-app-token@v3
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        owner: kobotoolbox
+        repositories: "kobo-install"
+
+    - name: Create GitHub release for kobo-install
+      env:
+        VERSION: ${{ inputs.tag }}
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-        echo 'TODO, for now release it manually'
+        KPI_RELEASE_URL="https://github.com/kobotoolbox/kpi/releases/tag/${VERSION}"
+        gh release create "$VERSION" \
+          --repo kobotoolbox/kobo-install \
+          --title "$VERSION" \
+          --notes "For more information, please see ${KPI_RELEASE_URL}" \
+          --verify-tag
 
 
+  # Design doc step: "set Linear release status to 'Released'"
+  #
+  # Requires Linear GraphQL API integration (not yet implemented).
+  linear:
+    runs-on: ubuntu-24.04
+    needs:
+      - version
+      - kpi
+      - kobo-docker
+      - kobo-install
+    if: ${{ !cancelled() && !failure() }}
+    steps:
+    # TODO: Implement Linear GraphQL API integration.
+    # Requirements:
+    #   - Secret: LINEAR_API_KEY_GITHUB_ACTIONS_BOT
+    #   - Find the Linear project release by name matching $VERSION
+    #   - Update its status to "Released"
+    # Linear GraphQL endpoint: https://api.linear.app/graphql
+    - name: Set Linear release status to "Released"
+      env:
+        VERSION: ${{ inputs.tag }}
+        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+      run: |
+        echo "::notice::TODO: set Linear release status to 'Released' for $VERSION"
+        echo "Requires Linear GraphQL API integration (see workflow comments)"
+
+
+  # Design doc step: "notify on zulip"
   notify:
     needs:
       - version
+      - kpi
+      - kobo-docker
+      - kobo-install
+      - linear
+    if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.version.outputs.version }} release"
-      content: ":rocket: Please create a release on kpi, kobo-docker and kobo-install. (TODO: automate)"
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":rocket: `${{ inputs.tag }}` GitHub releases published for kpi, kobo-docker, and kobo-install."
 
 
   on-failure:
     needs:
+      - version
       - changelog
       - kpi
       - kobo-docker
       - kobo-install
-    if: |
-      failure() &&
-      (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out' ||
-      needs.kpi.result == 'failure' || needs.kpi.result == 'timed_out' ||
-      needs.kobo-docker.result == 'failure' || needs.kobo-docker.result == 'timed_out' ||
-      needs.kobo-install.result == 'failure' || needs.kobo-install.result == 'timed_out')
+    if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
-      topic: "Github Actions (${{ github.event.inputs.prod_env }})"
-      content: ":warning: ${{ github.event.inputs.tag }} failed to create a Github release(s), see [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})."
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to create GitHub release(s) for `${{ inputs.tag }}`."
