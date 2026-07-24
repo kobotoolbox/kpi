@@ -11,6 +11,8 @@ import { notify } from '#/utils'
 
 interface TableSettingsProps {
   asset: AssetResponse
+  /** Called once this modal's own save (or reset) has been applied. */
+  onRequestClose: () => void
 }
 
 interface TableSettingsOption {
@@ -36,6 +38,17 @@ export default function TableSettings(props: TableSettingsProps) {
     () => getCurrentTableSettings().translationIndex,
   )
 
+  // Set when *this* modal instance triggers a save/reset, so we only close in
+  // response to our own save resolving — never an unrelated table settings
+  // change coming from elsewhere. Because it lives on the instance, a save from
+  // a previously-dismissed modal can't close a freshly-opened one.
+  const didInitiateSaveRef = React.useRef(false)
+
+  // Keep a stable reference to the latest close handler so the listener effect
+  // below doesn't need to re-subscribe when props change.
+  const onRequestCloseRef = React.useRef(props.onRequestClose)
+  onRequestCloseRef.current = props.onRequestClose
+
   const displayedLabelOptions = React.useMemo<TableSettingsOption[]>(() => {
     const options: TableSettingsOption[] = [
       {
@@ -60,27 +73,51 @@ export default function TableSettings(props: TableSettingsProps) {
   }, [props.asset.content?.translations])
 
   React.useEffect(() => {
+    // Users with `change_asset` save via the async `actions.table.updateSettings`
+    // endpoint; this resolves once our save persisted.
+    const onUpdateSettingsCompleted = () => {
+      if (didInitiateSaveRef.current) {
+        didInitiateSaveRef.current = false
+        onRequestCloseRef.current()
+      }
+    }
+
+    // Users without `change_asset` don't hit the endpoint — `saveTableSettings`
+    // applies local overrides synchronously and triggers the store instead. We
+    // still sync the form to the latest values, and close if it was our save.
     const onTableStoreChange = () => {
       const settings = getCurrentTableSettings()
       setShowGroupName(settings.showGroupName)
       setShowHXLTags(settings.showHXLTags)
       setTranslationIndex(settings.translationIndex)
+
+      if (didInitiateSaveRef.current) {
+        didInitiateSaveRef.current = false
+        onRequestCloseRef.current()
+      }
     }
 
     const onUpdateSettingsFailed = () => {
+      // The save didn't go through, so keep the modal open for another attempt.
+      didInitiateSaveRef.current = false
       notify(t('There was an error, table settings could not be saved.'))
     }
 
+    const unlistenUpdateCompleted = actions.table.updateSettings.completed.listen(
+      onUpdateSettingsCompleted,
+    ) as () => void
     const unlistenUpdateFailed = actions.table.updateSettings.failed.listen(onUpdateSettingsFailed) as () => void
     const unlistenTableStore = tableStore.listen(onTableStoreChange, null) as () => void
 
     return () => {
+      unlistenUpdateCompleted()
       unlistenUpdateFailed()
       unlistenTableStore()
     }
   }, [getCurrentTableSettings])
 
   const onSave = React.useCallback(() => {
+    didInitiateSaveRef.current = true
     const newTableSettings: AssetTableSettings = {}
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = showGroupName
     newTableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = translationIndex
@@ -89,6 +126,7 @@ export default function TableSettings(props: TableSettingsProps) {
   }, [showGroupName, showHXLTags, translationIndex])
 
   const onReset = React.useCallback(() => {
+    didInitiateSaveRef.current = true
     const newTableSettings: AssetTableSettings = {}
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = null
     newTableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = null

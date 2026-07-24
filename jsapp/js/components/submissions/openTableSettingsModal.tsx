@@ -9,7 +9,12 @@ interface OpenTableSettingsModalArgs {
 export function openTableSettingsModal({ asset }: OpenTableSettingsModalArgs) {
   const modalId = modals.open({
     title: t('Table display options'),
-    children: <TableSettings asset={asset} />,
+    // We render the modal id into the form so it can close *itself* once its own
+    // save resolves. Closing must be owned by this instance: the underlying
+    // `actions.table.updateSettings.completed` broadcast carries no reference to
+    // which modal triggered it, so a shared close handler in a parent would close
+    // whatever modal happens to be open when an earlier, unrelated save resolves.
+    children: <TableSettings asset={asset} onRequestClose={() => modals.close(modalId)} />,
   })
 
   return {

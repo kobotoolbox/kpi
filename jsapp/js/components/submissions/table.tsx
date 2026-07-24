@@ -163,8 +163,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   private unlisteners: Function[] = []
 
-  private closeTableSettingsModal: (() => void) | null = null
-
   constructor(props: DataTableProps) {
     super(props)
     this.state = {
@@ -200,7 +198,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.resources.removeSubmissionValidationStatus.completed.listen(
         this.onSubmissionValidationStatusChange.bind(this),
       ),
-      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this)),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
@@ -1138,11 +1135,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onTableStoreChange(newData: TableStoreData) {
-    // Close table settings modal after settings are saved. For users without
-    // `change_asset`, saving applies local overrides and triggers this handler
-    // instead of `onTableUpdateSettingsCompleted`, so we close the modal here too.
-    this.closeTableSettingsModal?.()
-    this.closeTableSettingsModal = null
+    // Note: closing the table settings modal after a save is owned by the modal
+    // instance itself (see `TableSettings`), so it isn't handled here.
 
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
@@ -1162,13 +1156,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
 
     this.previousOverrides = clonedeep(newData.overrides)
-  }
-
-  onTableUpdateSettingsCompleted() {
-    // Close table settings modal after settings are saved.
-    this.closeTableSettingsModal?.()
-    this.closeTableSettingsModal = null
-    // Any updates after table settings are saved are handled by `componentDidUpdate`.
   }
 
   /** Uses `fetchData` but with past instance. */
@@ -1225,10 +1212,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   showTableColumnsOptionsModal() {
-    const { close } = openTableSettingsModal({
+    // The modal closes itself once its own save resolves (see `TableSettings`).
+    openTableSettingsModal({
       asset: this.props.asset,
     })
-    this.closeTableSettingsModal = close
   }
 
   launchEditSubmission(sid: string) {
