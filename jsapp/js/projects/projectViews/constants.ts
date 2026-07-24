@@ -211,6 +211,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     name: 'ownerOrganization',
     label: t('Owner organization'),
     apiFilteringName: 'owner__organizations_organization__name',
+    // We keep old ordering name here to avoid duplicate rows from a M2M ordering traversal
     apiOrderingName: 'owner__extra_details__data__organization',
     availableConditions: [
       'contains',
