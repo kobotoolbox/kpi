@@ -189,7 +189,8 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
     def _get_operation_spec(self, path: str, method: str) -> Optional[dict[str, Any]]:
         """
-        Handles OpenAPI-style path params like {id} by converting them to a simple regex.
+        Handles OpenAPI-style path params like {id} by converting them to a
+        simple regex.
         """
         if not self.paths:
             return None

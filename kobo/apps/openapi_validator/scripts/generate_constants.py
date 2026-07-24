@@ -63,8 +63,8 @@ def read_rows(csv_path: str) -> list[dict[str, str]]:
         missing = required - set(reader.fieldnames or [])
         if missing:
             raise ValueError(
-                f"CSV missing required columns: {sorted(missing)}. "
-                f"Found: {reader.fieldnames}"
+                f'CSV missing required columns: {sorted(missing)}. '
+                f'Found: {reader.fieldnames}'
             )
 
         rows: list[dict[str, str]] = []
@@ -167,18 +167,20 @@ def write_constants(
 
     # Build the new content
     header = (
-        "# Auto-generated constant. Do not edit by hand.\n"
-        "# Generated from CSV -> OPENAPI_VALIDATION_WHITELIST\n"
-        "OPENAPI_VALIDATION_WHITELIST = "
+        '# Auto-generated constant. Do not edit by hand.\n'
+        '# Generated from CSV -> OPENAPI_VALIDATION_WHITELIST\n'
+        'OPENAPI_VALIDATION_WHITELIST = '
     )
+
+    from pprint import pformat
 
     with open(py_path, 'w', encoding='utf-8') as f:
         if prefix:
             f.write(prefix)
-            f.write("\n\n")
+            f.write('\n\n')
         f.write(header)
-        f.write(repr(whitelist))
-        f.write("\n")
+        f.write(pformat(whitelist, width=88, sort_dicts=True))
+        f.write('\n')
 
 
 def run(csv_path: str, out_path: str, resolve: bool = True):
