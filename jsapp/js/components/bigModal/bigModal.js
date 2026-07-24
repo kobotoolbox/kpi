@@ -13,7 +13,6 @@ import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissions
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
-import TableSettings from '#/components/submissions/tableSettings'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
@@ -128,10 +127,6 @@ class BigModal extends React.Component {
 
       case MODAL_TYPES.REPLACE_PROJECT:
         // title is set by formEditors
-        break
-
-      case MODAL_TYPES.TABLE_SETTINGS:
-        this.setModalTitle(t('Table display options'))
         break
 
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
@@ -275,7 +270,6 @@ class BigModal extends React.Component {
               <LoadingSpinner message={false} />
             </div>
           )}
-          {this.props.params.type === MODAL_TYPES.TABLE_SETTINGS && <TableSettings asset={this.props.params.asset} />}
           {this.props.params.type === MODAL_TYPES.REST_SERVICES && (
             <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
           )}

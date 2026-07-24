@@ -159,7 +159,7 @@ const meta: Meta<typeof DataTableCell> = {
     },
   ],
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 

@@ -68,8 +68,6 @@ const MAP_LAYER_DROPZONE_ACCEPT: Accept = {
   'application/vnd.google-earth.kmz': ['.kmz'],
   'application/json': ['.geojson', '.json'],
   'application/geo+json': ['.geojson'],
-  'text/plain': ['.wkt'],
-  'application/wkt': ['.wkt'],
 }
 
 // FYI the order here matters and influences the order of tabs in UI
@@ -349,7 +347,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                 <bem.FormModal__item m='layer-upload'>
                   <label htmlFor='name'>
                     {t(
-                      'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.',
+                      'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ or GEOJSON. The data will be made available as layers for display on the map.',
                     )}
                   </label>
                   <input
