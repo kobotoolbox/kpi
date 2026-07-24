@@ -13,7 +13,6 @@ import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissions
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
-import TableMediaPreview from '#/components/submissions/tableMediaPreview'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
@@ -134,15 +133,6 @@ class BigModal extends React.Component {
         // title is set by BulkEditSubmissionsForm
         this.setState({
           modalClass: 'modal--large modal--large-shorter',
-        })
-        break
-
-      // TODO: Make a better generic modal component
-      // See: https://github.com/kobotoolbox/kpi/issues/3643
-      case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
-        // Size and title will depend on its props
-        this.setState({
-          modalClass: 'modal--custom-header modal--media-preview',
         })
         break
 
@@ -291,7 +281,6 @@ class BigModal extends React.Component {
               {...this.props.params}
             />
           )}
-          {this.props.params.type === MODAL_TYPES.TABLE_MEDIA_PREVIEW && <TableMediaPreview {...this.props.params} />}
           {this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS && (
             <DataAttachmentColumnsForm
               onSetModalTitle={this.setModalTitle}

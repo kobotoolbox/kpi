@@ -111,7 +111,7 @@ export default function DataTableCell(props: DataTableCellProps) {
           <MediaCell
             questionType={props.question.type}
             mediaAttachment={mediaAttachment}
-            mediaName={props.reactTableRow.value}
+            displayValue={props.reactTableRow.value}
             submissionIndex={submissionIndex}
             submissionTotal={props.submissionCount}
             submission={submission}

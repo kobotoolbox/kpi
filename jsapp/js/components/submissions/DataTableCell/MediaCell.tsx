@@ -1,25 +1,15 @@
 import './MediaCell.scss'
-
 import React from 'react'
-
 import autoBind from 'react-autobind'
-import { actions } from '#/actions'
-import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import { MODAL_TYPES, QUESTION_TYPES } from '#/constants'
+import { openTableMediaPreviewModal } from '#/components/submissions/DataTableCell/TableMediaPreview'
+import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
-import pageState from '#/pageState.store'
-import { truncateString } from '#/utils'
-
-bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header')
-bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div')
-bem.TableMediaPreviewHeader__label = makeBem(bem.TableMediaPreviewHeader, 'label', 'label')
-bem.TableMediaPreviewHeader__options = makeBem(bem.TableMediaPreviewHeader, 'options', 'div')
 
 bem.MediaCell = makeBem(null, 'media-cell')
 bem.MediaCell__duration = makeBem(bem.MediaCell, 'duration', 'label')
@@ -33,7 +23,7 @@ interface MediaCellProps {
   /** If string is passed it's an error message. */
   mediaAttachment: SubmissionAttachment | string
   /** Backend stored media attachment file name or the content of a text question. */
-  mediaName: string
+  displayValue: string
   /** Index of the submission for text questions. */
   submissionIndex: number
   /** Total submissions for text questions. */
@@ -67,74 +57,21 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     }
   }
 
-  launchMediaModal(evt: MouseEvent | TouchEvent) {
+  launchMediaModal(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
     if (typeof this.props.mediaAttachment !== 'string') {
-      pageState.showModal({
-        type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
+      openTableMediaPreviewModal({
         questionType: this.props.questionType,
+        questionIcon: this.getQuestionIcon(),
         mediaAttachment: this.props.mediaAttachment,
-        mediaName: this.props.mediaName,
-        customModalHeader: this.renderMediaModalCustomHeader(
-          this.getQuestionIcon(),
-          this.props.mediaAttachment,
-          this.props.mediaName,
-          this.props.submissionIndex,
-          this.props.submissionTotal,
-          this.props.submission,
-          this.props.asset,
-        ),
+        displayValue: this.props.displayValue,
+        submissionIndex: this.props.submissionIndex,
+        submissionTotal: this.props.submissionTotal,
+        submission: this.props.submission,
+        asset: this.props.asset,
       })
     }
-  }
-
-  renderMediaModalCustomHeader(
-    questionIcon: IconName,
-    attachment: SubmissionAttachment,
-    mediaName: string,
-    submissionIndex: number,
-    submissionTotal: number,
-    submission: SubmissionResponse,
-    asset: AssetResponse,
-  ) {
-    let titleText = null
-
-    // `download_url` only exists if there are attachments, otherwise assume only text
-    if (attachment.download_url) {
-      titleText = truncateString(mediaName, 30)
-    } else {
-      titleText = t('Submission ##submissionIndex## of ##submissionTotal##')
-        .replace('##submissionIndex##', String(submissionIndex))
-        .replace('##submissionTotal##', String(submissionTotal))
-    }
-
-    return (
-      <bem.TableMediaPreviewHeader>
-        <bem.TableMediaPreviewHeader__title>
-          <Icon name={questionIcon} />
-          <bem.TableMediaPreviewHeader__label
-            // Give the user a way to see the full file name
-            title={mediaName}
-          >
-            {titleText}
-          </bem.TableMediaPreviewHeader__label>
-        </bem.TableMediaPreviewHeader__title>
-
-        <bem.TableMediaPreviewHeader__options>
-          <AttachmentActionsDropdown
-            asset={asset}
-            submission={submission}
-            attachmentUid={attachment.uid}
-            onDeleted={() => {
-              // Trigger refresh on the Data Table and close the modal
-              actions.resources.refreshTableSubmissions()
-              pageState.hideModal()
-            }}
-          />
-        </bem.TableMediaPreviewHeader__options>
-      </bem.TableMediaPreviewHeader>
-    )
   }
 
   render() {
@@ -155,7 +92,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
 
     return (
       <bem.MediaCell m={`question-type-${this.props.questionType}`}>
-        <bem.MediaCell__text>{this.props.mediaName}</bem.MediaCell__text>
+        <bem.MediaCell__text>{this.props.displayValue}</bem.MediaCell__text>
 
         <bem.MediaCellIconWrapper>
           <Button type='text' size='s' startIcon={this.getQuestionIcon()} onClick={this.launchMediaModal.bind(this)} />
