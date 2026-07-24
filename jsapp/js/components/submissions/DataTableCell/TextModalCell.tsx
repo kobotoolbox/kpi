@@ -7,10 +7,9 @@ import styles from './TextModalCell.module.scss'
 interface TextModalCellProps {
   /**
    * Text to be displayed in modal.
-   * If empty string is passed, empty cell will be rendered and no modal.
-   * If `null` is passed, "not available" will be rendered and no modal.
+   * If empty value is passed, empty cell will be rendered and no modal.
    */
-  text: string | null
+  text: string | null | undefined
   columnName: string
   submissionIndex: number
   submissionTotal: number
@@ -23,12 +22,10 @@ interface TextModalCellProps {
  */
 export default function TextModalCell(props: TextModalCellProps) {
   // If there is no actual content, render a compact fallback and skip modal logic.
-  if (props.text === null || props.text === '') {
-    const textToDisplay = props.text === null ? t('N/A') : ''
-
+  if (!props.text) {
     return (
       <div className={styles.cell}>
-        <span className={styles.textContent}>{textToDisplay}</span>
+        <span className={styles.textContent}>{''}</span>
       </div>
     )
   }

@@ -2,7 +2,6 @@ import { Group, Stack, Text } from '@mantine/core'
 import React from 'react'
 import Icon from '#/components/common/icon'
 import type { IconName } from '#/k-icons'
-import classes from './TableMediaPreview.module.scss'
 import { getSubmissionPositionLabel } from './tableMediaPreview.utils'
 
 interface TableMediaPreviewModalTitleProps {
@@ -17,21 +16,21 @@ interface TableMediaPreviewModalTitleProps {
 
 export default function TableMediaPreviewModalTitle(props: TableMediaPreviewModalTitleProps) {
   return (
-    <Group justify='space-between' wrap='nowrap' className={classes.header}>
-      <Stack gap={2} className={classes.titleStack}>
+    <Group justify='space-between' wrap='nowrap'>
+      <Stack gap={2}>
         {props.showSubmissionContext && (
-          <Text size='sm'>{getSubmissionPositionLabel(props.submissionIndex, props.submissionTotal)}</Text>
+          <Text>{getSubmissionPositionLabel(props.submissionIndex, props.submissionTotal)}</Text>
         )}
 
-        <div className={classes.title}>
+        <Group gap='sm'>
           {props.questionIcon && <Icon name={props.questionIcon} />}
-          <Text className={classes.titleLabel} truncate='end' title={props.titleTextTooltip ?? props.titleText}>
+          <Text truncate='end' title={props.titleTextTooltip ?? props.titleText}>
             {props.titleText}
           </Text>
-        </div>
+        </Group>
       </Stack>
 
-      {props.actions && <div className={classes.headerOptions}>{props.actions}</div>}
+      {props.actions && <Group gap='sm'>{props.actions}</Group>}
     </Group>
   )
 }
