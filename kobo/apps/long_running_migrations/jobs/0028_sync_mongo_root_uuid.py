@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.db.models import Q
 from pymongo import UpdateOne
 
 from kobo.apps.long_running_migrations.exceptions import (
@@ -9,7 +8,6 @@ from kobo.apps.long_running_migrations.models import LongRunningMigration
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.utils.log import logging
-
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 
