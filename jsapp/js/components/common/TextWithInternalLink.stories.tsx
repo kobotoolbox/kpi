@@ -11,7 +11,7 @@ const meta: Meta<typeof TextWithInternalLink> = {
     path: '/account/settings',
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 

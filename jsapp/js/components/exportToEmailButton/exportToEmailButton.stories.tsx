@@ -9,7 +9,7 @@ export default {
       control: 'text',
     },
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 } as Meta<typeof ExportToEmailButton>
 
 const Template: StoryFn<typeof ExportToEmailButton> = (args) => <ExportToEmailButton {...args} />

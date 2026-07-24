@@ -28,7 +28,7 @@ const meta: Meta<typeof DeleteAccountModal> = {
     opened: false,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 

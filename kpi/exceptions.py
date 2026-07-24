@@ -75,6 +75,10 @@ class DeploymentNotFound(Exception):
         super().__init__(message)
 
 
+class DuplicateNameException(Exception):
+    pass
+
+
 class FFMpegException(Exception):
     pass
 
