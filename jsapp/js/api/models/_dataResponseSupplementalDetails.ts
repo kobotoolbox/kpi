@@ -18,7 +18,6 @@ import type { _DataResponseSupplementalDetailsOneOfTwo } from './_dataResponseSu
 
 /**
  * Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects.
- * @nullable
  */
 export type _DataResponseSupplementalDetails =
   | _DataResponseSupplementalDetailsOneOf

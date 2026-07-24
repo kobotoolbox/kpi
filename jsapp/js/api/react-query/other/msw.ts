@@ -46,6 +46,8 @@ import type { PermissionResponse } from '../../models/permissionResponse'
 
 import { ProrationBehaviorEnum } from '../../models/prorationBehaviorEnum'
 
+import type { Recurring } from '../../models/recurring'
+
 import { StripeIntervalEnum } from '../../models/stripeIntervalEnum'
 
 import { StripePriceType } from '../../models/stripePriceType'
@@ -216,6 +218,21 @@ export const getApiV2StripeCustomerPortalCreateResponseMock = (
   overrideResponse: Partial<CustomerPortalPostResponse> = {},
 ): CustomerPortalPostResponse => ({ url: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
 
+export const getApiV2StripeProductsListResponseRecurringMock = (
+  overrideResponse: Partial<Recurring> = {},
+): Recurring => ({
+  ...{
+    interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
+    interval_count: faker.number.int({ min: undefined, max: undefined }),
+    meter: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2StripeProductsListResponseMock = (
   overrideResponse: Partial<PaginatedProductList> = {},
 ): PaginatedProductList => ({
@@ -235,31 +252,36 @@ export const getApiV2StripeProductsListResponseMock = (
       nickname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 250 } }), undefined]),
       currency: faker.string.alpha({ length: { min: 10, max: 3 } }),
       type: faker.helpers.arrayElement(Object.values(StripePriceType)),
-      recurring: {
-        ...{
-          interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
-          interval_count: faker.number.int({ min: undefined, max: undefined }),
-          meter: faker.helpers.arrayElement([
-            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
-            undefined,
-          ]),
-          usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
-        },
-      },
+      recurring: faker.helpers.arrayElement([{ ...getApiV2StripeProductsListResponseRecurringMock() }, null]),
       unit_amount: faker.helpers.arrayElement([
-        faker.helpers.arrayElement([faker.number.int({ min: -9223372036854776000, max: 9223372036854776000 }), null]),
+        faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
         undefined,
       ]),
       human_readable_price: faker.string.alpha({ length: { min: 10, max: 20 } }),
-      metadata: faker.helpers.arrayElement([{}, undefined]),
+      metadata: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
       active: faker.datatype.boolean(),
       product: faker.string.alpha({ length: { min: 10, max: 20 } }),
-      transform_quantity: faker.helpers.arrayElement([{}, undefined]),
+      transform_quantity: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
     })),
     metadata: {
       [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
     },
   })),
+  ...overrideResponse,
+})
+
+export const getApiV2StripeSubscriptionsListResponseRecurringMock = (
+  overrideResponse: Partial<Recurring> = {},
+): Recurring => ({
+  ...{
+    interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
+    interval_count: faker.number.int({ min: undefined, max: undefined }),
+    meter: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
+  },
   ...overrideResponse,
 })
 
@@ -277,23 +299,13 @@ export const getApiV2StripeSubscriptionsListResponseMock = (
         nickname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 250 } }), undefined]),
         currency: faker.string.alpha({ length: { min: 10, max: 3 } }),
         type: faker.helpers.arrayElement(Object.values(StripePriceType)),
-        recurring: {
-          ...{
-            interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
-            interval_count: faker.number.int({ min: undefined, max: undefined }),
-            meter: faker.helpers.arrayElement([
-              faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
-              undefined,
-            ]),
-            usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
-          },
-        },
+        recurring: faker.helpers.arrayElement([{ ...getApiV2StripeSubscriptionsListResponseRecurringMock() }, null]),
         unit_amount: faker.helpers.arrayElement([
-          faker.helpers.arrayElement([faker.number.int({ min: -9223372036854776000, max: 9223372036854776000 }), null]),
+          faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
           undefined,
         ]),
         human_readable_price: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        metadata: faker.helpers.arrayElement([{}, undefined]),
+        metadata: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
         active: faker.datatype.boolean(),
         product: {
           id: faker.string.alpha({ length: { min: 10, max: 255 } }),
@@ -307,10 +319,10 @@ export const getApiV2StripeSubscriptionsListResponseMock = (
             [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
           },
         },
-        transform_quantity: faker.helpers.arrayElement([{}, undefined]),
+        transform_quantity: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
       },
       quantity: faker.helpers.arrayElement([
-        faker.helpers.arrayElement([faker.number.int({ min: 0, max: 2147483647 }), null]),
+        faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
         undefined,
       ]),
     })),
@@ -320,54 +332,39 @@ export const getApiV2StripeSubscriptionsListResponseMock = (
       },
       status: faker.helpers.arrayElement(Object.values(SubscriptionScheduleStatusEnum)),
     },
-    application_fee_percent: faker.helpers.arrayElement([faker.helpers.fromRegExp('^-?d{0,3}(?:.d{0,2})?$'), null]),
+    application_fee_percent: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     djstripe_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
     djstripe_updated: `${faker.date.past().toISOString().split('.')[0]}Z`,
     stripe_data: faker.helpers.arrayElement([{}, undefined]),
     id: faker.string.alpha({ length: { min: 10, max: 255 } }),
-    livemode: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-    created: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
-    metadata: faker.helpers.arrayElement([{}, undefined]),
+    livemode: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.datatype.boolean(), null]), undefined]),
+    created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    metadata: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
     description: faker.helpers.arrayElement([
       faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
       undefined,
     ]),
-    billing_cycle_anchor: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
-    billing_thresholds: faker.helpers.arrayElement([{}, undefined]),
-    cancel_at: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
+    billing_cycle_anchor: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    billing_thresholds: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+    cancel_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     cancel_at_period_end: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-    canceled_at: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
+    canceled_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     collection_method: faker.helpers.arrayElement(Object.values(CollectionMethodEnum)),
     current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`,
     current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`,
     days_until_due: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([faker.number.int({ min: -2147483648, max: 2147483647 }), null]),
+      faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
       undefined,
     ]),
-    discount: faker.helpers.arrayElement([{}, undefined]),
-    ended_at: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
+    discount: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+    ended_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     next_pending_invoice_item_invoice: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
       undefined,
     ]),
-    pause_collection: faker.helpers.arrayElement([{}, undefined]),
-    pending_invoice_item_interval: faker.helpers.arrayElement([{}, undefined]),
-    pending_update: faker.helpers.arrayElement([{}, undefined]),
+    pause_collection: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+    pending_invoice_item_interval: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+    pending_update: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
     proration_behavior: faker.helpers.arrayElement([
       faker.helpers.arrayElement([
         faker.helpers.arrayElement(Object.values(ProrationBehaviorEnum)),
@@ -375,27 +372,15 @@ export const getApiV2StripeSubscriptionsListResponseMock = (
       ]),
       undefined,
     ]),
-    proration_date: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
+    proration_date: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     quantity: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([faker.number.int({ min: -2147483648, max: 2147483647 }), null]),
+      faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
       undefined,
     ]),
-    start_date: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
+    start_date: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     status: faker.helpers.arrayElement(Object.values(SubscriptionStatusEnum)),
-    trial_end: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
-    trial_start: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
+    trial_end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    trial_start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     djstripe_owner_account: faker.helpers.arrayElement([
       faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
       undefined,
@@ -431,6 +416,21 @@ export const getApiV2StripeSubscriptionsListResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2StripeSubscriptionsRetrieveResponseRecurringMock = (
+  overrideResponse: Partial<Recurring> = {},
+): Recurring => ({
+  ...{
+    interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
+    interval_count: faker.number.int({ min: undefined, max: undefined }),
+    meter: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2StripeSubscriptionsRetrieveResponseMock = (
   overrideResponse: Partial<Subscription> = {},
 ): Subscription => ({
@@ -441,23 +441,13 @@ export const getApiV2StripeSubscriptionsRetrieveResponseMock = (
       nickname: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 250 } }), undefined]),
       currency: faker.string.alpha({ length: { min: 10, max: 3 } }),
       type: faker.helpers.arrayElement(Object.values(StripePriceType)),
-      recurring: {
-        ...{
-          interval: faker.helpers.arrayElement(Object.values(StripeIntervalEnum)),
-          interval_count: faker.number.int({ min: undefined, max: undefined }),
-          meter: faker.helpers.arrayElement([
-            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
-            undefined,
-          ]),
-          usage_type: faker.helpers.arrayElement(Object.values(StripeUsageType)),
-        },
-      },
+      recurring: faker.helpers.arrayElement([{ ...getApiV2StripeSubscriptionsRetrieveResponseRecurringMock() }, null]),
       unit_amount: faker.helpers.arrayElement([
-        faker.helpers.arrayElement([faker.number.int({ min: -9223372036854776000, max: 9223372036854776000 }), null]),
+        faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
         undefined,
       ]),
       human_readable_price: faker.string.alpha({ length: { min: 10, max: 20 } }),
-      metadata: faker.helpers.arrayElement([{}, undefined]),
+      metadata: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
       active: faker.datatype.boolean(),
       product: {
         id: faker.string.alpha({ length: { min: 10, max: 255 } }),
@@ -471,10 +461,10 @@ export const getApiV2StripeSubscriptionsRetrieveResponseMock = (
           [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
         },
       },
-      transform_quantity: faker.helpers.arrayElement([{}, undefined]),
+      transform_quantity: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
     },
     quantity: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([faker.number.int({ min: 0, max: 2147483647 }), null]),
+      faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
       undefined,
     ]),
   })),
@@ -484,54 +474,39 @@ export const getApiV2StripeSubscriptionsRetrieveResponseMock = (
     },
     status: faker.helpers.arrayElement(Object.values(SubscriptionScheduleStatusEnum)),
   },
-  application_fee_percent: faker.helpers.arrayElement([faker.helpers.fromRegExp('^-?d{0,3}(?:.d{0,2})?$'), null]),
+  application_fee_percent: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   djstripe_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
   djstripe_updated: `${faker.date.past().toISOString().split('.')[0]}Z`,
   stripe_data: faker.helpers.arrayElement([{}, undefined]),
   id: faker.string.alpha({ length: { min: 10, max: 255 } }),
-  livemode: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-  created: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
-  metadata: faker.helpers.arrayElement([{}, undefined]),
+  livemode: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.datatype.boolean(), null]), undefined]),
+  created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  metadata: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
   description: faker.helpers.arrayElement([
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,
   ]),
-  billing_cycle_anchor: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
-  billing_thresholds: faker.helpers.arrayElement([{}, undefined]),
-  cancel_at: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
+  billing_cycle_anchor: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  billing_thresholds: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+  cancel_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   cancel_at_period_end: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-  canceled_at: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
+  canceled_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   collection_method: faker.helpers.arrayElement(Object.values(CollectionMethodEnum)),
   current_period_end: `${faker.date.past().toISOString().split('.')[0]}Z`,
   current_period_start: `${faker.date.past().toISOString().split('.')[0]}Z`,
   days_until_due: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([faker.number.int({ min: -2147483648, max: 2147483647 }), null]),
+    faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
     undefined,
   ]),
-  discount: faker.helpers.arrayElement([{}, undefined]),
-  ended_at: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
+  discount: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+  ended_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   next_pending_invoice_item_invoice: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
     undefined,
   ]),
-  pause_collection: faker.helpers.arrayElement([{}, undefined]),
-  pending_invoice_item_interval: faker.helpers.arrayElement([{}, undefined]),
-  pending_update: faker.helpers.arrayElement([{}, undefined]),
+  pause_collection: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+  pending_invoice_item_interval: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
+  pending_update: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
   proration_behavior: faker.helpers.arrayElement([
     faker.helpers.arrayElement([
       faker.helpers.arrayElement(Object.values(ProrationBehaviorEnum)),
@@ -539,27 +514,15 @@ export const getApiV2StripeSubscriptionsRetrieveResponseMock = (
     ]),
     undefined,
   ]),
-  proration_date: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
+  proration_date: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   quantity: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([faker.number.int({ min: -2147483648, max: 2147483647 }), null]),
+    faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
     undefined,
   ]),
-  start_date: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
+  start_date: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   status: faker.helpers.arrayElement(Object.values(SubscriptionStatusEnum)),
-  trial_end: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
-  trial_start: faker.helpers.arrayElement([
-    faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-    undefined,
-  ]),
+  trial_end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+  trial_start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
   djstripe_owner_account: faker.helpers.arrayElement([
     faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     undefined,

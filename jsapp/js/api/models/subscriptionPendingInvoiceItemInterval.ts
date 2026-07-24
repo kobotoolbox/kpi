@@ -12,6 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 /**
  * Specifies an interval for how often to bill for any pending invoice items. It is analogous to calling Create an invoice for the given subscription at the specified interval.
- * @nullable
  */
 export type SubscriptionPendingInvoiceItemInterval = unknown | null

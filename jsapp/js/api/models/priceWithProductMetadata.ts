@@ -12,6 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 /**
  * A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format.
- * @nullable
  */
 export type PriceWithProductMetadata = unknown | null

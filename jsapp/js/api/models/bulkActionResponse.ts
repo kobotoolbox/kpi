@@ -32,6 +32,5 @@ export interface BulkActionResponse {
   created_by: BulkActionUserResponse
   date_created: string
   date_modified: string
-  /** @nullable */
   cancelled_by?: BulkActionResponseCancelledBy
 }

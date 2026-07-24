@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: KoboToolbox Primary API
   version: 2.0.0 (api_v2)
@@ -15175,10 +15175,11 @@ components:
             only.
           readOnly: true
         parent:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
-          nullable: true
         settings:
           type: object
           properties:
@@ -15339,17 +15340,20 @@ components:
           type: string
           format: date-time
         date_deployed:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         version_id:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         version__content_hash:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         version_count:
           type: integer
           readOnly: true
@@ -15357,8 +15361,9 @@ components:
           type: boolean
           readOnly: true
         deployed_version_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           readOnly: true
         deployed_versions:
           type: object
@@ -15443,16 +15448,18 @@ components:
           type: integer
           readOnly: true
         deployment__last_submission_time:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           readOnly: true
         deployment__encrypted:
           type: boolean
           readOnly: true
         deployment__uuid:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           readOnly: true
         deployment_status:
           allOf:
@@ -15942,9 +15949,9 @@ components:
           type:
           - array
           - 'null'
+          - 'null'
           items:
             type: string
-          nullable: true
           readOnly: true
         data_sharing:
           type: object
@@ -15954,21 +15961,24 @@ components:
           example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/
           readOnly: true
         project_ownership:
-          type: object
+          type:
+          - object
+          - 'null'
           additionalProperties: {}
-          nullable: true
           readOnly: true
         owner_label:
           type: string
           readOnly: true
         last_modified_by:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         created_by:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
       required:
       - access_types
       - analysis_form_json
@@ -16019,8 +16029,9 @@ components:
         uid:
           type: string
         seconds:
-          type: integer
-          nullable: true
+          type:
+          - integer
+          - 'null'
       required:
       - seconds
       - uid
@@ -16761,8 +16772,9 @@ components:
             Applicable to both `service` and `good` types.
           maxLength: 5000
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: A description of this object.
         type:
           allOf:
@@ -16872,9 +16884,9 @@ components:
           type: string
           format: date-time
         cancelled_by:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/BulkActionUserResponse'
-          nullable: true
+          - type: 'null'
         skipped_uuids:
           type: array
           items:
@@ -16898,11 +16910,13 @@ components:
         count:
           type: integer
         next:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         previous:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         results:
           type: array
           items:
@@ -16967,9 +16981,9 @@ components:
           type: string
           format: date-time
         cancelled_by:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/BulkActionUserResponse'
-          nullable: true
+          - type: 'null'
       required:
       - action_id
       - created_by
@@ -17002,8 +17016,9 @@ components:
         status:
           $ref: '#/components/schemas/BulkActionSubmissionStatusResponseStatusEnum'
         error:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - error
       - status
@@ -17520,7 +17535,7 @@ components:
                   $ref: '#/components/schemas/SupplementalDataAutomaticQual'
               required:
               - automatic_bedrock_qual
-          nullable: true
+          - type: 'null'
           description: Action-specific supplemental data attached to this submission.
             Structure varies by action type (transcription, translation, qual). Top-level
             keys are question XPaths, values are action objects.
@@ -17938,26 +17953,33 @@ components:
       type: object
       properties:
         terms_of_service_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         privacy_policy_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         source_code_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         support_email:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         support_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         academy_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         community_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         frontend_min_retry_time:
           type: integer
         frontend_max_retry_time:
@@ -18045,8 +18067,9 @@ components:
           type: string
           description: Placeholder text for submissions
         stripe_public_key:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         terms_of_service__sitewidemessage__exists:
           type: boolean
           description: Indicates if a sitewide message for TOS exists
@@ -18672,8 +18695,9 @@ components:
           type: string
           maxLength: 255
         payload_template:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         pending_count:
           type: integer
           readOnly: true
@@ -18741,9 +18765,10 @@ components:
         status_str:
           type: string
         status_code:
-          type: integer
+          type:
+          - integer
+          - 'null'
           readOnly: true
-          nullable: true
         message:
           type: string
           readOnly: true
@@ -19150,9 +19175,10 @@ components:
           format: uri
           example: https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40
         last_login:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         extra_details:
           type: object
           properties:
@@ -19289,9 +19315,9 @@ components:
         user__is_active:
           type: boolean
         invite:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/InviteResponse'
-          nullable: true
+          - type: 'null'
       required:
       - date_joined
       - invite
@@ -19325,10 +19351,11 @@ components:
         required:
           type: boolean
         options:
-          type: array
+          type:
+          - array
+          - 'null'
           items:
             $ref: '#/components/schemas/MetadataFieldOption'
-          nullable: true
       required:
       - label
       - name
@@ -19390,11 +19417,13 @@ components:
           description: The amount of each of the add-on's individual limits left to
             use.
         organization:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         product:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - created
       - id
@@ -20897,9 +20926,10 @@ components:
           example: https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40
           readOnly: true
         last_login:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         extra_details:
           type: object
           properties:
@@ -21190,8 +21220,9 @@ components:
           type: string
           maxLength: 255
         payload_template:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         pending_count:
           type: integer
           readOnly: true
@@ -21248,9 +21279,10 @@ components:
         status_str:
           type: string
         status_code:
-          type: integer
+          type:
+          - integer
+          - 'null'
           readOnly: true
-          nullable: true
         message:
           type: string
           readOnly: true
@@ -21490,22 +21522,25 @@ components:
             * `one_time` - One-time
             * `recurring` - Recurring
         recurring:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/Recurring'
-          nullable: true
+          - type: 'null'
         unit_amount:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-          nullable: true
           description: The unit amount in cents to be charged, represented as a whole
             integer if possible. Null if a sub-cent precision is required.
         human_readable_price:
           type: string
           readOnly: true
         metadata:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: A set of key/value pairs that you can attach to an object.
             It can be useful for storing additional information about an object in
             a structured format.
@@ -21516,7 +21551,9 @@ components:
           type: string
           description: The product this price is associated with.
         transform_quantity:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Apply a transformation to the reported usage or set quantity
             before computing the amount billed. Cannot be combined with `tiers`.
       required:
@@ -21550,22 +21587,25 @@ components:
             * `one_time` - One-time
             * `recurring` - Recurring
         recurring:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/Recurring'
-          nullable: true
+          - type: 'null'
         unit_amount:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-          nullable: true
           description: The unit amount in cents to be charged, represented as a whole
             integer if possible. Null if a sub-cent precision is required.
         human_readable_price:
           type: string
           readOnly: true
         metadata:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: A set of key/value pairs that you can attach to an object.
             It can be useful for storing additional information about an object in
             a structured format.
@@ -21575,7 +21615,9 @@ components:
         product:
           $ref: '#/components/schemas/BaseProduct'
         transform_quantity:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Apply a transformation to the reported usage or set quantity
             before computing the amount billed. Cannot be combined with `tiers`.
       required:
@@ -21598,8 +21640,9 @@ components:
             Applicable to both `service` and `good` types.
           maxLength: 5000
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: A description of this object.
         type:
           allOf:
@@ -22180,8 +22223,9 @@ components:
         interval_count:
           type: integer
         meter:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         usage_type:
           $ref: '#/components/schemas/StripeUsageType'
       required:
@@ -22700,8 +22744,9 @@ components:
         client_id:
           type: string
         provider_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - client_id
       - name
@@ -22753,10 +22798,11 @@ components:
         schedule:
           $ref: '#/components/schemas/SubscriptionSchedule'
         application_fee_percent:
-          type: string
+          type:
+          - string
+          - 'null'
           format: decimal
           pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
-          nullable: true
         djstripe_created:
           type: string
           format: date-time
@@ -22770,40 +22816,49 @@ components:
           type: string
           maxLength: 255
         livemode:
-          type: boolean
-          nullable: true
+          type:
+          - boolean
+          - 'null'
           description: Null here indicates that the livemode status is unknown or
             was previously unrecorded. Otherwise, this field indicates whether this
             record comes from Stripe test mode or live mode operation.
         created:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: The datetime this object was created in stripe.
         metadata:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: A set of key/value pairs that you can attach to an object.
             It can be useful for storing additional information about an object in
             a structured format.
         description:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: A description of this object.
         billing_cycle_anchor:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: Determines the date of the first full invoice, and, for plans
             with `month` or `year` intervals, the day of the month for subsequent
             invoices.
         billing_thresholds:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Define thresholds at which an invoice will be sent, and the
             subscription advanced to a new billing period.
         cancel_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: A date in the future at which the subscription will automatically
             get canceled.
         cancel_at_period_end:
@@ -22814,9 +22869,10 @@ components:
             has a status of active is scheduled to be canceled at the end of the current
             period.
         canceled_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has been canceled, the date of that cancellation.
             If the subscription was canceled with ``cancel_at_period_end``, canceled_at
             will still reflect the date of the initial cancellation request, not the
@@ -22841,41 +22897,52 @@ components:
           description: Start of the current period for which the subscription has
             been invoiced.
         days_until_due:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 2147483647
           minimum: -2147483648
-          nullable: true
           description: Number of days a customer has to pay invoices generated by
             this subscription. This value will be `null` for subscriptions where `billing=charge_automatically`.
         discount:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Describes the current discount applied to this subscription,
             if there is one. When billing, a discount applied to a subscription overrides
             a discount applied on a customer-wide basis.
         ended_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has ended (either because it was canceled
             or because the customer was switched to a subscription to a new plan),
             the date the subscription ended.
         next_pending_invoice_item_invoice:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: Specifies the approximate timestamp on which any pending invoice
             items will be billed according to the schedule provided at pending_invoice_item_interval.
         pause_collection:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: If specified, payment collection for this subscription will
             be paused.
         pending_invoice_item_interval:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: Specifies an interval for how often to bill for any pending
             invoice items. It is analogous to calling Create an invoice for the given
             subscription at the specified interval.
         pending_update:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: If specified, pending updates that will be applied to the subscription
             once the latest_invoice has been paid.
         proration_behavior:
@@ -22889,9 +22956,10 @@ components:
           - $ref: '#/components/schemas/ProrationBehaviorEnum'
           - $ref: '#/components/schemas/BlankEnum'
         proration_date:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If set, the proration will be calculated as though the subscription
             was updated at the given time. This can be used to apply exactly the same
             proration that was previewed with upcoming invoice endpoint. It can also
@@ -22899,16 +22967,18 @@ components:
             instead of by second, by providing the time that you wish to use for proration
             calculations
         quantity:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 2147483647
           minimum: -2147483648
-          nullable: true
           description: The quantity applied to this subscription. This value will
             be `null` for multi-plan subscriptions
         start_date:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: Date when the subscription was first created. The date might
             differ from the created date due to backdating.
         status:
@@ -22925,48 +22995,56 @@ components:
             * `trialing` - Trialing
             * `unpaid` - Unpaid
         trial_end:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has a trial, the end of that trial.
         trial_start:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: If the subscription has a trial, the beginning of that trial.
         djstripe_owner_account:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The Stripe Account this object belongs to.
         customer:
           type: string
           description: The customer associated with this subscription.
         default_payment_method:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The default payment method for the subscription. It must belong
             to the customer associated with the subscription. If not set, invoices
             will use the default payment method in the customer's invoice settings.
         default_source:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The default payment source for the subscription. It must belong
             to the customer associated with the subscription and be in a chargeable
             state. If not set, defaults to the customer's default source.
         latest_invoice:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The most recent invoice this subscription has generated.
         pending_setup_intent:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: We can use this SetupIntent to collect user authentication
             when creating a subscription without immediate payment or updating a subscription's
             payment method, allowing you to optimize for off-session payments.
         plan:
-          type: integer
+          type:
+          - integer
+          - 'null'
           title: ID
-          nullable: true
           description: The plan associated with this subscription. This value will
             be `null` for multi-plan subscriptions
         default_tax_rates:
@@ -22998,10 +23076,11 @@ components:
         price:
           $ref: '#/components/schemas/PriceWithProduct'
         quantity:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 2147483647
           minimum: 0
-          nullable: true
           description: The quantity of the plan to which the customer should be subscribed.
       required:
       - id
