@@ -17,6 +17,7 @@ import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import NewFeatureDialog from '#/components/newFeatureDialog.component'
+import { openSharingModal } from '#/components/permissions/openSharingModal'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
@@ -152,10 +153,7 @@ class FormLanding extends React.Component {
   }
   showSharingModal(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.SHARING,
-      assetid: this.state.uid,
-    })
+    openSharingModal({ asset: this.state })
   }
   showReplaceProjectModal(evt) {
     evt.preventDefault()

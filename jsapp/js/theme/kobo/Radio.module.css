@@ -1,3 +1,10 @@
+.root,
+.body,
+.inner,
+.label {
+  cursor: pointer;
+}
+
 .label {
   padding-left: 6px;
   font-size: var(--mantine-font-size-md);
@@ -13,7 +20,25 @@
   outline-offset: var(--kobo-focus-ring-offset);
 }
 
+.root[data-disabled],
+.body[data-disabled],
+.inner[data-disabled],
+.radio[data-disabled],
+.label[data-disabled] {
+  cursor: not-allowed;
+}
+
+.radio[data-disabled],
 .radio:disabled {
-  background-color: var(--mantine-color-gray-7);
-  border-color: var(--mantine-color-gray-3);
+  background-color: var(--kobo-choice-control-disabled-bg);
+  border-color: var(--kobo-choice-control-disabled-border);
+}
+
+.icon[data-disabled] {
+  color: var(--kobo-choice-control-disabled-icon);
+}
+
+.label[data-disabled] {
+  color: var(--kobo-choice-control-disabled-label);
+  opacity: 1;
 }

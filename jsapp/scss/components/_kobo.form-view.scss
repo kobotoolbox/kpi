@@ -468,11 +468,6 @@ $side-tabs-width-mobile: 70px;
   background: colors.$kobo-white;
 }
 
-.form-view--settings-sharing {
-  background: colors.$kobo-white;
-  padding: 40px;
-}
-
 .form-modal__form {
   &.form-modal__form--pending {
     pointer-events: none;
@@ -480,13 +475,11 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
+.form-view.form-view--form-settings,
 .form-view.form-view--form-settings-sharing {
   background: colors.$kobo-white;
-
-  .form-modal {
-    padding: 40px 40px 16px;
-    overflow: auto;
-  }
+  padding: 40px;
+  overflow: auto;
 }
 
 .form-view.form-view--form-data-downloads {
@@ -652,8 +645,8 @@ $side-tabs-width-mobile: 70px;
     margin-left: 20px;
   }
 
-  .form-view--form-settings,
-  .form-view--settings-sharing {
+  .form-view.form-view--form-settings,
+  .form-view.form-view--form-settings-sharing {
     padding: 20px;
   }
 

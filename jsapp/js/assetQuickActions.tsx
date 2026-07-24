@@ -20,6 +20,7 @@ import { renderJSXMessage } from './alertify'
 import assetUtils from './assetUtils'
 import { openAssetTagsModal } from './components/AssetTagsModal'
 import myLibraryStore from './components/library/myLibraryStore'
+import { openSharingModal } from './components/permissions/openSharingModal'
 import { userCan } from './components/permissions/utils'
 import { ASSET_TYPES, MODAL_TYPES } from './constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from './dataInterface'
@@ -396,8 +397,8 @@ export function deployAsset(
 }
 
 /** Opens a modal for sharing asset. */
-export function manageAssetSharing(uid: string) {
-  pageState.showModal({ type: MODAL_TYPES.SHARING, uid: uid })
+export function manageAssetSharing(asset: AssetResponse | ProjectViewAsset) {
+  openSharingModal({ asset: asset })
 }
 
 /** Opens a modal for replacing an asset using a file. */

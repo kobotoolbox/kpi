@@ -1,15 +1,11 @@
-import './sharingForm.scss'
-
+import { Box, Group, Stack, Title } from '@mantine/core'
+import { IconX } from '@tabler/icons-react'
 import React from 'react'
-
-import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
-import bem from '#/bem'
-import AssetName from '#/components/common/assetName'
-import Button from '#/components/common/button'
-import InlineMessage from '#/components/common/inlineMessage'
+import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import { userCan } from '#/components/permissions/utils'
@@ -21,10 +17,9 @@ import type {
   PermissionBase,
   PermissionResponse,
 } from '#/dataInterface'
-import sessionStore from '#/stores/session'
-import { replaceBracketsWithLink } from '#/textUtils'
 import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
 import { recordValues } from '#/utils'
+import AnonymousSubmissionSettings from './AnonymousSubmissionSettings'
 import CopyTeamPermissions from './copyTeamPermissions.component'
 import { parseBackendData, parseUserWithPermsList } from './permParser'
 import type { UserWithPerms } from './permParser'
@@ -184,42 +179,13 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     const assetType = this.state.asset.asset_type
     const isManagingPossible = userCan('manage_asset', this.state.asset)
 
-    const isRequireAuthWarningVisible =
-      'extra_details' in sessionStore.currentAccount &&
-      sessionStore.currentAccount.extra_details?.require_auth !== true &&
-      assetType === ASSET_TYPES.survey.id
-
     return (
-      <bem.FormModal m='sharing-form'>
-        <bem.Modal__subheader dir='auto'>
-          <AssetName asset={this.state.asset} />
-        </bem.Modal__subheader>
-
-        {isRequireAuthWarningVisible && (
-          <bem.FormModal__item>
-            <InlineMessage
-              type='warning'
-              icon='alert'
-              message={
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: replaceBracketsWithLink(
-                      t(
-                        'Anyone can see this blank form and add submissions to it ' +
-                          'because you have not set [your account] to require authentication.',
-                      ),
-                      `/#${ACCOUNT_ROUTES.ACCOUNT_SETTINGS}`,
-                    ),
-                  }}
-                />
-              }
-            />
-          </bem.FormModal__item>
-        )}
-
+      <Stack gap='xl'>
         {/* list of users and their permissions */}
-        <bem.FormModal__item m='who-has-access'>
-          <h2>{t('Who has access')}</h2>
+        <Stack gap='sm'>
+          <Title order={3} fz='inherit' fw='400'>
+            {t('Who has access')}
+          </Title>
 
           {this.state.permissions.map((perm) => {
             // don't show anonymous user permissions in UI
@@ -243,60 +209,62 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
           {this.renderPendingOwner(isManagingPossible)}
 
           {!this.state.isAddUserEditorVisible && (
-            <Button
-              type='primary'
-              isDisabled={!isManagingPossible}
-              size='l'
+            <ButtonNew
+              disabled={!isManagingPossible}
+              size='md'
               onClick={this.toggleAddUserEditor.bind(this)}
-              label={t('Add user')}
-            />
+              style={{ alignSelf: 'flex-start' }}
+            >
+              {t('Add user')}
+            </ButtonNew>
           )}
 
           {this.state.isAddUserEditorVisible && (
-            <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
-              <Button
-                type='text'
-                size='l'
-                startIcon='close'
-                className='user-permissions-editor-closer'
-                onClick={this.toggleAddUserEditor.bind(this)}
-              />
+            <Box p='md' bg='gray.7' bdrs='sm'>
+              <Group gap='xs' align='top'>
+                <Box flex={1}>
+                  <UserAssetPermsEditor
+                    asset={this.state.asset}
+                    assignablePerms={this.state.assignablePerms}
+                    nonOwnerPerms={this.state.nonOwnerPerms}
+                    onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
+                  />
+                </Box>
 
-              <UserAssetPermsEditor
-                asset={this.state.asset}
-                assignablePerms={this.state.assignablePerms}
-                nonOwnerPerms={this.state.nonOwnerPerms}
-                onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
-              />
-            </bem.FormModal__item>
+                <ActionIcon
+                  variant='transparent'
+                  size='md'
+                  aria-label={t('Close add user editor')}
+                  onClick={this.toggleAddUserEditor.bind(this)}
+                  icon={IconX}
+                />
+              </Group>
+            </Box>
           )}
-        </bem.FormModal__item>
+        </Stack>
 
         {/* public sharing settings */}
         {assetType === ASSET_TYPES.survey.id && (
-          <>
-            <bem.FormModal__item m='share-settings'>
-              <PublicShareSettings
-                publicPerms={this.state.publicPerms}
-                assetUid={this.props.assetUid}
-                userCanShare={isManagingPossible}
-              />
-            </bem.FormModal__item>
-          </>
+          <Stack gap='sm'>
+            <AnonymousSubmissionSettings
+              publicPerms={this.state.publicPerms}
+              assetUid={this.props.assetUid}
+              userCanShare={isManagingPossible}
+            />
+
+            <PublicShareSettings
+              publicPerms={this.state.publicPerms}
+              assetUid={this.props.assetUid}
+              userCanShare={isManagingPossible}
+            />
+          </Stack>
         )}
 
         {/* copying permissions from other assets */}
-        {isManagingPossible && (
-          <>
-            {assetType !== ASSET_TYPES.collection.id && (
-              <>
-                <bem.Modal__hr />
-                <CopyTeamPermissions asset={this.state.asset} />
-              </>
-            )}
-          </>
+        {isManagingPossible && assetType !== ASSET_TYPES.collection.id && (
+          <CopyTeamPermissions asset={this.state.asset} />
         )}
-      </bem.FormModal>
+      </Stack>
     )
   }
 }

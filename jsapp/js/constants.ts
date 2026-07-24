@@ -70,7 +70,6 @@ export enum KeyNames {
 }
 
 export const MODAL_TYPES = {
-  SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
   LIBRARY_NEW_ITEM: 'library-new-item',

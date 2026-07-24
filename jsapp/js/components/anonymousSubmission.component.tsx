@@ -1,10 +1,10 @@
-import React from 'react'
-
-import Icon from '#/components/common/icon'
+import { Group } from '@mantine/core'
+import { IconHelpCircleFilled } from '@tabler/icons-react'
+import { Link } from 'react-router-dom'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
-import styles from './anonymousSubmission.module.scss'
+import ActionIcon from './common/ActionIcon'
 
 interface AnonymousSubmissionProps {
   checked: boolean
@@ -14,23 +14,27 @@ interface AnonymousSubmissionProps {
 
 export default function AnonymousSubmission(props: AnonymousSubmissionProps) {
   return (
-    <div className={styles.root}>
+    <Group gap='xs'>
       <ToggleSwitch
         checked={props.checked}
         disabled={props.disabled}
         onChange={props.onChange}
         label={t('Allow submissions to this form without a username and password')}
       />
-      <a
-        href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
-        className='right-tooltip wrapped-tooltip'
+
+      <ActionIcon
+        size='sm'
+        variant='transparent'
+        icon={IconHelpCircleFilled}
+        component={Link}
+        aria-label={t('Learn more about anonymous submissions')}
+        to={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
         target='_blank'
-        data-tip={t(
+        tooltip={t(
           'Allow anonymous submissions for this project. Previously, this was an account-wide setting. Click the icon to learn more.',
         )}
-      >
-        <Icon size='s' name='help' color='storm' />
-      </a>
-    </div>
+        tooltipProps={{ multiline: true, w: 300 }}
+      />
+    </Group>
   )
 }

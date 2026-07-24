@@ -11,7 +11,6 @@ import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachme
 import { LibraryAssetForm } from '#/components/modalForms/LibraryAssetForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
-import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
 import TableMediaPreview from '#/components/submissions/tableMediaPreview'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
@@ -78,10 +77,6 @@ class BigModal extends React.Component {
   componentDidMount() {
     var type = this.props.params.type
     switch (type) {
-      case MODAL_TYPES.SHARING:
-        this.setModalTitle(t('Sharing Permissions'))
-        break
-
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
         break
@@ -212,8 +207,6 @@ class BigModal extends React.Component {
   }
 
   render() {
-    const uid = this.props.params.assetid || this.props.params.uid
-
     return (
       <Modal
         open
@@ -226,7 +219,6 @@ class BigModal extends React.Component {
         disableEscClose={this.props.params.disableEscClose}
       >
         <Modal.Body>
-          {this.props.params.type === MODAL_TYPES.SHARING && <SharingForm assetUid={uid} />}
           {this.props.params.type === MODAL_TYPES.NEW_FORM && (
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.NEW}

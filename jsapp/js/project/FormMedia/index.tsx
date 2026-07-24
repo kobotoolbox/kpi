@@ -321,7 +321,7 @@ export default function FormMedia(props: FormMediaProps) {
 
                 <ActionIcon
                   size='md'
-                  variant='subtle'
+                  variant='danger-secondary'
                   color='red'
                   aria-label={t('Delete file')}
                   onClick={() => onDeleteMedia(item.uid)}
