@@ -17,7 +17,7 @@
 
   &:hover {
     color: var(--mantine-color-gray-1);
-    background: transparent;
+    background-color: var(--mantine-color-gray-8);
   }
 
   &[data-active] {
