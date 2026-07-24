@@ -575,7 +575,7 @@ class TestPandasMongoBridge(TestBase):
         # remove dynamic fields
         ignore_list = [
             '_uuid', 'meta/instanceID', 'formhub/uuid', '_submission_time',
-            '_id', 'meta/rootUuid']
+            '_id', 'meta/rootUuid', '_date_modified']
         for item in ignore_list:
             data_0.pop(item)
         expected_data_0 = {

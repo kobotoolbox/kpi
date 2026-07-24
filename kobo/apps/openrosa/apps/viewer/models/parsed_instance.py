@@ -7,6 +7,7 @@ from dateutil import parser
 from django.conf import settings
 from django.db import models
 from django.db.transaction import get_connection
+from django.utils import timezone
 from django.utils.translation import gettext as t
 from pymongo import UpdateOne
 from pymongo.errors import PyMongoError
@@ -17,6 +18,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteSta
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
+    DATE_MODIFIED,
     GEOLOCATION,
     ID,
     META_ROOT_UUID,
@@ -308,6 +310,7 @@ class ParsedInstance(models.Model):
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
             SUBMISSION_TIME: self.instance.date_created.strftime(MONGO_STRFTIME),
+            DATE_MODIFIED: self.instance.date_modified.strftime(MONGO_STRFTIME),
             VALIDATION_STATUS: self.instance.get_validation_status(),
             SUBMITTED_BY: self.submitted_by,
         }
@@ -357,8 +360,11 @@ class ParsedInstance(models.Model):
         return True
 
     @staticmethod
-    def bulk_update_validation_statuses(query, validation_status):
-        return MongoHelper.update_many(query, {VALIDATION_STATUS: validation_status})
+    def bulk_update_validation_statuses(query, validation_status, date_modified=None):
+        fields_to_update = {VALIDATION_STATUS: validation_status}
+        if date_modified is not None:
+            fields_to_update[DATE_MODIFIED] = date_modified.strftime(MONGO_STRFTIME)
+        return MongoHelper.update_many(query, fields_to_update)
 
     @staticmethod
     def bulk_delete(query):
@@ -447,22 +453,34 @@ class ParsedInstance(models.Model):
         """
         Bulk update attachments for given instances. Mostly used to set/update
         the `is_deleted` flag in Mongo's `_attachments`.
+
+        Also refreshes `date_modified` on the affected instances (in both
+        PostgreSQL and Mongo) so that API consumers can detect the change.
         """
         if not instance_ids:
             return
 
         grouped_attachments = _get_grouped_attachments_for_instances(instance_ids)
+        date_modified = timezone.now()
 
         attachments_to_update = []
         for inst_id in instance_ids:
             attachments_to_update.append(
                 UpdateOne(
                     {'_id': inst_id},
-                    {'$set': {'_attachments': grouped_attachments.get(inst_id, [])}},
+                    {
+                        '$set': {
+                            '_attachments': grouped_attachments.get(inst_id, []),
+                            DATE_MODIFIED: date_modified.strftime(MONGO_STRFTIME),
+                        }
+                    },
                 )
             )
 
         if attachments_to_update:
+            Instance.objects.filter(pk__in=instance_ids).update(
+                date_modified=date_modified
+            )
             xform_instances.bulk_write(attachments_to_update)
 
 
