@@ -1,9 +1,16 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
+from allauth.core.exceptions import ImmediateHttpResponse
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
+from django.contrib import messages
 from django.db import transaction
+from django.shortcuts import redirect, resolve_url
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as t
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -55,3 +62,35 @@ class AccountAdapter(DefaultAccountAdapter):
         if next is not None:
             return f'{url}?next={next}'
         return url
+
+
+class SocialAccountAdapter(DefaultSocialAccountAdapter):
+
+    def pre_social_login(self, request, sociallogin):
+        """Allow only one linked SSO account per user."""
+        # Only the connect flow links a new provider; login/signup are exempt.
+        if sociallogin.state.get('process') != AuthProcess.CONNECT:
+            return
+
+        user = request.user
+        if not user.is_authenticated:
+            return
+
+        incoming = sociallogin.account
+        # Block only if a *different* account is already linked; reconnecting
+        # the same one is fine.
+        blocking_accounts = SocialAccount.objects.filter(user=user).exclude(
+            provider=incoming.provider, uid=incoming.uid
+        )
+        if blocking_accounts.exists():
+            messages.error(
+                request,
+                t(
+                    'You can only link one SSO account at a time. Disconnect '
+                    'your existing SSO account before linking a new one.'
+                ),
+            )
+            next_url = sociallogin.get_redirect_url(request) or resolve_url(
+                settings.LOGIN_REDIRECT_URL
+            )
+            raise ImmediateHttpResponse(redirect(next_url))
