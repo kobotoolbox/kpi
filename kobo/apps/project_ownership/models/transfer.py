@@ -18,6 +18,7 @@ from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.fields import KpiUidField
 from kpi.models import Asset, AssetUserPartialPermission, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder
@@ -419,6 +420,10 @@ class TransferStatus(AbstractTimeStampedModel):
             # `success` is terminal: a late or duplicate retry must not
             # downgrade it, nor flip the invite to `failed`.
             if transfer_status.status == TransferStatusChoices.SUCCESS:
+                logging.warning(
+                    f'Ignored update of successful {status_type} status to '
+                    f'{status} for transfer #{transfer_id}'
+                )
                 return
             transfer_status.status = status
             transfer_status.date_modified = timezone.now()
