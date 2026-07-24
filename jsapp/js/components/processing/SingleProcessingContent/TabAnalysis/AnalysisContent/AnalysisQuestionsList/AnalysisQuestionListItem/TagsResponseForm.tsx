@@ -31,6 +31,8 @@ export default function SelectMultipleResponseForm({ qaAnswer, onSave, disabled,
   return (
     <Radio.Group>
       <TagsInput
+        // Allow tags of different casing in the same TagsInput, but not trailing spaces
+        isDuplicate={(tagValue, currentTags) => currentTags.some((val) => val === tagValue)}
         data={suggestedTags}
         value={selectedValues}
         onChange={onSave}
