@@ -1121,12 +1121,12 @@ class DataViewSet(
                     {'query': t('Value must be valid JSON.')}
                 )
             # Older data may have `meta/rootUuid` set to NULL.
-            # The long-running migration `0005` is responsible for backfilling
-            # `meta/rootUuid` for all existing submissions.
+            # The long-running migrations `0005`, `0027`, `0028`) are responsible for
+            # backfilling `meta/rootUuid` for all existing submissions.
             #
             # Until this migration is fully applied everywhere, we must fall back
-            # to `meta/instanceID`. This fallback is temporary and potentially
-            # unsafe because `instanceID` is NOT guaranteed to be unique per project.
+            # to `_uuid`. This fallback is temporary and potentially
+            # unsafe because `_uuid` is NOT guaranteed to be unique per project.
             #
             # Once all submissions have a populated `meta/rootUuid`, this `$or`
             # condition can be removed and lookups should rely exclusively on
@@ -1135,7 +1135,7 @@ class DataViewSet(
             uuid_query = {
                 '$or': [
                     {'meta/rootUuid': submission_id_or_root_uuid},
-                    {'meta/instanceID': submission_id_or_root_uuid},
+                    {'_uuid': remove_uuid_prefix(submission_id_or_root_uuid)},
                 ]
             }
 

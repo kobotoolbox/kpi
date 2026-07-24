@@ -25,11 +25,7 @@ def run():
     while True:
         query = {
             '_id': {'$gt': last_id},
-            '$or': [
-                {'meta/rootUuid': {'$exists': False}},
-                {'meta/rootUuid': None},
-                {'meta/rootUuid': ''},
-            ],
+            'meta/rootUuid': {'$exists': False},
         }
 
         # Paginate forward by _id to guarantee no infinite loops
@@ -54,10 +50,10 @@ def run():
 def _check_lrm_0027_is_completed():
     """
     Raises `LongRunningMigrationDependencyError` if LRM 0027 has not yet
-    reached a terminal state (completed or failed).
+    reached a terminal state (i.e.: completed).
     """
     if not LongRunningMigration.objects.filter(
-        Q(status='completed') | Q(status='failed'),
+        status='completed',
         name__startswith='0027',
     ).exists():
         raise LongRunningMigrationDependencyError(
