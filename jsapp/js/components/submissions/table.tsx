@@ -504,6 +504,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
+    if (!isFrozen) {
+      this.frozenLeftRef = 0
+    }
     tableStore.setFrozenColumn(fieldId, isFrozen)
   }
 
@@ -1065,6 +1068,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // scrolling or reloads.
       if (col.className?.includes('frozen')) {
         col.style = { ...col.style, left: this.frozenLeftRef }
+        col.headerStyle = { ...col.headerStyle, left: this.frozenLeftRef }
       }
 
       if (frozenColumn === col.id) {
@@ -1073,6 +1077,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           ? `is-frozen is-last-frozen ${col.headerClassName}`
           : 'is-frozen is-last-frozen'
         col.style = { ...col.style, left: this.frozenLeftRef }
+        col.headerStyle = { ...col.headerStyle, left: this.frozenLeftRef }
       }
     })
 
