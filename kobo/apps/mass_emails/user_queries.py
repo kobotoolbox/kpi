@@ -151,8 +151,10 @@ def get_users_within_range_of_usage_limit(
     }
 
     owner_by_org = {
-        org.id: org.owner_user_object.pk
-        for org in Organization.objects.filter(owner__isnull=False)
+        org['id']: org['owner__organization_user__user__id']
+        for org in Organization.objects.filter(owner__isnull=False).values(
+            'id', 'owner__organization_user__user__id'
+        )
     }
     limits_by_owner = {
         owner_by_org[org_id]: limits for org_id, limits in limits_by_org.items()
