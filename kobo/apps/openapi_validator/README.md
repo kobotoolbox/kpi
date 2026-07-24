@@ -59,18 +59,18 @@ This is useful for detecting:
 
 ### `OPENAPI_VALIDATION_BUILD_WHITELIST_LOG`
 
-When enabled, this option generates a CSV file used to build the Python constant `OPEN_API_VALIDATION_WHITELIST`.
+When enabled, this option generates a CSV file used to build the Python constant `OPENAPI_VALIDATION_WHITELIST`.
 
 This whitelist allows specific tests and endpoints to bypass strict validation failures when necessary.
 
 ---
 
-#### Recommended Workflow to generate `OPEN_API_VALIDATION_WHITELIST`
+#### Recommended Workflow to generate `OPENAPI_VALIDATION_WHITELIST`
 
-**Step 1 — Reset `OPEN_API_VALIDATION_WHITELIST`**
+**Step 1 — Reset `OPENAPI_VALIDATION_WHITELIST`**
 
 ```python
-OPEN_API_VALIDATION_WHITELIST = {}
+OPENAPI_VALIDATION_WHITELIST = {}
 ```
 
 **Step 2 — Run tests without strict mode and logs activated**
@@ -105,7 +105,7 @@ run(
 )
 ```
 
-This generates the `OPEN_API_VALIDATION_WHITELIST` constant used by the middleware.
+This generates the `OPENAPI_VALIDATION_WHITELIST` constant used by the middleware.
 
 Bring back `OPENAPI_VALIDATION_STRICT` and `OPENAPI_VALIDATION_BUILD_WHITELIST_LOG` to original values:
 
