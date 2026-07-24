@@ -99,11 +99,10 @@ class TableStore extends Reflux.Store {
       // Cleanup all `null` settings, as we don't want to store `null`s and `null`
       // means "delete setting"
       const tableSettings = newSettings[DATA_TABLE_SETTING]
-      recordEntries(tableSettings).forEach((key, value) => {
-        if (value === null && typeof key === 'string') {
-          delete tableSettings[key]
-        }
-      })
+      const cleanedTableSettings = Object.fromEntries(
+        recordEntries(tableSettings).filter(([, value]) => value !== null),
+      ) as AssetTableSettings
+      newSettings[DATA_TABLE_SETTING] = cleanedTableSettings
       actions.table.updateSettings(asset.uid, newSettings)
     } else {
       // Case 2: user can't save, so we store temporary overrides as nested setting
