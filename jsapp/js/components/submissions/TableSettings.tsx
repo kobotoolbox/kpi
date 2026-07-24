@@ -1,4 +1,5 @@
 import { Checkbox, Group, Radio, Stack } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import React from 'react'
 import { actions } from '#/actions'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -11,6 +12,8 @@ import { notify } from '#/utils'
 
 interface TableSettingsProps {
   asset: AssetResponse
+  /** Id of the Mantine modal wrapping this form. */
+  modalId: string
   /** Closes this modal. Called once its own save (or reset) has been applied. */
   onRequestClose: () => void
 }
@@ -43,6 +46,18 @@ export default function TableSettings(props: TableSettingsProps) {
     () => getCurrentTableSettings().translationIndex,
   )
   const [isSaving, setIsSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    // Prevent dismissing the modal while a save is in flight. Otherwise closing
+    // it unmounts this form and tears down the listeners below, so a subsequent
+    // failure would go unreported (ours is the only `.failed` listener).
+    modals.updateModal({
+      modalId: props.modalId,
+      withCloseButton: !isSaving,
+      closeOnEscape: !isSaving,
+      closeOnClickOutside: !isSaving,
+    })
+  }, [isSaving, props.modalId])
 
   const displayedLabelOptions = React.useMemo<TableSettingsOption[]>(() => {
     const options: TableSettingsOption[] = [

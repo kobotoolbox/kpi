@@ -27,7 +27,7 @@ export function openTableSettingsModal({ asset }: OpenTableSettingsModalArgs) {
       isOpen = false
     },
     // The form closes itself once its own save resolves.
-    children: <TableSettings asset={asset} onRequestClose={close} />,
+    children: <TableSettings asset={asset} modalId={TABLE_SETTINGS_MODAL_ID} onRequestClose={close} />,
   })
 
   return { modalId: TABLE_SETTINGS_MODAL_ID, close }
