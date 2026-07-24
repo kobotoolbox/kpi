@@ -26,16 +26,42 @@ class AssetVersionListSerializer(serializers.Serializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Per-request memo of each asset's full-history label map, filled lazily
-        # by `get_version_number`. Always a single asset in practice, but keyed
-        # by `asset_id` to stay correct regardless
+        # Memo of `{asset_id: {version_id: label}}`, built lazily per asset by
+        # `get_version_number`. The asset is taken from `obj`, not the view, so
+        # this works both for the versions endpoints and when this serializer is
+        # the nested `deployed_versions` field of an asset (whose view is
+        # `AssetViewSet`, which has no `asset_uid`). Keyed by `asset_id` so one
+        # instance stays correct even if reused across assets
         self._version_labels = {}
 
     def get_date_deployed(self, obj):
         return obj.deployed and obj.date_modified
 
+    def get_version_number(self, obj):
+        """
+        Human-readable version number (see `_build_version_labels`), consistent
+        across pages, `?deployed=` filters, and the `retrieve` action
+
+        The label map is built once per asset (a single query over its full
+        history) and memoized on this serializer instance, so serializing a
+        whole page adds one query, not one per row. The lookup is keyed on `id`.
+        """
+        labels = self._version_labels.get(obj.asset_id)
+        if labels is None:
+            labels = self._version_labels[obj.asset_id] = (
+                self._build_version_labels(obj.asset_id)
+            )
+        return labels[obj.id]
+
+    def get_url(self, obj):
+        return reverse(
+            'asset-version-detail',
+            args=(obj.asset.uid, obj.uid),
+            request=self.context.get('request', None),
+        )
+
     @classmethod
-    def _labels_for_asset(cls, asset_id):
+    def _build_version_labels(cls, asset_id):
         """
         Build `{version_id: "1.2"}` for every version of the asset, in a single
         query and one ordered pass over its full history
@@ -66,28 +92,6 @@ class AssetVersionListSerializer(serializers.Serializer):
                 minor += 1
                 labels[version_id] = f'{major}.{minor}'
         return labels
-
-    def get_version_number(self, obj):
-        """
-        Human-readable version number (see `_labels_for_asset`), consistent
-        across pages, `?deployed=` filters, and the `retrieve` action
-
-        The full-history label map is computed once per serializer instance and
-        memoized per asset (see `__init__`), so serializing a whole page costs
-        one extra query, not one per row. The lookup is keyed on `id`.
-        """
-        if obj.asset_id not in self._version_labels:
-            self._version_labels[obj.asset_id] = self._labels_for_asset(
-                obj.asset_id
-            )
-        return self._version_labels[obj.asset_id][obj.id]
-
-    def get_url(self, obj):
-        return reverse(
-            'asset-version-detail',
-            args=(obj.asset.uid, obj.uid),
-            request=self.context.get('request', None),
-        )
 
 
 class AssetVersionSerializer(AssetVersionListSerializer):
