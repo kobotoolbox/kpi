@@ -202,7 +202,7 @@ docutils==0.23
     # via statistics
 drf-extensions==0.8.0
     # via -r dependencies/pip/requirements.in
-drf-spectacular==0.29.0
+drf-spectacular==0.30.0
     # via -r dependencies/pip/requirements.in
 et-xmlfile==2.0.0
     # via openpyxl

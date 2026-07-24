@@ -64,15 +64,7 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
     label: faker.string.alpha({ length: { min: 10, max: 20 } }),
     type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-    options: faker.helpers.arrayElement([
-      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        label: {
-          [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        },
-      })),
-      undefined,
-    ]),
+    options: faker.helpers.arrayElement([faker.helpers.arrayElement([[], null]), undefined]),
   })),
   extra_project_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
     () => ({
@@ -80,15 +72,7 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
       label: faker.string.alpha({ length: { min: 10, max: 20 } }),
       type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-      options: faker.helpers.arrayElement([
-        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-          name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-          label: {
-            [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
-          },
-        })),
-        undefined,
-      ]),
+      options: faker.helpers.arrayElement([faker.helpers.arrayElement([[], null]), undefined]),
     }),
   ),
   user_metadata_fields: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -96,15 +80,7 @@ export const getApiV2EnvironmentRetrieveResponseMock = (
     label: faker.string.alpha({ length: { min: 10, max: 20 } }),
     type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     required: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
-    options: faker.helpers.arrayElement([
-      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-        name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        label: {
-          [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        },
-      })),
-      undefined,
-    ]),
+    options: faker.helpers.arrayElement([faker.helpers.arrayElement([[], null]), undefined]),
   })),
   social_apps: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     provider: faker.string.alpha({ length: { min: 10, max: 20 } }),
