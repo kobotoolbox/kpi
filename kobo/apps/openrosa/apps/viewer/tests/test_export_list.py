@@ -54,14 +54,6 @@ class TestExportList(TestBase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    def test_kml_export_list(self):
-        kwargs = {'username': self.user.username,
-                  'id_string': self.xform.id_string,
-                  'export_type': Export.KML_EXPORT}
-        url = reverse(export_list, kwargs=kwargs)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
     def test_zip_export_list(self):
         kwargs = {'username': self.user.username,
                   'id_string': self.xform.id_string,

@@ -32,7 +32,7 @@ class CSVRenderer(BaseRenderer):
     format = 'csv'
     charset = 'utf-8'
 
-# TODO add KML, ZIP(attachments) support
+# TODO add ZIP(attachments) support
 
 
 class RawXMLRenderer(BaseRenderer):
