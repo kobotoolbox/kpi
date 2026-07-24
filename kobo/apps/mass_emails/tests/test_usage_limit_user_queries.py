@@ -126,6 +126,12 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
             False,
             True,
         ),
+        (
+            'llm_requests',
+            'get_nlp_usage_for_current_billing_period_by_user_id',
+            False,
+            True,
+        ),
     )
     @unpack
     def test_users_in_range_of_usage_limit_calls_correct_usage_method(
