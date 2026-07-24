@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
-import styles from './tabs.module.scss'
+import styles from './TabsOld.module.scss'
 
 interface Tab {
   label: string
