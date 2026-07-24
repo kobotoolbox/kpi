@@ -77,10 +77,13 @@ def _check_lrm_0027_is_completed():
 def _process_batch(docs: list):
     doc_ids = [doc['_id'] for doc in docs]
 
-    # Only fetch Postgres records that actually have a root_uuid populated
+    # Only fetch Postgres records that actually have a root_uuid populated,
+    # excluding trashed XForms: LRM 0027 never backfills them, but a race with
+    # some other write path could leave `root_uuid` set without us wanting to
+    # push it to Mongo for a project that's being deleted.
     instances_map = dict(
         Instance.objects.filter(
-            pk__in=doc_ids, root_uuid__isnull=False
+            pk__in=doc_ids, root_uuid__isnull=False, xform__pending_delete=False
         ).values_list('pk', 'root_uuid')
     )
 
