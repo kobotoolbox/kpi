@@ -11,7 +11,7 @@ import { notify } from '#/utils'
 
 interface TableSettingsProps {
   asset: AssetResponse
-  /** Called once this modal's own save (or reset) has been applied. */
+  /** Closes this modal. Called once its own save (or reset) has been applied. */
   onRequestClose: () => void
 }
 
@@ -22,6 +22,11 @@ interface TableSettingsOption {
 
 /**
  * This is a modal form that handles changing some of the table settings.
+ *
+ * The modal is a singleton (see `openTableSettingsModal`) and stays open until
+ * the save it triggered resolves, so at most one save is ever in flight and we
+ * don't need to correlate the global `actions.table.updateSettings` events to a
+ * specific request.
  */
 export default function TableSettings(props: TableSettingsProps) {
   const getCurrentTableSettings = React.useCallback(() => {
@@ -37,17 +42,7 @@ export default function TableSettings(props: TableSettingsProps) {
   const [translationIndex, setTranslationIndex] = React.useState<number>(
     () => getCurrentTableSettings().translationIndex,
   )
-
-  // Set when *this* modal instance triggers a save/reset, so we only close in
-  // response to our own save resolving — never an unrelated table settings
-  // change coming from elsewhere. Because it lives on the instance, a save from
-  // a previously-dismissed modal can't close a freshly-opened one.
-  const didInitiateSaveRef = React.useRef(false)
-
-  // Keep a stable reference to the latest close handler so the listener effect
-  // below doesn't need to re-subscribe when props change.
-  const onRequestCloseRef = React.useRef(props.onRequestClose)
-  onRequestCloseRef.current = props.onRequestClose
+  const [isSaving, setIsSaving] = React.useState(false)
 
   const displayedLabelOptions = React.useMemo<TableSettingsOption[]>(() => {
     const options: TableSettingsOption[] = [
@@ -74,32 +69,12 @@ export default function TableSettings(props: TableSettingsProps) {
 
   React.useEffect(() => {
     // Users with `change_asset` save via the async `actions.table.updateSettings`
-    // endpoint; this resolves once our save persisted.
-    const onUpdateSettingsCompleted = () => {
-      if (didInitiateSaveRef.current) {
-        didInitiateSaveRef.current = false
-        onRequestCloseRef.current()
-      }
-    }
-
-    // Users without `change_asset` don't hit the endpoint — `saveTableSettings`
-    // applies local overrides synchronously and triggers the store instead. We
-    // still sync the form to the latest values, and close if it was our save.
-    const onTableStoreChange = () => {
-      const settings = getCurrentTableSettings()
-      setShowGroupName(settings.showGroupName)
-      setShowHXLTags(settings.showHXLTags)
-      setTranslationIndex(settings.translationIndex)
-
-      if (didInitiateSaveRef.current) {
-        didInitiateSaveRef.current = false
-        onRequestCloseRef.current()
-      }
-    }
+    // endpoint, which resolves once the save has persisted.
+    const onUpdateSettingsCompleted = () => props.onRequestClose()
 
     const onUpdateSettingsFailed = () => {
       // The save didn't go through, so keep the modal open for another attempt.
-      didInitiateSaveRef.current = false
+      setIsSaving(false)
       notify(t('There was an error, table settings could not be saved.'))
     }
 
@@ -107,32 +82,45 @@ export default function TableSettings(props: TableSettingsProps) {
       onUpdateSettingsCompleted,
     ) as () => void
     const unlistenUpdateFailed = actions.table.updateSettings.failed.listen(onUpdateSettingsFailed) as () => void
-    const unlistenTableStore = tableStore.listen(onTableStoreChange, null) as () => void
 
     return () => {
       unlistenUpdateCompleted()
       unlistenUpdateFailed()
-      unlistenTableStore()
     }
-  }, [getCurrentTableSettings])
+  }, [props.onRequestClose])
+
+  const save = React.useCallback(
+    (newTableSettings: AssetTableSettings) => {
+      if (userCan(PERMISSIONS_CODENAMES.change_asset, props.asset)) {
+        // Async endpoint save — show progress and let the `completed`/`failed`
+        // listeners close the modal or report the error.
+        setIsSaving(true)
+        tableStore.saveTableSettings(newTableSettings)
+      } else {
+        // Users without `change_asset` don't hit the endpoint; the overrides are
+        // applied synchronously, so there's nothing to wait for — just close.
+        tableStore.saveTableSettings(newTableSettings)
+        props.onRequestClose()
+      }
+    },
+    [props.asset, props.onRequestClose],
+  )
 
   const onSave = React.useCallback(() => {
-    didInitiateSaveRef.current = true
     const newTableSettings: AssetTableSettings = {}
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = showGroupName
     newTableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = translationIndex
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = showHXLTags
-    tableStore.saveTableSettings(newTableSettings)
-  }, [showGroupName, showHXLTags, translationIndex])
+    save(newTableSettings)
+  }, [save, showGroupName, showHXLTags, translationIndex])
 
   const onReset = React.useCallback(() => {
-    didInitiateSaveRef.current = true
     const newTableSettings: AssetTableSettings = {}
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = null
     newTableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = null
     newTableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = null
-    tableStore.saveTableSettings(newTableSettings)
-  }, [])
+    save(newTableSettings)
+  }, [save])
 
   return (
     <Stack gap='md'>
@@ -163,13 +151,15 @@ export default function TableSettings(props: TableSettingsProps) {
       <Group justify='space-between' mt='sm'>
         <div>
           {userCan(PERMISSIONS_CODENAMES.change_asset, props.asset) && (
-            <ButtonNew color='red' variant='outline' onClick={onReset}>
+            <ButtonNew color='red' variant='outline' onClick={onReset} disabled={isSaving}>
               {t('Reset')}
             </ButtonNew>
           )}
         </div>
 
-        <ButtonNew onClick={onSave}>{t('Save')}</ButtonNew>
+        <ButtonNew onClick={onSave} loading={isSaving}>
+          {t('Save')}
+        </ButtonNew>
       </Group>
     </Stack>
   )

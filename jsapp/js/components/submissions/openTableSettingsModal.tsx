@@ -6,19 +6,29 @@ interface OpenTableSettingsModalArgs {
   asset: AssetResponse
 }
 
+const TABLE_SETTINGS_MODAL_ID = 'table-settings-modal'
+
+// Guard so the modal can only appear once at a time. Mantine doesn't dedupe by
+// `modalId` on its own, so we track open state here and no-op on a second open.
+let isOpen = false
+
 export function openTableSettingsModal({ asset }: OpenTableSettingsModalArgs) {
-  const modalId = modals.open({
+  const close = () => modals.close(TABLE_SETTINGS_MODAL_ID)
+
+  if (isOpen) {
+    return { modalId: TABLE_SETTINGS_MODAL_ID, close }
+  }
+  isOpen = true
+
+  modals.open({
+    modalId: TABLE_SETTINGS_MODAL_ID,
     title: t('Table display options'),
-    // We render the modal id into the form so it can close *itself* once its own
-    // save resolves. Closing must be owned by this instance: the underlying
-    // `actions.table.updateSettings.completed` broadcast carries no reference to
-    // which modal triggered it, so a shared close handler in a parent would close
-    // whatever modal happens to be open when an earlier, unrelated save resolves.
-    children: <TableSettings asset={asset} onRequestClose={() => modals.close(modalId)} />,
+    onClose: () => {
+      isOpen = false
+    },
+    // The form closes itself once its own save resolves.
+    children: <TableSettings asset={asset} onRequestClose={close} />,
   })
 
-  return {
-    modalId,
-    close: () => modals.close(modalId),
-  }
+  return { modalId: TABLE_SETTINGS_MODAL_ID, close }
 }
