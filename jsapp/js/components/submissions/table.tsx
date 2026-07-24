@@ -1138,8 +1138,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onTableStoreChange(newData: TableStoreData) {
-    // Close table settings modal after settings are saved.
-    pageState.hideModal()
+    // Close table settings modal after settings are saved. For users without
+    // `change_asset`, saving applies local overrides and triggers this handler
+    // instead of `onTableUpdateSettingsCompleted`, so we close the modal here too.
+    this.closeTableSettingsModal?.()
+    this.closeTableSettingsModal = null
 
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
