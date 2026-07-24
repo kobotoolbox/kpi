@@ -471,7 +471,7 @@ class TransferStatusError(AbstractTimeStampedModel):
     # Skips vastly outnumber errors, so filtering on `error` is selective.
     # Index is created concurrently, see migration 0008.
     level = models.CharField(
-        max_length=5,
+        max_length=7,
         choices=TransferStatusErrorLevelChoices.choices,
         default=TransferStatusErrorLevelChoices.ERROR,
         db_index=True,

@@ -142,7 +142,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                             f'Source file {attachment.media_file_basename} '
                             f'(#{attachment.pk}) no longer exists — skipped '
                             f'(data already gone)',
-                            level=TransferStatusErrorLevelChoices.INFO,
+                            level=TransferStatusErrorLevelChoices.WARNING,
                         )
                 if moved:
                     update_fields.append('media_file')
@@ -230,7 +230,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                             transfer_status,
                             f'Source file {old_path} (#{media_file.pk}) no '
                             f'longer exists — skipped (data already gone)',
-                            level=TransferStatusErrorLevelChoices.INFO,
+                            level=TransferStatusErrorLevelChoices.WARNING,
                         )
                         continue
 
@@ -269,7 +269,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                                         f'Kobocat source file {kc_old_path} '
                                         f'(#{media_file.pk}) no longer exists — '
                                         f'skipped (data already gone)',
-                                        level=TransferStatusErrorLevelChoices.INFO,
+                                        level=TransferStatusErrorLevelChoices.WARNING,
                                     )
 
                             if kc_moved:

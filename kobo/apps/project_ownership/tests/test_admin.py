@@ -104,7 +104,7 @@ class ProjectOwnershipAdminTestCase(TestCase):
         TransferStatusError.objects.create(
             transfer_status=submissions_status,
             error='Source file photo.jpg (#1) no longer exists — skipped',
-            level=TransferStatusErrorLevelChoices.INFO,
+            level=TransferStatusErrorLevelChoices.WARNING,
         )
 
         invite_admin = InviteAdmin(Invite, AdminSite())
@@ -122,7 +122,7 @@ class ProjectOwnershipAdminTestCase(TestCase):
         TransferStatusError.objects.create(
             transfer_status=attachments_status,
             error='Source file photo.jpg (#1) no longer exists — skipped',
-            level=TransferStatusErrorLevelChoices.INFO,
+            level=TransferStatusErrorLevelChoices.WARNING,
         )
 
         transfer_admin = TransferAdmin(Transfer, AdminSite())

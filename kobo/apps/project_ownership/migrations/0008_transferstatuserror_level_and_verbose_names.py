@@ -28,10 +28,14 @@ class Migration(migrations.Migration):
             model_name='transferstatuserror',
             name='level',
             field=models.CharField(
-                choices=[('error', 'Error'), ('info', 'Skipped')],
+                choices=[
+                    ('error', 'Error'),
+                    ('info', 'Info'),
+                    ('warning', 'Warning'),
+                ],
                 db_index=True,
                 default='error',
-                max_length=5,
+                max_length=7,
             ),
         ),
     ]

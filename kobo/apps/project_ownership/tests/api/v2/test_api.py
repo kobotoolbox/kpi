@@ -766,7 +766,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert skip_errors.exists()
         # Recorded as `info`, never `error`.
         assert not skip_errors.exclude(
-            level=TransferStatusErrorLevelChoices.INFO
+            level=TransferStatusErrorLevelChoices.WARNING
         ).exists()
 
         # Ownership still moves even though the files were missing.
@@ -813,7 +813,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # Nothing was skipped: the file was found and the row completed.
         assert not TransferStatusError.objects.filter(
             transfer_status__transfer=transfer,
-            level=TransferStatusErrorLevelChoices.INFO,
+            level=TransferStatusErrorLevelChoices.WARNING,
         ).exists()
 
 
