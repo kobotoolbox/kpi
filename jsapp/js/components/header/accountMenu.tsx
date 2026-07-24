@@ -11,6 +11,7 @@ import envStore from '#/envStore'
 import { isAnyRouteBlockerActive } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { currentLang } from '#/utils'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import ButtonNew from '../common/ButtonNew'
 import OrganizationBadge from './organizationBadge.component'
 
@@ -72,7 +73,7 @@ export default function AccountMenu() {
 
   return (
     <bem.AccountBox>
-      <Menu opened={isMenuOpen} onChange={setIsMenuOpen}>
+      <Menu opened={isMenuOpen} onChange={setIsMenuOpen} zIndex={KOBO_Z_INDEX.accountMenu}>
         <Menu.Target>
           <button type='button' className='account-menu-trigger'>
             <Avatar size='m' username={accountName} />
