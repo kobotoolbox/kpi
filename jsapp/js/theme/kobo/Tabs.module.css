@@ -1,5 +1,10 @@
+/* Selector for the non-labelled line */
+.list {
+  --tab-border-color: var(--mantine-color-gray-6);
+}
+
 .tab {
-  /* Global color of the non active tabs */
+  /* Global text color of the non active tabs */
   color: var(--mantine-color-gray-2);
   font-size: var(--mantine-font-size-md);
   font-weight: 500;
