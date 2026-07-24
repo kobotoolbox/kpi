@@ -57,8 +57,8 @@ if (process.env.SKIP_TS_CHECK && tsCheckAffects.includes(hintName)) {
   Show on preinstall. Since it's easy to miss there, also show it on other
   run scripts such as 'watch'.
 */
-const ok_node = 'v20.19.0'
-const ok_npm = '10.8.2'
+const ok_node = 'v22.17.0'
+const ok_npm = '10.9.4'
 
 if (process.version !== ok_node) {
   const blu = '\u001b[94m' // bright blue
