@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20.19.0' # version that's pinned in Dockerfile for kpi release
           check-latest: true # download newer semver match if available
@@ -21,7 +21,7 @@ jobs:
 
       # Cache: Use cache for node_modules
       #        Keyed on os, node version, package-lock, and patches
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         name: Check for cached node_modules
         id: cache-nodemodules
         env:
