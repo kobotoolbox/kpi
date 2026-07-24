@@ -88,3 +88,13 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
             uid_asset='a3C9wWefqZVkChNLKqqXVZ',
             uid_version='vf7pK9SmkJPYZVzr4uypi4',
         )
+
+
+class VersionNumberFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.versions.fields.VersionNumberField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        # Major number for deployed versions (e.g. "12"), or a minor number
+        # appended to the preceding deployment for undeployed versions
+        # (e.g. "11.4")
+        return GENERIC_STRING_SCHEMA
