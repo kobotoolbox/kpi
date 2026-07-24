@@ -20,18 +20,29 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.exceptions import InvalidSubmissionIdsError
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionIncorrectlyConfigured,
+    AnalysisQuestionNotFound,
     InvalidAction,
     InvalidXPath,
+    ManualQualNotFound,
+    SubsequenceAcceptanceError,
     SubsequenceDeletionError,
+    SubsequenceVerificationError,
     TranscriptionNotFound,
 )
 from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.throttling import (
+    check_automatic_qa_throttle,
+    is_automatic_qa_request,
+)
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -41,6 +52,7 @@ from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
@@ -165,6 +177,20 @@ from kpi.utils.xml import (
                 location=OpenApiParameter.QUERY,
                 required=False,
                 description='Filter the results with search query',
+            ),
+            OpenApiParameter(
+                name='sort',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Sort the results by a field, e.g. {"_id":-1}',
+            ),
+            OpenApiParameter(
+                name='fields',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Include only given list of fields in results',
             ),
         ],
     ),
@@ -533,25 +559,30 @@ class DataViewSet(
         # make it clear, a root uuid is expected here
         submission_root_uuid = root_uuid
 
-        deployment = self._get_deployment()
-        try:
-            submission = list(
-                deployment.get_submissions(
-                    user=request.user,
-                    query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)},
-                )
-            )[0]
-        except IndexError:
-            raise Http404
+        # Throttle automatic QA requests
+        if request.method == 'PATCH' and is_automatic_qa_request(request.data):
+            check_automatic_qa_throttle(request, self)
 
-        submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+        submission = self._get_submission_by_id_or_root_uuid(
+            submission_root_uuid, request
+        )
+
+        # TODO remove the block below when LRM 0028 has completed
+        root_uuid_key = OpenRosaDeploymentBackend.SUBMISSION_ROOT_UUID_XPATH
+        instance_id_key = OpenRosaDeploymentBackend.SUBMISSION_CURRENT_UUID_XPATH
+        if not submission.get(root_uuid_key):
+            submission[root_uuid_key] = submission[instance_id_key]
+
+        submission_root_uuid = remove_uuid_prefix(submission[root_uuid_key])
 
         if request.method == 'GET':
             return Response(
                 SubmissionSupplement.retrieve_data(self.asset, submission_root_uuid)
             )
 
-        post_data = request.data
+        # revise_data modifies action_data,
+        # copy it so as not to not lose the original request data
+        post_data = copy.deepcopy(request.data)
 
         try:
             supplemental_data = SubmissionSupplement.revise_data(
@@ -579,8 +610,22 @@ class DataViewSet(
             # TODO: more descriptive errors
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
+            raise serializers.ValidationError({'detail': 'No transcription found'})
+        except SubsequenceVerificationError:
+            raise serializers.ValidationError({'detail': 'No response to verify'})
+        except SubsequenceAcceptanceError:
+            raise serializers.ValidationError({'detail': 'No response to accept'})
+        except ManualQualNotFound:
             raise serializers.ValidationError(
-                {'detail': 'Cannot translate without transcription'}
+                {'detail': 'No qualitative analysis questions to answer'}
+            )
+        except AnalysisQuestionNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'Invalid qualitative analysis question uuid'}
+            )
+        except AnalysisQuestionIncorrectlyConfigured:
+            raise serializers.ValidationError(
+                {'detail': 'Invalid qualitative analysis question configuration'}
             )
 
         return Response(supplemental_data)
@@ -704,8 +749,14 @@ class DataViewSet(
             perm=PERM_VALIDATE_SUBMISSIONS
         )
         bulk_actions_validator.is_valid(raise_exception=True)
-        json_response = deployment.set_validation_statuses(
-            request.user, bulk_actions_validator.data)
+        try:
+            json_response = deployment.set_validation_statuses(
+                request.user, bulk_actions_validator.data)
+        except InvalidSubmissionIdsError:
+            return Response(
+                {'detail': t('One or more submission ids are invalid')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(**json_response)
 
@@ -736,15 +787,27 @@ class DataViewSet(
                 id=sub['_id'],
                 username=sub['_submitted_by'],
                 action='delete',
-                root_uuid=sub['meta/rootUuid'],
+                root_uuid=remove_uuid_prefix(sub['meta/rootUuid']),
             )
             for sub in submissions
         }
+        request._request.asset = self.asset
 
         try:
             deleted = deployment.delete_submissions(
-                bulk_actions_validator.data, request.user, request=request
+                bulk_actions_validator.data, request.user
             )
+        except InvalidSubmissionIdsError:
+            # Raised before any deletion is attempted, so none of the
+            # pre-recorded instances were actually deleted. Clear them to
+            # avoid phantom DELETE_SUBMISSION audit log entries, which the
+            # middleware would otherwise create even for this 400 response.
+            request._request.instances = {}
+            return {
+                'data': {'detail': t('One or more submission ids are invalid')},
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+            }
         except (MissingXFormException, InvalidXFormException):
             return {
                 'data': {'detail': 'Could not delete submissions'},
@@ -867,6 +930,29 @@ class DataViewSet(
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
+
+        # Block edit if the submission has duplicates.
+        if (
+            Instance.objects.filter(
+                uuid=remove_uuid_prefix(
+                    submission_json[deployment.SUBMISSION_CURRENT_UUID_XPATH]
+                ),
+                xform_id=deployment.xform_id,
+            )
+            .exclude(pk=submission_id)
+            .exists()
+        ):
+            # Return an error immediately to prevent the user from receiving an error
+            # when submitting their edit in Enketo
+            return Response(
+                {
+                    'detail': (
+                        'A duplicate submission has been detected. '
+                        'This submission cannot be edited at the moment.'
+                    )
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
 
         # Add mandatory XML elements if they are missing from the original
         # submission. They could be overwritten unconditionally, but be

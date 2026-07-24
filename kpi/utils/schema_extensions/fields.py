@@ -1,3 +1,4 @@
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
@@ -77,6 +78,11 @@ def RelativePrefixHyperlinkedRelatedFieldWithSchemaField(  # noqa N802
         pass
 
     return _DynamicField(*args, **kwargs)
+
+
+@extend_schema_field(OpenApiTypes.BINARY)
+class BinaryFileField(serializers.FileField):
+    pass
 
 
 def WriteableJsonWithSchemaField(schema_field=None, *args, **kwargs):  # noqa N802

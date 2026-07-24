@@ -214,14 +214,17 @@ class TestCloning(KpiTestCase):
 
         kwargs.update({'clone_from': original_asset.uid})
         status_code = status.HTTP_201_CREATED
-        endpoint = reverse("asset-list")
+        endpoint = reverse(self._get_endpoint('asset-list'))
         action = self.client.post
 
         if partial_update:
             status_code = status.HTTP_200_OK
             uid = kwargs.pop('uid', None)
             action = self.client.patch
-            endpoint = reverse('asset-detail', kwargs={'uid_asset': uid})
+            endpoint = reverse(
+                self._get_endpoint('asset-detail'),
+                kwargs={'uid_asset': uid}
+            )
 
         expected_status_code = kwargs.pop('expected_status_code',
                                           status_code)
@@ -256,7 +259,9 @@ class TestCloning(KpiTestCase):
         original_asset = self.create_asset('cloning_asset')
         parent_collection = self.create_collection('parent_collection')
         parent_url = reverse(
-            'asset-detail', kwargs={'uid_asset': parent_collection.uid})
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': parent_collection.uid}
+        )
         cloned_asset = self._clone_asset(
             original_asset, parent=parent_url)
         self.assertEqual(cloned_asset.parent, parent_collection)

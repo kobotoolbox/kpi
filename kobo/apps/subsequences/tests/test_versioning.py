@@ -2,6 +2,7 @@ import copy
 import itertools
 from datetime import datetime, timedelta
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from ddt import data, ddt, unpack
 from django.test import TestCase
@@ -48,7 +49,7 @@ from kobo.apps.subsequences.utils.versioning import (
     migrate_advanced_features,
     migrate_submission_supplementals,
 )
-from kpi.models import Asset
+from kpi.models import Asset, AssetVersion
 
 
 @ddt
@@ -158,8 +159,8 @@ class TestVersioning(TestCase):
     ):
         now = timezone.now()
         one_day_ago = now - timedelta(days=1)
-        jan_1_2024 = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        jan_2_2024 = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        jan_1_2024 = datetime(2024, 1, 1, tzinfo=ZoneInfo('UTC'))
+        jan_2_2024 = datetime(2024, 1, 2, tzinfo=ZoneInfo('UTC'))
         transcripts = [
             {
                 '_uuid': 'uuid1',
@@ -363,8 +364,8 @@ class TestVersioning(TestCase):
                                     'value': 'music123',
                                 },
                                 '_dateCreated': now.isoformat(),
-                                '_dateAccepted': now.isoformat(),
                                 '_uuid': 'uuid5',
+                                'verified': False,
                             }
                         ],
                     },
@@ -378,8 +379,8 @@ class TestVersioning(TestCase):
                                     'value': 2,
                                 },
                                 '_dateCreated': now.isoformat(),
-                                '_dateAccepted': now.isoformat(),
                                 '_uuid': 'uuid6',
+                                'verified': False,
                             }
                         ],
                     },
@@ -399,6 +400,19 @@ class TestVersioning(TestCase):
         assert self.asset.advanced_features.get('_version') == '20250820'
         self.asset.refresh_from_db()
         assert self.asset.advanced_features.get('_version') is None
+
+    def test_migrate_does_not_produce_new_version(self):
+        # hack: manually create an initial version since we won't be calling this
+        # on a brand new asset but save() will trigger the migration prematurely
+        AssetVersion.objects.create(
+            asset=self.asset,
+            version_content=self.asset.content,
+            name=self.asset.name
+        )
+        initial_version_count = self.asset.asset_versions.count()
+        migrate_advanced_features(self.asset)
+        self.asset.refresh_from_db()
+        assert self.asset.asset_versions.count() == initial_version_count
 
     def test_convert_nlp_action(self):
         transcript_dict = {'languages': ['en', 'es']}

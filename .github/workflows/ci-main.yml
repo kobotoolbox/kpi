@@ -20,18 +20,27 @@ jobs:
   npm-test:
     uses: ./.github/workflows/npm-test.yml
 
+  locale:
+    uses: './.github/workflows/locale.yml'
+    with:
+      base: 'HEAD^'
+
   on-failure:
-    if: |
-      failure() &&
-      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
-      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
-      needs.biome.result == 'failure' || needs.biome.result == 'timed_out' ||
-      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
     needs:
       - darker
+      - openapi
       - pytest
       - biome
       - npm-test
+      - locale
+    if: |
+      failure() &&
+      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      needs.openapi.result == 'failure' || needs.openapi.result == 'timed_out' ||
+      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.biome.result == 'failure' || needs.biome.result == 'timed_out' ||
+      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
+      needs.locale.result == 'failure' || needs.locale.result == 'timed_out')
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:

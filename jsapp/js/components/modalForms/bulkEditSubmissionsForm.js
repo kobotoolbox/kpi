@@ -20,7 +20,7 @@ const EMPTY_VALUE_LABEL = t('n/d')
 // different than "no override answer" (de facto `undefined`)
 const EMPTY_VALUE = null
 const MULTIPLE_VALUES_LABEL = t('Multiple responses')
-const HELP_ARTICLE_URL = 'howto_edit_multiple_submissions.html'
+const HELP_ARTICLE_URL = 'editing_deleting_data.html'
 
 /** These types are not compatible with bulk editing. */
 const EXCLUDED_TYPES = [
@@ -85,9 +85,7 @@ class BulkEditSubmissionsForm extends React.Component {
 
   setModalTitleToList() {
     this.props.onSetModalTitle(
-      t('Displaying multiple submissions (##count## selected of ##total##)')
-        .replace('##count##', this.props.selectedSubmissions.length)
-        .replace('##total##', this.props.totalSubmissions),
+      t('Editing ##count## submission(s)').replace('##count##', this.props.selectedSubmissions.length),
     )
   }
 
@@ -202,7 +200,7 @@ class BulkEditSubmissionsForm extends React.Component {
     if (envStore.isReady && envStore.data.support_url) {
       return (
         <a href={envStore.data.support_url + HELP_ARTICLE_URL} target='_blank'>
-          {t('in the help article')}
+          {t('help article')}
         </a>
       )
     } else {
@@ -340,10 +338,13 @@ class BulkEditSubmissionsForm extends React.Component {
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {t(
-            'You are currently seeing multiple submissions at once. You can select specific questions to edit or remove responses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions',
-          )}{' '}
-          {this.renderSupportUrlLink()}.
+          {t('Bulk edit mode: Select questions to edit or delete responses across all selected submissions.')}
+        </bem.FormModal__item>
+        <bem.FormModal__item m='wrapper'>
+          <strong>
+            {t('Note: Changes made here bypass form logic and validation rules and may affect data integrity.')}
+          </strong>{' '}
+          {t('Learn more in our')} {this.renderSupportUrlLink()}.
         </bem.FormModal__item>
 
         <bem.FormModal__item m='wrapper'>

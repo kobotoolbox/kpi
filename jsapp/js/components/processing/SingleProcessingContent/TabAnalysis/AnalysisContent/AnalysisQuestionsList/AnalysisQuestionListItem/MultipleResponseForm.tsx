@@ -1,18 +1,29 @@
-import React from 'react'
-import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
-
 import { Radio } from '@mantine/core'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import cx from 'classnames'
+import React from 'react'
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
+import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
+import type { QualVersionItem } from '#/components/processing/common/types'
+import styles from '../../../common/styles.module.scss'
+import { useShowHints } from '../../../common/utils'
 
 interface Props {
   qaQuestion: ResponseQualSelectQuestionParams
-  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  qaAnswer?: QualVersionItem
   disabled: boolean
   onSave: (values: string[]) => Promise<unknown>
+  isAnswerAIGenerated: boolean
 }
 
-export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSave, disabled }: Props) {
+export default function SelectMultipleResponseForm({
+  qaQuestion,
+  qaAnswer,
+  onSave,
+  disabled,
+  isAnswerAIGenerated,
+}: Props) {
+  const [showHints] = useShowHints()
+
   const handleChange = (items: MultiCheckboxItem[]) => {
     // Use new variable/reference to ensure state is updated before saving
     const newValues = items.filter((item) => item.checked).map((item) => item.name) as string[]
@@ -20,7 +31,15 @@ export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSav
   }
 
   return (
-    <Radio.Group>
+    <Radio.Group
+      // We need to make some room for MultiCheckbox padding to match total spacing of other response forms
+      p={'calc(var(--mantine-spacing-md) - 4px)'}
+      style={{ borderRadius: 'var(--mantine-radius-md)' }}
+      className={cx({
+        [styles.responseBorderAI]: isAnswerAIGenerated,
+        [styles.responseBorderDefault]: !isAnswerAIGenerated,
+      })}
+    >
       <MultiCheckbox
         type='bare'
         items={qaQuestion.choices
@@ -28,7 +47,8 @@ export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSav
           .map((choice) => ({
             name: choice.uuid,
             label: choice.labels._default,
-            checked: ((qaAnswer?._data.value as string[]) ?? []).includes(choice.uuid),
+            hint: showHints ? (choice.hint?.labels as { [key: string]: string | undefined })?._default : undefined,
+            checked: (((qaAnswer?._data as any)?.value as string[]) ?? []).includes(choice.uuid),
           }))}
         onChange={handleChange}
         disabled={disabled}

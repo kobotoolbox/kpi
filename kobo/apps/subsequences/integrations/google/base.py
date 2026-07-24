@@ -7,6 +7,7 @@ from typing import Any
 import constance
 from django.conf import settings
 from django.core.cache import cache
+from google.api_core import client_options
 from google.api_core.operation import Operation
 from google.cloud import storage
 from googleapiclient import discovery
@@ -49,6 +50,9 @@ class GoogleService(ABC):
     def adapt_response(self, results: Any) -> str:
         pass
 
+    def get_client_options(self) -> Any:
+        return None
+
     @abstractmethod
     def begin_google_operation(
         self,
@@ -75,13 +79,8 @@ class GoogleService(ABC):
         # Fetch the latest update from Google API, but do not resend the same operation.
         cache_key = self._get_cache_key(xpath, source_lang, target_lang)
         if operation_name := cache.get(cache_key):
-            google_service = discovery.build(
-                self.API_NAME, self.API_VERSION, credentials=self.credentials
-            )
-            resource_path = self.API_RESOURCE.split('.')
-            for subresource in resource_path:
-                google_service = getattr(google_service, subresource)()
-            operation = google_service.get(name=operation_name).execute()
+            resource = self._get_discovery_resource()
+            operation = resource.get(name=operation_name).execute()
             if not (
                 operation.get('done') or operation.get('state') == 'SUCCEEDED'
             ):
@@ -113,8 +112,38 @@ class GoogleService(ABC):
 
         return
 
+    def cancel_google_operation(self, operation_name: str) -> None:
+        """
+        Cancel a previously started Google long-running operation
+        """
+        resource = self._get_discovery_resource()
+        resource.cancel(name=operation_name, body={}).execute()
+
+    def _get_discovery_resource(self):
+        opts = self.get_client_options()
+        if opts and opts.api_endpoint and not opts.api_endpoint.startswith('http'):
+            opts = client_options.ClientOptions(
+                api_endpoint=f'https://{opts.api_endpoint}'
+            )
+
+        google_service = discovery.build(
+            self.API_NAME,
+            self.API_VERSION,
+            credentials=self.credentials,
+            client_options=opts,
+        )
+        resource = google_service
+        for subresource in self.API_RESOURCE.split('.'):
+            resource = getattr(resource, subresource)()
+        return resource
+
     @abstractmethod
-    def process_data(self, xpath: str, options: dict) -> dict:
+    def process_data(
+        self,
+        xpath: str,
+        options: dict,
+        bulk_action_uid: str | None = None,
+    ) -> dict:
         pass
 
     def update_counters(self, amount) -> None:

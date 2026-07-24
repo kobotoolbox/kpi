@@ -12,7 +12,8 @@ class Command(makemessages.Command):
         options['ignore_patterns'].append('node_modules*')
         options['ignore_patterns'].append('jsapp/compiled*')
         options['ignore_patterns'].append('staticfiles*')
+        options['ignore_patterns'].append('storybook-static*')
         if options['domain'] == 'djangojs':
-            options['extensions'] = ['js', 'tsx', 'ts']
+            options['extensions'] = ['js', 'tsx', 'ts', 'coffee']
 
         super().handle(*args, **options)

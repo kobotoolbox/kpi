@@ -1,103 +1,84 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
-import type { DropFilesEventHandler } from 'react-dropzone'
-import {
-  archiveAsset,
-  cloneAssetAsTemplate,
-  deleteAsset,
-  deployAsset,
-  removeAssetSharing,
-  unarchiveAsset,
-} from '#/assetQuickActions'
+import type { Mixin } from 'create-react-class'
+import { removeAssetSharing } from '#/assetQuickActions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
-import { dataInterface } from '#/dataInterface'
-import type { AssetResponse, CreateImportRequest, DeploymentResponse, ImportResponse } from '#/dataInterface'
-import pageState from '#/pageState.store'
-import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
+import type { AssetResponse } from '#/dataInterface'
+import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import { getRouteAssetUid } from '#/router/routerUtils'
-import { escapeHtml, join, log, notify, recordKeys } from '#/utils'
+import {
+  getCurrentPath,
+  getRouteAssetUid,
+  isAnyFormsRoute,
+  isAnyLibraryRoute,
+  isMyLibraryRoute,
+  isNewLibraryItemRoute,
+  isPublicCollectionsRoute,
+} from '#/router/routerUtils'
+import { notify, recordKeys } from '#/utils'
 import { actions } from './actions'
-import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from './constants'
+import { ASSET_TYPES } from './constants'
 
-const IMPORT_CHECK_INTERVAL = 1000
-
-interface ApplyImportParams {
-  destination?: string
-  assetUid: string
-  name: string
-  url?: string
-  base64Encoded?: ArrayBuffer | string | null
-  lastModified?: number
-  totalFiles?: number
+interface ContextRouterMixin extends Mixin<any, any> {
+  isFormList: () => boolean
+  isLibrary: () => boolean
+  isMyLibrary: () => boolean
+  isPublicCollections: () => boolean
+  isLibrarySingle: () => boolean
+  isFormSingle: () => boolean
+  currentAssetID: () => string | undefined
+  currentAsset: () => AssetResponse | undefined
+  isActiveRoute: (path: string) => boolean
+  isFormBuilder: () => boolean
 }
 
-/*
- * helper function for apply*ToAsset droppable mixin methods
- * returns an interval-driven promise
- */
-const applyImport = (params: ApplyImportParams) => {
-  const applyPromise = new Promise((resolve, reject) => {
-    actions.resources.createImport(params, (data: ImportResponse) => {
-      const doneCheckInterval = setInterval(() => {
-        dataInterface
-          .getImportDetails({
-            uid: data.uid,
-          })
-          .done((importData: ImportResponse) => {
-            switch (importData.status) {
-              case 'complete': {
-                const finalData = importData.messages?.updated || importData.messages?.created
-                if (finalData && finalData.length > 0 && finalData[0].uid) {
-                  clearInterval(doneCheckInterval)
-                  resolve(finalData[0])
-                } else {
-                  clearInterval(doneCheckInterval)
-                  reject(importData)
-                }
-                break
-              }
-              case 'processing':
-              case 'created': {
-                // TODO: notify promise awaiter about delay (after multiple interval rounds)
-                break
-              }
-              case 'error':
-              default: {
-                clearInterval(doneCheckInterval)
-                reject(importData)
-              }
-            }
-          })
-          .fail((failData: ImportResponse) => {
-            clearInterval(doneCheckInterval)
-            reject(failData)
-          })
-      }, IMPORT_CHECK_INTERVAL)
-    })
-  })
-  return applyPromise
+interface DmixProps {
+  params?: {
+    assetid?: string
+    uid?: string
+  }
+  formAsset?: AssetResponse
+  uid?: string
+  initialAssetLoadNotNeeded?: boolean
+}
+
+interface DmixState {
+  historyExpanded?: boolean
+  asset_type?: string
+  summary?: any
+  name?: string
+  [key: string]: any
+}
+
+// Helper interface for the component context when this mixin is applied
+interface DmixContext {
+  props: DmixProps
+  state: DmixState
+  setState: (state: Partial<DmixState>) => void
+}
+
+// Note: This mixin assumes it will be mixed into a React.Component,
+// so props/state/setState will be available at runtime
+interface DmixMixin extends Mixin<DmixProps, DmixState> {
+  afterCopy: (this: DmixMixin & DmixContext) => void
+  saveCloneAs: (this: DmixMixin & DmixContext, versionId?: string) => void
+  toggleDeploymentHistory: (this: DmixMixin & DmixContext) => void
+  summaryDetails: (this: DmixMixin & DmixContext) => JSX.Element
+  asJson: (this: DmixMixin & DmixContext) => JSX.Element
+  dmixAssetStoreChange: (this: DmixMixin & DmixContext, data: { [uid: string]: AssetResponse }) => void
+  _getAssetUid: (this: DmixMixin & DmixContext) => string | null | undefined
+  componentWillUpdate: (this: DmixMixin & DmixContext, newProps: DmixProps) => void
+  componentDidMount: (this: DmixMixin & DmixContext) => void
+  componentWillUnmount: (this: DmixMixin & DmixContext) => void
+  removeSharing: (this: DmixMixin & DmixContext) => void
+  dmixAssetStoreCancelListener?: () => void
 }
 
 interface MixinsObject {
-  contextRouter: {
-    [functionName: string]: Function
-    context?: any
-  }
-  droppable: {
-    [functionName: string]: Function
-    dropFiles: DropFilesEventHandler
-    context?: any
-    props?: any
-    state?: any
-  }
-  dmix: {
-    [functionName: string]: Function
-    state?: any
-    props?: any
-  }
+  contextRouter: ContextRouterMixin
+  dmix: DmixMixin
 }
 
 /**
@@ -119,11 +100,12 @@ interface MixinsObject {
  */
 const mixins: MixinsObject = {
   dmix: {
-    afterCopy() {
+    // props, state, and setState are added by react-mixin when mixed into a component
+    afterCopy(this: DmixMixin & DmixContext) {
       notify(t('copied to clipboard'))
     },
 
-    saveCloneAs(versionId?: string) {
+    saveCloneAs(this: DmixMixin & DmixContext, versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`
 
       const dialog = alertify.dialog('prompt')
@@ -136,7 +118,7 @@ const mixins: MixinsObject = {
         value: name,
         labels: { ok: t('Ok'), cancel: t('Cancel') },
         onok: ({}, value: string) => {
-          const uid = this.props.params.assetid || this.props.params.uid
+          const uid = this.props.params?.assetid || this.props.params?.uid
           actions.resources.cloneAsset(
             {
               uid: uid,
@@ -160,44 +142,13 @@ const mixins: MixinsObject = {
       }
       dialog.set(opts).show()
     },
-
-    cloneAsTemplate(evt: React.TouchEvent<HTMLElement>) {
-      const sourceUid = evt.currentTarget.dataset.assetUid
-      const sourceName = evt.currentTarget.dataset.assetName
-      if (sourceUid && sourceName) {
-        cloneAssetAsTemplate(sourceUid, sourceName)
-      }
-    },
-    deployAsset(asset: AssetResponse) {
-      if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
-        if (this.state && this.state.asset_type === ASSET_TYPES.survey.id) {
-          asset = this.state
-        } else {
-          console.error('Neither the arguments nor the state supplied an asset.')
-          return
-        }
-      }
-      deployAsset(asset)
-    },
-    archiveAsset(uid: string, callback: (response: DeploymentResponse) => void) {
-      archiveAsset(uid, callback)
-    },
-    unarchiveAsset(uid: string | null = null, callback: (response: DeploymentResponse) => void) {
-      if (uid === null) {
-        unarchiveAsset(this.state, callback)
-      } else {
-        unarchiveAsset(uid, callback)
-      }
-    },
-    deleteAsset(assetOrUid: AssetResponse | string, name: string, callback: () => void) {
-      deleteAsset(assetOrUid, name, callback)
-    },
-    toggleDeploymentHistory() {
+    // TODO: move this one shot function to formLanding or formHistory and remove from mixins
+    toggleDeploymentHistory(this: DmixMixin & DmixContext) {
       this.setState({
         historyExpanded: !this.state.historyExpanded,
       })
     },
-    summaryDetails() {
+    summaryDetails(this: DmixMixin & DmixContext) {
       return (
         <pre>
           <code>
@@ -210,21 +161,23 @@ const mixins: MixinsObject = {
         </pre>
       )
     },
-    asJson() {
+    asJson(this: DmixMixin & DmixContext) {
       return (
         <pre>
           <code>{JSON.stringify(this.state, null, 4)}</code>
         </pre>
       )
     },
-    dmixAssetStoreChange(data: { [uid: string]: AssetResponse }) {
+    dmixAssetStoreChange(this: DmixMixin & DmixContext, data: { [uid: string]: AssetResponse }) {
       const uid = this._getAssetUid()
-      const asset = data[uid]
-      if (asset) {
-        this.setState(Object.assign({}, asset))
+      if (uid) {
+        const asset = data[uid]
+        if (asset) {
+          this.setState(Object.assign({}, asset))
+        }
       }
     },
-    _getAssetUid() {
+    _getAssetUid(this: DmixMixin & DmixContext) {
       if (this.props.params) {
         return this.props.params.assetid || this.props.params.uid
       } else if (this.props.formAsset) {
@@ -242,18 +195,20 @@ const mixins: MixinsObject = {
     // handle loading of the asset in all necessary cases in a way that all
     // interested parties could use without duplication or confusion and with
     // indication when the loading starts and when ends.
-    componentWillUpdate(newProps: any) {
+    componentWillUpdate(this: DmixMixin & DmixContext, newProps: DmixProps) {
       if (this.props.params?.uid !== newProps.params?.uid) {
         // This case is used by other components (header.js is one such component)
         // in a not clear way to gain a data on new asset.
-        actions.resources.loadAsset({ id: newProps.params.uid })
+        if (newProps.params?.uid) {
+          actions.resources.loadAsset({ id: newProps.params.uid })
+        }
       }
     },
 
-    componentDidMount() {
+    componentDidMount(this: DmixMixin & DmixContext) {
       this.dmixAssetStoreCancelListener = assetStore.listen((data: AssetStoreData) => {
         this.dmixAssetStoreChange(data)
-      }, this)
+      }, this) as () => void
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -261,206 +216,25 @@ const mixins: MixinsObject = {
       // this nice SSOT as described in TODO comment above.
       const uid = this._getAssetUid()
       if (uid && this.props.initialAssetLoadNotNeeded) {
+        // When initialAssetLoadNotNeeded=true, the asset is already being loaded by PermProtectedRoute
+        // Set state from store (may be empty {} if data hasn't arrived yet, but that's intentional -
+        // the listener will update it when data arrives, and setState({}) ensures consistent initial state)
         this.setState(Object.assign({}, assetStore.data[uid]))
       } else if (uid) {
         actions.resources.loadAsset({ id: uid }, true)
       }
     },
 
-    componentWillUnmount() {
+    componentWillUnmount(this: DmixMixin & DmixContext) {
       if (typeof this.dmixAssetStoreCancelListener === 'function') {
         this.dmixAssetStoreCancelListener()
       }
     },
 
-    removeSharing: function () {
-      removeAssetSharing(this.props.params.uid)
-    },
-  },
-  /**
-   * @deprecated Please refer to `dropzone.utils.tsx` file and update the code
-   * there accordingly to your needs. You might end up needing to move and
-   * update one of the functions found here.
-   */
-  droppable: {
-    /*
-     * returns an interval-driven promise
-     */
-    applyFileToAsset(file: File, asset: AssetResponse) {
-      const applyPromise = new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const params: ApplyImportParams = {
-            destination: asset.url,
-            assetUid: asset.uid,
-            name: file.name,
-            base64Encoded: reader.result,
-            lastModified: file.lastModified,
-            totalFiles: 1,
-          }
-
-          applyImport(params).then(
-            (data) => {
-              resolve(data)
-            },
-            (data) => {
-              reject(data)
-            },
-          )
-        }
-        reader.readAsDataURL(file)
-      })
-      return applyPromise
-    },
-
-    /*
-     * returns an interval-driven promise
-     */
-    applyUrlToAsset(url: string, asset: AssetResponse) {
-      const applyPromise = new Promise((resolve, reject) => {
-        const params: ApplyImportParams = {
-          destination: asset.url,
-          url: url,
-          name: asset.name,
-          assetUid: asset.uid,
-        }
-
-        applyImport(params).then(
-          (data) => {
-            resolve(data)
-          },
-          (data) => {
-            reject(data)
-          },
-        )
-      })
-      return applyPromise
-    },
-
-    _forEachDroppedFile(params: CreateImportRequest = {}) {
-      const totalFiles = params.totalFiles || 1
-
-      const isLibrary = routerIsActive(ROUTES.LIBRARY)
-      const multipleFiles = params.totalFiles && totalFiles > 1 ? true : false
-      params = Object.assign({ library: isLibrary }, params)
-
-      if (params.base64Encoded) {
-        pageState.showModal({
-          type: MODAL_TYPES.UPLOADING_XLS,
-          filename: multipleFiles ? t('## files').replace('##', String(totalFiles)) : params.name,
-        })
-      }
-
-      delete params.totalFiles
-
-      if (!isLibrary && params.base64Encoded) {
-        const destination = params.destination || this.state.url
-        if (destination) {
-          params = Object.assign({ destination: destination }, params)
-        }
-      }
-
-      actions.resources.createImport(
-        params,
-        (data: ImportResponse) => {
-          // TODO get rid of this barbaric method of waiting a magic number of seconds
-          // to check if import was done - possibly while doing
-          // https://github.com/kobotoolbox/kpi/issues/476
-          window.setTimeout(() => {
-            dataInterface
-              .getImportDetails({
-                uid: data.uid,
-              })
-              .done((importData: ImportResponse) => {
-                if (importData.status === 'complete') {
-                  const assetData = importData.messages?.updated || importData.messages?.created
-                  const assetUid = assetData && assetData.length > 0 && assetData[0].uid
-                  if (!isLibrary && multipleFiles) {
-                    this.searchDefault()
-                    // No message shown for multiple files when successful, to avoid overloading screen
-                  } else if (assetUid) {
-                    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && routerIsActive(ROUTES.FORMS)) {
-                      actions.resources.loadAsset({ id: assetUid })
-                    } else if (!isLibrary) {
-                      router!.navigate(ROUTES.FORM.replace(':uid', assetUid))
-                    }
-                    notify(t('XLS Import completed'))
-                  } else {
-                    // TODO: use a more specific error message here
-                    notify.error(
-                      t(
-                        'XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.',
-                      ),
-                    )
-                    if (params.assetUid) {
-                      router!.navigate(ROUTES.FORM.replace(':uid', params.assetUid))
-                    }
-                  }
-                } else if (importData.status === 'processing') {
-                  // If the import task didn't complete immediately, inform the user accordingly.
-                  notify.warning(t('Your upload is being processed. This may take a few moments.'))
-                } else if (importData.status === 'created') {
-                  notify.warning(t('Your upload is queued for processing. This may take a few moments.'))
-                } else if (importData.status === 'error') {
-                  const errLines = []
-                  errLines.push(t('Import Failed!'))
-                  if (params.name) {
-                    errLines.push(<code>Name: {params.name}</code>)
-                  }
-                  if (importData.messages?.error) {
-                    errLines.push(
-                      <code>
-                        ${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}
-                      </code>,
-                    )
-                  }
-                  notify.error(<div>{join(errLines, <br />)}</div>)
-                } else {
-                  notify.error(t('Import Failed!'))
-                }
-              })
-              .fail((failData: ImportResponse) => {
-                notify.error(t('Import Failed!'))
-                log('import failed', failData)
-              })
-            pageState.hideModal()
-          }, 2500)
-        },
-        (jqxhr: string) => {
-          log('Failed to create import: ', jqxhr)
-          notify.error(t('Failed to create import.'))
-        },
-      )
-    },
-
-    dropFiles(files: File[], rejectedFiles: File[], {}, pms = {}) {
-      files.map((file) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const params = Object.assign(
-            {
-              name: file.name,
-              base64Encoded: reader.result,
-              lastModified: file.lastModified,
-              totalFiles: files.length,
-            },
-            pms,
-          )
-
-          this._forEachDroppedFile(params)
-        }
-        reader.readAsDataURL(file)
-      })
-
-      for (let i = 0; i < rejectedFiles.length; i++) {
-        if (rejectedFiles[i].type && rejectedFiles[i].name) {
-          let errMsg = t('Upload error: could not recognize Excel file.')
-          errMsg += ` (${t('Uploaded file name: ')} ${rejectedFiles[i].name})`
-          notify.error(errMsg)
-        } else {
-          notify.error(t('Could not recognize the dropped item(s).'))
-          break
-        }
+    removeSharing(this: DmixMixin & DmixContext) {
+      const uid = this.props.params?.uid
+      if (uid) {
+        removeAssetSharing(uid)
       }
     },
   },
@@ -469,42 +243,47 @@ const mixins: MixinsObject = {
    */
   contextRouter: {
     isFormList() {
-      return routerIsActive(ROUTES.FORMS) && this.currentAssetID() === undefined
+      return isAnyFormsRoute() && this.currentAssetID() === undefined
     },
     isLibrary() {
-      return routerIsActive(ROUTES.LIBRARY)
+      return isAnyLibraryRoute()
     },
     isMyLibrary() {
-      return routerIsActive(ROUTES.MY_LIBRARY)
+      return isMyLibraryRoute()
     },
     isPublicCollections() {
-      return routerIsActive(ROUTES.PUBLIC_COLLECTIONS)
+      return isPublicCollectionsRoute()
     },
     isLibrarySingle() {
-      return routerIsActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined
+      return isAnyLibraryRoute() && this.currentAssetID() !== undefined
     },
     isFormSingle() {
-      return routerIsActive(ROUTES.FORMS) && this.currentAssetID() !== undefined
+      return isAnyFormsRoute() && this.currentAssetID() !== undefined
     },
     currentAssetID() {
-      return routerGetAssetId()
+      return getRouteAssetUid() ?? undefined
     },
     currentAsset() {
-      return assetStore.data[this.currentAssetID()]
+      const assetId = this.currentAssetID()
+      return assetId ? assetStore.data[assetId] : undefined
     },
     isActiveRoute(path: string) {
-      return routerIsActive(path)
+      return getCurrentPath().startsWith(path)
     },
     isFormBuilder() {
-      if (routerIsActive(ROUTES.NEW_LIBRARY_ITEM)) {
+      if (isNewLibraryItemRoute()) {
         return true
       }
 
       const uid = this.currentAssetID()
+      if (uid === undefined) {
+        return false
+      }
+
       return (
-        (uid !== undefined && routerIsActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid))) ||
-        routerIsActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
-        routerIsActive(ROUTES.FORM_EDIT.replace(':uid', uid))
+        getCurrentPath().startsWith(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+        getCurrentPath().startsWith(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+        getCurrentPath().startsWith(ROUTES.FORM_EDIT.replace(':uid', uid))
       )
     },
   },

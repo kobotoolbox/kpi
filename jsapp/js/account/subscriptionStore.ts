@@ -1,3 +1,4 @@
+import $ from 'jquery'
 import { makeAutoObservable } from 'mobx'
 import { PlanNames, type Product, type SubscriptionInfo } from '#/account/stripe.types'
 import { fetchGet, handleApiFail } from '#/api'

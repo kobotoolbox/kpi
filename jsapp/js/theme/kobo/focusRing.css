@@ -1,0 +1,33 @@
+/*
+ * Mantine adds .mantine-focus-auto to focusable controls when theme.focusRing is set to "auto".
+ * We override it globally to keep keyboard focus rings consistent with Kobo styles.
+ */
+.mantine-focus-auto:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
+/*
+ * For input components, Mantine always adds static class names (e.g., .mantine-Textarea-input)
+ * even when custom classNames props are passed. These global selectors ensure focus styles
+ * apply consistently, following Mantine's design pattern of global CSS + static classes.
+ * This is the idiomatic way to style Mantine components globally.
+ */
+.mantine-Textarea-input:focus-visible:not([data-error]),
+.mantine-TextInput-input:focus-visible:not([data-error]),
+.mantine-NumberInput-input:focus-visible:not([data-error]),
+.mantine-PasswordInput-input:focus-visible:not([data-error]) {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
+/*
+ * For composite input components (MultiSelect, TagsInput, etc.), the .input class is a wrapper
+ * containing the actual focusable element. We use :focus-within:has(:focus-visible) to apply
+ * focus styles when the inner input has keyboard focus.
+ */
+.mantine-MultiSelect-input:focus-within:has(:focus-visible),
+.mantine-TagsInput-input:focus-within:has(:focus-visible) {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}

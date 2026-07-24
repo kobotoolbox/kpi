@@ -1,4 +1,5 @@
 import type { AuditLogResponseMetadataAssetFiles } from './auditLogResponseMetadataAssetFiles'
+import type { AuditLogResponseMetadataBulkAction } from './auditLogResponseMetadataBulkAction'
 import type { AuditLogResponseMetadataHook } from './auditLogResponseMetadataHook'
 import type { AuditLogResponseMetadataName } from './auditLogResponseMetadataName'
 import type { AuditLogResponseMetadataPermissions } from './auditLogResponseMetadataPermissions'
@@ -31,6 +32,7 @@ export type AuditLogResponseMetadata = {
   latest_deployed_version_uid?: string
   submission?: AuditLogResponseMetadataSubmission
   hook?: AuditLogResponseMetadataHook
+  bulk_action?: AuditLogResponseMetadataBulkAction
   name?: AuditLogResponseMetadataName
   shared_fields?: AuditLogResponseMetadataSharedFields
 }

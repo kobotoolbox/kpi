@@ -1,5 +1,8 @@
+import { Paper } from '@mantine/core'
+import cx from 'classnames'
 import React from 'react'
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
+import styles from '../../../common/styles.module.scss'
 import RadioGroup from './RadioGroup'
 
 interface Props {
@@ -7,9 +10,10 @@ interface Props {
   disabled: boolean
   onSave: (value: string) => Promise<unknown>
   value: string
+  isAnswerAIGenerated: boolean
 }
 
-export default function SelectOneResponseForm({ qaQuestion, onSave, disabled, value }: Props) {
+export default function SelectOneResponseForm({ qaQuestion, onSave, disabled, value, isAnswerAIGenerated }: Props) {
   const handleChange = (newValue: string) => {
     onSave(newValue)
   }
@@ -19,7 +23,20 @@ export default function SelectOneResponseForm({ qaQuestion, onSave, disabled, va
     .map((choice) => ({
       uuid: choice.uuid,
       label: choice.labels._default,
+      hint: (choice.hint?.labels as { [key: string]: string | undefined })?._default,
     }))
 
-  return <RadioGroup options={options} value={value} onChange={handleChange} disabled={disabled} />
+  return (
+    <Paper
+      p='md'
+      radius='md'
+      shadow='none'
+      className={cx({
+        [styles.responseBorderAI]: isAnswerAIGenerated,
+        [styles.responseBorderDefault]: !isAnswerAIGenerated,
+      })}
+    >
+      <RadioGroup options={options} value={value} onChange={handleChange} disabled={disabled} />
+    </Paper>
+  )
 }

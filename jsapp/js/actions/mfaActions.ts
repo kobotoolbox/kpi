@@ -1,11 +1,9 @@
-import { when } from 'mobx'
+import $ from 'jquery'
 import Reflux from 'reflux'
-import { hasActiveSubscription } from '#/account/stripe.utils'
 import { ROOT_URL } from '#/constants'
-import envStore from '#/envStore'
 import { notify } from '#/utils'
 
-export type MfaErrorResponse = JQueryXHR & {
+export type MfaErrorResponse = JQuery.jqXHR & {
   non_field_errors?: string
 }
 
@@ -29,12 +27,14 @@ export interface MfaBackupCodesResponse {
   backup_codes: string[]
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const mfaActions = Reflux.createActions({
   getUserMethods: { children: ['completed', 'failed'] },
   activate: { children: ['completed', 'failed'] },
   deactivate: { children: ['completed', 'failed'] },
   isActive: { children: ['completed', 'failed'] },
-  getMfaAvailability: { children: ['completed', 'failed'] },
   confirmCode: { children: ['completed', 'failed'] },
   regenerate: { children: ['completed', 'failed'] },
 })
@@ -80,31 +80,6 @@ mfaActions.activate.listen((inModal?: boolean) => {
       }
       notify(errorText, 'error')
     })
-})
-
-mfaActions.getMfaAvailability.listen(() => {
-  when(() => envStore.isReady).then(() => {
-    const hasMfaList = envStore.data.mfa_has_availability_list
-    const perUserAvailability = envStore.data.mfa_per_user_availability
-    if (envStore.data.stripe_public_key) {
-      hasActiveSubscription()
-        .then((response) => {
-          const isMfaAvailable = hasMfaList ? response || perUserAvailability : response
-          mfaActions.getMfaAvailability.completed({ isMfaAvailable, isPlansMessageVisible: !isMfaAvailable })
-        })
-        .catch(() => {
-          const errorText = t('An error occurred while checking subscription status')
-          notify(errorText, 'error')
-          mfaActions.getMfaAvailability.failed({ isMfaAvailable: false, isPlansMessageVisible: false })
-        })
-    } else {
-      // If Stripe isn't enabled on the site, don't restrict MFA access
-      mfaActions.getMfaAvailability.completed({
-        isMfaAvailable: !hasMfaList || perUserAvailability,
-        isPlansMessageVisible: false,
-      })
-    }
-  })
 })
 
 mfaActions.confirmCode.listen((mfaCode: string) => {

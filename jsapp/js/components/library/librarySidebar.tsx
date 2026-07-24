@@ -5,8 +5,6 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import { MODAL_TYPES } from '#/constants'
 import pageState from '#/pageState.store'
-import { routerIsActive } from '#/router/legacy'
-import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import myLibraryStore from './myLibraryStore'
 
@@ -67,18 +65,22 @@ export default class LibrarySidebar extends React.Component<{}, LibrarySidebarSt
 
         <bem.FormSidebar m={sidebarModifier}>
           <NavLink className='form-sidebar__navlink' to='/library/my-library'>
-            <bem.FormSidebar__label m={{ selected: routerIsActive(ROUTES.MY_LIBRARY) }}>
-              <i className='k-icon k-icon-library' />
-              <bem.FormSidebar__labelText>{t('My Library')}</bem.FormSidebar__labelText>
-              <bem.FormSidebar__labelCount>{this.state.myLibraryCount}</bem.FormSidebar__labelCount>
-            </bem.FormSidebar__label>
+            {({ isActive }) => (
+              <bem.FormSidebar__label m={{ selected: isActive }}>
+                <i className='k-icon k-icon-library' />
+                <bem.FormSidebar__labelText>{t('My Library')}</bem.FormSidebar__labelText>
+                <bem.FormSidebar__labelCount>{this.state.myLibraryCount}</bem.FormSidebar__labelCount>
+              </bem.FormSidebar__label>
+            )}
           </NavLink>
 
           <NavLink className='form-sidebar__navlink' to='/library/public-collections'>
-            <bem.FormSidebar__label m={{ selected: routerIsActive(ROUTES.PUBLIC_COLLECTIONS) }}>
-              <i className='k-icon k-icon-library-public' />
-              <bem.FormSidebar__labelText>{t('Public Collections')}</bem.FormSidebar__labelText>
-            </bem.FormSidebar__label>
+            {({ isActive }) => (
+              <bem.FormSidebar__label m={{ selected: isActive }}>
+                <i className='k-icon k-icon-library-public' />
+                <bem.FormSidebar__labelText>{t('Public Collections')}</bem.FormSidebar__labelText>
+              </bem.FormSidebar__label>
+            )}
           </NavLink>
         </bem.FormSidebar>
       </>

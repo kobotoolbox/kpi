@@ -13,6 +13,8 @@ interface WhenLoadedListeners {
 
 /**
  * A store that keeps data of each asset (only the full data with `.content`).
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 class AssetStore extends Reflux.Store {
   data: AssetStoreData = {}
@@ -52,10 +54,6 @@ class AssetStore extends Reflux.Store {
    *
    * Useful when your component needs asset data to work, and there is a high
    * probability that it was already fetched from backend.
-   *
-   * NOTE: this is a copy of functionality that already exists in
-   * `stores.allAssets.whenLoaded` (that one is a bit broken due to how
-   * `allAssets` was written; plus it's not typed).
    */
   whenLoaded(assetUid: string, callback: (foundAsset: AssetResponse) => void) {
     const foundAsset = this.getAsset(assetUid)
@@ -84,6 +82,8 @@ class AssetStore extends Reflux.Store {
 
 /**
  * This store keeps only full assets (i.e. ones with `content`)
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 const assetStore = new AssetStore()
 assetStore.init()

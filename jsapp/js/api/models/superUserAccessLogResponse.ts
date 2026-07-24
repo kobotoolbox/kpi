@@ -18,4 +18,5 @@ export interface SuperUserAccessLogResponse {
   metadata: SuperUserAccessLogResponseMetadata
   user_uid: string
   count: number
+  action: string
 }

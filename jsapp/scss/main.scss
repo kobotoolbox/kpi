@@ -8,7 +8,7 @@
 
 @include meta.load-css('./libs/mdl');
 
-@include meta.load-css('../fonts/k-icons');
+@include meta.load-css('../fonts/k-icons.css');
 
 @include meta.load-css('/node_modules/alertifyjs/build/css/alertify.css');
 @include meta.load-css('./libs/alertify.overrides');
@@ -28,7 +28,6 @@
 @include meta.load-css('stylesheets/partials/helpers');
 
 @include meta.load-css('./components/kobo.bem.ui');
-@include meta.load-css('../js/popoverMenu.scss');
 @include meta.load-css('./components/kobo.button');
 @include meta.load-css('./components/kobo.tooltips-big');
 @include meta.load-css('./components/kobo.navigation');
@@ -37,8 +36,6 @@
 @include meta.load-css('./components/kobo.form-builder');
 @include meta.load-css('./components/kobo.form-builder-message-box');
 @include meta.load-css('./components/kobo.locking');
-@include meta.load-css('./components/kobo.lib-nav');
-@include meta.load-css('./components/kobo.lib-list');
 @include meta.load-css('./components/kobo.form-view');
 @include meta.load-css('./components/kobo.project-downloads');
 @include meta.load-css('./components/kobo.service-row');

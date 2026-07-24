@@ -1,9 +1,50 @@
-{% extends "rest_framework/base.html" %}
+{% extends "base_no_static.html" %}
 
 {% block title %}KoboToolbox Form Building API{% endblock %}
 
-{% block branding %}
-    <a class='navbar-brand' rel="nofollow" href='http://kobotoolbox.org/'>
-        KoboToolbox Form Building API
-    </a>
+{% block body %}
+    <style>
+        /* No-static API styling */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #2c3e50; line-height: 1.5; }
+        .api-header { background: #2095f3; color: white; padding: 15px 20px; margin: -20px -20px 20px -20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .doc-container { max-width: 900px; margin: 0 auto; }
+        .deprecated-warning { background: #fff3cd; border-left: 5px solid #ffc107; color: #856404; padding: 15px; margin-bottom: 30px; border-radius: 4px; }
+
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 40px; color: #2095f3; }
+        h3 { margin-top: 25px; color: #34495e; }
+
+        code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; background: #f8f9fa; border-radius: 4px; }
+        code { color: #e83e8c; padding: 2px 4px; font-size: 0.9em; }
+        pre { padding: 15px; border: 1px solid #e1e4e8; overflow-x: auto; white-space: pre-wrap; line-height: 1.45; }
+
+        .endpoint-list { list-style: none; padding: 0; }
+        .endpoint-list li { padding: 10px; border-bottom: 1px solid #f1f1f1; }
+        .method { font-weight: bold; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; margin-right: 5px; text-transform: uppercase; }
+        .get { background: #d1ecf1; color: #0c5460; }
+        .post { background: #d4edda; color: #155724; }
+    </style>
+
+    <div class="api-header">
+        <strong>KoboToolbox API</strong>
+    </div>
+
+    <div class="doc-container">
+        <div class="deprecated-warning">
+            <strong>Warning:</strong> This API version (v1) is <strong>deprecated</strong>.
+            New integrations should use <a href="/api/v2/">Kobo API v2</a>.
+        </div>
+
+        {% if description %}
+            <div class="api-description">
+                {{ description|safe }}
+            </div>
+        {% endif %}
+
+        <hr>
+
+        <h2>Current Resource (JSON)</h2>
+        <p>This is the raw data returned by the server for this endpoint:</p>
+        <pre>{{ content|urlize }}</pre>
+    </div>
 {% endblock %}

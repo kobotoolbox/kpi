@@ -1,5 +1,7 @@
 import os
 import re
+import tempfile
+import uuid
 from unittest.mock import patch
 
 from django.http import Http404
@@ -908,3 +910,97 @@ class TestFormSubmission(TestBase):
         )
         self.assertEqual(history_obj.root_uuid, root_uuid)
         self.assertEqual(history_obj.uuid, initial_uuid)
+
+    def test_edit_submission_with_unknown_deprecated_id_returns_404(self):
+        """
+        Ensure that an edit attempt with a deprecatedID that does not exist
+        in either Instance or InstanceHistory returns 404.
+        """
+        invalid_uuid = 'this-uuid-does-not-exist-in-db'
+
+        # Create the XML content
+        xml_content = f"""<?xml version='1.0' encoding='UTF-8' ?>
+        <{self.xform.id_string} id="{self.xform.id_string}">
+            <meta>
+                <instanceID>uuid:{uuid.uuid4()}</instanceID>
+                <deprecatedID>uuid:{invalid_uuid}</deprecatedID>
+            </meta>
+        </{self.xform.id_string}>
+        """
+
+        # Write content to a temporary file on disk
+        with tempfile.NamedTemporaryFile(suffix='.xml', delete=False) as tmp:
+            tmp.write(xml_content.strip().encode())
+            tmp_path = tmp.name
+
+        try:
+            self._make_submission(path=tmp_path, assert_success=False)
+
+            self.assertEqual(self.response.status_code, status.HTTP_404_NOT_FOUND)
+
+            response_body = self.response.content.decode()
+            self.assertIn('<OpenRosaResponse', response_body)
+            self.assertIn(
+                'Invalid submission - deprecatedID not found',
+                response_body,
+            )
+
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+    def test_edit_submission_with_old_deprecated_id_returns_410(self):
+        """
+        Ensure that an edit attempt with a deprecatedID that exists only
+        in InstanceHistory returns 410 Gone.
+        """
+        old_uuid = str(uuid.uuid4())
+        new_uuid = f'uuid:{uuid.uuid4()}'
+
+        instance = Instance.objects.create(
+            xform=self.xform,
+            uuid=new_uuid,
+            xml=f"""
+            <{self.xform.id_string} id="{self.xform.id_string}">
+                <meta>
+                    <instanceID>{new_uuid}</instanceID>
+                </meta>
+            </{self.xform.id_string}>
+            """,
+        )
+
+        InstanceHistory.objects.create(
+            xform_instance=instance,
+            uuid=old_uuid,
+            xml=instance.xml,
+            root_uuid=instance.root_uuid,
+        )
+
+        xml_content = f"""<?xml version='1.0' encoding='UTF-8' ?>
+        <{self.xform.id_string} id="{self.xform.id_string}">
+            <meta>
+                <instanceID>uuid:{uuid.uuid4()}</instanceID>
+                <deprecatedID>uuid:{old_uuid}</deprecatedID>
+            </meta>
+        </{self.xform.id_string}>
+        """
+
+        with tempfile.NamedTemporaryFile(suffix='.xml', delete=False) as tmp:
+            tmp.write(xml_content.strip().encode())
+            tmp_path = tmp.name
+
+        try:
+            self._make_submission(path=tmp_path, assert_success=False)
+
+            self.assertEqual(self.response.status_code, status.HTTP_410_GONE)
+
+            response_body = self.response.content.decode()
+            self.assertIn('<OpenRosaResponse', response_body)
+            self.assertIn(
+                'deprecatedID refers to an old version',
+                response_body,
+            )
+
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)

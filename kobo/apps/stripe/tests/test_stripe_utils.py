@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from math import inf
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -14,9 +15,13 @@ from freezegun import freeze_time
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.constants import USAGE_TYPES_WITH_COUNTERS, UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
+from kobo.apps.stripe.exceptions import (
+    DefaultCommunityPlanNotFoundError,
+    ManualSubscriptionExistsError,
+)
 from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.stripe.tests.utils import (
     _create_one_time_addon_product,
@@ -33,6 +38,11 @@ from kobo.apps.stripe.utils.billing_dates import (
 from kobo.apps.stripe.utils.limit_enforcement import (
     check_exceeded_limit,
     update_or_remove_limit_counter,
+)
+from kobo.apps.stripe.utils.manual_subscription import (
+    create_manual_subscription,
+    get_default_community_plan_price,
+    organization_can_start_manual_subscription,
 )
 from kobo.apps.stripe.utils.subscription_limits import (
     determine_limit,
@@ -73,6 +83,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             f'{UsageType.LLM_REQUESTS}_limit': '300',
             f'{UsageType.SUBMISSION}_limit': '400',
             f'{UsageType.STORAGE_BYTES}_limit': '500',
+            f'{UsageType.LOG_LOOKBACK_DAYS}_limit': '60',
         }
         # second plan for org2 where we append (not add) 1 to all the limits
         second_paid_plan_limits = {
@@ -120,6 +131,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             f'{UsageType.LLM_REQUESTS}_limit': '1',
             f'{UsageType.SUBMISSION}_limit': '1',
             f'{UsageType.STORAGE_BYTES}_limit': '1',
+            f'{UsageType.LOG_LOOKBACK_DAYS}_limit': '1',
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }
@@ -129,6 +141,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             f'{UsageType.LLM_REQUESTS}_limit': '2',
             f'{UsageType.SUBMISSION}_limit': '2',
             f'{UsageType.STORAGE_BYTES}_limit': '2',
+            f'{UsageType.LOG_LOOKBACK_DAYS}_limit': '2',
         }
         generate_plan_subscription(
             self.organization, metadata=product_metadata, price_metadata=price_metadata
@@ -589,6 +602,69 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert get_default_plan_name() == product.name
 
 
+class ManualInvoicingUtilsTestCase(BaseTestCase):
+    fixtures = ['test_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.someuser = User.objects.get(username='someuser')
+        cls.organization = cls.someuser.organization
+
+    @patch('djstripe.models.Subscription.sync_from_stripe_data')
+    @patch('stripe.Subscription.create')
+    @patch('stripe.Subscription.list')
+    @patch('stripe.Customer.modify')
+    @patch('djstripe.models.Customer.get_or_create')
+    def test_create_manual_subscription(
+        self,
+        customer_get_or_create_mock,
+        customer_modify_mock,
+        subscription_list_mock,
+        subscription_create_mock,
+        subscription_sync_mock,
+    ):
+        generate_free_plan()
+        price = get_default_community_plan_price()
+        customer = Mock()
+        customer.id = 'cus_manual_invoice'
+        customer.name = None
+        customer.sync_from_stripe_data = Mock()
+        customer_get_or_create_mock.return_value = (customer, False)
+        customer_modify_mock.return_value = customer
+        subscription_list_mock.return_value.auto_paging_iter.return_value = []
+        stripe_subscription = {
+            'id': 'sub_manual_invoice',
+            'status': 'active',
+            'customer': customer.id,
+        }
+        subscription_create_mock.return_value = stripe_subscription
+        subscription_sync_mock.return_value = SimpleNamespace(id='sub_manual_invoice')
+
+        subscription = create_manual_subscription(self.organization)
+
+        assert subscription.id == 'sub_manual_invoice'
+        subscription_create_mock.assert_called_once()
+        create_kwargs = subscription_create_mock.call_args.kwargs
+        assert create_kwargs['customer'] == customer.id
+        assert create_kwargs['items'][0]['price'] == price.id
+        assert create_kwargs['metadata']['organization_id'] == self.organization.id
+        assert create_kwargs['metadata']['kpi_owner_user_id'] == self.someuser.id
+        customer.sync_from_stripe_data.assert_called_once_with(customer)
+        subscription_sync_mock.assert_called_once_with(stripe_subscription)
+
+    def test_create_manual_subscription_rejects_active_subscription(self):
+        generate_free_plan()
+        generate_plan_subscription(self.organization)
+
+        assert not organization_can_start_manual_subscription(self.organization)
+        with self.assertRaises(ManualSubscriptionExistsError):
+            create_manual_subscription(self.organization)
+
+    def test_create_manual_subscription_requires_default_plan(self):
+        with self.assertRaises(DefaultCommunityPlanNotFoundError):
+            create_manual_subscription(self.organization)
+
+
 class ExceededLimitsTestCase(BaseServiceUsageTestCase):
     def setUp(self):
         super().setUp()
@@ -621,7 +697,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             check_exceeded_limit(self.someuser, usage_type)
             assert (
                 ExceededLimitCounter.objects.filter(
@@ -632,7 +708,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
 
     def test_check_exceeded_limit_updates_counters(self):
         today = timezone.now()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             baker.make(
                 ExceededLimitCounter,
                 user=self.anotheruser,
@@ -649,7 +725,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             check_exceeded_limit(self.someuser, usage_type)
             counter = ExceededLimitCounter.objects.get(
                 user_id=self.anotheruser.id, limit_type=usage_type

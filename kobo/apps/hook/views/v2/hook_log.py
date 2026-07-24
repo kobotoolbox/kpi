@@ -118,7 +118,6 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         hook_log = self.get_object()
 
         if hook_log.can_retry:
-            hook_log.change_status()
             success = hook_log.retry()
             if success:
                 # Return status_code of remote server too.
@@ -126,11 +125,9 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 response['detail'] = hook_log.message
                 response['status_code'] = hook_log.status_code
             else:
-                response['detail'] = t(
-                    'An error has occurred when sending the data. '
-                    'Please try again later.'
-                )
-                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                response['detail'] = f'HTTP {hook_log.status_code} - {hook_log.message}'
+                response['status_code'] = hook_log.status_code
+                status_code = status.HTTP_400_BAD_REQUEST
         else:
             response['detail'] = t('Data is being or has already been processed')
             status_code = status.HTTP_400_BAD_REQUEST

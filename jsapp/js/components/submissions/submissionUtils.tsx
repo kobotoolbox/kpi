@@ -1,16 +1,13 @@
 import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
-import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
-import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import {
   QUAL_NOTE_TYPE,
   type SubmissionAnalysisResponse,
 } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
-import { getColumnLabel } from '#/components/submissions/tableUtils'
-import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
+import { getBackgroundAudioQuestionName, getColumnLabel } from '#/components/submissions/tableUtils'
 import {
   CHOICE_LISTS,
   GROUP_TYPES_BEGIN,
@@ -28,12 +25,20 @@ import type {
   SubmissionAttachment,
   SubmissionResponse,
   SubmissionResponseValue,
-  SubmissionResponseValueObject,
   SubmissionSupplementalDetails,
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
 import { recordEntries, recordKeys } from '#/utils'
+import { getRepeatGroupAnswers } from './repeatGroupUtils'
+import { getMediaAttachment } from './submissionMediaUtils'
+export {
+  getRepeatGroupAnswerTree,
+  getRepeatGroupAnswers,
+  type RepeatGroupAnswerOptions,
+  type RepeatGroupAnswerTreeNode,
+} from './repeatGroupUtils'
+export { getMediaAttachment } from './submissionMediaUtils'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -143,7 +148,8 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
     // Qualitative Analysis questions. They bear no data, so there is no point
     // displaying them outside of Single Processing route. As this function is
     // part of Single Submission modal, we need to hide the notes.
-    if (field.type === QUAL_NOTE_TYPE) {
+    // We also hide `qualSource` as they are not meant to be displayed to user.
+    if (field.type === QUAL_NOTE_TYPE || field.type === 'qualSource') {
       return
     }
 
@@ -339,18 +345,39 @@ export function getSubmissionDisplayData(
         parentGroup.children.push(rowObj)
 
         const rowxpath = flatPaths[rowName]
-        supplementalDetailKeys[rowxpath]?.forEach((sdKey: string) => {
-          parentGroup.children.push(
-            new DisplayResponse(
-              null,
-              getColumnLabel(asset, sdKey, false),
-              sdKey,
-              flatPaths[rowName],
-              undefined,
-              getSupplementalDetailsContent(submissionData, sdKey),
-            ),
-          )
-        })
+
+        /**
+         * Recursively add qual related rows to output. Looks for the source key in the list of all possible keys.
+         */
+        const addSupplementalDetails = (sourceKey: string) => {
+          supplementalDetailKeys[sourceKey]?.forEach((sdKey: string) => {
+            // Create a unique xpath for the analysis/verification question
+            const specificXpath = sdKey.replace('_supplementalDetails/', '')
+
+            parentGroup.children.push(
+              new DisplayResponse(
+                // type
+                // TODO: should we aim at this being analysis question type name?
+                null,
+                // label
+                getColumnLabel(asset, sdKey, false),
+                // name
+                sdKey,
+                // xpath
+                specificXpath,
+                // listName
+                undefined,
+                // data
+                getSupplementalDetailsContent(submissionData, sdKey),
+              ),
+            )
+
+            // Check for nested supplemental details (e.g. qualVerification for a qual question)
+            addSupplementalDetails(specificXpath)
+          })
+        }
+
+        addSupplementalDetails(rowxpath)
       }
     }
   }
@@ -484,85 +511,6 @@ function isRowFromCurrentGroupLevel(
   }
 }
 
-const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseValueObject => {
-  if (data === null) return false
-  if (typeof data !== 'object') return false
-  if (Array.isArray(data)) return false
-  if (recordKeys(data).length === 0) return false
-
-  return true
-}
-
-/**
- * Returns an array of answers. Will return empty array if no answers found.
- *
- * Note: this function doesn't include unresponded questions from repeat groups - i.e. if your repeat group `person` has
- * `your_name` question, and user submitted 10 `person`s, but only 3 of them have `your_name` answered, this function
- * will return an array of 3 items (e.g. `['Joe', 'Moe', 'Zoe']`) rather than an array of 10 items with empty strings
- * for unresponded questions (e.g. `['', 'Joe', '', '', '', '', 'Moe', 'Zoe', '', '']`).
- * TODO: we might want to change this in future, when we will improve the Data Table UI for repeat groups.
- */
-export function getRepeatGroupAnswers(
-  responseData: DataResponse | SubmissionResponse,
-  /** Full (nested) path to a response, e.g. group_person/group_pets/group_pet/pet_name. */
-  fullPath: string,
-): React.ReactNode[] {
-  // This function is a recursive detective. It goes through nested groups from given path (`targetKey`), looking for
-  // answers. We are traversing `DataResponse | SubmissionResponse` and it's values (might be nested arrays), going one path level and
-  // one `responseData` level at a time - verifying if response exist and if needed (nested) going deeper.
-  const lookForAnswers = (
-    data: DataResponse | SubmissionResponse | SubmissionResponseValue,
-    currentDepth = 0,
-    responseIndex?: number,
-  ): Array<JSX.Element | string> => {
-    const currentPath = fullPath
-      .split('/')
-      .slice(0, currentDepth + 1)
-      .join('/')
-
-    if (!isSubmissionResponseValueObject(data)) return []
-
-    const submissionResponseValue = data[currentPath]
-    if (!submissionResponseValue) return []
-
-    if (currentPath === fullPath) {
-      // At full path `submissionResponseValue` should be an actual response to a repeat group question.
-
-      // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
-      if (Array.isArray(submissionResponseValue)) return []
-
-      // To find the attachment, we need to build a question path that includes response number in it. For example, if
-      // we have repeat group `band_member` with `image` type question `portrait_photo`, then the attachment for third
-      // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
-      // works for them too :fingers_crossed:.
-      const responseNumber = responseIndex !== undefined ? responseIndex + 1 : undefined
-      const levelParentKey = fullPath.split('/').slice(0, currentDepth).join('/')
-      const attachmentPath = appendTextToPathAtLevel(fullPath, levelParentKey, `[${responseNumber}]`)
-      const attachment = getMediaAttachment(responseData, String(submissionResponseValue), attachmentPath)
-
-      if (typeof attachment === 'object' && attachment?.is_deleted) {
-        // If we've found the attachment, and it is deleted, we don't want to display it…
-        return [<DeletedAttachment />]
-      } else {
-        // …otherwise we are displaying raw data
-        // TODO: In future we could render something similar to `MediaCell` for each response/attachment here
-        return [String(submissionResponseValue)]
-      }
-    } else {
-      // Here we go recursively into each item of the array, looking for answers.
-
-      // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
-      if (!Array.isArray(submissionResponseValue)) return []
-
-      return submissionResponseValue.flatMap((item: SubmissionResponseValue, itemIndex: number) =>
-        lookForAnswers(item, currentDepth + 1, itemIndex),
-      )
-    }
-  }
-
-  return lookForAnswers(responseData)
-}
-
 /**
  * Filters data for items inside the group
  */
@@ -599,46 +547,6 @@ function getRowListName(row: SurveyRow | undefined): string | undefined {
     return returnVal
   }
   return undefined
-}
-
-/**
- * Returns an attachment object or an error message.
- */
-export function getMediaAttachment(
-  submission: DataResponse | SubmissionResponse,
-  fileName: string,
-  questionXPath: string,
-): string | SubmissionAttachment {
-  let mediaAttachment: string | _DataResponseAttachmentsItem = t('Could not find ##fileName##').replace(
-    '##fileName##',
-    fileName,
-  )
-  submission._attachments.forEach((attachment) => {
-    if (attachment.question_xpath === questionXPath) {
-      // Check if the audio filetype is of type not supported by player and send it to format to mp3
-      if (
-        attachment.mimetype!.includes('audio/') &&
-        !attachment.mimetype!.includes('/mp3') &&
-        !attachment.mimetype!.includes('mpeg') &&
-        !attachment.mimetype!.includes('/wav') &&
-        !attachment.mimetype!.includes('ogg')
-      ) {
-        const newAudioURL = attachment.download_url + '?format=mp3'
-        const newAttachment = {
-          ...attachment,
-          download_url: newAudioURL,
-          download_large_url: newAudioURL,
-          download_medium_url: newAudioURL,
-          download_small_url: newAudioURL,
-          mimetype: 'audio/mp3',
-        }
-        mediaAttachment = newAttachment
-      } else {
-        mediaAttachment = attachment
-      }
-    }
-  })
-  return mediaAttachment
 }
 
 /**
@@ -690,7 +598,8 @@ export function getSupplementalDetailsContent(
   if (pathParts.type === 'qual') {
     // The last element is some random uuid, but we look for `qual`.
     pathArray.push('qual')
-    pathArray.push(pathParts.analysisQuestionUuid || '')
+    // It is `qual`, so `analysisQuestionUuid` must be there
+    pathArray.push(pathParts.analysisQuestionUuid!)
     const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
 
     if (foundResponse) {
@@ -727,6 +636,16 @@ export function getSupplementalDetailsContent(
     }
   }
 
+  if (pathParts.type === 'qualVerification') {
+    // It is `qualVerification`, so `analysisQuestionUuid` must be there
+    pathArray.push(...['qual', pathParts.analysisQuestionUuid!])
+
+    const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
+    if (typeof foundResponse.verified === 'boolean') {
+      return foundResponse.verified === true ? t('Yes') : t('No')
+    }
+  }
+
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
   return null
@@ -741,21 +660,6 @@ export default {
 export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
   const flatPaths = getSurveyFlatPaths(surveyRows, true)
   return flatPaths[rowName]
-}
-
-/**
- * Inserts given string immediately after the specified level in the path.
- * @param path - The original path string.
- * @param level - The level after which `stringToAdd` should be inserted.
- * @returns The updated path string.
- */
-function appendTextToPathAtLevel(path: string, level: string, stringToAdd: string): string {
-  const parts = path.split('/')
-  const index = parts.indexOf(level)
-  if (index !== -1) {
-    parts[index] = `${parts[index]}${stringToAdd}`
-  }
-  return parts.join('/')
 }
 
 /**
@@ -908,4 +812,71 @@ export function getBackgroundAudioAttachment(
   }
 
   return undefined
+}
+
+/**
+ * Checks if a supplemental details column contains unaccepted automatic content
+ * (transcript or translation that was auto-generated but not yet accepted by user).
+ *
+ * Uses the `pendingReview` flag from the backend API endpoint, which is set to `true`
+ * when the latest version of a transcript/translation lacks a `_dateAccepted` timestamp.
+ *
+ * @param submission - The submission data
+ * @param columnKey - The supplemental details column key (e.g., '_supplementalDetails/audio_question/transcript_en')
+ * @returns true if the column has unaccepted automatic content, false otherwise
+ */
+export function hasUnacceptedAutomaticContent(
+  submission: DataResponse | SubmissionResponse,
+  columnKey: string,
+): boolean {
+  if (!columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+    return false
+  }
+
+  const pathParts = getSupplementalPathParts(columnKey)
+
+  // Only transcript and translation can have unaccepted automatic content
+  if (pathParts.type !== 'transcript' && pathParts.type !== 'translation') {
+    return false
+  }
+
+  // Check if submission has supplemental details
+  if (!submission._supplementalDetails || typeof submission._supplementalDetails !== 'object') {
+    return false
+  }
+
+  const sourceRowData = get(submission._supplementalDetails, pathParts.sourceRowPath, null)
+
+  if (!sourceRowData || typeof sourceRowData !== 'object') {
+    return false
+  }
+
+  // Check for pending review flag in transcripts
+  if (pathParts.type === 'transcript') {
+    const transcriptData = sourceRowData.transcript
+    if (!transcriptData || typeof transcriptData !== 'object') {
+      return false
+    }
+
+    // The backend returns pendingReview: true when content is awaiting acceptance
+    return Boolean(transcriptData.pendingReview)
+  }
+
+  // Check for pending review flag in translations
+  if (pathParts.type === 'translation') {
+    const translationData = sourceRowData.translation
+    if (!translationData || typeof translationData !== 'object') {
+      return false
+    }
+
+    const languageTranslation = translationData[pathParts.languageCode || '']
+    if (!languageTranslation || typeof languageTranslation !== 'object') {
+      return false
+    }
+
+    // The backend returns pendingReview: true when content is awaiting acceptance
+    return Boolean(languageTranslation.pendingReview)
+  }
+
+  return false
 }

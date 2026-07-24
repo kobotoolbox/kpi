@@ -1,11 +1,8 @@
 import './tableBulkCheckbox.scss'
-
 import React from 'react'
-
-import bem from '#/bem'
+import Menu from '#/components/common/Menu'
 import Checkbox from '#/components/common/checkbox'
 import Icon from '#/components/common/icon'
-import PopoverMenu from '#/popoverMenu'
 
 interface TableBulkCheckboxProps {
   visibleRowsCount: number
@@ -41,21 +38,24 @@ export default function TableBulkCheckbox(props: TableBulkCheckboxProps) {
     <div className='table-bulk-checkbox'>
       <Checkbox checked={props.selectedRowsCount === props.visibleRowsCount} onChange={onToggleCurrentPage} />
 
-      <PopoverMenu
-        type='table-bulk-checkbox'
-        triggerLabel={<Icon name='caret-down' size='s' />}
-        additionalModifiers={['right']}
-      >
-        <bem.PopoverMenu__link onClick={onSelectAllPages}>
-          {t('Select all results (##count##)').replace('##count##', String(props.totalRowsCount))}
-        </bem.PopoverMenu__link>
+      <Menu>
+        <Menu.Target>
+          <button type='button' className='table-bulk-checkbox-trigger'>
+            <Icon name='caret-down' size='s' />
+          </button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item onClick={onSelectAllPages}>
+            {t('Select all results (##count##)').replace('##count##', String(props.totalRowsCount))}
+          </Menu.Item>
 
-        <bem.PopoverMenu__link onClick={onSelectCurrentPage}>
-          {t('Select visible results (##count##)').replace('##count##', String(props.visibleRowsCount))}
-        </bem.PopoverMenu__link>
+          <Menu.Item onClick={onSelectCurrentPage}>
+            {t('Select visible results (##count##)').replace('##count##', String(props.visibleRowsCount))}
+          </Menu.Item>
 
-        <bem.PopoverMenu__link onClick={onClearSelection}>{t('None')}</bem.PopoverMenu__link>
-      </PopoverMenu>
+          <Menu.Item onClick={onClearSelection}>{t('None')}</Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </div>
   )
 }

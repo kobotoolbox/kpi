@@ -73,7 +73,7 @@ interface LoadAssetCompletedDefinition extends Function {
 interface DeleteAssetDefinition extends Function {
   (details: { uid: string; assetType: string }, params?: { onComplete?: Function; onFail?: function }): void
   completed: DeleteAssetCompletedDefinition
-  failed: GenericFailedDefinition
+  failed: DeleteAssetFailedDefinition
 }
 
 interface DeleteAssetCompletedDefinition extends Function {
@@ -81,9 +81,23 @@ interface DeleteAssetCompletedDefinition extends Function {
   listen: (callback: (response: { uid: string; assetType: AssetTypeName }) => void) => Function
 }
 
+interface DeleteAssetFailedDefinition extends Function {
+  (response: { uid: string; assetType: string }): void
+  listen: (callback: (response: { uid: string; assetType: string }) => void) => Function
+}
+
+interface DeployAssetFailedDefinition extends Function {
+  (response: FailResponse, redeployment: boolean): void
+  listen: (callback: (response: FailResponse, redeployment: boolean) => void) => Function
+}
+
+interface DeployAssetDefinition extends GenericDefinition {
+  failed: DeployAssetFailedDefinition
+}
+
 export interface UpdateAssetDefinitionParams {
-  onComplete: (response: AssetResponse) => void
-  onFail: (response: FailResponse) => void
+  onComplete?: (response: AssetResponse) => void
+  onFailed?: (response: FailResponse) => void
 }
 
 interface UpdateAssetDefinition extends Function {
@@ -154,16 +168,6 @@ interface ResourcesGetAssetFilesCompletedDefinition extends Function {
   listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function
 }
 
-interface ResourcesGetAssetFilesDefinition extends Function {
-  (assetId: string, fileType: AssetFileType): void
-  completed: ResourcesGetAssetFilesCompletedDefinition
-  failed: GenericFailedDefinition
-}
-interface ResourcesGetAssetFilesCompletedDefinition extends Function {
-  (response: PaginatedResponse<AssetFileResponse>): void
-  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function
-}
-
 interface DuplicateSubmissionDefinition extends Function {
   (assetUid: string, submissionUid: string, data: SubmissionResponse): void
   completed: DuplicateSubmissionCompletedDefinition
@@ -202,6 +206,17 @@ interface SetAssetPublicFailedDefinition extends Function {
   listen: (callback: (assetUid: string) => void) => Function
 }
 
+interface CopyPermissionsFromCompletedDefinition extends Function {
+  (sourceUid: string, targetUid: string): void
+  listen: (callback: (sourceUid: string, targetUid: string) => void) => Function
+}
+
+interface CopyPermissionsFromDefinition extends Function {
+  (sourceUid: string, targetUid: string): void
+  completed: CopyPermissionsFromCompletedDefinition
+  failed: GenericFailedDefinition
+}
+
 interface RemoveAssetPermissionDefinition extends Function {
   (
     assetUid: string,
@@ -238,17 +253,10 @@ interface ReportsSetCustomDefinition extends Function {
 }
 
 interface ReportsSetCustomCompletedDefinition extends Function {
-  (response: AssetResponse): void
+  (response: AssetResponse, crid: string): void
   listen: (callback: (response: AssetResponse, crid: string) => void) => Function
 }
 
-interface MapSetMapStylesDefinition extends Function {
-  (assetUid: string, newMapSettings: AssetMapStyles): void
-  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function
-  started: MapSetMapStylesStartedDefinition
-  completed: GenericCallbackDefinition
-  failed: GenericFailedDefinition
-}
 interface HooksGetLogsDefinition extends Function {
   (
     assetUid: string,
@@ -327,8 +335,9 @@ interface UnsubscribeFromCollectionCompletedDefinition extends Function {
   listen: (callback: (response: any) => void) => Function
 }
 
-// NOTE: as you use more actions in your ts files, please extend this namespace,
-// for now we are defining only the ones we need.
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 export declare const actions: {
   navigation: {
     routeUpdate: GenericCallbackDefinition
@@ -342,16 +351,15 @@ export declare const actions: {
   survey: {
     addExternalItemAtPosition: SurveyAddExternalItemDefinition
   }
-  search: object
   resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
-    deployAsset: GenericDefinition
+    deployAsset: DeployAssetDefinition
+    /** This is "archive" and "unarchive" of asset */
     setDeploymentActive: GenericDefinition
     createSnapshot: GenericDefinition
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
-    listTags: GenericDefinition
     createResource: CreateResourceDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition
@@ -385,7 +393,7 @@ export declare const actions: {
   }
   permissions: {
     getConfig: GenericDefinition
-    copyPermissionsFrom: GenericDefinition
+    copyPermissionsFrom: CopyPermissionsFromDefinition
     removeAssetPermission: RemoveAssetPermissionDefinition
     assignAssetPermission: GenericDefinition
     bulkSetAssetPermissions: GenericDefinition
@@ -411,7 +419,6 @@ export declare const actions: {
   }
   submissions: {
     getSubmission: GetSubmissionDefinition
-    getSubmissionByUuid: GetSubmissionDefinition
     getSubmissions: GetSubmissionsDefinition
     getProcessingSubmissions: GetProcessingSubmissionsDefinition
     bulkDeleteStatus: GenericDefinition
@@ -419,7 +426,6 @@ export declare const actions: {
     bulkPatchValues: GenericDefinition
     bulkDelete: GenericDefinition
   }
-  media: object
   exports: {
     getExport: GetExportDefinition
     getExports: GenericDefinition

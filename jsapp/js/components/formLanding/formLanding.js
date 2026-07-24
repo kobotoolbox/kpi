@@ -1,6 +1,6 @@
-import React from 'react'
-
 import { Group, Stack } from '@mantine/core'
+import { IconWorldFilled } from '@tabler/icons-react'
+import React from 'react'
 import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
@@ -8,10 +8,11 @@ import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
-import AssetStatusBadge from '#/components/common/assetStatusBadge'
+import Menu from '#/components/common/Menu'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -19,23 +20,20 @@ import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
-import { dataInterface } from '#/dataInterface'
+import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
-import PopoverMenu from '#/popoverMenu'
+import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { formatTime, notify, recordKeys, recordValues } from '#/utils'
-import ActionIcon from '../common/ActionIcon'
+import { formatTime, notify, recordKeys } from '#/utils'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import FormHistory from './FormHistory'
 
-const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
 
 class FormLanding extends React.Component {
@@ -43,17 +41,12 @@ class FormLanding extends React.Component {
     super(props)
     this.state = {
       selectedCollectMethod: COLLECTION_METHODS.offline_url.id,
-      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
-      nextPageUrl: null,
-      nextPagesVersions: [],
       anonymousSubmissions: false,
       anonymousPermissions: [],
     }
     autoBind(this)
   }
   componentDidMount() {
-    // reset loaded versions when new one is deployed
-    this.listenTo(actions.resources.deployAsset.completed, this.resetLoadedVersions)
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated)
     this.listenTo(actions.resources.loadAsset.completed, this.onAssetPermissionsUpdated)
 
@@ -85,22 +78,18 @@ class FormLanding extends React.Component {
       })
     }
   }
-  resetLoadedVersions() {
-    this.setState({
-      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
-      nextPageUrl: null,
-      nextPagesVersions: [],
-    })
-  }
   enketoPreviewModal(evt) {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
-      assetid: this.state.uid,
+      assetUrl: this.state.url,
     })
   }
   callUnarchiveAsset() {
-    this.unarchiveAsset()
+    // This component is using `mixins.dmix`, so the asset object is being stored in state
+    unarchiveAsset(this.state, () => {
+      actions.resources.loadAsset({ id: this.props.params.uid }, true)
+    })
   }
   renderFormInfo(userCanEdit) {
     var dvcount = this.state.deployed_versions.count
@@ -127,10 +116,26 @@ class FormLanding extends React.Component {
         </bem.FormView__cell>
         <bem.FormView__cell m='buttons'>
           {userCanEdit && this.state.deployment_status === 'deployed' && (
-            <Button type='primary' size='l' isUpperCase onClick={this.deployAsset.bind(this)} label={t('redeploy')} />
+            <Button
+              type='primary'
+              size='l'
+              isUpperCase
+              onClick={() => {
+                deployAsset(this.state)
+              }}
+              label={t('redeploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'draft' && (
-            <Button type='primary' size='l' isUpperCase onClick={this.deployAsset.bind(this)} label={t('deploy')} />
+            <Button
+              type='primary'
+              size='l'
+              isUpperCase
+              onClick={() => {
+                deployAsset(this.state)
+              }}
+              label={t('deploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'archived' && (
             <Button
@@ -176,91 +181,25 @@ class FormLanding extends React.Component {
   }
   showLanguagesModal(evt) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: this.state,
-    })
+    openFormLanguagesModal(this.state)
   }
-  showEncryptionModal(evt) {
-    evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.ENCRYPT_FORM,
-      asset: this.state,
-    })
-  }
-  loadMoreVersions() {
-    if (
-      this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <=
-      this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM
-    ) {
-      this.setState({
-        DVCOUNT_LIMIT: this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM,
-      })
-    }
-    let urlToLoad = null
-    if (this.state.nextPageUrl) {
-      urlToLoad = this.state.nextPageUrl
-    } else if (this.state.deployed_versions.next) {
-      urlToLoad = this.state.deployed_versions.next
-    }
-    if (urlToLoad !== null) {
-      dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
-        this.setState({ nextPageUrl: data.deployed_versions.next })
-        const newNextPagesVersions = this.state.nextPagesVersions
-        recordValues(data.deployed_versions.results).forEach((item) => {
-          newNextPagesVersions.push(item)
-        })
-        this.setState({ nextPagesVersions: newNextPagesVersions })
-      })
-    }
-  }
-
   renderHistory() {
-    var dvcount = this.state.deployed_versions.count
-    const versionsToDisplay = this.state.deployed_versions.results.concat(this.state.nextPagesVersions)
-    const isLoggedIn = sessionStore.isLoggedIn
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
           <bem.FormView__cell m='label'>{t('Form history')}</bem.FormView__cell>
         </bem.FormView__cell>
 
-        <bem.FormView__cell m={['box', 'history-table']}>
-          <bem.FormView__group m='deployments'>
-            <bem.FormView__group m={['items', 'headings']}>
-              <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
-              <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
-              {isLoggedIn && <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>}
-            </bem.FormView__group>
-            {versionsToDisplay.map((item, n) => {
-              if (dvcount - n > 0) {
-                return (
-                  <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''}>
-                    <bem.FormView__label m='version'>
-                      {`v${dvcount - n}`}
-                      {item.uid === this.state.deployed_version_id && this.state.deployment__active && (
-                        <AssetStatusBadge deploymentStatus={this.state.deployment_status} />
-                      )}
-                    </bem.FormView__label>
-                    <bem.FormView__label m='date'>{formatTime(item.date_deployed)}</bem.FormView__label>
-                    {isLoggedIn && (
-                      <bem.FormView__label>
-                        <ActionIcon
-                          variant='transparent'
-                          onClick={() => {
-                            this.saveCloneAs(item.uid)
-                          }}
-                          tooltip={t('Clone this version as a new project')}
-                          iconName='duplicate'
-                          size='md'
-                        />
-                      </bem.FormView__label>
-                    )}
-                  </bem.FormView__group>
-                )
-              }
-            })}
-          </bem.FormView__group>
+        <bem.FormView__cell m={['history-table']}>
+          <FormHistory
+            isEnabled={Boolean(this.state.historyExpanded)}
+            assetUid={this.props.params.uid}
+            deployedVersionId={this.state.deployed_version_id}
+            deployedVersionsCount={this.state.deployed_versions.count}
+            deploymentActive={this.state.deployment__active}
+            deploymentStatus={this.state.deployment_status}
+            onClone={(versionUid) => this.saveCloneAs(versionUid)}
+          />
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 && (
           <Group justify='center' gap='md' pt={this.state.historyExpanded ? 'md' : 0}>
@@ -272,12 +211,6 @@ class FormLanding extends React.Component {
             >
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
             </ButtonNew>
-
-            {this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount && (
-              <ButtonNew size='md' onClick={this.loadMoreVersions.bind(this)} variant='transparent'>
-                {t('Load more')}
-              </ButtonNew>
-            )}
           </Group>
         )}
       </bem.FormView__row>
@@ -503,6 +436,7 @@ class FormLanding extends React.Component {
           tooltip={t('Preview')}
           tooltipPosition='right'
           onClick={this.enketoPreviewModal.bind(this)}
+          isDisabled={!this.state.url}
         />
 
         {userCanEdit && (
@@ -516,65 +450,53 @@ class FormLanding extends React.Component {
           />
         )}
 
-        <PopoverMenu
-          type='formLanding-menu'
-          triggerLabel={
-            <Button type='text' size='m' startIcon='more' tooltip={t('More actions')} tooltipPosition='right' />
-          }
-        >
-          {downloads.map((dl) => (
-            <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url} key={`dl-${dl.format}`}>
-              <i className={`k-icon k-icon-file-${dl.format}`} />
-              {t('Download')}&nbsp;
-              {dl.format.toString().toUpperCase()}
-            </bem.PopoverMenu__link>
-          ))}
+        <Menu>
+          <Menu.Target>
+            <ButtonNew variant='transparent' size='md' leftIcon='more' tooltip={t('More actions')} />
+          </Menu.Target>
+          <Menu.Dropdown>
+            {downloads.map((dl) => (
+              <Menu.Item
+                component='a'
+                href={dl.url}
+                key={`dl-${dl.format}`}
+                leftSection={<i className={`k-icon k-icon-file-${dl.format}`} />}
+              >
+                {t('Download')}&nbsp;
+                {dl.format.toString().toUpperCase()}
+              </Menu.Item>
+            ))}
 
-          {userCanEdit && (
-            <bem.PopoverMenu__link onClick={this.showSharingModal}>
-              <i className='k-icon k-icon-user-share' />
-              {t('Share this project')}
-            </bem.PopoverMenu__link>
-          )}
+            {userCanEdit && (
+              <Menu.Item onClick={this.showSharingModal} leftSection={<i className='k-icon k-icon-user-share' />}>
+                {t('Share this project')}
+              </Menu.Item>
+            )}
 
-          {isLoggedIn && userCanRemoveSharedProject(this.state) && (
-            <bem.PopoverMenu__link onClick={this.nonOwnerSelfRemoval}>
-              <i className='k-icon k-icon-trash' />
-              {t('Remove shared project')}
-            </bem.PopoverMenu__link>
-          )}
+            {isLoggedIn && userCanRemoveSharedProject(this.state) && (
+              <Menu.Item onClick={this.nonOwnerSelfRemoval} leftSection={<i className='k-icon k-icon-trash' />}>
+                {t('Remove shared project')}
+              </Menu.Item>
+            )}
 
-          {isLoggedIn && (
-            <bem.PopoverMenu__link onClick={() => this.saveCloneAs()}>
-              <i className='k-icon k-icon-duplicate' />
-              {t('Clone this project')}
-            </bem.PopoverMenu__link>
-          )}
+            {isLoggedIn && (
+              <Menu.Item onClick={() => this.saveCloneAs()} leftSection={<i className='k-icon k-icon-duplicate' />}>
+                {t('Clone this project')}
+              </Menu.Item>
+            )}
 
-          {isLoggedIn && (
-            <bem.PopoverMenu__link
-              onClick={this.cloneAsTemplate}
-              data-asset-uid={this.state.uid}
-              data-asset-name={this.state.name}
-            >
-              <i className='k-icon k-icon-template' />
-              {t('Create template')}
-            </bem.PopoverMenu__link>
-          )}
-
-          {userCanEdit && this.state.content.survey.length > 0 && (
-            <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
-              <i className='k-icon k-icon-language' />
-              {t('Manage translations')}
-            </bem.PopoverMenu__link>
-          )}
-          {/* temporarily disabled
-          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
-            <i className='k-icon k-icon-lock'/>
-            {t('Manage Encryption')}
-          </bem.PopoverMenu__link>
-          */}
-        </PopoverMenu>
+            {isLoggedIn && (
+              <Menu.Item
+                onClick={() => {
+                  cloneAssetAsTemplate(this.state.uid, this.state.name)
+                }}
+                leftSection={<i className='k-icon k-icon-template' />}
+              >
+                {t('Create template')}
+              </Menu.Item>
+            )}
+          </Menu.Dropdown>
+        </Menu>
       </React.Fragment>
     )
   }
@@ -598,14 +520,14 @@ class FormLanding extends React.Component {
 
         {canEdit && (
           <bem.FormView__cell>
-            <Button
-              type='text'
-              size='m'
-              startIcon='language'
-              tooltip={t('Manage translations')}
-              tooltipPosition='right'
+            <ButtonNew
+              variant='outline'
+              size='md'
+              rightIcon={IconWorldFilled}
               onClick={this.showLanguagesModal.bind(this)}
-            />
+            >
+              {t('Manage')}
+            </ButtonNew>
           </bem.FormView__cell>
         )}
       </bem.FormView__cell>

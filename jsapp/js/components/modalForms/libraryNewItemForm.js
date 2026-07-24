@@ -6,6 +6,7 @@ import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import { openLibraryUploadModal } from '#/components/library/LibraryUploadModal'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
 import mixins from '#/mixins'
@@ -64,9 +65,13 @@ class LibraryNewItemForm extends React.Component {
   }
 
   goToUpload() {
-    pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_UPLOAD,
-      previousType: MODAL_TYPES.LIBRARY_NEW_ITEM,
+    pageState.hideModal()
+    openLibraryUploadModal({
+      onBack: () => {
+        pageState.showModal({
+          type: MODAL_TYPES.LIBRARY_NEW_ITEM,
+        })
+      },
     })
   }
 

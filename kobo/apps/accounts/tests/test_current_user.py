@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 
 import dateutil
 from constance.test import override_config
@@ -6,12 +7,12 @@ from django.conf import settings
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
+from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
-from kpi.utils.json import LazyJSONSerializable
 
 
 class CurrentUserAPITestCase(APITestCase):
@@ -51,11 +52,7 @@ class CurrentUserAPITestCase(APITestCase):
         # …and what we didn't touch should still be there as well
         assert response_extra_details['name'] == 'SpongeBob'
 
-    @override_config(
-        USER_METADATA_FIELDS=LazyJSONSerializable(
-            [{'name': 'organization', 'required': True}]
-        )
-    )
+    @override_config(USER_METADATA_FIELDS=[{'name': 'organization', 'required': True}])
     def test_validate_extra_detail(self):
         # Setting an unrelated field should not be subject to validation
         patch_data = {'extra_details': {'name': 'SpongeBob'}}
@@ -130,7 +127,7 @@ class CurrentUserAPITestCase(APITestCase):
     def test_accepted_tos(self):
         # Ensure accepted_tos is initially False
         response = self.client.get(self.url)
-        assert response.data['accepted_tos'] == False
+        assert response.data['accepted_tos'] is False
         assert (
             'last_tos_accept_time' not in self.user.extra_details.private_data
         )
@@ -151,16 +148,26 @@ class CurrentUserAPITestCase(APITestCase):
 
         # Ensure accepted_tos is now True after accepting ToS
         response = self.client.get(self.url)
-        assert response.data['accepted_tos'] == True
+        assert response.data['accepted_tos'] is True
+
+        # require reacceptance
+        with override_config(
+            LAST_TOS_UPDATE=timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        ):
+            response = self.client.get(self.url)
+            assert response.data['accepted_tos'] is False
+            # make it a bit later and re-accept
+            with freeze_time(timezone.now() + timedelta(seconds=1)):
+                self.client.post(reverse('tos'))
+            response = self.client.get(self.url)
+            assert response.data['accepted_tos'] is True
 
     @override_config(
-        USER_METADATA_FIELDS=LazyJSONSerializable(
-            [
-                {'name': 'organization', 'required': True},
-                {'name': 'organization_type', 'required': True},
-                {'name': 'organization_website', 'required': True},
-            ]
-        )
+        USER_METADATA_FIELDS=[
+            {'name': 'organization', 'required': True},
+            {'name': 'organization_type', 'required': True},
+            {'name': 'organization_website', 'required': True},
+        ]
     )
     def test_validate_extra_detail_organization_type(self):
         # Validate that a user can submit empty strings for `organization`
@@ -198,12 +205,10 @@ class CurrentUserAPITestCase(APITestCase):
         }
 
     @override_config(
-        USER_METADATA_FIELDS=LazyJSONSerializable(
-            [
-                {'name': 'organization', 'required': True},
-                {'name': 'organization_website', 'required': True},
-            ]
-        )
+        USER_METADATA_FIELDS=[
+            {'name': 'organization', 'required': True},
+            {'name': 'organization_website', 'required': True},
+        ]
     )
     def test_validate_extra_detail_no_organization_type(self):
         # Ensure `organization` and `organization_website` fields behave normally

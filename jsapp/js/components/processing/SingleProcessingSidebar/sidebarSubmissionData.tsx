@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
-import { getRowNameByXpath } from '#/assetUtils'
+import { findRowByXpathOrLeafName, getRowName } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import SubmissionDataList from '#/components/submissions/submissionDataList'
 import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
@@ -35,8 +35,9 @@ export default function SidebarSubmissionData({
 
   /** We want only the processing related data (the actual form questions) */
   const questionsToHide = useMemo(() => {
+    const foundRow = findRowByXpathOrLeafName(asset.content!, xpath)
     const metaQuestions = [
-      getRowNameByXpath(asset.content!, xpath) || '',
+      foundRow ? getRowName(foundRow) : '',
       ...recordKeys(ADDITIONAL_SUBMISSION_PROPS),
       ...recordKeys(META_QUESTION_TYPES),
     ]

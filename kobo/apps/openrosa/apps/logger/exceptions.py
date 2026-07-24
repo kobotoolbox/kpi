@@ -27,6 +27,21 @@ class ConflictingSubmissionUUIDError(Exception):
         super().__init__(message)
 
 
+class DeprecatedIdGoneError(Exception):
+    def __init__(
+        self,
+        message=t(
+            'Invalid submission - deprecatedID refers to an old submission version'
+        ),
+    ):
+        super().__init__(message)
+
+
+class DeprecatedIdMissingError(Exception):
+    def __init__(self, message=t('Invalid submission - deprecatedID not found')):
+        super().__init__(message)
+
+
 class DuplicateInstanceError(Exception):
     def __init__(self, message=t('Duplicate Instance')):
         super().__init__(message)
@@ -66,6 +81,20 @@ class InstanceMultipleNodeError(Exception):
 class InstanceParseError(Exception):
     def __init__(self, message=t('The instance could not be parsed')):
         super().__init__(message)
+
+
+class InvalidSubmissionIdsError(Exception):
+    """
+    Raised when a bulk action references submission ids that do not all belong
+    to the targeted XForm. The whole batch is rejected without revealing
+    whether those ids exist elsewhere.
+    """
+
+    pass
+
+
+class InvalidXMLCharacterError(Exception):
+    pass
 
 
 class LockedSubmissionError(Exception):

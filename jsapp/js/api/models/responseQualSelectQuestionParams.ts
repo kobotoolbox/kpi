@@ -11,6 +11,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { QualSelectQuestionParamsTypeEnum } from './qualSelectQuestionParamsTypeEnum'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from './responseQualSelectQuestionParamsChoicesItem'
+import type { ResponseQualSelectQuestionParamsHint } from './responseQualSelectQuestionParamsHint'
 import type { ResponseQualSelectQuestionParamsLabels } from './responseQualSelectQuestionParamsLabels'
 import type { ResponseQualSelectQuestionParamsOptions } from './responseQualSelectQuestionParamsOptions'
 
@@ -20,4 +21,5 @@ export interface ResponseQualSelectQuestionParams {
   labels: ResponseQualSelectQuestionParamsLabels
   choices: ResponseQualSelectQuestionParamsChoicesItem[]
   options?: ResponseQualSelectQuestionParamsOptions
+  hint?: ResponseQualSelectQuestionParamsHint
 }

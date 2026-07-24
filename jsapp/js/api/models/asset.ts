@@ -1,3 +1,4 @@
+import type { AssetAccessTypes } from './assetAccessTypes'
 import type { AssetAdvancedFeatures } from './assetAdvancedFeatures'
 import type { AssetAnalysisFormJson } from './assetAnalysisFormJson'
 import type { AssetAssignablePermissionsItem } from './assetAssignablePermissionsItem'
@@ -7,12 +8,15 @@ import type { AssetDataSharing } from './assetDataSharing'
 import type { AssetDeployedVersions } from './assetDeployedVersions'
 import type { AssetDeploymentDataDownloadLinks } from './assetDeploymentDataDownloadLinks'
 import type { AssetDeploymentLinks } from './assetDeploymentLinks'
+import type { AssetDeploymentStatusEnum } from './assetDeploymentStatusEnum'
 import type { AssetDownloadsItem } from './assetDownloadsItem'
 import type { AssetEffectivePermissionsItem } from './assetEffectivePermissionsItem'
 import type { AssetEmbedsItem } from './assetEmbedsItem'
 import type { AssetExportSettings } from './assetExportSettings'
+import type { AssetFilesItem } from './assetFilesItem'
 import type { AssetMapCustom } from './assetMapCustom'
 import type { AssetMapStyles } from './assetMapStyles'
+import type { AssetPermissionsItem } from './assetPermissionsItem'
 import type { AssetProjectOwnership } from './assetProjectOwnership'
 import type { AssetReportCustom } from './assetReportCustom'
 import type { AssetReportStyles } from './assetReportStyles'
@@ -40,26 +44,31 @@ export interface Asset {
   parent?: string | null
   settings?: AssetSettings
   asset_type: AssetTypeEnum
-  readonly files: readonly string[]
+  readonly files: readonly AssetFilesItem[]
   readonly summary: AssetSummary
   date_created?: string
   date_modified?: string
   /** @nullable */
   date_deployed?: string | null
-  readonly version_id: string
-  readonly version__content_hash: string
+  /** @nullable */
+  readonly version_id: string | null
+  /** @nullable */
+  readonly version__content_hash: string | null
   readonly version_count: number
   readonly has_deployment: boolean
-  readonly deployed_version_id: string
+  /** @nullable */
+  readonly deployed_version_id: string | null
   readonly deployed_versions: AssetDeployedVersions
   readonly deployment__links: AssetDeploymentLinks
   readonly deployment__active: boolean
   readonly deployment__data_download_links: AssetDeploymentDataDownloadLinks
   readonly deployment__submission_count: number
-  readonly deployment__last_submission_time: string
+  /** @nullable */
+  readonly deployment__last_submission_time: string | null
   readonly deployment__encrypted: boolean
-  readonly deployment__uuid: string
-  readonly deployment_status: string
+  /** @nullable */
+  readonly deployment__uuid: string | null
+  readonly deployment_status: AssetDeploymentStatusEnum
   report_styles?: AssetReportStyles
   report_custom?: AssetReportCustom
   advanced_features?: AssetAdvancedFeatures
@@ -78,7 +87,7 @@ export interface Asset {
   /** @maxLength 255 */
   name?: string
   readonly assignable_permissions: readonly AssetAssignablePermissionsItem[]
-  readonly permissions: readonly string[]
+  readonly permissions: readonly AssetPermissionsItem[]
   readonly effective_permissions: readonly AssetEffectivePermissionsItem[]
   readonly exports: string
   readonly export_settings: readonly AssetExportSettings[]
@@ -86,7 +95,8 @@ export interface Asset {
   readonly children: AssetChildren
   readonly subscribers_count: number
   readonly status: string
-  readonly access_types: readonly string[]
+  /** @nullable */
+  readonly access_types: AssetAccessTypes
   data_sharing?: AssetDataSharing
   readonly paired_data: string
   /** @nullable */
@@ -94,4 +104,6 @@ export interface Asset {
   readonly owner_label: string
   /** @nullable */
   readonly last_modified_by: string | null
+  /** @nullable */
+  readonly created_by: string | null
 }

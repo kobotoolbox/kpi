@@ -1,12 +1,17 @@
-import type { Updater } from '@tanstack/react-query'
+import type { QueryClient, Updater } from '@tanstack/react-query'
 import { queryClient } from '../queryClient'
+
+/**
+ * Marker appended by infinite-query hooks to distinguish those snapshots from regular list snapshots.
+ */
+export const INFINITE_QUERY_KEY_MARKER = 'infinite'
 
 /**
  * Beware that `getUsersListQueryKey(undefined)` (and alike) doesn't select all pages for list endpoint as expected!
  * Unfortunately, it will invalidate all specific users as well.
  *
  * It's because our API structure + Orval key generation rules are, in short, as follows:
- * - `['api', 'v2', 'users', pagination]` for lists, where `pagination` is an object e.g. `{limit: 10, offset: 0}`.
+ * - `['api', 'v2', 'users', pagination]` for lists, where `pagination` is an object e.g. `{limit: 10, start: 0}`.
  * - `['api', 'v2', 'users', userId]` for specific items, where `userId` is a string.
  * - `['api', 'v2', 'users']` thus this will select both above.
  *
@@ -20,28 +25,40 @@ const filterPaginatedListSnapshots = ([listSnapshotKey]: [readonly unknown[], un
 /**
  * @see {@link filterPaginatedListSnapshots}
  */
-export const invalidatePaginatedList = (queryKey: readonly unknown[]) => {
-  const listSnapshots = queryClient.getQueriesData({ queryKey: queryKey }).filter(filterPaginatedListSnapshots)
-  console.log(queryClient.getQueriesData({ queryKey: queryKey }))
-  console.log(listSnapshots)
-  for (const [snapshotKey] of listSnapshots) queryClient.invalidateQueries({ queryKey: snapshotKey })
+export const invalidatePaginatedList = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  const listSnapshots = client.getQueriesData({ queryKey: queryKey }).filter(filterPaginatedListSnapshots)
+  for (const [snapshotKey] of listSnapshots) client.invalidateQueries({ queryKey: snapshotKey })
+}
+
+/**
+ * Invalidate all infinite-query snapshots that share the provided query-key prefix.
+ *
+ * By convention, infinite-query keys append {@link INFINITE_QUERY_KEY_MARKER} as the last segment.
+ */
+export const invalidateInfiniteList = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  client.invalidateQueries({
+    predicate: ({ queryKey: candidateKey }) =>
+      candidateKey.length > queryKey.length &&
+      queryKey.every((keyPart, index) => candidateKey[index] === keyPart) &&
+      candidateKey.at(-1) === INFINITE_QUERY_KEY_MARKER,
+  })
 }
 
 /**
  * @see {@link filterPaginatedListSnapshots}
  */
-export const invalidateItems = (queryKey: readonly unknown[]) => {
-  const itemSnapshots = queryClient
+export const invalidateItems = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  const itemSnapshots = client
     .getQueriesData({ queryKey: queryKey })
     .filter((tuple) => !filterPaginatedListSnapshots(tuple))
-  for (const [itemKey] of itemSnapshots) queryClient.invalidateQueries({ queryKey: itemKey })
+  for (const [itemKey] of itemSnapshots) client.invalidateQueries({ queryKey: itemKey })
 }
 
 /**
  * Convenience helper for consistency alongside {@link invalidateItems} and {@link invalidatePaginatedList}
  */
-export const invalidateItem = (queryKey: readonly unknown[]) => {
-  queryClient.invalidateQueries({ queryKey })
+export const invalidateItem = (queryKey: readonly unknown[], client: QueryClient = queryClient) => {
+  client.invalidateQueries({ queryKey })
 }
 
 //// Helpers for optimistic update + invalidation.
@@ -57,16 +74,17 @@ export const invalidateItem = (queryKey: readonly unknown[]) => {
 export const optimisticallyUpdatePaginatedList = async <T>(
   queryKey: readonly unknown[],
   updater: Updater<NoInfer<T> | undefined, NoInfer<T> | undefined>,
+  client: QueryClient = queryClient,
 ) => {
-  const listSnapshots = queryClient
+  const listSnapshots = client
     .getQueriesData<T>({
       queryKey,
       exact: false,
     })
     .filter(filterPaginatedListSnapshots)
   for (const [listSnapshotKey] of listSnapshots) {
-    await queryClient.cancelQueries({ queryKey: listSnapshotKey })
-    queryClient.setQueryData<T>(listSnapshotKey, updater)
+    await client.cancelQueries({ queryKey: listSnapshotKey })
+    client.setQueryData<T>(listSnapshotKey, updater)
   }
   return listSnapshots
 }
@@ -81,13 +99,14 @@ export const optimisticallyUpdatePaginatedList = async <T>(
 export const optimisticallyUpdateItem = async <T>(
   queryKey: readonly unknown[],
   updater: Updater<NoInfer<T> | undefined, NoInfer<T> | undefined> | null,
+  client: QueryClient = queryClient,
 ) => {
-  const itemSnapshot = queryClient.getQueryData<T>(queryKey)
-  await queryClient.cancelQueries({ queryKey })
+  const itemSnapshot = client.getQueryData<T>(queryKey)
+  await client.cancelQueries({ queryKey })
   if (updater) {
-    queryClient.setQueryData<T>(queryKey, updater)
+    client.setQueryData<T>(queryKey, updater)
   } else {
-    queryClient.removeQueries({ queryKey, exact: true })
+    client.removeQueries({ queryKey, exact: true })
   }
   return [queryKey, itemSnapshot] as const
 }

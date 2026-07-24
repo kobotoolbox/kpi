@@ -5,9 +5,9 @@ import re
 from typing import Optional
 
 from constance import config
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Count, F, Q
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from drf_spectacular.types import OpenApiTypes
@@ -16,6 +16,8 @@ from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.reverse import reverse
 
+from hub.models.extra_user_detail import ExtraUserDetail
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
@@ -46,7 +48,6 @@ from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
     get_user_permission_assignments,
-    get_user_permission_assignments_queryset,
 )
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
@@ -92,10 +93,15 @@ from ...schema_extensions.v2.assets.fields import (
     XFormLinkField,
     XLSLinkField,
 )
+from ...utils.permissions import is_user_anonymous
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
-from .asset_permission_assignment import AssetPermissionAssignmentSerializer
+from .asset_permission_assignment import AssetPermissionAssignmentReadSerializer
 from .asset_version import AssetVersionListSerializer
+
+# Used by ENUM_NAME_OVERRIDES in SPECTACULAR_SETTINGS to give a stable name to
+# the deployment_status enum (which includes '-' for backward compatibility).
+DEPLOYMENT_STATUS_ENUM = [*AssetDeploymentStatus.choices, ('-', '-')]
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -245,14 +251,80 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
+            if objects_count != len(asset_uids):
+                raise exceptions.PermissionDenied()
         else:
-            objects_count = Asset.objects.filter(
-                owner__in=user_filter,
-                uid__in=asset_uids,
-            ).count()
+            user_filter_as_ids = [user.id for user in user_filter]
+            all_assets = (
+                Asset.objects.filter(uid__in=asset_uids)
+                .only('uid', 'created_by', '_deployment_data', 'asset_type', 'owner')
+                .select_related('owner')  # useful for has_perm
+            )
 
-        if objects_count != len(asset_uids):
-            raise exceptions.PermissionDenied()
+            owned_assets = []
+            unowned_assets = []
+            for a in all_assets:
+                if a.owner.id in user_filter_as_ids:
+                    owned_assets.append(a)
+                else:
+                    unowned_assets.append(a)
+
+            if len(owned_assets) == len(asset_uids):
+                # user has ownership permissions on all assets,
+                # so they can delete all of them
+                return
+            all_asset_uids = [a.uid for a in all_assets]
+            if sorted(all_asset_uids) != sorted(asset_uids):
+                # at least one of the asset uids doesn't exist.
+                # technically this should probably raise a 404 but since it raises a
+                # 403 if all other assets are owned by the requester, keep it consistent
+                raise exceptions.PermissionDenied()
+
+            # special case: non-owners can delete assets
+            # 1. They created the asset
+            # 2. They still have manage_asset
+            # 3. The asset has no submissions
+
+            # check 1: did the non-owning user create the assets?
+            if any(a.created_by != self.__user.username for a in unowned_assets):
+                raise exceptions.PermissionDenied()
+
+            # check 2: does the user have manage_asset?
+            all_perms = [
+                o
+                for o in ObjectPermission.objects.filter(
+                    asset__uid__in=asset_uids, user__in=user_filter
+                )
+                .values(
+                    'asset_id',
+                    'permission_id',
+                    'permission__codename',
+                    'deny',
+                    'user_id',
+                )
+            ]
+
+            if any(
+                not asset.has_perm(
+                    self.__user,
+                    PERM_MANAGE_ASSET,
+                    prefetched_object_permissions=all_perms,
+                )
+                for asset in unowned_assets
+            ):
+                raise exceptions.PermissionDenied()
+
+            # check 3: are all unowned assets empty (no submissions)?
+            formids = [  # retrieve XForm.pks from backend response
+                a._deployment_data.get('backend_response', {}).get('formid')
+                for a in unowned_assets
+                if 'backend' in a._deployment_data
+            ]
+            if formids:
+                if XForm.all_objects.filter(
+                    pk__in=formids, num_of_submissions__gt=0
+                ).exists():
+                    raise exceptions.PermissionDenied()
 
     def _toggle_trash(self, asset_uids: list[str], put_back_: bool):
         # The main goal of the annotation below is to pass always the same
@@ -371,8 +443,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='asset_export_settings'
     )
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    version_id = serializers.CharField(read_only=True)
-    version__content_hash = serializers.CharField(read_only=True)
+    version_id = serializers.CharField(read_only=True, allow_null=True)
+    version__content_hash = serializers.CharField(read_only=True, allow_null=True)
     has_deployment = ReadOnlyFieldWithSchemaField(
         schema_field=HasDeploymentField, read_only=True
     )
@@ -382,7 +454,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page
-        default_limit=100
+        default_limit=django_settings.DEFAULT_API_PAGE_SIZE,
+        source_processor=lambda qs: qs.only(
+            'uid', 'deployed', 'date_modified', 'asset_id', '_content_hash'
+        ),
     )
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
@@ -466,9 +541,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'paired_data',
             'project_ownership',
             'owner_label',
-            'last_modified_by'
+            'last_modified_by',
+            'created_by',
         )
-        read_only_fields = ('last_modified_by', 'uid')
+        read_only_fields = ('last_modified_by', 'created_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
@@ -490,6 +566,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             validated_data['is_excluded_from_projects_list'] = False
             instance = super().create(validated_data)
 
+        ExtraUserDetail.update_last_project_activity(
+            {current_owner.pk, instance.owner_id}
+        )
         return instance
 
     def update(self, asset, validated_data):
@@ -508,7 +587,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 _validated_data['settings'] = settings_
             if name := validated_data.get('name'):
                 _validated_data['name'] = name
-            return super().update(asset, _validated_data)
+
+            result = super().update(asset, _validated_data)
+            ExtraUserDetail.update_last_project_activity({user.pk, asset.owner_id})
+            return result
 
         asset_content = asset.content
         _req_data = request.data
@@ -524,6 +606,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 })
             validated_data['content'] = asset_content
         asset = super().update(asset, validated_data)
+        ExtraUserDetail.update_last_project_activity({user.pk, asset.owner_id})
 
         # Restore submission related permissions to the creator of the form
         if (
@@ -568,6 +651,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             context=self.context,
         ).data
 
+    @extend_schema_field(serializers.ChoiceField(choices=DEPLOYMENT_STATUS_ENUM))
     def get_deployment_status(self, obj: Asset) -> str:
         if deployment_status := obj.deployment_status:
             return deployment_status
@@ -662,7 +746,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        kwargs=kwargs,
                        request=self.context.get('request', None))
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field({'type': 'string', 'nullable': True})
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return None
@@ -694,7 +778,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
-    @extend_schema_field(OpenApiTypes.DATETIME)
+    @extend_schema_field({'type': 'string', 'format': 'date-time', 'nullable': True})
     def get_deployment__last_submission_time(self, obj):
         if obj.has_deployment:
             return obj.deployment.last_submission_time
@@ -725,7 +809,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return None
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field({'type': 'string', 'nullable': True})
     def get_deployment__uuid(self, obj):
         return obj.deployment.form_uuid if obj.has_deployment else None
 
@@ -787,21 +871,35 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('paired-data-list', args=(asset.uid,), request=request)
 
     @extend_schema_field(PermissionsField)
-    def get_permissions(self, obj):
+    def get_permissions(self, asset):
         context = self.context
         request = self.context.get('request')
 
-        self._set_asset_ids_cache(obj)
+        self._set_asset_ids_cache(asset)
 
-        queryset = get_user_permission_assignments_queryset(obj, request.user)
-        # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionAssignmentSerializer serializer to avoid extra queries
-        # to DB within the serializer to retrieve the asset object.
-        context['asset'] = obj
-        context['asset_uid'] = obj.uid
+        # Reuse the per-request assignments (shared with get_access_types);
+        # keep only active users, as this field did before.
+        all_permissions = [
+            assignment
+            for assignment in self._get_object_permission_assignments(asset)
+            if assignment['user__is_active']
+        ]
+        # Users who have view_asset via a project view can see all permission
+        # assignments, even without manage_asset on the asset directly.
+        # Org admins are handled by `has_perm()` which checks `is_admin_only()`.
+        if user_has_project_view_asset_perm(
+            asset, request.user, PERM_VIEW_ASSET
+        ) or asset.has_perm(request.user, PERM_MANAGE_ASSET):
+            filtered = all_permissions
+        else:
+            filtered = get_user_permission_assignments(
+                asset, request.user, all_permissions
+            )
+        context['asset'] = asset
+        context['asset_uid'] = asset.uid
 
-        return AssetPermissionAssignmentSerializer(
-            queryset.all(), many=True, read_only=True, context=context
+        return AssetPermissionAssignmentReadSerializer(
+            filtered, many=True, context=context
         ).data
 
     def get_project_ownership(self, asset) -> Optional[dict]:
@@ -860,38 +958,40 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         # User can view the collection.
         try:
-            # The list view should provide a cache
+            # The list view provides a cache of dicts from .values()
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'
-            ].get(asset.pk)
+            ].get(asset.pk, [])
         except KeyError:
-            asset_permission_assignments = asset.permissions.all()
+            # Detail view fallback: reuse the assignments fetched by
+            # get_permissions instead of issuing a second query.
+            asset_permission_assignments = self._get_object_permission_assignments(
+                asset
+            )
 
-        # We test at the same time whether the collection is public or not
-        for obj_permission in asset_permission_assignments:
-
+        # Check if the asset is public (anonymous has discover_asset).
+        for op in asset_permission_assignments:
             if (
-                not obj_permission.deny
-                and obj_permission.user_id == settings.ANONYMOUS_USER_ID
-                and obj_permission.permission.codename == PERM_DISCOVER_ASSET
+                op['user_id'] == django_settings.ANONYMOUS_USER_ID
+                and op['permission__codename'] == PERM_DISCOVER_ASSET
             ):
                 access_types.append('public')
-
-                if request.user == asset.owner:
-                    # Do not go further, `access_type` cannot be `shared`
-                    # and `owned`
-                    break
-
-            if (
-                request.user != asset.owner
-                and not obj_permission.deny
-                and obj_permission.user == request.user
-            ):
-                access_types.append('shared')
-                # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
-                # equals -1. Thus, `public` access type should be discovered at
-                # first
                 break
+
+        # Check if the asset is shared with the requesting user.
+        # In the list view, uses the pre-computed shared_asset_ids set: if the
+        # user is not the owner and the asset appears in their list, they must
+        # have a permission, so the asset is by definition in shared_asset_ids.
+        # In the detail view, falls back to iterating all permissions.
+        if request.user != asset.owner:
+            if 'shared_asset_ids' in self.context:
+                if asset.pk in self.context['shared_asset_ids']:
+                    access_types.append('shared')
+            else:
+                for op in asset_permission_assignments:
+                    if op['user_id'] == request.user.pk:
+                        access_types.append('shared')
+                        break
 
         # User has subscribed to this collection
         subscribed = False
@@ -926,7 +1026,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         if not access_types:
             raise Exception(
-                f'{request.user.username} has unexpected access to {obj.uid}'
+                f'{request.user.username} has unexpected access to {asset.uid}'
             )
 
         return access_types
@@ -1029,14 +1129,34 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return parent
 
-    def validate_settings(self, settings: dict) -> dict:
-        if not self.instance or not settings:
-            return settings
-        return {**self.instance.settings, **settings}
+    def validate_settings(self, settings_: dict) -> dict:
+        if not self.instance or not settings_:
+            return settings_
+        return {**self.instance.settings, **settings_}
 
     def _content(self, obj):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
+
+    def _get_object_permission_assignments(self, asset):
+        """
+        Fetch the asset's non-denied assignments once per request (memoized), so
+        get_permissions and get_access_types share one query in the detail view.
+        """
+        cache = self.__dict__.setdefault('_object_permission_assignments_cache', {})
+        if asset.pk not in cache:
+            cache[asset.pk] = list(
+                asset.permissions.filter(deny=False)
+                .values(
+                    'uid',
+                    'user_id',
+                    'user__username',
+                    'user__is_active',
+                    'permission__codename',
+                )
+                .order_by('user__username', 'permission__codename')
+            )
+        return cache[asset.pk]
 
     def _get_status(self, perm_assignments):
         """
@@ -1062,14 +1182,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return ASSET_STATUS_PRIVATE
 
         for perm_assignment in perm_assignments:
-            if perm_assignment.get('user_id') == settings.ANONYMOUS_USER_ID:
+            if perm_assignment.get('user_id') == django_settings.ANONYMOUS_USER_ID:
                 if perm_assignment.get('permission__codename') == PERM_DISCOVER_ASSET:
                     return ASSET_STATUS_DISCOVERABLE
 
                 if perm_assignment.get('permission__codename') == PERM_VIEW_ASSET:
                     return ASSET_STATUS_PUBLIC
 
-            return ASSET_STATUS_SHARED
+        return ASSET_STATUS_SHARED
 
     def _set_asset_ids_cache(self, asset):
         """
@@ -1130,35 +1250,34 @@ class AssetListSerializer(AssetSerializer):
             'data_sharing',
             'owner_label',
             'last_modified_by',
+            'created_by',
         )
 
     def get_permissions(self, asset):
         try:
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'
-            ].get(asset.pk)
+            ].get(asset.pk, [])
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
             # always be a property of `self.context`
             return super().get_permissions(asset)
 
-        context = self.context
-        request = self.context.get('request')
+        user = self.context['request'].user
+        # Set by OrganizationAssetViewSet: True when the requesting user is an
+        # org admin (who has no explicit ObjectPermission records).
+        user_is_org_admin = self.context.get('user_is_org_admin', False)
+        asset_permission_assignments = get_user_permission_assignments(
+            asset, user, asset_permission_assignments, user_is_org_admin
+        )
 
-        # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionAssignmentSerializer serializer to avoid extra queries
-        # to DB within the serializer to retrieve the asset object.
+        context = self.context
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
-        self._set_asset_ids_cache(asset)
-
-        user_assignments = get_user_permission_assignments(
-            asset, request.user, asset_permission_assignments
-        )
-        return AssetPermissionAssignmentSerializer(
-            user_assignments, many=True, read_only=True, context=context
+        return AssetPermissionAssignmentReadSerializer(
+            asset_permission_assignments, many=True, context=context
         ).data
 
     @extend_schema_field(OpenApiTypes.INT)
@@ -1178,27 +1297,29 @@ class AssetListSerializer(AssetSerializer):
     def get_status(self, asset):
 
         try:
-            asset_perm_assignments = self.context[
-                'object_permissions_per_asset'].get(asset.pk)
+            asset_perm_assignments = self.context['object_permissions_per_asset'].get(
+                asset.pk, []
+            )
+            shared_asset_ids = self.context['shared_asset_ids']
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should be
             # always a property of `self.context`
             return super().get_status(asset)
 
-        perm_assignments = []
+        # Mirror _get_status() logic using the cached anonymous permissions.
+        for perm in asset_perm_assignments:
+            if perm['user_id'] == django_settings.ANONYMOUS_USER_ID:
+                if perm['permission__codename'] == PERM_DISCOVER_ASSET:
+                    return ASSET_STATUS_DISCOVERABLE
+                if perm['permission__codename'] == PERM_VIEW_ASSET:
+                    return ASSET_STATUS_PUBLIC
 
-        # Prepare perm_assignments for `_get_status()`
-        for perm_assignment in asset_perm_assignments:
-            if perm_assignment.user_id != asset.owner_id:
-                perm_assignments.append({
-                    'user_id': perm_assignment.user_id,
-                    'permission__codename': perm_assignment.permission.codename
-                })
+        # Check shared: pre-computed via DISTINCT query in get_serializer_context.
+        if asset.pk in shared_asset_ids:
+            return ASSET_STATUS_SHARED
 
-        perm_assignments.sort(key=lambda pa: pa.get('user_id'))
-
-        return self._get_status(perm_assignments)
+        return ASSET_STATUS_PRIVATE
 
 
 class AssetUrlListSerializer(AssetSerializer):
@@ -1240,6 +1361,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'downloads',
             'owner_label',
             'last_modified_by',
+            'created_by',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
@@ -1271,3 +1393,71 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid_project_view']
+
+
+class AssetMinimalListSerializer(AssetSerializer):
+    """
+    Lightweight serializer returning only uid, name and deployment_status.
+    Used by the /api/v2/assets/minimal-list/ endpoint and its org/project-view variants.
+    """
+
+    name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Asset
+        fields = ('uid', 'name', 'deployment_status')
+
+
+class AssetListCountSerializer(serializers.Serializer):
+
+    deployed_count = serializers.SerializerMethodField()
+    archived_count = serializers.SerializerMethodField()
+    draft_count = serializers.SerializerMethodField()
+
+    def __init__(self, queryset=None, *args, **kwargs):
+        super().__init__(queryset, *args, **kwargs)
+        # this shouldn't happen, but otherwise drf-spectacular complains
+        if queryset is None:
+            return
+
+        # technically this causes a wasted query when the user is anonymous, but then
+        # the initial queryset is empty so it does not matter
+        self.aggregates = queryset.aggregate(
+            draft_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.DRAFT),
+                distinct=True,
+            ),
+            archived_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.ARCHIVED),
+                distinct=True,
+            ),
+            deployed_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.DEPLOYED),
+                distinct=True,
+            ),
+        )
+
+    def _request_is_anonymous(self):
+        request = self.context['request']
+        return is_user_anonymous(request.user)
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_deployed_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['deployed_count']
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_archived_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['archived_count']
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_draft_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['draft_count']

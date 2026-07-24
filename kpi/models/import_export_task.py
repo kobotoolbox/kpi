@@ -17,13 +17,12 @@ from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.db import models, transaction
 from django.db.models import CharField, F, Value
-from django.db.models.functions import Concat
+from django.db.models.functions import Cast, Coalesce, Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from openpyxl.utils.exceptions import InvalidFileException
 from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
 from rest_framework.reverse import reverse
 from werkzeug.http import parse_options_header
@@ -39,26 +38,32 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from kobo.apps.audit_log.utils import get_lookback_date
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
-from kobo.apps.subsequences.utils.supplement_data import (
-    get_analysis_form_json,
-    stream_with_supplements,
-)
+from kobo.apps.subsequences.exceptions import SupplementMigrationInProgress
+from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    GEO_QUESTION_TYPES,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import ConcurrentExportException, XlsFormatException
+from kpi.exceptions import (
+    ConcurrentExportException,
+    DuplicateNameException,
+    XlsFormatException,
+)
 from kpi.fields import KpiUidField
 from kpi.models import Asset
+from kpi.utils.autoname import _is_group_end
 from kpi.utils.data_exports import (
     ACCESS_LOGS_EXPORT_FIELDS,
     ASSET_FIELDS,
@@ -77,9 +82,11 @@ from kpi.utils.rename_xls_sheet import (
     rename_xls_sheet,
     rename_xlsx_sheet,
 )
+from kpi.utils.sluggify import is_valid_node_name
 from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 
 
 def utcnow(*args, **kwargs):
@@ -111,7 +118,7 @@ class ImportExportTask(models.Model):
     data = models.JSONField()
     messages = models.JSONField(default=dict)
     status = models.CharField(
-        choices=ImportExportStatusChoices.choices,
+        choices=ImportExportStatusChoices,
         max_length=32,
         default=ImportExportStatusChoices.CREATED,
     )
@@ -362,6 +369,7 @@ class ImportTask(ImportExportTask):
                     kontent = xlsx_to_dict(item.readable)
                 except InvalidFileException:
                     kontent = xls_to_dict(item.readable)
+                self._ensure_valid_node_names(kontent)
 
                 if not destination:
                     extra_args['content'] = _strip_header_keys(kontent)
@@ -394,6 +402,21 @@ class ImportTask(ImportExportTask):
             orm_obj.parent = parent_item
             orm_obj.save()
 
+    @staticmethod
+    def _ensure_valid_node_names(survey_dict):
+        survey_list = survey_dict.get('survey', [])
+
+        names = set()
+        for node in survey_list:
+            name = node.get('name')
+            if not name or _is_group_end(node):
+                continue
+            if not is_valid_node_name(name):
+                raise ValueError(f'Invalid node name: {name}')
+            if name in names:
+                raise DuplicateNameException(f'Duplicate node name: {name}')
+            names.add(name)
+
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
         desired_type = kwargs.get('desired_type')
@@ -404,6 +427,7 @@ class ImportTask(ImportExportTask):
             filename = ''
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
+        self._ensure_valid_node_names(survey_dict)
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)
@@ -566,6 +590,11 @@ class AuditLogExportTaskMixin:
             output_field=CharField(),
         )
 
+    @staticmethod
+    def filter_queryset_by_lookback_limit(queryset, user):
+        lookback_date = get_lookback_date(user)
+        return queryset.filter(date_created__gte=lookback_date)
+
     common_fields = {
         'user_url': user_url(),
         'username': F('user__username'),
@@ -587,12 +616,22 @@ class AccessLogExportTask(ExportTaskMixin, AuditLogExportTaskMixin, ImportExport
         return 'Access Log Report Complete'
 
     def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
-        return filtered_queryset.annotate(
+        filtered_queryset = self.filter_queryset_by_lookback_limit(
+            filtered_queryset, self.user
+        )
+        annotations = {
             **self.common_fields,
-            auth_type=F('metadata__auth_type'),
-            initial_superusername=F('metadata__initial_user_username'),
-            initial_superuseruid=F('metadata__initial_user_uid'),
-            authorized_application=F('metadata__authorized_app_name'),
+            'username': Coalesce(
+                F('user__username'),
+                Cast(F('metadata__attempted_username'), output_field=CharField()),
+            ),
+            'auth_type': F('metadata__auth_type'),
+            'initial_superusername': F('metadata__initial_user_username'),
+            'initial_superuseruid': F('metadata__initial_user_uid'),
+            'authorized_application': F('metadata__authorized_app_name'),
+        }
+        return filtered_queryset.annotate(
+            **annotations
         ).values(*ACCESS_LOGS_EXPORT_FIELDS)
 
     def _run_task(self, messages: list) -> None:
@@ -638,6 +677,9 @@ class ProjectHistoryLogExportTask(
         return 'Project activity log export complete'
 
     def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        filtered_queryset = self.filter_queryset_by_lookback_limit(
+            filtered_queryset, self.user
+        )
         return filtered_queryset.annotate(
             **self.common_fields,
             asset_uid=F('metadata__asset_uid'),
@@ -903,7 +945,12 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         # Some fields are attached to the submission and must be included in
         # addition to the user-selected fields
-        additional_fields = ['_attachments', '_supplementalDetails']
+        additional_fields = [
+            '_attachments',
+            '_supplementalDetails',
+            '_uuid',
+            'meta/rootUuid',
+        ]
 
         field_groups = set()
         for field in fields:
@@ -918,6 +965,64 @@ class SubmissionExportTaskBase(ImportExportTask):
             field_groups.update(items)
         fields += list(field_groups) + additional_fields
         return fields
+
+    @staticmethod
+    def _get_geo_fields_from_survey(survey: list) -> List[str]:
+        """
+        Build full field paths for all geographic questions in the survey.
+        """
+        if not isinstance(survey, list):
+            return []
+
+        geo_fields = []
+        open_groups = []
+        for row in survey:
+            if not isinstance(row, dict):
+                continue
+
+            row_type = row.get('type')
+            row_name = row.get('name') or row.get('$autoname') or row.get('$xpath')
+
+            if row_type in ('begin_group', 'begin_repeat'):
+                if row_name:
+                    open_groups.append(row_name)
+                continue
+
+            if row_type in ('end_group', 'end_repeat'):
+                if open_groups:
+                    open_groups.pop()
+                continue
+
+            if row_type not in GEO_QUESTION_TYPES or not row_name:
+                continue
+
+            geo_fields.append('/'.join([*open_groups, row_name]))
+
+        return geo_fields
+
+    def _get_submission_fields(self, source: Asset, fields: List[str]) -> List[str]:
+        fields = self._get_fields_and_groups(fields)
+
+        if self.data.get('type', '').lower() != 'kml':
+            return fields
+
+        if not fields:
+            return fields
+
+        survey = source.content.get('survey', []) if source.content else []
+        geo_fields = self._get_geo_fields_from_survey(survey)
+        if not geo_fields:
+            return fields
+
+        ordered_fields = []
+        seen_fields = set()
+        for field in [*fields, *self._get_fields_and_groups(geo_fields)]:
+            if field in seen_fields:
+                continue
+            seen_fields.add(field)
+            ordered_fields.append(field)
+
+        return ordered_fields
 
     @property
     def _hierarchy_in_labels(self) -> bool:
@@ -963,9 +1068,9 @@ class SubmissionExportTaskBase(ImportExportTask):
             # Excel exports are always returned in XLSX format, but they're
             # referred to internally as `xls`
             export_type = 'xls'
-        if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
+        if export_type not in ('xls', 'csv', 'geojson', 'kml', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls`, `csv`, `geojson`, and `spss_labels` '
+                'only `xls`, `csv`, `geojson`, `kml`, and `spss_labels` '
                 'are valid export types'
             )
 
@@ -978,8 +1083,12 @@ class SubmissionExportTaskBase(ImportExportTask):
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + '\r\n').encode('utf-8'))
             elif export_type == 'geojson':
-                for line in export.to_geojson(
-                    submission_stream, flatten=flatten
+                for line in export.to_geojson(submission_stream, flatten=flatten):
+                    output_file.write(line.encode('utf-8'))
+            elif export_type == 'kml':
+                for line in export.to_kml(
+                    submission_stream,
+                    flatten=True,
                 ):
                     output_file.write(line.encode('utf-8'))
             elif export_type == 'xls':
@@ -1056,19 +1165,29 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         # Include the group name in `fields` for Mongo to correctly filter
         # for repeat groups
-        fields = self._get_fields_and_groups(fields)
+        fields = self._get_submission_fields(source, fields)
+
+        if source.has_advanced_features:
+            # Use a cheap EXISTS query before the expensive full prefetch in
+            # stream_with_supplements. If old supplements are found we block
+            # the export with a clear message rather than crashing mid-stream.
+            if source.advanced_features_set.exists() and (
+                SubmissionSupplement.objects.filter(asset=source)
+                .exclude(content__has_key='_version')
+                .exclude(content={})
+                .exists()
+            ):
+                raise SupplementMigrationInProgress(
+                    'Supplement data migration in progress, please retry later.'
+                )
+
         submission_stream = source.deployment.get_submissions(
             user=self.user,
             fields=fields,
             submission_ids=submission_ids,
             query=query,
+            for_output=True,
         )
-
-        if source.has_advanced_features:
-            submission_stream = stream_with_supplements(
-                source, submission_stream, for_output=True
-            )
-
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
@@ -1086,6 +1205,36 @@ class SubmissionExportTaskBase(ImportExportTask):
         return pack.export(**options), submission_stream
 
     @classmethod
+    def get_oldest_allowed_timestamp(cls):
+        """
+        Returns the oldest timestamp allowed for an export task to be considered
+        active (not stuck). Uses a generous grace period of 4x the celery time limit.
+        """
+        max_export_run_time = getattr(settings, 'CELERY_TASK_TIME_LIMIT', 2100)
+        max_allowed_export_age = datetime.timedelta(seconds=max_export_run_time * 4)
+        return datetime.datetime.now(tz=ZoneInfo('UTC')) - max_allowed_export_age
+
+    @classmethod
+    def get_active_exports(cls, user, **kwargs):
+        """
+        Returns a queryset of exports for the given user that are
+        currently in a non-terminal (CREATED or PROCESSING) state
+        and haven't exceeded the maximum allowed run time.
+        """
+        return (
+            cls.objects.filter(
+                user=user, date_created__gt=cls.get_oldest_allowed_timestamp(), **kwargs
+            )
+            .exclude(
+                status__in=(
+                    ImportExportStatusChoices.COMPLETE,
+                    ImportExportStatusChoices.ERROR,
+                )
+            )
+            .order_by('-date_created')
+        )
+
+    @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
         """
@@ -1094,15 +1243,8 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         `source` is the source URL as included in the `data` attribute.
         """
-        # How long can an export possibly run, not including time spent waiting
-        # in the Celery queue?
-        max_export_run_time = getattr(
-            settings, 'CELERY_TASK_TIME_LIMIT', 2100)
-        # Allow a generous grace period
-        max_allowed_export_age = datetime.timedelta(
-            seconds=max_export_run_time * 4)
         this_moment = datetime.datetime.now(tz=ZoneInfo('UTC'))
-        oldest_allowed_timestamp = this_moment - max_allowed_export_age
+        oldest_allowed_timestamp = cls.get_oldest_allowed_timestamp()
         stuck_exports = cls.objects.filter(
             user=user,
             date_created__lt=oldest_allowed_timestamp,

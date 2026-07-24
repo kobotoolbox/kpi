@@ -5,17 +5,23 @@ import responses
 from rest_framework import status
 
 from ..utils.services import call_services
-from .hook_test_case import HookTestCase
+from .base import BaseHookTestCase
 
 
-class HookUtilsTestCase(HookTestCase):
+class HookUtilsTestCase(BaseHookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
     )
     @responses.activate
-    def test_data_submission(self):
+    def test_data_submission_with_multiple_hooks(self):
+        """
+        Test that call_services() correctly handles multiple hooks:
+        - First call with 1 hook returns True
+        - Second call with 2 hooks returns True (only for the new hook)
+        - Third call returns False (all hooks already notified)
+        """
         # Create first hook
         first_hook = self._create_hook(
             name='dummy external service',
@@ -31,6 +37,8 @@ class HookUtilsTestCase(HookTestCase):
 
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
         submission_id = submissions[0]['_id']
+
+        # First hook receives the submission
         assert call_services(self.asset.uid, submission_id) is True
 
         # Create second hook
@@ -45,10 +53,9 @@ class HookUtilsTestCase(HookTestCase):
             status=status.HTTP_200_OK,
             content_type='application/json',
         )
-        # Since second hook hasn't received the submission, `call_services`
-        # should still return True
+
+        # Second hook should receive the submission (returns True)
         assert call_services(self.asset.uid, submission_id) is True
 
-        # But if we try again, it should return False (we cannot send the same
-        # submission twice to the same external endpoint).
+        # Both hooks have already received it, should return False
         assert call_services(self.asset.uid, submission_id) is False

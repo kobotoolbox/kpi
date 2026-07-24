@@ -1,5 +1,5 @@
 import type { Column } from 'react-table'
-import type { SubmissionResponse, SurveyRow } from '#/dataInterface'
+import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 
 export type SubmissionPageName = 'next' | 'prev'
 
@@ -9,6 +9,10 @@ export interface TableColumn extends Column<SubmissionResponse> {
   /** For ordering columns in the table */
   index: string
   question?: SurveyRow
+  /** For dropdown filters - attached to column to maintain stable filter references */
+  choices?: SurveyChoice[]
+  selectFromListName?: string
+  translationIndex?: number
 }
 
 /**

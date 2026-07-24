@@ -1,1 +1,1 @@
-export { themeKobo } from './kobo'
+export { cssVariablesResolverKobo, themeKobo } from './kobo'

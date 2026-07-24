@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
 import { Alert } from '@mantine/core'
 import type { AlertType } from '#/components/common/alert'
 import classes from './Alert.module.css'
@@ -30,8 +31,8 @@ export const AlertThemeKobo = Alert.extend({
           '--alert-color': theme.colors.teal[4],
         }),
         ...(props.type === 'warning' && {
-          '--alert-bg': theme.colors.amber[7],
-          '--alert-color': theme.colors.amber[6],
+          '--alert-bg': theme.colors.amber[8],
+          '--alert-color': theme.colors.amber[5],
         }),
       },
     }

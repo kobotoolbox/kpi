@@ -44,6 +44,15 @@
     "css.validate": false,
     "scss.validate": false,
 
+    // ESLint diagnostics
+    "eslint.useFlatConfig": true,
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact"
+    ],
+
     // Frontend formatting (Biome)
     "[javascript]": {
       "editor.defaultFormatter": "biomejs.biome",

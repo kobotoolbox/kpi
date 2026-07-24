@@ -26,6 +26,7 @@ def generate_free_plan():
         f'{UsageType.LLM_REQUESTS}_limit': '20',
         f'{UsageType.MT_CHARACTERS}_limit': '6000',
         f'{UsageType.STORAGE_BYTES}_limit': '1000',
+        f'{UsageType.LOG_LOOKBACK_DAYS}_limit': '30',
         'default_free_plan': 'true',
     }
 

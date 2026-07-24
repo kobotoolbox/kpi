@@ -102,4 +102,71 @@ describe('processing routes.utils tests', () => {
       })
     })
   })
+
+  describe('getProcessingRouteParts with languageCode', () => {
+    it('should return languageCode for translation detail route', () => {
+      const path = '/forms/abc123/data/processing/My_que/def-45gh-jklm/translations/es'
+      const test = getProcessingRouteParts(path)
+      chai.expect(test).to.deep.equal({
+        assetUid: 'abc123',
+        xpath: 'My_que',
+        submissionEditId: 'def-45gh-jklm',
+        tabName: ProcessingTab.Translations,
+        languageCode: 'es',
+      })
+    })
+
+    it('should return languageCode for translation detail route with query', () => {
+      const path = '/forms/abc123/data/processing/My_que/def-45gh-jklm/translations/fr?something'
+      const test = getProcessingRouteParts(path)
+      chai.expect(test).to.deep.equal({
+        assetUid: 'abc123',
+        xpath: 'My_que',
+        submissionEditId: 'def-45gh-jklm',
+        tabName: ProcessingTab.Translations,
+        languageCode: 'fr',
+      })
+    })
+
+    it('should not have languageCode for translations route without language', () => {
+      const path = '/forms/abc123/data/processing/My_que/def-45gh-jklm/translations'
+      const test = getProcessingRouteParts(path)
+      chai.expect(test).to.deep.equal({
+        assetUid: 'abc123',
+        xpath: 'My_que',
+        submissionEditId: 'def-45gh-jklm',
+        tabName: ProcessingTab.Translations,
+      })
+      chai.expect(test.languageCode).to.be.undefined
+    })
+
+    it('should not have languageCode for transcript route', () => {
+      const path = '/forms/abc123/data/processing/My_que/def-45gh-jklm/transcript'
+      const test = getProcessingRouteParts(path)
+      chai.expect(test).to.deep.equal({
+        assetUid: 'abc123',
+        xpath: 'My_que',
+        submissionEditId: 'def-45gh-jklm',
+        tabName: ProcessingTab.Transcript,
+      })
+      chai.expect(test.languageCode).to.be.undefined
+    })
+  })
+
+  // Note: goToProcessing tests would require mocking the router which is complex in this test environment.
+  // We'll test the path generation logic through getProcessingRouteParts tests instead.
+
+  describe('isAnyProcessingRoute with languageCode', () => {
+    it('should recognize translation detail routes with languageCode', () => {
+      const path = '/forms/abc123/data/processing/My_que/def-45gh-jklm/translations/es'
+      const test = isAnyProcessingRoute(path)
+      chai.expect(test).to.be.equal(true)
+    })
+
+    it('should recognize translation detail routes with languageCode and query', () => {
+      const path = '/forms/abc123/data/processing/My_que/def-45gh-jklm/translations/fr?some=params'
+      const test = isAnyProcessingRoute(path)
+      chai.expect(test).to.be.equal(true)
+    })
+  })
 })

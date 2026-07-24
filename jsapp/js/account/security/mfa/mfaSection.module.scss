@@ -1,12 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/colors';
 
-.isUnauthorized .bodyMain,
-.isUnauthorized .options {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
 // We need stronger specificity
 .body.body {
   flex: 6;

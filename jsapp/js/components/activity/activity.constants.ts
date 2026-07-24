@@ -1,15 +1,18 @@
+import type { ProjectHistoryLogResponse } from '#/api/models/projectHistoryLogResponse'
+import type { ProjectHistoryLogResponseMetadata } from '#/api/models/projectHistoryLogResponseMetadata'
 import type { PartialPermission } from '#/dataInterface'
 import type { PermissionCodename } from '../permissions/permConstants'
 
 /**
  * All possible log item actions.
- * @see `AuditAction` class from {@link kobo/apps/audit_log/models.py} (BE code)
+ * @see `AuditAction` class from {@link kobo/apps/audit_log/audit_actions.py} (BE code)
  */
 export enum AuditActions {
   'add-media' = 'add-media',
   'add-submission' = 'add-submission',
   'allow-anonymous-submissions' = 'allow-anonymous-submissions',
   archive = 'archive',
+  'bulk-processing' = 'bulk-processing',
   'clone-permissions' = 'clone-permissions',
   'connect-project' = 'connect-project',
   'delete-media' = 'delete-media',
@@ -27,6 +30,7 @@ export enum AuditActions {
   'modify-sharing' = 'modify-sharing',
   'modify-submission' = 'modify-submission',
   'modify-qa-data' = 'modify-qa-data',
+  'modify-automatic-qa-data' = 'modify-automatic-qa-data',
   'modify-user-permissions' = 'modify-user-permissions',
   redeploy = 'redeploy',
   'register-service' = 'register-service',
@@ -34,6 +38,10 @@ export enum AuditActions {
   'share-data-publicly' = 'share-data-publicly',
   'share-form-publicly' = 'share-form-publicly',
   transfer = 'transfer',
+  'verify-automatic-qa-data' = 'verify-automatic-qa-data',
+  'verify-manual-qa-data' = 'verify-manual-qa-data',
+  'unverify-automatic-qa-data' = 'unverify-automatic-qa-data',
+  'unverify-manual-qa-data' = 'unverify-manual-qa-data',
   unarchive = 'unarchive',
   'unshare-data-publicly' = 'unshare-data-publicly',
   'unshare-form-publicly' = 'unshare-form-publicly',
@@ -42,6 +50,11 @@ export enum AuditActions {
   'update-settings' = 'update-settings',
   'update-qa' = 'update-qa',
 }
+
+export const BULK_PROCESSING_ACTION_IDS = {
+  automaticGoogleTranscription: 'automatic_google_transcription',
+  automaticGoogleTranslation: 'automatic_google_translation',
+} as const
 
 interface AuditActionDefinition {
   name: AuditActions
@@ -105,6 +118,36 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
     name: AuditActions['modify-qa-data'],
     label: t('edit qualitative analysis data'),
     message: t('##username## edited qualitative analysis data'),
+  },
+  {
+    name: AuditActions['bulk-processing'],
+    label: t('bulk processing'),
+    message: t('##username## started a bulk processing job'),
+  },
+  {
+    name: AuditActions['modify-automatic-qa-data'],
+    label: t('modify automatic qualitative analysis data'),
+    message: t('##username## modified automatic qualitative analysis data'),
+  },
+  {
+    name: AuditActions['verify-automatic-qa-data'],
+    label: t('verify automatic qualitative analysis data'),
+    message: t('##username## verified automatic qualitative analysis data'),
+  },
+  {
+    name: AuditActions['unverify-automatic-qa-data'],
+    label: t('remove automatic qualitative analysis data verification'),
+    message: t('##username## removed automatic qualitative analysis data verification'),
+  },
+  {
+    name: AuditActions['verify-manual-qa-data'],
+    label: t('verify manual qualitative analysis data'),
+    message: t('##username## verified manual qualitative analysis data'),
+  },
+  {
+    name: AuditActions['unverify-manual-qa-data'],
+    label: t('remove manual qualitative analysis data verification'),
+    message: t('##username## removed manual qualitative analysis data verification'),
   },
   {
     name: AuditActions['export'],
@@ -246,51 +289,18 @@ export const FALLBACK_MESSAGE = '##username## did action ##action##'
 
 export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']]
 
-export enum AuditSubTypes {
-  project = 'project',
-  permission = 'permission',
+interface ActivityLogsMetadata extends Omit<ProjectHistoryLogResponseMetadata, 'permissions'> {
+  // TODO(DEV-1416): Remove this override once OpenAPI documents the permission payload shape returned by the history endpoint.
+  permissions?: {
+    username: string
+    added?: Array<PermissionCodename | AuditPartialPermission>
+    removed?: Array<PermissionCodename | AuditPartialPermission>
+  }
 }
 
-export interface ActivityLogsItem {
-  /** User url. E.g. "https://kf.beta.kbtdev.org/api/v2/users/<username>/" */
-  user: string
-  user_uid: string
-  username: string
-  /** Date string in ISO 8601. E.g. "2024-10-04T14:04:18Z" */
-  date_created: string
-  action: AuditActions
-  metadata: {
-    /** E.g. "Firefox (Ubuntu)" */
-    source: string
-    asset_uid: string
-    /** E.g. "71.235.120.86" */
-    ip_address: string
-    log_subtype: AuditSubTypes
-    // All props below are optional and depends on the action
-    old_name?: string
-    new_name?: string
-    version_uid?: string
-    latest_version_uid?: string
-    latest_deployed_version_uid?: string
-    username?: string
-    permissions?: {
-      username: string
-      added?: Array<PermissionCodename | AuditPartialPermission>
-      removed?: Array<PermissionCodename | AuditPartialPermission>
-    }
-    submission?: {
-      root_uuid: string
-      submitted_by: string
-    }
-    /** Username */
-    project_owner?: string
-    'asset-file'?: {
-      uid: string
-      filename: string
-      md5_hash: string
-      download_url: string
-    }
-  }
+export interface ActivityLogsItem extends Omit<ProjectHistoryLogResponse, 'action' | 'metadata'> {
+  action: AuditActions | string
+  metadata: ActivityLogsMetadata
 }
 
 /**
@@ -301,6 +311,8 @@ export interface AuditPartialPermission extends Omit<PartialPermission, 'url'> {
   code: PermissionCodename
 }
 
+export type AssetHistoryAction = keyof typeof AuditActions | (string & {})
+
 export interface AssetHistoryActionsResponse {
-  actions: Array<keyof typeof AuditActions>
+  actions: AssetHistoryAction[]
 }

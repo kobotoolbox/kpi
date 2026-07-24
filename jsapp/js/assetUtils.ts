@@ -5,11 +5,16 @@
 
 import React from 'react'
 import { isRtlLang } from 'rtl-detect'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { queryClient } from '#/api/queryClient'
+import {
+  type OrganizationsRetrieveQueryResult,
+  getOrganizationsRetrieveQueryKey,
+} from '#/api/react-query/user-team-organization-usage'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import type { AnyRowTypeName, AssetTypeName } from '#/constants'
-import { QuestionTypeName } from '#/constants'
 import {
   ACCESS_TYPES,
   ASSET_TYPES,
@@ -17,6 +22,7 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   QUESTION_TYPES,
+  QuestionTypeName,
   RANK_LEVEL_TYPE,
   ROOT_URL,
   SCORE_ROW_TYPE,
@@ -24,7 +30,6 @@ import {
   XML_VALUES_OPTION_VALUE,
 } from '#/constants'
 import type {
-  AnalysisFormJsonField,
   AssetContent,
   AssetResponse,
   PermissionResponse,
@@ -37,13 +42,32 @@ import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
+import { ActionIdEnum } from './api/models/actionIdEnum'
+import type { Asset } from './api/models/asset'
+import type { AssetMinimalList } from './api/models/assetMinimalList'
+import type { BulkActionResponse } from './api/models/bulkActionResponse'
+import { getBulkProcessingColumnKey } from './components/submissions/bulkProcessingUtils'
+
+export enum DeleteBlockerReason {
+  submissions = 'submissions',
+  permissions = 'permissions',
+}
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
+ * Keep this function normalization-only (no deduping) so it stays aligned
+ * with backend tag normalization semantics.
  */
 export function cleanupTags(tags: string[]) {
   return tags.map((tag) => tag.trim().replace(/ /g, '-'))
+}
+
+/**
+ * Cleans and deduplicates tags while preserving first occurrence order.
+ */
+export function cleanupAndUniqueTags(tags: string[]) {
+  return Array.from(new Set(cleanupTags(tags)))
 }
 
 /**
@@ -130,13 +154,16 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
      * and then switching to french would result in seeing spanish labels)
      */
     const countries = []
-    // https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#working-with-union-types
+    // Backend schema specifies country as array, but old assets (pre-Dec 2022)
+    // may still have it as a single object if they haven't been updated since
+    // standardization was added, or if the migration was skipped.
     if (Array.isArray(asset.settings.country)) {
       for (const country of asset.settings.country) {
         countries.push(envStore.getCountryLabel(country.value))
       }
     } else {
-      countries.push(envStore.getCountryLabel(asset.settings.country.value))
+      // Legacy fallback: single object format from pre-standardization assets
+      countries.push(envStore.getCountryLabel((asset.settings.country as any).value))
     }
 
     if (countries.length === 0) {
@@ -168,7 +195,9 @@ interface DisplayNameObj {
  * containing final name and all useful data. Most of the times you should use
  * `getAssetDisplayName(…).final`.
  */
-export function getAssetDisplayName(asset?: AssetResponse | ProjectViewAsset): DisplayNameObj {
+export function getAssetDisplayName(
+  asset?: Asset | AssetResponse | ProjectViewAsset | AssetMinimalList,
+): DisplayNameObj {
   const emptyName = t('untitled')
 
   const output: DisplayNameObj = {
@@ -434,6 +463,21 @@ export function findRowByXpath(assetContent: AssetContent, xpath: string) {
   return assetContent?.survey?.find((row) => row.$xpath === xpath)
 }
 
+/**
+ * Like `findRowByXpath`, but falls back to matching by leaf name when the
+ * xpath doesn't exist in the current schema (e.g. after a group rename).
+ * Note that this will return the first match by leaf name,
+ * which may not be the correct one.
+ */
+export function findRowByXpathOrLeafName(assetContent: AssetContent, xpath: string) {
+  const exactMatch = findRowByXpath(assetContent, xpath)
+  if (exactMatch) {
+    return exactMatch
+  }
+  const leafName = xpath.includes('/') ? xpath.split('/').at(-1) : xpath
+  return leafName ? findRow(assetContent, leafName) : undefined
+}
+
 export function getRowType(assetContent: AssetContent, rowName: string) {
   const foundRow = findRow(assetContent, rowName)
   return foundRow?.type
@@ -484,12 +528,21 @@ export function renderQuestionTypeIcon(
 }
 
 /**
- * Injects supplemental details columns next to their respective source rows in
- * a given list of rows. Returns a new updated `rows` list.
+ * Injects supplemental details columns next to their respective source rows in a given list of rows.
+ * Returns a new updated `rows` list.
  *
  * Note: we omit injecting `qualNote` questions.
+ *
+ * @param asset
+ * @param rows - The list of base columns
+ * @param virtualSupplementalFields - Optional array of additional supplemental fields that are not present in
+ * the submission (yet) but we want them to appear in the UI (e.g. from ongoing unfinished bulk processing)
  */
-export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows: Set<string> | Array<string>) {
+export function injectSupplementalRowsIntoListOfRows(
+  asset: AssetResponse,
+  rows: Set<string> | Array<string>,
+  virtualSupplementalFields?: Array<{ source: string; dtpath: string; type: string }>,
+) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -503,16 +556,25 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
   // Step 3: use the list of additional columns (with data), that was generated
   // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || []
-  const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {}
-  additionalFields.forEach((field: AnalysisFormJsonField) => {
+
+  // Include the additional virtual fields, ensuring there are no duplicates
+  const existingDtpaths = new Set(additionalFields.map((f) => f.dtpath))
+  const uniqueVirtualFields = (virtualSupplementalFields || []).filter(
+    (virtualField) => !existingDtpaths.has(virtualField.dtpath),
+  )
+
+  const allSupplementalFields = [
     // Note questions make sense only in the context of writing responses to
     // Qualitative Analysis questions. They bear no data, so there is no point
     // displaying them outside of Single Processing route. As this function is
     // part of Data Table and Data Downloads, we need to hide the notes.
-    if (field.type === QUAL_NOTE_TYPE) {
-      return
-    }
+    // Merge real and virtual supplemental fields
+    ...additionalFields.filter((field) => field.type !== QUAL_NOTE_TYPE),
+    ...(uniqueVirtualFields || []),
+  ]
 
+  const extraColsBySource: Record<string, Array<{ source: string; dtpath: string; type: string }>> = {}
+  allSupplementalFields.forEach((field) => {
     const sourceName: string = field.source
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = []
@@ -526,6 +588,13 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
     outputWithCols.push(col)
     ;(extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
+
+      // Qual source and verified data are kept in a qual-id-based key, rather than in the source question key
+      ;(extraColsBySource[extraCol.dtpath] || []).forEach((qaCol) => {
+        if (qaCol.type === 'qualVerification') {
+          outputWithCols.push(`_supplementalDetails/${qaCol.dtpath}`)
+        }
+      })
     })
   })
 
@@ -646,6 +715,93 @@ export function hasBackgroundAudioEnabled(surveyRow: SurveyRow[]) {
   return surveyRow.some((question) => question.type === QuestionTypeName['background-audio'])
 }
 
+/**
+ * Utility to build virtual supplemental fields for bulk processing columns.
+ * Always returns dtpath as a relative path (no prefix).
+ *
+ * @param bulkActions - Array of bulk action objects
+ * @returns Array of { dtpath, source, type }
+ */
+export function getVirtualSupplementalFieldsForBulkActions(
+  bulkActions?: BulkActionResponse[],
+): Array<{ dtpath: string; source: string; type: string }> {
+  if (!Array.isArray(bulkActions) || bulkActions.length === 0) return []
+
+  const result: Array<{ dtpath: string; source: string; type: string }> = []
+  for (const bulkAction of bulkActions) {
+    let key = getBulkProcessingColumnKey(bulkAction)
+    if (!key) continue
+    // Remove prefix if present
+    if (key.startsWith(`${SUPPLEMENTAL_DETAILS_PROP}/`)) {
+      key = key.slice(`${SUPPLEMENTAL_DETAILS_PROP}/`.length)
+    }
+    let type: string
+    if (bulkAction.action_id === ActionIdEnum.automatic_google_transcription) {
+      type = 'transcript'
+    } else if (bulkAction.action_id === ActionIdEnum.automatic_google_translation) {
+      type = 'translation'
+    } else {
+      type = 'processing'
+    }
+    result.push({
+      dtpath: key,
+      source: bulkAction.question_xpath,
+      type,
+    })
+  }
+  return result
+}
+
+export type AssetDeleteCheckResult =
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: true }
+  | { asset: AssetResponse | ProjectViewAsset; canDelete: false; reason: DeleteBlockerReason }
+
+/**
+ * Checks whether the current user can delete the given assets.
+ * Returns one result per asset (in the same order), each with `canDelete: true`
+ * or `canDelete: false` with the reason why that specific asset is blocked.
+ */
+export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): AssetDeleteCheckResult[] {
+  const account = sessionStore.currentAccount
+  const orgUid = 'organization' in account ? account.organization?.uid : undefined
+  const orgResponse = orgUid
+    ? queryClient.getQueryData<OrganizationsRetrieveQueryResult>(getOrganizationsRetrieveQueryKey(orgUid))
+    : undefined
+  const org = orgResponse?.status === 200 ? orgResponse.data : undefined
+
+  const isAdmin = org?.request_user_role === MemberRoleEnum.admin
+  if (isAdmin) {
+    return assets.map((asset) => {
+      return { asset, canDelete: true as const }
+    })
+  }
+
+  const isMmoMember = org?.is_mmo && org?.request_user_role === MemberRoleEnum.member
+  const currentUsername = account.username
+
+  if (isMmoMember) {
+    // Only projects created by the user with no submissions can be deleted by MMO members.
+    // Permissions reason takes priority over submissions reason.
+    return assets.map((asset) => {
+      const isNotOwned = !asset.created_by || asset.created_by !== currentUsername
+      const hasSubmissions = (asset.deployment__submission_count ?? 0) > 0
+      if (isNotOwned) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.permissions }
+      }
+      if (hasSubmissions) {
+        return { asset, canDelete: false, reason: DeleteBlockerReason.submissions }
+      }
+      return { asset, canDelete: true }
+    })
+  }
+
+  // Non-MMO users: the delete button is disabled unless they have delete_asset,
+  // so no blocker is needed.
+  return assets.map((asset) => {
+    return { asset, canDelete: true as const }
+  })
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -669,4 +825,5 @@ export default {
   isSelfOwned,
   renderQuestionTypeIcon,
   removeInvalidChars,
+  userCanDeleteAssets,
 }

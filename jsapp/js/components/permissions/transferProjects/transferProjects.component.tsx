@@ -8,12 +8,13 @@ import TextBox from '#/components/common/textBox'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import { TransferStatuses, cancelInvite, sendInvite } from './transferProjects.api'
 import styles from './transferProjects.module.scss'
+
+const SUPPORT_TRANSFER_OWNERSHIP_URL = 'project_sharing_settings.html#transferring-ownership-of-a-project'
 
 interface TransferProjectsProps {
   asset: AssetResponse
@@ -150,7 +151,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
                     'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.',
                   )}
                   &nbsp;
-                  <a href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL} target='_blank'>
+                  <a href={envStore.data.support_url + SUPPORT_TRANSFER_OWNERSHIP_URL} target='_blank'>
                     {t('Learn more →')}
                   </a>
                 </span>
@@ -222,7 +223,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
                     <br />
                     <strong>{t('Once the transfer is accepted, you will not be able to undo this action.')}</strong>
                     &nbsp;
-                    <a href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL} target='_blank'>
+                    <a href={envStore.data.support_url + SUPPORT_TRANSFER_OWNERSHIP_URL} target='_blank'>
                       {t('Learn more')}
                     </a>
                   </div>

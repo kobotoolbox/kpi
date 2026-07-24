@@ -57,7 +57,7 @@ class Invite(AbstractTimeStampedModel):
         db_index=True
     )
     invite_type = models.CharField(
-        choices=InviteType.choices,
+        choices=InviteType,
         default=InviteType.USER_OWNERSHIP_TRANSFER,
         max_length=30,
     )

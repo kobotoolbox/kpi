@@ -6,7 +6,6 @@
 $choice-width: 66.66%;
 
 .choice {
-  @include mixins.centerRowFlex;
   gap: analysisVariables.$inner-horizontal-gap;
 
   &:not(:last-child) {

@@ -17,6 +17,7 @@ declare function t(str: string): string
 // and on the console.log output of a dialog instance.
 
 interface AlertifyDialogSettings {
+  title?: string
   message?: string | null
   labels?: {
     ok?: string
@@ -258,6 +259,13 @@ declare module 'react-autobind' {
   export default autoBind
 }
 
+declare module '*.svg?react' {
+  import type { FunctionComponent, SVGProps } from 'react'
+
+  const ReactComponent: FunctionComponent<SVGProps<SVGSVGElement>>
+  export default ReactComponent
+}
+
 declare module '*.scss'
 declare module '*.css'
 
@@ -290,8 +298,6 @@ declare module '#/api/models/dataResponse' {
      */
     _geolocation: _DataResponseGeolocationItem[]
     _submission_time: string
-    _tags: string[]
-    _notes: string[]
     _validation_status: _DataResponseValidationStatus
     _submitted_by: string
     _supplementalDetails?: _DataResponseSupplementalDetails

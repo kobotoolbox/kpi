@@ -27,11 +27,11 @@ const config: Config = {
   },
 
   // Extensions to try in order (for import statements with no extension)
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'coffee'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'coffee'],
 
   // Transformers (SWC for JS/TS, CoffeeScript for .coffee)
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': '@swc/jest',
+    '^.+\\.(mjs|js|jsx|ts|tsx)$': '@swc/jest',
     '^.+\\.coffee$': '<rootDir>/coffeeTransformer.js',
   },
 
@@ -39,6 +39,13 @@ const config: Config = {
   testPathIgnorePatterns: [
     'test/xlform/integration.tests.coffee$', // 📄 skipped in `ee98aebe631b`
     ...defaults.testPathIgnorePatterns, // 📦 exclude '/node_modules/'
+  ],
+
+  // By default Jest skips transforming node_modules.
+  // These packages are explicitly allowlisted because they can publish ESM output,
+  // which otherwise causes parse errors like "unexpected token export/import" in tests.
+  transformIgnorePatterns: [
+    'node_modules/(?!(msw|@mswjs|@open-draft|@bundled-es-modules|headers-polyfill|outvariant|is-node-process|strict-event-emitter|statuses|until-async|rettime)/)',
   ],
 
   // Set up test environment

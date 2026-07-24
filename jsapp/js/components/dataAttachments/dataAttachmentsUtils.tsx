@@ -47,6 +47,69 @@ export function generateColumnFilters(selectedColumns: string[], selectableQuest
   return columnsToDisplay
 }
 
+/** Collects all string values from a string or nested string array payload. */
+function collectStringValues(value: unknown): string[] {
+  if (typeof value === 'string') {
+    return [value]
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectStringValues(item))
+  }
+
+  return []
+}
+
+/** Extracts values wrapped in backticks from a backend validation message. */
+function extractBacktickWrappedValues(message: string): string[] {
+  return message
+    .split('`')
+    .filter((_part, index) => index % 2 === 1)
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+/** Returns requested fields that are missing from the backend-provided list of valid fields. */
+export function extractInvalidFieldsFromResponseMessage(requestedFields: string[], errorPayload: unknown): string[] {
+  if (!errorPayload || typeof errorPayload !== 'object') {
+    return []
+  }
+
+  const payload = errorPayload as { detail?: unknown; fields?: unknown }
+  const candidateMessages = [...collectStringValues(payload.fields), ...collectStringValues(payload.detail)]
+
+  for (const message of candidateMessages) {
+    const validFields = extractBacktickWrappedValues(message)
+
+    if (validFields.length === 0) {
+      continue
+    }
+
+    const validFieldsSet = new Set(validFields)
+    return requestedFields.filter((field) => !validFieldsSet.has(field))
+  }
+
+  return []
+}
+
+/** Builds a user-facing invalid-fields error message from a backend validation response. */
+export function buildInvalidFieldsErrorMessage(
+  requestedFields: string[],
+  errorPayload: unknown,
+  prefix: string,
+  invalidFieldsLabel: string,
+): string | null {
+  const invalidFields = extractInvalidFieldsFromResponseMessage(requestedFields, errorPayload)
+
+  if (invalidFields.length === 0) {
+    return null
+  }
+
+  return `${prefix}. ${invalidFieldsLabel}\n${invalidFields.join('\n')}`
+}
+
 export default {
+  buildInvalidFieldsErrorMessage,
+  extractInvalidFieldsFromResponseMessage,
   generateColumnFilters,
 }

@@ -165,7 +165,7 @@ class Command(BaseCommand):
                             value.startswith('{') and value.endswith('}')
                         ):
                             try:
-                                json.loads(value)
+                                value = json.loads(value)
                             except json.JSONDecodeError as e:
                                 self.stdout.write(
                                     f'Invalid JSON value for key {key}. {e}'

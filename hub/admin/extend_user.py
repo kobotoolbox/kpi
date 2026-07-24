@@ -5,8 +5,10 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import (
+    AdminUserCreationForm,
+)
 from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
-from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Sum
 from django.forms import CharField
@@ -31,9 +33,9 @@ from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
 
-def validate_superuser_auth(obj) -> bool:
+def validate_superuser_auth(obj, can_save_as_superuser: bool) -> bool:
     if (
-        obj.is_superuser
+        can_save_as_superuser
         and config.SUPERUSER_AUTH_ENFORCEMENT
         and obj.has_usable_password()
         and not MfaMethodsWrapper.objects.filter(user=obj, is_active=True).exists()
@@ -54,6 +56,7 @@ class UserChangeForm(DjangoUserChangeForm):
     def clean(self):
         cleaned_data = super().clean()
         is_active = cleaned_data['is_active']
+        is_superuser = cleaned_data.get('is_superuser', False)
         if is_active and AccountTrash.objects.filter(user_id=self.instance.pk).exists():
             url = reverse('admin:trash_bin_accounttrash_changelist')
             raise ValidationError(
@@ -62,15 +65,15 @@ class UserChangeForm(DjangoUserChangeForm):
                     f' from here.'
                 )
             )
-        if cleaned_data.get('is_superuser', False) and not validate_superuser_auth(
-            self.instance
+        if is_superuser and not validate_superuser_auth(
+            self.instance, can_save_as_superuser=is_superuser
         ):
             raise ValidationError('Superusers with a usable password must enable MFA.')
 
         return cleaned_data
 
 
-class UserCreationForm(DjangoUserCreationForm):
+class UserCreationForm(AdminUserCreationForm):
 
     username = CharField(
         label='username',
@@ -78,6 +81,10 @@ class UserCreationForm(DjangoUserCreationForm):
         help_text=USERNAME_INVALID_MESSAGE,
         validators=username_validators,
     )
+
+    def clean(self):
+        self.cleaned_data['usable_password'] = 'true'
+        super().clean()
 
 
 class OrgInline(admin.StackedInline):
@@ -94,6 +101,7 @@ class OrgInline(admin.StackedInline):
     classes = ('no-upper',)
     raw_id_fields = ('user', 'organization')
 
+    @admin.display(description='Active Subscription')
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
             return (
@@ -110,8 +118,6 @@ class OrgInline(admin.StackedInline):
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
-
-    active_subscription_status.short_description = 'Active Subscription'
 
 
 class InactiveUsersAsOfFilter(SimpleListFilter):
@@ -140,7 +146,7 @@ class InactiveUsersAsOfFilter(SimpleListFilter):
             return queryset
 
         inactive_qs = get_inactive_users(days)
-        return queryset.filter(pk__in=inactive_qs.values_list('pk', flat=True))
+        return queryset.filter(pk__in=inactive_qs)
 
 
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
@@ -189,6 +195,18 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     readonly_fields = UserAdmin.readonly_fields + (
         'deployed_forms_count',
         'monthly_submission_count',
+    )
+    # same add_fieldsets as UserAdmin but without the 'usable_password' field, which
+    # we don't want. Admins should not be able to enable/disable password access on
+    # a per-user basis
+    add_fieldsets = (
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': ('username', 'password1', 'password2'),
+            },
+        ),
     )
     fieldsets = UserAdmin.fieldsets + (
         (
@@ -265,6 +283,20 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             return '-'
 
         return date_removed
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Return a tuple of field names that should be read-only in the admin panel.
+
+        If modifying an existing user record, the username field is enforced as
+        read-only to prevent downstream data integrity issues.
+        """
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj and 'username' not in readonly_fields:
+            readonly_fields = readonly_fields + ('username',)
+
+        # Allow username editing during user creation
+        return readonly_fields
 
     @admin.display(description='Status')
     def get_status(self, obj):

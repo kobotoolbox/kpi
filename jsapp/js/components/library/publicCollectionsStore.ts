@@ -1,5 +1,5 @@
-import type { RouterState } from '@remix-run/router'
 import { reaction } from 'mobx'
+import type { RouterState } from 'react-router'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
@@ -33,6 +33,9 @@ export interface PublicCollectionsStoreData {
   filterValue: string | null
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class PublicCollectionsStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
@@ -274,15 +277,13 @@ class PublicCollectionsStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted({ uid, assetType }: DeleteAssetResponse) {
-    if (assetType === ASSET_TYPES.collection.id) {
-      const found = this.findAsset(uid)
-      if (found) {
-        this.fetchData(true)
-      }
-      // if not found it is possible it is on other page of results, but it is
-      // not important enough to do a data fetch
+  onDeleteAssetCompleted({ uid }: DeleteAssetResponse) {
+    const found = this.findAsset(uid)
+    if (found) {
+      this.fetchData(true)
     }
+    // if not found it is possible it is on other page of results, but it is
+    // not important enough to do a data fetch
   }
 
   // public methods
@@ -331,6 +332,9 @@ class PublicCollectionsStore extends Reflux.Store {
   }
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const publicCollectionsStore = new PublicCollectionsStore()
 publicCollectionsStore.init()
 

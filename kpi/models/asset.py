@@ -8,6 +8,7 @@ import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
+from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
@@ -64,6 +65,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
     post_assign_partial_perm,
@@ -252,7 +254,7 @@ class Asset(
     # set directly.
     _deployment_status = models.CharField(
         max_length=8,
-        choices=AssetDeploymentStatus.choices,
+        choices=AssetDeploymentStatus,
         null=True,
         blank=True,
         db_index=True
@@ -497,7 +499,7 @@ class Asset(
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
-        self._autoname(self.content)
+        self._autoname(self.content, raise_on_error=False)
         self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
@@ -575,7 +577,11 @@ class Asset(
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
-    def get_all_attachment_xpaths(self) -> list:
+    def get_all_attachment_xpaths(self, only_cached_data: bool = False) -> list | None:
+        """
+        Get all attachment xpaths from deployed versions.
+        Results are cached in Redis for 24 hours.
+        """
 
         # We previously used `cache_for_request`, but it provides no benefit in Celery
         # tasks. A "protected" property on the Asset instance now serves the same
@@ -585,6 +591,18 @@ class Asset(
         ) is not None:
             return _all_attachment_xpaths
 
+        cache_key = (
+            f'all_attachment_xpaths:{self.uid}:{self.latest_deployed_version_uid}'
+        )
+
+        # Try to get from Redis cache
+        cached_xpaths = cache.get(cache_key)
+
+        if cached_xpaths is not None:
+            return cached_xpaths
+        elif only_cached_data:
+            return None
+
         # return deployed versions first
         versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
         xpaths = set()
@@ -592,15 +610,34 @@ class Asset(
             if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
                 xpaths.update(xpaths_from_version)
 
-        setattr(self, '_all_attachment_xpaths', list(xpaths))
+        xpaths_list = list(xpaths)
+
+        # Store in Redis cache
+        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
+
+        setattr(self, '_all_attachment_xpaths', xpaths_list)
         return self._all_attachment_xpaths
 
-    def get_attachment_xpaths_from_version(self, version=None) -> Optional[list]:
+    def get_attachment_xpaths_from_version(
+        self, version: AssetVersion = None
+    ) -> list | None:
+        """
+        Get attachment xpaths from a specific version.
+
+        Results are cached in Redis for 24 hours.
+        """
 
         if version:
             content = version.to_formpack_schema()['content']
+            cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
         else:
             content = self.content
+            cache_key = f'attachment_xpaths:{self.uid}:no-version'
+
+        cached_xpaths = cache.get(cache_key)
+
+        if cached_xpaths is not None:
+            return cached_xpaths
 
         survey = content['survey']
 
@@ -628,7 +665,12 @@ class Asset(
         # Inject missing `$xpath` properties
         self._insert_xpath(content)
 
-        return _get_xpaths(survey)
+        xpaths_list = _get_xpaths(survey)
+
+        # Store in Redis cache
+        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
+
+        return xpaths_list
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -805,6 +847,44 @@ class Asset(
         except IndexError:
             return None
 
+    def validate_and_normalize_settings(self):
+        if not self.settings:
+            self.settings = {}
+            return
+
+        if not isinstance(self.settings, dict):
+            self.settings = {}
+            return
+
+        # Run unconditionally for all asset types to ensure a consistent
+        # 'extra_metadata' namespace across surveys, templates, and library items.
+        if 'extra_metadata' not in self.settings:
+            return
+
+        extra_metadata = self.settings.get('extra_metadata')
+
+        if extra_metadata is None:
+            self.settings['extra_metadata'] = {}
+        elif not isinstance(extra_metadata, dict):
+            self.settings['extra_metadata'] = {}
+
+    def new_version_required(self):
+        # don't use self.latest_version or self.version__content_hash to avoid
+        # loading potentially large version_content field
+        latest_version = (
+            self.asset_versions.only('name', '_content_hash')
+            .order_by('-date_created')
+            .first()
+        )
+        if not latest_version:
+            return True
+        current_content_hash = calculate_content_hash(self.content)
+        previous_version_name = latest_version.name
+        return (
+            self.name != previous_version_name
+            or latest_version.content_hash != current_content_hash
+        )
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """Used by serializers to improve performance when listing assets"""
@@ -823,8 +903,6 @@ class Asset(
                 'owner',
             )
             .prefetch_related(
-                'permissions__permission',
-                'permissions__user',
                 # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
                 # related objects in a list (`prefetched_list`) that we can use in
                 # other methods to avoid additional queries; see:
@@ -873,10 +951,9 @@ class Asset(
         force_update=False,
         update_fields=None,
         adjust_content=True,
-        create_version=True,
         update_parent_languages=True,
         *args,
-        **kwargs
+        **kwargs,
     ):
         is_new = self.pk is None
 
@@ -935,6 +1012,9 @@ class Asset(
 
         if not update_fields or update_fields and 'advanced_features' in update_fields:
             migrate_advanced_features(self, save_asset=False)
+
+        if not update_fields or 'settings' in update_fields:
+            self.validate_and_normalize_settings()
 
         # standardize settings (only when required)
         if (
@@ -1030,8 +1110,7 @@ class Asset(
 
         if self.has_deployment:
             self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
-
-        if create_version:
+        if self.new_version_required():
             self.create_version()
 
     def set_deployment_status(self):
@@ -1149,20 +1228,22 @@ class Asset(
         self.save(update_fields=['summary'])
 
     @property
-    def version__content_hash(self):
+    def version__content_hash(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.content_hash
 
+        return None
+
     @property
-    def version_id(self):
+    def version_id(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.uid
+
+        return None
 
     @property
     def version_number_and_date(self) -> str:
@@ -1431,12 +1512,18 @@ class Asset(
         if not content.get('translations') and existing_translations:
             content['translations'] = existing_translations
 
-        # Suffix plain hint strings to the default language
+        # Suffix plain hint and label strings to the default language
         default_lang = settings_data.get('default_language')
         if default_lang:
             for row in content.get('survey', []):
                 if 'hint' in row and isinstance(row['hint'], str):
                     row[f'hint::{default_lang}'] = row.pop('hint')
+            # Only suffix plain labels for multilingual forms. On single-language
+            # forms, plain `label` is the expected format for an unnamed translation.
+            if len(existing_translations) > 1:
+                for row in content.get('survey', []) + content.get('choices', []):
+                    if 'label' in row and isinstance(row['label'], str):
+                        row[f'label::{default_lang}'] = row.pop('label')
 
 
 class UserAssetSubscription(models.Model):

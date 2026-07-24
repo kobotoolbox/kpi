@@ -1,3 +1,19 @@
+class AnalysisQuestionNotFound(Exception):
+    """
+    Raised when the uuid for automatic qual analysis is not found in the manual params
+    """
+
+    pass
+
+
+class AnalysisQuestionIncorrectlyConfigured(Exception):
+    """
+    Raised when the question corresponding to the uuid for automatic qual analysis
+    is incorrectly configured in the manual params
+    """
+    pass
+
+
 class AudioTooLongError(Exception):
     """
     Audio file is too long for the specified speech service
@@ -9,6 +25,26 @@ class AudioTooLongError(Exception):
 class GoogleCloudStorageBucketNotFound(Exception):
 
     pass
+
+
+class GoogleTranscriptionServiceNotConfigured(Exception):
+    """
+    Raised when the Google transcription service record is missing
+    """
+
+    pass
+
+
+class GoogleQuotaExceededError(Exception):
+    """
+    Raised when Google rejects or would reject a request due to project quota
+    """
+
+    def __init__(self, retry_after: int = 100):
+        self.retry_after = retry_after
+        super().__init__(
+            f'Google project quota exceeded. Retry after {retry_after} seconds.'
+        )
 
 
 class SubsequenceDeletionError(Exception):
@@ -47,13 +83,54 @@ class InvalidXPath(Exception):
     pass
 
 
+class ManualQualNotFound(DependencyNotFound):
+    pass
+
+
+class SubsequenceAcceptanceError(Exception):
+    pass
+
+
 class SubsequenceTimeoutError(Exception):
     pass
 
 
-class TranscriptionNotFound(DependencyNotFound):
+class SubsequenceVerificationError(Exception):
     pass
 
 
+class SupplementMigrationInProgress(Exception):
+    """
+    Raised when submission supplement data has not yet been migrated to the
+    current schema version. The long-running migration is responsible for
+    the migration. Retry the operation once the migration has completed.
+    """
+
+
+class TranscriptionNotFound(DependencyNotFound):
+    def __init__(
+        self,
+        message=(
+            'No accepted transcription found. '
+            'Accept the transcription before running translation.'
+        )
+    ):
+        super().__init__(message)
+
+
 class TranslationAsyncResultAvailable(Exception):
+    pass
+
+
+class TranscriptionResultNotFound(Exception):
+    """
+    Raised when no transcription output files are found in GCS
+    """
+    pass
+
+
+class TranslationResultNotFound(Exception):
+    """
+    Raised when no translation output files are found in GCS
+    """
     pass

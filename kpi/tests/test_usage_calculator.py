@@ -13,7 +13,7 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.constants import UsageType, USAGE_TYPES_WITH_COUNTERS
 from kobo.apps.organizations.models import Organization
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
@@ -556,5 +556,5 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
         usage_balances = calculator.get_usage_balances()
 
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in USAGE_TYPES_WITH_COUNTERS:
             assert usage_balances[usage_type] is None

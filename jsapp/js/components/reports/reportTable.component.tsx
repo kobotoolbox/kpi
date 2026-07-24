@@ -7,7 +7,7 @@ import type { ReportsResponseData, ReportsResponseDataValues } from './reportsCo
 interface ReportTableProps {
   type: 'regular' | 'numerical' | 'disaggregated'
   rows?: PreparedTable | ReportsResponseDataValues
-  responseLabels?: string[]
+  responseLabels?: Array<string | null>
   values?: ReportsResponseData
 }
 
@@ -20,7 +20,7 @@ function formatNumber(x: number | '*' | undefined) {
 
 export default class ReportTable extends React.Component<ReportTableProps> {
   render() {
-    let th = ['']
+    let th: Array<string | null> = ['']
     let rows: PreparedTable | ReportsResponseDataValues = []
 
     if (this.props.type === 'numerical') {

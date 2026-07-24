@@ -1,8 +1,9 @@
 import React from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { AssetResponse } from '#/dataInterface'
 import {
   getLatestTranscriptVersionItem,
@@ -13,12 +14,13 @@ import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
 import TranscriptPoll from './TranscriptPoll'
 
-type VersionOfAutomaticTranscript = _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+type VersionOfAutomaticTranscript = SupplementalDataVersionItemAutomatic
 
 interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
   advancedFeatures: AdvancedFeatureResponse[]
@@ -28,27 +30,33 @@ export default function TranscriptTab({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   onUnsavedWorkChange,
   supplement,
   advancedFeatures,
 }: Props) {
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
 
+  // We need a key to force remounting the component when switching between submissions.
+  const submissionKey = submission._uuid
+
   if (
     transcriptVersion &&
     isSupplementVersionAutomatic(transcriptVersion) &&
     (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
   ) {
-    return <TranscriptPoll asset={asset} questionXpath={questionXpath} submission={submission} />
+    return <TranscriptPoll key={submissionKey} asset={asset} questionXpath={questionXpath} submission={submission} />
   }
   if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
     return (
       <TranscriptEdit
+        key={submissionKey}
         asset={asset}
         questionXpath={questionXpath}
         submission={submission}
         supplement={supplement}
         transcriptVersion={transcriptVersion}
+        activeBulkActions={activeBulkActions}
         onUnsavedWorkChange={onUnsavedWorkChange}
         advancedFeatures={advancedFeatures}
       />
@@ -57,10 +65,12 @@ export default function TranscriptTab({
 
   return (
     <TranscriptCreate
+      key={submissionKey}
       asset={asset}
       questionXpath={questionXpath}
       submission={submission}
       supplement={supplement}
+      activeBulkActions={activeBulkActions}
       onUnsavedWorkChange={onUnsavedWorkChange}
       advancedFeatures={advancedFeatures}
     />

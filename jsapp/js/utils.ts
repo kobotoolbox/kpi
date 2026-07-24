@@ -11,9 +11,12 @@ import type * as Sentry from '@sentry/react'
 import random from 'lodash.random'
 import moment from 'moment'
 import { Cookies } from 'react-cookie'
+import type { Accept } from 'react-dropzone'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
-import type { MongoQuery } from './dataInterface'
+import type { DataResponse } from '#/api/models/dataResponse'
+import { isMapDisplayableGeopointType } from './constants'
+import type { FailResponse, MongoQuery, SurveyRow } from './dataInterface'
 
 /**
  * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
@@ -183,6 +186,29 @@ export function formatSeconds(seconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(secondsLeftover).padStart(2, '0')}`
 }
 
+/*
+ * Formats seconds into a "<hours> hours, <minutes> minutes" structure, with "…" as a fallback
+ */
+export const formatTimeFromSeconds = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+
+  if (hours && !minutes) {
+    return t('##hours## hours').replace('##hours##', String(hours))
+  } else if (hours && minutes) {
+    return t('##hours## hours, ##minutes## minutes')
+      .replace('##hours##', String(hours))
+      .replace('##minutes##', String(minutes))
+  } else if (!hours && minutes) {
+    return t('##minutes## minutes').replace('##minutes##', String(minutes))
+  } else if (!hours && !minutes) {
+    return t('##seconds## seconds').replace('##seconds##', String(seconds))
+  } else {
+    // Fallback for typescript, should never happen.
+    return '…'
+  }
+}
+
 export function formatRelativeTime(timeStr: string, localize = true): string {
   let myMoment = moment.utc(timeStr)
   if (localize) {
@@ -224,7 +250,7 @@ export function currentLang(): string {
   return cookies.get(LANGUAGE_COOKIE_NAME) || 'en'
 }
 
-interface LangObject {
+export interface LangObject {
   code: string
   name: string
 }
@@ -281,18 +307,37 @@ export function checkLatLng(geolocation: any[]) {
   }
 }
 
-export function validFileTypes() {
-  const VALID_ASSET_UPLOAD_FILE_TYPES = [
-    '.xls',
-    '.xlsx',
-    'application/xls',
-    'application/vnd.ms-excel',
-    'application/octet-stream',
-    'application/vnd.openxmlformats',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    '', // Keep this to fix issue with IE Edge sending an empty MIME type
-  ]
-  return VALID_ASSET_UPLOAD_FILE_TYPES.join(',')
+/**
+ * Helper function to parse the string array from a geopoint submission into an array of floating point coordinates for
+ * the map display
+ */
+export function parseLatLng(submission: DataResponse, selectedQuestion: string | null) {
+  // Safe to cast `null` as a string here as this will result in Array['undefined'] if there are no geopoint submissions
+  const coordinates: string[] = String(submission[selectedQuestion as string]).split(' ')
+
+  if (selectedQuestion && checkLatLng(coordinates)) {
+    return [Number.parseFloat(coordinates[0]), Number.parseFloat(coordinates[1]), 1]
+  } else {
+    return []
+  }
+}
+
+export function findFirstGeopoint(survey: SurveyRow[]) {
+  return survey.find((question) => isMapDisplayableGeopointType(question.type))
+}
+
+/**
+ * Use this with the Dropzone `accept` prop in places that allow uploading XLSForms.
+ */
+export function validFileTypes(): Accept {
+  return {
+    'application/vnd.ms-excel': ['.xls'],
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+    'application/xls': ['.xls'],
+    // Keep this to maintain compatibility with environments that report generic MIME.
+    'application/octet-stream': ['.xls', '.xlsx'],
+    'application/vnd.openxmlformats': ['.xlsx'],
+  }
 }
 
 export function escapeHtml(str: string): string {
@@ -406,6 +451,11 @@ export const truncateNumber = (decimal: number, decimalPlaces = 2) => Number.par
  * Standard method for converting seconds to minutes for billing purposes
  */
 export const convertSecondsToMinutes = (seconds: number) => Math.floor(truncateNumber(seconds / 60, 1))
+
+/**
+ * Rough estimate used for automatic transcription completion timing.
+ */
+export const getEstimatedTranscriptionDurationSeconds = (sourceSeconds: number) => Math.round(sourceSeconds * 0.5 + 10)
 
 /**
  * Generates a simple lowercase, underscored version of a string. Useful for
@@ -623,3 +673,20 @@ export function createDateQuery(startDate: string, endDate: string): MongoQuery[
 }
 
 export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) => setTimeout(() => resolve(), ms))
+
+/**
+ * Parses a jQuery XHR / FailResponse error and returns an HTML snippet
+ * describing the error, suitable for embedding in an alertify message.
+ */
+export function getErrorMessage(err: FailResponse): string {
+  if (err.responseJSON?.detail) {
+    return `<pre>${err.responseJSON.detail}</pre>`
+  }
+  if (err.responseJSON?.error) {
+    return `<pre>${err.responseJSON.error}</pre>`
+  }
+  if (err.responseText) {
+    return `<pre style='max-height: 200px;'>${err.responseText}</pre>`
+  }
+  return t('please check your connection and try again.')
+}

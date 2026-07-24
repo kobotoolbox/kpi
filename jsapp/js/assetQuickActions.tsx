@@ -18,119 +18,58 @@ import sessionStore from '#/stores/session'
 import { actions } from './actions'
 import { renderJSXMessage } from './alertify'
 import assetUtils from './assetUtils'
+import { openAssetTagsModal } from './components/AssetTagsModal'
 import myLibraryStore from './components/library/myLibraryStore'
 import { userCan } from './components/permissions/utils'
 import { ASSET_TYPES, MODAL_TYPES } from './constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from './dataInterface'
-import { router, routerIsActive } from './router/legacy'
+import { openFormLanguagesModal } from './project/FormLanguagesManager'
+import { router } from './router/legacy'
 import { ROUTES } from './router/routerConstants'
-import { stores } from './stores'
-import { notify, renderCheckbox } from './utils'
+import { isAnyLibraryRoute } from './router/routerUtils'
+import { notify } from './utils'
 
+/** Opens the correct builder route for the current asset context. */
 export function openInFormBuilder(uid: string) {
-  if (routerIsActive(ROUTES.LIBRARY)) {
+  if (isAnyLibraryRoute()) {
     router!.navigate(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid))
   } else {
     router!.navigate(ROUTES.FORM_EDIT.replace(':uid', uid))
   }
 }
 
+/**
+ * Shows the destructive delete confirmation flow and deletes the asset if confirmed.
+ */
 export function deleteAsset(
-  assetOrUid: AssetResponse | ProjectViewAsset | string,
-  name: string,
+  asset: AssetResponse | ProjectViewAsset,
+  _name: string,
   callback?: (deletedAssetUid: string) => void,
+  onFail?: () => void,
 ) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
 
-  const safeName = escape(name)
-
-  const dialog = alertify.dialog('confirm')
-  const deployed = asset.has_deployment
-  let msg
-  let onshow
-  const onok = () => {
-    actions.resources.deleteAsset(
-      { uid: asset.uid, assetType: asset.asset_type },
-      {
-        onComplete: () => {
-          notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
-          if (typeof callback === 'function') {
-            callback(asset.uid)
-          }
-        },
+  actions.resources.deleteAsset(
+    { uid: asset.uid, assetType: asset.asset_type },
+    {
+      onComplete: () => {
+        notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel))
+        if (typeof callback === 'function') {
+          callback(asset.uid)
+        }
       },
-    )
-  }
-
-  if (deployed) {
-    msg = `${t('You are about to permanently delete this form.')}`
-    if (asset.deployment__submission_count !== 0) {
-      msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`
-    }
-    msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}`
-    msg += `${renderCheckbox(
-      'dt3',
-      t('I understand that if I delete this project I will not be able to recover it.'),
-      true,
-    )}`
-
-    onshow = () => {
-      const okBtn = dialog.elements.buttons.primary.firstChild as HTMLElement
-      const $els = $('.alertify-toggle input')
-
-      okBtn.setAttribute('disabled', 'true')
-      $els.each(function () {
-        $(this).prop('checked', false)
-      })
-
-      $els.change(() => {
-        okBtn.removeAttribute('disabled')
-        $els.each(function () {
-          if (!$(this).prop('checked')) {
-            okBtn.setAttribute('disabled', 'true')
-          }
-        })
-      })
-    }
-  } else if (asset.asset_type !== ASSET_TYPES.survey.id) {
-    msg = t('You are about to permanently delete this item from your library.')
-  } else {
-    msg = t('You are about to permanently delete this draft.')
-  }
-  const opts = {
-    title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
-    message: msg,
-    labels: {
-      ok: t('Delete'),
-      cancel: t('Cancel'),
+      onFail: () => {
+        onFail?.()
+      },
     },
-    onshow: onshow,
-    onok: onok,
-    oncancel: () => {
-      dialog.destroy()
-      $('.alertify-toggle input').prop('checked', false)
-    },
-  }
-  dialog.set(opts).show()
+  )
 }
 
 /** Displays a confirmation popup before archiving. */
 export function archiveAsset(
-  assetOrUid: AssetResponse | ProjectViewAsset | string,
+  asset: AssetResponse | ProjectViewAsset,
   callback?: (response: DeploymentResponse) => void,
 ) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
   // TODO: stop using alertify here, use KoboPrompt
   const dialog = alertify.dialog('confirm')
   const opts = {
@@ -161,15 +100,9 @@ export function archiveAsset(
 
 /** Displays a confirmation popup before unarchiving. */
 export function unarchiveAsset(
-  assetOrUid: AssetResponse | ProjectViewAsset | string,
+  asset: AssetResponse | ProjectViewAsset,
   callback?: (response: DeploymentResponse) => void,
 ) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
   // TODO: stop using alertify here, use KoboPrompt
   const dialog = alertify.dialog('confirm')
   const opts = {
@@ -198,13 +131,7 @@ export function unarchiveAsset(
 }
 
 /** Creates a duplicate of an asset. */
-export function cloneAsset(assetOrUid: AssetResponse | ProjectViewAsset | string) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
+export function cloneAsset(asset: AssetResponse | ProjectViewAsset) {
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
 
   let newName
@@ -351,16 +278,16 @@ export function cloneAssetAsTemplate(sourceUid: string, sourceName: string) {
 }
 
 /** To be used when creating a project from template. */
-export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
-  _cloneAssetAsNewType({
-    sourceUid: sourceUid,
-    sourceName: sourceName,
-    targetType: ASSET_TYPES.survey.id,
-    promptTitle: t('Create new project from this template'),
-    promptMessage: t('Enter the name of the new project.'),
+export function cloneAssetAsSurvey(sourceUid: string) {
+  // Open the NEW_FORM modal with the template pre-selected
+  // This ensures that metadata is properly collected during project creation
+  pageState.showModal({
+    type: MODAL_TYPES.NEW_FORM,
+    initialTemplateUid: sourceUid,
   })
 }
 
+/** Removes a shared asset from the current user's workspace. */
 export function removeAssetSharing(uid: string) {
   const dialog = alertify.dialog('confirm')
   const opts = {
@@ -450,6 +377,9 @@ function _redeployAsset(asset: AssetResponse | ProjectViewAsset, callback?: (res
   dialog.set(opts).show()
 }
 
+/**
+ * Deploys a survey for the first time or re-deploys an existing deployment.
+ */
 export function deployAsset(
   asset: AssetResponse | ProjectViewAsset,
   callback?: (response: DeploymentResponse) => void,
@@ -480,21 +410,13 @@ export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
  * receive `uid` and will fetch all data by itself, or be given all the data
  * up front via `asset` parameter.
  */
-export function manageAssetLanguages(uid: string, asset?: AssetResponse) {
-  pageState.showModal({
-    type: MODAL_TYPES.FORM_LANGUAGES,
-    assetUid: uid,
-    asset: asset,
-  })
+export function manageAssetLanguages(asset: AssetResponse) {
+  openFormLanguagesModal(asset)
 }
 
-export function manageAssetEncryption(uid: string) {
-  pageState.showModal({ type: MODAL_TYPES.ENCRYPT_FORM, assetUid: uid })
-}
-
-/** Opens a modal for modifying asset tags (also editable in Details Modal). */
+/** Opens the Mantine tags editor used for project and library assets. */
 export function modifyAssetTags(asset: AssetResponse | ProjectViewAsset) {
-  pageState.showModal({ type: MODAL_TYPES.ASSET_TAGS, asset: asset })
+  openAssetTagsModal(asset)
 }
 
 /**

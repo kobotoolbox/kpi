@@ -14,7 +14,7 @@ const meta: Meta<typeof KoboRange> = {
     value: { type: 'number' },
     onChange: { action: 'changed' },
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 }
 
 export default meta

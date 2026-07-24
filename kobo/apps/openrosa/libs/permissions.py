@@ -32,17 +32,21 @@ def remove_perm(perm: str, user: 'settings.AUTH_USER_MODEL', obj):
 def get_xform_ids_for_user(
     user: 'settings.AUTH_USER_MODEL', perm: str = PERM_VIEW_ASSET
 ) -> list[int]:
-    from kobo.apps.openrosa.apps.logger.models.xform import XForm
     from kpi.utils.object_permission import (
         get_objects_for_user as kpi_get_objects_for_user,
     )
 
-    # By default kpi.utils.object_permissions.get_objects_for_user works for Asset model
+    # XForms used to rely on their own permission system, with Django Guardian,
+    # but now delegate to KPI's ObjectPermission via the related `asset`.
+    # ⚠️ Projects created in legacy KoboCAT and not yet synced to KPI will be excluded.
     qs_assets = kpi_get_objects_for_user(user, [perm])
-    uids = list(qs_assets.values_list('uid', flat=True))
-    xform_ids = list(
-        XForm.objects.filter(kpi_asset_uid__in=uids).values_list('id', flat=True)
-    )
+    xform_ids = [
+        xid
+        for xid in qs_assets.filter(date_deployed__isnull=False)
+        .values_list('_deployment_data__backend_response__formid', flat=True)
+        .order_by()
+        if xid is not None
+    ]
     return xform_ids
 
 

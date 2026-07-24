@@ -6,6 +6,9 @@ from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
 
+from kobo.apps.long_running_migrations.exceptions import (
+    LongRunningMigrationDependencyError,
+)
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
 
@@ -29,7 +32,7 @@ class LongRunningMigration(AbstractTimeStampedModel):
     name = models.CharField(max_length=255, unique=True)
     status = models.CharField(
         default=LongRunningMigrationStatus.CREATED,
-        choices=LongRunningMigrationStatus.choices,
+        choices=LongRunningMigrationStatus,
         max_length=20,
     )
     error = models.TextField(null=True)
@@ -68,11 +71,27 @@ class LongRunningMigration(AbstractTimeStampedModel):
             # Let's continue in the next round — this task took too long to
             # complete in a single run.
             return
+        except LongRunningMigrationDependencyError as e:
+            # A required predecessor migration is not yet complete; retry on
+            # the next Celery beat cycle without marking this one as failed.
+            logging.warning(f'LongRunningMigration.execute(): dependency not met — {e}')
+            self.attempts -= 1
+            self.save(update_fields=['attempts', 'date_modified'])
+            return
         except Exception as e:
             # Log the error and update the status to 'failed'
-            logging.error(f'LongRunningMigration.execute(): {str(e)}')
+            error = str(e)
+            logging.error(f'LongRunningMigration.execute(): {error}')
+            retry_errors = [
+                'another command is already in progress',
+                'sending query failed',
+                "can't change 'autocommit' now",
+                'connection in transaction status ACTIVE',
+            ]
+            if any(retry_error in error for retry_error in retry_errors):
+                return
             self.status = LongRunningMigrationStatus.FAILED
-            self.error = str(e)
+            self.error = error
             self.save(update_fields=['status', 'date_modified', 'error'])
             return
 

@@ -1,4 +1,5 @@
 import copy
+from typing import Optional
 
 import jsonschema
 from django.conf import settings
@@ -6,9 +7,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
-from django.db.models.functions import Cast, Concat, Trunc
+from django.db.models.functions import Cast, Coalesce, Concat, Trunc
 from django.utils import timezone
 
+from hub.models import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
@@ -60,6 +62,7 @@ ANONYMOUS_USER_PERMISSION_ACTIONS = {
 
 class AuditType(models.TextChoices):
     ACCESS = 'access'
+    ADMIN_INTERFACE = 'admin-interface'
     PROJECT_HISTORY = 'project-history'
     DATA_EDITING = 'data-editing'
     USER_MANAGEMENT = 'user-management'
@@ -78,7 +81,16 @@ class AuditLog(models.Model):
     # Shadow models do not have content types related to this db.
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
-    object_id = models.BigIntegerField()
+    # Backed by the `object_id_char` column added in migration 0019 to avoid a
+    # full table rewrite (the original `object_id` bigint column still exists).
+    # Historical rows have NULL here; use Coalesce('object_id', Cast(
+    # 'object_id_legacy', CharField())) when querying across old and new rows.
+    object_id = models.CharField(max_length=255, null=True, db_column='object_id_char')
+    # Read-only pointer to the original bigint column retained for historical
+    # rows written before migration 0019. Never write to this field directly.
+    object_id_legacy = models.BigIntegerField(
+        db_column='object_id', null=True, editable=False
+    )
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
@@ -90,7 +102,7 @@ class AuditLog(models.Model):
     user_uid = models.CharField(
         db_index=True, max_length=UUID_LENGTH + 1
     )  # 1 is prefix length
-    log_type = models.CharField(choices=AuditType.choices, db_index=True)
+    log_type = models.CharField(choices=AuditType, db_index=True)
 
     class Meta:
         indexes = [
@@ -114,7 +126,17 @@ class AuditLog(models.Model):
         update_fields=None,
     ):
         if not self.user_uid:
-            self.user_uid = self.user.extra_details.uid
+            if self.user_id:
+                # Try to get `extra_details` from memory to avoid an extra query
+                if not (extra_details := getattr(self.user, 'extra_details', None)):
+                    # In rare cases, a user may be missing their `extra_details`
+                    # profile so to avoid crashes, create it if it does not exist
+                    extra_details, _ = ExtraUserDetail.objects.get_or_create(
+                        user_id=self.user_id
+                    )
+                self.user_uid = extra_details.uid
+            else:
+                self.user_uid = ''
 
         super().save(
             force_insert=force_insert,
@@ -147,20 +169,32 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
         # remove any attempt to set fields that should
         # always be the same on an access log
         self.remove_common_fields_and_warn('access', kwargs)
-        action = kwargs.pop('action', None)
-        if action is not None:
+        action = kwargs.pop('action', AuditAction.AUTH)
+        if action not in [AuditAction.AUTH, AuditAction.AUTH_FAILED]:
             logging.warning(f'Ignoring attempt to set {action=} on access log')
-        user = kwargs.pop('user')
+            action = AuditAction.AUTH
+
+        object_id = None
+        user_uid = ''
+        if user := kwargs.pop('user', None):
+            object_id = user.pk
+            user_uid = (
+                ExtraUserDetail.objects.values_list('uid', flat=True)
+                .filter(user=user)
+                .first()
+                or ''
+            )
+
         return super().create(
             # set the fields that are always the same for access logs,
             # pass along the rest to the original constructor
             app_label=User._meta.app_label,
             model_name=User._meta.model_name,
-            action=AuditAction.AUTH,
+            action=action,
             log_type=AuditType.ACCESS,
             user=user,
-            object_id=user.id,
-            user_uid=user.extra_details.uid,
+            object_id=object_id,
+            user_uid=user_uid,
             **kwargs,
         )
 
@@ -200,7 +234,25 @@ class AccessLogManager(models.Manager, IgnoreCommonFieldsMixin):
             # adding 'group_key' in the values lets us group submissions
             # for performance and clarity, ignore things like action and log_type,
             # which are the same for all audit logs
-            .values('user__username', 'object_id', 'user_uid', 'group_key')
+            .annotate(
+                # Migration 0019 moved object_id from a bigint column to a new
+                # varchar column (object_id_char) to avoid a blocking table
+                # rewrite. Historical rows have NULL in object_id_char and their
+                # original integer value in the legacy object_id bigint column.
+                # Coalesce ensures GROUP BY works correctly across both.
+                # TODO remove Coalesce, see https://linear.app/kobotoolbox/issue/DEV-2013/remove-object-id-legacy-from-auditlog-model-added-by-dev-2012  # noqa
+                effective_object_id=Coalesce(
+                    'object_id',
+                    Cast('object_id_legacy', output_field=models.CharField()),
+                ),
+            )
+            .values(
+                'user__username',
+                'effective_object_id',
+                'user_uid',
+                'group_key',
+                'action',
+            )
             .annotate(
                 # include the number of submissions per group
                 # will be '1' for everything else
@@ -230,21 +282,12 @@ class AccessLog(AuditLog):
         proxy = True
 
     @staticmethod
-    def create_from_request(
+    def _get_auth_metadata(
         request,
-        user=None,
-        authentication_type: str = None,
-        extra_metadata: dict = None,
+        authentication_type: Optional[str],
+        logged_in_user: Optional[User],
+        is_successful: bool,
     ):
-        """
-        Create an access log for a request, assigned to either the given user or
-        request.user if not supplied
-
-        Note: Data passed in extra_metadata will override default values for the
-        same key
-        """
-        logged_in_user = user or request.user
-
         # django-loginas will keep the superuser as the _cached_user while request.user
         # is set to the new one sometimes there won't be a cached user at all,
         # mostly in tests
@@ -260,7 +303,8 @@ class AccessLog(AuditLog):
         )
         # a regular login may have an anonymous user as _cached_user, ignore that
         user_changed = (
-            initial_user
+            is_successful
+            and initial_user
             and initial_user.is_authenticated
             and initial_user.id != logged_in_user.id
         )
@@ -275,7 +319,11 @@ class AccessLog(AuditLog):
         elif is_loginas:
             # third option: loginas
             auth_type = ACCESS_LOG_LOGINAS_AUTH_TYPE
-        elif hasattr(logged_in_user, 'backend') and logged_in_user.backend is not None:
+        elif (
+            is_successful
+            and hasattr(logged_in_user, 'backend')
+            and logged_in_user.backend is not None
+        ):
             # fourth option: the backend that authenticated the user
             auth_type = logged_in_user.backend
         else:
@@ -294,10 +342,63 @@ class AccessLog(AuditLog):
         if is_loginas:
             metadata['initial_user_uid'] = initial_user.extra_details.uid
             metadata['initial_user_username'] = initial_user.username
+
+        return metadata
+
+    @staticmethod
+    def create_from_request(
+        request,
+        user=None,
+        authentication_type: str = None,
+        extra_metadata: dict = None,
+    ):
+        """
+        Create an access log for a request, assigned to either the given user or
+        request.user if not supplied
+
+        Note: Data passed in extra_metadata will override default values for the
+        same key
+        """
+        logged_in_user = user or request.user
+        metadata = AccessLog._get_auth_metadata(
+            request, authentication_type, logged_in_user, is_successful=True
+        )
         # add any other metadata the caller may want
         if extra_metadata is not None:
             metadata.update(extra_metadata)
         return AccessLog.objects.create(user=logged_in_user, metadata=metadata)
+
+    @staticmethod
+    def create_failed_from_request(
+        request,
+        username,
+    ):
+        """
+        Create an access log for a failed login request
+        """
+        if request is None:
+            return
+
+        metadata = AccessLog._get_auth_metadata(
+            request,
+            authentication_type=None,
+            logged_in_user=None,
+            is_successful=False,
+        )
+        metadata['attempted_username'] = username
+        user_id = (
+            User.objects.filter(username=username)
+            .exclude(pk=settings.ANONYMOUS_USER_ID)
+            .values_list('id', flat=True).first()
+            if username
+            else None
+        )
+
+        return AccessLog.objects.create(
+            user_id=user_id,
+            metadata=metadata,
+            action=AuditAction.AUTH_FAILED,
+        )
 
 
 class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
@@ -405,7 +506,6 @@ class ProjectHistoryLog(AuditLog):
             'submission-validation-status': cls._create_from_submission_request,
             'assetsnapshot-submission-openrosa': cls._create_from_submission_request,
             'submissions': cls._create_from_submission_request,
-            'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
             'submission-supplement': cls._create_from_submission_extra_request,
             'advanced-features-list': cls._create_from_question_advanced_feature_request,  # noqa
@@ -668,7 +768,17 @@ class ProjectHistoryLog(AuditLog):
                     metadata=metadata,
                 )
             )
+        # No transaction.atomic(): update_last_project_activity is a
+        # supplementary write — wrapping it with bulk_create would roll back
+        # audit entries if the activity update fails.
         ProjectHistoryLog.objects.bulk_create(logs)
+
+        # Track activity for the submitter/editor and the form owner so that
+        # inactivity queries can detect cross-user submission activity without
+        # querying the Instance table (which lives in a separate database).
+        if logs:
+            user_ids = {user.id, request.asset.owner.id}
+            ExtraUserDetail.update_last_project_activity(user_ids)
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
@@ -701,20 +811,35 @@ class ProjectHistoryLog(AuditLog):
         }
         for question_xpath, actions in request_data.items():
             for action, action_data in actions.items():
+                # adding transcriptions, translations, or manual QA responses
+                # falls under "modify_qa_data"
                 log_action = AuditAction.MODIFY_QA_DATA
-                if action == Action.AUTOMATIC_BEDROCK_QUAL:
-                    # automatic QA requests have more metadata and a different action
+                # un/verifying QA data has different actions
+                if (
+                    action in [Action.AUTOMATIC_BEDROCK_QUAL, Action.MANUAL_QUAL]
+                    and 'verified' in action_data
+                ):
+                    if action_data['verified']:
+                        log_action = (
+                            AuditAction.VERIFY_MANUAL_QA_DATA
+                            if action == Action.MANUAL_QUAL
+                            else AuditAction.VERIFY_AUTOMATIC_QA_DATA
+                        )
+                    else:
+                        log_action = (
+                            AuditAction.UNVERIFY_MANUAL_QA_DATA
+                            if action == Action.MANUAL_QUAL
+                            else AuditAction.UNVERIFY_AUTOMATIC_QA_DATA
+                        )
+                # automatic QA response is also a different action
+                elif action == Action.AUTOMATIC_BEDROCK_QUAL:
+                    llm_info = getattr(request, 'llm_response', {})
+                    # automatic QA requests have more metadata
                     log_action = AuditAction.MODIFY_AUTOMATIC_QA_DATA
-                    llm_info = request.llm_response
                     if 'error' in llm_info:
                         metadata['llm'] = {'error': llm_info['error']}
                     else:
-                        model = llm_info['model']
-                        metadata['llm'] = {
-                            'model': model.model_id,
-                            'input_tokens': model.get_input_tokens(llm_info['body']),
-                            'output_tokens': model.get_output_tokens(llm_info['body']),
-                        }
+                        metadata['llm'] = {**llm_info}
                 ProjectHistoryLog.objects.create(
                     user=request.user,
                     object_id=request.asset.id,

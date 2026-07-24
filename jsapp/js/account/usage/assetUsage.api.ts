@@ -25,7 +25,7 @@ const ORG_ASSET_USAGE_URL = '/api/v2/organizations/:organization_id/asset_usage/
 
 export async function getOrgAssetUsage(
   limit: number,
-  offset: number,
+  start: number,
   organizationId: string,
   order?: ProjectsTableOrder,
 ) {
@@ -33,7 +33,7 @@ export async function getOrgAssetUsage(
 
   const params = new URLSearchParams({
     limit: limit.toString(),
-    offset: offset.toString(),
+    start: start.toString(),
   })
 
   if (order?.fieldName && order.direction && (order.direction === 'ascending' || order.direction === 'descending')) {

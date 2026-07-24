@@ -1,16 +1,10 @@
-import { http, HttpResponse } from 'msw'
-import { endpoints } from '#/api.endpoints'
-import type { EnvironmentResponse } from '../envStore'
+import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
 
 /**
- * Mock API for environment config. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Production-like environment configuration for testing.
+ * Contains complete lists of countries, languages, and sectors that the UI depends on.
  */
-const environmentMock = http.get<never, never, EnvironmentResponse>(endpoints.ENVIRONMENT, () =>
-  HttpResponse.json(environmentResponse),
-)
-export default environmentMock
-
-const environmentResponse: EnvironmentResponse = {
+const environmentResponse = {
   terms_of_service_url: '',
   privacy_policy_url: '',
   source_code_url: 'https://github.com/kobotoolbox/',
@@ -337,9 +331,8 @@ const environmentResponse: EnvironmentResponse = {
   mfa_localized_help_text:
     '<p>If you cannot access your authenticator app, please enter one of your backup codes instead. If you cannot access those either, then you will need to request assistance by contacting <a href="mailto:support@kobo.local">support@kobo.local</a>.</p>',
   mfa_enabled: true,
-  mfa_per_user_availability: false,
-  mfa_has_availability_list: false,
   mfa_code_length: 6,
+  superuser_auth_enforcement: true,
   enable_password_entropy_meter: true,
   enable_custom_password_guidance_text: false,
   custom_password_localized_help_text:
@@ -361,6 +354,7 @@ const environmentResponse: EnvironmentResponse = {
       label: 'Description',
     },
   ],
+  extra_project_metadata_fields: [],
   user_metadata_fields: [
     {
       name: 'name',
@@ -424,7 +418,8 @@ const environmentResponse: EnvironmentResponse = {
     },
   ],
   social_apps: [],
-  asr_mt_features_enabled: false,
+  // Note: this is needed to be `true` for all bulk processing related stories to work
+  asr_mt_features_enabled: true,
   submission_placeholder: '%SUBMISSION%',
   project_history_log_lifespan: 60,
   stripe_public_key: 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM',
@@ -432,3 +427,10 @@ const environmentResponse: EnvironmentResponse = {
   open_rosa_server: 'http://kc.kobo.local',
   allow_self_account_deletion: true,
 }
+
+/**
+ * Mock API for environment config using Orval-generated handler with production-like data.
+ * Use it in Storybook tests in `parameters.msw.handlers[]`.
+ */
+const environmentMock = getApiV2EnvironmentRetrieveMockHandler(environmentResponse)
+export default environmentMock

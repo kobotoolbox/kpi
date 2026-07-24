@@ -54,7 +54,7 @@ echo -e '\n\n## Job: npm-test'
 # Uncomment lines below until this comment (https://github.com/kobotoolbox/kpi/pull/5593#discussion_r1999067788)
 # is addressed.
 # echo -e '\n\n### Step: Setup Node'
-# echo 'Disclaimer: CI installs a matrix of v20.18.1 and 22, this script checks against v20.18.1.'
+# echo 'Disclaimer: CI installs a matrix of v20.19.0 and 22, this script checks against v20.19.0.'
 # npm run hint
 # echo 'Disclaimer: CI caches node_modules, this script does not.'
 
@@ -62,7 +62,7 @@ echo -e '\n\n### Step: Install system dependencies for playwright'
 npx playwright install-deps
 
 echo -e '\n\n### Step: Install JavaScript dependencies'
-npm install
+npm ci
 git diff
 git diff-index --exit-code HEAD # Fail on uncommitted package-lock.json changes
 
@@ -101,11 +101,9 @@ echo -e '\n\n## Job: Pytest'
 
 echo -e '\n\n### Step: Update translations'
 if [ -n "$GOSU_USER" ]; then
-    gosu "$GOSU_USER" git submodule init
-    gosu "$GOSU_USER" git submodule update --remote
     gosu "$GOSU_USER" python manage.py compilemessages -v 0
 else
-    git submodule init && git submodule update --remote && python manage.py compilemessages -v 0
+    python manage.py compilemessages -v 0
 fi
 echo -e '\n\n### Step: Test back-end code'
 echo 'Disclaimer: CI uses pytest with coverage option, this script does not.'

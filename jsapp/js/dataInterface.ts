@@ -5,6 +5,7 @@
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
+import $ from 'jquery'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetLockingProfileDefinition } from '#/components/locking/lockingConstants'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
@@ -24,7 +25,7 @@ import type { AnyRowTypeName, AssetFileType, AssetTypeName, FormStyleName } from
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
-import type { ResponseQualActionParams } from './api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from './api/models/responseManualQualActionParams'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
 import type {
@@ -40,19 +41,20 @@ import { type LangString, recordEntries } from './utils'
 interface AssetsRequestData {
   q?: string
   limit?: number
-  offset?: number
+  start?: number
   parent?: string
   all_public?: boolean
   ordering?: string
   metadata?: string
   collections_first?: string
   status?: string
+  current_user_permissions_only?: boolean
 }
 
 interface AssetsMetadataRequestData {
   q?: string
   limit?: number
-  offset?: number
+  start?: number
   parent?: string
   all_public?: boolean
   ordering?: string
@@ -122,6 +124,8 @@ export interface CreateImportRequest {
   assetUid?: string
   /** Causes the imported XLSForm to be added as Library Item */
   library?: boolean
+  /** Desired asset type for the imported XLSForm (e.g. 'template') */
+  desired_type?: string
 }
 
 export interface ImportResponse {
@@ -181,9 +185,9 @@ export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingRespo
  */
 export interface SubmissionAttachment {
   download_url: string
-  download_large_url: string
-  download_medium_url: string
-  download_small_url: string
+  download_large_url?: string
+  download_medium_url?: string
+  download_small_url?: string
   mimetype: string
   filename: string
   media_file_basename: string
@@ -195,9 +199,18 @@ export interface SubmissionAttachment {
 
 interface TransxObject {
   languageCode: LanguageCode
-  value: string
-  dateCreated: string
-  dateModified: string
+  value?: string | null
+  /** transcripts only */
+  regionCode?: string | null
+  /**
+   * When true, indicates the transcript/translation is complete but hasn't been
+   * manually accepted yet. When pendingReview is true, the value field is omitted.
+   */
+  pendingReview?: boolean
+
+  // TODO: see if these below should be removed
+  dateCreated?: string
+  dateModified?: string
   /** The source of the `value` text. */
   engine?: string
   /** The history of edits. */
@@ -218,13 +231,6 @@ export interface SubmissionSupplementalDetails {
     qual?: { [uuid: string]: SubmissionAnalysisResponse }
   }
 }
-
-/**
- * This is a completely empty object.
- *
- * We can't use `{}`, as it means "any non-nullish value". We are using `Record<string, never>` as the closes thing.
- */
-export type SubmissionSupplementalDetailsEmpty = Record<string, never>
 
 /**
  * Value of a property found in `SubmissionResponse`, it can be either a built
@@ -265,11 +271,9 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
   _attachments: SubmissionAttachment[]
   // TODO: when does this happen to be array of nulls?
   _geolocation: number[] | null[]
-  _notes: string[]
   _status: string
   _submission_time: string
   _submitted_by: string | null
-  _tags: string[]
   // If submission was validated, this would be a proper response, otherwise it's empty object
   _validation_status: ValidationStatusResponse | {}
   _version_?: string
@@ -294,7 +298,7 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
    * be either empty object (i.e. given submission doesn't have any NLP features
    * applied to it) or a proper `SubmissionSupplementalDetails` object.
    */
-  _supplementalDetails?: SubmissionSupplementalDetails | SubmissionSupplementalDetailsEmpty
+  _supplementalDetails?: SubmissionSupplementalDetails
 }
 
 interface AssignablePermissionRegular {
@@ -332,6 +336,8 @@ export interface LabelValuePair {
 
 export interface PartialPermissionFilterByUsers {
   _submitted_by?: string | { $in: string[] }
+  /** Allow additional question response filters */
+  [key: string]: unknown
 }
 
 export type PartialPermissionFilterByResponses = Record<string, string>
@@ -423,6 +429,8 @@ export interface ExportSettingSettings {
   query?: MongoQuery
   /** Only for GeoJSON */
   flatten?: boolean
+  /** Allow additional export setting properties */
+  [key: string]: unknown
 }
 
 /**
@@ -443,6 +451,12 @@ export interface MongoQuery<T = any> {
 }
 
 /**
+ * Some properties of SurveyRow can be translated to multiple languages, that is why there is an array. If for given
+ * language there is no translation, a `null` value will be placed in there
+ */
+export type SureveyRowOrChoiceTranslatableProp = Array<string | null>
+
+/**
  * It represents a question from the form, a group start/end or a piece of
  * a more complex question type.
  * Interesting fact: a `SurveyRow` with the least amount of properties is group
@@ -455,8 +469,8 @@ export interface SurveyRow {
   $xpath?: string
   $autoname?: string
   calculation?: string
-  label?: string[]
-  hint?: string[]
+  label?: SureveyRowOrChoiceTranslatableProp
+  hint?: SureveyRowOrChoiceTranslatableProp
   name?: string
   required?: boolean
   // It's here because when form has `kobomatrix` row, Form Builder's "Save" button is sending a request that contains
@@ -475,18 +489,22 @@ export interface SurveyRow {
   select_from_list_name?: string
   /** Used by `file` type to list accepted extensions */
   'body::accept'?: string
+  /** Allow additional properties for XLSForm custom fields */
+  [key: string]: unknown
 }
 
 export interface SurveyChoice {
   $autovalue: string
   $kuid: string
-  label?: string[]
+  label?: SureveyRowOrChoiceTranslatableProp
   list_name: string
   name: string
   'media::image'?: string[]
   // Possibly deprecated? Most code doesn't use it at all, old reports code was
   // using it as fallback.
   $autoname?: string
+  /** Allow additional properties for XLSForm custom fields */
+  [key: string]: unknown
 }
 
 export interface AssetContentSettings {
@@ -499,7 +517,7 @@ export interface AssetContentSettings {
   'kobo--lock_all'?: boolean
   /** The name of the locking profile applied to whole form. */
   'kobo--locking-profile'?: string
-  default_language?: string
+  default_language?: string | null
 }
 
 /**
@@ -511,8 +529,7 @@ export interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
   choices?: SurveyChoice[]
-  // TODO: verify if array case is ever happening
-  settings?: AssetContentSettings | AssetContentSettings[]
+  settings?: AssetContentSettings
   translated?: string[]
   /** A list of languages. */
   translations?: Array<string | null>
@@ -528,25 +545,27 @@ interface AssetSummary {
   columns?: string[]
   lock_all?: boolean
   lock_any?: boolean
-  languages?: Array<LangString | null>
+  // Backend returns languages as string[] (never null elements)
+  // Note: OpenAPI schema correctly specifies string[], this legacy type matches it now
+  languages?: LangString[]
   row_count?: number
   default_translation?: string | null
   /** To be used in a warning about missing or poorly written question names. */
   name_quality?: {
-    ok: number
-    bad: number
-    good: number
-    total: number
-    firsts: {
+    ok?: number
+    bad?: number
+    good?: number
+    total?: number
+    firsts?: {
       ok?: {
-        name: string
-        index: number
-        label: string[]
+        name?: string
+        index?: number
+        label?: string[]
       }
       bad?: {
-        name: string
-        index: number
-        label: string[]
+        name?: string
+        index?: number
+        label?: string[]
       }
     }
   }
@@ -569,6 +588,7 @@ interface AssetAdvancedFeatures {
   qual?: {
     qual_survey?: AnalysisQuestionSchema[]
   }
+  _version?: string
 }
 
 export interface TableSortBySetting {
@@ -600,13 +620,17 @@ export interface AssetTableSettings extends AssetTableSettingsObject {
 
 export interface AssetSettings {
   sector?: LabelValuePair | null | {}
-  country?: LabelValuePair | LabelValuePair[] | null
+  // Backend schema specifies array, but old assets (pre-Dec 2022) may still have
+  // single object if not updated since standardization or if migration was skipped.
+  // Runtime: LabelValuePair[] | LabelValuePair | null, but typed as array for new code.
+  country?: LabelValuePair[] | null
   description?: string
   'data-table'?: AssetTableSettings
   organization?: string
   collects_pii?: LabelValuePair | null
   operational_purpose?: LabelValuePair | null
   country_codes?: string[]
+  extra_metadata?: Record<string, string | string[] | null>
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
@@ -614,7 +638,7 @@ export interface AssetRequestObject {
   // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null
-  settings: AssetSettings
+  settings?: AssetSettings
   asset_type: AssetTypeName
   report_styles: AssetResponseReportStyles
   report_custom: AssetResponseReportCustom
@@ -630,7 +654,7 @@ export interface AssetRequestObject {
     enabled?: boolean
     fields?: string[]
   }
-  paired_data?: string
+  paired_data: string
   advanced_features?: AssetAdvancedFeatures
 }
 
@@ -640,24 +664,26 @@ export type AssetDownloads = Array<{
 }>
 
 export interface AnalysisFormJsonField {
-  label: string
+  /** Two letter language code or missing for qualitative analysis questions */
+  language?: string
+  // Path to form question
+  source: string
+  // TODO: improve orval to properly include `qualVerification` and 'qualSource'
+  type: ResponseManualQualActionParams['type'] | 'transcript' | 'translation' | 'qualVerification' | 'qualSource'
   name: string
   dtpath: string
-  type: ResponseQualActionParams['type'] | 'transcript' | 'translation'
-  /** Two letter language code or ?? for qualitative analysis questions */
-  language: string | '??'
-  source: string
-  xpath: string
-  settings:
-    | {
-        mode: string
-        engine: string
-      }
-    | '??'
-  path: string[]
+  /**
+   * Doesn't appear for transcript and translation, for qual questions this is the question label, for source or
+   * verified it is a stringified name
+   */
+  label?: string | 'source' | 'verified'
+  // This appears for single and multi choice qual questions
   choices?: Array<{
     uuid: string
-    labels: { [key: string]: string }
+    labels: {
+      _default: string
+      [key: string]: string
+    }
   }>
 }
 
@@ -672,23 +698,26 @@ export interface AssetResponse extends AssetRequestObject {
   owner: string
   owner__username: string
   owner_label: string
-  date_created: string
+  // Always present in GET responses (Django auto-populates on creation)
+  // OpenAPI marks optional because POST/PATCH don't require it (has default value)
+  date_created?: string
   last_modified_by: string | null
+  created_by: string | null
+  settings: AssetSettings
   summary: AssetSummary
-  date_modified: string
-  date_deployed?: string
+  // Always present in GET responses (Django auto-updates on save)
+  // OpenAPI marks optional because POST/PATCH don't require it (has default value)
+  date_modified?: string
+  date_deployed?: string | null
   version_id: string | null
-  version__content_hash?: string | null
-  version_count?: number
+  version__content_hash: string | null
+  version_count: number
   has_deployment: boolean
   deployed_version_id: string | null
-  analysis_form_json?: {
-    engines: {
-      [engingeName: string]: { details: string }
-    }
+  analysis_form_json: {
     additional_fields: AnalysisFormJsonField[]
   }
-  deployed_versions?: {
+  deployed_versions: {
     count: number
     next: string | null
     previous: string | null
@@ -700,7 +729,7 @@ export interface AssetResponse extends AssetRequestObject {
       date_modified: string
     }>
   }
-  deployment__links?: {
+  deployment__links: {
     url?: string
     single_url?: string
     single_once_url?: string
@@ -711,7 +740,7 @@ export interface AssetResponse extends AssetRequestObject {
     single_once_iframe_url?: string
   }
   deployment__active: boolean
-  deployment__data_download_links?: {
+  deployment__data_download_links: {
     csv_legacy: string
     csv: string
     geojson?: string
@@ -721,18 +750,21 @@ export interface AssetResponse extends AssetRequestObject {
     xls: string
     zip_legacy: string
   }
+  deployment__uuid: string | null
+  deployment__encrypted: boolean
   deployment__submission_count: number
-  deployment_status: 'archived' | 'deployed' | 'draft'
+  deployment__last_submission_time: string | null
+  deployment_status: 'archived' | 'deployed' | 'draft' | '-'
   downloads: AssetDownloads
-  embeds?: Array<{
+  embeds: Array<{
     format: string
     url: string
   }>
-  xform_link?: string
-  hooks_link?: string
+  xform_link: string
+  hooks_link: string
   uid: string
   kind: string
-  xls_link?: string
+  xls_link: string
   assignable_permissions: AssignablePermission[]
   /**
    * A list of all permissions (their codenames) that current user has in
@@ -740,7 +772,7 @@ export interface AssetResponse extends AssetRequestObject {
    * that user and ones coming from the Project View definition.
    */
   effective_permissions: Array<{ codename: PermissionCodename }>
-  exports?: string
+  exports: string
   data: string
   children: {
     count: number
@@ -800,6 +832,7 @@ export interface ProjectViewAsset {
   date_created: string
   date_deployed: string | null
   last_modified_by: string | null
+  created_by: string | null
   owner: string
   owner__username: string
   owner_label: string
@@ -814,7 +847,7 @@ export interface ProjectViewAsset {
   has_deployment: boolean
   deployment__active: boolean
   deployment__submission_count: number
-  deployment_status: 'archived' | 'deployed' | 'draft'
+  deployment_status: 'archived' | 'deployed' | 'draft' | '-'
 }
 
 export interface AssetsResponse extends PaginatedResponse<AssetResponse> {
@@ -1149,6 +1182,12 @@ export const dataInterface: DataInterface = {
   apiToken: (): JQuery.jqXHR<{ token: string }> =>
     $ajax({
       url: `${ROOT_URL}/token/?format=json`,
+    }),
+
+  deleteApiToken: (): JQuery.jqXHR<void> =>
+    $ajax({
+      url: `${ROOT_URL}/token/?format=json`,
+      method: 'DELETE',
     }),
 
   getUser: (userUrl: string): JQuery.jqXHR<UserResponse> =>
@@ -1633,6 +1672,7 @@ export const dataInterface: DataInterface = {
     // TODO https://github.com/kobotoolbox/kpi/issues/1983
     // force set limit to get hacky "all" assets
     searchData.limit = 200
+    searchData.current_user_permissions_only = true
     return $.ajax({
       url: `${ROOT_URL}/api/v2/assets/`,
       dataType: 'json',
@@ -1648,11 +1688,11 @@ export const dataInterface: DataInterface = {
     const searchData: AssetsRequestData = {
       q: predefinedQuery,
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
-      offset: 0,
+      start: 0,
     }
 
     if (params.page && params.pageSize) {
-      searchData.offset = params.page * params.pageSize
+      searchData.start = params.page * params.pageSize
     }
 
     if (params.searchPhrase) {
@@ -1691,11 +1731,11 @@ export const dataInterface: DataInterface = {
     const searchData: AssetsMetadataRequestData = {
       q: predefinedQuery,
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
-      offset: 0,
+      start: 0,
     }
 
     if (params.page && params.pageSize) {
-      searchData.offset = params.page * params.pageSize
+      searchData.start = params.page * params.pageSize
     }
 
     if (params.searchPhrase) {
@@ -1792,21 +1832,6 @@ export const dataInterface: DataInterface = {
       data: JSON.stringify(data),
       dataType: 'json',
       contentType: 'application/json',
-    })
-  },
-
-  listTags(data: { q: string }): JQuery.jqXHR<any> {
-    return $ajax({
-      url: `${ROOT_URL}/tags/`,
-      method: 'GET',
-      data: Object.assign(
-        {
-          // If this number is too big (e.g. 9999) it causes a deadly timeout
-          // whenever Form Builder displays the aside Library search
-          limit: 100,
-        },
-        data,
-      ),
     })
   },
 

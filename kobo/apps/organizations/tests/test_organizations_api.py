@@ -14,7 +14,12 @@ from rest_framework import status
 
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
+from kpi.constants import (
+    ASSET_TYPE_SURVEY,
+    PERM_ADD_SUBMISSIONS,
+    PERM_MANAGE_ASSET,
+    PERM_VIEW_ASSET,
+)
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.utils.mixins import (
@@ -483,6 +488,108 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(asset_list_url)
         assert response.data['count'] == 0
 
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_403_FORBIDDEN),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_count_only_organization_assets(self, username, expected_response_code):
+        user = User.objects.get(username=username)
+        # clear out assets
+        Asset.objects.all().delete()
+        Asset.objects.create(
+            owner=self.someuser,
+            name='draft',
+            content={}
+        )
+        deployed = Asset.objects.create(
+            owner=self.someuser,
+            name='deployed',
+            content={}
+        )
+        deployed.deploy(backend='mock', active=True)
+        archived = Asset.objects.create(
+            owner=self.someuser,
+            name='archived',
+            content={}
+        )
+        archived.deploy(backend='mock', active=False)
+        # should not be counted
+        Asset.objects.create(
+            owner=self.bob,
+            name='external',
+            content={},
+        )
+        url = reverse(
+            self._get_endpoint('organizations-asset-counts'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        self.client.force_login(user)
+        res = self.client.get(url)
+        assert res.status_code == expected_response_code
+        if expected_response_code == 200:
+            response_data = res.data
+            assert response_data['deployed_count'] == 1
+            assert response_data['draft_count'] == 1
+            assert response_data['archived_count'] == 1
+
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_403_FORBIDDEN),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_asset_minimal_list_permissions(self, username, expected_response_code):
+        user = User.objects.get(username=username)
+        url = reverse(
+            self._get_endpoint('organizations-asset-minimal-list'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        self.client.force_login(user)
+        res = self.client.get(url)
+        assert res.status_code == expected_response_code
+
+    def test_asset_minimal_list_returns_only_org_assets(self):
+        Asset.objects.all().delete()
+        draft = Asset.objects.create(
+            owner=self.someuser,
+            name='draft',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        deployed = Asset.objects.create(
+            owner=self.someuser,
+            name='deployed',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        deployed.deploy(backend='mock', active=True)
+        # external asset, should not appear
+        Asset.objects.create(
+            owner=self.bob,
+            name='external',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        url = reverse(
+            self._get_endpoint('organizations-asset-minimal-list'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        self.client.force_login(self.someuser)
+        res = self.client.get(url)
+
+        assert res.status_code == status.HTTP_200_OK
+        assert 'count' not in res.data
+        assert 'next' in res.data
+        assert 'previous' in res.data
+        results = res.data['results']
+        assert len(results) == 2
+        for result in results:
+            assert set(result.keys()) == {'uid', 'name', 'deployment_status'}
+        result_uids = {r['uid'] for r in results}
+        assert draft.uid in result_uids
+        assert deployed.uid in result_uids
+
 
 @ddt
 class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
@@ -570,7 +677,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         ('someuser', False, status.HTTP_403_FORBIDDEN),
         ('anotheruser', True, status.HTTP_204_NO_CONTENT),
         ('anotheruser', False, status.HTTP_404_NOT_FOUND),
-        ('alice', True, status.HTTP_403_FORBIDDEN),
+        ('alice', True, status.HTTP_204_NO_CONTENT),
         ('alice', False, status.HTTP_404_NOT_FOUND),
         ('bob', True, status.HTTP_404_NOT_FOUND),
         ('bob', False, status.HTTP_204_NO_CONTENT),
@@ -680,7 +787,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
             kwargs={'uid_asset': asset_uid},
         )
         response = self.client.post(url, data=payload)
-        response.status_code == expected_status_code
+        assert response.status_code == expected_status_code
 
 
 class OrganizationAdminsDataApiTestCase(
@@ -793,6 +900,7 @@ class OrganizationAdminsRestServiceApiTestCase(
     This test suite shares logic with `HookTestCase` and uses the mixin to call the
     same code for consistency and reusability.
     """
+    URL_NAMESPACE = URL_NAMESPACE
 
     def setUp(self):
         super().setUp()
@@ -817,7 +925,7 @@ class OrganizationAdminsRestServiceApiTestCase(
         assert response.data['results'][0]['uid'] == hook.uid
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,

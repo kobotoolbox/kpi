@@ -1,0 +1,553 @@
+// Note:
+// After extensive experimentation, we found it is practically impossible to have Storybook Docs serve different assets
+// (or submissions) for different stories in this file. Storybook's args/controls system, MSW handler registration,
+// and Docs rendering pipeline all conspire to make per-story API mocks unreliable or outright broken. Docs view will
+// often reuse the same args, reset objects, or ignore per-story MSW handlers, leading to/ asset/submission mismatches
+// or default/empty data. This file is intentionally minimal and focused to avoid these problems.
+
+import { Box } from '@mantine/core'
+import type { Decorator } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import React, { useEffect } from 'react'
+import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import subscriptionStore from '#/account/subscriptionStore'
+import { actions } from '#/actions'
+import { ActionIdEnum } from '#/api/models/actionIdEnum'
+import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
+import {
+  getApiV2AssetsRetrieveMockHandler,
+  getApiV2AssetsRetrieveResponseMock,
+} from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { QuestionTypeName } from '#/constants'
+import assetDataFactory from '#/endpoints/assetData.factory'
+import assetDataMock from '#/endpoints/assetData.mocks'
+import bulkActionsMock from '#/endpoints/bulkActions.mocks'
+import meMock from '#/endpoints/me.mocks'
+import organizationMock from '#/endpoints/organization.mocks'
+import * as organizationServiceUsageFactory from '#/endpoints/organizationServiceUsage.factory'
+import organizationServiceUsageMock from '#/endpoints/organizationServiceUsage.mocks'
+import subscriptionMock from '#/endpoints/subscription.mocks'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
+import { ROUTES } from '#/router/routerConstants'
+import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
+import DataTableWrapper from './DataTableWrapper'
+
+// Orval-generated Asset and legacy AssetResponse have minor structural differences.
+// Remaining differences are intentional (backward compatibility in legacy type):
+// - Optional fields (date_created, date_modified) marked optional for POST/PATCH, always present in GET
+// - summary.name_quality has all optional properties for flexibility
+// - files structure has minor type differences that don't affect runtime
+//
+// These casts are safe because both types represent the same runtime data structure
+import type { AssetResponse } from '#/dataInterface'
+
+// Storybook preview root does not have a fixed height by default, which breaks flexbox stretching for table header
+// cells. By adding a wrapper with a fixed height to the story, we ensure that `.rt-tr` and `.rt-th` flex children can
+// stretch to fill the row height — just like in the real UI.
+const fixedHeightDecorator: Decorator = (Story) => <Box h={480}>{Story()}</Box>
+
+// Decorator to show the LimitNotifications banner in stories.
+// The banner has a guard chain: it only shows if subscriptionStore.isInitialised is true.
+// Problem: the store is a MobX singleton that normally gets filled via jQuery AJAX,
+// but MSW (our Storybook mock layer) only intercepts fetch calls, not jQuery.
+// Solution: manually populate the store on mount and clean up on unmount.
+// Only add this decorator to stories that need to show limit banners.
+const initializeSubscriptionStoreDecorator: Decorator = (Story) => {
+  useEffect(() => {
+    subscriptionStore.isInitialised = true
+    subscriptionStore.isPending = false
+    subscriptionStore.activeSubscriptions = [
+      {
+        id: 'sub_mock123',
+        status: 'active',
+        items: [
+          {
+            id: 'si_mock123',
+            quantity: 1,
+            price: {
+              id: 'price_mock123',
+              nickname: 'Community Plan Monthly',
+              currency: 'usd',
+              type: 'recurring',
+              unit_amount: 0,
+              human_readable_price: '$0',
+              active: true,
+              recurring: {
+                interval: 'month',
+                aggregate_usage: 'sum',
+                interval_count: 1,
+                usage_type: 'licensed',
+              },
+              metadata: {},
+              transform_quantity: null,
+              product: {
+                id: 'prod_mock123',
+                name: 'Community Plan',
+                description: 'Community plan for small teams',
+                type: 'service',
+                metadata: {
+                  product_type: 'plan',
+                },
+              },
+            },
+          },
+        ],
+      } as any, // Type assertion since we're manually setting MobX store
+    ]
+    subscriptionStore.planResponse = subscriptionStore.activeSubscriptions.filter(
+      (sub) => sub.items[0]?.price.product.metadata?.product_type === 'plan',
+    )
+    subscriptionStore.addOnsResponse = []
+    subscriptionStore.canceledPlans = []
+
+    // Cleanup is important: subscriptionStore is a singleton, so if we don't reset it
+    // when navigating away, the next story inherits this state (showing the banner when it shouldn't).
+    return () => {
+      subscriptionStore.isInitialised = false
+      subscriptionStore.isPending = false
+      subscriptionStore.activeSubscriptions = []
+      subscriptionStore.planResponse = []
+      subscriptionStore.addOnsResponse = []
+      subscriptionStore.canceledPlans = []
+    }
+  }, [])
+
+  return Story()
+}
+
+// Decorator to set the hash for the current asset UID, so that (deprecated) `getCurrentPath` works.
+// This replaces the previous loader. It reads the UID from the story's args.asset.uid (if present).
+// This ensures each story sets the correct hash for its asset, regardless of which asset is used.
+const setAssetHashDecorator: Decorator = (Story, context) => {
+  const args = context.args as { asset?: AssetResponse }
+  const assetUid = args.asset?.uid
+  if (assetUid) {
+    window.location.hash = ROUTES.FORM_TABLE.replace(':uid', assetUid)
+  }
+  return Story()
+}
+
+// DRY loader to load the asset for the current story
+const loadAssetForStory = async ({ args }: { args: any }) => {
+  const assetUid = args?.asset?.uid
+  if (assetUid) {
+    actions.resources.loadAsset({ id: assetUid })
+  }
+  return {}
+}
+
+const getRouterParams = (assetUid: string) =>
+  reactRouterParameters({
+    location: {
+      // We need route with uid, because `tableStore` uses `getRouteAssetUid`
+      pathParams: { uid: assetUid },
+    },
+    routing: { path: ROUTES.FORM_TABLE },
+  })
+
+// Minimal asset and submissions for simple stories
+
+// Default story asset and submissions
+const minimalAsset = getApiV2AssetsRetrieveResponseMock({
+  uid: 'audio-asset-uid',
+  name: 'Audio form',
+  deployment__active: true,
+  has_deployment: true,
+  settings: {},
+  map_styles: {},
+  content: {
+    schema: '1',
+    survey: [
+      {
+        type: QuestionTypeName.audio,
+        $kuid: 'snd1',
+        label: ['Record a sound'],
+        $xpath: 'Record_a_sound',
+        required: false,
+        $autoname: 'Record_a_sound',
+      },
+    ],
+    settings: {},
+    translated: ['label'],
+    translations: [null],
+  },
+  effective_permissions: [{ codename: 'change_submissions' }],
+}) as unknown as AssetResponse
+
+const minimalSubmissions = [
+  assetDataFactory(1, {
+    Record_a_sound: 'test1.mp3',
+    _attachments: [
+      {
+        download_url: './test1.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test1.mp3',
+        media_file_basename: 'test1.mp3',
+        uid: 'tst1',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+  }),
+  assetDataFactory(2, {
+    Record_a_sound: 'test2.mp3',
+    _attachments: [
+      {
+        download_url: './test2.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test2.mp3',
+        media_file_basename: 'test2.mp3',
+        uid: 'tst2',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+  }),
+]
+
+// ProcessingColumn story asset and submissions (unique UID)
+const processingAsset = getApiV2AssetsRetrieveResponseMock({
+  uid: 'audio-asset-uid-processing',
+  name: 'Audio form with processing',
+  deployment__active: true,
+  has_deployment: true,
+  settings: {},
+  map_styles: {},
+  content: {
+    schema: '1',
+    survey: [
+      {
+        type: QuestionTypeName.audio,
+        $kuid: 'snd1',
+        label: ['Record a sound'],
+        $xpath: 'Record_a_sound',
+        required: false,
+        $autoname: 'Record_a_sound',
+      },
+    ],
+    settings: {},
+    translated: ['label'],
+    translations: [null],
+  },
+  analysis_form_json: {
+    additional_fields: [
+      {
+        name: 'transcript_en',
+        type: 'transcript',
+        source: 'Record_a_sound',
+        dtpath: 'Record_a_sound/transcript_en',
+        language: 'en',
+      },
+      {
+        name: 'translation_fr',
+        type: 'translation',
+        source: 'Record_a_sound',
+        dtpath: 'Record_a_sound/translation_fr',
+        language: 'fr',
+      },
+      {
+        name: 'translation_es',
+        type: 'translation',
+        source: 'Record_a_sound',
+        dtpath: 'Record_a_sound/translation_es',
+        language: 'es',
+      },
+    ],
+  },
+  effective_permissions: [{ codename: 'change_submissions' }],
+}) as unknown as AssetResponse
+
+const processingSubmissions = [
+  assetDataFactory(1, {
+    Record_a_sound: 'test1.mp3',
+    _attachments: [
+      {
+        download_url: './test1.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test1.mp3',
+        media_file_basename: 'test1.mp3',
+        uid: 'tst1',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+    _supplementalDetails: {
+      Record_a_sound: {
+        // Unaccepted automatic transcript (English) - shows Review button
+        transcript: {
+          languageCode: 'en',
+          pendingReview: true,
+          regionCode: null,
+        },
+        // Automatic translations (French accepted, Spanish pending)
+        translation: {
+          fr: {
+            languageCode: 'fr',
+            value: 'Ceci est une traduction automatique acceptée.',
+          },
+          es: {
+            languageCode: 'es',
+            pendingReview: true,
+          },
+        },
+      },
+    },
+  }),
+  assetDataFactory(2, {
+    Record_a_sound: 'test2.mp3',
+    _attachments: [
+      {
+        download_url: './test2.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test2.mp3',
+        media_file_basename: 'test2.mp3',
+        uid: 'tst2',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+  }),
+  assetDataFactory(3, {
+    Record_a_sound: 'test3.mp3',
+    _attachments: [
+      {
+        download_url: './test3.mp3',
+        mimetype: 'audio/x-m3a',
+        filename: 'uu/attachments/test3.mp3',
+        media_file_basename: 'test3.mp3',
+        uid: 'tst3',
+        is_deleted: false,
+        question_xpath: 'Record_a_sound',
+      },
+    ],
+  }),
+]
+const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+  status: BulkActionResponseStatusEnum.complete,
+  action_id: ActionIdEnum.automatic_google_translation,
+  question_xpath: 'Record_a_sound',
+  submission_uuids: [processingSubmissions[1]['meta/rootUuid']],
+  submission_statuses: [
+    {
+      uuid: processingSubmissions[1]['meta/rootUuid'],
+      status: BulkActionSubmissionStatusResponseStatusEnum.complete,
+      error: null,
+    },
+  ],
+  params: { language: 'fr' },
+  created_by: {
+    username: 'zefir',
+  },
+})
+const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+  status: BulkActionResponseStatusEnum.in_progress,
+  action_id: ActionIdEnum.automatic_google_translation,
+  question_xpath: 'Record_a_sound',
+  submission_uuids: [processingSubmissions[2]['meta/rootUuid']],
+  submission_statuses: [
+    {
+      uuid: processingSubmissions[2]['meta/rootUuid'],
+      status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+      error: null,
+    },
+  ],
+  params: { language: 'es' },
+  created_by: {
+    username: 'other-user',
+  },
+})
+
+const meta: Meta<typeof DataTableWrapper> = {
+  title: 'Components/DataTableWrapper',
+  component: DataTableWrapper,
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          '⚠️ **Docs view does NOT work reliably for these stories due to per-story MSW handler and asset/submission isolation issues. Use single stories (Default, and Processing Column) please.** Also note that many interactive elements of the table are not mocked and will not work.',
+      },
+    },
+    a11y: { disable: true },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(),
+        subscriptionMock(),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [withRouter, queryClientDecorator, fixedHeightDecorator, setAssetHashDecorator],
+  // No global loaders - use per-story loader for asset isolation. With global loader stories stop working and I already
+  // spent too much time debugging this.
+}
+
+export default meta
+type Story = StoryObj<typeof DataTableWrapper>
+
+export const Default: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { disable: true },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(),
+        subscriptionMock(),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  loaders: [loadAssetForStory],
+}
+
+export const ProcessingColumnAndBanner: Story = {
+  args: {
+    asset: processingAsset,
+  },
+  parameters: {
+    a11y: { disable: true },
+    reactRouter: getRouterParams(processingAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(processingAsset),
+        assetDataMock(processingAsset.uid, processingSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(),
+        subscriptionMock(),
+        bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
+      ],
+    },
+  },
+  decorators: [withBulkProcessingBannerSessionReset],
+  loaders: [loadAssetForStory],
+}
+
+export const ProcessingAndLimitsBannersTogether: Story = {
+  args: {
+    asset: processingAsset,
+  },
+  parameters: {
+    a11y: { disable: true },
+    reactRouter: getRouterParams(processingAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(processingAsset),
+        assetDataMock(processingAsset.uid, processingSubmissions),
+        organizationMock(),
+        // Shows both BulkProcessingBanner (active jobs) + OverLimitBanner (exceeded submission limit)
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
+        subscriptionMock(),
+        bulkActionsMock(processingAsset.uid, { results: [processingBulkAction, processingBulkAction2] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator, withBulkProcessingBannerSessionReset],
+  loaders: [loadAssetForStory],
+}
+
+// Stories for testing LimitNotifications banner
+export const StorageLimitWarningBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { disable: true },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageWarning()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
+  loaders: [loadAssetForStory],
+}
+
+export const StorageExceededBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { disable: true },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageExceeded()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
+  loaders: [loadAssetForStory],
+}
+
+export const SubmissionExceededBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { disable: true },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
+  loaders: [loadAssetForStory],
+}
+
+export const StorageAndSubmissionExceededBanner: Story = {
+  args: {
+    asset: minimalAsset,
+  },
+  parameters: {
+    a11y: { disable: true },
+    reactRouter: getRouterParams(minimalAsset.uid),
+    msw: {
+      handlers: [
+        meMock,
+        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        assetDataMock(minimalAsset.uid, minimalSubmissions),
+        organizationMock(),
+        organizationServiceUsageMock(undefined, organizationServiceUsageFactory.bothExceeded()),
+        bulkActionsMock(minimalAsset.uid, { results: [] }),
+      ],
+    },
+  },
+  decorators: [initializeSubscriptionStoreDecorator],
+  loaders: [loadAssetForStory],
+}

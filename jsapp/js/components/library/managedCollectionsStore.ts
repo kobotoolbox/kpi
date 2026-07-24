@@ -14,6 +14,9 @@ export interface ManagedCollectionsStoreData {
   collections: AssetResponse[]
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class ManagedCollectionsStore extends Reflux.Store {
   isInitialised = false
 
@@ -100,13 +103,13 @@ class ManagedCollectionsStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted({ uid, assetType }: DeleteAssetResponse) {
-    if (assetType === ASSET_TYPES.collection.id) {
-      const index = findIndex(this.data.collections, { uid: uid })
-      if (index !== -1) {
-        this.data.collections.splice(index, 1)
-        this.trigger(this.data)
-      }
+  onDeleteAssetCompleted({ uid }: DeleteAssetResponse) {
+    // We don't care here what type of asset is coming in, as we are guarding
+    // the data cleanup with uid
+    const index = findIndex(this.data.collections, { uid: uid })
+    if (index !== -1) {
+      this.data.collections.splice(index, 1)
+      this.trigger(this.data)
     }
   }
 
@@ -126,7 +129,11 @@ class ManagedCollectionsStore extends Reflux.Store {
   }
 }
 
-/** This store keeps an up to date list of managed collections. */
+/**
+ * This store keeps an up to date list of managed collections.
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const managedCollectionsStore = new ManagedCollectionsStore()
 managedCollectionsStore.init()
 

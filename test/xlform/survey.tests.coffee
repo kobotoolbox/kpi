@@ -256,3 +256,131 @@ do ->
     it 'add passed string to result', () ->
       survey = new $model.Survey()
       expect(survey.prepCols [['a', 'b'], ['b', 'c'], ['e', 'a', 'de']], exclude: ['de'], add: ['abc']).toEqual ['a', 'b', 'c', 'e', 'abc']
+
+  describe 'survey.tests: insertSurvey with library items (DEV-2269)', () ->
+    beforeEach ->
+      # Survey.loadDict() might trigger warnings during survey construction, and
+      # we want clean test output
+      window.xlfHideWarnings = true
+      # Create a "library" survey with a select_one question
+      @librarySurvey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one fruits', name: 'fruit', label: 'Pick a fruit'}
+        ],
+        choices: [
+          {list_name: 'fruits', name: 'tomato', label: 'Tomato'},
+          {list_name: 'fruits', name: 'cucumber', label: 'Cucumber'},
+          {list_name: 'fruits', name: 'corn', label: 'Corn'}
+        ]
+      })
+      # Create a target survey to insert into
+      @targetSurvey = new $model.Survey()
+
+    afterEach -> window.xlfHideWarnings = false
+
+    it 'preserves choice list options after insertSurvey and serialization', () ->
+      # Insert the library question
+      @targetSurvey.insertSurvey(@librarySurvey, 0)
+
+      # Serialize to JSON and reload (simulates save/reload)
+      surveyJSON = @targetSurvey.toFlatJSON()
+      reloadedSurvey = $model.Survey.loadDict(JSON.parse(JSON.stringify(surveyJSON)))
+
+      # Check that options are preserved
+      reloadedRow = reloadedSurvey.rows.at(0)
+      choiceList = reloadedRow.getList()
+      expect(choiceList).toBeDefined()
+      expect(choiceList.options.length).toBe(3)
+      expect(choiceList.options.at(0).get('name')).toBe('tomato')
+      expect(choiceList.options.at(1).get('name')).toBe('cucumber')
+      expect(choiceList.options.at(2).get('name')).toBe('corn')
+
+    it 'gives each inserted select question a unique choice list', () ->
+      # Insert the library question twice
+      @targetSurvey.insertSurvey(@librarySurvey, 0)
+      @targetSurvey.insertSurvey(@librarySurvey, 1)
+
+      # Get both rows
+      firstRow = @targetSurvey.rows.at(0)
+      secondRow = @targetSurvey.rows.at(1)
+
+      # Check they have different list names
+      firstListName = firstRow.get('type').get('listName')
+      secondListName = secondRow.get('type').get('listName')
+      expect(firstListName).toBeDefined()
+      expect(secondListName).toBeDefined()
+      expect(firstListName).not.toBe(secondListName)
+
+      # Check they reference different list objects
+      firstList = firstRow.getList()
+      secondList = secondRow.getList()
+      expect(firstList).not.toBe(secondList)
+
+    it 'handles groups/blocks with nested select questions', () ->
+      # Create a library block containing a select question
+      # This simulates a more complex block from the library
+      blockContent = {
+        survey: [
+          {type: 'begin_group', name: 'my_group', label: 'My Group'},
+          {type: 'select_one colors', name: 'color', label: 'Pick a color'},
+          {type: 'text', name: 'other_text', label: 'Some text'},
+          {type: 'end_group'}
+        ],
+        choices: [
+          {list_name: 'colors', name: 'red', label: 'Red'},
+          {list_name: 'colors', name: 'blue', label: 'Blue'}
+        ]
+      }
+
+      libraryBlock = $model.Survey.loadDict(blockContent)
+
+      # Insert the block - it should have 1 group
+      @targetSurvey.insertSurvey(libraryBlock, 0)
+      expect(@targetSurvey.rows.length).toBe(1)
+
+      group = @targetSurvey.rows.at(0)
+      expect(group.constructor.key).toBe('group')
+
+      # The group should have 2 nested rows (select + text)
+      expect(group.rows.length).toBe(2)
+
+      # The first row should be the select question
+      selectRow = group.rows.at(0)
+      expect(selectRow.get('type').get('typeId')).toBe('select_one')
+
+      # It should have a choice list with options
+      choiceList = selectRow.getList()
+      expect(choiceList).toBeDefined()
+      expect(choiceList.options.length).toBe(2)
+      expect(choiceList.options.at(0).get('name')).toBe('red')
+      expect(choiceList.options.at(1).get('name')).toBe('blue')
+
+    it 'preserves options when library item uses separated type/select_from_list_name (API format)', () ->
+      # The API stores select questions in separated format:
+      #   {type: "select_one", select_from_list_name: "fruits"}
+      # rather than the combined format {type: "select_one fruits"}.
+      # This test ensures options are preserved through save/reload in that case.
+      apiFormatSurvey = $model.Survey.loadDict({
+        survey: [
+          {type: 'select_one', select_from_list_name: 'fruits', name: 'fruit', label: 'Pick a fruit'}
+        ],
+        choices: [
+          {list_name: 'fruits', name: 'tomato', label: 'Tomato'},
+          {list_name: 'fruits', name: 'cucumber', label: 'Cucumber'},
+          {list_name: 'fruits', name: 'corn', label: 'Corn'}
+        ]
+      })
+
+      @targetSurvey.insertSurvey(apiFormatSurvey, 0)
+
+      # Serialize to flat JSON (same as surveyToValidJson does) and reload
+      surveyJSON = @targetSurvey.toFlatJSON()
+      reloadedSurvey = $model.Survey.loadDict(JSON.parse(JSON.stringify(surveyJSON)))
+
+      reloadedRow = reloadedSurvey.rows.at(0)
+      choiceList = reloadedRow.getList()
+      expect(choiceList).toBeDefined()
+      expect(choiceList.options.length).toBe(3)
+      expect(choiceList.options.at(0).get('name')).toBe('tomato')
+      expect(choiceList.options.at(1).get('name')).toBe('cucumber')
+      expect(choiceList.options.at(2).get('name')).toBe('corn')

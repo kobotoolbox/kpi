@@ -9,5 +9,22 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { _DataResponseSupplementalDetailsOneOf } from './_dataResponseSupplementalDetailsOneOf'
+import type { _DataResponseSupplementalDetailsOneOfFive } from './_dataResponseSupplementalDetailsOneOfFive'
+import type { _DataResponseSupplementalDetailsOneOfFour } from './_dataResponseSupplementalDetailsOneOfFour'
+import type { _DataResponseSupplementalDetailsOneOfSix } from './_dataResponseSupplementalDetailsOneOfSix'
+import type { _DataResponseSupplementalDetailsOneOfThree } from './_dataResponseSupplementalDetailsOneOfThree'
+import type { _DataResponseSupplementalDetailsOneOfTwo } from './_dataResponseSupplementalDetailsOneOfTwo'
 
-export type _DataResponseSupplementalDetails = { [key: string]: unknown }
+/**
+ * Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects.
+ * @nullable
+ */
+export type _DataResponseSupplementalDetails =
+  | _DataResponseSupplementalDetailsOneOf
+  | _DataResponseSupplementalDetailsOneOfTwo
+  | _DataResponseSupplementalDetailsOneOfThree
+  | _DataResponseSupplementalDetailsOneOfFour
+  | _DataResponseSupplementalDetailsOneOfFive
+  | _DataResponseSupplementalDetailsOneOfSix
+  | null

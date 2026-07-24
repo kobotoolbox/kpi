@@ -1,5 +1,11 @@
 import type { Filter } from 'react-table'
-import { getRowName, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
+import {
+  getRowName,
+  getSurveyFlatPaths,
+  getVirtualSupplementalFieldsForBulkActions,
+  injectSupplementalRowsIntoListOfRows,
+} from '#/assetUtils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import {
   DROPDOWN_FILTER_QUESTION_TYPES,
@@ -23,6 +29,17 @@ import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
 
+const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
+  QUESTION_TYPES.audio.id,
+  QUESTION_TYPES['background-audio'].id,
+  QUESTION_TYPES.image.id,
+  QUESTION_TYPES.video.id,
+  QUESTION_TYPES.file.id,
+])
+
+/**
+ * Builds a human-readable Data Table column label
+ */
 export function getColumnLabel(
   asset: AssetResponse,
   key: string,
@@ -75,7 +92,19 @@ export function getColumnLabel(
       const dtpath = key.slice('_supplementalDetails/'.length)
       // FIXME: pass the entire object (or at least the label!) provided by
       // the back end through to this function, without doing all this nonsense
-      const analysisQuestion = asset.analysis_form_json?.additional_fields.filter((f) => f.dtpath === dtpath)[0]
+      const analysisQuestion = asset.analysis_form_json?.additional_fields.find((f) => f.dtpath === dtpath)
+
+      // Here we want to produce "Verified | Analysis question | Source question" type of label
+      if (analysisQuestion?.type === 'qualVerification') {
+        const parentQuestion = asset.analysis_form_json?.additional_fields.find(
+          (f) => f.dtpath === analysisQuestion.source,
+        )
+        if (parentQuestion?.label) {
+          return `${t('Verified')} | ${parentQuestion.label} | ${sourceQuestionLabel}`
+        }
+        return `${t('Verified')} | ${sourceQuestionLabel}`
+      }
+
       if (analysisQuestion?.label) {
         return `${analysisQuestion.label} | ${sourceQuestionLabel}`
       }
@@ -125,6 +154,9 @@ export function getColumnLabel(
   return label
 }
 
+/**
+ * Returns concatenated HXL tags for a column, or null when none exist
+ */
 export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   const colQuestion: SurveyRow | undefined = survey.find((question) => question.$autoname === key)
   if (!colQuestion || !colQuestion.tags) {
@@ -143,8 +175,213 @@ export function getColumnHXLTags(survey: SurveyRow[], key: string) {
   }
 }
 
+/**
+ * Finds the field name used for background audio, if the form has one
+ */
 export function getBackgroundAudioQuestionName(asset: AssetResponse): string | null {
   return asset?.content?.survey?.find((item) => item.type === QUESTION_TYPES['background-audio'].id)?.name || null
+}
+
+/**
+ * Selects a value for a Data Table column key from submission data.
+ *
+ * For repeat/group data, some submissions store answers under a parent path
+ * (e.g. `group_a/group_b`) rather than the full question key
+ * (`group_a/group_b/question`). This helper returns the closest matching
+ * container payload in such cases.
+ */
+export function selectNestedRow(row: SubmissionResponse, key: string, rootParentGroup: string | undefined) {
+  // Supplemental details should always use exact keys.
+  if (key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
+    return row[key]
+  }
+
+  // Prefer exact key lookup whenever available.
+  if (Object.prototype.hasOwnProperty.call(row, key)) {
+    return row[key]
+  }
+
+  // If exact key is missing, find the closest existing parent path.
+  // Example: key `group_a/group_b/question` with data stored at `group_a/group_b`.
+  const keyPathSegments = key.split('/')
+  for (let i = keyPathSegments.length - 1; i >= 1; i--) {
+    const parentPath = keyPathSegments.slice(0, i).join('/')
+    if (Object.prototype.hasOwnProperty.call(row, parentPath)) {
+      const parentValue = row[parentPath]
+
+      // Parent fallback is only valid for container-like values (repeat/group payloads).
+      // This avoids accidentally targeting an unrelated scalar from a shorter matching path.
+      if (Array.isArray(parentValue) || (typeof parentValue === 'object' && parentValue !== null)) {
+        return parentValue
+      }
+    }
+  }
+
+  // Backward-compatible fallback for root-level repeat groups.
+  if (rootParentGroup && Object.prototype.hasOwnProperty.call(row, rootParentGroup)) {
+    const rootParentValue = row[rootParentGroup]
+    if (Array.isArray(rootParentValue) || (typeof rootParentValue === 'object' && rootParentValue !== null)) {
+      return rootParentValue
+    }
+  }
+
+  return row[key]
+}
+
+/**
+ * Checks whether a value is meaningfully present in submission data
+ */
+function hasNonEmptyValue(value: unknown): boolean {
+  return value !== undefined && value !== null && value !== ''
+}
+
+/**
+ * Checks which path(s) attachment metadata links a basename to.
+ *
+ * Filename/value matches alone are unsafe for dedupe. We use
+ * `_attachments.question_xpath` to confirm whether evidence points to no path,
+ * one path, or both paths.
+ */
+function getAttachmentPathEvidence(
+  submission: SubmissionResponse,
+  legacyKey: string,
+  currentPath: string,
+  basename: string,
+): 'none' | 'single' | 'both' {
+  const matchingAttachments = (submission._attachments || []).filter(
+    (attachment) =>
+      !attachment.is_deleted &&
+      attachment.media_file_basename === basename &&
+      (attachment.question_xpath === legacyKey || attachment.question_xpath === currentPath),
+  )
+
+  const hasLegacyPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === legacyKey)
+  const hasCurrentPathAttachment = matchingAttachments.some((attachment) => attachment.question_xpath === currentPath)
+
+  if (hasLegacyPathAttachment && hasCurrentPathAttachment) {
+    return 'both'
+  }
+
+  if (hasLegacyPathAttachment || hasCurrentPathAttachment) {
+    return 'single'
+  }
+
+  return 'none'
+}
+
+/**
+ * Decides if a legacy attachment column is safe to drop.
+ *
+ * We only collapse stale/current columns when metadata strongly suggests they
+ * are the same field. Any conflict (different values or evidence on both
+ * paths) keeps the legacy column.
+ */
+export function shouldDropLegacyAttachmentColumn(
+  submissions: SubmissionResponse[],
+  legacyKey: string,
+  matchingCurrentPaths: string[],
+): boolean {
+  // Only collapse legacy path when there is strong evidence from attachment
+  // metadata that old/new keys mirror the same field.
+  // Keep the legacy key if values differ, or if attachment metadata indicates
+  // both paths are genuinely present.
+  let hasMirroredAttachmentEvidence = false
+
+  for (const submission of submissions) {
+    const legacyValue = submission[legacyKey]
+    if (!hasNonEmptyValue(legacyValue)) {
+      continue
+    }
+
+    // If this submission only has legacy data and no current-path value,
+    // dropping legacy would hide data from pre-rename submissions.
+    const hasAnyCurrentValue = matchingCurrentPaths.some((currentPath) => hasNonEmptyValue(submission[currentPath]))
+    if (!hasAnyCurrentValue) {
+      return false
+    }
+
+    for (const currentPath of matchingCurrentPaths) {
+      const currentValue = submission[currentPath]
+      if (!hasNonEmptyValue(currentValue)) {
+        continue
+      }
+
+      if (legacyValue !== currentValue) {
+        return false
+      }
+
+      const evidence = getAttachmentPathEvidence(submission, legacyKey, currentPath, String(legacyValue))
+      if (evidence === 'both') {
+        return false
+      }
+
+      if (evidence === 'single') {
+        hasMirroredAttachmentEvidence = true
+      }
+    }
+  }
+
+  return hasMirroredAttachmentEvidence
+}
+
+/**
+ * Indexes current attachment question paths by leaf question name.
+ *
+ * Old submissions may still contain stale paths from renamed groups. This map
+ * lets dedupe quickly find candidate current paths for a legacy key.
+ */
+function buildCurrentAttachmentPathsByLeaf(
+  asset: AssetResponse,
+  flatPaths: Record<string, string>,
+): Map<string, string[]> {
+  const currentAttachmentPathsByLeaf = new Map<string, string[]>()
+
+  asset.content?.survey?.forEach((row) => {
+    if (!ATTACHMENT_QUESTION_TYPES.has(row.type)) {
+      return
+    }
+
+    const rowName = getRowName(row)
+    const currentPath = flatPaths[rowName]
+    if (!currentPath) {
+      return
+    }
+
+    const existingPaths = currentAttachmentPathsByLeaf.get(rowName) || []
+    if (!existingPaths.includes(currentPath)) {
+      currentAttachmentPathsByLeaf.set(rowName, [...existingPaths, currentPath])
+    }
+  })
+
+  return currentAttachmentPathsByLeaf
+}
+
+/**
+ * Decides if a column should stay after stale attachment dedupe checks.
+ *
+ * Keeps `getAllDataColumns` readable by isolating the keep/drop decision for
+ * one column, including safety checks for missing submissions and no matches.
+ */
+function shouldKeepColumnAfterAttachmentDedupe(
+  key: string,
+  allColumns: string[],
+  currentAttachmentPathsByLeaf: Map<string, string[]>,
+  submissions?: SubmissionResponse[],
+): boolean {
+  const keyParts = key.split('/')
+  const leafName = keyParts[keyParts.length - 1]
+  const currentPaths = currentAttachmentPathsByLeaf.get(leafName)
+
+  if (!currentPaths || currentPaths.includes(key)) {
+    return true
+  }
+
+  const matchingCurrentPaths = currentPaths.filter((currentPath) => allColumns.includes(currentPath))
+  if (matchingCurrentPaths.length === 0 || !submissions || submissions.length === 0) {
+    return true
+  }
+
+  return !shouldDropLegacyAttachmentColumn(submissions, key, matchingCurrentPaths)
 }
 
 /**
@@ -157,7 +394,11 @@ export function getBackgroundAudioQuestionName(asset: AssetResponse): string | n
  *
  * NOTE: includes supplemental details columns (AKA processing columns).
  */
-export function getAllDataColumns(asset: AssetResponse, submissions?: SubmissionResponse[]) {
+export function getAllDataColumns(
+  asset: AssetResponse,
+  submissions?: SubmissionResponse[],
+  bulkActions?: BulkActionResponse[],
+) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content')
   }
@@ -192,6 +433,16 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
 
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
+
+  // Deduplicate stale attachment keys from old submissions when current schema
+  // has the same question under a different (usually renamed-group) path.
+  // Keep this conservative by collapsing only when old and current keys share
+  // a non-empty overlapping value in at least one submission.
+  const currentAttachmentPathsByLeaf = buildCurrentAttachmentPathsByLeaf(asset, flatPaths)
+
+  output = output.filter((key) =>
+    shouldKeepColumnAfterAttachmentDedupe(key, output, currentAttachmentPathsByLeaf, submissions),
+  )
 
   // exclude notes
   output = output.filter((key) => {
@@ -246,9 +497,8 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
   })
   output = output.filter((key) => excludedGroups.includes(key) === false)
 
-  // Handle supplemental details
-  output = injectSupplementalRowsIntoListOfRows(asset, output)
-
+  const virtualSupplementalFields = getVirtualSupplementalFieldsForBulkActions(bulkActions)
+  output = injectSupplementalRowsIntoListOfRows(asset, output, virtualSupplementalFields)
   return output
 }
 

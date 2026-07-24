@@ -1,12 +1,21 @@
 import React, { useState } from 'react'
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
+import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import { getProcessedFileLabel, getQuestionType } from '../common/utils'
 import { getAttachmentForProcessing } from '../transcript.utils'
 import StepBegin from './StepBegin'
@@ -17,6 +26,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  activeBulkActions: BulkActionResponse[]
   supplement: DataSupplementResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
@@ -26,22 +36,35 @@ export default function TranscriptCreate({
   asset,
   questionXpath,
   submission,
+  activeBulkActions,
   supplement,
   onUnsavedWorkChange,
   advancedFeatures,
 }: Props) {
   const [step, setStep] = useState<CreateSteps>(CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { billingPeriod } = useBillingPeriod()
 
   const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
     '##type##',
     getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
-  const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
+
+  const hasConflictingOngoingJob =
+    languageCode !== null &&
+    isConflictingOngoingJobForSubmission({
+      activeBulkActions,
+      actionType: 'transcript',
+      fieldXpath: questionXpath,
+      submissionUuid: getSubmissionRootUuid(submission),
+      selectedLanguage: languageCode,
+    })
+
+  const attachment = getAttachmentForProcessing(questionXpath, submission)
 
   function goBackToLanguageStep() {
-    // TODO HACKFIX: Because `LanguageSelector` is not a controlled component, the selected language inside of it and
-    // the one we have here might become out of sync. Let's ensure we clear it out when re-displaying language step)
+    // Clear the selected language when returning to the language selection step
     setLanguageCode(null)
     setStep(CreateSteps.Language)
   }
@@ -55,14 +78,18 @@ export default function TranscriptCreate({
         <StepSelectLanguage
           onBack={() => setStep(CreateSteps.Begin)}
           onNext={(selectedStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(selectedStep)}
+          onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
+          usageType={UsageLimitTypes.TRANSCRIPTION}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
-          suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
+          suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           titleOverride={languageSelectorTitle}
           singleManualButtonLabel={t('transcribe')}
+          disableManual={hasConflictingOngoingJob}
           disableAutomatic={
             !envStore.data.asr_mt_features_enabled || typeof attachment === 'string' || !!attachment.is_deleted
           }
+          showConflictingOngoingJobAlert={hasConflictingOngoingJob}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (
@@ -73,6 +100,7 @@ export default function TranscriptCreate({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
+          activeBulkActions={activeBulkActions}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
         />
@@ -84,9 +112,16 @@ export default function TranscriptCreate({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
           advancedFeatures={advancedFeatures}
         />
       )}
+      <NlpUsageLimitBlockModal
+        isModalOpen={isLimitBlockModalOpen}
+        usageType={UsageLimitTypes.TRANSCRIPTION}
+        dismissed={() => setIsLimitBlockModalOpen(false)}
+        interval={billingPeriod}
+      />
     </>
   )
 }

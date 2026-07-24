@@ -48,27 +48,11 @@
   },
   {
     "model": "subsequences.QuestionAdvancedFeature",
-    "pk": "qaf12345",
+    "pk": "qafmanualqual",
     "fields": {
       "question_xpath": "q1",
       "asset": 3,
       "action": "manual_qual",
-      "params": [
-        {
-          "type": "qualInteger",
-          "uuid": "a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0",
-          "labels": { "_default": "How many characters appear in the story?" }
-        }
-      ]
-    }
-  },
-  {
-    "model": "subsequences.QuestionAdvancedFeature",
-    "pk": "qafautomaticqual",
-    "fields": {
-      "question_xpath": "q1",
-      "asset": 3,
-      "action": "automatic_bedrock_qual",
       "params": [
         {
           "type": "qualInteger",
@@ -125,6 +109,29 @@
           "labels": {
             "_default": "Add any further remarks"
           }
+        }
+      ]
+    }
+  },
+  {
+    "model": "subsequences.QuestionAdvancedFeature",
+    "pk": "qafbedrockqual",
+    "fields": {
+      "question_xpath": "q1",
+      "asset": 3,
+      "action": "automatic_bedrock_qual",
+      "params": [
+        {
+          "uuid": "a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0"
+        },
+        {
+          "uuid": "b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374"
+        },
+        {
+          "uuid": "6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43"
+        },
+        {
+          "uuid": "3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3"
         }
       ]
     }

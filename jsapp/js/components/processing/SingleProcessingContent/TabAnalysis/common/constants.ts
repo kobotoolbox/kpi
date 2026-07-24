@@ -1,4 +1,4 @@
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
 import type { IconName } from '#/k-icons'
 
@@ -6,7 +6,7 @@ export const AUTO_SAVE_TYPING_DELAY = 3000
 
 // We need this singled out as const, because some other parts of code (not
 // related to Qualitative Analysis) need to exclude notes from output.
-export const QUAL_NOTE_TYPE: ResponseQualActionParams['type'] = 'qualNote'
+export const QUAL_NOTE_TYPE: ResponseManualQualActionParams['type'] = 'qualNote'
 
 interface AnalysisLabels {
   _default: string
@@ -35,9 +35,9 @@ interface AnalysisQuestionChoice {
 
 /** Analysis question definition base type containing all common properties. */
 export interface AnalysisQuestionBase {
-  type: ResponseQualActionParams['type']
+  type: ResponseManualQualActionParams['type']
   labels: AnalysisLabels
-  uuid: string
+  uuid?: string
   options?: AnalysisQuestionOptions
   /** The survey question that this analysis questions is for. */
   xpath: string
@@ -58,7 +58,7 @@ export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
 interface AnalysisResponseSelectXValue {
   labels: AnalysisLabels
   /** The `uuid` of selected `AnalysisQuestionChoice`. */
-  val: string
+  uuid: string
 } /**
  * A lot of options, because:
  * - `qualTags` returns `string[]` (`[]` for empty)
@@ -79,35 +79,35 @@ type AnalysisResponseValue =
  * This is the object that is returned from interacting with the data endpoint
  * (`/api/v2/assets/:uid/data`), it will be inside the `_supplementalDetails`
  * object for each appropiate submission. It's similar to `AnalysisResponse`,
- * but with more detailed `val` for `qualSelectOne` and `qualSelectMultiple`
+ * but with more detailed value for `qualSelectOne` and `qualSelectMultiple`
  * - containing both `uuid` and `labels` object.
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
   value: AnalysisResponseValue
-  // There can be a `scope` property here, but we have no use of it on FE
-  scope?: 'by_question#survey'
+  verified: boolean
+  source: string
 }
 
 /**
  * The definition is the object that tells us what kind of questions are
  * internally available for being created, e.g. a `qualInteger` question type.
  */
-export interface ResponseQualActionParamsDefinition {
-  type: ResponseQualActionParams['type']
+export interface ResponseManualQualActionParamsDefinition {
+  type: ResponseManualQualActionParams['type']
   label: string
   icon: IconName
   /** Tells the UI to display it in separate section in dropdown. */
   isAutomated?: boolean
   /** to see if all required data was provided. */
   additionalFieldNames?: Array<'keywords' | 'source' | 'choices'>
-  placeholder: ResponseQualActionParams
+  placeholder: ResponseManualQualActionParams
 }
 
 /**
  * Note: the order here matters - it influnces the order of the dropdown for
  * adding questions and possibly other UI elements.
  */
-export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
+export const ANALYSIS_QUESTION_TYPES: ResponseManualQualActionParamsDefinition[] = [
   {
     type: 'qualTags',
     label: t('Tags'),

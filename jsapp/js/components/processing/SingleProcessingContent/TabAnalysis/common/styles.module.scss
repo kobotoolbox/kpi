@@ -1,0 +1,11 @@
+// This uses a hack for creating a linear gradient border
+.responseBorderAI {
+  background: linear-gradient(0deg, white, white) padding-box, linear-gradient(90deg, #4266c6, var(--mantine-color-gray-7)) border-box;
+  background-color: red !important;
+  /* transparent border creates space for the gradient */
+  border: 1px solid transparent;
+}
+
+.responseBorderDefault {
+  border: 1px solid var(--mantine-color-gray-7);
+}

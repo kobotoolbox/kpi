@@ -1,8 +1,39 @@
-from django.db.models import F
+from django.db.models import Case, F, When
 
 from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_atomic
 from ...main.models import UserProfile
 from ..models import Instance, XForm
+
+
+def decrement_counters_after_deletion(
+    xform_id: int, user_id: int, count: int, storage_bytes: int = 0
+):
+    """
+    Decrement submission count and (optionally) storage bytes for both XForm
+    and UserProfile in two UPDATE queries.
+    """
+    sub_count_decrement = Case(
+        When(num_of_submissions__gte=count, then=F('num_of_submissions') - count),
+        default=0,
+    )
+    xform_fields = {'num_of_submissions': sub_count_decrement}
+    profile_fields = {
+        'num_of_submissions': Case(
+            When(num_of_submissions__gte=count, then=F('num_of_submissions') - count),
+            default=0,
+        )
+    }
+    if storage_bytes:
+        xform_fields['attachment_storage_bytes'] = (
+            F('attachment_storage_bytes') - storage_bytes
+        )
+        profile_fields['attachment_storage_bytes'] = (
+            F('attachment_storage_bytes') - storage_bytes
+        )
+
+    with conditional_kc_transaction_atomic():
+        XForm.objects.filter(pk=xform_id).update(**xform_fields)
+        UserProfile.objects.filter(user_id=user_id).update(**profile_fields)
 
 
 def delete_null_user_daily_counters(apps, *args):

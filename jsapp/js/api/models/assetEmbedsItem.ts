@@ -11,6 +11,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 export type AssetEmbedsItem = {
-  format?: string
-  url?: string
+  format: string
+  url: string
 }

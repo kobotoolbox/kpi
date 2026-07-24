@@ -1,0 +1,25 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block submit_buttons_bottom %}
+  {{ block.super }}
+  {% if show_manual_subscription_button %}
+    <div class="submit-row">
+      <div class="manual-invoice-action">
+        <input
+          type="submit"
+          name="_create_manual_subscription"
+          value="{% trans 'Create Stripe Subscription' %}"
+          style="background:#6772e5;"
+          {% if not can_create_manual_subscription %}disabled{% endif %}
+        >
+
+        {% if manual_subscription_help_text %}
+          <p class="help" style="margin-top: 8px;">
+            {{ manual_subscription_help_text }}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

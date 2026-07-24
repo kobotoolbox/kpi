@@ -1,20 +1,27 @@
 import React, { useState } from 'react'
 
+import { Flex, Group, TextInput } from '@mantine/core'
+import { IconLanguage, IconX } from '@tabler/icons-react'
 import cx from 'classnames'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { getLanguagesRetrieveQueryKey, useLanguagesRetrieve } from '#/api/react-query/other'
 import {
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
+import ActionIcon from '#/components/common/ActionIcon'
+import KoboIcon from '#/components/common/KoboIcon'
 import Button from '#/components/common/button'
+import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
-import RegionSelector from '#/components/languages/regionSelector'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import { getSubmissionRootUuid } from '#/components/processing/common/conflictingOngoingJob'
 import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
@@ -23,6 +30,7 @@ interface Props {
   questionXpath: string
   languageCode: LanguageCode
   submission: DataResponse
+  hasConflictingOngoingJob: boolean
   onBack: () => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
@@ -32,6 +40,7 @@ export default function StepCreateAutomated({
   questionXpath,
   languageCode,
   submission,
+  hasConflictingOngoingJob,
   onBack,
   advancedFeatures,
 }: Props) {
@@ -59,8 +68,23 @@ export default function StepCreateAutomated({
     },
   })
 
+  // TODO: HACK-FIX: We should rely on passing Language instead of LanguageCode throughout the single processing view to avoid
+  // using the languages hook here, but this involves dealing with time consuming type handling for LanguageSelector.
+  // For now, we can rely on react-query's caching to not repeat a call and complete the RegionSelector refactor
+  const { data, isLoading: isLoadingLanguages } = useLanguagesRetrieve(languageCode, {
+    query: {
+      // Same key as the RegionSelector hook
+      queryKey: getLanguagesRetrieveQueryKey(languageCode),
+      enabled: languageCode !== '',
+    },
+  })
+  const language = data?.status === 200 ? data.data : undefined
+
   const anyPending =
-    mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
+    mutationCreateAF.isPending ||
+    mutationPatchAF.isPending ||
+    mutationCreateAutomaticTranscript.isPending ||
+    isLoadingLanguages
 
   function handleChangeLocale(newVal: LocaleCode | null) {
     setLocale(newVal)
@@ -71,6 +95,10 @@ export default function StepCreateAutomated({
   }
 
   async function handleCreateTranscript() {
+    // Keep a runtime guard in addition to disabled controls.
+    // Button state can lag behind fresh polling data for a moment.
+    if (hasConflictingOngoingJob) return
+
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
       await mutationCreateAF.mutateAsync({
@@ -101,7 +129,7 @@ export default function StepCreateAutomated({
 
     await mutationCreateAutomaticTranscript.mutateAsync({
       uidAsset: asset.uid,
-      rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+      rootUuid: getSubmissionRootUuid(submission),
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
@@ -122,14 +150,36 @@ export default function StepCreateAutomated({
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
-      <RegionSelector
-        isDisabled={anyPending}
-        serviceCode='goog'
-        serviceType='transcription'
-        rootLanguage={languageCode}
-        onRegionChange={handleChangeLocale}
-        onCancel={handleClickBack}
-      />
+      <Flex component='section' direction='row' align='center' justify='center' mb='xl'>
+        <Group gap='xs'>
+          <TextInput
+            readOnly
+            value={language?.name || ''}
+            leftSection={<KoboIcon icon={IconLanguage} size='sm' />}
+            w={220}
+            size='sm'
+            rightSection={
+              <ActionIcon
+                disabled={anyPending}
+                aria-label={t('Close')}
+                variant='transparent'
+                size='sm'
+                onClick={handleClickBack}
+                icon={IconX}
+              />
+            }
+          />
+
+          <RegionSelector
+            rootLanguage={languageCode}
+            disabled={anyPending}
+            serviceCode='goog'
+            serviceType='transcription'
+            onRegionChange={handleChangeLocale}
+            size='sm'
+          />
+        </Group>
+      </Flex>
 
       <h2>{t('Transcription provider')}</h2>
 
@@ -144,6 +194,8 @@ export default function StepCreateAutomated({
         )}
       </p>
 
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mt='md' />}
+
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
           <Button type='secondary' size='m' label={t('cancel')} onClick={handleClickBack} isDisabled={anyPending} />
@@ -153,7 +205,7 @@ export default function StepCreateAutomated({
             size='m'
             label={t('create transcript')}
             onClick={handleCreateTranscript}
-            isDisabled={anyPending}
+            isDisabled={anyPending || locale === null || hasConflictingOngoingJob}
           />
         </div>
       </footer>

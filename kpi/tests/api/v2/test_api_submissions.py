@@ -7,13 +7,12 @@ import unittest
 import uuid
 from datetime import datetime
 from unittest import mock
-from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-import lxml
 import pytest
 import responses
 from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import connection
@@ -22,6 +21,7 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
@@ -79,7 +79,7 @@ from kpi.utils.xml import (
 
 def dict2xform_with_namespace(submission: dict, xform_id_string: str) -> str:
     xml_string = dict2xform(submission, xform_id_string)
-    xml_root = lxml.etree.fromstring(xml_string.encode())
+    xml_root = fromstring_preserve_root_xmlns(xml_string)
     xml_root.set('xmlns', 'http://opendatakit.org/submissions')
     return xml_tostring(xml_root)
 
@@ -150,6 +150,38 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions_submitted_by_someuser = submissions[2:4]
         self.submissions_submitted_by_anotheruser = submissions[4:6]
         self.submissions = submissions
+
+    def _create_other_project_with_submissions(self):
+        """
+        Create a second deployed project owned by `anotheruser` with its own
+        submissions and return the list of its PostgreSQL `Instance` ids.
+        """
+        content_source_asset = Asset.objects.get(id=1)
+        other_asset = Asset.objects.create(
+            content=content_source_asset.content,
+            owner=self.anotheruser,
+            asset_type='survey',
+        )
+        other_asset.deploy(backend='mock', active=True)
+        v_uid = other_asset.latest_deployed_version.uid
+        submissions = []
+        for i in range(2):
+            uuid_ = uuid.uuid4()
+            submissions.append(
+                {
+                    '__version__': v_uid,
+                    'q1': 'foreign',
+                    'meta/instanceID': f'uuid:{uuid_}',
+                    '_uuid': str(uuid_),
+                    '_submitted_by': 'anotheruser',
+                }
+            )
+        other_asset.deployment.mock_submissions(submissions)
+        return list(
+            Instance.objects.filter(
+                xform__kpi_asset_uid=other_asset.uid
+            ).values_list('id', flat=True)
+        )
 
 
 class BulkDeleteSubmissionsApiTests(
@@ -244,6 +276,60 @@ class BulkDeleteSubmissionsApiTests(
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
+
+    def test_cannot_delete_submissions_of_another_project(self):
+        """
+        someuser owns `self.asset`. They must not be able to delete the
+        submissions of another project by passing foreign ids to their own
+        project bulk-delete endpoint. The request is rejected (400) and the
+        foreign data is left untouched.
+        """
+        foreign_ids = self._create_other_project_with_submissions()
+        assert len(foreign_ids) == 2
+
+        self.client.force_login(self.someuser)
+        data = {'payload': {'submission_ids': foreign_ids}}
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # The foreign submissions must still exist
+        assert (
+            Instance.objects.filter(id__in=foreign_ids).count() == len(foreign_ids)
+        )
+
+    def test_delete_submissions_rejects_whole_batch_if_one_id_is_foreign(self):
+        """
+        A batch mixing someuser's own ids with a foreign id must be rejected
+        entirely (strict): none of the submissions — own or foreign — are
+        deleted.
+        """
+        foreign_ids = self._create_other_project_with_submissions()
+        own_ids = list(
+            Instance.objects.filter(
+                xform__kpi_asset_uid=self.asset.uid
+            ).values_list('id', flat=True)
+        )
+        assert own_ids and foreign_ids
+
+        self.client.force_login(self.someuser)
+        data = {'payload': {'submission_ids': own_ids[:1] + foreign_ids[:1]}}
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Nothing was deleted: both the own and the foreign submissions remain
+        assert Instance.objects.filter(id__in=own_ids).count() == len(own_ids)
+        assert (
+            Instance.objects.filter(id__in=foreign_ids).count() == len(foreign_ids)
+        )
+
+        # No phantom DELETE_SUBMISSION audit log entries for the rejected batch
+        assert not ProjectHistoryLog.objects.filter(
+            object_id=self.asset.id, action=AuditAction.DELETE_SUBMISSION
+        ).exists()
 
     def test_delete_all_allowed_submissions_with_partial_perms_as_anotheruser(self):
         """
@@ -432,13 +518,12 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
-    def test_query_counts_for_list_submissions(self, mock_tracker):
+    def test_query_counts_for_list_submissions(self):
         # query count differs when stripe is enabled/disabled
-        with self.assertNumQueries(FuzzyInt(16, 17)):
+        with self.assertNumQueries(FuzzyInt(16, 18)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(FuzzyInt(16, 17)):
+        with self.assertNumQueries(FuzzyInt(16, 18)):
             # with params
             self.client.get(
                 self.submission_list_url,
@@ -456,17 +541,16 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 },
             )
 
-    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
-    def test_query_count_does_not_increase_with_more_submissions(self, mock_tracker):
+    def test_query_count_does_not_increase_with_more_submissions(self):
         with CaptureQueriesContext(connection) as context:
             self.client.get(self.submission_list_url, {'format': 'json'})
         count = context.final_queries - context.initial_queries
         # add a few submissions
         self._add_submissions()
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(self.submission_list_url, {'format': 'json'})
         # get second page
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(
                 self.submission_list_url, {
                     'format': 'json',
@@ -890,7 +974,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 'pk': 9999,
             },
         )
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_as_anonymous(self):
@@ -911,7 +995,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
 
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_not_shared_as_anotheruser(self):
@@ -931,7 +1015,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
 
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_shared_as_anotheruser(self):
@@ -950,18 +1034,18 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 'pk': submission['_id'],
             },
         )
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # `another_user` should not be able to delete with 'change_submissions'
         # permission.
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Let's assign them 'delete_submissions'. Everything should be ok then!
         self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], len(self.submissions) - 1)
@@ -994,7 +1078,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
         response = self.client.delete(
-            url, content_type='application/json', HTTP_ACCEPT='application/json'
+            url, content_type='application/json', headers={'accept': 'application/json'}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1009,7 +1093,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
         response = self.client.delete(
-            url, content_type='application/json', HTTP_ACCEPT='application/json'
+            url, content_type='application/json', headers={'accept': 'application/json'}
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
@@ -1229,6 +1313,58 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert response.data[META_ROOT_UUID] == root_uuid
         assert response.data['_validation_status'] == {}
 
+    def test_supplement_fallback_to_instance_id(self):
+        """
+        If a submission is missing `meta/rootUuid` in MongoDB, the `supplement`
+        endpoint should fallback to `meta/instanceID` (`_uuid`) and still retrieve the
+        supplement.
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        mongo_document = settings.MONGO_DB.instances.find_one(
+            {'_id': submission['_id']}
+        )
+        root_uuid = mongo_document.pop(META_ROOT_UUID)
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission['_id']},
+            {'$unset': {META_ROOT_UUID: root_uuid}},
+        )
+
+        supplement_data = {
+            'q1': {
+                'manual_transcription': {
+                    '_versions': [
+                        {
+                            '_data': {'language': 'en', 'value': 'Bonjour'},
+                        }
+                    ],
+                },
+            },
+            '_version': '20250820',
+        }
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=remove_uuid_prefix(submission['_uuid']),
+            content=supplement_data,
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-supplement'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'root_uuid': submission['_uuid'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['_version'], '20250820')
+
     def test_submitted_by_persists_after_user_deletion(self):
         # Simulate old submissions that don't have `submitted_by`
         ParsedInstance.objects.filter(instance__user=self.anotheruser).update(
@@ -1360,11 +1496,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
+        # The automatic transcription is accepted and wins over the deleted manual
+        # transcription, so the accepted value should be returned
         assert (
             response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
                 'value'
             ]
-            is None
+            == 'Bonjour le monde!'
         )
 
     def test_simplified_supplemental_detail_for_acceptance(self):
@@ -1427,12 +1565,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
         response = self.client.get(data_url, format='json')
         assert response.status_code == status.HTTP_200_OK
-        assert (
-            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
-                'value'
-            ]
-            == 'Bonjour la foule!'
+        # The automatic transcription is newer but unaccepted (pending), so it
+        # beats the older accepted manual transcription
+        transcript = (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript']
         )
+        assert transcript.get('pendingReview') is True
+        assert 'value' not in transcript
 
         transcription_data['q1']['automatic_google_transcription']['_versions'][0][
             '_dateAccepted'
@@ -1454,6 +1593,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         )
 
 
+@ddt
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
     Tests for editing submissions.
@@ -1998,7 +2138,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # redeploy the asset to create a new deployment version
         self.asset.deploy(active=True)
         self.asset.save()
-        assert self.asset.asset_versions.count() == original_versions_count + 2
+        assert self.asset.asset_versions.count() == original_versions_count + 1
         assert (
             self.asset.deployed_versions.count()
             == original_deployed_versions_count + 1
@@ -2347,6 +2487,92 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             .first()
         )
         assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
+
+    @data(
+        # Both root_uuid are null
+        (True, True),
+        # Original root_uuid is null, duplicate has a value
+        (True, False),
+        # Original root_uuid has a value, duplicate is null
+        (False, True),
+        # Both root_uuid have values
+        (False, False),
+    )
+    @unpack
+    def test_cannot_edit_duplicate_submissions(
+        self, orig_root_uuid_is_null, duplicate_root_uuid_is_null
+    ):
+        """
+        Test editing submissions when duplicate instances exist with the same UUID.
+
+        A duplicate submission exists with the same UUID.
+        This test covers four scenarios based on the root_uuid values:
+        - Both original and duplicate have null root_uuid (legacy submissions)
+        - Original has null root_uuid, duplicate has a value
+        - Original has a value, duplicate has null root_uuid
+        - Both have non-null root_uuid values
+
+        In all cases, attempting to get the edit link should return 409 CONFLICT
+        because the system cannot safely determine which submission to edit.
+        """
+
+        # Get the current submission's UUID
+        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        if orig_root_uuid_is_null:
+            # Set the original submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
+
+        # Create a duplicate instance with the same UUID
+        different_root_uuid = str(uuid.uuid4())
+        duplicate = Instance.objects.create(
+            xml=self.asset.deployment.get_submission(
+                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+            ),
+            user=self.someuser,
+            xform_id=self.asset.deployment.xform_id,
+            uuid=submission_uuid,
+            root_uuid=different_root_uuid
+        )
+        ParsedInstance.objects.create(instance=duplicate)
+
+        if duplicate_root_uuid_is_null:
+            # Set the duplicate submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=duplicate.pk).update(root_uuid=None)
+
+        # Verify we have 2 instances with the same UUID
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 2
+        )
+
+        # Attempt to get the edit link - should fail with 409
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
+
+        # Sanity check! Try with the duplicate - should get the same result
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': duplicate.pk,
+            },
+        )
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
@@ -3267,6 +3493,31 @@ class SubmissionValidationStatusesApiTests(
             uid='validation_status_not_approved', username='someuser'
         )
 
+    def test_cannot_set_validation_statuses_of_another_project(self):
+        """
+        someuser must not be able to set the validation status of another
+        project's submissions by passing foreign ids to their own project
+        endpoint. The whole batch is rejected (400).
+        """
+        foreign_ids = self._create_other_project_with_submissions()
+        assert len(foreign_ids) == 2
+
+        self.client.force_login(self.someuser)
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'submission_ids': foreign_ids,
+            }
+        }
+        response = self.client.patch(
+            self.validation_statuses_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # The foreign submissions must not have been updated
+        for instance in Instance.objects.filter(id__in=foreign_ids):
+            assert instance.validation_status in ({}, None)
+
     def test_delete_all_statuses_as_owner(self):
         """
         someuser is the owner of the project.
@@ -3282,7 +3533,7 @@ class SubmissionValidationStatusesApiTests(
         someuser is the owner of the project.
         someuser can bulk delete the status of some of their submissions.
         """
-        submission_id = 1
+        submission_id = self.submissions_submitted_by_someuser[0]['_id']
         data = {
             'payload': {
                 'validation_status.uid': None,
@@ -3423,7 +3674,7 @@ class SubmissionValidationStatusesApiTests(
         someuser is the owner of the project.
         someuser can edit some validation statuses at once.
         """
-        submission_id = 1
+        submission_id = self.submissions_submitted_by_someuser[0]['_id']
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',

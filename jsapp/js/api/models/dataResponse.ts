@@ -31,9 +31,11 @@ export interface DataResponse {
    */
   _geolocation: _DataResponseGeolocationItem[]
   _submission_time: string
-  _tags: string[]
-  _notes: string[]
   _validation_status: _DataResponseValidationStatus
   _submitted_by: string
+  /**
+   * Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects.
+   * @nullable
+   */
   _supplementalDetails?: _DataResponseSupplementalDetails
 }

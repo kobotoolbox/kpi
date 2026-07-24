@@ -10,4 +10,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type AssetDeploymentDataDownloadLinks = { [key: string]: unknown }
+export type AssetDeploymentDataDownloadLinks = {
+  readonly csv_legacy: string
+  readonly csv: string
+  readonly geojson?: string
+  readonly kml_legacy: string
+  readonly spss_labels?: string
+  readonly xls_legacy: string
+  readonly xls: string
+  readonly zip_legacy: string
+}

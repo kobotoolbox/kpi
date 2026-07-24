@@ -1,20 +1,23 @@
-import contextlib
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from allauth.account.models import EmailAddress
+from constance.signals import config_updated
 from ddt import data, ddt
-from django.contrib.auth.signals import user_logged_in
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
+from freezegun import freeze_time
+from rest_framework import status
 
 from kobo.apps.accounts.mfa.tests.utils import (
     activate_mfa_for_user,
     get_mfa_code_for_user,
 )
 from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import AuditLog
-from kobo.apps.audit_log.signals import create_access_log
+from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.audit_log.tests.utils import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import Organization
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
@@ -22,25 +25,14 @@ from kpi.constants import (
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.transaction import immediate_on_commit
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import (
     post_assign_partial_perm,
     post_assign_perm,
     post_remove_partial_perms,
     post_remove_perm,
 )
-
-
-@contextlib.contextmanager
-def skip_login_access_log():
-    """
-    Context manager for skipping the creation of an access log on login
-
-    Disconnects the method that creates access logs from the user_logged_in signal within the contextmanager block.
-    Useful when you want full control over the audit logs produced in a test.
-    """
-    user_logged_in.disconnect(create_access_log)
-    yield
-    user_logged_in.connect(create_access_log)
 
 
 class AccessLogsSignalsTestCase(BaseTestCase):
@@ -85,6 +77,34 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
+    def test_audit_log_created_on_failed_login(self):
+        count = AuditLog.objects.count()
+        self.assertEqual(count, 0)
+        data = {
+            'login': 'user',
+            'password': 'wrongpassword',
+        }
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
+        audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
+        self.assertIsNotNone(audit_log)
+        self.assertEqual(audit_log.user.id, self.user.id)
+        self.assertEqual(audit_log.metadata.get('attempted_username'), 'user')
+
+    def test_audit_log_created_on_failed_login_for_non_existent_user(self):
+        count = AuditLog.objects.count()
+        self.assertEqual(count, 0)
+        data = {
+            'login': 'invalidusername',
+            'password': 'somepassword',
+        }
+        self.client.post(reverse('kobo_login'), data=data, follow=True)
+        audit_log = AuditLog.objects.filter(action=AuditAction.AUTH_FAILED).first()
+        self.assertIsNotNone(audit_log)
+        self.assertIsNone(audit_log.user)
+        self.assertEqual(
+            audit_log.metadata.get('attempted_username'), 'invalidusername'
+        )
+
     def test_login_with_email_verification(self):
         user = AccessLogsSignalsTestCase.user
         data = {
@@ -103,6 +123,7 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
+    @freeze_time('2026-01-01 12:00:00')
     def test_mfa_login(self):
         user = AccessLogsSignalsTestCase.user
         activate_mfa_for_user(self.client, user)
@@ -137,10 +158,17 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         with skip_login_access_log():
             self.client.login(username='user', password='pass')
         self.client.post(reverse('loginas-user-login', args=[new_user.id]))
-        self.assertEqual(AuditLog.objects.count(), 1)
-        audit_log = AuditLog.objects.first()
+
+        # django-loginas triggers an AccessLog (AUTH) and a LogEntry (ADMIN_UPDATE)
+        self.assertEqual(AuditLog.objects.count(), 2)
+        audit_log = AuditLog.objects.get(action=AuditAction.AUTH)
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+
+        # Verify that the ADMIN_UPDATE log was also created
+        admin_update_log = AuditLog.objects.get(action=AuditAction.ADMIN_UPDATE)
+        self.assertEqual(admin_update_log.user.id, AccessLogsSignalsTestCase.user.id)
+        self.assertEqual(admin_update_log.action, AuditAction.ADMIN_UPDATE)
 
 
 @ddt
@@ -233,3 +261,245 @@ class ProjectHistoryLogsSignalsTestCase(BaseTestCase):
         self.asset.assign_perm(self.user, PERM_VIEW_ASSET, deny=True)
         # nothing added since the permission was denied
         self.assertDictEqual(self.wsgi_request.partial_permissions_added, {})
+
+
+class TestAdminAuditLogIntegration(BaseTestCase):
+    fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse(self._get_endpoint('audit-log-list'))
+        self.admin = User.objects.get(username='adminuser')
+        self.someuser = User.objects.get(username='someuser')
+        self.organization = Organization.objects.create(
+            id='org999', name='Test Org for Audit', mmo_override=False
+        )
+        self.organization.add_user(self.someuser)
+        self.client.force_login(self.admin)
+
+    def test_admin_create_triggers_audit_log(self):
+        """
+        Tests that creating a new object via the Admin generates an ADMIN_CREATE log
+        """
+        url = reverse('admin:organizations_organization_add')
+
+        payload = {
+            'name': 'Brand New Organization',
+            'mmo_override': 'on',
+            'owner-TOTAL_FORMS': 0,
+            'owner-INITIAL_FORMS': 0,
+            'owner-MIN_NUM_FORMS': 0,
+            'owner-MAX_NUM_FORMS': 1,
+            'organization_users-TOTAL_FORMS': 0,
+            'organization_users-INITIAL_FORMS': 0,
+            'organization_users-MIN_NUM_FORMS': 0,
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.ADMIN_CREATE,
+            model_name='organization'
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.log_type, AuditType.ADMIN_INTERFACE)
+        self.assertIn('created organization', latest_log.metadata['message'].lower())
+        self.assertIn('Brand New Organization', latest_log.metadata['message'])
+
+        # Check that the log is returned in the API response
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_log = response.data['results'][0]
+        self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
+        self.assertEqual(audit_log['action'], AuditAction.ADMIN_CREATE)
+
+    def test_admin_update_triggers_audit_log(self):
+        """
+        Tests that submitting a change via the Admin generates an ADMIN_UPDATE log
+        """
+        url = reverse(
+            'admin:organizations_organization_change',
+            kwargs={'object_id': self.organization.id},
+        )
+
+        payload = {
+            'name': 'Updated Test Org Name',
+            'mmo_override': 'on',
+            'owner-0-id': self.organization.owner.id,
+            'owner-0-organization': self.organization.id,
+            'owner-TOTAL_FORMS': 1,
+            'owner-INITIAL_FORMS': 1,
+            'owner-MIN_NUM_FORMS': 0,
+            'owner-MAX_NUM_FORMS': 1,
+            'organization_users-TOTAL_FORMS': 0,
+            'organization_users-INITIAL_FORMS': 0,
+            'organization_users-MIN_NUM_FORMS': 0,
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.ADMIN_UPDATE,
+            object_id=self.organization.id
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.model_name, 'organization')
+        self.assertIn(
+            "adminuser updated organization 'Updated Test Org Name' (pk: org999)",
+            latest_log.metadata['message']
+        )
+        self.assertIn(
+            'Changed Name and Make organization multi-member (necessary for adding users)',  # noqa: E501
+            latest_log.metadata['message']
+        )
+
+        # Check that the log is returned in the API response
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_log = response.data['results'][0]
+        self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
+        self.assertEqual(audit_log['action'], AuditAction.ADMIN_UPDATE)
+
+    def test_admin_delete_triggers_audit_log(self):
+        """
+        Tests that deleting an object via the Admin generates an ADMIN_DELETE log
+        """
+        url = reverse(
+            'admin:organizations_organization_delete',
+            kwargs={'object_id': self.organization.id},
+        )
+
+        # To bypass the admin "Are you sure?" confirmation page,
+        # we need to pass a POST request with the "post" parameter set to "yes"
+        payload = {'post': 'yes'}
+
+        with immediate_on_commit():
+            response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Organization.objects.filter(id=self.organization.id).exists())
+
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.ADMIN_DELETE,
+            object_id=self.organization.id
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.model_name, 'organization')
+        self.assertIn(
+            "adminuser deleted organization 'Test Org for Audit' (pk: org999)",
+            latest_log.metadata['message']
+        )
+
+        # Check that the log is returned in the API response
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        audit_log = response.data['results'][0]
+        self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
+        self.assertEqual(audit_log['action'], AuditAction.ADMIN_DELETE)
+
+
+class TestConstanceAuditLogSignal(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        self.admin = User.objects.get(username='adminuser')
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_triggers_audit_log(self, mock_get_request):
+        """
+        Tests that firing the Constance config_updated signal successfully
+        generates an AuditLog entry with the correct user context and model naming
+        """
+        # Mock the request to simulate the admin user context
+        mock_request = Mock()
+        mock_request.user = self.admin
+        mock_get_request.return_value = mock_request
+
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        # Fire the Constance signal directly
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        # Assert the AuditLog was created
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count + 1
+        )
+
+        # Verify the AuditLog data integrity
+        latest_log = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).latest('date_created')
+
+        self.assertEqual(latest_log.user, self.admin)
+        self.assertEqual(latest_log.log_type, AuditType.ADMIN_INTERFACE)
+        self.assertEqual(latest_log.app_label, 'constance')
+        self.assertEqual(latest_log.model_name, 'constance')
+        self.assertEqual(latest_log.object_id, 'SUPPORT_EMAIL')
+        self.assertEqual(latest_log.metadata['old_value'], 'old@example.com')
+        self.assertEqual(latest_log.metadata['new_value'], 'new@example.com')
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_ignored_without_request(self, mock_get_request):
+        """
+        Tests that programmatic config updates (no web request) are ignored safely
+        """
+        mock_get_request.return_value = None
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count
+        )
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_ignored_unauthenticated_user(self, mock_get_request):
+        """
+        Tests that config updates by unauthenticated/anonymous users are ignored
+        """
+        mock_request = Mock()
+        mock_request.user = AnonymousUser()
+        mock_get_request.return_value = mock_request
+
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count
+        )

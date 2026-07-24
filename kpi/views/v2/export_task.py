@@ -2,6 +2,7 @@
 import datetime
 
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import filters, status
@@ -13,7 +14,6 @@ from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.filters import SearchFilter
 from kpi.models import SubmissionExportTask
-from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.permissions import ExportTaskPermission
 from kpi.schema_extensions.v2.export_tasks.serializers import (
     ExportCreatePayload,
@@ -147,51 +147,68 @@ class ExportTaskViewSet(
 
     def create(self, request, *args, **kwargs):
         user = get_database_user(request.user)
-        if not is_user_anonymous(user):
-            return super().create(request, *args, **kwargs)
-        # only allow one anonymous export task to run at a time
-        source = reverse(
-            'asset-detail', kwargs={'uid_asset': self.asset.uid}, request=request
-        )
-        SubmissionExportTask.log_and_mark_stuck_as_errored(user, source)
-        # to be super sure we don't get stuck on a hanging task, use the same logic as
-        # log_and_mark_stuck_as_errored to determine a cutoff date for the oldest
-        # running export
-        max_export_run_time = getattr(settings, 'CELERY_TASK_TIME_LIMIT', 2100)
-        max_allowed_export_age = datetime.timedelta(seconds=max_export_run_time * 4)
-        this_moment = timezone.now()
-        oldest_allowed_timestamp = this_moment - max_allowed_export_age
-        existing_tasks = (
-            SubmissionExportTask.objects.filter(
-                data__source=source,
-                user=user,
-                date_created__gt=oldest_allowed_timestamp
-            )
-            .exclude(
-                status__in=(
-                    ImportExportStatusChoices.COMPLETE,
-                    ImportExportStatusChoices.ERROR,
-                )
-            )
-            .order_by('-date_created')
-        )
-        if existing_tasks.exists():
-            # take the most recent if there are multiples
-            existing_task = existing_tasks.first()
-            expected_latest_finish = existing_task.date_created + datetime.timedelta(
-                seconds=settings.CELERY_TASK_TIME_LIMIT
-            )
 
-            retry_after = max(
-                5,
-                int((expected_latest_finish - timezone.now()).total_seconds()),
-            )
+        # We must serialize the request data to get the validated_data for
+        # the deduplication check
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        with transaction.atomic():
+            # Lock the user row to prevent concurrent bypasses of the
+            # limit/deduplication checks
+            user.__class__.objects.select_for_update().get(pk=user.pk)
+
+            if is_user_anonymous(user):
+                # only allow one anonymous export task to run at a time
+                source = reverse(
+                    'asset-detail',
+                    kwargs={'uid_asset': self.asset.uid},
+                    request=request,
+                )
+                SubmissionExportTask.log_and_mark_stuck_as_errored(user, source)
+                existing_tasks = SubmissionExportTask.get_active_exports(
+                    user=user, data__source=source
+                )
+                if existing_tasks.exists():
+                    # take the most recent if there are multiples
+                    existing_task = existing_tasks.first()
+                    expected_latest_finish = (
+                        existing_task.date_created
+                        + datetime.timedelta(
+                            seconds=settings.CELERY_TASK_TIME_LIMIT
+                        )
+                    )
+
+                    retry_after = max(
+                        5,
+                        int((expected_latest_finish - timezone.now()).total_seconds()),
+                    )
+                    return Response(
+                        data={
+                            'error': f'Another export is already in progress. Please retry in'  # noqa E501
+                            f' {retry_after} seconds'
+                        },
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        headers={'Retry-After': retry_after},
+                    )
+            else:
+                # Deduplicate identical processing exports for authenticated users
+                existing_tasks = SubmissionExportTask.get_active_exports(
+                    user=user, data=validated_data
+                )
+                if existing_tasks.exists():
+                    existing_task = existing_tasks.first()
+                    # Return 200 OK instead of 201 Created to signal reuse
+                    return Response(
+                        self.get_serializer(existing_task).data,
+                        status=status.HTTP_200_OK,
+                    )
+
+            # If no existing task blocked or deduplicated this request,
+            # proceed with creation
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
             return Response(
-                data={
-                    'error': f'Another export is already in progress. Please retry in'
-                    f' {retry_after} seconds'
-                },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                headers={'Retry-After': retry_after}
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
             )
-        return super().create(request, *args, **kwargs)

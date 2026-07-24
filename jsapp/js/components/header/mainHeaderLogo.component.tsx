@@ -1,6 +1,8 @@
 import React from 'react'
 
+import { Link } from 'react-router-dom'
 import bem, { makeBem } from '#/bem'
+import { PROJECTS_ROUTES } from '#/router/routerConstants'
 
 bem.Header = makeBem(null, 'header')
 bem.Header__logo = makeBem(bem.Header, 'logo', 'span')
@@ -14,9 +16,9 @@ bem.Header__logo = makeBem(bem.Header, 'logo', 'span')
 export default function MainHeaderLogo() {
   return (
     <span className='mdl-layout__title'>
-      <a href='/'>
+      <Link to={PROJECTS_ROUTES.MY_PROJECTS}>
         <bem.Header__logo />
-      </a>
+      </Link>
     </span>
   )
 }

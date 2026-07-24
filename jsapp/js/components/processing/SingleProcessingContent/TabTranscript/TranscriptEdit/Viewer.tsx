@@ -1,15 +1,20 @@
 import React from 'react'
 import { destroyConfirm } from '#/alertify'
 import { ActionEnum } from '#/api/models/actionEnum'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
+import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
@@ -20,17 +25,34 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   onEdit: () => void
 }
 
-export default function Viewer({ asset, questionXpath, submission, supplement, transcriptVersion, onEdit }: Props) {
+export default function Viewer({
+  asset,
+  questionXpath,
+  submission,
+  supplement,
+  transcriptVersion,
+  activeBulkActions,
+  onEdit,
+}: Props) {
   const mutateTrash = useAssetsDataSupplementPartialUpdate()
+
+  const hasConflictingOngoingJob = isConflictingOngoingJobForSubmission({
+    activeBulkActions,
+    actionType: 'transcript',
+    fieldXpath: questionXpath,
+    submissionUuid: getSubmissionRootUuid(submission),
+    selectedLanguage: transcriptVersion._data.language,
+  })
 
   const handleTrash = () => {
     destroyConfirm(() => {
       mutateTrash.mutateAsync({
         uidAsset: asset.uid,
-        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        rootUuid: getSubmissionRootUuid(submission),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
@@ -58,7 +80,7 @@ export default function Viewer({ asset, questionXpath, submission, supplement, t
             startIcon='edit'
             onClick={onEdit}
             tooltip={t('Edit')}
-            isDisabled={!userCan('change_submissions', asset)}
+            isDisabled={!userCan('change_submissions', asset) || hasConflictingOngoingJob}
           />
 
           <Button
@@ -68,10 +90,12 @@ export default function Viewer({ asset, questionXpath, submission, supplement, t
             onClick={handleTrash}
             tooltip={t('Delete')}
             isPending={mutateTrash.isPending}
-            isDisabled={!userCan('change_submissions', asset)}
+            isDisabled={!userCan('change_submissions', asset) || hasConflictingOngoingJob}
           />
         </nav>
       </header>
+
+      {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mb='md' />}
 
       <article className={bodyStyles.text} dir='auto'>
         {'value' in transcriptVersion._data ? transcriptVersion._data.value : '' /** typeguard, should always exist */}

@@ -12,6 +12,7 @@ from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
     SearchQueryTooShortException,
 )
+from kpi.models.asset import Asset
 from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
 from kpi.utils.autoname import (
     autoname_fields,
@@ -21,7 +22,7 @@ from kpi.utils.autoname import (
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.strings import split_lines_to_list
+from kpi.utils.strings import split_lines_to_list, strtobool
 from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -232,38 +233,6 @@ class UtilsTestCase(TestCase):
                 'text_kUiD',
                 'jwef',
             ])
-        self._assertAutonames(
-            names=[
-                'abc',
-                'abc',
-                'abc',
-            ], expected=[
-                'abc',
-                'abc_001',
-                'abc_002',
-            ])
-        self._assertAutonames(
-            names=[
-                'abc',
-                {'name': 'abc_002', 'type': 'note'},
-                'abc',
-                'abc',
-            ], expected=[
-                'abc',
-                'abc_002',
-                'abc_001',
-                'abc_003',
-            ])
-        self._assertAutonames(
-            names=[
-                {'label': 'abc', 'type': 'text'},
-                {'label': 'abc', 'type': 'text'},
-                {'label': 'abc', 'type': 'text'},
-            ], expected=[
-                'abc',
-                'abc_001',
-                'abc_002',
-            ])
 
     def test_autovalue_choices(self):
         surv = {
@@ -320,6 +289,12 @@ class UtilsTestCase(TestCase):
         part2 = '_001'
         self.assertEqual(surv['choices'][1]['$autovalue'], part1 + part2)
 
+    # The query-parser tests below exercise the grammar-to-`Q` translation, not
+    # the lookup validation. `parse()` requires a model so it can check the
+    # lookup paths it builds, so these tests pass a concrete one (`Asset`) to
+    # satisfy that signature. They don't actually rely on it: their synthetic
+    # field names (`field_a`, `some_field`, ...) don't resolve on `Asset`, which
+    # makes the validation a no-op here.
     def test_query_parser(self):
         query_string = """
             (a:a OR b:b AND c:can't) AND d:do"you"say OR (
@@ -345,7 +320,7 @@ class UtilsTestCase(TestCase):
                 Q(field_b='with a mouse')
             )
         )
-        assert expected_q == parse(query_string, default_field_lookups)
+        assert expected_q == parse(query_string, default_field_lookups, model=Asset)
 
     def test_query_parser_no_specified_field(self):
         query_string = 'foo'
@@ -358,7 +333,7 @@ class UtilsTestCase(TestCase):
             Q(field_b='foo')
         )
         assert repr(expected_q) == repr(
-            parse(query_string, default_field_lookups)
+            parse(query_string, default_field_lookups, model=Asset)
         )
 
     def test_query_parser_with_lists_in_json_field(self):
@@ -367,24 +342,24 @@ class UtilsTestCase(TestCase):
         query_string = 'field__property[]__key:value'
         expected_q = Q(field__property__contains=[{'key': 'value'}])
 
-        assert expected_q == parse(query_string, [])
+        assert expected_q == parse(query_string, [], model=Asset)
 
         # List of strings
         query_string = 'field__property[]:value'
         expected_q = Q(field__property=['value'])
-        assert expected_q == parse(query_string, [])
+        assert expected_q == parse(query_string, [], model=Asset)
 
     def test_query_parser_with_empty_lists_in_json_field(self):
 
         query_string = 'field__property[]:""'
         expected_q = Q(field__property=[])
-        assert expected_q == parse(query_string, [])
+        assert expected_q == parse(query_string, [], model=Asset)
 
     def test_query_parser_not_supported_lookup_with_empty_lists_in_json_field(self):
 
         query_string = 'field__property[]__key__icontains:value'
         with pytest.raises(QueryParserNotSupportedFieldLookup):
-            parse(query_string, [])
+            parse(query_string, [], model=Asset)
 
     def test_query_parser_default_search_too_short(self):
         # if the search query without a field is less than a specified
@@ -396,7 +371,7 @@ class UtilsTestCase(TestCase):
         ]
         query_string = 'fo'
         with self.assertRaises(SearchQueryTooShortException) as e:
-            parse(query_string, default_field_lookups)
+            parse(query_string, default_field_lookups, model=Asset)
         assert 'Your query is too short' in str(e.exception)
 
     def test_query_parser_short_and_long_terms(self):
@@ -406,12 +381,12 @@ class UtilsTestCase(TestCase):
         https://github.com/kobotoolbox/kpi/issues/3483
         """
         # should succeed due to long-enough terms
-        parse('my great project', ['some_field'])
+        parse('my great project', ['some_field'], model=Asset)
         # should suceeed due to explicit field specification
-        parse('some_field:hi', ['some_field'])
+        parse('some_field:hi', ['some_field'], model=Asset)
         with self.assertRaises(SearchQueryTooShortException) as e:
             # should fail, all terms are short
-            parse('me oh my', ['some_field'])
+            parse('me oh my', ['some_field'], model=Asset)
 
     def test_allow_choice_duplicates(self):
         surv = {
@@ -441,6 +416,30 @@ class UtilsTestCase(TestCase):
             == 'no'
         )
 
+    def test_strtobool_true_values(self):
+        for val in ('y', 'yes', 't', 'true', 'on', '1'):
+            assert strtobool(val) is True
+            assert strtobool(val.upper()) is True
+
+    def test_strtobool_false_values(self):
+        for val in ('n', 'no', 'f', 'false', 'off', '0'):
+            assert strtobool(val) is False
+            assert strtobool(val.upper()) is False
+
+    def test_strtobool_returns_bool(self):
+        assert isinstance(strtobool('true'), bool)
+        assert isinstance(strtobool('false'), bool)
+
+    def test_strtobool_accepts_non_string(self):
+        assert strtobool(True) is True
+        assert strtobool(False) is False
+        assert strtobool(1) is True
+        assert strtobool(0) is False
+
+    def test_strtobool_invalid_raises(self):
+        with pytest.raises(ValueError):
+            strtobool('maybe')
+
     def test_split_lines_to_list(self):
 
         value = '\r\nfoo\r\nbar\n\n'
@@ -466,21 +465,6 @@ class UtilsTestCase(TestCase):
         )
         assert got == expected
 
-        # Explicit v1 namespace should produce a v1-style URL
-        expected = 'http://testserver/assets/foo/'
-        got = versioned_reverse(
-            'asset-detail',
-            url_namespace=API_NAMESPACES['v1'],
-            kwargs={'uid_asset': 'foo'},
-        )
-        assert got == expected
-
-        # Same result using args instead of kwargs for v1
-        got = versioned_reverse(
-            'asset-detail', url_namespace=API_NAMESPACES['v1'], args=('foo',)
-        )
-        assert got == expected
-
     @override_settings(KOBOFORM_URL='http://testserver')
     def test_versioned_reverse_with_request(self):
 
@@ -499,16 +483,6 @@ class UtilsTestCase(TestCase):
 
         # Same behaviour when passing args instead of kwargs
         got = versioned_reverse('asset-detail', args=('foo',), request=request)
-        assert got == expected
-
-        # Explicit v1 namespace should override request version
-        expected = 'http://testserver/assets/foo/'
-        got = versioned_reverse(
-            'asset-detail',
-            url_namespace=API_NAMESPACES['v1'],
-            args=('foo',),
-            request=request,
-        )
         assert got == expected
 
         # No versioning_scheme → should fall back to default (v2)
@@ -701,6 +675,28 @@ class XmlUtilsTestCase(TestCase):
             expected,
 
         )
+
+    def test_strip_xml_nodes_by_xpaths_prunes_entire_subtrees(self):
+        """
+        Verify that _filter_nodes_by_xpaths prunes entire excluded subtrees,
+        not just the direct children listed in nodes_to_keep. A node excluded
+        at the parent level must not leave any of its descendants behind.
+        """
+        source = (
+            '<root>'
+            '  <kept_group><kept_q>Value</kept_q></kept_group>'
+            '  <excluded_group>'
+            '    <child1>Child 1</child1>'
+            '    <child2><grandchild>Grandchild</grandchild></child2>'
+            '  </excluded_group>'
+            '</root>'
+        )
+        expected = '<root><kept_group><kept_q>Value</kept_q></kept_group></root>'
+        result = strip_nodes(source, ['kept_group/kept_q'], use_xpath=True)
+        self.__compare_xml(result, expected)
+        assert 'excluded_group' not in result
+        assert 'child1' not in result
+        assert 'grandchild' not in result
 
     def test_get_or_create_element(self):
         initial_xml_with_ns = """

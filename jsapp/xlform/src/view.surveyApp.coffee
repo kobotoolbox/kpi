@@ -266,7 +266,7 @@ module.exports = do ->
       modelId = $et.closest('.survey__row').data('row-id')
       view = @__rowViews.get(modelId)
       throw new Error("view is not found for target element")  unless view
-      view
+      return view
 
     toggleCardSettings: (evt)->
       @_getViewForTarget(evt).toggleSettings()
@@ -461,6 +461,9 @@ module.exports = do ->
           create: =>
             @formEditorEl.addClass('js-sortable-enabled')
             return
+          # Handles library items dropped into the main survey list.
+          # Extract the UID, calculate position, call handleItem(), then cancel the sortable
+          # operation (since we insert asynchronously, not via sortable's built-in move).
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
@@ -477,7 +480,11 @@ module.exports = do ->
             return
         })
 
-      # apply sortable to all groups
+      # Apply sortable to all groups.
+      # We need separate sortables for groups because each .group__rows element needs
+      # its own sortable instance to handle drops into that specific group. The receive
+      # handler below is almost identical to the main survey one above, but it also
+      # captures the group ID so we know where to insert.
       group_rows = @formEditorEl.find('.group__rows')
       group_rows.each (index) =>
         $(group_rows[index]).sortable({
@@ -500,6 +507,11 @@ module.exports = do ->
             @survey.trigger('group-sortable-created', group_rows[index])
             $(group_rows[index]).addClass('js-sortable-enabled')
             return
+          # Handles library items dropped into groups.
+          # Same as the main survey receive handler above, but we also find the parent
+          # group's ID by looking for an ancestor with [data-row-id] and pass it to
+          # handleItem() so the item gets inserted inside that group instead of at
+          # the survey root.
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
@@ -628,7 +640,12 @@ module.exports = do ->
         closestAddrow.focus()
         $(document).one('keydown click', (evt) =>
           closestAddrow.removeClass('btn--addrow-force-show')
-          closestAddrow.blur()
+          # HACKFIX: previously it was `closestAddrow.blur()` but there was some weird race condition that causes UI
+          # crash when deleting a row while the addrow button was focused. To avoid this crash, we move focus to body
+          # instead of blurring the problematic node. Also we run it only if necessary.
+          if document.activeElement is closestAddrow[0]
+            document.body.focus()
+          return
         )
 
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")

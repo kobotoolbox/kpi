@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import bem from '#/bem'
 import Button from '#/components/common/ButtonNew'
 import LibrarySidebar from '#/components/library/librarySidebar'
@@ -9,8 +9,7 @@ import pageState from '#/pageState.store'
 import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import { MODAL_TYPES } from '../constants'
-import SidebarFormsList from '../lists/sidebarForms'
-import { routerIsActive } from '../router/legacy'
+import SidebarFormsList from '../sidebar/SidebarFormsList'
 import sessionStore from '../stores/session'
 import Icon from './common/icon'
 
@@ -29,8 +28,9 @@ const AccountSidebar = lazy(() => import('#/account/accountSidebar'))
  *   - links to different routes - when viewing account routes
  */
 export default function Drawer() {
-  const isAccount = routerIsActive(ROUTES.ACCOUNT_ROOT)
-  const isLibrary = routerIsActive(ROUTES.LIBRARY)
+  const location = useLocation()
+  const isAccount = location.pathname.startsWith(ROUTES.ACCOUNT_ROOT)
+  const isLibrary = location.pathname.startsWith(ROUTES.LIBRARY)
 
   function openNewFormModal(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
@@ -76,9 +76,12 @@ export default function Drawer() {
 
         {!isLibrary && !isAccount && (
           <bem.FormSidebarWrapper>
-            <Button size='lg' fullWidth disabled={!sessionStore.isLoggedIn} onClick={openNewFormModal}>
-              {t('new').toUpperCase()}
-            </Button>
+            {/* For CSS flex's sake */}
+            <div>
+              <Button size='lg' fullWidth disabled={!sessionStore.isLoggedIn} onClick={openNewFormModal}>
+                {t('new').toUpperCase()}
+              </Button>
+            </div>
 
             <SidebarFormsList />
           </bem.FormSidebarWrapper>

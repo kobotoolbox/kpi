@@ -1,10 +1,13 @@
+import clonedeep from 'lodash.clonedeep'
 import findIndex from 'lodash.findindex'
 import isEmpty from 'lodash.isempty'
 import map from 'lodash.map'
+import { assetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import { unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
 import { ASSET_TYPES, type AssetTypeDefinition, CHOICE_LISTS, QUESTION_TYPES } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
 import { notify } from '#/utils'
+import dkobo_xlform from '../../xlform/src/_xlform.init'
 import type { BaseRow, Row } from '../../xlform/src/model.row'
 import type { FlatChoice, FlatRow, FlatSurvey, Survey } from '../../xlform/src/model.survey'
 import type { Group } from '../../xlform/src/model.surveyFragment'
@@ -111,17 +114,56 @@ class SurveyScope {
       })
   }
 
-  handleItem(data: { position: number; itemUid: string; groupId?: string }) {
+  /**
+   * Fetches a library asset and inserts it into the form.
+   *
+   * The asset can be a single question or a group containing multiple questions.
+   * For select questions, insertSurvey() will call _ensure_row_list_is_copied()
+   * to give each instance its own choice list.
+   *
+   * We deep-clone the asset content before parsing because Survey.loadDict()
+   * mutates its argument.
+   *
+   * @param position - Where to insert (0-based)
+   * @param uid - Library asset UID
+   * @param groupId - Target group CID (omit for survey root)
+   * @throws Error if asset not found
+   */
+  addExternalItemAtPosition(position: number, uid: string, groupId?: string): void {
+    assetsRetrieve(uid)
+      .then((response) => {
+        const data = response?.data
+
+        if (data && 'content' in data && data.content) {
+          const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
+          // TODO: Race condition - if the survey changes before this async fetch completes,
+          // we might insert at the wrong position or into a group that no longer exists
+          this.survey.insertSurvey(newSurvey, position, groupId)
+        } else {
+          throw new Error(`Asset ${uid} not found or response missing content`)
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to insert external item into survey:', error)
+        notify(t('Failed to insert item from library'), 'error')
+      })
+  }
+
+  /**
+   * Handles library items dropped into FormBuilder.
+   * Called by the sortable receive handlers in view.surveyApp.coffee.
+   *
+   * @param data.position - Where to insert (0-based index)
+   * @param data.itemUid - Library asset UID
+   * @param data.groupId - Target group CID (omit to insert at survey root)
+   * @throws Error if itemUid is missing
+   */
+  handleItem(data: { position: number; itemUid: string; groupId?: string }): void {
     if (!data.itemUid) {
-      throw new Error('itemUid not provided!')
+      throw new Error('addExternalItemAtPosition: itemUid not provided!')
     }
 
-    actions.survey.addExternalItemAtPosition({
-      position: data.position,
-      uid: data.itemUid,
-      survey: this.survey,
-      groupId: data.groupId,
-    })
+    this.addExternalItemAtPosition(data.position, data.itemUid, data.groupId)
   }
 }
 

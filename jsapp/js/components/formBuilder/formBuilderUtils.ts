@@ -32,22 +32,19 @@ export function surveyToValidJson(survey: Survey) {
 /**
  * This function reverses what `nullifyTranslations` did to the form data.
  */
-export function unnullifyTranslations(surveyDataJSON: string, assetContent: AssetContent) {
+export function unnullifyTranslations(surveyDataJSON: string, surveyInitialParams: AssetContent) {
   // Here we assume that parsed JSON will be `FlatSurvey`. If we ever pass some other string in here, the code would
   // crash. If this ever happens, let's add some checks.
   const surveyData: FlatSurvey = JSON.parse(surveyDataJSON)
 
   let translatedProps: string[] = []
-  if (assetContent.translated) {
-    translatedProps = assetContent.translated
+  if (surveyInitialParams.translated) {
+    translatedProps = surveyInitialParams.translated
   }
 
   // TRANSLATIONS HACK (Part 2/2):
   // set default_language
-  let defaultLang = assetContent.translations_0
-  if (!defaultLang) {
-    defaultLang = null
-  }
+  const defaultLang = surveyInitialParams.translations_0 || null
   if (!surveyData.settings[0].default_language && defaultLang !== null) {
     surveyData.settings[0].default_language = defaultLang
   }
@@ -58,8 +55,14 @@ export function unnullifyTranslations(surveyDataJSON: string, assetContent: Asse
       surveyData.choices.forEach((choice) => {
         translatedProps.forEach((translatedProp) => {
           if (typeof choice[translatedProp] !== 'undefined') {
-            choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
-            delete choice[translatedProp]
+            const translatedValue = choice[translatedProp]
+            // Some legacy or race-condition flows can leave translated values
+            // as arrays at this stage. We only want the default-language slot
+            // when writing `prop::defaultLang`.
+            choice[`${translatedProp}::${defaultLang}`] = Array.isArray(translatedValue)
+              ? translatedValue[0]
+              : translatedValue
+            choice[translatedProp] = undefined
           }
         })
       })
@@ -68,17 +71,25 @@ export function unnullifyTranslations(surveyDataJSON: string, assetContent: Asse
       surveyData.survey.forEach((surveyRow) => {
         translatedProps.forEach((translatedProp) => {
           if (typeof surveyRow[translatedProp] !== 'undefined') {
+            const translatedValue = surveyRow[translatedProp]
             if (
               typeof surveyData.settings[0] !== 'undefined' &&
               typeof surveyData.settings[0].style === 'string' &&
               surveyData.settings[0].style.includes('theme-grid') &&
               surveyRow.type === 'begin_group' &&
-              (surveyRow[translatedProp] === null || surveyRow[translatedProp] === '')
+              (translatedValue === null || translatedValue === '')
             ) {
-              delete surveyRow[translatedProp]
+              // Keep old behavior for empty theme-grid group labels: omit the
+              // translated key entirely instead of writing null/empty.
+              surveyRow[translatedProp] = undefined
+              return
             }
-            surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
-            delete surveyRow[translatedProp]
+            // Match choices behavior: only map the default-language value,
+            // never the whole translation array.
+            surveyRow[`${translatedProp}::${defaultLang}`] = Array.isArray(translatedValue)
+              ? translatedValue[0]
+              : translatedValue
+            surveyRow[translatedProp] = undefined
           }
         })
       })
@@ -172,14 +183,21 @@ export function nullifyTranslations(
       data.translations.unshift(formDefaultLang)
       data.survey.forEach((row: FlatRow) => {
         translatedProps.forEach((translatedProp) => {
-          if (row[translatedProp]) {
+          const translatedValue = row[translatedProp]
+          if (translatedValue) {
             let propVal = null
             if (row.name) {
               propVal = row.name
             } else if (row.$autoname) {
               propVal = row.$autoname
             }
-            row[translatedProp].unshift(propVal)
+            if (Array.isArray(translatedValue)) {
+              translatedValue.unshift(propVal)
+            } else {
+              // Keep shape consistent for downstream code that expects
+              // translated props to be arrays indexed by language.
+              row[translatedProp] = [propVal, translatedValue]
+            }
           }
         })
       })

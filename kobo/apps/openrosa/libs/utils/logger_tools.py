@@ -12,14 +12,18 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from wsgiref.util import FileWrapper
 from xml.dom import Node
-from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import ParseError
 from xml.parsers.expat import ExpatError
 from zoneinfo import ZoneInfo
 
 import constance
 from dict2xml import dict2xml
 from django.conf import settings
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import (
+    MultipleObjectsReturned,
+    PermissionDenied,
+    ValidationError,
+)
 from django.core.files.base import File
 from django.core.mail import mail_admins
 from django.db import IntegrityError, connections, transaction
@@ -44,6 +48,8 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
     ConflictingAttachmentBasenameError,
     ConflictingSubmissionUUIDError,
+    DeprecatedIdGoneError,
+    DeprecatedIdMissingError,
     DuplicateInstanceError,
     DuplicateUUIDError,
     ExceededUsageLimitError,
@@ -52,6 +58,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     InstanceIdMissingError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
+    InvalidXMLCharacterError,
     LockedSubmissionError,
     TemporarilyUnavailableError,
 )
@@ -93,6 +100,7 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -192,6 +200,10 @@ def create_instance(
 
     Raises:
         InstanceIdMissingError: If no valid UUID is found in the XML submission.
+        DeprecatedIdMissingError: If a `deprecatedID` is provided but does not match
+                                any known submission.
+        DeprecatedIdGoneError: If a `deprecatedID` refers to a historical submission
+                                version that can no longer be edited.
         DuplicateInstanceError: If there is a submission with the same XML hash and user
                                 without any new attachments.
         ConflictingSubmissionUUIDError: If the same UUID already exists or being
@@ -202,6 +214,7 @@ def create_instance(
         username = username.lower()
 
     xml = smart_str(xml_file.read())
+    validate_xml_chars(xml)
     xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
@@ -349,6 +362,26 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
     return xml_head + dict2xml(submission) + xml_tail
 
 
+def validate_xml_chars(xml: str) -> None:
+    """
+    Reject a submission whose XML contains characters outside the ranges
+    allowed by the XML spec (https://www.w3.org/TR/REC-xml/#charsets)
+    """
+    invalid_xml_char_re = re.compile(
+        r'[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
+    )
+
+    if invalid_xml_char_re.search(xml):
+        raise InvalidXMLCharacterError(
+            t(
+                'Submission rejected: '
+                'the form contains unsupported or invisible characters.'
+            )
+        )
+
+    return None
+
+
 @contextlib.contextmanager
 def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
     """
@@ -461,6 +494,12 @@ def http_open_rosa_error_handler(func, request):
     except InstanceIdMissingError:
         result.error = t('Instance ID is required')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except DeprecatedIdGoneError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseGone(result.error)
+    except DeprecatedIdMissingError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseNotFound(result.error)
     except FormInactiveError:
         result.error = t('Form is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
@@ -479,13 +518,16 @@ def http_open_rosa_error_handler(func, request):
             )
 
         result.http_error_response = OpenRosaResponsePaymentRequired(result.error)
+    except InvalidXMLCharacterError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except AccountInactiveError:
         result.error = t('Account is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
     except XForm.DoesNotExist:
         result.error = t('Form does not exist on this account')
         result.http_error_response = OpenRosaResponseNotFound(result.error)
-    except ExpatError:
+    except (ExpatError, ParseError):
         result.error = t('Improperly formatted XML.')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except (ConflictingSubmissionUUIDError, ConflictingAttachmentBasenameError) as e:
@@ -866,7 +908,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # Parse instance XML to get the basename of each file of the updated
     # submission
-    xml_parsed = ET.fromstring(instance.xml)
+    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
     basenames = []
 
     for media_question_xpath in media_question_xpaths:
@@ -950,8 +992,8 @@ def _get_instance(
     """
 
     # check if it is an edit submission
-    old_uuid = get_deprecated_uuid_from_xml(xml)
-    if old_uuid and (instance := Instance.objects.filter(uuid=old_uuid).first()):
+    if instance_data := _get_instance_from_deprecated_id(xml, xform):
+        instance, old_uuid = instance_data
         # edits
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
@@ -998,6 +1040,43 @@ def _get_instance(
         raise
 
     return instance
+
+
+def _get_instance_from_deprecated_id(
+    xml: str, xform: XForm
+) -> tuple[Instance, str] | None:
+
+    old_uuid = get_deprecated_uuid_from_xml(xml)
+
+    if not old_uuid:
+        return None
+
+    try:
+        instance = Instance.objects.get(uuid=old_uuid, xform_id=xform.pk)
+    except Instance.DoesNotExist:
+        if InstanceHistory.objects.filter(
+            uuid=old_uuid, xform_instance__xform_id=xform.pk
+        ).exists():
+            raise DeprecatedIdGoneError(
+                t('Invalid submission - deprecatedID refers to an old version')
+            )
+
+        raise DeprecatedIdMissingError(t('Invalid submission - deprecatedID not found'))
+    except MultipleObjectsReturned:
+        root_uuid, use_fallback = get_root_uuid_from_xml(xml)
+
+        # Try to disambiguate using root_uuid. Raise error if fallback mode is used
+        # or if no matching instance is found by root_uuid
+        if use_fallback or not (
+            instance := Instance.objects.filter(
+                root_uuid=root_uuid, xform_id=xform.pk
+            ).first()
+        ):
+            raise ConflictingSubmissionUUIDError(
+                'Multiple submissions found with the same DeprecatedID'
+            )
+
+    return instance, old_uuid
 
 
 def _has_edit_xform_permission(
@@ -1139,6 +1218,10 @@ class OpenRosaResponsePaymentRequired(OpenRosaResponse):
 
 class OpenRosaResponseForbidden(OpenRosaResponse):
     status_code = 403
+
+
+class OpenRosaResponseGone(OpenRosaResponse):
+    status_code = 410
 
 
 class OpenRosaTemporarilyUnavailable(OpenRosaResponse):

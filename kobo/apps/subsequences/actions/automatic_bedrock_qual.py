@@ -2,20 +2,32 @@ import json
 from copy import deepcopy
 from dataclasses import dataclass
 from json import JSONDecodeError
+from typing import Optional
+from xml.sax.saxutils import escape
 
 import boto3
+from botocore.config import Config
+from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.subsequences.actions.base import ActionClassConfig
+from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_INTEGER,
+    QUESTION_TYPE_NOTE,
+    QUESTION_TYPE_TAGS,
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
+    SOURCE_TYPE_AUTOMATIC,
+)
+from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionNotFound,
+    ManualQualNotFound,
+    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
@@ -26,7 +38,9 @@ from kobo.apps.subsequences.prompts import (
     choices_list_placeholder,
     example_format_placeholder,
     format_choices,
+    format_hint,
     get_example_format,
+    hint_placeholder,
     num_choice_placeholder,
     parse_choices_response,
     parse_integer_response,
@@ -39,10 +53,9 @@ from kpi.utils.log import logging
 
 @dataclass
 class LLModel:
+    model_arn: str
     model_id: str
     path_to_response: str
-    path_to_input_tokens: str
-    path_to_output_tokens: str
     supports_reasoning: bool
 
     def __repr__(self):
@@ -59,29 +72,21 @@ class LLModel:
                 current_level = current_level[path_component]
         return current_level
 
-    def get_input_tokens(self, response_dict):
-        return self.traverse_path(self.path_to_input_tokens, response_dict)
-
-    def get_output_tokens(self, response_dict):
-        return self.traverse_path(self.path_to_output_tokens, response_dict)
-
     def get_response_text(self, response_dict):
         return self.traverse_path(self.path_to_response, response_dict)
 
 
 ClaudeSonnet = LLModel(
-    model_id='anthropic.claude-3-5-sonnet-20240620-v1:0',
+    model_arn=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
+    model_id='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
     path_to_response='content.0.text',
     supports_reasoning=False,
-    path_to_input_tokens='usage.input_tokens',
-    path_to_output_tokens='usage.output_tokens',
 )
 OSS120 = LLModel(
-    model_id='openai.gpt-oss-safeguard-120b',
+    model_id='openai.gpt-oss-120b-1:0',
+    model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
-    path_to_input_tokens='usage.prompt_tokens',
-    path_to_output_tokens='usage.completion_tokens',
 )
 
 
@@ -89,30 +94,57 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
     ID = 'automatic_bedrock_qual'
     action_class_config = ActionClassConfig(
-        allow_multiple=True, automatic=True, action_data_key='uuid'
+        allow_multiple=True,
+        automatic=True,
+        action_data_key='uuid',
+        review_type=ReviewType.VERIFICATION,
     )
+
+    def __init__(
+        self,
+        source_question_xpath: str,
+        params: list[dict],
+        asset: Optional['kpi.models.Asset'] = None,
+        prefetched_dependencies: dict = None,
+    ):
+        super().__init__(source_question_xpath, params, asset, prefetched_dependencies)
+        self.set_question_params_if_necessary()
 
     @property
     def _limit_identifier(self):
         return UsageType.LLM_REQUESTS
 
     def _get_question(self, uuid: str) -> dict:
-        qa_question = [q for q in self.params if q['uuid'] == uuid]
+        qa_question = [q for q in self.get_question_params() if q['uuid'] == uuid]
+        if len(qa_question) == 0:
+            raise AnalysisQuestionNotFound
         return qa_question[0]
 
     def _get_visible_choices(self, question: dict) -> list[dict]:
-        return [
+        choices = [
             choice
             for choice in question['choices']
             if not choice.get('options', {}).get('deleted')
         ]
+        if len(choices) == 0:
+            raise AnalysisQuestionIncorrectlyConfigured
+        return choices
+
+    def check_limits(self, user, action_data: dict):
+        verified = action_data.get('verified', None)
+        if verified is not None:
+            return
+
+        super().check_limits(user, action_data)
 
     def create_bedrock_client(self):
         return boto3.client(
             service_name='bedrock-runtime',
             region_name=settings.AWS_BEDROCK_REGION_NAME,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            config=Config(
+                read_timeout=settings.AWS_BEDROCK_READ_TIMEOUT,
+                connect_timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT
+            ),
         )
 
     @property
@@ -125,6 +157,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             'additionalProperties': False,
             'properties': {
                 'uuid': {'$ref': '#/$defs/uuid'},
+                'verified': {'type': 'boolean'},
             },
             'required': ['uuid'],
             '$defs': {
@@ -139,6 +172,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         to_return = deepcopy(super().data_schema)
         defs = to_return['$defs']
         qual_common = to_return['$defs']['qualCommon']
+        del qual_common['oneOf']
         properties = qual_common['properties']
         additional_properties = {
             'status': {'$ref': '#/$defs/action_status'},
@@ -196,17 +230,40 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         to_return['allOf'] = common['allOf']
         return to_return
 
+    def set_question_params_if_necessary(self):
+        from kobo.apps.subsequences.actions import ManualQualAction
+        from kobo.apps.subsequences.models import QuestionAdvancedFeature
+
+        if not self._action_dependencies.get('params', {}).get(ManualQualAction.ID):
+            try:
+                manual_qual = QuestionAdvancedFeature.objects.get(
+                    asset=self.asset,
+                    question_xpath=self.source_question_xpath,
+                    action=ManualQualAction.ID,
+                )
+                self._action_dependencies.setdefault('params', {}).update(
+                    {ManualQualAction.ID: manual_qual.params}
+                )
+            except QuestionAdvancedFeature.DoesNotExist:
+                raise ManualQualNotFound
+
+    def get_output_fields(self) -> list[dict]:
+        return []
+
     def generate_llm_prompt(self, action_data: dict) -> str:
         """
         Generate the prompt that will be sent to the llm
         """
         # always need transcript, QA question text, and QA question value
         # to fill out the LLM prompt
-        transcript_text = action_data['_dependency']['value']
+        transcript_text = escape(action_data['_dependency']['value'])
         question_uuid = action_data['uuid']
         qa_question = self._get_question(question_uuid)
-        question_text = qa_question['labels']['_default']
+        question_text = escape(qa_question['labels']['_default'])
         question_type = qa_question['type']
+        raw_hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        hint = raw_hint and escape(raw_hint)
+        hint = f' {format_hint(hint)}' if hint else ''
 
         # get the correct template based on question type
         prompt_template = PROMPTS_BY_QUESTION_TYPE[question_type]
@@ -214,15 +271,23 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         # if it's not a select question, we only need the transcript and the question
         # text to fill out the prompt
         if question_type not in SELECT_QUESTIONS:
-            return prompt_template.replace(
-                response_placeholder, transcript_text
-            ).replace(analysis_question_placeholder, question_text)
+            return (
+                prompt_template.replace(response_placeholder, transcript_text)
+                .replace(analysis_question_placeholder, question_text)
+                .replace(hint_placeholder, hint)
+            )
         else:
             # for select questions, need to get all the choices
             visible_choices = self._get_visible_choices(qa_question)
-            visible_choice_labels = [
-                choice['labels']['_default'] for choice in visible_choices
-            ]
+            visible_choice_labels = []
+            for choice in visible_choices:
+                label = choice['labels']['_default']
+                choice_hint = (
+                    choice.get('hint', {}).get('labels', {}).get('_default', '')
+                )
+                visible_choice_labels.append(
+                    {'label': escape(label), 'hint': escape(choice_hint)}
+                )
             choices_text = format_choices(visible_choice_labels)
             choices_count = len(visible_choices)
             example_format = get_example_format(question_type, choices_count)
@@ -232,7 +297,17 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 .replace(num_choice_placeholder, str(choices_count))
                 .replace(example_format_placeholder, example_format)
                 .replace(choices_list_placeholder, choices_text)
+                .replace(hint_placeholder, hint)
             )
+
+    def get_question_params(self):
+        from kobo.apps.subsequences.actions import ManualQualAction
+
+        return [
+            param_dict
+            for param_dict in self._action_dependencies['params'][ManualQualAction.ID]
+            if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
+        ]
 
     def get_response_from_llm(self, prompt: str, model: LLModel) -> str:
         request = {
@@ -250,15 +325,15 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             request['include_reasoning'] = False
 
         response = self.client.invoke_model(
-            modelId=model.model_id,
+            modelId=model.model_arn,
             body=json.dumps(request),
         )
         try:
             response_body = json.loads(response['body'].read())
             if request := get_current_request():
                 request.llm_response = {
-                    'body': response_body,
-                    'model': model,
+                    'request_id': response['ResponseMetadata']['RequestId'],
+                    'model': model.model_id,
                 }
             return model.get_response_text(response_body)
         except (JSONDecodeError, IndexError, KeyError) as e:
@@ -273,10 +348,15 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
     @classproperty
     def params_schema(cls):
-        initial_params = deepcopy(super().params_schema)
-        initial_params['$defs']['qualQuestionType']['enum'].remove('qualNote')
-        initial_params['$defs']['qualQuestionType']['enum'].remove('qualTags')
-        return initial_params
+        return {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {'uuid': {'type': 'string', 'format': 'uuid'}},
+                'additionalProperties': False,
+                'required': ['uuid'],
+            },
+        }
 
     @property
     def result_schema(self):
@@ -307,8 +387,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                                 'properties': {
                                     '_data': {'$ref': '#/$defs/dataSchema'},
                                     '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                    '_dateVerified': {'$ref': '#/$defs/dateTime'},
                                     '_uuid': {'$ref': '#/$defs/uuid'},
+                                    'verified': {'type': 'boolean'},
                                     self.DEPENDENCY_FIELD: {
                                         'type': 'object',
                                         'additionalProperties': False,
@@ -322,7 +403,12 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                                         ],
                                     },
                                 },
-                                'required': ['_data', '_dateCreated', '_uuid'],
+                                'required': [
+                                    '_data',
+                                    '_dateCreated',
+                                    '_uuid',
+                                    'verified',
+                                ],
                             },
                         },
                         '_dateCreated': {'$ref': '#/$defs/dateTime'},
@@ -356,21 +442,20 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         prompt = self.generate_llm_prompt(action_data)
         error = ''
         self.client = self.create_bedrock_client()
-        if settings.STRIPE_ENABLED:
-            update_nlp_counter(
-                'bedrock_llm_requests',
-                1,
-                self.asset.owner_id,
-                self.asset.id,
-            )
+        update_nlp_counter(
+            'bedrock_llm_requests',
+            1,
+            self.asset.owner_id,
+            self.asset.id,
+        )
         # for now, hardcode OSS to be primary and Claude to be backup
         # eventually this will be configurable
         for index, model in enumerate([OSS120, ClaudeSonnet]):
             try:
                 full_response_text = self.get_response_from_llm(prompt, model)
-                logging.info(
-                    f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}'
-                )
+                # edge case: sometimes the LLM returns None
+                if full_response_text is None:
+                    raise InvalidResponseFromLLMException('LLM returned empty response')
                 if qa_question_type == QUESTION_TYPE_TEXT:
                     return {
                         'value': parse_text_response(full_response_text),
@@ -386,6 +471,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                     selected_indexes = parse_choices_response(
                         full_response_text, len(visible_choices), False
                     )
+                    if len(selected_indexes) == 0:
+                        # empty string is the correct empty value for select one
+                        return {'value': '', 'status': 'complete'}
                     index = selected_indexes[0]
                     selected_uuid = visible_choices[index]['uuid']
                     return {'value': selected_uuid, 'status': 'complete'}
@@ -399,14 +487,35 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                         'value': [visible_choices[i]['uuid'] for i in selected_indexes],
                         'status': 'complete',
                     }
-            except InvalidResponseFromLLMException as e:
+            except (
+                InvalidResponseFromLLMException,
+                ClientError,
+                ReadTimeoutError,
+                ConnectTimeoutError,
+            ) as e:
                 if index == 0:
                     logging.warning(
-                        f'Invalid response from primary llm {model}: {e}.'
+                        f'Invalid response or timeout from primary llm {model}: {e}.'
                         ' Defaulting to backup.'
                     )
                 error = e
                 continue
+
+        logging.warning(
+            f'All LLMs failed for question {qa_question_uuid}. '
+            f'Final error: {error}'
+        )
         if request := get_current_request():
             request.llm_response = {'error': f'{error}'}
         return {'status': 'failed', 'error': f'{error}'}
+
+    def update_params(self, incoming_params):
+        self.validate_params(incoming_params)
+        current_uuids = set([param['uuid'] for param in self.params])
+        for param in incoming_params:
+            if param['uuid'] not in current_uuids:
+                self.params.append(param)
+
+    @property
+    def source(self):
+        return SOURCE_TYPE_AUTOMATIC

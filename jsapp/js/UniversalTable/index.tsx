@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { ErrorObject } from 'schema-utils/declarations/validate'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import UniversalTableCore from './UniversalTableCore'
 import type { UniversalTableColumn } from './UniversalTableCore'
@@ -10,7 +9,7 @@ export type { UniversalTableColumn } from './UniversalTableCore'
 
 export interface Pagination {
   limit: number
-  offset: number
+  start: number
 }
 
 export interface PaginatedListResponseData<Datum = never> {
@@ -27,6 +26,7 @@ export type PaginatedListResponse<Datum = never> =
   | PaginatedListResponse.Unauthorized
   | PaginatedListResponse.Forbidden
   | PaginatedListResponse.NotFound
+
 export namespace PaginatedListResponse {
   export interface Ok<Datum = never> {
     data: PaginatedListResponseData<Datum>
@@ -46,7 +46,7 @@ export namespace PaginatedListResponse {
   }
 }
 
-interface UniversalTableProps<Datum, TError = Error | ErrorDetail | ErrorObject> {
+interface UniversalTableProps<Datum, TError = Error | ErrorDetail> {
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
@@ -54,6 +54,20 @@ interface UniversalTableProps<Datum, TError = Error | ErrorDetail | ErrorObject>
   queryResult: UseQueryResult<PaginatedListResponse<Datum>, TError>
   pagination: Pagination
   setPagination: (pagination: Pagination) => unknown
+  /**
+   * Maximum height of the table. Setting this makes the table internally scrollable with a sticky header.
+   *
+   * Internally results in CSS property `max-height` being set on the container element, so you can pass any valid value.
+   */
+  maxHeight?: number | string
+  /** Used to inject infinite scroll observers or footer info into the table. */
+  bottomContent?: React.ReactNode
+  /**
+   * Controls when spinner overlay is shown.
+   * - `fetching` shows spinner for all fetches, including background refetches.
+   * - `loading` shows spinner only while there is no data yet.
+   */
+  spinnerVisibility?: 'fetching' | 'loading'
 }
 
 export const PAGE_SIZES = [10, 30, 50, 100]
@@ -71,7 +85,7 @@ export const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
  * const Example = () => {
  *   const [pagination, setPagination] = useState({
  *     limit: DEFAULT_PAGE_SIZE,
- *     offset: 0,
+ *     start: 0,
  *   })
  *   const queryResult = useQuery({
  *     ...
@@ -93,13 +107,18 @@ export default function UniversalTable<Datum, TError = Error>({
   pagination,
   queryResult,
   setPagination,
+  maxHeight,
+  bottomContent,
+  spinnerVisibility = 'fetching',
 }: UniversalTableProps<Datum, TError>) {
   const availablePages = useMemo(
     () => (queryResult.data?.status === 200 ? Math.ceil(queryResult.data?.data?.count / pagination.limit) : 0),
     [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>)?.count],
   )
 
-  const currentPageIndex = useMemo(() => Math.ceil(pagination.offset / pagination.limit), [pagination])
+  const currentPageIndex = useMemo(() => Math.ceil(pagination.start / pagination.limit), [pagination])
+
+  const isSpinnerVisible = spinnerVisibility === 'loading' ? queryResult.isLoading : queryResult.isFetching
 
   if (queryResult.data?.status !== 200) return null
 
@@ -107,22 +126,24 @@ export default function UniversalTable<Datum, TError = Error>({
     <UniversalTableCore<Datum>
       columns={columns}
       data={queryResult.data?.data.results ?? []}
-      isSpinnerVisible={queryResult.isFetching}
+      isSpinnerVisible={isSpinnerVisible}
+      maxHeight={maxHeight}
+      bottomContent={bottomContent}
       pageIndex={currentPageIndex}
       pageCount={availablePages}
       pageSize={pagination.limit}
       pageSizeOptions={PAGE_SIZES}
       onRequestPaginationChange={(newPageInfo, oldPageInfo) => {
-        // Calculate new offset and limit from what we've got
-        let newOffset = newPageInfo.pageIndex * newPageInfo.pageSize
+        // Calculate new start and limit from what we've got
+        let newStart = newPageInfo.pageIndex * newPageInfo.pageSize
         const newLimit = newPageInfo.pageSize
 
         // If we change page size, we switch back to first page
         if (newPageInfo.pageSize !== oldPageInfo.pageSize) {
-          newOffset = 0
+          newStart = 0
         }
 
-        setPagination({ limit: newLimit, offset: newOffset })
+        setPagination({ limit: newLimit, start: newStart })
       }}
     />
   )

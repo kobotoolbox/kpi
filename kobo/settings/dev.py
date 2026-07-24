@@ -7,8 +7,12 @@ LOGGING['handlers']['console'] = {
     'formatter': 'verbose'
 }
 
-INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+try:
+    import debug_toolbar  # noqa: F401
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)  # noqa: F405
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')  # noqa: F405
+except ModuleNotFoundError:
+    pass
 
 
 def show_toolbar(request):
@@ -21,6 +25,7 @@ ENV = 'dev'
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 5
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 10  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 5
 

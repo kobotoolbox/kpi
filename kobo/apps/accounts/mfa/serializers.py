@@ -1,6 +1,6 @@
 from allauth.mfa.base.internal.flows import check_rate_limit
 from allauth.mfa.models import Authenticator
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, identify_hasher
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, ValidationError
 
@@ -57,14 +57,21 @@ class MfaCodeSerializer(serializers.Serializer):
 
         raise ValidationError('Invalid code')
 
-    def validate_migrated_codes(self, input_code, recovery_codes):
-        codes = recovery_codes._get_migrated_codes()
+    def validate_migrated_codes(self, input_code, recovery_codes) -> str | None:
+        codes = recovery_codes._get_migrated_codes()  # noqa
+
         if codes is None:
-            return
-        if not codes[0].startswith('pbkdf2_sha256$'):
-            return
-        # if codes are sha256 hashes do the recovery codes logic
+            return None
+
+        try:
+            identify_hasher(codes[0])
+        except ValueError:
+            return None
+
+        # if codes are hashed do the recovery codes logic
         for idx, hashed_code in enumerate(codes):
             if check_password(input_code, hashed_code):
                 recovery_codes.validate_code(hashed_code)
                 return hashed_code
+
+        return None

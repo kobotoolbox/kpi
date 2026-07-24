@@ -8,6 +8,11 @@
   cursor: pointer;
 }
 
+.radio:focus-visible {
+  outline: var(--kobo-focus-ring);
+  outline-offset: var(--kobo-focus-ring-offset);
+}
+
 .radio:disabled {
   background-color: var(--mantine-color-gray-7);
   border-color: var(--mantine-color-gray-3);

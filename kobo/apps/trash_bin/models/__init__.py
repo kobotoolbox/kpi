@@ -21,10 +21,7 @@ class BaseTrash(AbstractTimeStampedModel):
         abstract = True
 
     status = models.CharField(
-        max_length=11,
-        choices=TrashStatus.choices,
-        default=TrashStatus.PENDING,
-        db_index=True
+        max_length=11, choices=TrashStatus, default=TrashStatus.PENDING, db_index=True
     )
     periodic_task = models.OneToOneField(
         'django_celery_beat.PeriodicTask', null=True, on_delete=models.RESTRICT

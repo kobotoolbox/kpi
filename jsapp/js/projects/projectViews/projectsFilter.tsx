@@ -105,7 +105,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
 
       <KoboModal isOpen={isModalOpen} onRequestClose={toggleModal} size='large'>
         <KoboModalHeader icon='filter' iconColor='storm' onRequestCloseByX={toggleModal}>
-          {'Table filter'}
+          {t('Table filter')}
         </KoboModalHeader>
 
         <section

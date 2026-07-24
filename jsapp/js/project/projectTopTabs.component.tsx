@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import classnames from 'classnames'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import assetStore from '#/assetStore'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -23,9 +23,6 @@ export default function ProjectTopTabs() {
     return null
   }
 
-  // Setup navigation
-  const navigate = useNavigate()
-
   const [asset, setAsset] = useState<AssetResponse | undefined>(undefined)
 
   useEffect(() => {
@@ -37,52 +34,86 @@ export default function ProjectTopTabs() {
   const isSettingsTabEnabled =
     sessionStore.isLoggedIn && (userCan('change_asset', asset) || userCan('change_metadata_asset', asset))
 
+  const summaryRoute = ROUTES.FORM_SUMMARY.replace(':uid', assetUid)
+  const formRoute = ROUTES.FORM_LANDING.replace(':uid', assetUid)
+  const dataRoute = ROUTES.FORM_DATA.replace(':uid', assetUid)
+  const settingsRoute = ROUTES.FORM_SETTINGS.replace(':uid', assetUid)
+
   return (
-    // TODO: this list needs to be keyboard-navigable. To make it so, we need
-    // real `<button>`s here, not `<li>`s.
     <nav className={styles.root}>
       <ul className={styles.tabs}>
-        <li
-          onClick={() => navigate(ROUTES.FORM_SUMMARY.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.disabled]: !sessionStore.isLoggedIn,
-            [styles.active]: isFormSummaryRoute(assetUid),
-          })}
-        >
-          {t('Summary')}
+        <li>
+          {sessionStore.isLoggedIn ? (
+            <Link
+              to={summaryRoute}
+              className={classnames(styles.tab, {
+                [styles.active]: isFormSummaryRoute(assetUid),
+              })}
+            >
+              {t('Summary')}
+            </Link>
+          ) : (
+            <span
+              className={classnames(styles.tab, styles.disabled, {
+                [styles.active]: isFormSummaryRoute(assetUid),
+              })}
+            >
+              {t('Summary')}
+            </span>
+          )}
         </li>
 
-        <li
-          onClick={() => navigate(ROUTES.FORM_LANDING.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.active]: isFormLandingRoute(assetUid),
-          })}
-        >
-          {t('Form')}
+        <li>
+          <Link
+            to={formRoute}
+            className={classnames(styles.tab, {
+              [styles.active]: isFormLandingRoute(assetUid),
+            })}
+          >
+            {t('Form')}
+          </Link>
         </li>
 
-        <li
-          onClick={() => navigate(ROUTES.FORM_DATA.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.disabled]: !isDataTabEnabled,
-            [styles.active]: isAnyFormDataRoute(assetUid),
-          })}
-        >
-          {t('Data')}
+        <li>
+          {isDataTabEnabled ? (
+            <Link
+              to={dataRoute}
+              className={classnames(styles.tab, {
+                [styles.active]: isAnyFormDataRoute(assetUid),
+              })}
+            >
+              {t('Data')}
+            </Link>
+          ) : (
+            <span
+              className={classnames(styles.tab, styles.disabled, {
+                [styles.active]: isAnyFormDataRoute(assetUid),
+              })}
+            >
+              {t('Data')}
+            </span>
+          )}
         </li>
 
-        <li
-          onClick={() => navigate(ROUTES.FORM_SETTINGS.replace(':uid', assetUid))}
-          className={classnames({
-            [styles.tab]: true,
-            [styles.disabled]: !isSettingsTabEnabled,
-            [styles.active]: isAnyFormSettingsRoute(assetUid),
-          })}
-        >
-          {t('Settings')}
+        <li>
+          {isSettingsTabEnabled ? (
+            <Link
+              to={settingsRoute}
+              className={classnames(styles.tab, {
+                [styles.active]: isAnyFormSettingsRoute(assetUid),
+              })}
+            >
+              {t('Settings')}
+            </Link>
+          ) : (
+            <span
+              className={classnames(styles.tab, styles.disabled, {
+                [styles.active]: isAnyFormSettingsRoute(assetUid),
+              })}
+            >
+              {t('Settings')}
+            </span>
+          )}
         </li>
       </ul>
     </nav>

@@ -71,7 +71,7 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
     uid = KpiUidField('busr')
     status = models.CharField(
         max_length=32,
-        choices=BillingAndUsageSnapshotStatus.choices,
+        choices=BillingAndUsageSnapshotStatus,
         default=BillingAndUsageSnapshotStatus.IN_PROGRESS,
     )
     last_processed_org_id = models.CharField(null=True, blank=True)

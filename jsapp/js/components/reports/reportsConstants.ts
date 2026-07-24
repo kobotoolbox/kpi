@@ -36,7 +36,7 @@ interface ReportsResponseDataValueNumerical {
 
 export type ReportsResponseDataValue = ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical
 
-export type ReportsResponseDataValues = Array<[number, ReportsResponseDataValue, string | number | undefined]>
+export type ReportsResponseDataValues = Array<[number, ReportsResponseDataValue, string | number | undefined | null]>
 
 export interface ReportsResponseData {
   total_count: number
@@ -49,7 +49,7 @@ export interface ReportsResponseData {
    */
   values?: ReportsResponseDataValues
   responses?: string[]
-  responseLabels?: string[]
+  responseLabels?: Array<null | string>
   /** Integer */
   frequencies?: number[]
   /** Number with 2 decimal points */

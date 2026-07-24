@@ -170,10 +170,10 @@ class MongoHelper:
         Return the appropriate query timeout in milliseconds
         """
         if celery_app.current_worker_task:
-            max_time_secs = settings.MONGO_CELERY_QUERY_TIMEOUT
+            max_time_secs = settings.DATABASE_CELERY_QUERY_TIMEOUT
         else:
-            max_time_secs = settings.MONGO_QUERY_TIMEOUT
-        return max_time_secs * 1000
+            max_time_secs = settings.DATABASE_QUERY_TIMEOUT
+        return max_time_secs
 
     @classmethod
     def is_attribute_invalid(cls, key: str) -> str:

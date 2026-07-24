@@ -1,8 +1,13 @@
 import type { ButtonVariant } from '@mantine/core'
+// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
 import { Button, rem } from '@mantine/core'
 import classes from './Button.module.css'
 
-type ButtonVariantCustom = Extract<ButtonVariant, 'filled' | 'light' | 'transparent'> | 'danger' | 'danger-secondary'
+type ButtonVariantCustom =
+  | Extract<ButtonVariant, 'filled' | 'light' | 'outline' | 'transparent'>
+  | 'danger'
+  | 'danger-secondary'
+  | 'danger-transparent'
 
 declare module '@mantine/core' {
   export interface ButtonProps {
@@ -36,9 +41,15 @@ export const ButtonThemeKobo = Button.extend({
           '--button-bg': theme.colors.blue[9],
           '--button-hover': theme.colors.blue[8],
         }),
+        ...(props.variant === 'outline' && {
+          '--button-bg': theme.colors.gray[9],
+          '--button-bd': '1px solid var(--mantine-color-gray-6)',
+          '--button-color': theme.colors.gray[2],
+          '--button-hover': theme.colors.gray[7],
+        }),
         ...(props.variant === 'transparent' && {
           '--button-color': theme.colors.blue[4],
-          '--button-hover-color': theme.colors.blue[5],
+          '--button-hover-color': theme.colors.blue[3],
         }),
         ...(props.variant === 'danger' && {
           '--button-color': 'var(--mantine-color-white)',
@@ -49,6 +60,12 @@ export const ButtonThemeKobo = Button.extend({
           '--button-color': theme.colors.red[6],
           '--button-bg': theme.colors.red[9],
           '--button-hover': theme.colors.red[8],
+        }),
+        ...(props.variant === 'danger-transparent' && {
+          '--button-color': theme.colors.red[6],
+          '--button-hover-color': theme.colors.red[4],
+          '--button-bg': 'transparent',
+          '--button-hover': 'transparent',
         }),
       },
     }

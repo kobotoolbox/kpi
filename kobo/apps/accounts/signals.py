@@ -23,7 +23,16 @@ def update_email(*args, **kwargs):
     emails, primary = cleanup_email_addresses(request, all_email_addresses)
 
     # cleanup_email_addresses doesn't actually call set_as_primary on the primary
-    # email so do that now
+    # email so do that now.
+    # If primary has no pk, a matching record may already exist in the DB
+    # (e.g. reconnecting an SSO account whose email is already stored).
+    # In that case we must reuse the existing row; otherwise set_as_primary()
+    # would attempt an INSERT and hit the unique(user_id, email) constraint.
+    if not primary.pk:
+        try:
+            primary = EmailAddress.objects.get(user=social_user, email=primary.email)
+        except EmailAddress.DoesNotExist:
+            pass
     primary.set_as_primary()
 
     # update existing emails to reflect that they are no longer primary

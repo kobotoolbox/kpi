@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react'
 
-import { Stack, ThemeIcon } from '@mantine/core'
+import { Box, Input, Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -16,9 +16,9 @@ import styles from './index.module.scss'
 
 interface Props {
   advancedFeature: AdvancedFeatureResponseManualQual
-  qaQuestion: ResponseQualActionParams
+  qaQuestion: ResponseManualQualActionParams
   disabled: boolean
-  onSaveQuestion: (params: ResponseQualActionParams[]) => Promise<unknown>
+  onSaveQuestion: (params: ResponseManualQualActionParams[]) => Promise<unknown>
   onCancel: () => unknown
 }
 
@@ -40,19 +40,33 @@ export default function AnalysisQuestionEditor({
     return null
   }
 
-  const [newQaQuestion, setNewQaQuestion] = useState<ResponseQualActionParams>(() => clonedeep(qaQuestion))
-
+  const [newQaQuestion, setNewQaQuestion] = useState<ResponseManualQualActionParams>(() => clonedeep(qaQuestion))
   const [errorMessageLabel, setErrorMessageLabel] = useState<string | undefined>()
   const [errorMessageChoices, setErrorMessageChoices] = useState<string | undefined>()
 
   const handleChangeLabel = useCallback((newLabel: string) => {
-    setNewQaQuestion(() => ({
-      ...clonedeep(newQaQuestion),
+    setNewQaQuestion((prev) => ({
+      ...clonedeep(prev),
       labels: {
         _default: newLabel,
       },
     }))
     if (newLabel !== '') setErrorMessageLabel(() => undefined)
+  }, [])
+
+  const handleChangeHint = useCallback((newHint: string) => {
+    setNewQaQuestion((prev) => {
+      const updated = clonedeep(prev)
+      // If user deletes hint it becomes an empty string, and we want to remove it rather than store empty string
+      if (newHint.trim()) {
+        const existingHint = updated.hint ?? {}
+        const existingLabels = updated.hint?.labels ?? {}
+        updated.hint = { ...existingHint, labels: { ...existingLabels, _default: newHint } }
+      } else {
+        delete updated.hint
+      }
+      return updated
+    })
   }, [])
 
   function handleChangeChoices(choices: ResponseQualSelectQuestionParamsChoicesItem[]) {
@@ -96,7 +110,7 @@ export default function AnalysisQuestionEditor({
 
     const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
 
-    let newParams: ResponseQualActionParams[]
+    let newParams: ResponseManualQualActionParams[]
 
     if (questionIndex === -1) {
       // Question doesn't exist yet (new question), add it at the top
@@ -117,6 +131,8 @@ export default function AnalysisQuestionEditor({
     setNewQaQuestion(clonedeep(qaQuestion))
     onCancel()
   }
+
+  const hintValue = (newQaQuestion.hint?.labels as { [key: string]: string | undefined })?._default || ''
 
   return (
     // TODO: mantineify the rest of this component, it's partially complete to remove dependency on deprecated styles
@@ -143,6 +159,18 @@ export default function AnalysisQuestionEditor({
           <Button type='secondary' size='m' label={t('Cancel')} onClick={handleCancel} isDisabled={disabled} />
         </form>
       </header>
+
+      <Box pl='40px' mb='12px'>
+        <Input
+          value={hintValue}
+          onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+            handleChangeHint(evt.target.value)
+          }}
+          placeholder={t('Add a hint (optional)')}
+          variant='transparent'
+          size='s'
+        />
+      </Box>
 
       {newQaQuestion.type === 'qualAutoKeywordCount' && (
         <KeywordSearchFieldsEditor

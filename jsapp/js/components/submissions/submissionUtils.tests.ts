@@ -1,11 +1,17 @@
+import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   getMediaAttachment,
   getSubmissionDisplayData,
   getSupplementalDetailsContent,
+  hasUnacceptedAutomaticContent,
   removeEmptyFromSupplementalDetails,
   removeEmptyObjects,
 } from './submissionUtils'
 import {
+  allQualSurveyDisplayData,
+  assetWithAllQual,
+  assetWithNestedSupplementalDetails,
+  assetWithSupplementalDetails,
   everythingSurveyAsset,
   everythingSurveyDisplayData,
   everythingSurveySubmission,
@@ -21,6 +27,7 @@ import {
   nestedRepeatSurveyAsset,
   nestedRepeatSurveyDisplayData,
   nestedRepeatSurveySubmission,
+  nestedSupplementalDetailsSurveyDisplayData,
   repeatSurveyAsset,
   repeatSurveyDisplayData,
   repeatSurveySubmission,
@@ -29,9 +36,11 @@ import {
   simpleSurveyDisplayDataEmpty,
   simpleSurveySubmission,
   simpleSurveySubmissionEmpty,
+  submissionWithAllQual,
   submissionWithAttachmentsWithUnicode,
   submissionWithNestedSupplementalDetails,
   submissionWithSupplementalDetails,
+  supplementalDetailsSurveyDisplayData,
 } from './submissionUtils.mocks'
 
 // getSubmissionDisplayData() returns objects that have prototype chains, while
@@ -99,6 +108,28 @@ describe('getSubmissionDisplayData', () => {
     const target = matrixRepeatSurveyDisplayData
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
+
+  it('should return a valid data for a submission with supplemental details', () => {
+    const test = getSubmissionDisplayData(assetWithSupplementalDetails, 0, submissionWithSupplementalDetails)
+    const target = supplementalDetailsSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+
+  it('should return a valid data for a submission with a nested supplemental details', () => {
+    const test = getSubmissionDisplayData(
+      assetWithNestedSupplementalDetails,
+      0,
+      submissionWithNestedSupplementalDetails,
+    )
+    const target = nestedSupplementalDetailsSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+
+  it('should return a valid data for a project with all qualitative analysis questions', () => {
+    const test = getSubmissionDisplayData(assetWithAllQual, 0, submissionWithAllQual)
+    const target = allQualSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
 })
 
 describe('getMediaAttachment', () => {
@@ -133,7 +164,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return translation value properly for a question inside a group', () => {
     const test = getSupplementalDetailsContent(
       submissionWithNestedSupplementalDetails,
-      '_supplementalDetails/level_a/level_b/level_c/sounds/translation_fr',
+      '_supplementalDetails/level_a/level_b/level_c/sound/translation_fr',
     )
     chai.expect(test).to.equal('Comment vas-tu mon cher ami?')
   })
@@ -160,6 +191,22 @@ describe('getSupplementalDetailsContent', () => {
       '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
     )
     chai.expect(test).to.equal('12345')
+  })
+
+  it('should return analysis question verified value properly', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithSupplementalDetails,
+      '_supplementalDetails/Secret_password_as_an_audio_file/ab0e40e1-fbcc-43e9-9d00-b9b3314089cb/verified',
+    )
+    chai.expect(test).to.equal('No')
+  })
+
+  it('should return analysis question verified value properly for a question inside a group', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithNestedSupplementalDetails,
+      '_supplementalDetails/level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+    )
+    chai.expect(test).to.equal('No')
   })
 })
 
@@ -225,6 +272,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '123',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
           234: {
             value: 'foo',
@@ -232,6 +281,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
           345: {
             value: 'bar',
@@ -240,6 +291,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '345',
             labels: { _default: 'foo' },
             xpath: '345',
+            verified: false,
+            source: 'manual',
           },
         },
       },
@@ -256,6 +309,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
         },
       },
@@ -272,6 +327,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
           234: {
             value: 'bar',
@@ -280,6 +337,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
         },
       },
@@ -313,6 +372,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
         },
       },
@@ -333,6 +394,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
           234: {
             value: [],
@@ -340,6 +403,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
           345: {
             value: null,
@@ -347,6 +412,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '345',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
           456: {
             value: 'foo',
@@ -355,6 +422,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '456',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
           567: {
             value: 'bar',
@@ -362,6 +431,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
         },
       },
@@ -378,6 +449,8 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
         },
       },
@@ -390,5 +463,162 @@ describe('removeEmptyFromSupplementalDetails', () => {
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
     chai.expect(result).to.eql({})
+  })
+})
+
+describe('hasUnacceptedAutomaticContent', () => {
+  it('should return true for transcript with pendingReview flag', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            languageCode: 'en',
+            pendingReview: true,
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.true
+  })
+
+  it('should return false for accepted transcript (no pendingReview flag)', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          transcript: {
+            value: 'Hello world',
+            languageCode: 'en',
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return true for translation with pendingReview flag', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            es: {
+              languageCode: 'es',
+              pendingReview: true,
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_es')
+
+    chai.expect(result).to.be.true
+  })
+
+  it('should return false for accepted translation (no pendingReview flag)', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            fr: {
+              value: 'Bonjour le monde',
+              languageCode: 'fr',
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false for qual questions (not transcript/translation)', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          qual: {
+            '123-uuid': {
+              value: 'Some analysis',
+              type: 'qualText',
+              uuid: '123-uuid',
+              labels: { _default: 'Analysis' },
+              xpath: 'audio_question',
+              verified: false,
+              source: 'manual',
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/123-uuid')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false for non-supplemental-details columns', () => {
+    const submission = assetDataFactory(1, {
+      regular_question: 'some answer',
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, 'regular_question')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when supplemental details are missing', () => {
+    const submission = assetDataFactory(1)
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when source row data is missing', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {},
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when transcript data is missing', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {},
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/transcript_en')
+
+    chai.expect(result).to.be.false
+  })
+
+  it('should return false when translation language is missing', () => {
+    const submission = assetDataFactory(1, {
+      _supplementalDetails: {
+        audio_question: {
+          translation: {
+            es: {
+              value: 'Hola',
+              languageCode: 'es',
+            },
+          },
+        },
+      },
+    })
+
+    const result = hasUnacceptedAutomaticContent(submission, '_supplementalDetails/audio_question/translation_fr')
+
+    chai.expect(result).to.be.false
   })
 })

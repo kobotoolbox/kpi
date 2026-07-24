@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
-from private_storage.views import PrivateStorageView
 from markdownx.views import ImageUploadView
+from private_storage.views import PrivateStorageView
 
 from kpi.utils.urls import absolute_reverse
 from .forms import MarkdownxUploaderImageForm
@@ -31,7 +31,7 @@ class MarkdownxUploaderFileContentView(PrivateStorageView):
             return True
 
         try:
-            referrer = self.request.META['HTTP_REFERER']
+            referrer = self.request.headers['referer']
         except KeyError:
             return False
 

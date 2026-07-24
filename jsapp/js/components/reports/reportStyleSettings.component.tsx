@@ -3,6 +3,7 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
+import { getRowName } from '#/assetUtils'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import Modal from '#/components/common/modal'
@@ -150,13 +151,13 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
       if (key in rows && 'type' in rows[key] && rows[key].type === 'select_one') {
         const row = rows[key]
         const val = row.name || row.$autoname
-        let label = row.label?.[0] || ''
+        let label: string = row.label?.[0] || ''
         if (
           translations.length > 1 &&
           typeof reportStyle.translationIndex === 'number' &&
           row.label?.[reportStyle.translationIndex]
         ) {
-          label = row.label?.[reportStyle.translationIndex]
+          label = row.label?.[reportStyle.translationIndex] || getRowName(row)
         }
 
         // Safeguard for TS reasons

@@ -1,13 +1,5 @@
 .root {
   padding: 12px 24px;
-
-  &:not(:last-child) {
-    margin-bottom: 24px;
-  }
-
-  &:not(:first-child) {
-    margin-top: 24px;
-  }
 }
 
 .message {

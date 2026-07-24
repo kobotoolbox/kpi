@@ -161,3 +161,15 @@ class TestDataCollector(BaseTestCase):
         )
         self.data_collector_group.delete()
         patched_remove.assert_called_once_with(data_collector_0.token)
+
+    @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
+    def test_change_group_does_not_produce_new_version(self, *_):
+        someuser = User.objects.get(username='someuser')
+        asset = Asset.objects.filter(owner=someuser).last()
+        initial_version_count = asset.asset_versions.count()
+        group = DataCollectorGroup.objects.create(
+            name='DCG1', owner=User.objects.get(username='someuser')
+        )
+        group.assets.add(asset)
+        asset.refresh_from_db()
+        assert asset.asset_versions.count() == initial_version_count

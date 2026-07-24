@@ -11,9 +11,9 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 export type AssetDeployedVersionsResultsItem = {
-  uid?: string
-  url?: string
-  content_hash?: string
-  date_deployed?: string
-  date_modified?: string
+  uid: string
+  url: string
+  content_hash: string
+  date_deployed: string
+  date_modified: string
 }

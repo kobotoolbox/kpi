@@ -33,6 +33,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
 )
 from kpi.deployment_backends.mock_backend import MockDeploymentBackend
+from kpi.exceptions import DuplicateNameException
 from kpi.models import Asset, ImportTask
 from kpi.utils.object_permission import get_all_objects_for_user
 
@@ -161,6 +162,19 @@ class CreateAssetVersions(AssetsTestCase):
     def test_asset_can_be_anonymous(self):
         anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
+
+    def test_asset_versions_only_created_when_necessary(self):
+        asset = Asset.objects.create(name='Asset', content=self.asset.content)
+        assert asset.asset_versions.count() == 1
+        asset.name = 'New name'
+        asset.save()
+        assert asset.asset_versions.count() == 2
+        asset.content = {}
+        asset.save()
+        assert asset.asset_versions.count() == 3
+        asset.settings = {}
+        asset.save()
+        assert asset.asset_versions.count() == 3
 
 
 class AssetContentTests(AssetsTestCase):
@@ -319,6 +333,62 @@ class AssetContentTests(AssetsTestCase):
 
         self.assertIn('hint', asset.content['translated'])
 
+    def test_fix_unnamed_language_leak_on_label_save(self):
+        """
+        Verifies that saving a multilingual form with plain `label` keys (as sent
+        by the Formbuilder when translations_0 is missing from state.asset.content
+        after a background re-fetch) does not create an unnamed (None) language.
+        """
+        languages = ['English (en)', 'French (fr)']
+        initial_content = {
+            'schema': '1',
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': ['My question', 'Ma question'],
+                },
+            ],
+            'settings': {'default_language': 'English (en)'},
+            'translations': languages,
+            'translated': ['label'],
+        }
+
+        asset = Asset.objects.create(
+            owner=self.user, asset_type='survey', content=initial_content
+        )
+
+        # Simulate a Formbuilder save where translations_0 was missing from
+        # state.asset.content (background re-fetch scenario). The frontend sends
+        # plain `label` keys instead of `label::English (en)`.
+        flat_payload = {
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': 'Modified question',
+                    'label::French (fr)': 'Question modifiée',
+                },
+            ],
+            'choices': [],
+            'settings': [{'default_language': 'English (en)'}],
+        }
+
+        asset.content = flat_payload
+        asset.save()
+        asset.refresh_from_db()
+
+        assert asset.content['translations'] == ['English (en)', 'French (fr)']
+        assert None not in asset.content['translations']
+        q1 = next(
+            r for r in asset.content['survey'] if r.get('name') == 'q1'
+        )
+        assert q1['label'] == ['Modified question', 'Question modifiée']
+
     def test_flatten_empty_relevant(self):
         content = self._wrap_field('relevant', [])
         a1 = Asset.objects.create(content=content, asset_type='survey')
@@ -440,43 +510,107 @@ class AssetContentTests(AssetsTestCase):
         version_string = settings_sheet[version_col][1].value
         assert version_string == f'1 ({date_string})'
 
+    def test_to_xlsx_io_with_duplicate_node_names(self):
+        self.asset.content = {
+            'survey': [
+                {'name': 'start', 'type': 'start'},
+                {'name': 'end', 'type': 'end'},
+                {
+                    'name': 'g1',
+                    'type': 'begin_group',
+                    'label': 'Group 1',
+                },
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': 'Group 1 Q1',
+                },
+                {'type': 'end_group'},
+                {
+                    'name': 'g2',
+                    'type': 'begin_group',
+                    'label': 'Group 2',
+                },
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': 'Group 2 Q1',
+                },
+                {'type': 'end_group'},
+            ],
+        }
+        self.asset.save()
+        with self.assertRaises(DuplicateNameException):
+            self.asset.to_xlsx_io(versioned=True)
+        xlsx_io = self.asset.to_xlsx_io(versioned=True, raise_on_autoname_error=False)
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        node_names = [c.value for c in survey_sheet['B'] if c.value == 'q1']
+        assert len(node_names) == 2
+
+    def test_to_xlsx_io_preserves_leading_equals_in_label(self):
+        # DEV-1235: a cell starting with `=` must stay a literal string, not
+        # become an Excel formula (else `Err:520` in XLSForm, `0` in Enketo).
+        asset = Asset.objects.create(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': '=foo', 'name': 'q1'},
+                ]
+            },
+            owner=self.user,
+            asset_type='survey',
+        )
+        xlsx_io = asset.to_xlsx_io()
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        header = [cell.value for cell in survey_sheet[1]]
+        label_col = next(
+            i
+            for i, col in enumerate(header, start=1)
+            if col and col.startswith('label')
+        )
+        label_cell = survey_sheet.cell(row=2, column=label_col)
+        # 's' == string; a formula cell would be 'f'
+        assert label_cell.data_type == 's'
+        assert label_cell.value == '=foo'
+
     def test_unique__version__field_on_import_with_version(self):
-            xlsx_io = self.asset.to_xlsx_io(versioned=True)
-            workbook = openpyxl.load_workbook(xlsx_io)
-            survey_sheet = workbook['survey']
-            xls_version_row = [
-                cell.value for cell in survey_sheet[survey_sheet.max_row]]
-            expected_row = [
-                'calculate',
-                '__version__',
-                None,
-                f"'{self.asset.latest_version.uid}'"
-            ]
-            current_version_id = self.asset.latest_version.uid
-            assert xls_version_row == expected_row
+        xlsx_io = self.asset.to_xlsx_io(versioned=True)
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        xls_version_row = [cell.value for cell in survey_sheet[survey_sheet.max_row]]
+        expected_row = [
+            'calculate',
+            '__version__',
+            None,
+            f"'{self.asset.latest_version.uid}'",
+        ]
+        current_version_id = self.asset.latest_version.uid
+        assert xls_version_row == expected_row
 
-            xlsx_io.seek(0)
-            # Replace XLSForm with new one which contains a row with the '__version__'
-            import_task = self._create_import_task(xlsx_io)
-            self.asset.refresh_from_db()
+        xlsx_io.seek(0)
+        # Replace XLSForm with new one which contains a row with the '__version__'
+        import_task = self._create_import_task(xlsx_io)
+        self.asset.refresh_from_db()
 
-            xlsx_io = self.asset.to_xlsx_io(versioned=True)
-            workbook = openpyxl.load_workbook(xlsx_io)
-            survey_sheet = workbook['survey']
-            xls_new_version_row = [
-                cell.value for cell in survey_sheet[survey_sheet.max_row]]
-            new_version_expected_row = [
-                'calculate',
-                '__version__',
-                None,
-                f"'{self.asset.latest_version.uid}'"
-            ]
-            # Ensure last row is '__version__' (not '_version_' or '_version_001_')
-            # and it equals the asset's latest version
-            assert current_version_id != self.asset.latest_version.uid
-            assert xls_new_version_row == new_version_expected_row
-            # clean-up
-            import_task.delete()
+        xlsx_io = self.asset.to_xlsx_io(versioned=True)
+        workbook = openpyxl.load_workbook(xlsx_io)
+        survey_sheet = workbook['survey']
+        xls_new_version_row = [
+            cell.value for cell in survey_sheet[survey_sheet.max_row]
+        ]
+        new_version_expected_row = [
+            'calculate',
+            '__version__',
+            None,
+            f"'{self.asset.latest_version.uid}'",
+        ]
+        # Ensure last row is '__version__' (not '_version_' or '_version_001_')
+        # and it equals the asset's latest version
+        assert current_version_id != self.asset.latest_version.uid
+        assert xls_new_version_row == new_version_expected_row
+        # clean-up
+        import_task.delete()
 
     def _create_import_task(self, xlsx_file: bytes) -> ImportTask:
         encoded_xls = base64.b64encode(xlsx_file.read()).decode('utf-8')
@@ -1196,3 +1330,76 @@ class TestAssetDataCollectors(TestCase):
         patched_set_links.assert_any_call(self.dc0.token)
         patched_set_links.assert_any_call(self.dc1.token)
         assert len(patched_set_links.call_args) == 2
+
+
+class TestExtraMetadataFields(TestCase):
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.user = User.objects.get(username='someuser')
+        self.client.force_login(self.user)
+
+    def test_save_normalizes_invalid_extra_metadata(self):
+        asset = Asset.objects.create(
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': None},
+        )
+
+        asset.refresh_from_db()
+
+        self.assertIsInstance(asset.settings['extra_metadata'], dict)
+        self.assertEqual(asset.settings['extra_metadata'], {})
+
+    def test_save_normalizes_non_dict_extra_metadata(self):
+        asset = Asset.objects.create(
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': 'invalid'},
+        )
+
+        asset.refresh_from_db()
+
+        self.assertEqual(asset.settings['extra_metadata'], {})
+
+    def test_update_without_settings_skips_normalization(self):
+        asset = Asset.objects.create(
+            owner=self.user,
+            name='Old Name',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'extra_metadata': {'Manager': 'Alex'}},
+        )
+
+        asset.name = 'New Name'
+        asset.save(update_fields=['name', 'content'])
+
+        asset.refresh_from_db()
+        self.assertEqual(asset.name, 'New Name')
+        self.assertEqual(asset.settings['extra_metadata']['Manager'], 'Alex')
+
+    def test_extra_metadata_lookup_filters_assets(self):
+        matching_asset = Asset.objects.create(
+            name='Matching Asset',
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            settings={'extra_metadata': {'ProjectManager': 'Tom'}},
+        )
+
+        Asset.objects.create(
+            name='Non-Matching',
+            owner=self.user,
+            asset_type=ASSET_TYPE_SURVEY,
+            content={'survey': [{'type': 'text', 'name': 'q1'}]},
+            settings={'extra_metadata': {'ProjectManager': 'Bob'}},
+        )
+
+        base_url = reverse('api_v2:asset-list')
+        response = self.client.get(
+            f'{base_url}?q=settings__extra_metadata__icontains:Tom'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['uid'], matching_asset.uid)

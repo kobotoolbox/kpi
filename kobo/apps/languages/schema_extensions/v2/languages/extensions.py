@@ -32,3 +32,16 @@ class ServicesFieldExtension(OpenApiSerializerFieldExtension):
                 }
             )
         )
+
+
+class ServicesDetailFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kobo.apps.languages.schema_extensions.v2.languages.fields.ServicesDetailField'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            additionalProperties=build_object_type(
+                additionalProperties=build_basic_type(OpenApiTypes.STR)
+            )
+        )

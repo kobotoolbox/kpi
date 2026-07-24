@@ -631,25 +631,6 @@ $modal-custom-header-height: 60px;
   }
 }
 
-.form-view__cell--encrypt-key {
-  padding-bottom: 12px;
-}
-
-.encrypt-form-footer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 5px;
-}
-
-.encrypt-form-footer-left {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 5px;
-}
-
 // Tab button - styles were copied from the deprecated `mdl-button`
 .legacy-modal-tab-button {
   text-decoration: none;

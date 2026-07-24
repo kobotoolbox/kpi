@@ -1,12 +1,11 @@
-import type { RouterState } from '@remix-run/router'
 import debounce from 'lodash.debounce'
 import { reaction } from 'mobx'
+import type { RouterState } from 'react-router'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
 import { ASSETS_TABLE_COLUMNS, ORDER_DIRECTIONS } from '#/components/assetsTable/assetsTableConstants'
 import searchBoxStore from '#/components/header/searchBoxStore'
-import type { AssetTypeName } from '#/constants'
 import type { AssetResponse, AssetsResponse, MetadataResponse, SearchAssetsPredefinedParams } from '#/dataInterface'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { router } from '#/router/legacy'
@@ -27,6 +26,9 @@ export interface MyLibraryStoreData {
   filterValue: string | null
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class MyLibraryStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
@@ -270,18 +272,16 @@ class MyLibraryStore extends Reflux.Store {
     }
   }
 
-  onDeleteAssetCompleted(response: { uid: string; assetType: AssetTypeName }) {
-    if (assetUtils.isLibraryAsset(response.assetType)) {
-      const found = this.findAsset(response.uid)
-      if (found) {
-        if (this.data.totalUserAssets !== null) {
-          this.data.totalUserAssets--
-        }
-        this.fetchData(true)
+  onDeleteAssetCompleted(response: { uid: string }) {
+    const found = this.findAsset(response.uid)
+    if (found) {
+      if (this.data.totalUserAssets !== null) {
+        this.data.totalUserAssets--
       }
-      // if not found it is possible it is on other page of results, but it is
-      // not important enough to do a data fetch
+      this.fetchData(true)
     }
+    // if not found it is possible it is on other page of results, but it is
+    // not important enough to do a data fetch
   }
 
   // public methods
@@ -339,6 +339,9 @@ class MyLibraryStore extends Reflux.Store {
   }
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const myLibraryStore = new MyLibraryStore()
 myLibraryStore.init()
 

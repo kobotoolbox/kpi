@@ -79,9 +79,9 @@ class PairedDataTestCase(TestCase):
         )
 
     def test_allowed_fields_with_no_specific_fields(self):
-        # An empty list is equal to include all fields
-        expected_fields = []
-        self.assertEqual(self.paired_data.allowed_fields, expected_fields)
+        # Neither side restricts fields: allowed_fields returns None,
+        # meaning "no restriction — keep all".
+        assert self.paired_data.allowed_fields is None
 
     def test_allowed_fields_with_specific_source_fields(self):
         # No fields provided on the destination asset,
@@ -119,6 +119,19 @@ class PairedDataTestCase(TestCase):
         # only fields present in source AND destination should be returned.
         expected_fields = ['group_restaurant/tables_count']
         self.assertEqual(self.paired_data.allowed_fields, expected_fields)
+
+    def test_allowed_fields_with_empty_intersection_returns_empty_list(self):
+        # Source shares only `city_name`; destination requests only
+        # `group_restaurant/favourite_restaurant`. The two restrictions do not
+        # overlap, so allowed_fields must return [] (not None) to signal that
+        # no data should be exposed — as opposed to None which means "keep all".
+        self.source_asset.data_sharing['fields'] = ['city_name']
+        self.source_asset.save()
+        self.paired_data.fields = ['group_restaurant/favourite_restaurant']
+        self.paired_data.save()
+        result = self.paired_data.allowed_fields
+        assert result == []
+        assert result is not None
 
     def test_cannot_retrieve_source_if_source_stop_data_sharing(self):
         source = self.paired_data.get_source()

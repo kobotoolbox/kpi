@@ -17,8 +17,8 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
-from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
+from .utils import constance_env, dj_stripe_request_callback_method
 
 env = environ.Env()
 
@@ -96,7 +96,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_prometheus',
-    'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
@@ -121,6 +120,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'django_digest',
     'kobo.apps.organizations',
+    'kobo.apps.kobo_scim.apps.KoboScimConfig',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
@@ -144,13 +144,13 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
-    'kobo.apps.openrosa.apps.api',
     'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
     'kobo.apps.user_reports.apps.UserReportsConfig',
     'drf_spectacular',
+    'csp',
 )
 
 MIDDLEWARE = [
@@ -179,7 +179,6 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
     'author.middlewares.AuthorDefaultBackendMiddleware',
-    'hub.middleware.V1AccessLoggingMiddleware',
 ]
 
 
@@ -208,7 +207,27 @@ CONSTANCE_CONFIG = {
         'Error message for emails not listed in REGISTRATION_ALLOWED_EMAIL_DOMAINS '
         'if field is not blank'
     ),
+    'REGISTRATION_BLACKLIST_EMAIL_DOMAINS': (
+        '',
+        'Email domains to block from registering new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
+    'REGISTRATION_BLACKLIST_ERROR_MESSAGE': (
+        'Account creation restricted for this server. Your organization uses a '
+        'separate private KoboToolbox server. Please contact your organization '
+        'support team for assistance.',
+        'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
+        'if field is not blank'
+    ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
+    'LAST_TOS_UPDATE': (
+        '',
+        'Date of the most recent update to the terms of service. '
+        "DO NOT EDIT HERE. Instead, use the 'Require "
+        "all users to reaccept the Terms of Service' action in "
+        'Sitewide messages',
+        'disabled',
+    ),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
         'https://github.com/kobotoolbox/',
@@ -216,21 +235,39 @@ CONSTANCE_CONFIG = {
         'in the user interface',
     ),
     'SUPPORT_EMAIL': (
-        env.str('KOBO_SUPPORT_EMAIL', env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')),
+        constance_env(
+            env.str,
+            'CONSTANCE_SUPPORT_EMAIL',
+            'KOBO_SUPPORT_EMAIL',
+            env.str('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
+        ),
         'Email address for users to contact, e.g. when they encounter '
         'unhandled errors in the application',
     ),
     'SUPPORT_URL': (
-        env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        constance_env(
+            env.str,
+            'CONSTANCE_SUPPORT_URL',
+            'KOBO_SUPPORT_URL',
+            'https://support.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
+        constance_env(
+            env.str,
+            'CONSTANCE_ACADEMY_URL',
+            'KOBO_ACADEMY_URL',
+            'https://academy.kobotoolbox.org/',
+        ),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
-        env.str(
-            'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
+        constance_env(
+            env.str,
+            'CONSTANCE_COMMUNITY_URL',
+            'KOBO_COMMUNITY_URL',
+            'https://community.kobotoolbox.org/',
         ),
         'URL for "KoboToolbox Community Forum"',
     ),
@@ -285,7 +322,7 @@ CONSTANCE_CONFIG = {
         'Enable two-factor authentication'
     ),
     'MFA_LOCALIZED_HELP_TEXT': (
-        LazyJSONSerializable({
+        {
             'default': t(
                 'If you cannot access your authenticator app, please enter one '
                 'of your backup codes instead. If you cannot access those '
@@ -297,7 +334,7 @@ CONSTANCE_CONFIG = {
                 'a valid language code, but this entry is here to show you '
                 'an example of adding another message in a different language.'
             )
-        }),
+        },
         (
             'Guidance message presented when users click the '
             '"Problems with the token" link.\n\n'
@@ -319,7 +356,12 @@ CONSTANCE_CONFIG = {
         'Require MFA for superusers with a usable password',
     ),
     'USAGE_LIMIT_ENFORCEMENT': (
-        env.bool('USAGE_LIMIT_ENFORCEMENT', False),
+        constance_env(
+            env.bool,
+            'CONSTANCE_USAGE_LIMIT_ENFORCEMENT',
+            'USAGE_LIMIT_ENFORCEMENT',
+            False,
+        ),
         'For Stripe-enabled instances, determines whether usage limits will be enforced'
         'by blocking submissions/NLP actions or deleting stored files.',
     ),
@@ -337,11 +379,11 @@ CONSTANCE_CONFIG = {
         )
     ),
     'ASR_MT_GOOGLE_PROJECT_ID': (
-        'kobo-asr-mt',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
     ),
     'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX': (
-        'kobo-asr-mt-tmp',
+        env.str('CONSTANCE_ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX', 'kobo-asr-mt-tmp'),
         (
             'Prefix for temporary ASR/MT files stored on Google Cloud. Useful'
             ' for lifecycle rules: files under this prefix can be deleted after'
@@ -349,12 +391,30 @@ CONSTANCE_CONFIG = {
             ' variable `GS_BUCKET_NAME`.'
         ),
     ),
-    'ASR_MT_GOOGLE_TRANSLATION_LOCATION': (
-        'us-central1',
+    'ASR_MT_GOOGLE_REGION': (
+        env.str('CONSTANCE_ASR_MT_GOOGLE_REGION', 'global'),
         (
-            'Google Cloud location to use for large translation tasks. It'
-            ' cannot be `global`, and Google only allows certain locations.'
+            'Google Cloud region for ASR/MT data residency. '
+            'global (default): maximum language support, per-language routing '
+            'to the best available Google endpoint for each model. '
+            'eu: restrict all processing to EU-hosted Google endpoints; '
+            'languages only available outside the EU become unsupported.'
         ),
+        'google_region_choice',
+    ),
+    # TODO: remove this default override once Google fixes Speech-to-Text
+    # support for 'sw' and 'sw-KE' language codes
+    'ASR_LANGUAGE_CODE_OVERRIDES': (
+        env.str('CONSTANCE_ASR_LANGUAGE_CODE_OVERRIDES', 'sw:auto,sw-KE:auto'),
+        (
+            'Comma-separated mappings that override the language code sent to '
+            'Google Speech-to-Text. Works around known Google-side pipeline '
+            'failures for specific languages. Useful for temporary workarounds '
+            'when Google Speech-to-Text does not correctly support a specific '
+            'language code. Format: source_language:google_language. '
+            'Example: sw:auto,sw-KE:auto'
+        ),
+        str,
     ),
     'ASR_MT_GOOGLE_CREDENTIALS': (
         '',
@@ -362,8 +422,12 @@ CONSTANCE_CONFIG = {
         'IAM & Admin console.\nLeave blank to use a different Google '
         'authentication mechanism.'
     ),
+    'AUTOMATIC_QA_REQUESTS_PER_SECOND': (
+        5,
+        'Number of allowed automatic Qualitative Analysis requests per user per second.'
+    ),
     'USER_METADATA_FIELDS': (
-        LazyJSONSerializable([
+        [
             {'name': 'name', 'required': True},
             {'name': 'organization', 'required': False},
             {'name': 'organization_type', 'required': False},
@@ -376,7 +440,7 @@ CONSTANCE_CONFIG = {
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
             {'name': 'newsletter_subscription', 'required': False},
-        ]),
+        ],
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
         "Possible fields are:\n"
@@ -390,11 +454,11 @@ CONSTANCE_CONFIG = {
         'long_metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
-        LazyJSONSerializable([
+        [
             {'name': 'sector', 'required': False},
             {'name': 'country', 'required': False},
             {'name': 'description', 'required': False},
-        ]),
+        ],
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects.\n'
         "Possible fields are:\n"
@@ -517,8 +581,8 @@ CONSTANCE_CONFIG = {
         (
             '[[:lower:]]\n'
             '[[:upper:]]\n'
-            '\d\n'
-            '[\W_]'
+            '\\d\n'
+            '[\\W_]'
         ),
         'List all custom character rules as regular expressions supported '
         'by `regex` python library.\n'
@@ -539,9 +603,8 @@ CONSTANCE_CONFIG = {
         'Enable custom password guidance text to help users create their passwords.',
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        LazyJSONSerializable(
-            {
-                'default': t(
+        {
+            'default': t(
                     'The password must be at least 10 characters long and'
                     ' contain 3 or more of the following: uppercase letters,'
                     ' lowercase letters, numbers, and special characters. It'
@@ -554,8 +617,7 @@ CONSTANCE_CONFIG = {
                     ' you an example of adding another message in a different'
                     ' language.'
                 ),
-            }
-        ),
+        },
         (
             'Guidance message presented when users create or modify a password. '
             'It should reflect the defined password rules.\n\n'
@@ -630,16 +692,6 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
-    'PROJECT_HISTORY_LOG_LIFESPAN': (
-        60,
-        'Length of time days to keep project history logs.',
-        'positive_int',
-    ),
-    'ACCESS_LOG_LIFESPAN': (
-        60,
-        'Length of time in days to keep access logs.',
-        'positive_int',
-    ),
     'USE_TEAM_LABEL': (
         True,
         'Use the term "Team" instead of "Organization" when Stripe is not enabled',
@@ -653,6 +705,11 @@ CONSTANCE_CONFIG = {
         False,
         'Allow users to delete their own account.',
     ),
+    'USER_REPORTS_PAGE_SIZE_LIMIT': (
+        1000,
+        'Max page size for the user report endpoint',
+        'natural_int',
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -662,35 +719,32 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
     'long_metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.UserMetadataFieldsListField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 45}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 45}}},
     ],
     'long_textfield': [
         'django.forms.fields.CharField',
-        {
-            'widget': 'django.forms.Textarea',
-            'widget_kwargs': {
-                'attrs': {'rows': 30}
-            }
-        },
+        {'widget': 'django.forms.Textarea', 'widget_kwargs': {'attrs': {'rows': 30}}},
     ],
     'metadata_fields_jsonschema': [
         'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
         {'widget': 'django.forms.Textarea'},
     ],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
-    'positive_int_minus_one': ['django.forms.fields.IntegerField', {
-        'min_value': -1
-    }],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
+    'positive_int': ['django.forms.fields.IntegerField', {'min_value': 0}],
+    'positive_int_minus_one': ['django.forms.fields.IntegerField', {'min_value': -1}],
+    'natural_int': ['django.forms.fields.IntegerField', {'min_value': 1}],
+    'google_region_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': (
+                ('global', 'Global'),
+                ('eu', 'Europe'),
+            ),
+        },
+    ],
+    'disabled': [
+        'django.forms.fields.CharField',
+        {'disabled': True, 'required': False},
+    ],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -698,7 +752,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_OPEN',
         'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
+        'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
@@ -711,12 +768,11 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
-        'ACCESS_LOG_LIFESPAN',
-        'PROJECT_HISTORY_LOG_LIFESPAN',
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
+        'USER_REPORTS_PAGE_SIZE_LIMIT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -726,9 +782,11 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_INVITEE_USERNAMES',
         'ASR_MT_GOOGLE_PROJECT_ID',
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
+        'ASR_MT_GOOGLE_REGION',
+        'ASR_LANGUAGE_CODE_OVERRIDES',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
@@ -785,8 +843,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
 }
 
 # Tell django-constance to use a database model instead of Redis
-CONSTANCE_BACKEND = 'kobo.apps.constance_backends.database.DatabaseBackend'
-CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'constance'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
@@ -1013,6 +1071,10 @@ SPECTACULAR_SETTINGS = {
     ),
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'POSTPROCESSING_HOOKS': [
+        'drf_spectacular.hooks.postprocess_schema_enums',
+        'kpi.utils.spectacular_processing.merge_allauth_headless_schema',
+    ],
     'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
     'SWAGGER_UI_SETTINGS': {
         'filter': True,
@@ -1021,6 +1083,7 @@ SPECTACULAR_SETTINGS = {
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
+        'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
@@ -1032,6 +1095,8 @@ SPECTACULAR_SETTINGS = {
         'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
         'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
         'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
+        'AssetDeploymentStatusEnum': 'kpi.serializers.v2.asset.DEPLOYMENT_STATUS_ENUM',
+        'BulkActionResponseStatusEnum': 'kpi.schema_extensions.v2.subsequences.serializers.BULK_ACTION_STATUS_CHOICES',  # noqa
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -1229,15 +1294,55 @@ tracks usage limit exceptions
 STRIPE_ENABLED = env.bool('STRIPE_ENABLED', False)
 
 
-def dj_stripe_request_callback_method():
-    # This method exists because dj-stripe's documentation doesn't reflect reality.
-    # It claims that DJSTRIPE_SUBSCRIBER_MODEL no longer needs a request callback but
-    # this error occurs without it: `DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK must
-    # be implemented if a DJSTRIPE_SUBSCRIBER_MODEL is defined`
-    # It doesn't need to do anything other than exist
-    # https://github.com/dj-stripe/dj-stripe/issues/1900
-    pass
+BULK_ACTION_RATE_LIMITS = {
+    'automatic_google_transcription': {
+        'max_jobs_per_minute': 120,
+    },
+    'automatic_google_translation': {
+        'max_jobs_per_minute': 300,
+    },
+}
 
+# These limits restrict the maximum number of Google Cloud requests per minute
+# across the entire platform. They are intentionally set lower than Google
+# project quotas to leave headroom for window skew, manual retries, and services
+# that share the same Google project outside this process.
+GOOGLE_SERVICE_RATE_LIMITS = {
+    'speech_v2_batch_recognize': {
+        'max_requests': env.int(
+            'GOOGLE_SPEECH_V2_BATCH_RECOGNIZE_MAX_REQUESTS_PER_MINUTE',
+            140,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            2000,
+        ),
+        'period_seconds': 60,
+    },
+    'translate_v3_batch_translate_text': {
+        'max_requests': env.int(
+            'GOOGLE_TRANSLATE_V3_BATCH_TRANSLATE_TEXT_MAX_REQUESTS_PER_MINUTE',
+            3000,
+        ),
+        'period_seconds': 60,
+    },
+}
+GOOGLE_SERVICE_QUOTA_RETRY_AFTER = env.int(
+    'GOOGLE_SERVICE_QUOTA_RETRY_AFTER',
+    100,
+)
+
+BULK_ACTION_STATUS_POLL_INTERVAL = env.int(
+    'BULK_ACTION_STATUS_POLL_INTERVAL',
+    30,
+)
+BULK_ACTION_STUCK_THRESHOLD = env.int(
+    'BULK_ACTION_STUCK_THRESHOLD',
+    BULK_ACTION_STATUS_POLL_INTERVAL * 10,
+)
 
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
@@ -1286,57 +1391,87 @@ ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 # however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
 if env.bool('ENABLE_CSP', False):
     MIDDLEWARE.append('csp.middleware.CSPMiddleware')
-local_unsafe_allows = [
+
+_csp_local_unsafe_allows = [
     "'unsafe-eval'",
     'http://localhost:3000',
     'http://kf.kobo.local:3000',
     'ws://kf.kobo.local:3000'
 ]
-CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + [
+_csp_default_src = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + [
     "'self'",
     KOBOCAT_URL,
     ENKETO_URL,
 ]
+
 if env.str('FRONTEND_DEV_MODE', None) == 'host':
-    CSP_DEFAULT_SRC += local_unsafe_allows
-CSP_CONNECT_SRC = CSP_DEFAULT_SRC
-CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
-CSP_STYLE_SRC = CSP_DEFAULT_SRC + ["'unsafe-inline'"]
-CSP_IMG_SRC = CSP_DEFAULT_SRC + [
+    _csp_default_src += _csp_local_unsafe_allows
+
+_csp_connect_src = [*_csp_default_src]
+_csp_script_src = [*_csp_default_src]
+_csp_style_src = [*_csp_default_src, "'unsafe-inline'"]
+_csp_img_src = [
+    *_csp_default_src,
     'data:',
     'https://*.openstreetmap.org',
     'https://*.openstreetmap.fr',  # Humanitarian OpenStreetMap Team
     'https://*.opentopomap.org',
-    'https://*.arcgisonline.com'
+    'https://*.arcgisonline.com',
 ]
-CSP_FRAME_SRC = CSP_DEFAULT_SRC
+_csp_frame_src = [*_csp_default_src]
 
 if GOOGLE_ANALYTICS_TOKEN:
     # Taken from https://developers.google.com/tag-platform/tag-manager/csp#google_analytics_4_google_analytics
-    CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
-    CSP_CONNECT_SRC.extend(
+    _csp_script_src.append('https://*.googletagmanager.com')
+    _csp_connect_src.extend(
         [
             'https://*.google-analytics.com',
             'https://*.analytics.google.com',
             'https://*.googletagmanager.com',
         ]
     )
-    CSP_IMG_SRC.extend(
+    _csp_img_src.extend(
         ['https://*.google-analytics.com', 'https://*.googletagmanager.com']
     )
-if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
-    sentry_js_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
-    CSP_SCRIPT_SRC.append(sentry_js_url)
-    CSP_CONNECT_SRC.append(sentry_js_url)
+
+if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme and SENTRY_JS_DSN_URL.hostname:
+    _csp_sentry_url = f'{SENTRY_JS_DSN_URL.scheme}://{SENTRY_JS_DSN_URL.hostname}'
+    if SENTRY_JS_DSN_URL.port:
+        _csp_sentry_url += f':{SENTRY_JS_DSN_URL.port}'
+    _csp_script_src.append(_csp_sentry_url)
+    _csp_connect_src.append(_csp_sentry_url)
+
 if STRIPE_ENABLED:
     stripe_domain = 'https://js.stripe.com'
-    CSP_SCRIPT_SRC.append(stripe_domain)
-    CSP_FRAME_SRC.append(stripe_domain)
+    _csp_script_src.append(stripe_domain)
+    _csp_frame_src.append(stripe_domain)
 
-csp_report_uri = env.url('CSP_REPORT_URI', None)
-if csp_report_uri:  # Let environ validate uri, but set as string
-    CSP_REPORT_URI = csp_report_uri.geturl()
-CSP_REPORT_ONLY = env.bool('CSP_REPORT_ONLY', False)
+_csp_directives = {
+    'default-src': _csp_default_src,
+    'connect-src': _csp_connect_src,
+    'script-src': _csp_script_src,
+    'style-src': _csp_style_src,
+    'img-src': _csp_img_src,
+    'frame-src': _csp_frame_src,
+}
+_csp_report_uri = env.url('CSP_REPORT_URI', None)
+
+if _csp_report_uri:  # Let environ validate uri, but set as string
+    # _csp_directives is mutated in place here; the same dict is later
+    # assigned (by reference) to whichever setting branch is taken below,
+    # so report-uri ends up in the active policy regardless of REPORT_ONLY.
+    _csp_directives['report-uri'] = [_csp_report_uri.geturl()]
+
+# CONTENT_SECURITY_POLICY (or its REPORT_ONLY counterpart) is always
+# defined at module load time, even when ENABLE_CSP=False. django-csp 4.0
+# is inert without its middleware, so this is harmless in practice.
+# This mirrors the old behaviour (flat CSP_* settings were also always set).
+# Do not use the presence of these settings as a proxy for "CSP is enabled";
+# check ENABLE_CSP or the middleware list instead.
+if env.bool('CSP_REPORT_ONLY', False):
+    CONTENT_SECURITY_POLICY_REPORT_ONLY = {'DIRECTIVES': _csp_directives}
+else:
+    CONTENT_SECURITY_POLICY = {'DIRECTIVES': _csp_directives}
 
 """ Celery configuration """
 # Celery 4.0 New lowercase settings.
@@ -1345,6 +1480,12 @@ CSP_REPORT_ONLY = env.bool('CSP_REPORT_ONLY', False)
 # http://docs.celeryproject.org/en/4.0/whatsnew-4.0.html#step-2-update-your-configuration-with-the-new-setting-names
 
 CELERY_TIMEZONE = 'UTC'
+
+# Use a throttled scheduler to prevent Beat from reloading its entire schedule
+# on every PeriodicTask change signal. On high-volume servers, one_off task
+# completions trigger hundreds of reload signals per minute, starving dispatch.
+# See kobo/apps/beat/schedulers.py for details.
+CELERY_BEAT_SCHEDULER = 'kobo.apps.beat.schedulers.ThrottledDatabaseScheduler'
 
 # helpful for certain debugging
 CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', False)
@@ -1490,7 +1631,7 @@ CELERY_BEAT_SCHEDULE = {
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
         'schedule': crontab(minute='*/15'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     # Schedule every day at midnight UTC
     'mass-email-record-mark-as-failed': {
@@ -1525,6 +1666,21 @@ CELERY_BEAT_SCHEDULE = {
             'Synchronize out of sync attachment storage bytes of profile and projects'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
+    },
+    'retry-stalled-submissions': {
+        'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'mark-zombie-submissions': {
+        'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'resume-stuck-subsequence-bulk-actions': {
+        'task': 'kobo.apps.subsequences.tasks.resume_stuck_bulk_actions',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
 
@@ -1572,6 +1728,36 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
     os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
 )
 
+# Dedicated, much longer limits for long-running migrations only. Unlike the
+# generic limits above (shared by many tasks), a single migration run may need
+# to churn through a whole table, so it is allowed up to ~24h in one pass.
+CELERY_LONG_RUNNING_MIGRATION_TASK_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_TIME_LIMIT', 86460)  # 24h + 1min
+)
+
+CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_SOFT_TIME_LIMIT', 86400)  # 24h
+)
+
+# Heartbeat that keeps a running migration's lock and `date_modified` fresh from
+# a background thread. The lock TTL is tied to this heartbeat, not to the task
+# time limit, so a hard-killed worker (e.g. a Kubernetes pod eviction that skips
+# the `finally` cleanup) releases the lock within a few heartbeats instead of
+# blocking re-execution for the whole 24h. The TTL is deliberately a few times
+# the interval to tolerate a briefly stalled worker without expiring the lock of
+# a task that is still alive.
+CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL = int(
+    os.environ.get(
+        'CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_INTERVAL', 60  # 60 seconds
+    )
+)
+
+CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL = int(
+    os.environ.get('CELERY_LONG_RUNNING_MIGRATION_TASK_HEARTBEAT_TTL', 300)  # 300 sec
+)
+
+CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 seconds
+
 """ Django allauth configuration """
 # User.email should continue to be used instead of the EmailAddress model
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
@@ -1579,6 +1765,9 @@ ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
+    'ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS', 1
+)
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
@@ -1608,6 +1797,11 @@ WEBPACK_LOADER = {
 # This setting sets the prefix in the subject line of the account activation email
 # The default is the URL of the server. Set to blank to fit the email requirements
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+
+# Enable serving django-allauth Headless OpenAPI specs (we ingest these into
+# DRF-Spectacular)
+HEADLESS_SERVE_SPECIFICATION = True
+
 
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND', 'django.core.mail.backends.filebased.EmailBackend'
@@ -1655,17 +1849,22 @@ if MASS_EMAILS_CONDENSE_SEND:
     }
 
 """ AWS configuration (email and storage) """
+# Only set explicit credentials if provided via environment variables.
+# boto3 will otherwise fall back to ~/.aws/credentials, instance profiles, etc.
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
-    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
-    AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
-    AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
-    AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
-    # Only set the region if it is present in environment.
-    if region := env.str('AWS_S3_REGION_NAME', False):
-        AWS_S3_REGION_NAME = region
+AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
+AWS_BEDROCK_READ_TIMEOUT = env.int('AWS_BEDROCK_READ_TIMEOUT', 50)
+AWS_BEDROCK_CONNECT_TIMEOUT = env.int('AWS_BEDROCK_CONNECT_TIMEOUT', 5)
+AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
+AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
+
+AWS_S3_SIGNATURE_VERSION = env.str('AWS_S3_SIGNATURE_VERSION', 's3v4')
+# Only set the region if it is present in the environment.
+if region := env.str('AWS_S3_REGION_NAME', False):
+    AWS_S3_REGION_NAME = region
 
 AWS_SES_CONFIGURATION_SET = env.str('AWS_SES_CONFIGURATION_SET', None)
 
@@ -1775,12 +1974,12 @@ LOGGING = {
         'console_logger': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True
+            'propagate': False,
         },
         'django.db.backends': {
             'level': 'ERROR',
             'handlers': ['console'],
-            'propagate': True
+            'propagate': False
         },
     }
 }
@@ -1904,14 +2103,18 @@ mongo_client = MongoClient(
 )
 MONGO_DB = mongo_client[mongo_db_name]
 
-# If a request or task makes a database query and then times out, the database
-# server should not spin forever attempting to fulfill that query.
+# Maximum query duration (in milliseconds) for PostgreSQL (statement_timeout)
+# and MongoDB (maxTimeMS). Applied per environment:
+#   - Web requests: DATABASE_QUERY_TIMEOUT, based on SYNCHRONOUS_REQUEST_TIME_LIMIT
+#   - Celery workers: DATABASE_CELERY_QUERY_TIMEOUT, based on CELERY_TASK_TIME_LIMIT
 # ⚠️⚠️
-# These settings should never be used directly.
-# Use MongoHelper.get_max_time_ms() in the code instead
+# For MongoDB, use MongoHelper.get_max_time_ms() rather than referencing these
+# directly.
 # ⚠️⚠️
-MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
-MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
+DATABASE_QUERY_TIMEOUT = (
+    env.int('DATABASE_QUERY_TIMEOUT', SYNCHRONOUS_REQUEST_TIME_LIMIT + 5) * 1000
+)  # milliseconds
+DATABASE_CELERY_QUERY_TIMEOUT = (CELERY_TASK_TIME_LIMIT + 10) * 1000  # milliseconds
 
 
 SESSION_ENGINE = 'redis_sessions.session'
@@ -1931,6 +2134,12 @@ CACHES = {
     'enketo_redis_main': env.cache_url(
         'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
     ),
+    # Isolated backend for Constance with a versioned key prefix to prevent
+    # cache format collisions between old and new workers during rolling deploys.
+    'constance': {
+        **env.cache_url(default='redis://change-me.invalid:6380/3'),
+        'KEY_PREFIX': 'constance_4x',
+    },
 }
 
 # How long to retain cached responses for kpi endpoints
@@ -1951,6 +2160,9 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 300  # seconds
+# Lock TTL for the async regeneration task; covers the worst-case generation
+# time and ensures the lock expires even if a K8s pod is killed mid-task.
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 600  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
@@ -2155,12 +2367,48 @@ LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
+S3_DELETE_BATCH_SIZE = 1000
+AZURE_DELETE_BATCH_SIZE = 256
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
+# Maximum timeout (in minutes) for hook processing
+HOOK_STALLED_PENDING_TIMEOUT = 120
+HOOK_STALLED_RETRY_TIMEOUT = 1440
+
+# Cache time-to-live (in seconds) for attachment XPaths
+ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Configure the Referrer-Policy response header so OpenStreetMap tile servers
+# receive an acceptable referrer. See:
+# https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
+# Can be overridden per environment via the SECURE_REFERRER_POLICY environment variable.
+SECURE_REFERRER_POLICY = env(
+    'SECURE_REFERRER_POLICY',
+    default='strict-origin-when-cross-origin',
+)
+
+AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
+    'AUTOQA_CLAUDESONNET_MODEL_AIP_ARN',
+    default='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+)
+AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
+    'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
+)
+
+# 24 months x 31 days/month = 744 default
+PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
+ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
+
+# Minimum gap between two ExtraUserDetail.last_project_activity writes for the same
+# user. Prevents write storms when a user submits many forms in a short window.
+LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
+    'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
+)
 
 OPENAPI_VALIDATION = env.bool('OPENAPI_VALIDATION', False)
 OPENAPI_SCHEMA_PATH = 'static/openapi/schema_v2.json'

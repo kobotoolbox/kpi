@@ -52,6 +52,7 @@ export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0,
+  PROCESSING: 3,
 }
 
 export const KEY_CODES = Object.freeze({
@@ -81,10 +82,6 @@ export const MODAL_TYPES = {
   REPLACE_PROJECT: 'replace-project',
   TABLE_SETTINGS: 'table-settings',
   REST_SERVICES: 'rest-services',
-  FORM_LANGUAGES: 'form-languages',
-  FORM_TRANSLATIONS_TABLE: 'form-translation-table',
-  ASSET_TAGS: 'asset-tags',
-  ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
@@ -96,6 +93,15 @@ export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
 })
+
+export const EXTRA_PROJECT_METADATA_FIELD_TYPES = Object.freeze({
+  TEXT: 'text',
+  SINGLE_SELECT: 'single_select',
+  MULTI_SELECT: 'multi_select',
+} as const)
+
+export type ExtraProjectMetadataFieldType =
+  (typeof EXTRA_PROJECT_METADATA_FIELD_TYPES)[keyof typeof EXTRA_PROJECT_METADATA_FIELD_TYPES]
 
 export type UpdateStatesKey = 'UNSAVED_CHANGES' | 'UP_TO_DATE' | 'PENDING_UPDATE' | 'SAVE_FAILED'
 export type UpdateStatesValue = -1 | true | false | 'SAVE_FAILED'
@@ -144,6 +150,8 @@ export enum AssetTypeName {
   template = 'template',
   survey = 'survey',
   collection = 'collection',
+  // Sometimes an empty asset is possible to be created by some funky import flows
+  // empty = 'empty'
 }
 
 export interface AssetTypeDefinition {
@@ -376,6 +384,23 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName['start-geopoint'],
 ]) as { [P in MetaQuestionTypeName]: MetaQuestionTypeName }
 
+/**
+ * Question types that contain geopoint data that can be displayed on the map.
+ */
+export const MAP_DISPLAYABLE_GEOPOINT_TYPES: AnyRowTypeName[] = [
+  QuestionTypeName.geopoint,
+  MetaQuestionTypeName['start-geopoint'],
+]
+
+/**
+ * Type predicate to check if a question type is a map-displayable geopoint type.
+ */
+export function isMapDisplayableGeopointType(
+  type: AnyRowTypeName | undefined,
+): type is (typeof MAP_DISPLAYABLE_GEOPOINT_TYPES)[number] {
+  return type !== undefined && MAP_DISPLAYABLE_GEOPOINT_TYPES.includes(type)
+}
+
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
 // 2. https://github.com/kobotoolbox/kpi/blob/7db39015866c905edc645677d72b9c1ea16067b1/jsapp/js/constants.es6#L284-L294
@@ -385,10 +410,8 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_uuid',
   '_submission_time',
   '_validation_status',
-  '_notes',
   '_status',
   '_submitted_by',
-  '_tags',
   '_index',
   '__version__',
   'meta/rootUuid',
@@ -494,13 +517,7 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name',
 }
 
-export const DEPLOYMENT_CATEGORIES = Object.freeze({
-  Deployed: { id: 'Deployed', label: t('Deployed') },
-  Draft: { id: 'Draft', label: t('Draft') },
-  Archived: { id: 'Archived', label: t('Archived') },
-})
-
-export const QUERY_LIMIT_DEFAULT = 5000
+export const QUERY_LIMIT_DEFAULT = 1000
 
 export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   form_media: 50,
@@ -606,7 +623,7 @@ export const DND_TYPES = {
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
 */
-export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'trialing'])
+export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'trialing', 'unpaid'])
 
 /*
   The ratio of current usage / usage limit at which we display soft 'warning' messages on the frontend
@@ -634,7 +651,6 @@ const constants = {
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  DEPLOYMENT_CATEGORIES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
   MAX_DISPLAYED_STRING_LENGTH,

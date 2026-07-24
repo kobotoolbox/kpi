@@ -2,6 +2,7 @@ import datetime
 from zoneinfo import ZoneInfo
 
 import constance
+from constance import config
 from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
@@ -16,7 +17,6 @@ from rest_framework.reverse import reverse
 
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
-from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.schema_extensions.v2.me.fields import (
@@ -61,6 +61,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
+            'is_superuser',
             'server_time',
             'date_joined',
             'projects_url',
@@ -79,6 +80,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'email',
             'accepted_tos',
+            'is_superuser',
         )
 
     def get_accepted_tos(self, obj: User) -> bool:
@@ -90,10 +92,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             user_extra_details = obj.extra_details
         except obj.extra_details.RelatedObjectDoesNotExist:
             return False
-        accepted_tos = (
-            'last_tos_accept_time' in user_extra_details.private_data.keys()
-        )
-        return accepted_tos
+        last_accepted = user_extra_details.private_data.get('last_tos_accept_time')
+        if not last_accepted:
+            return False
+        most_recent_tos_update = config.LAST_TOS_UPDATE
+        if not most_recent_tos_update:
+            return True
+        return last_accepted > most_recent_tos_update
 
     @extend_schema_field(DateJoinedField)
     def get_date_joined(self, obj):
@@ -232,9 +237,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_extra_details(self, value):
-        desired_metadata_fields = to_python_object(
-            constance.config.USER_METADATA_FIELDS
-        )
+        desired_metadata_fields = constance.config.USER_METADATA_FIELDS
 
         # If the organization type is the special string 'none', then ignore
         # the required-ness of other organization-related fields

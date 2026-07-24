@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
@@ -44,4 +45,161 @@ AdvancedFeaturePostRequest = inline_serializer_class(
         'action': AdvancedFeatureActionField(),
         'params': AdvancedFeatureRequestParamsField(),
     },
+)
+
+
+BULK_ACTION_STATUS_CHOICES = ['pending', 'in_progress', 'complete', 'cancelled']
+
+
+class BulkActionStatusField(serializers.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            choices=BULK_ACTION_STATUS_CHOICES,
+            *args,
+            **kwargs,
+        )
+
+
+class BulkActionSubmissionStatusField(serializers.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            choices=['pending', 'in_progress', 'complete', 'cancelled', 'failed'],
+            *args,
+            **kwargs,
+        )
+
+
+class BulkActionActionIdField(serializers.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            choices=[
+                'automatic_google_transcription',
+                'automatic_google_translation',
+            ],
+            *args,
+            **kwargs,
+        )
+
+
+BulkActionUserResponse = inline_serializer_class(
+    name='BulkActionUserResponse',
+    fields={
+        'username': serializers.CharField(),
+    },
+)
+
+BulkActionSubmissionStatusResponse = inline_serializer_class(
+    name='BulkActionSubmissionStatusResponse',
+    fields={
+        'uuid': serializers.CharField(),
+        'status': BulkActionSubmissionStatusField(),
+        'error': serializers.CharField(allow_null=True),
+    },
+)
+
+BulkActionParamsRequest = inline_serializer_class(
+    name='BulkActionParamsRequest',
+    fields={
+        'language': serializers.CharField(),
+        'locale': serializers.CharField(required=False),
+    },
+)
+
+BulkActionParamsResponse = inline_serializer_class(
+    name='BulkActionParamsResponse',
+    fields={
+        'language': serializers.CharField(),
+        'locale': serializers.CharField(required=False),
+    },
+)
+
+BulkActionResponse = inline_serializer_class(
+    name='BulkActionResponse',
+    fields={
+        'uid': serializers.CharField(),
+        'status': BulkActionStatusField(),
+        'action_id': BulkActionActionIdField(),
+        'question_xpath': serializers.CharField(),
+        'submission_uuids': serializers.ListField(child=serializers.CharField()),
+        'submission_statuses': BulkActionSubmissionStatusResponse(many=True),
+        'params': BulkActionParamsResponse(),
+        'progress': serializers.IntegerField(min_value=0, max_value=100),
+        'created_by': BulkActionUserResponse(),
+        'date_created': serializers.DateTimeField(),
+        'date_modified': serializers.DateTimeField(),
+        'cancelled_by': BulkActionUserResponse(required=False, allow_null=True),
+    },
+)
+
+BulkActionCreateResponse = inline_serializer_class(
+    name='BulkActionCreateResponse',
+    fields={
+        **BulkActionResponse().get_fields(),
+        'skipped_uuids': serializers.ListField(child=serializers.CharField()),
+    },
+)
+
+BulkActionCreateRequest = inline_serializer_class(
+    name='BulkActionCreateRequest',
+    fields={
+        'action_id': BulkActionActionIdField(),
+        'question_xpath': serializers.CharField(),
+        'submission_uuids': serializers.ListField(child=serializers.CharField()),
+        'params': BulkActionParamsRequest(),
+    },
+)
+
+BulkActionPatchRequest = inline_serializer_class(
+    name='BulkActionPatchRequest',
+    fields={
+        'status': serializers.ChoiceField(choices=['cancelled']),
+    },
+)
+
+
+class BulkAcceptOperationField(serializers.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            choices=['accept'],
+            *args,
+            **kwargs,
+        )
+
+
+BulkAcceptRequest = inline_serializer_class(
+    name='BulkAcceptRequest',
+    fields={
+        'submission_uids': serializers.ListField(child=serializers.CharField()),
+        'question_xpath': serializers.CharField(),
+        'action_id': BulkActionActionIdField(),
+        'language': serializers.CharField(
+            required=False,
+            help_text='Required for translation actions.',
+        ),
+        'operation': BulkAcceptOperationField(
+            help_text='The operation to apply to the supplement data.',
+        ),
+    },
+)
+
+BulkAcceptResponse = inline_serializer_class(
+    name='BulkAcceptResponse',
+    fields={
+        'accepted_count': serializers.IntegerField(
+            min_value=0,
+            help_text='Number of submission records that were accepted.',
+        ),
+    },
+)
+
+BulkActionListResponse = extend_schema_serializer(many=False)(
+    inline_serializer_class(
+        name='BulkActionListResponse',
+        fields={
+            'count': serializers.IntegerField(),
+            'next': serializers.CharField(required=False, allow_null=True),
+            'previous': serializers.CharField(required=False, allow_null=True),
+            'results': BulkActionResponse(many=True),
+        },
+    )
 )

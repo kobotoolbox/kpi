@@ -116,6 +116,9 @@ const addRemainingOneTimeAddOnLimits = (limits: AccountLimit, oneTimeAddOns: One
       if (addon.limits_remaining.mt_characters_limit && limits.mt_characters_limit !== Limits.unlimited) {
         limits.mt_characters_limit += addon.limits_remaining.mt_characters_limit
       }
+      if (addon.limits_remaining.llm_requests_limit && limits.llm_requests_limit !== Limits.unlimited) {
+        limits.llm_requests_limit += addon.limits_remaining.llm_requests_limit
+      }
     })
   return limits
 }

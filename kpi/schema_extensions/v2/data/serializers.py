@@ -6,6 +6,7 @@ from .fields import (
     DataBulkDeleteField,
     DataBulkUpdatePayloadField,
     DataBulkUpdateResultField,
+    DataSupplementalDetailsField,
     DataValidationPayloadField,
     DataValidationStatusField,
     EnketoEditUrlField,
@@ -56,13 +57,9 @@ DataResponse = inline_serializer_class(
         '_status': serializers.CharField(),
         '_geolocation': GeoLocationField(),
         '_submission_time': serializers.DateTimeField(),
-        '_tags': serializers.ListField(child=serializers.CharField()),
-        '_notes': serializers.ListField(
-            child=serializers.CharField(),
-        ),
         '_validation_status': DataValidationStatusField(),
         '_submitted_by': serializers.CharField(),
-        '_supplementalDetails': serializers.DictField(required=False),
+        '_supplementalDetails': DataSupplementalDetailsField(required=False),
     },
 )
 

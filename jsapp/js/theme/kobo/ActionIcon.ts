@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- Theme extender must import Mantine primitive directly.
 import { ActionIcon, rem } from '@mantine/core'
 import classes from './ActionIcon.module.css'
 
@@ -9,6 +10,7 @@ export const ActionIconThemeKobo = ActionIcon.extend({
         '--ai-size-sm': rem(28),
         '--ai-size-md': rem(32),
         '--ai-size-lg': rem(38),
+        '--ai-size-xl': rem(44),
 
         ...(props.variant === 'filled' && {
           '--ai-hover': theme.colors.blue[5],
@@ -22,6 +24,12 @@ export const ActionIconThemeKobo = ActionIcon.extend({
           '--ai-color': theme.colors.gray[2],
           '--ai-bg': theme.colors.gray[7],
           '--ai-hover': theme.colors.gray[6],
+        }),
+        ...(props.variant === 'outline' && {
+          '--ai-color': theme.colors.gray[2],
+          '--ai-bg': theme.colors.gray[9],
+          '--ai-bd': '1px solid var(--mantine-color-gray-6)',
+          '--ai-hover': theme.colors.gray[7],
         }),
         ...(props.variant === 'transparent' && {
           '--ai-color': theme.colors.blue[4],

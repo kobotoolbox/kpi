@@ -1,14 +1,23 @@
 import React, { useState } from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
+import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import {
+  getSubmissionRootUuid,
+  isConflictingOngoingJobForSubmission,
+} from '#/components/processing/common/conflictingOngoingJob'
 import { CreateSteps } from '#/components/processing/common/types'
+import { getSuggestedLanguages } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
+import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
 import StepCreateManual from './StepCreateManual'
@@ -18,12 +27,10 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
+  activeBulkActions: BulkActionResponse[]
   languagesExisting: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
-  translationVersions: Array<
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
-  >
+  translationVersions: Array<SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic>
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   onBack: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
@@ -35,6 +42,7 @@ export default function TranslationAdd({
   questionXpath,
   submission,
   supplement,
+  activeBulkActions,
   languagesExisting,
   initialStep,
   translationVersions,
@@ -45,13 +53,26 @@ export default function TranslationAdd({
 }: Props) {
   const [step, setStep] = useState<CreateSteps>(initialStep ?? CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { billingPeriod } = useBillingPeriod()
+
+  // Translation conflicts are language-specific, so we only evaluate once a
+  // target language is selected.
+  const hasConflictingOngoingJob =
+    languageCode !== null &&
+    isConflictingOngoingJobForSubmission({
+      activeBulkActions,
+      actionType: 'translation',
+      fieldXpath: questionXpath,
+      submissionUuid: getSubmissionRootUuid(submission),
+      selectedLanguage: languageCode,
+    })
 
   /**
    * This is for going back from manual/automated to language selector step
    */
   function goBackFromCreateStep() {
-    // TODO HACKFIX: Because `LanguageSelector` is not a controlled component, the selected language inside of it and
-    // the one we have here might become out of sync. Let's ensure we clear it out when re-displaying language step)
+    // Clear the selected language when returning to the language selection step
     setLanguageCode(null)
     setStep(CreateSteps.Language)
   }
@@ -76,14 +97,18 @@ export default function TranslationAdd({
       {step === CreateSteps.Language && (
         <StepSelectLanguage
           onBack={goBackFromLanguageStep}
-          onNext={(step: CreateSteps.Manual | CreateSteps.Automatic) => setStep(step)}
+          onNext={(nextStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(nextStep)}
+          onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
+          usageType={UsageLimitTypes.TRANSLATION}
           hiddenLanguages={languagesExisting}
-          suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
+          suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           titleOverride={t('Please select the language you want to translate to')}
           singleManualButtonLabel={t('translate')}
+          disableManual={hasConflictingOngoingJob}
           disableAutomatic={!envStore.data.asr_mt_features_enabled}
+          showConflictingOngoingJobAlert={hasConflictingOngoingJob}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (
@@ -94,6 +119,7 @@ export default function TranslationAdd({
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
+          activeBulkActions={activeBulkActions}
           onCreate={onCreate}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
@@ -102,14 +128,22 @@ export default function TranslationAdd({
       {step === CreateSteps.Automatic && !!languageCode && (
         <StepCreateAutomated
           onBack={goBackFromCreateStep}
+          onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          hasConflictingOngoingJob={hasConflictingOngoingJob}
           onCreate={onCreate}
           advancedFeatures={advancedFeatures}
         />
       )}
+      <NlpUsageLimitBlockModal
+        isModalOpen={isLimitBlockModalOpen}
+        usageType={UsageLimitTypes.TRANSLATION}
+        dismissed={() => setIsLimitBlockModalOpen(false)}
+        interval={billingPeriod}
+      />
     </>
   )
 }

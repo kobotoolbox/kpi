@@ -1,6 +1,7 @@
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
 
 import jsonschema
@@ -11,11 +12,14 @@ from django.utils import timezone
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
+    GoogleQuotaExceededError,
+    SubsequenceAcceptanceError,
     SubsequenceDeletionError,
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
+from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -153,6 +157,14 @@ idea of example data in SubmissionSupplement based on the above
 """
 
 
+class ReviewType(Enum):
+    # entries must be accepted before being part of the data set
+    ACCEPTANCE = 'acceptance'
+    # entries automatically become part of the data set with an additional column
+    # showing whether they have been verified
+    VERIFICATION = 'verification'
+
+
 @dataclass
 class ActionClassConfig:
     """
@@ -163,11 +175,15 @@ class ActionClassConfig:
       when multiple entries are allowed (e.g., "language").
     - automatic: Indicates whether the action relies on an external service
       to generate data.
+    - review_type: How data is reviewed (verified or accepted)
+    - allow_async: Whether the action may generate a celery task to finish
     """
 
     allow_multiple: bool
     automatic: bool
     action_data_key: str | None = None
+    review_type: ReviewType | None = None
+    allow_async: bool = False
 
 
 class BaseAction:
@@ -188,17 +204,18 @@ class BaseAction:
         source_question_xpath: str,
         params: list[dict],
         asset: Optional['kpi.models.Asset'] = None,
+        prefetched_dependencies: dict = None,
     ):
         self.source_question_xpath = source_question_xpath
         self.validate_params(params)
         self.params = params
         self.asset = asset
-        self._action_dependencies = {}
+        self._action_dependencies = prefetched_dependencies or {}
 
     def attach_action_dependency(self, action_data: dict):
         pass
 
-    def check_limits(self, user: User):
+    def check_limits(self, user: User, action_data: dict):
 
         if (
             not settings.STRIPE_ENABLED
@@ -225,21 +242,6 @@ class BaseAction:
         """
         raise NotImplementedError
 
-    def get_action_dependencies(self, question_supplemental_data: dict) -> dict | None:
-        """
-        Return a mapping of supplemental data required by this action, or None.
-
-        This method allows an action to declare which parts of
-        `question_supplemental_data` (or other context data) it depends on
-        in order to run correctly. By default it returns None, meaning the
-        action has no external dependencies. Subclasses can override this
-        to return a dictionary of prerequisite data—typically other actions’
-        results or metadata—that must be present before executing this
-        action.
-        """
-
-        return None
-
     def get_localized_action_supplemental_data(
         self, action_supplemental_data: dict, action_data: dict
     ) -> tuple[dict, str | None]:
@@ -264,6 +266,7 @@ class BaseAction:
         action_data: dict,
         dependency_supplemental_data: dict,
         accepted: bool | None = None,
+        verified: bool | None = None,
     ) -> dict:
         now_str = utc_datetime_to_js_str(timezone.now())
 
@@ -272,39 +275,39 @@ class BaseAction:
                 action_supplemental_data, action_data
             )
         )
+        if 'value' in action_data or 'status' in action_data:
+            new_version = {self.VERSION_DATA_FIELD: deepcopy(action_data)}
+            new_version[self.DATE_CREATED_FIELD] = now_str
+            new_version[self.UUID_FIELD] = str(uuid.uuid4())
+            if self.action_class_config.review_type == ReviewType.VERIFICATION:
+                # everything starts out unverified
+                new_version['verified'] = False
+            if dependency_supplemental_data:
+                new_version[self.DEPENDENCY_FIELD] = dependency_supplemental_data
+            localized_action_supplemental_data.setdefault(
+                self.VERSION_FIELD, []
+            ).insert(0, new_version)
 
-        new_version = {self.VERSION_DATA_FIELD: deepcopy(action_data)}
-        new_version[self.DATE_CREATED_FIELD] = now_str
-        new_version[self.UUID_FIELD] = str(uuid.uuid4())
-        if dependency_supplemental_data:
-            new_version[self.DEPENDENCY_FIELD] = dependency_supplemental_data
+        current_version = localized_action_supplemental_data[self.VERSION_FIELD][0]
+
+        if (
+            verified is not None
+            and self.action_class_config.review_type == ReviewType.VERIFICATION
+        ):
+            current_version['verified'] = verified
+            if verified:
+                current_version['_dateVerified'] = now_str
+
+        if (
+            accepted is not None
+            and self.action_class_config.review_type == ReviewType.ACCEPTANCE
+        ):
+            if accepted:
+                current_version['_dateAccepted'] = now_str
 
         if self.DATE_CREATED_FIELD not in localized_action_supplemental_data:
             localized_action_supplemental_data[self.DATE_CREATED_FIELD] = now_str
         localized_action_supplemental_data[self.DATE_MODIFIED_FIELD] = now_str
-
-        localized_action_supplemental_data.setdefault(self.VERSION_FIELD, []).insert(
-            0, new_version
-        )
-
-        # For manual actions, always mark as accepted.
-        # For automatic actions, revert the just-created revision (remove it and
-        # reapply its dates) to avoid adding extra branching earlier in the method.
-        if self.action_class_config.automatic:
-            if accepted is not None:
-                # Remove stale version
-                localized_action_supplemental_data[self.VERSION_FIELD].pop(0)
-                if accepted:
-                    localized_action_supplemental_data[self.VERSION_FIELD][0][
-                        self.DATE_ACCEPTED_FIELD
-                    ] = now_str
-                else:
-                    localized_action_supplemental_data[self.VERSION_FIELD][0].pop(
-                        self.DATE_ACCEPTED_FIELD, None
-                    )
-
-        elif accepted:
-            new_version[self.DATE_ACCEPTED_FIELD] = now_str
 
         if not self.action_class_config.allow_multiple:
             new_action_supplemental_data = localized_action_supplemental_data
@@ -313,7 +316,6 @@ class BaseAction:
             new_action_supplemental_data.update(
                 {needle: localized_action_supplemental_data}
             )
-
         self.validate_result(new_action_supplemental_data)
 
         return new_action_supplemental_data
@@ -358,6 +360,15 @@ class BaseAction:
         }
         """
         return {}
+
+    def validate_action_for_empty_versions(self, action_data: dict):
+        """
+        Determine if action_data is allowed when there is no current version
+
+        This may occur if no version was ever created, or the most recent version has
+        been deleted, or is still in progress
+        """
+        raise NotImplementedError
 
     def validate_external_data(self, data):
         jsonschema.validate(
@@ -413,12 +424,13 @@ class BaseAction:
         self.validate_data(action_data)
         self.raise_for_any_leading_underscore_key(action_data)
 
-        localized_action_supplemental_data, needle = (
+        localized_action_supplemental_data, _ = (
             self.get_localized_action_supplemental_data(
                 action_supplemental_data, action_data
             )
         )
 
+        # get what's currently in the supplemental data
         try:
             current_version = localized_action_supplemental_data.get(
                 self.VERSION_FIELD, []
@@ -426,14 +438,20 @@ class BaseAction:
         except IndexError:
             current_version = {}
         self.attach_action_dependency(action_data)
-        # Check if user is trying to delete null data
-        if ('value' in action_data and action_data['value'] is None) and (
-            current_version.get(self.VERSION_DATA_FIELD, {}).get('value') is None
-        ):
-            raise SubsequenceDeletionError
+        current_version_data = current_version.get(self.VERSION_DATA_FIELD, {})
 
-        if self.action_class_config.automatic:
-            # If the action is automatic, run the external process first.
+        # some actions cannot be performed unless there is already a completed version
+        # that has not been deleted
+        if current_version_data.get('value') is None:
+            self.validate_action_for_empty_versions(action_data)
+
+        verified = action_data.pop('verified', None)
+        accepted = action_data.pop('accepted', None)
+        if verified is not None or accepted is not None:
+            # if we're just verifying or accepting, no need to get more data
+            dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
+        elif self.action_class_config.automatic:
+            # If the action is automatic, run the external process first
             if not (
                 service_response := self.run_external_process(
                     submission,
@@ -450,12 +468,15 @@ class BaseAction:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
             self.validate_external_data(action_data)
-            accepted = action_data.pop('accepted', None)
         else:
+            # manual action
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             # Deletion is triggered by passing `{value: null}`.
             # When this occurs, no acceptance should be recorded.
-            accepted = action_data.get('value') is not None
+            accepted = (
+                self.action_class_config.review_type == ReviewType.ACCEPTANCE
+                and action_data.get('value') is not None
+            )
 
         if dependency_supplemental_data:
             # Sanitize 'dependency' before persisting: keep only a reference of the
@@ -473,6 +494,7 @@ class BaseAction:
             action_data,
             dependency_supplemental_data,
             accepted,
+            verified,
         )
 
     @staticmethod
@@ -517,22 +539,6 @@ class BaseAction:
         """
         self.validate_params(incoming_params)
         self.params = incoming_params
-
-    def _get_date_field_value(self, version: dict) -> str:
-        """
-        Return the date used to sort a version.
-
-        If `_data.value` is None, the action was deleted, so the creation date
-        (`_dateCreated`) is used. Otherwise, the acceptance date (`_dateAccepted`)
-        is used.
-        """
-
-        return (
-            version.get(self.DATE_CREATED_FIELD, '')
-            if 'value' in version[self.VERSION_DATA_FIELD]
-            and version[self.VERSION_DATA_FIELD]['value'] is None
-            else version.get(self.DATE_ACCEPTED_FIELD, '')
-        )
 
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
         raise Exception('This method is going away')
@@ -705,6 +711,13 @@ class BaseManualNLPAction(BaseAction):
             if language_obj['language'] not in current_languages:
                 self.params.append(language_obj)
 
+    def validate_action_for_empty_versions(self, action_data):
+        # cannot delete or accept non-existent data
+        if 'value' in action_data and action_data['value'] is None:
+            raise SubsequenceDeletionError
+        if 'accepted' in action_data:
+            raise SubsequenceAcceptanceError()
+
 
 class BaseAutomaticNLPAction(BaseManualNLPAction):
     """
@@ -718,6 +731,14 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
     validation rules for parameters, while automatic actions introduce
     their own structure with additional system-generated fields.
     """
+
+    def check_limits(self, user: User, action_data: dict):
+        accepted = action_data.get('accepted', None)
+        if accepted is not None:
+            return
+        if 'value' in action_data and action_data['value'] is None:
+            return
+        super().check_limits(user, action_data)
 
     @property
     def external_data_schema(self) -> dict:
@@ -744,6 +765,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'value': {'$ref': '#/$defs/value'},
                 'error': {'$ref': '#/$defs/error'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language', 'status'],
             'allOf': [
@@ -822,6 +844,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                     'then': {},  # optional
                     'else': {'not': {'required': ['accepted']}},
                 },
+                'bulk_action_uid': {'type': 'string'},
             },
         }
 
@@ -834,11 +857,12 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         - `value` is optional but, if present, it MUST be `null`
            (no other type allowed).
         - `accepted` is optional.
+        - `bulk_action_uid` is optional and identifies a SubsequenceBulkAction.
         - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
           * If `value` is present (and thus equals null), `accepted` must be absent.
           * If `accepted` is present, `value` must be absent.
         - No additional properties are allowed beyond:
-          `language`, `locale`, `value`, `accepted`.
+          `language`, `locale`, `value`, `accepted`, `bulk_action_uid`.
         """
 
         return {
@@ -850,6 +874,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'locale': {'$ref': '#/$defs/locale'},
                 'value': {'$ref': '#/$defs/value_null_only'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language'],
             'allOf': [
@@ -862,6 +887,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'accepted': {'const': True},
                 # Only null is permitted for `value`
                 'value_null_only': {'type': 'null'},
+                'bulk_action_uid': {'type': 'string'},
             },
         }
 
@@ -891,8 +917,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             {'status': 'complete', 'value': '<result>'}
 
         Behavior:
-        - If the user explicitly accepted the last completed result, the method
-          short-circuits and returns it immediately.
         - If the service reports `in_progress`, the method returns `None` so that
           `revise_data()` can exit early and avoid redundant processing.
         - If the service returns `failed` or `complete`, the processed result is
@@ -900,24 +924,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         """
 
         current_version = action_supplemental_data.get(self.VERSION_DATA_FIELD, {})
-
-        # If the client sent "accepted" while the supplement is already complete,
-        # return the completed translation/transcription right away. `revise_data()`
-        # will handle the merge and final validation of this acceptance.
-        accepted = action_data.get('accepted', None)
-
-        if accepted is not None:
-            if current_version.get('status') == 'complete':
-                return {
-                    'value': current_version['value'],
-                    'status': 'complete',
-                }
-            else:
-                # Intentionally return `action_data` as-is to force JSON schema
-                # validation to fail.
-                # The `{'accepted': true|false}` structure is only valid once the
-                # action has completed.
-                return action_data
 
         # If the client explicitly removed a previously stored result,
         # preserve that deletion by returning a `deleted` status instead
@@ -932,24 +938,60 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             }
 
         # Otherwise, trigger the external service.
+        bulk_action_uid = action_data.get('bulk_action_uid')
+
         NLPService = self.get_nlp_service_class()  # noqa
         try:
             service = NLPService(submission, asset=self.asset)
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
 
-        service_data = service.process_data(self.source_question_xpath, action_data)
+        quota_poll_scheduled = False
+        try:
+            service_data = service.process_data(
+                self.source_question_xpath,
+                action_data,
+                bulk_action_uid=bulk_action_uid,
+            )
+        except GoogleQuotaExceededError as err:
+            if celery_app.current_worker_task:
+                raise
+
+            if self.action_class_config.allow_async:
+                celery_action_data = deepcopy(action_data)
+                celery_action_data.pop(self.DEPENDENCY_FIELD, None)
+
+                poll_run_external_process.apply_async(
+                    kwargs={
+                        'submission': submission,
+                        'action_data': celery_action_data,
+                        'action_id': self.ID,
+                        'asset_id': self.asset.pk,
+                        'question_xpath': self.source_question_xpath,
+                    },
+                    countdown=err.retry_after,
+                )
+                quota_poll_scheduled = True
+                service_data = {'status': 'in_progress'}
+            else:
+                return {
+                    'status': 'failed',
+                    'error': (
+                        'Google quota exceeded. Please retry later. '
+                        f'Retry after {err.retry_after} seconds.'
+                    ),
+                }
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
-        if accepted is None and service_data['status'] == 'in_progress':
+        if service_data['status'] == 'in_progress':
             if current_version.get('status') == 'in_progress':
                 return None
-            else:
+            elif self.action_class_config.allow_async:
                 # Make Celery update in the background.
                 # Since Celery is calling the same code, we want to ensure
                 #  it does not recall itself.
-                if not celery_app.current_worker_task:
+                if not celery_app.current_worker_task and not quota_poll_scheduled:
 
                     celery_action_data = deepcopy(action_data)
                     celery_action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -964,6 +1006,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                         },
                         countdown=10,  # Give it a small delay before retrying
                     )
+            else:
+                logging.warn('Non-async task returned "in progress" status')
+                return None
 
         # Normal case: return the processed transcription data.
         return service_data

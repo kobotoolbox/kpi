@@ -1,0 +1,109 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+
+.form-view--form-media {
+  background-color: colors.$kobo-white;
+}
+
+.form-media {
+  padding: 30px 40px;
+
+  .form-media__title {
+    display: inline-flex;
+    position: relative;
+    margin-bottom: 24px;
+
+    .form-media__label {
+      padding-right: 12px;
+    }
+
+    a.title-help {
+      position: absolute;
+      top: -2px;
+      right: -24px;
+      font-size: 24px;
+      height: 24px;
+      color: colors.$kobo-gray-700;
+      cursor: pointer;
+    }
+  }
+
+  .form-media__upload {
+    .form-media-upload-url {
+      color: colors.$kobo-gray-700;
+      font-size: 18px;
+      font-weight: 500;
+      margin: auto;
+      margin-top: 36px;
+      display: block;
+
+      .form-media-upload-url__label {
+        margin: 12px 0;
+        text-align: center;
+      }
+
+      .form-media-upload-url__form {
+        @include mixins.centerRowFlex;
+        align-items: flex-start;
+        gap: 20px;
+        padding-top: 10px;
+
+        > label {
+          flex: 1;
+        }
+      }
+    }
+  }
+
+  .form-media__list {
+    margin-top: 64px;
+
+    .form-media__label {
+      margin-bottom: 11px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid colors.$kobo-gray-300;
+    }
+
+    .form-media__list-item {
+      font-size: 16px;
+      position: relative;
+      padding-bottom: 12px;
+      border-bottom: 1px solid colors.$kobo-gray-300;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .form-media__file-type {
+        position: absolute;
+        left: -5px;
+        top: 2px;
+        color: colors.$kobo-gray-500;
+        font-size: 24px;
+      }
+
+      a {
+        font-weight: 400;
+        padding: 5px;
+        margin-left: 25px;
+        font-size: 18px;
+        display: inline-block;
+        min-width: 10px;
+        vertical-align: top;
+        height: auto;
+        position: relative;
+        min-height: 18px;
+        max-width: 70%;
+        overflow-x: hidden;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .form-media__label {
+    color: colors.$kobo-gray-800;
+    font-weight: 500;
+    font-size: 22px;
+    display: block;
+  }
+}

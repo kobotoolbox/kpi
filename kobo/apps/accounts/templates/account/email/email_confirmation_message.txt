@@ -1,11 +1,16 @@
 {% load i18n %}
 {% load url_creation %}
-{% blocktrans trimmed %}To confirm the new email address associated with your KoboToolbox account, please follow the link below.{% endblocktrans %}
+{% blocktrans trimmed %}To confirm the email address associated with your KoboToolbox account, please follow the link below.{% endblocktrans %}
 
 {{ activate_url }}
 
-{% blocktrans trimmed %}This link will expire in one hour. To request a new verification link, please go to your account settings and re-enter your new email address:{% endblocktrans %}
-{% account_security %}
+{% blocktrans trimmed %}
+This link will expire in 24 hours.
+
+To activate a new account, please sign into your account with your credentials (username and password) and a new link will be sent to you.
+
+To verify an email address change, you can request a new activation link directly from your account under Settings > Security.
+{% endblocktrans %}
 
 {% blocktrans trimmed %}Best,{% endblocktrans %}
 KoboToolbox

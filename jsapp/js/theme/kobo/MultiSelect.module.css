@@ -1,0 +1,14 @@
+.pill {
+  background-color: var(--mantine-color-gray-7);
+}
+
+.inputField::placeholder {
+  color: var(--mantine-color-gray-4);
+  opacity: 1;
+}
+
+/* Match chevron visual size in MultiSelect. */
+.section button svg {
+  width: 1rem;
+  height: 1rem;
+}

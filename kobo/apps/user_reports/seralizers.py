@@ -1,6 +1,5 @@
 from typing import Any
 
-from django.utils import timezone
 from rest_framework import serializers
 
 from kobo.apps.organizations.constants import UsageType
@@ -62,7 +61,6 @@ class UserReportsSerializer(serializers.ModelSerializer):
 
         su['current_period_start'] = current_period_start
         su['current_period_end'] = current_period_end
-        su['last_updated'] = timezone.now().isoformat()
         return su
 
     def _calculate_usage_balances(self, obj) -> dict[str, Any]:

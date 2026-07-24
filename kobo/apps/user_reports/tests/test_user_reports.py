@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import pytest
 from allauth.socialaccount.models import SocialAccount
+from constance.test import override_config
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -71,9 +73,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                'details': 'The data source for user reports is missing. '
-                'Please run 0002_create_user_reports_mv to create the '
-                'materialized view: user_reports_userreportsmv.',
+                'details': (
+                    'The data source for user reports is missing. '
+                    'Please run `./manage.py manage_user_reports_mv --create` to '
+                    'create the materialized view: user_reports_userreportsmv.'
+                )
             },
         )
 
@@ -177,7 +181,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         DailyXFormSubmissionCounter.objects.create(
             user_id=self.someuser.id,
-            date=timezone.now().date() - timezone.timedelta(days=100),
+            date=timezone.now().date() - timedelta(days=100),
             counter=135,
         )
         NLPUsageCounter.objects.create(
@@ -185,7 +189,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         NLPUsageCounter.objects.create(
             user_id=self.someuser.id,
-            date=timezone.now().date() - timezone.timedelta(days=100),
+            date=timezone.now().date() - timedelta(days=100),
             total_asr_seconds=80,
         )
         UserProfile.objects.filter(user_id=self.someuser.id).update(
@@ -327,7 +331,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertTrue(results[0]['accepted_tos'])
 
     def test_ordering_by_date_joined(self):
-        base_date = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        base_date = datetime(2023, 1, 1, tzinfo=ZoneInfo('UTC'))
         adminuser = User.objects.get(username='adminuser')
         adminuser.date_joined = base_date
         adminuser.save()
@@ -410,6 +414,63 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertIsNotNone(new_user_data)
         last_updated_str = new_user_data.get('last_updated')
         self.assertIsNotNone(last_updated_str)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_subscription_linked_via_customer_without_metadata(self):
+        """
+        Link subscriptions via `Customer.subscriber_id` to ensure the org owner
+        can see their subscription even when Stripe metadata is missing
+        """
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        # Create a Customer linked to the Organization
+        customer = baker.make(Customer, subscriber=self.organization)
+
+        # Create a Subscription for this Customer with EMPTY metadata
+        subscription = baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={},
+            status='active'
+        )
+
+        # Verify that the subscription is not visible in the API
+        user_data = self._get_someuser_data()
+        self.assertEqual(len(user_data['subscriptions']), 0)
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        user_data = self._get_someuser_data()
+
+        # Verify that the subscription is now visible and linked to the correct
+        # customer and organization, even without metadata
+        self.assertEqual(len(user_data['subscriptions']), 1)
+
+        sub_data = user_data['subscriptions'][0]
+        self.assertEqual(sub_data['id'], subscription.id)
+        self.assertEqual(sub_data['customer'], customer.id)
+        self.assertEqual(sub_data['metadata'], {})
+
+    def test_offset_limit_set_by_constance(self):
+        for i in range(20):
+            User.objects.create(username=f'user_{i}')
+        refresh_user_report_snapshots()
+        with override_config(USER_REPORTS_PAGE_SIZE_LIMIT=10):
+            response = self.client.get(f'{self.url}?limit=1')
+            results = response.data['results']
+            assert len(results) == 1
+            response = self.client.get(f'{self.url}')
+            results = response.data['results']
+            assert len(results) == 10
+            response = self.client.get(f'{self.url}?limit=100')
+            results = response.data['results']
+            assert len(results) == 10
 
     def _get_someuser_data(self):
 

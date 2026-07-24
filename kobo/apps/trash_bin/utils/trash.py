@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from copy import deepcopy
 from collections.abc import Iterable
+from copy import deepcopy
 from datetime import timedelta
 from typing import Optional
 
@@ -35,7 +35,7 @@ from ..type_aliases import (
     DeletionCallback,
     TrashBinModel,
     TrashBinModelInstance,
-    TrashObject
+    TrashObject,
 )
 from ..utils import temporarily_disconnect_signals
 
@@ -124,6 +124,13 @@ def move_to_trash(
             )
         )
 
+    max_char = PeriodicTask._meta.get_field('name').max_length
+
+    def shorten_name(name):
+        if len(name) <= max_char:
+            return name
+        return f'{name[0:max_char-3]}...'
+
     with temporarily_disconnect_signals(save=True):
         clocked_time = timezone.now() + timedelta(days=grace_period)
         clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
@@ -134,7 +141,7 @@ def move_to_trash(
                 [
                     PeriodicTask(
                         clocked=clocked,
-                        name=task_name_placeholder.format(**ato.metadata),
+                        name=shorten_name(task_name_placeholder.format(**ato.metadata)),
                         task=f'kobo.apps.trash_bin.tasks.{python_file}.{task}',
                         args=json.dumps([ato.id]),
                         one_off=True,
@@ -194,8 +201,12 @@ def process_deletion(
 
     deletion_callback(object_trash)
 
-    # Delete related periodic task
-    PeriodicTask.objects.get(pk=object_trash.periodic_task_id).delete()
+    # The related PeriodicTask is intentionally NOT deleted here to avoid
+    # triggering a `PeriodicTasks.changed()` signal for each completed task.
+    # On high-volume servers, these individual signals cause Celery Beat to
+    # reload its entire schedule thousands of times, starving task dispatch.
+    # The garbage_collector task cleans up orphaned PeriodicTasks in batch
+    # with signals suppressed (via `temporarily_disconnect_signals`).
     return object_trash, True
 
 
@@ -340,7 +351,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             Asset,
             'asset_uid',
             'empty_project',
-            f'{DELETE_PROJECT_STR_PREFIX} {{asset_name}} ({{asset_uid}})',
+            f'{DELETE_PROJECT_STR_PREFIX} ({{asset_uid}}) {{asset_name}}',
         )
 
     if trash_type == 'user':
@@ -364,7 +375,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             Attachment,
             'attachment_uid',
             'empty_attachment',
-            f'{DELETE_ATTACHMENT_STR_PREFIX} {{attachment_basename}} ({{attachment_uid}})',  # noqa E501
+            f'{DELETE_ATTACHMENT_STR_PREFIX} ({{attachment_uid}}) {{attachment_basename}}',  # noqa E501
         )
 
     raise TrashNotImplementedError

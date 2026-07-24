@@ -142,13 +142,24 @@ module.exports = do ->
         names.push name
       return
 
+    # This is a helper function for `BaseRowView.clone`, it makes a copy of the choices list in the parent row
     clone: () ->
       json = @toJSON()
-      delete json.name
+
+      # Assign a new unique identifier for the cloned list
+      json.name = txtid()
+
+      # Strip out $kuid from each option so they are treated as brand new entities
+      if json.options
+        for optionAttr in json.options
+          delete optionAttr['$kuid']
+
+      clonedList = new choices.ChoiceList(json)
+
       return _.assign(
-          new choices.ChoiceList(json),
-          collection: @collection
-        )
+        new choices.ChoiceList(json),
+        collection: @collection
+      )
 
     toJSON: ()->
       @finalize()

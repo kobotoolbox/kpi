@@ -1,7 +1,9 @@
 import json
+from datetime import timedelta
 from unittest.mock import patch
 
 import responses
+from allauth.account.models import EmailAddress, EmailConfirmation
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.conf import settings
 from django.test import TestCase
@@ -104,3 +106,26 @@ class SSOLoginTest(TestCase):
         audit_log: AuditLog = AuditLog.objects.filter(user=response.wsgi_request.user).first()
         self.assertEqual(audit_log.action, AuditAction.AUTH)
         assert response.wsgi_request.user.backend == settings.AUTHENTICATION_BACKENDS[0]
+
+
+class ActivationExpiryTestCase(TestCase):
+    @override_settings(ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS=1)
+    def test_link_expires_after_24_hours(self):
+        """
+        Test that the email confirmation link expires after 24 hours
+        """
+        user = User.objects.create_user(username='testexpiry', email='test@kobo.local')
+        email_address = EmailAddress.objects.create(user=user, email=user.email)
+        confirmation = EmailConfirmation.create(email_address)
+        confirmation.sent = confirmation.created
+        confirmation.save()
+
+        # Check validity at 23 hours (Should be valid)
+        future_23h = confirmation.sent + timedelta(hours=23)
+        with patch('django.utils.timezone.now', return_value=future_23h):
+            self.assertFalse(confirmation.key_expired())
+
+        # Check validity at 25 hours (Should be expired)
+        future_25h = confirmation.sent + timedelta(hours=25)
+        with patch('django.utils.timezone.now', return_value=future_25h):
+            self.assertTrue(confirmation.key_expired())

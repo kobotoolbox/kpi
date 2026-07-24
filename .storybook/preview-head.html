@@ -1,0 +1,5 @@
+<script>
+  // Mock t() function before any modules load
+  // This prevents "t is not defined" errors when components use t() in top-level constants
+  window.t = function(str) { return str; };
+</script>

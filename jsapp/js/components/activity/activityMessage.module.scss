@@ -4,3 +4,12 @@
   gap: 4px;
   font-size: 14px;
 }
+
+.seeDetailsButton {
+  background: transparent;
+  border: none;
+  color: var(--mantine-color-gray-1);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 8px;
+}

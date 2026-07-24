@@ -7,13 +7,13 @@
 {% if content.section_one or content.section_one == '' %}
 {% convert_placeholders content.section_one activate_url user %}
 {% else %}
-{% blocktrans trimmed %}Thanks for signing up with KoboToolbox!{% endblocktrans %}
+{% blocktrans trimmed with first_name=user.first_name|default:user.username %}Hi {{ first_name }},{% endblocktrans %}
 
-{% blocktrans trimmed %}Confirming your account will give you access to KoboToolbox applications. Please visit the following URL to finish activation of your new account.{% endblocktrans %}
+{% blocktrans trimmed %}Welcome to KoboToolbox! To get started, please activate your account by clicking the link below:{% endblocktrans %}
 
 {{ activate_url }}
 
-{% blocktrans trimmed %}Your username is: {% endblocktrans %}{{ user }}
+{% blocktrans trimmed %}This link will expire in 24 hours for security reasons. If it expires or you need a new one, simply sign in with your credentials (username and password) and a new link will be sent to you.{% endblocktrans %}
 
 {% endif %}
 {% endspaceless %}
@@ -22,12 +22,22 @@
 {% if content.section_two or content.section_two == '' %}
 {% convert_placeholders content.section_two activate_url user %}
 {% else %}
-{% blocktrans trimmed %}For help getting started, check out the KoboToolbox user documentation: https://support.kobotoolbox.com {% endblocktrans %}
+{% blocktrans trimmed %}To get the most out of KoboToolbox, check out the following resources and join the community:{% endblocktrans %}
 
-{% blocktrans trimmed %}You can also join the KoboToolbox community forum to ask questions, share solutions, and chat with thousands of users: https://community.kobotoolbox.org{% endblocktrans %}
+{% blocktrans trimmed %}• Help Center: Find answers to your questions in our Help Center’s extensive library of support articles. Visit the Help Center: https://support.kobotoolbox.org/{% endblocktrans %}
 
-{% blocktrans trimmed %}Best,{% endblocktrans %}
-KoboToolbox
+{% blocktrans trimmed %}• Online Learning: For a comprehensive introduction to KoboToolbox, we offer the online self-paced KoboToolbox Essentials Course. Get started with the Essentials Course: https://academy.kobotoolbox.org/courses/essentials{% endblocktrans %}
+
+{% blocktrans trimmed %}• Community Forum: Visit our Community Forum to chat with thousands of KoboToolbox users, ask questions, and find information about software updates. Explore the Community Forum: https://community.kobotoolbox.org/{% endblocktrans %}
+
+{% blocktrans trimmed %}• Support Services: We offer custom solutions and expert support for organizations, including training, project support, and dashboard development. Learn more about our services: https://www.kobotoolbox.org/services/{% endblocktrans %}
+
+{% blocktrans trimmed %}Follow us on on social media:{% endblocktrans %}
+{% blocktrans trimmed %}• Facebook: https://www.facebook.com/kobotoolbox{% endblocktrans %}
+{% blocktrans trimmed %}• LinkedIn: https://www.linkedin.com/company/kobotoolbox{% endblocktrans %}
+
+{% blocktrans trimmed %}Thanks for signing up!{% endblocktrans %}
+{% blocktrans trimmed %}The KoboToolbox Team{% endblocktrans %}
 {% endif %}
 {% endspaceless %}
 {% endwith %}

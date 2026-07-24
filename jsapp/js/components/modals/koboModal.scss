@@ -41,7 +41,7 @@ $kobo-modal-header-icon-margin: 10px;
     }
   }
 
-  @media all and (min-height: (breakpoints.$b480 + 1px)) {
+  @media all and (min-height: (breakpoints.$b480)) {
     transform: translate(-50%, -55%);
   }
 }

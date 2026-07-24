@@ -15,7 +15,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     clean_and_parse_xml,
     get_abbreviated_xpath,
 )
-from kobo.apps.openrosa.libs.utils.common_tags import NOTES, SUBMISSION_TIME, TAGS, UUID
+from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME, UUID
 from kobo.apps.openrosa.libs.utils.export_tools import (
     DictOrganizer,
     question_types_to_exclude,
@@ -319,7 +319,7 @@ class DataDictionary(XForm):
             return '/'.join(l[2:])
 
         header_list = [shorten(xpath) for xpath in self.xpaths()]
-        header_list += [UUID, SUBMISSION_TIME, TAGS, NOTES]
+        header_list += [UUID, SUBMISSION_TIME]
         if include_additional_headers:
             header_list += self._additional_headers()
         return header_list

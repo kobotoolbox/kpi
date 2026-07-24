@@ -1,12 +1,12 @@
 import React, { useContext, useMemo, useState } from 'react'
-
-import BillingButton from '#/account/plans/billingButton.component'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { SubscriptionChangeType } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import styles from '#/account/usage/yourPlan.module.scss'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+import ButtonNew from '#/components/common/ButtonNew'
 import Badge, { type BadgeColor } from '#/components/common/badge'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
@@ -95,11 +95,9 @@ export const YourPlan = () => {
         </div>
         {showPlanUpdateLink && (
           <nav>
-            <BillingButton
-              label={'See plans'}
-              type='secondary'
-              onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
-            />
+            <ButtonNew size='lg' variant='light' component={Link} to={ACCOUNT_ROUTES.PLAN}>
+              {t('See plans')}
+            </ButtonNew>
             {/* This is commented out until the add-ons tab on the Plans page is implemented
               <BillingButton
                 label={'get add-ons'}

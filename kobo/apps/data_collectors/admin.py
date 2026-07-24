@@ -82,9 +82,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
             if old_asset.uid not in new_asset_uids:
                 old_asset.data_collector_group = None
                 old_asset.save(
-                    update_fields=['data_collector_group'],
-                    adjust_content=False,
-                    create_version=False,
+                    update_fields=['data_collector_group'], adjust_content=False
                 )
 
         # link new assets
@@ -92,9 +90,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
             if new_asset.data_collector_group_id != obj.pk:
                 new_asset.data_collector_group = obj
                 new_asset.save(
-                    update_fields=['data_collector_group'],
-                    adjust_content=False,
-                    create_version=False,
+                    update_fields=['data_collector_group'], adjust_content=False
                 )
 
     def get_form(self, request, obj=..., change=..., **kwargs):

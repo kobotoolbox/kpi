@@ -1,3 +1,9 @@
+import re
+from types import SimpleNamespace
+from unittest.mock import patch
+
+import pytest
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 
@@ -54,7 +60,100 @@ class TestOrganizationAdminTestCase(TestCase):
         assert not self.asset.get_perms(self.anotheruser)
         assert self.anotheruser.organization != self.organization
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @patch(
+        'kobo.apps.organizations.admin.organization.organization_can_start_manual_subscription',  # noqa
+        return_value=True,
+    )
+    def test_change_form_shows_enabled_manual_invoicing_button(self, _can_start_mock):
+        response = self.client.get(
+            reverse(
+                'admin:organizations_organization_change',
+                kwargs={'object_id': self.organization.id},
+            )
+        )
+
+        content = response.content.decode()
+        assert 'name="_create_manual_subscription"' in content
+        assert 'Create Stripe Subscription' in content
+        assert not re.search(
+            r'name="_create_manual_subscription"[^>]*disabled',
+            content,
+        )
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @patch(
+        'kobo.apps.organizations.admin.organization.organization_can_start_manual_subscription',  # noqa
+        return_value=False,
+    )
+    def test_change_form_disables_manual_invoicing_button_for_active_subscription(
+        self,
+        _can_start_mock,
+    ):
+        response = self.client.get(
+            reverse(
+                'admin:organizations_organization_change',
+                kwargs={'object_id': self.organization.id},
+            )
+        )
+
+        content = response.content.decode()
+        assert re.search(
+            r'name="_create_manual_subscription"[^>]*disabled',
+            content,
+        )
+        assert 'already has an active Stripe subscription' in content
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @patch(
+        'kobo.apps.organizations.admin.organization.create_manual_subscription'
+    )
+    def test_create_manual_subscription_from_admin(
+        self, create_manual_subscription_mock
+    ):
+        create_manual_subscription_mock.return_value = SimpleNamespace(
+            id='sub_manual_invoice'
+        )
+
+        response = self._post_change_form(
+            {'_create_manual_subscription': '1'}
+        )
+
+        create_manual_subscription_mock.assert_called_once_with(
+            self.organization
+        )
+        assert (
+            'Created Stripe customer and community subscription sub_manual_invoice'
+        ) in response.content.decode()
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @patch(
+        'kobo.apps.organizations.admin.organization.organization_can_start_manual_subscription',  # noqa
+        return_value=False,
+    )
+    def test_create_manual_subscription_not_available_with_active_subscription(
+        self, _can_start_mock
+    ):
+        response = self._post_change_form(
+            {'_create_manual_subscription': '1'}
+        )
+
+        assert 'already has an active Stripe subscription' in response.content.decode()
+
     def _manage_user_in_org(self, remove: bool = False):
+        response = self._post_change_form({}, remove=remove)
+        assert 'was changed successfully' in response.content.decode()
+        return response
+
+    def _post_change_form(self, extra_payload: dict, remove: bool = False):
 
         payload = {
             'name': self.organization.name,
@@ -85,12 +184,12 @@ class TestOrganizationAdminTestCase(TestCase):
             payload['organization_users-0-id'] = organization_user_id
             payload['organization_users-INITIAL_FORMS'] = 1
 
+        payload.update(extra_payload)
+
         url = reverse(
             'admin:organizations_organization_change',
             kwargs={'object_id': self.organization.id},
         )
         with immediate_on_commit():
             response = self.client.post(url, data=payload, follow=True)
-
-        assert 'was changed successfully' in str(response.content)
         return response

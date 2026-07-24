@@ -21,8 +21,7 @@ class TestLogoutAll(BaseTestCase):
         count = UserSession.objects.filter(user=user).count()
         self.assertEqual(count, 2)
         self.client.force_login(user)
-        url = self._get_endpoint('logout_all')
-        self.client.post(reverse(url))
+        self.client.post(reverse('logout_all'))
 
         # ensure both sessions have been deleted
         count = UserSession.objects.filter(user=user).count()
@@ -39,8 +38,7 @@ class TestLogoutAll(BaseTestCase):
 
         # login user2
         self.client.force_login(user2)
-        url = self._get_endpoint('logout_all')
-        self.client.post(reverse(url))
+        self.client.post(reverse('logout_all'))
 
         # ensure no sessions have been deleted
         count = UserSession.objects.filter().count()

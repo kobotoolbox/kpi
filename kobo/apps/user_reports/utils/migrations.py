@@ -96,7 +96,7 @@ CREATE_MV_BASE_SQL = f"""
         ) AS validated_email,
         EXISTS (
             SELECT 1
-            FROM trench_mfamethod mfa
+            FROM accounts_mfa_mfamethodswrapper mfa
             WHERE mfa.user_id = au.id
             AND mfa.is_active = true
         ) AS mfa_is_active,
@@ -428,8 +428,8 @@ NO_STRIPE_SUBSCRIPTIONS = """
     """
 
 STRIPE_JOINS = """
-    LEFT JOIN djstripe_subscription sub ON sub.metadata->>'organization_id' = org.id::text
-    LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
+    LEFT JOIN djstripe_customer cust ON cust.subscriber_id = org.id::text
+    LEFT JOIN djstripe_subscription sub ON sub.customer_id = cust.id
     """
 
 NO_STRIPE_JOINS = ''

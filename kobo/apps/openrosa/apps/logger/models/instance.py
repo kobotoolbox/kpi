@@ -28,10 +28,8 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     GEOLOCATION,
     ID,
     MONGO_STRFTIME,
-    NOTES,
     SUBMISSION_TIME,
     SUBMITTED_BY,
-    TAGS,
     UUID,
     XFORM_ID_STRING,
 )
@@ -115,6 +113,12 @@ class Instance(AbstractTimeStampedModel):
                 name='unique_root_uuid_per_xform'
             ),
         ]
+        indexes = [
+            models.Index(
+                fields=['user_id', '-date_modified'],
+                name='instance_user_date_mod_idx',
+            ),
+        ]
 
     @property
     def asset(self):
@@ -194,10 +198,11 @@ class Instance(AbstractTimeStampedModel):
         doc[SUBMITTED_BY] = self._get_submitted_by()
         self.json = doc
 
-    def _set_parser(self):
+    def _set_parser(self, use_cache: bool = False):
         if not hasattr(self, '_parser'):
             self._parser = XFormInstanceParser(
-                self.xml, self.xform.data_dictionary())
+                self.xml, self.xform.data_dictionary(use_cache)
+            )
 
     def _set_survey_type(self):
         self.survey_type, created = SurveyType.objects.get_or_create(
@@ -307,16 +312,11 @@ class Instance(AbstractTimeStampedModel):
             ATTACHMENTS: [a.media_file.name for a in
                           self.attachments.all()],
             self.STATUS: self.status,
-            TAGS: list(self.tags.names()),
-            NOTES: self.get_notes()
         }
 
         d.update(data)
 
         return d
-
-    def get_notes(self):
-        return [note['note'] for note in self.notes.values('note')]
 
     def get_root_node(self):
         self._set_parser()

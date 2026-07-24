@@ -18,4 +18,5 @@ export interface AccessLogResponse {
   metadata: AccessLogResponseMetadata
   user_uid: string
   count: number
+  action: string
 }

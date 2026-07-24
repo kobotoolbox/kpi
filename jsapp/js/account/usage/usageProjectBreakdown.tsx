@@ -5,7 +5,7 @@ import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import type { CustomAssetUsage } from '#/api/models/customAssetUsage'
-import type { ErrorObject } from '#/api/models/errorObject'
+import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { OrganizationsAssetUsageListParams } from '#/api/models/organizationsAssetUsageListParams'
 import {
   getOrganizationsAssetUsageListQueryKey,
@@ -30,7 +30,7 @@ const ProjectBreakdown = () => {
   const [order, setOrder] = useState<ProjectsTableOrder>({})
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
-    offset: 0,
+    start: 0,
   })
 
   function getQueryParams() {
@@ -107,12 +107,6 @@ const ProjectBreakdown = () => {
       },
     },
     {
-      key: 'submissions_all',
-      label: t('Submissions (Total)'),
-      size: 100,
-      cellFormatter: (data: CustomAssetUsage) => data.submission_count_all_time,
-    },
-    {
       key: 'submissions_current',
       label: t('Submissions'),
       size: 100,
@@ -120,7 +114,7 @@ const ProjectBreakdown = () => {
     },
     {
       key: 'storage',
-      label: t('Storage'),
+      label: t('File storage'),
       size: 100,
       cellFormatter: (data: CustomAssetUsage) => prettyBytes(data.storage_bytes),
     },
@@ -136,6 +130,12 @@ const ProjectBreakdown = () => {
       label: t('Translation characters'),
       size: 100,
       cellFormatter: (data: CustomAssetUsage) => data.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString(),
+    },
+    {
+      key: 'llm_requests',
+      label: t('Automatic analysis requests'),
+      size: 100,
+      cellFormatter: (data: CustomAssetUsage) => data.nlp_usage_current_period.total_nlp_llm_requests.toLocaleString(),
     },
     {
       key: 'staus',
@@ -169,7 +169,7 @@ const ProjectBreakdown = () => {
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
         </div>
       )}
-      <UniversalTable<CustomAssetUsage, ErrorObject>
+      <UniversalTable<CustomAssetUsage, ErrorDetail>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}

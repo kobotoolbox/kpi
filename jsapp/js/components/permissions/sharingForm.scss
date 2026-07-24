@@ -26,48 +26,6 @@ $s-gray-row-spacing: 10px;
   }
 }
 
-.copy-team-permissions {
-  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
-    transform: rotate(-90deg);
-  }
-
-  .kobo-select {
-    flex: 1;
-  }
-
-  .copy-team-permissions-opener {
-    cursor: pointer;
-    color: colors.$kobo-blue;
-    border: 0;
-    background: transparent;
-    padding-left: 0;
-    padding-right: 0;
-    font-weight: 500;
-    height: 20px;
-    line-height: 20px;
-    min-height: 20px;
-    margin-bottom: 10px;
-
-    &:hover {
-      color: colors.$kobo-dark-blue;
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
-
-    .k-icon {
-      font-size: variables.$base-font-size;
-      margin: 0 3px;
-      vertical-align: middle;
-
-      &::before {
-        transform: rotate(90deg);
-      }
-    }
-  }
-}
-
 .user-row {
   border-bottom: 1px solid colors.$kobo-gray-300;
   padding-bottom: 5px;

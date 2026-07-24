@@ -10,6 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { QualSimpleQuestionParamsTypeEnum } from './qualSimpleQuestionParamsTypeEnum'
+import type { ResponseQualSimpleQuestionParamsHint } from './responseQualSimpleQuestionParamsHint'
 import type { ResponseQualSimpleQuestionParamsLabels } from './responseQualSimpleQuestionParamsLabels'
 import type { ResponseQualSimpleQuestionParamsOptions } from './responseQualSimpleQuestionParamsOptions'
 
@@ -18,4 +19,5 @@ export interface ResponseQualSimpleQuestionParams {
   type: QualSimpleQuestionParamsTypeEnum
   labels: ResponseQualSimpleQuestionParamsLabels
   options?: ResponseQualSimpleQuestionParamsOptions
+  hint?: ResponseQualSimpleQuestionParamsHint
 }

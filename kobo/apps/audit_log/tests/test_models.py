@@ -353,6 +353,52 @@ class AccessLogModelManagerTestCase(BaseTestCase):
             ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
         )
 
+    def test_with_submissions_grouped_coalesces_legacy_object_id(self):
+        """
+        Migration 0019 split object_id into two columns: object_id_char (new
+        varchar) and the legacy object_id bigint column. Historical rows have
+        NULL in object_id_char. Verify that with_submissions_grouped() groups
+        them correctly via the Coalesce fallback on the legacy column.
+        """
+        jan_1_1_30_am = datetime.datetime.fromisoformat(
+            '2024-01-01T01:30:25.123456+00:00'
+        )
+        jan_1_1_45_am = datetime.datetime.fromisoformat(
+            '2024-01-01T01:45:25.123456+00:00'
+        )
+        user = User.objects.get(username='someuser')
+
+        # Create two submissions through the normal path (object_id_char filled).
+        log_new_1 = AccessLog.objects.create(
+            user=user,
+            metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
+            date_created=jan_1_1_30_am,
+        )
+        log_new_2 = AccessLog.objects.create(
+            user=user,
+            metadata={'auth_type': ACCESS_LOG_SUBMISSION_AUTH_TYPE},
+            date_created=jan_1_1_45_am,
+        )
+
+        # Simulate historical rows: clear object_id_char and write the user
+        # id into the legacy bigint column, as they existed before migration 0019.
+        for log in (log_new_1, log_new_2):
+            AuditLog.objects.filter(pk=log.pk).update(
+                object_id=None,
+                object_id_legacy=user.pk,
+            )
+
+        results = AccessLog.objects.with_submissions_grouped().order_by('date_created')
+
+        # Both historical submissions should be grouped into a single group
+        # (same user, same hour). The Coalesce on the legacy column must kick in
+        # so they are not scattered by a NULL effective_object_id.
+        assert results.count() == 1
+        group = results.first()
+        assert group['count'] == 2
+        assert group['metadata']['auth_type'] == ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE
+        assert group['date_created'] == jan_1_1_30_am
+
 
 @ddt
 class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
@@ -490,7 +536,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.CREATE)
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # metadata should contain all additional fields that were stored in updated_data
         # under the given label
         self.assertDictEqual(
@@ -516,7 +562,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.DELETE)
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # metadata should contain all additional fields that were stored in updated_data
         # under the given label
         self.assertDictEqual(log.metadata['label'], {'field_1': 'a', 'field_2': 'b'})
@@ -547,7 +593,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.UPDATE)
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # we should use the updated data for the log
         self.assertDictEqual(
             log.metadata['label'], {'field_1': 'new_field1', 'field_2': 'new_field2'}
@@ -589,7 +635,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.REPLACE_FORM)
-        self.assertEqual(log.object_id, asset.id)
+        self.assertEqual(log.object_id, str(asset.id))
 
         # data from 'messages' should be copied to the log
         self.assertDictEqual(
@@ -627,7 +673,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         ProjectHistoryLog.create_from_import_task(task)
         self.assertEqual(ProjectHistoryLog.objects.count(), 2)
         log = ProjectHistoryLog.objects.filter(action=AuditAction.REPLACE_FORM).first()
-        self.assertEqual(log.object_id, asset.id)
+        self.assertEqual(log.object_id, str(asset.id))
 
         self.assertDictEqual(
             log.metadata,
@@ -643,7 +689,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         name_log = ProjectHistoryLog.objects.filter(
             action=AuditAction.UPDATE_NAME
         ).first()
-        self.assertEqual(log.object_id, asset.id)
+        self.assertEqual(log.object_id, str(asset.id))
 
         self.assertDictEqual(
             name_log.metadata,
@@ -673,7 +719,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
         log = ProjectHistoryLog.objects.first()
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # should create a regular 'MODIFY_USER_PERMISSIONS' log
         self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
         permissions = log.metadata['permissions']

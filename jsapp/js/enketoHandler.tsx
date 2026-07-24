@@ -62,7 +62,10 @@ class EnketoHandler {
     const urlId = this._getUrlId(assetUid, submissionUid, action)
 
     const enketoPromise = new Promise((resolve, reject) => {
-      if (this._hasEnketoUrl(urlId)) {
+      // Previously we were using cached enketo urls for both view and edit. For edit it turns out that it introduced
+      // a bug - after editing submission through enketo url and going back and tried editing again - old data was being
+      // shown in enketo url. The solution is to always get fresh url.
+      if (action === EnketoActions.view && this._hasEnketoUrl(urlId)) {
         this._openEnketoUrl(urlId)
         resolve(false)
       } else {

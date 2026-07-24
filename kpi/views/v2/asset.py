@@ -3,7 +3,8 @@ import json
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
-from django.db.models import Count
+from django.conf import settings
+from django.db.models import Count, F
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
@@ -40,18 +41,25 @@ from kpi.filters import (
 from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
-from kpi.models import Asset, UserAssetSubscription
-from kpi.paginators import AssetPagination
+from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
+from kpi.models.object_permission import ObjectPermission
+from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.permissions import (
     AssetPermission,
     PostMappedToChangePermission,
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import BasicHTMLRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.renderers import (
+    BasicHTMLRenderer,
+    SanitizedJSONRenderer,
+    SSJsonRenderer,
+    XFormRenderer,
+    XlsRenderer,
+)
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
-    ASSET_CONTENT_SCHEMA,
+    ASSET_CONTENT_REQUEST_SCHEMA,
     ASSET_ENABLED_SCHEMA,
     ASSET_FIELDS_SCHEMA,
     ASSET_NAME_SCHEMA,
@@ -79,7 +87,9 @@ from kpi.schema_extensions.v2.deployments.serializers import (
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
+    AssetListCountSerializer,
     AssetListSerializer,
+    AssetMinimalListSerializer,
     AssetSerializer,
 )
 from kpi.serializers.v2.deployment import DeploymentSerializer
@@ -97,6 +107,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.utils.strings import strtobool
 
 
 @extend_schema(
@@ -187,6 +198,49 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             validate_payload=False,
         ),
     ),
+    counts=extend_schema(
+        description=read_md('kpi', 'assets/counts.md'),
+        responses=open_api_200_ok_response(
+            AssetListCountSerializer,
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    minimal_list=extend_schema(
+        description=read_md('kpi', 'assets/minimal_list.md'),
+        responses=open_api_200_ok_response(
+            AssetMinimalListSerializer(many=True),
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Number of results to return per page.',
+            ),
+            OpenApiParameter(
+                name='start',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='The initial index from which to return the results.',
+            ),
+        ],
+    ),
     list=extend_schema(
         description=read_md('kpi', 'assets/list.md'),
         responses=open_api_200_ok_response(
@@ -211,6 +265,17 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
                 required=False,
                 description='Which field to use when ordering the results.',
             ),
+            OpenApiParameter(
+                name='current_user_permissions_only',
+                type=bool,
+                required=False,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "When `true`, only return the requesting user's own permission "
+                    'assignments. When `false` (default), return all visible '
+                    'assignments.'
+                ),
+            ),
         ],
     ),
     metadata=extend_schema(
@@ -234,7 +299,9 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             OpenApiExample(
                 name='Updating an asset',
                 value={
-                    'content': generate_example_from_schema(ASSET_CONTENT_SCHEMA),
+                    'content': generate_example_from_schema(
+                        ASSET_CONTENT_REQUEST_SCHEMA
+                    ),
                     'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
                 },
                 request_only=True,
@@ -242,8 +309,10 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             OpenApiExample(
                 name='Data sharing of the project',
                 value={
-                    'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
-                    'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
+                    'data_sharing': {
+                        'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
+                        'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
+                    }
                 },
                 request_only=True,
             ),
@@ -335,7 +404,9 @@ class AssetViewSet(
     - xform          → GET /api/v2/assets/{uid_asset}/xform/
     - xls            → GET /api/v2/assets/{uid_asset}/xls/
     - bulk           → POST /api/v2/assets/bulk/
+    - counts         → GET /api/v2/assets/counts/
     - hash           → GET /api/v2/assets/hash/
+    - minimal_list   → GET /api/v2/assets/minimal-list/
     - metadata       → GET /api/v2/assets/metadata/
 
     Documentation:
@@ -351,7 +422,9 @@ class AssetViewSet(
     - docs/api/v2/assets/xform.md
     - docs/api/v2/assets/xls.md
     - docs/api/v2/assets/bulk.md
+    - docs/api/v2/assets/counts.md
     - docs/api/v2/assets/hash.md
+    - docs/api/v2/assets/minimal_list.md
     - docs/api/v2/assets/metadata.md
     """
 
@@ -376,6 +449,7 @@ class AssetViewSet(
         'name__icontains',
         'owner__username__icontains',
         'settings__description__icontains',
+        'settings__extra_metadata__icontains',
         'summary__icontains',
         'tags__name__icontains',
         'uid__icontains',
@@ -605,18 +679,15 @@ class AssetViewSet(
         return asset
 
     def get_queryset(self, *args, **kwargs):
-
         if self.detail:
             # For detail views, we must explicitly bypass the NestedViewSetMixin.
             return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
-
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
+            # we only want this for the 'list' action, not the other non-detail
+            # endpoints, which don't need all the prefetched info
             return queryset.model.optimize_queryset_for_list(queryset)
-        else:
-            # This is called to retrieve an individual record. How much do we
-            # have to care about optimizations for that?
-            return queryset
+        return queryset
 
     def get_metadata(self, queryset):
         """
@@ -653,20 +724,25 @@ class AssetViewSet(
                         metadata['languages'].add(language)
 
             try:
-                country = record['settings']['country']
-                value = country['value']
-                label = country['label']
-            except (KeyError, TypeError):
+                # "country" is actually a list of countries
+                countries = record['settings'].get('country') or []
+            except (KeyError, TypeError, AttributeError):
                 pass
             else:
-                if value and value not in metadata['countries']:
-                    metadata['countries'][value] = label
+                for country_record in countries:
+                    try:
+                        value = country_record['value']
+                        label = country_record['label']
+                    except (KeyError, TypeError):
+                        continue
+                    if value and value not in metadata['countries']:
+                        metadata['countries'][value] = label
 
             try:
-                sector = record['settings']['sector']
+                sector = record['settings'].get('sector') or {}
                 value = sector['value']
                 label = sector['label']
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, AttributeError):
                 pass
             else:
                 if value and value not in metadata['sectors']:
@@ -713,8 +789,9 @@ class AssetViewSet(
     def get_serializer_class(self):
         if self.action == 'list':
             return AssetListSerializer
-        else:
-            return AssetSerializer
+        if self.action == 'minimal_list':
+            return AssetMinimalListSerializer
+        return AssetSerializer
 
     def get_serializer_context(self):
         """
@@ -745,10 +822,34 @@ class AssetViewSet(
             else:
                 asset_ids = context_['asset_ids_cache']
 
-            # 2) Get object permissions per asset
-            context_[
-                'object_permissions_per_asset'
-            ] = self.cache_all_assets_perms(asset_ids)
+            # 2) Get object permissions per asset.
+            # By default, only loads permissions for the requesting user and
+            # discover_asset/view_asset for anonymous (memory optimization).
+            # Pass ?current_user_permissions_only=false to load all users'
+            # permissions (needed when the client displays full permission lists).
+            current_user_permissions_only = strtobool(
+                self.request.query_params.get('current_user_permissions_only', False)
+            )
+            context_['object_permissions_per_asset'] = self.cache_all_assets_perms(
+                asset_ids, current_user_permissions_only
+            )
+
+            # 2b) Assets shared with at least one non-owner, non-anonymous user.
+            # Used by get_status() and get_access_types() to detect 'shared'.
+            context_['shared_asset_ids'] = set(
+                ObjectPermission.objects.filter(
+                    asset_id__in=asset_ids,
+                    deny=False,
+                )
+                .exclude(
+                    user_id=settings.ANONYMOUS_USER_ID,
+                )
+                .exclude(
+                    user_id=F('asset__owner_id'),
+                )
+                .values_list('asset_id', flat=True)
+                .distinct()
+            )
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (
@@ -783,7 +884,26 @@ class AssetViewSet(
 
             context_['children_count_per_asset'] = children_count_per_asset
 
-            # 5) Get organization…
+            # 5) Get partial permissions per asset and user
+            # e.g.: {
+            #   627: {
+            #       2: {'view_submissions': [{'_submitted_by': 'bob'}]},
+            #       3: {'view_submissions': [
+            #           {'_submitted_by': 'alice'},
+            #           {'_submitted_by': 'bob'},
+            #       ]}
+            #   }
+            # }
+            partial_perms_per_asset = defaultdict(dict)
+            for record in AssetUserPartialPermission.objects.filter(
+                asset_id__in=asset_ids
+            ).values('asset_id', 'user_id', 'permissions'):
+                partial_perms_per_asset[record['asset_id']][record['user_id']] = record[
+                    'permissions'
+                ]
+            context_['partial_perms_per_asset'] = partial_perms_per_asset
+
+            # 6) Get organization…
             if organization := getattr(self.request, 'organization', None):
                 # …from request.
                 # e.g.: /api/v2/organizations/<uid_organization>/assets/`
@@ -817,10 +937,34 @@ class AssetViewSet(
             metadata = None
             if request.GET.get('metadata') == 'on':
                 metadata = self.get_metadata(self._filtered_queryset)
-            return self.get_paginated_response(serializer.data, metadata)
+
+            response = self.get_paginated_response(serializer.data, metadata)
+            return response
 
         serializer = self.get_serializer(self._filtered_queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def counts(self, request):
+        self._filtered_queryset = self.filter_queryset(self.get_queryset())
+        serializer = AssetListCountSerializer(
+            self._filtered_queryset, context={'request': request}
+        )
+        return Response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        pagination_class=NoCountPagination,
+        url_path='minimal-list',
+    )
+    def minimal_list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(
+            self.get_queryset().only('uid', 'name', '_deployment_status')
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def hash(self, request):
@@ -895,6 +1039,7 @@ class AssetViewSet(
         detail=True,
         permission_classes=[ReportPermission],
         methods=['GET'],
+        renderer_classes=[SanitizedJSONRenderer, BasicHTMLRenderer],
     )
     def reports(self, request, *args, **kwargs):
         asset = self.get_object()
@@ -921,9 +1066,10 @@ class AssetViewSet(
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
-        md_table = ss_structure_to_mdtable(sa.ordered_xlsform_content())
-        return Response('<!doctype html>\n'
-                        '<html><body><code><pre>' + md_table.strip())
+        md_table = ss_structure_to_mdtable(
+            sa.ordered_xlsform_content(raise_on_autoname_error=False)
+        )
+        return Response('<!doctype html>\n<html><body><code><pre>' + md_table.strip())
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):

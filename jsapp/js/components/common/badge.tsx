@@ -14,12 +14,13 @@ export type BadgeColor =
   | 'light-teal'
   | 'light-green'
   | 'dark-gray'
-export type BadgeSize = 'l' | 'm' | 's'
+export type BadgeSize = 'l' | 'm' | 's' | 'xs'
 
 export const BadgeToIconMap: Map<BadgeSize, IconSize> = new Map()
 BadgeToIconMap.set('l', 'm')
 BadgeToIconMap.set('m', 's')
 BadgeToIconMap.set('s', 'xs')
+BadgeToIconMap.set('xs', 'xxs')
 
 interface BadgeProps {
   color: BadgeColor
@@ -35,6 +36,9 @@ interface BadgeProps {
   disableShortening?: boolean
 }
 
+/**
+ * @deprecated please use `Pill` instead
+ */
 export default function Badge(props: BadgeProps) {
   return (
     <div

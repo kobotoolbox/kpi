@@ -35,12 +35,6 @@ $button-border-radius: 6px;
   color: $textColor;
   background-color: $mainBgColor;
 
-  // We use similar styles for focus as for hover
-  &:focus-visible {
-    background-color: $hoverBgColor;
-    transform: translateY(1px);
-  }
-
   &:hover {
     background-color: $hoverBgColor;
   }
@@ -141,12 +135,6 @@ $button-border-radius: 6px;
   transform: translateY(1px);
 }
 
-.k-button:focus,
-.k-button:focus-visible {
-  // We handle focus styles in `button-colors` mixin
-  outline: none;
-}
-
 .k-button__label {
   cursor: inherit;
   line-height: 1;
@@ -231,11 +219,6 @@ $button-border-radius: 6px;
 .k-button.k-button--type-text {
   // $textColor
   color: colors.$kobo-dark-blue;
-
-  &:focus-visible {
-    color: colors.$kobo-hover-blue;
-    transform: translateY(1px);
-  }
 
   &:hover {
     color: colors.$kobo-hover-blue;

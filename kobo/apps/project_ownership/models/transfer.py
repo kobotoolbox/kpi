@@ -7,7 +7,7 @@ from constance import config
 from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as t
+from django.utils.translation import gettext_noop as t
 
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers
 from kobo.apps.openrosa.apps.logger.models import XForm
@@ -232,7 +232,6 @@ class Transfer(AbstractTimeStampedModel):
 
         self.asset.save(
             update_fields=['owner', '_deployment_data', 'search_field'],
-            create_version=False,
             adjust_content=False,
         )
         self.asset.assign_perm(
@@ -281,9 +280,9 @@ class Transfer(AbstractTimeStampedModel):
                 #  … save raw strings into DB to let them be translated in
                 # the users' language in the API response, i.e. when front end
                 # exposes the message in the UI.
-                title=title._proxy____args[0],  # noqa
-                snippet=snippet._proxy____args[0],  # noqa
-                body=body._proxy____args[0],  # noqa
+                title=title,
+                snippet=snippet,
+                body=body,
                 published=True,
                 valid_from=timezone.now(),
                 valid_until=timezone.now()
@@ -364,9 +363,7 @@ class Transfer(AbstractTimeStampedModel):
         if self.asset.is_excluded_from_projects_list != is_excluded:
             self.asset.is_excluded_from_projects_list = is_excluded
             self.asset.save(
-                update_fields=['is_excluded_from_projects_list'],
-                adjust_content=False,
-                create_version=False
+                update_fields=['is_excluded_from_projects_list'], adjust_content=False
             )
 
 

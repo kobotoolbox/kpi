@@ -14,12 +14,43 @@ from kpi.utils.spectacular_processing import (
     V2APISchemaGenerator,
 )
 from kpi.utils.urls import is_request_for_html
+from kpi.views.v1_api_gone import v1_api_gone_view
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
 admin.autodiscover()
 admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
 
+# V1 API fall-through route. This ensures removed V1 routes return a 410
+# instructing users to read the API migration guide.
+REMOVED_V1_API_PREFIXES = [
+    'api/v1',
+    'asset_snapshots',
+    'asset_subscriptions',
+    'assets',
+    'authorized_application',
+    'environment',
+    'exports',
+    'imports',
+    'permissions',
+    'reports',
+    'sitewide_messages',
+    'tags',
+    'users',
+    'formUpload',
+    'upload',
+]
+
 urlpatterns = [
+    # Must stay first: main.urls has a catch-all path('<str:username>/')
+    # that would intercept single-segment paths before these can match.
+    *[
+        re_path(
+            rf'^{prefix}(/.*)?$',
+            v1_api_gone_view,
+            name=f'v1_api_gone-{prefix.replace("/", "-")}',
+        )
+        for prefix in REMOVED_V1_API_PREFIXES
+    ],
     path(
         'api/v2/schema/',
         SpectacularAPIView.as_view(
@@ -55,20 +86,21 @@ urlpatterns = [
         name='swagger-ui-openrosa',
     ),
     # https://github.com/stochastic-technologies/django-loginas
-    re_path(r'^admin/', include('loginas.urls')),
+    path('admin/', include('loginas.urls')),
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
+    path('api/v2/allauth/', include('allauth.headless.urls')),
     re_path(
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),
     ),
-    re_path(r'^', include('kpi.urls')),
-    re_path(r'^', include('kobo.apps.openrosa.apps.main.urls')),
-    re_path(r'^markdownx/', include('markdownx.urls')),
-    re_path(r'^markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
-    re_path(r'^help/', include('kobo.apps.help.urls')),
+    path('', include('kpi.urls')),
+    path('', include('kobo.apps.openrosa.apps.main.urls')),
+    path('markdownx/', include('markdownx.urls')),
+    path('markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
+    path('help/', include('kobo.apps.help.urls')),
 ]
 
 if settings.ENABLE_METRICS:

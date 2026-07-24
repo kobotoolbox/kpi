@@ -5,6 +5,7 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
+from django.db import IntegrityError
 from django.test import TestCase
 from freezegun import freeze_time
 
@@ -16,7 +17,14 @@ from ..actions import (
 )
 from ..constants import SUBMISSION_UUID_FIELD
 from ..exceptions import InvalidAction, InvalidXPath
-from ..models import QuestionAdvancedFeature, SubmissionSupplement
+from ..models import (
+    BulkActionItemStatus,
+    BulkActionStatus,
+    QuestionAdvancedFeature,
+    SubmissionSupplement,
+    SubsequenceBulkAction,
+    SubsequenceBulkActionItem,
+)
 from .constants import EMPTY_SUPPLEMENT
 
 
@@ -230,13 +238,21 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset, submission_root_uuid=None, prefetched_supplement=None
             )
 
-    def test_retrieve_data_for_output_does_not_return_unaccepted_answer(self):
+    def test_retrieve_data_output_returns_pending_review_for_unaccepted_answer(self):
+        """
+        Unaccepted NLP results are no longer suppressed from the output
+
+        When a transcription or translation version has a value but no
+        `_dateAccepted`, `retrieve_data(for_output=True)` must include it
+        with `pendingReview: True` so the FE can render the "Review" button.
+        `value` is intentionally absent from the pending payload.
+        """
         self._add_manual_nlp_action('transcription', 'en', 'Hello')
         self._add_manual_nlp_action('translation', 'es', 'Hola')
         ss = SubmissionSupplement.objects.get(
             asset=self.asset, submission_uuid=self.submission_root_uuid
         )
-        # clear date accepted
+        # Clear _dateAccepted to simulate an unaccepted result
         ss.content[self.xpath]['manual_transcription']['_versions'][0][
             '_dateAccepted'
         ] = None
@@ -250,8 +266,18 @@ class SubmissionSupplementTestCase(TestCase):
         )
         transcription_data = output[self.xpath].get('transcript')
         translation_data = output[self.xpath].get('translation')
-        assert transcription_data is None
-        assert translation_data is None
+
+        # Pending transcription: pendingReview present, value absent
+        assert transcription_data is not None
+        assert transcription_data.get('pendingReview') is True
+        assert 'value' not in transcription_data
+        assert transcription_data['languageCode'] == 'en'
+
+        # Pending translation: pendingReview present, value absent
+        assert translation_data is not None
+        assert translation_data['es'].get('pendingReview') is True
+        assert 'value' not in translation_data['es']
+        assert translation_data['es']['languageCode'] == 'es'
 
     def test_retrieve_data_for_output_selects_most_recent_transcript(self):
         # Enable manual transcriptions in French
@@ -292,6 +318,118 @@ class SubmissionSupplementTestCase(TestCase):
         assert translations['es']['value'] == 'Hola automatico'
         assert translations['fr']['value'] == 'Bonjour'
         assert translations['de']['value'] == 'Guten tag'
+
+    def test_retrieve_data_for_output_deleted_latest_version_returns_empty(self):
+        """
+        When the latest transcription version is deleted (value is None / status
+        'deleted'), the question must be omitted from the output entirely even
+        if an older non-deleted version exists
+        """
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+        # Add a completed transcription first
+        self._add_automatic_nlp_action('transcription', 'en', 'Hello', accept=True)
+
+        # Now simulate a deletion by writing a null-value version on top
+        ss = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_root_uuid
+        )
+        deleted_version = {
+            '_data': {'language': 'en', 'status': 'deleted', 'value': None},
+            '_dateCreated': '2099-01-01T00:00:00.000000Z',
+            '_uuid': 'aaaaaaaa-0000-0000-0000-000000000000',
+        }
+        ss.content[self.xpath]['automatic_google_transcription']['_versions'].insert(
+            0, deleted_version
+        )
+        ss.save()
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        assert output[self.xpath].get('transcript') is None
+
+    def test_retrieve_data_for_output_auto_pending_beats_manual_accepted(self):
+        """
+        An unaccepted automatic transcription (pending review) with a more recent
+        creation date must win over an older accepted manual transcription
+
+        The FE should see `pendingReview: True` so it can prompt the user to
+        review the new automatic result, regardless of the earlier manual accept
+        """
+        self._enable_nlp_action('manual_transcription', ['en'])
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+
+        # Add an accepted manual transcription first (older creation date)
+        self._add_manual_nlp_action('transcription', 'en', 'Manual Hello')
+
+        # Add an automatic transcription (newer)
+        self._add_automatic_nlp_action(
+            'transcription', 'en', 'Auto Hello', accept=False
+        )
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        transcript = output[self.xpath].get('transcript')
+
+        assert transcript is not None
+        assert transcript.get('pendingReview') is True
+        assert 'value' not in transcript
+        assert transcript['languageCode'] == 'en'
+
+    def test_retrieve_data_for_output_accepted_transcript_has_no_pending_review(self):
+        """
+        An accepted transcription must not include `pendingReview` and must
+        include `value`, the existing behaviour must remain intact
+        """
+        self._add_manual_nlp_action('transcription', 'en', 'Hello World')
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        transcript = output[self.xpath].get('transcript')
+
+        assert transcript is not None
+        assert 'pendingReview' not in transcript
+        assert transcript['value'] == 'Hello World'
+        assert transcript['languageCode'] == 'en'
+
+    def test_retrieve_data_for_output_in_progress_version_returns_empty(self):
+        """
+        A transcription whose latest version is still in-progress (`value`
+        absent from `_data`) must be omitted from the output
+        """
+        self._enable_nlp_action('automatic_google_transcription', ['en'])
+        ss_content = {
+            '_version': '20250820',
+            self.xpath: {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-01T00:00:00.000000Z',
+                    '_dateModified': '2026-01-01T00:00:00.000000Z',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2026-01-01T00:00:00.000000Z',
+                            '_uuid': 'bbbbbbbb-0000-0000-0000-000000000000',
+                            '_data': {
+                                'language': 'en',
+                                'status': 'in_progress',
+                                # no 'value' key, still processing
+                            },
+                        }
+                    ],
+                }
+            },
+        }
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_root_uuid,
+            content=ss_content,
+        )
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        assert output[self.xpath].get('transcript') is None
 
     # skip until we actually fill out or delete this test
     @pytest.mark.skip()
@@ -509,3 +647,232 @@ class SubmissionSupplementTestCase(TestCase):
                     },
                 },
             )
+
+
+class SubsequenceBulkActionModelTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username='bob',
+            email='bob@example.com',
+            password='password',
+        )
+        self.asset = Asset.objects.create(owner=self.owner, name='Bulk Asset')
+
+    def test_make_params_hash_is_deterministic(self):
+        hash1 = SubsequenceBulkAction.make_params_hash(
+            {'language': 'en', 'locale': 'en-US'}
+        )
+        hash2 = SubsequenceBulkAction.make_params_hash(
+            {'locale': 'en-US', 'language': 'en'}
+        )
+
+        assert hash1 == hash2
+
+    def test_create_with_items_populates_children(self):
+        parent = SubsequenceBulkAction.create_with_items(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en', 'locale': 'en-US'},
+            created_by=self.owner.username,
+            submission_root_uuids=['uuid-1', 'uuid-2'],
+        )
+
+        items = list(parent.items.order_by('submission_root_uuid'))
+        assert len(items) == 2
+        assert items[0].action_id == parent.action_id
+        assert items[0].question_xpath == parent.question_xpath
+        assert items[0].hash == SubsequenceBulkAction.make_params_hash(parent.params)
+        assert items[0].status == BulkActionItemStatus.PENDING
+        assert items[1].hash == items[0].hash
+
+    def test_parent_status_in_progress_propagates_only_pending_items(self):
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+            created_by=self.owner.username,
+            status=BulkActionStatus.PENDING,
+        )
+        params_hash = parent.make_params_hash(parent.params)
+        pending = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=params_hash,
+        )
+        complete = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-2',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.COMPLETE,
+            hash=params_hash,
+        )
+
+        parent.status = BulkActionStatus.IN_PROGRESS
+        parent.save()
+
+        pending.refresh_from_db()
+        complete.refresh_from_db()
+        assert pending.status == BulkActionItemStatus.IN_PROGRESS
+        assert complete.status == BulkActionItemStatus.COMPLETE
+
+    def test_parent_status_cancelled_preserves_terminal_items(self):
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_translation',
+            question_xpath='q1',
+            params={'language': 'fr'},
+            created_by=self.owner.username,
+            status=BulkActionStatus.PENDING,
+        )
+        params_hash = parent.make_params_hash(parent.params)
+        pending = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=params_hash,
+        )
+        in_progress = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-2',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.IN_PROGRESS,
+            hash=params_hash,
+        )
+        failed = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-3',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.FAILED,
+            hash=params_hash,
+        )
+
+        parent.status = BulkActionStatus.CANCELLED
+        parent.save()
+
+        pending.refresh_from_db()
+        in_progress.refresh_from_db()
+        failed.refresh_from_db()
+        assert pending.status == BulkActionItemStatus.CANCELLED
+        assert in_progress.status == BulkActionItemStatus.CANCELLED
+        assert failed.status == BulkActionItemStatus.FAILED
+
+    def test_create_with_items_raises_error_on_empty_submissions(self):
+        with pytest.raises(ValueError, match='at least one submission'):
+            SubsequenceBulkAction.create_with_items(
+                asset=self.asset,
+                action_id='automatic_google_transcription',
+                question_xpath='q1',
+                params={'language': 'en'},
+                created_by=self.owner.username,
+                submission_root_uuids=[],
+            )
+
+    def test_save_with_update_fields_excluding_status_does_not_propagate(self):
+        """
+        Test that changing status in memory but excluding it from update_fields
+        does not cause inconsistent propagation to children
+        """
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params={'language': 'en'},
+            created_by=self.owner.username,
+            status=BulkActionStatus.PENDING,
+        )
+        params_hash = parent.make_params_hash(parent.params)
+        item = SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=params_hash,
+        )
+
+        parent.status = BulkActionStatus.IN_PROGRESS
+        parent.save(update_fields=['params'])
+
+        parent.refresh_from_db()
+        item.refresh_from_db()
+        assert parent.status == BulkActionItemStatus.PENDING
+        assert item.status == BulkActionItemStatus.PENDING
+
+
+class SubsequenceBulkActionConstraintTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username='carol',
+            email='carol@example.com',
+            password='password',
+        )
+        self.asset = Asset.objects.create(owner=self.owner, name='Constraint Asset')
+        self.params = {'language': 'en'}
+        self.params_hash = SubsequenceBulkAction.make_params_hash(self.params)
+
+    def test_active_item_uniqueness_constraint_blocks_duplicates(self):
+        parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params=self.params,
+            created_by=self.owner.username,
+        )
+        SubsequenceBulkActionItem.objects.create(
+            parent=parent,
+            submission_root_uuid='uuid-1',
+            action_id=parent.action_id,
+            question_xpath=parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=self.params_hash,
+        )
+
+        with pytest.raises(IntegrityError):
+            SubsequenceBulkActionItem.objects.create(
+                parent=parent,
+                submission_root_uuid='uuid-1',
+                action_id=parent.action_id,
+                question_xpath=parent.question_xpath,
+                status=BulkActionItemStatus.IN_PROGRESS,
+                hash=self.params_hash,
+            )
+
+    def test_atomic_create_with_items_rolls_back_parent_on_constraint_failure(self):
+        existing_parent = SubsequenceBulkAction.objects.create(
+            asset=self.asset,
+            action_id='automatic_google_transcription',
+            question_xpath='q1',
+            params=self.params,
+            created_by=self.owner.username,
+        )
+        SubsequenceBulkActionItem.objects.create(
+            parent=existing_parent,
+            submission_root_uuid='uuid-1',
+            action_id=existing_parent.action_id,
+            question_xpath=existing_parent.question_xpath,
+            status=BulkActionItemStatus.PENDING,
+            hash=self.params_hash,
+        )
+
+        previous_count = SubsequenceBulkAction.objects.count()
+        with pytest.raises(IntegrityError):
+            SubsequenceBulkAction.create_with_items(
+                asset=self.asset,
+                action_id='automatic_google_transcription',
+                question_xpath='q1',
+                params=self.params,
+                created_by=self.owner.username,
+                submission_root_uuids=['uuid-1', 'uuid-2'],
+            )
+
+        assert SubsequenceBulkAction.objects.count() == previous_count

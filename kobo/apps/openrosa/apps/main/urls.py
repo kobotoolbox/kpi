@@ -1,17 +1,11 @@
-# coding: utf-8
-from django.conf import settings
-from django.urls import include, re_path
+from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 from kobo.apps.openrosa import koboform
-from kobo.apps.openrosa.apps.api.urls import (
-    BriefcaseApi,
-    XFormListApi,
-    XFormSubmissionApi,
-    router,
-    router_with_patch_list,
-)
+from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
+from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
+from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.views import (
     bulksubmission,
     bulksubmission_form,
@@ -21,7 +15,7 @@ from kobo.apps.openrosa.apps.logger.views import (
 
 # exporting stuff
 from kobo.apps.openrosa.apps.viewer.views import (
-    attachment_url,
+    briefcase_attachment_url,
     create_export,
     delete_export,
     export_download,
@@ -31,56 +25,36 @@ from kobo.apps.openrosa.apps.viewer.views import (
 
 urlpatterns = [
     # change Language
-    re_path(r'^i18n/', include('django.conf.urls.i18n')),
-    re_path('^api/v1/', include(router.urls)),
-    re_path('^api/v1/', include(router_with_patch_list.urls)),
+    path('i18n/', include('django.conf.urls.i18n')),
     # main website views
-    re_path(r'^$', RedirectView.as_view(url=koboform.redirect_url('/')), name='home'),
-    # Bring back old url because it's still used by `kpi`
-    re_path(r'^attachment/$', attachment_url, name='attachment_url'),
-    re_path(r'^attachment/(?P<size>[^/]+)$', attachment_url, name='attachment_url'),
+    path('', RedirectView.as_view(url=koboform.redirect_url('/')), name='home'),
     re_path(
-        r'^{}$'.format(settings.MEDIA_URL.lstrip('/')),
-        attachment_url,
-        name='attachment_url',
+        r'^attachment/briefcase/(?P<att_uid>[^/]+)$',
+        briefcase_attachment_url,
+        name='briefcase-attachment',
     ),
-    re_path(
-        r'^{}(?P<size>[^/]+)$'.format(settings.MEDIA_URL.lstrip('/')),
-        attachment_url,
-        name='attachment_url',
-    ),
-    re_path(
-        r'^jsi18n/$',
+    path(
+        'jsi18n/',
         JavaScriptCatalog.as_view(
             packages=['kobo.apps.openrosa.apps.main', 'kobo.apps.openrosa.apps.viewer']
         ),
         name='javascript-catalog',
     ),
-    re_path(
-        r'^(?P<username>[^/]+)/$',
+    path(
+        '<str:username>/',
         RedirectView.as_view(url=koboform.redirect_url('/')),
         name='user_profile',
     ),
     # briefcase api urls
-    re_path(
-        r'^view/submissionList$',
+    path(
+        'view/submissionList',
         BriefcaseApi.as_view({'get': 'list', 'head': 'list'}),
         name='view-submission-list',
     ),
-    re_path(
-        r'^view/downloadSubmission$',
+    path(
+        'view/downloadSubmission',
         BriefcaseApi.as_view({'get': 'retrieve', 'head': 'retrieve'}),
         name='view-download-submission',
-    ),
-    re_path(
-        r'^formUpload$',
-        BriefcaseApi.as_view({'post': 'create', 'head': 'create'}),
-        name='form-upload',
-    ),
-    re_path(
-        r'^upload$',
-        BriefcaseApi.as_view({'post': 'create', 'head': 'create'}),
-        name='upload',
     ),
     # exporting stuff
     re_path(
@@ -113,15 +87,15 @@ urlpatterns = [
         name='export_download',
     ),
     # odk data urls
-    re_path(
-        r'^submission$',
+    path(
+        'submission',
         XFormSubmissionApi.as_view(
             {'post': 'create_authenticated', 'head': 'create_authenticated'}
         ),
         name='submissions',
     ),
-    re_path(
-        r'^formList$',
+    path(
+        'formList',
         XFormListApi.as_view({'get': 'form_list_authenticated'}),
         name='form-list',
     ),
@@ -130,8 +104,8 @@ urlpatterns = [
         XFormListApi.as_view({'get': 'form_list_anonymous'}),
         name='form-list',
     ),
-    re_path(
-        r'^collector/(?P<token>[^/]+)/formList$',
+    path(
+        'collector/<str:token>/formList',
         XFormListApi.as_view({'get': 'form_list_dc'}),
         name='form-list',
     ),
@@ -191,8 +165,8 @@ urlpatterns = [
         ),
         name='submissions',
     ),
-    re_path(
-        r'^collector/(?P<token>[^/]+)/submission$',
+    path(
+        'collector/<str:token>/submission',
         XFormSubmissionApi.as_view(
             {'post': 'create_data_collector', 'head': 'create_data_collector'}
         ),

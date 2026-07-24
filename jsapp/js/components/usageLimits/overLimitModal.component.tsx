@@ -1,11 +1,11 @@
 import { type AnchorHTMLAttributes, useEffect, useState } from 'react'
 
 import Markdown from 'react-markdown'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { UsageLimitTypes } from '#/account/stripe.types'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
-import Button from '#/components/common/button'
+import Button from '#/components/common/ButtonNew'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
@@ -63,7 +63,6 @@ const LinkRendererTargetBlank = (props: AnchorHTMLAttributes<HTMLAnchorElement>)
 function OverLimitModal(props: OverLimitModalProps) {
   const [isModalOpen, setIsModalOpen] = useState(true)
   const accountName = sessionStore.currentAccount.username
-  const navigate = useNavigate()
   const [show, setShow] = useState(props.show)
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen)
@@ -103,15 +102,13 @@ function OverLimitModal(props: OverLimitModalProps) {
           </div>
         </div>
         <KoboModalFooter alignment='end'>
-          <Button type='secondary' size='l' onClick={handleClose} label={t('remind me later')} isUpperCase />
+          <Button size='lg' variant='light' onClick={handleClose}>
+            {t('remind me later')}
+          </Button>
 
-          <Button
-            type='primary'
-            size='l'
-            onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
-            label={t('upgrade now')}
-            isUpperCase
-          />
+          <Button size='lg' variant='filled' component={Link} to={ACCOUNT_ROUTES.PLAN}>
+            {t('upgrade now')}
+          </Button>
         </KoboModalFooter>
       </KoboModal>
     </div>

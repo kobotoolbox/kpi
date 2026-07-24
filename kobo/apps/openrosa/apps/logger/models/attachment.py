@@ -77,7 +77,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         max_length=100, null=False, blank=True, default='')
     deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
     delete_status = models.CharField(
-        choices=AttachmentDeleteStatus.choices, db_index=True, null=True, max_length=20
+        choices=AttachmentDeleteStatus, db_index=True, null=True, max_length=20
     )
 
     xform = models.ForeignKey(
@@ -93,6 +93,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         db_index=True,
     )
     hash = models.CharField(null=True, max_length=64)
+    audio_length = models.FloatField(null=True, blank=True)
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()

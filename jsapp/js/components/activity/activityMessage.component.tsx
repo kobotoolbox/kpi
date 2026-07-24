@@ -1,16 +1,49 @@
 import { getTextContentOnly } from '#/utils'
 import Avatar from '../common/avatar'
-import { AUDIT_ACTION_TYPES, type ActivityLogsItem, FALLBACK_MESSAGE } from './activity.constants'
+import { BulkProcessingActivityMessage } from './BulkProcessingActivityMessage'
+import {
+  AUDIT_ACTION_TYPES,
+  type ActivityLogsItem,
+  BULK_PROCESSING_ACTION_IDS,
+  FALLBACK_MESSAGE,
+} from './activity.constants'
 import styles from './activityMessage.module.scss'
 
 /**
  * An inline message that starts with avatar and username, and then is followed
  * by short text describing what username did.
+ *
+ * @param onShowDetails - When provided, renders a "See details" button that calls this callback.
+ *                        Omit this prop to hide the button (e.g., in modal headers or for ongoing bulk processing).
  */
-export function ActivityMessage(props: { data: ActivityLogsItem }) {
-  let message = AUDIT_ACTION_TYPES[props.data.action]?.message || FALLBACK_MESSAGE
+export function ActivityMessage(props: {
+  data: ActivityLogsItem
+  assetUid?: string
+  onShowDetails?: () => void
+}) {
+  // Handle ongoing bulk processing with special component
+  if (props.data.action === 'bulk-processing' && props.assetUid) {
+    const bulkAction = props.data.metadata.bulk_action
+    const isOngoing = bulkAction?.status === 'in_progress' || bulkAction?.status === 'pending'
 
-  // Here we reaplace all possible placeholders with appropriate data. This way
+    if (isOngoing) {
+      return <BulkProcessingActivityMessage data={props.data} assetUid={props.assetUid} />
+    }
+  }
+
+  let message = AUDIT_ACTION_TYPES[props.data.action as keyof typeof AUDIT_ACTION_TYPES]?.message || FALLBACK_MESSAGE
+
+  // Replace default bulk processing message with more precise one
+  if (props.data.action === 'bulk-processing') {
+    const bulkActionId = props.data.metadata.bulk_action?.action_id
+    if (bulkActionId === BULK_PROCESSING_ACTION_IDS.automaticGoogleTranscription) {
+      message = t('##username## bulk transcribed audio files')
+    } else if (bulkActionId === BULK_PROCESSING_ACTION_IDS.automaticGoogleTranslation) {
+      message = t('##username## bulk translated transcriptions')
+    }
+  }
+
+  // Here we replace all possible placeholders with appropriate data. This way
   // we don't really need to know which message (out of around 30) are we
   // dealing with - if it has given placeholder, it would be replaced, if it
   // doesn't nothing will happen.
@@ -30,9 +63,17 @@ export function ActivityMessage(props: { data: ActivityLogsItem }) {
   }
 
   return (
-    <div className={styles.activityMessage} title={getTextContentOnly(message)}>
-      <Avatar size='s' username={props.data.username} />
-      <span dangerouslySetInnerHTML={{ __html: message }} />
-    </div>
+    <>
+      <div className={styles.activityMessage} title={getTextContentOnly(message)}>
+        <Avatar size='s' username={props.data.username} />
+        <span dangerouslySetInnerHTML={{ __html: message }} />
+      </div>
+
+      {props.onShowDetails && (
+        <button className={styles.seeDetailsButton} onClick={props.onShowDetails}>
+          {t('See details')}
+        </button>
+      )}
+    </>
   )
 }

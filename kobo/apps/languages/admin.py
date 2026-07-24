@@ -18,5 +18,5 @@ from .models.translation import (
 
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(LanguageRegion, LanguageRegionAdmin)
-admin.site.register(TranslationService, TranscriptionServiceAdmin)
-admin.site.register(TranscriptionService, TranslationServiceAdmin)
+admin.site.register(TranslationService, TranslationServiceAdmin)
+admin.site.register(TranscriptionService, TranscriptionServiceAdmin)

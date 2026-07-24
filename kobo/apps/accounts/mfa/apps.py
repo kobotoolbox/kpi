@@ -7,5 +7,10 @@ class MfaAppConfig(AppConfig):
     label = 'accounts_mfa'
 
     def ready(self):
-        from . import signals  # noqa F401
-        super().ready()
+        from django.contrib import admin
+        from allauth.mfa.models import Authenticator
+
+        try:
+            admin.site.unregister(Authenticator)
+        except admin.sites.NotRegistered:
+            pass

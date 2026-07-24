@@ -835,6 +835,8 @@ class BaseDeploymentBackend(abc.ABC):
         submission['_validation_status'] = (
             submission.get('_validation_status', None) or {}
         )
+        submission.pop('_tags', None)
+        submission.pop('_notes', None)
         return submission
 
     def _inject_root_uuid(self, submission: dict) -> dict:

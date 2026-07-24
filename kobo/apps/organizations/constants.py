@@ -7,7 +7,12 @@ class UsageType(models.TextChoices):
     MT_CHARACTERS = 'mt_characters'
     ASR_SECONDS = 'asr_seconds'
     LLM_REQUESTS = 'llm_requests'
+    LOG_LOOKBACK_DAYS = 'log_lookback_days'
 
+
+USAGE_TYPES_WITH_COUNTERS = [
+    choice for choice in UsageType.choices if choice[0] != UsageType.LOG_LOOKBACK_DAYS
+]
 
 INVITE_OWNER_ERROR = (
     'This account is already the owner of ##organization_name##. '

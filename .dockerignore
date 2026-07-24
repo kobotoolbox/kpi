@@ -6,7 +6,6 @@ jsapp/fonts
 staticfiles
 **/*.pyc
 webpack-stats.json
-locale
 .pytest_cache
 .db.sqlite3
 deployments.json

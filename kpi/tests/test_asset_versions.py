@@ -71,7 +71,7 @@ class AssetVersionTestCase(TestCase):
         self.assertEqual(self.asset.latest_version.deployed, False)
 
         self.asset.deploy(backend='mock', active=True)
-        self.asset.save(create_version=False, adjust_content=False)
+        self.asset.save(adjust_content=False)
         # version did not increment
         self.assertEqual(self.asset.asset_versions.count(), 2)
 
@@ -84,7 +84,7 @@ class AssetVersionTestCase(TestCase):
         self.assertEqual(self.template_asset.asset_versions.count(), 1)
         self.assertEqual(self.template_asset.latest_version.deployed, False)
         self.template_asset.save()
-        self.assertEqual(self.template_asset.asset_versions.count(), 2)
+        self.assertEqual(self.template_asset.asset_versions.count(), 1)
         self.assertEqual(self.template_asset.latest_version.deployed, False)
 
         def _bad_deployment():
@@ -113,6 +113,38 @@ class AssetVersionTestCase(TestCase):
         new_asset.settings['description'] = 'Loco el que lee'
         new_asset.save()
         self.assertEqual(new_asset.latest_version.content_hash, expected_hash)
+
+    def test_content_hash_persisted_to_db_on_save(self):
+        content = {'survey': [{'type': 'note', 'label': 'Read me', 'name': 'n1'}]}
+        asset = Asset.objects.create(asset_type='survey', content=content)
+        version = AssetVersion.objects.get(pk=asset.latest_version.pk)
+        assert version._content_hash is not None
+
+    def test_content_hash_matches_db_value(self):
+        content = {'survey': [{'type': 'note', 'label': 'Read me', 'name': 'n1'}]}
+        asset = Asset.objects.create(asset_type='survey', content=content)
+        version = asset.latest_version
+        expected_hash = calculate_hash(
+            json.dumps(version.version_content, sort_keys=True), 'sha1'
+        )
+        db_version = AssetVersion.objects.get(pk=version.pk)
+        assert db_version._content_hash == expected_hash
+
+    def test_content_hash_included_when_update_fields_used(self):
+        content = {'survey': [{'type': 'note', 'label': 'Read me', 'name': 'n1'}]}
+        asset = Asset.objects.create(asset_type='survey', content=content)
+        version = asset.latest_version
+
+        # Clear hash and resave with update_fields not including _content_hash
+        AssetVersion.objects.filter(pk=version.pk).update(_content_hash=None)
+        version.refresh_from_db()
+        assert version._content_hash is None
+
+        version.name = 'updated'
+        version.save(update_fields=['name'])
+
+        version.refresh_from_db()
+        assert version._content_hash is not None
 
     def test_version_date_modified(self):
         date_forced = datetime(2022, 1, 1, 0, 0, 0, tzinfo=ZoneInfo('UTC'))

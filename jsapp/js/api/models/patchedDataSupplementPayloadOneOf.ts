@@ -1,3 +1,4 @@
+import type { PatchedDataSupplementPayloadOneOfAutomaticBedrockQual } from './patchedDataSupplementPayloadOneOfAutomaticBedrockQual'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription } from './patchedDataSupplementPayloadOneOfAutomaticGoogleTranscription'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation } from './patchedDataSupplementPayloadOneOfAutomaticGoogleTranslation'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from './patchedDataSupplementPayloadOneOfManualQual'
@@ -22,6 +23,7 @@ export type PatchedDataSupplementPayloadOneOf =
       automatic_google_transcription?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription
       automatic_google_translation?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
       manual_qual?: PatchedDataSupplementPayloadOneOfManualQual
+      automatic_bedrock_qual?: PatchedDataSupplementPayloadOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: PatchedDataSupplementPayloadOneOfManualTranscription
@@ -29,6 +31,7 @@ export type PatchedDataSupplementPayloadOneOf =
       automatic_google_transcription?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription
       automatic_google_translation?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
       manual_qual?: PatchedDataSupplementPayloadOneOfManualQual
+      automatic_bedrock_qual?: PatchedDataSupplementPayloadOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: PatchedDataSupplementPayloadOneOfManualTranscription
@@ -36,6 +39,7 @@ export type PatchedDataSupplementPayloadOneOf =
       automatic_google_transcription?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription
       automatic_google_translation?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
       manual_qual?: PatchedDataSupplementPayloadOneOfManualQual
+      automatic_bedrock_qual?: PatchedDataSupplementPayloadOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: PatchedDataSupplementPayloadOneOfManualTranscription
@@ -43,6 +47,7 @@ export type PatchedDataSupplementPayloadOneOf =
       automatic_google_transcription?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription
       automatic_google_translation?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
       manual_qual?: PatchedDataSupplementPayloadOneOfManualQual
+      automatic_bedrock_qual?: PatchedDataSupplementPayloadOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: PatchedDataSupplementPayloadOneOfManualTranscription
@@ -50,4 +55,13 @@ export type PatchedDataSupplementPayloadOneOf =
       automatic_google_transcription?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription
       automatic_google_translation?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
       manual_qual?: PatchedDataSupplementPayloadOneOfManualQual
+      automatic_bedrock_qual?: PatchedDataSupplementPayloadOneOfAutomaticBedrockQual
+    })
+  | (unknown & {
+      manual_transcription?: PatchedDataSupplementPayloadOneOfManualTranscription
+      manual_translation?: PatchedDataSupplementPayloadOneOfManualTranslation
+      automatic_google_transcription?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription
+      automatic_google_translation?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
+      manual_qual?: PatchedDataSupplementPayloadOneOfManualQual
+      automatic_bedrock_qual?: PatchedDataSupplementPayloadOneOfAutomaticBedrockQual
     })

@@ -15,15 +15,20 @@ from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
-from kpi.paginators import FastPagination
+from kpi.paginators import FastPagination, NoCountPagination
 from kpi.permissions import IsAuthenticated
-from kpi.serializers.v2.asset import AssetMetadataListSerializer
+from kpi.serializers.v2.asset import (
+    AssetListCountSerializer,
+    AssetMetadataListSerializer,
+    AssetMinimalListSerializer,
+)
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
+
 from .models.project_view import ProjectView
 from .schema_extensions.v2.serializers import (
     ProjectViewAssetResponse,
@@ -101,6 +106,47 @@ from .serializers import ProjectViewSerializer
             ),
         ],
     ),
+    asset_counts=extend_schema(
+        description=read_md('project_views', 'asset_counts.md'),
+        responses=open_api_200_ok_response(
+            AssetListCountSerializer,
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    asset_minimal_list=extend_schema(
+        description=read_md('project_views', 'asset_minimal_list.md'),
+        responses=open_api_200_ok_response(
+            AssetMinimalListSerializer(many=True),
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Number of results to return per page.',
+            ),
+            OpenApiParameter(
+                name='start',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='The initial index from which to return the results.',
+            ),
+        ],
+    ),
 )
 class ProjectViewViewSet(
     AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
@@ -110,6 +156,8 @@ class ProjectViewViewSet(
 
     Available actions:
      - assets        → GET   /api/v2/project-views/{uid_project_view}/assets/
+     - asset-counts   → GET   /api/v2/project-views/{uid_project_view}/assets/counts/
+     - asset-minimal-list  → GET   /api/v2/project-views/{uid_project_view}/assets/minimal-list/  # noqa E501
      - export_list   → GET   /api/v2/project-views/{uid_project_view}/{obj_type}/export/
      - export_post   → POST  /api/v2/project-views/{uid_project_view}/{obj_type}/export/
      - list          → GET   /api/v2/project-views/
@@ -118,6 +166,8 @@ class ProjectViewViewSet(
 
      Documentation:
      - docs/api/v2/project-views/assets.md
+     - docs/api/v2/project-views/asset_counts.md
+     - docs/api/v2/project-views/asset_minimal_list.md
      - docs/api/v2/project-views/export_list.md
      - docs/api/v2/project-views/export_post.md
      - docs/api/v2/project-views/list.md
@@ -132,6 +182,16 @@ class ProjectViewViewSet(
     search_default_field_lookups = [
         'name__icontains',
     ]
+    # Project views are configured by an admin and scoped to their members, so
+    # exposing the owner's email as a filterable field is acceptable here even
+    # though it is denied globally.
+    allowed_lookup_fields_override = {
+        'kobo_auth.user': frozenset({
+            'email',
+            'extra_details',
+            'username',
+        })
+    }
     min_search_characters = 2
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()
@@ -168,6 +228,40 @@ class ProjectViewViewSet(
         return self._get_regional_response(
             queryset, serializer_class=AssetMetadataListSerializer
         )
+
+    @action(detail=True, methods=['GET'], url_path='assets/counts')
+    def asset_counts(self, request, uid_project_view):
+        if not user_has_view_perms(request.user, uid_project_view):
+            raise Http404
+        assets = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).only(
+            '_deployment_status'
+        )
+        queryset = self.filter_queryset(
+            self._get_regional_queryset(assets, uid_project_view, obj_type='asset')
+        )
+        serializer = AssetListCountSerializer(
+            queryset, context=self.get_serializer_context()
+        )
+        return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        url_path='assets/minimal-list',
+        pagination_class=NoCountPagination,
+    )
+    def asset_minimal_list(self, request, uid_project_view, *args, **kwargs):
+        if not user_has_view_perms(request.user, uid_project_view):
+            raise Http404
+        assets = Asset.objects.only('uid', 'name', '_deployment_status')
+        queryset = self.filter_queryset(
+            self._get_regional_queryset(assets, uid_project_view, obj_type='asset')
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = AssetMinimalListSerializer(
+            page, many=True, context=self.get_serializer_context()
+        )
+        return self.get_paginated_response(serializer.data)
 
     @extend_schema(
         description=read_md('project_views', 'export_list.md'),
@@ -206,7 +300,6 @@ class ProjectViewViewSet(
                     res['result'] = request.build_absolute_uri(export.result.url)
 
             return Response(res)
-
 
         export_task = ProjectViewExportTask.objects.create(
             user=user,
@@ -290,15 +383,26 @@ class ProjectViewViewSet(
 
     @staticmethod
     def _get_regional_queryset(
-        queryset: QuerySet, uid: str, obj_type: str
+        queryset: QuerySet, uid: str, obj_type: str = 'asset'
     ) -> QuerySet:
-
         region = get_region_for_view(uid)
 
-        if '*' in region:
-            return queryset
+        pv = ProjectView.objects.prefetch_related('organizations').get(uid=uid)
 
-        if obj_type == 'user':
-            return queryset.filter(extra_details__data__country__in=region)
-        else:
-            return queryset.filter(settings__country_codes__in_array=region)
+        if '*' not in region:
+            if obj_type == 'user':
+                queryset = queryset.filter(extra_details__data__country__in=region)
+            else:
+                queryset = queryset.filter(settings__country_codes__in_array=region)
+
+        if pv.organizations.all():
+            if obj_type == 'user':
+                queryset = queryset.filter(
+                    organizations_organization__in=pv.organizations.all()
+                ).distinct()
+            else:
+                queryset = queryset.filter(
+                    owner__organizations_organization__in=pv.organizations.all()
+                ).distinct()
+
+        return queryset

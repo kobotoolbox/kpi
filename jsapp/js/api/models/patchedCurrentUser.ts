@@ -25,6 +25,8 @@ export interface PatchedCurrentUser {
   /** @maxLength 150 */
   last_name?: string
   readonly email?: string
+  /** Designates that this user has all permissions without explicitly assigning them. */
+  readonly is_superuser?: boolean
   readonly server_time?: string
   readonly date_joined?: string
   readonly projects_url?: string

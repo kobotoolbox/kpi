@@ -18,28 +18,35 @@ class SubsequenceParamsFieldExtension(
         nlp_component_ref = self._register_schema_component(
             auto_schema, f'{self.prefix}NLPActionParams', self._get_nlp_params_schema()
         )
-        qual_component_ref = self._register_schema_component(
+        manual_qual_component_ref = self._register_schema_component(
             auto_schema,
-            f'{self.prefix}QualActionParams',
-            self._get_qual_params_schema(auto_schema),
+            f'{self.prefix}ManualQualActionParams',
+            self._get_manual_qual_params_schema(auto_schema),
+        )
+        automatic_qual_component_ref = self._register_schema_component(
+            auto_schema,
+            f'{self.prefix}AutomaticQualActionParams',
+            self._get_automatic_qual_params_schema(auto_schema)
         )
 
         return [
             nlp_component_ref,
-            qual_component_ref,
+            manual_qual_component_ref,
+            automatic_qual_component_ref,
         ]
 
-    def _get_nlp_params_schema(self):
+    def _get_automatic_qual_params_schema(self, auto_schema):
+        defs = self._get_qual_defs()
         return {
             'type': 'object',
-            'additionalProperties': False,
             'properties': {
-                'language': GENERIC_STRING_SCHEMA,
+                'uuid': defs['qualUuid'],
             },
-            'required': ['language'],
+            'additionalProperties': False,
+            'required': ['uuid'],
         }
 
-    def _get_qual_params_schema(self, auto_schema):
+    def _get_manual_qual_params_schema(self, auto_schema):
         defs = self._get_qual_defs()
         return {
             'anyOf': [
@@ -54,6 +61,16 @@ class SubsequenceParamsFieldExtension(
                     defs['qualSelectQuestion'],
                 ),
             ]
+        }
+
+    def _get_nlp_params_schema(self):
+        return {
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'language': GENERIC_STRING_SCHEMA,
+            },
+            'required': ['language'],
         }
 
     def _get_qual_defs(self):
@@ -80,6 +97,12 @@ class SubsequenceParamsFieldExtension(
             },
             'qualUuid': {'type': 'string', 'format': 'uuid'},
         }
+        definitions['qualHint'] = {
+            'type': 'object',
+            'additionalProperties': False,
+            'labels': definitions['qualLabels'],
+            'required': 'labels',
+        }
         definitions['qualChoice'] = {
             'type': 'object',
             'additionalProperties': False,
@@ -90,6 +113,7 @@ class SubsequenceParamsFieldExtension(
                     'type': 'object',
                     'properties': {'deleted': {'type': 'boolean'}},
                 },
+                'hint': definitions['qualHint'],
             },
             'required': ['labels', 'uuid'],
         }
@@ -104,6 +128,7 @@ class SubsequenceParamsFieldExtension(
                     'type': 'object',
                     'properties': {'deleted': {'type': 'boolean'}},
                 },
+                'hint': definitions['qualHint'],
             },
             'required': ['uuid', 'type', 'labels'],
         }
@@ -122,6 +147,7 @@ class SubsequenceParamsFieldExtension(
                     'type': 'object',
                     'properties': {'deleted': {'type': 'boolean'}},
                 },
+                'hint': definitions['qualHint'],
             },
             'required': ['uuid', 'type', 'labels', 'choices'],
         }

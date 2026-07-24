@@ -1,12 +1,8 @@
-# coding: utf-8
-import unittest
-
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from rest_framework.permissions import DjangoObjectPermissions
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.api.permissions import XFormPermissions
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
@@ -734,8 +730,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertFalse(grantee.has_perm(PERM_PARTIAL_SUBMISSIONS, asset))
         self.assertTrue(asset.asset_partial_permissions.count() == 0)
 
-    @unittest.skip(reason='Skip until this branch is merged within '
-                          '`3115-allowed-write-actions-with-partial-perm`')
     def test_implied_partial_submission_permission(self):
         asset = self.admin_asset
         grantee = self.someuser
@@ -752,40 +746,57 @@ class PermissionsTestCase(BasePermissionsTestCase):
             ]
         }
         expected_partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [{
-                '_submitted_by': {
-                    '$in': [
-                        self.anotheruser.username,
-                        self.someuser.username,
-                    ]
+            PERM_VIEW_SUBMISSIONS: [
+                {
+                    '_submitted_by': {
+                        '$in': [
+                            self.anotheruser.username,
+                            self.someuser.username,
+                        ]
+                    }
                 }
-            }],
-            PERM_CHANGE_SUBMISSIONS: [{
-                '_submitted_by': {
-                    '$in': [
-                        self.anotheruser.username,
-                        self.someuser.username,
-                    ]
+            ],
+            # `add_submissions` is not a meaningful partial permission, but it
+            # is included here because implied permissions are propagated with
+            # their filters for simplicity when computing implied perms
+            # (change_submissions implies add_submissions).
+            PERM_ADD_SUBMISSIONS: [
+                {
+                    '_submitted_by': {
+                        '$in': [
+                            self.anotheruser.username,
+                            self.someuser.username,
+                        ]
+                    }
                 }
-            }]
+            ],
+            PERM_CHANGE_SUBMISSIONS: [
+                {
+                    '_submitted_by': {
+                        '$in': [
+                            self.anotheruser.username,
+                            self.someuser.username,
+                        ]
+                    }
+                }
+            ],
         }
-        asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
-                          partial_perms=partial_perms)
+        asset.assign_perm(
+            grantee, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
+        )
 
         partial_perms = asset.get_partial_perms(grantee.id, with_filters=True)
         self.assertDictEqual(expected_partial_perms, partial_perms)
 
     def test_merged_implied_partial_submission_permission(self):
         """
-        Mongo operators like $in are allowed, however they should not be simplified
+        Mongo operators like $in are allowed, however, they should not be simplified
         when processing implied permissions.
         """
         asset = self.admin_asset
         grantee = self.someuser
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [
-                {'_submitted_by': {'$in': [self.admin.username]}}
-            ],
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': {'$in': [self.admin.username]}}],
             PERM_CHANGE_SUBMISSIONS: [
                 {'_submitted_by': {'$in': [self.anotheruser.username]}}
             ],
@@ -923,10 +934,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         ]
         snap_perm_class = AssetSnapshotPermission()
         assert snap_perm_class.perms_map['PATCH'] == ['kpi.change_asset']
-        xform_perm_class = XFormPermissions()
-        assert xform_perm_class.perms_map['PATCH'] == [
-            '%(app_label)s.change_%(model_name)s'
-        ]
         assert django_perm_class.perms_map['PATCH'] == [
             '%(app_label)s.change_%(model_name)s'
         ]
