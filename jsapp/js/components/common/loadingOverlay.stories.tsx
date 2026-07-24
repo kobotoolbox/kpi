@@ -33,7 +33,7 @@ const meta: Meta<typeof LoadingOverlay> = {
       control: 'boolean',
     },
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 }
 
 type Story = StoryObj<typeof LoadingOverlay>

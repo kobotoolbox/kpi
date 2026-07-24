@@ -57,8 +57,8 @@ class FormpackXLSFormUtilsMixin:
         else:
             return False
 
-    def _autoname(self, content):
-        autoname_fields_in_place(content, '$autoname')
+    def _autoname(self, content, raise_on_error=True):
+        autoname_fields_in_place(content, '$autoname', raise_on_error)
         autovalue_choices_in_place(content, '$autovalue')
 
     def _insert_xpath(self, content):

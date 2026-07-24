@@ -10,6 +10,15 @@ import {
   getAssetsDataListQueryKey,
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
+  getAssetsExportSettingsCreateMutationOptions,
+  getAssetsExportSettingsDestroyMutationOptions,
+  getAssetsExportSettingsListQueryKey,
+  getAssetsExportSettingsPartialUpdateMutationOptions,
+  getAssetsExportSettingsRetrieveQueryKey,
+  getAssetsExportsCreateMutationOptions,
+  getAssetsExportsDestroyMutationOptions,
+  getAssetsExportsListQueryKey,
+  getAssetsExportsRetrieveQueryKey,
   getAssetsFilesCreateMutationOptions,
   getAssetsFilesDestroyMutationOptions,
   getAssetsFilesListQueryKey,
@@ -47,6 +56,70 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
       mutation: {
         onSettled: (_data, _error, { uidAsset }) => {
           invalidateItem(getAssetsFilesListQueryKey(uidAsset), client)
+        },
+      },
+    }),
+  )
+
+  client.setMutationDefaults(
+    getAssetsExportsCreateMutationOptions().mutationKey!,
+    getAssetsExportsCreateMutationOptions({
+      mutation: {
+        onSettled: (_data, _error, { uidAsset }) => {
+          // Exports list can be cached both with and without params.
+          client.invalidateQueries({ queryKey: getAssetsExportsListQueryKey(uidAsset), exact: true })
+          invalidatePaginatedList(getAssetsExportsListQueryKey(uidAsset), client)
+        },
+      },
+    }),
+  )
+
+  client.setMutationDefaults(
+    getAssetsExportsDestroyMutationOptions().mutationKey!,
+    getAssetsExportsDestroyMutationOptions({
+      mutation: {
+        onSettled: (_data, _error, { uidAsset, uidExport }) => {
+          client.invalidateQueries({ queryKey: getAssetsExportsListQueryKey(uidAsset), exact: true })
+          invalidatePaginatedList(getAssetsExportsListQueryKey(uidAsset), client)
+          invalidateItem(getAssetsExportsRetrieveQueryKey(uidAsset, uidExport), client)
+        },
+      },
+    }),
+  )
+
+  client.setMutationDefaults(
+    getAssetsExportSettingsCreateMutationOptions().mutationKey!,
+    getAssetsExportSettingsCreateMutationOptions({
+      mutation: {
+        onSettled: (_data, _error, { uidAsset }) => {
+          client.invalidateQueries({ queryKey: getAssetsExportSettingsListQueryKey(uidAsset), exact: true })
+          invalidatePaginatedList(getAssetsExportSettingsListQueryKey(uidAsset), client)
+        },
+      },
+    }),
+  )
+
+  client.setMutationDefaults(
+    getAssetsExportSettingsPartialUpdateMutationOptions().mutationKey!,
+    getAssetsExportSettingsPartialUpdateMutationOptions({
+      mutation: {
+        onSettled: (_data, _error, { uidAsset, uidExportSetting }) => {
+          client.invalidateQueries({ queryKey: getAssetsExportSettingsListQueryKey(uidAsset), exact: true })
+          invalidatePaginatedList(getAssetsExportSettingsListQueryKey(uidAsset), client)
+          invalidateItem(getAssetsExportSettingsRetrieveQueryKey(uidAsset, uidExportSetting), client)
+        },
+      },
+    }),
+  )
+
+  client.setMutationDefaults(
+    getAssetsExportSettingsDestroyMutationOptions().mutationKey!,
+    getAssetsExportSettingsDestroyMutationOptions({
+      mutation: {
+        onSettled: (_data, _error, { uidAsset, uidExportSetting }) => {
+          client.invalidateQueries({ queryKey: getAssetsExportSettingsListQueryKey(uidAsset), exact: true })
+          invalidatePaginatedList(getAssetsExportSettingsListQueryKey(uidAsset), client)
+          invalidateItem(getAssetsExportSettingsRetrieveQueryKey(uidAsset, uidExportSetting), client)
         },
       },
     }),

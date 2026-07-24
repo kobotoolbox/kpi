@@ -11,11 +11,16 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
+from kpi.exceptions import SourceFileMissingError
 from kpi.models.asset import Asset, AssetFile
 from kpi.utils.log import logging
 from .constants import ASYNC_TASK_HEARTBEAT
 from .exceptions import AsyncTaskException
-from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
+from .models.choices import (
+    TransferStatusChoices,
+    TransferStatusErrorLevelChoices,
+    TransferStatusTypeChoices,
+)
 
 
 def create_invite(
@@ -117,23 +122,37 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                     media_file_path,
                 )
             ):
-                # There is no way to ensure atomicity when moving the file and saving
-                # the object to the database. Fingers crossed that the process doesn't
-                # get interrupted between these two operations.
-                if attachment.media_file.move(target_folder, reraise_errors=True):
+                # There is no way to ensure atomicity when moving the file and
+                # saving the object to the database. Fingers crossed that the
+                # process doesn't get interrupted between these two operations.
+                try:
+                    moved = attachment.media_file.move(
+                        target_folder, reraise_errors=True
+                    )
+                except SourceFileMissingError:
+                    # Either a previous run moved the file and died before
+                    # saving, or the file is gone. The target tells them apart.
+                    moved = _recover_moved_file(
+                        attachment.media_file, target_folder, media_file_path
+                    )
+                    if not moved:
+                        # Already logged by `ExtendedFieldFile.move()`.
+                        TransferStatus._add_error(
+                            transfer_status,
+                            f'Source file {attachment.media_file_basename} '
+                            f'(#{attachment.pk}) no longer exists — skipped '
+                            f'(data already gone)',
+                            level=TransferStatusErrorLevelChoices.WARNING,
+                        )
+                if moved:
                     update_fields.append('media_file')
-                    _delete_thumbnails(media_file_path)
-                    # attachment.save(update_fields=['media_file'])
                     logging.info(
                         f'Successfully migrated {media_file_path} to {target_folder}'
                     )
-                else:
-                    errors = True
-                    error = (
-                        f'File {attachment.media_file_basename} (#{attachment.pk})'
-                        f' could not be moved to {target_folder}'
-                    )
-                    TransferStatus._add_error(transfer_status, error)
+
+                # Runs even when the file did not move: thumbnails of a gone
+                # source would be orphaned.
+                _delete_thumbnails(media_file_path)
 
             attachment.user_id = transfer.invite.recipient.pk
             attachment.save(update_fields=update_fields)
@@ -196,7 +215,26 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                 # There is no way to ensure atomicity when moving the file and saving
                 # the object to the database. Fingers crossed that the process doesn't
                 # get interrupted between these two operations.
-                if not media_file.content.move(target_folder, reraise_errors=True):
+                old_path = media_file.content.name
+                try:
+                    moved = media_file.content.move(target_folder, reraise_errors=True)
+                except SourceFileMissingError:
+                    # Either a previous run moved the file and died before
+                    # saving, or the file is gone. The target tells them apart.
+                    moved = _recover_moved_file(
+                        media_file.content, target_folder, old_path
+                    )
+                    if not moved:
+                        # Already logged by `ExtendedFieldFile.move()`.
+                        TransferStatus._add_error(
+                            transfer_status,
+                            f'Source file {old_path} (#{media_file.pk}) no '
+                            f'longer exists — skipped (data already gone)',
+                            level=TransferStatusErrorLevelChoices.WARNING,
+                        )
+                        continue
+
+                if not moved:
                     success = False
                     TransferStatus._add_error(
                         transfer_status,
@@ -206,7 +244,6 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                 else:
                     old_md5 = media_file.metadata.pop('hash', None)
                     media_file.set_md5_hash()
-                    media_file.save(update_fields=['content', 'metadata'])
 
                     if old_md5 in kc_files.keys():
                         kc_obj = kc_files[old_md5]
@@ -215,19 +252,33 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                             transfer.invite.recipient.username,
                             kc_obj.data_file.name,
                         ):
-                            if not kc_obj.data_file.move(
-                                kc_target_folder, reraise_errors=True
-                            ):
-                                success = False
-                                TransferStatus._add_error(
-                                    transfer_status,
-                                    f'Kobocat file {kc_obj.data_file.name}'
-                                    f' (#{media_file.pk})'
-                                    f' could not be moved to {kc_target_folder}',
+                            kc_old_path = kc_obj.data_file.name
+                            try:
+                                kc_moved = kc_obj.data_file.move(
+                                    kc_target_folder, reraise_errors=True
                                 )
-                            else:
+                            except SourceFileMissingError:
+                                # Same interrupted-move case as above.
+                                kc_moved = _recover_moved_file(
+                                    kc_obj.data_file, kc_target_folder, kc_old_path
+                                )
+                                if not kc_moved:
+                                    # Already logged by `ExtendedFieldFile.move()`.
+                                    TransferStatus._add_error(
+                                        transfer_status,
+                                        f'Kobocat source file {kc_old_path} '
+                                        f'(#{media_file.pk}) no longer exists — '
+                                        f'skipped (data already gone)',
+                                        level=TransferStatusErrorLevelChoices.WARNING,
+                                    )
+
+                            if kc_moved:
                                 kc_obj.file_hash = media_file.md5_hash
                                 kc_obj.save(update_fields=['file_hash', 'data_file'])
+
+                    # Saved last: this row keeps the file in the retry queryset,
+                    # so it moves to the new path only once KoboCAT is done.
+                    media_file.save(update_fields=['content', 'metadata'])
 
                 heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
         except Exception as e:
@@ -323,6 +374,25 @@ def _delete_thumbnails(media_file_path: str):
                 default_kobocat_storage.delete(thumb_path)
             except Exception as e:
                 logging.warning(f'Could not delete thumbnail: {thumb_path} ({e})')
+
+
+def _recover_moved_file(field_file, target_folder: str, old_path: str) -> bool:
+    """
+    Complete a move whose file was relocated but whose row was never saved.
+
+    Repoint `field_file` and return `True` when the file is at the target,
+    `False` when it is gone.
+    """
+    new_path = f'{target_folder}/{os.path.basename(old_path)}'
+    if not field_file.storage.exists(new_path):
+        return False
+
+    field_file.name = new_path
+    logging.info(
+        f'{old_path} was already moved to {new_path}; completing the '
+        f'interrupted database update'
+    )
+    return True
 
 
 def _update_heartbeat(

@@ -2,29 +2,37 @@ export enum ExportTypeName {
   csv_legacy = 'csv_legacy',
   csv = 'csv',
   geojson = 'geojson',
-  kml_legacy = 'kml_legacy',
+  kml = 'kml',
   spss_labels = 'spss_labels',
   xls_legacy = 'xls_legacy',
   xls = 'xls',
   zip_legacy = 'zip_legacy',
 }
 
-export interface ExportTypeDefinition {
-  value: ExportTypeName
+interface ExportTypeDefinitionBase<TName extends ExportTypeName, TLegacy extends boolean> {
+  value: TName
   label: string
-  isLegacy: boolean
+  isLegacy: TLegacy
 }
 
-export const EXPORT_TYPES: { [key in ExportTypeName]: ExportTypeDefinition } = Object.freeze({
+export type LegacyExportTypeName = ExportTypeName.csv_legacy | ExportTypeName.xls_legacy | ExportTypeName.zip_legacy
+
+export type ModernExportTypeName = Exclude<ExportTypeName, LegacyExportTypeName>
+
+export type LegacyExportTypeDefinition = ExportTypeDefinitionBase<LegacyExportTypeName, true>
+export type ModernExportTypeDefinition = ExportTypeDefinitionBase<ModernExportTypeName, false>
+export type ExportTypeDefinition = LegacyExportTypeDefinition | ModernExportTypeDefinition
+
+export const EXPORT_TYPES = Object.freeze({
   csv_legacy: { value: ExportTypeName.csv_legacy, label: t('CSV (legacy)'), isLegacy: true },
   csv: { value: ExportTypeName.csv, label: t('CSV'), isLegacy: false },
   geojson: { value: ExportTypeName.geojson, label: t('GeoJSON'), isLegacy: false },
-  kml_legacy: { value: ExportTypeName.kml_legacy, label: t('GPS coordinates (KML)'), isLegacy: true },
+  kml: { value: ExportTypeName.kml, label: t('KML'), isLegacy: false },
   spss_labels: { value: ExportTypeName.spss_labels, label: t('SPSS Labels'), isLegacy: false },
   xls_legacy: { value: ExportTypeName.xls_legacy, label: t('XLS (legacy)'), isLegacy: true },
   xls: { value: ExportTypeName.xls, label: t('XLS'), isLegacy: false },
   zip_legacy: { value: ExportTypeName.zip_legacy, label: t('Media Attachments (ZIP)'), isLegacy: true },
-})
+} as const satisfies Record<ExportTypeName, ExportTypeDefinition>)
 
 export type ExportFormatName = '_default' | '_xml'
 

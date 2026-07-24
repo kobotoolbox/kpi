@@ -72,6 +72,8 @@ const preview: Preview = {
         date: /Date$/,
       },
     },
+    // Default: fail on a11y violations
+    // Stories can opt-out with a11y: { disable: true }
     a11y: { test: 'error' },
     verbose: false,
   },

@@ -75,6 +75,10 @@ class DeploymentNotFound(Exception):
         super().__init__(message)
 
 
+class DuplicateNameException(Exception):
+    pass
+
+
 class FFMpegException(Exception):
     pass
 
@@ -193,6 +197,15 @@ class RetryAfterAPIException(APIException):
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = t('Your query is too short')
     default_code = 'query_too_short'
+
+
+class SourceFileMissingError(Exception):
+    """
+    Raised by `ExtendedFieldFile.move()` when the source object no longer
+    exists (S3 NoSuchKey/404 or local FileNotFoundError).
+    """
+
+    pass
 
 
 class SubmissionIntegrityError(Exception):
