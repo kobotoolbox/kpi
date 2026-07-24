@@ -26,10 +26,10 @@ class AssetVersionListSerializer(serializers.Serializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Memo of `{asset_id: {version_id: label}}`, built lazily per asset by
-        # `get_version_number`. The asset is taken from `obj`, not the view, so
-        # this works both for the versions endpoints and when this serializer is
-        # the nested `deployed_versions` field of an asset (whose view is
+        # Memo of `{asset_id: {version_id: label}}`, filled lazily per asset by
+        # `_build_version_labels`. The asset is taken from `obj`, not the view,
+        # so this works both for the versions endpoints and when this serializer
+        # is the nested `deployed_versions` field of an asset (whose view is
         # `AssetViewSet`, which has no `asset_uid`). Keyed by `asset_id` so one
         # instance stays correct even if reused across assets
         self._version_labels = {}
@@ -37,7 +37,7 @@ class AssetVersionListSerializer(serializers.Serializer):
     def get_date_deployed(self, obj):
         return obj.deployed and obj.date_modified
 
-    def get_version_number(self, obj):
+    def get_version_number(self, obj) -> str:
         """
         Human-readable version number (see `_build_version_labels`), consistent
         across pages, `?deployed=` filters, and the `retrieve` action
@@ -46,11 +46,10 @@ class AssetVersionListSerializer(serializers.Serializer):
         history) and memoized on this serializer instance, so serializing a
         whole page adds one query, not one per row. The lookup is keyed on `id`.
         """
-        labels = self._version_labels.get(obj.asset_id)
-        if labels is None:
-            labels = self._version_labels[obj.asset_id] = (
-                self._build_version_labels(obj.asset_id)
-            )
+        try:
+            labels = self._version_labels[obj.asset_id]
+        except KeyError:
+            labels = self._build_version_labels(obj.asset_id)
         return labels[obj.id]
 
     def get_url(self, obj):
@@ -60,11 +59,11 @@ class AssetVersionListSerializer(serializers.Serializer):
             request=self.context.get('request', None),
         )
 
-    @classmethod
-    def _build_version_labels(cls, asset_id):
+    def _build_version_labels(self, asset_id: int) -> dict[int, str]:
         """
-        Build `{version_id: "1.2"}` for every version of the asset, in a single
-        query and one ordered pass over its full history
+        Build, cache, and return `{version_id: "1.2"}` for every version of the
+        asset, from a single query and one ordered pass over its full history.
+        The result is stored in `self._version_labels[asset_id]`
 
         Deployed versions get a major number, e.g. "12": the 1st deployment
         (chronologically) is "1", the 12th is "12". Undeployed versions get a
@@ -91,6 +90,7 @@ class AssetVersionListSerializer(serializers.Serializer):
             else:
                 minor += 1
                 labels[version_id] = f'{major}.{minor}'
+        self._version_labels[asset_id] = labels
         return labels
 
 
