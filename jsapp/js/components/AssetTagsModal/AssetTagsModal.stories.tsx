@@ -1,13 +1,11 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { runInAction } from 'mobx'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
-import sessionStore from '#/stores/session'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
 import { openAssetTagsModal } from './openAssetTagsModal'
 
@@ -77,38 +75,6 @@ const meta: Meta<typeof StoryTrigger> = {
       handlers: [createAssetPatchHandler()],
     },
     a11y: { disable: true },
-  },
-  // AssetTagsModal renders a loading spinner (instead of the form) until the
-  // MobX session store reports `isInitialLoadComplete`. In Storybook there is
-  // no guarantee the async `/me/` request that flips that flag has resolved by
-  // the time the play function runs, so the textbox lookup could flake. Force
-  // the store into a settled, logged-in state before every story so the form
-  // renders deterministically.
-  //
-  // `sessionStore` is a singleton shared with every other story in the preview,
-  // so restore the previous flags afterwards. Otherwise stories that exercise
-  // anonymous or still-loading session state would depend on whether this story
-  // happened to run first.
-  beforeEach: () => {
-    const previousSessionFlags = {
-      isInitialLoadComplete: sessionStore.isInitialLoadComplete,
-      isLoggedIn: sessionStore.isLoggedIn,
-      isAuthStateKnown: sessionStore.isAuthStateKnown,
-    }
-
-    runInAction(() => {
-      sessionStore.isInitialLoadComplete = true
-      sessionStore.isLoggedIn = true
-      sessionStore.isAuthStateKnown = true
-    })
-
-    return () => {
-      runInAction(() => {
-        sessionStore.isInitialLoadComplete = previousSessionFlags.isInitialLoadComplete
-        sessionStore.isLoggedIn = previousSessionFlags.isLoggedIn
-        sessionStore.isAuthStateKnown = previousSessionFlags.isAuthStateKnown
-      })
-    }
   },
 }
 
