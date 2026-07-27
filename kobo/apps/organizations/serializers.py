@@ -66,6 +66,9 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     user__has_mfa_enabled = serializers.BooleanField(
         source='has_mfa_enabled', read_only=True
     )
+    user__has_sso_enabled = serializers.BooleanField(
+        source='has_sso_enabled', read_only=True
+    )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
         source='created', format='%Y-%m-%dT%H:%M:%SZ'
@@ -87,6 +90,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'user__extra_details__name',
             'role',
             'user__has_mfa_enabled',
+            'user__has_sso_enabled',
             'date_joined',
             'user__is_active',
             'invite',
