@@ -118,6 +118,11 @@ class Instance(AbstractTimeStampedModel):
                 fields=['user_id', '-date_modified'],
                 name='instance_user_date_mod_idx',
             ),
+            models.Index(
+                fields=['xform'],
+                name='xform_null_root_uuid_idx',
+                condition=models.Q(root_uuid__isnull=True),
+            ),
         ]
 
     @property
