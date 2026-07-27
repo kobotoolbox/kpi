@@ -338,3 +338,102 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(self.detail_url(self.registered_invitee_user))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['invite'], None)
+
+    def test_sort_members_by_username(self):
+        self._create_invite(self.someuser)
+        self.client.force_login(self.someuser)
+
+        # Ascending sort by user__username
+        response = self.client.get(f'{self.list_url}?ordering=user__username')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames_asc = [
+            (r['user__username'] or r['invite']['invitee']).lower()
+            for r in response.data['results']
+        ]
+        self.assertEqual(usernames_asc, sorted(usernames_asc))
+
+        # Descending sort by user__username
+        response = self.client.get(f'{self.list_url}?ordering=-user__username')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames_desc = [
+            (r['user__username'] or r['invite']['invitee']).lower()
+            for r in response.data['results']
+        ]
+        self.assertEqual(usernames_desc, sorted(usernames_asc, reverse=True))
+
+    def test_sort_members_by_status(self):
+        self._create_invite(self.someuser)
+        self.client.force_login(self.someuser)
+
+        # Ascending sort by status ("active" members first, "invited" members second)
+        response = self.client.get(f'{self.list_url}?ordering=status')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        statuses_asc = [
+            (
+                'invited'
+                if r['invite'] and r['invite']['status'] in ['pending', 'resent']
+                else 'active'
+            )
+            for r in response.data['results']
+        ]
+        self.assertEqual(statuses_asc[:3], ['active', 'active', 'active'])
+        self.assertEqual(statuses_asc[3:], ['invited', 'invited'])
+
+        # Descending sort by status ("invited" first, "active" second)
+        response = self.client.get(f'{self.list_url}?ordering=-status')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        statuses_desc = [
+            (
+                'invited'
+                if r['invite'] and r['invite']['status'] in ['pending', 'resent']
+                else 'active'
+            )
+            for r in response.data['results']
+        ]
+        self.assertEqual(statuses_desc[:2], ['invited', 'invited'])
+        self.assertEqual(statuses_desc[2:], ['active', 'active', 'active'])
+
+    def test_sort_members_by_role(self):
+        self._create_invite(self.someuser)
+        self.client.force_login(self.someuser)
+
+        # Ascending sort by role: admin, member, owner
+        response = self.client.get(f'{self.list_url}?ordering=role')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        roles_asc = [
+            (r['role'] or r['invite']['invitee_role']).lower()
+            for r in response.data['results']
+        ]
+        self.assertEqual(roles_asc, sorted(roles_asc))
+
+        # Descending sort by role
+        response = self.client.get(f'{self.list_url}?ordering=-role')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        roles_desc = [
+            (r['role'] or r['invite']['invitee_role']).lower()
+            for r in response.data['results']
+        ]
+        self.assertEqual(roles_desc, sorted(roles_asc, reverse=True))
+
+    def test_sort_members_by_sso_enabled(self):
+        # Create SSO account for alice
+        SocialAccount.objects.create(
+            user=self.alice,
+            provider='google',
+            uid='alice_sso_uid',
+        )
+        self.client.force_login(self.someuser)
+
+        # Descending sort by user__has_sso_enabled (alice with SSO first)
+        response = self.client.get(f'{self.list_url}?ordering=-user__has_sso_enabled')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        first_member = response.data['results'][0]
+        self.assertEqual(first_member['user__username'], 'alice')
+        self.assertTrue(first_member['user__has_sso_enabled'])
+
+        # Ascending sort by user__has_sso_enabled (non-SSO members first)
+        response = self.client.get(f'{self.list_url}?ordering=user__has_sso_enabled')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        last_member = response.data['results'][-1]
+        self.assertEqual(last_member['user__username'], 'alice')
+        self.assertTrue(last_member['user__has_sso_enabled'])
