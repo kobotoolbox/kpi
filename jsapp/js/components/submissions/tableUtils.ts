@@ -215,6 +215,75 @@ export function getAllDataColumns(
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
 
+  // Deduplicate stale audio keys from old submissions when current schema has
+  // the same question under a different (usually renamed-group) path.
+  // TODO DEV-2407: Evaluate extending this dedupe approach to other
+  // attachment question types (image/video/file) in main, with dedicated tests
+  // to avoid over-deduping distinct fields that share a leaf name.
+  const currentAudioPathsByLeaf = new Map<string, string[]>()
+  asset.content.survey.forEach((row) => {
+    if (row.type !== QUESTION_TYPES.audio.id && row.type !== QUESTION_TYPES['background-audio'].id) {
+      return
+    }
+    const rowName = getRowName(row)
+    const currentPath = flatPaths[rowName]
+    if (currentPath) {
+      const existingPaths = currentAudioPathsByLeaf.get(rowName) || []
+      if (!existingPaths.includes(currentPath)) {
+        currentAudioPathsByLeaf.set(rowName, [...existingPaths, currentPath])
+      }
+    }
+  })
+
+  output = output.filter((key) => {
+    const keyParts = key.split('/')
+    const leafName = keyParts[keyParts.length - 1]
+    const currentPaths = currentAudioPathsByLeaf.get(leafName)
+
+    if (!currentPaths || currentPaths.includes(key)) {
+      return true
+    }
+
+    const matchingCurrentPaths = currentPaths.filter((currentPath) => output.includes(currentPath))
+
+    if (matchingCurrentPaths.length === 0) {
+      return true
+    }
+
+    // Only collapse legacy path if we can observe it mirroring current path in
+    // at least one submission (same non-empty value on both keys). This avoids
+    // hiding distinct historical columns that merely share a leaf name.
+    if (!submissions || submissions.length === 0) {
+      return true
+    }
+
+    let hasMatchingOverlap = false
+    for (const submission of submissions) {
+      const legacyValue = submission[key]
+      const hasLegacyValue = legacyValue !== undefined && legacyValue !== null && legacyValue !== ''
+      if (!hasLegacyValue) {
+        continue
+      }
+
+      for (const currentPath of matchingCurrentPaths) {
+        const currentValue = submission[currentPath]
+        const hasCurrentValue = currentValue !== undefined && currentValue !== null && currentValue !== ''
+
+        if (!hasCurrentValue) {
+          continue
+        }
+
+        if (legacyValue !== currentValue) {
+          return true
+        }
+
+        hasMatchingOverlap = true
+      }
+    }
+
+    return !hasMatchingOverlap
+  })
+
   // exclude notes
   output = output.filter((key) => {
     const foundPathKey = recordKeys(flatPaths).find((pathKey) => flatPaths[pathKey] === key)
