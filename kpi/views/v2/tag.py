@@ -63,7 +63,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         return Tag.objects.filter(
             taggit_taggeditem_items__content_type=content_type,
             taggit_taggeditem_items__object_id__in=[accessible_asset_pks],
-        )
+        ).distinct()
 
     def get_serializer_class(self):
         if self.action == 'list':
