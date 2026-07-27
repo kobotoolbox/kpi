@@ -1,16 +1,18 @@
-import { Box, Group, Paper, Stack, Text } from '@mantine/core'
+import { Box, FocusTrap, Group, Paper, Stack, Text } from '@mantine/core'
 import { IconPencil, IconTrash, IconX } from '@tabler/icons-react'
-import alertify from 'alertifyjs'
 import React from 'react'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
+import ModalNew from '#/components/common/ModalNew'
 import Avatar from '#/components/common/avatar'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
-import { escapeHtml } from '#/utils'
+import { KOBO_MODAL_OVERLAY_PROPS } from '#/theme/kobo/Modal'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { permissionsActions } from '../../actions/permissions'
 import permConfig from './permConfig'
 import { PERMISSIONS_CODENAMES } from './permConstants'
@@ -32,6 +34,7 @@ interface UserPermissionRowProps {
 interface UserPermissionRowState {
   isEditFormVisible: boolean
   isBeingDeleted: boolean
+  isRemovePermissionsPromptVisible: boolean
 }
 
 export default class UserPermissionRow extends React.Component<UserPermissionRowProps, UserPermissionRowState> {
@@ -41,6 +44,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     this.state = {
       isEditFormVisible: false,
       isBeingDeleted: false,
+      isRemovePermissionsPromptVisible: false,
     }
   }
 
@@ -54,22 +58,15 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
   }
 
   showRemovePermissionsPrompt() {
-    const dialog = alertify.dialog('confirm')
-    const opts = {
-      title: t('Remove permissions?'),
-      message: t('This action will remove all permissions for user ##username##').replace(
-        '##username##',
-        `<strong>${escapeHtml(this.props.username)}</strong>`,
-      ),
-      labels: { ok: t('Remove'), cancel: t('Cancel') },
-      onok: this.removeAllPermissions.bind(this),
-      oncancel: dialog.destroy,
-    }
-    dialog.set(opts).show()
+    this.setState({ isRemovePermissionsPromptVisible: true })
+  }
+
+  hideRemovePermissionsPrompt() {
+    this.setState({ isRemovePermissionsPromptVisible: false })
   }
 
   removeAllPermissions() {
-    this.setState({ isBeingDeleted: true })
+    this.setState({ isRemovePermissionsPromptVisible: false, isBeingDeleted: true })
 
     const isCurrentUser = this.props.username === sessionStore.currentAccount.username
 
@@ -127,6 +124,50 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     )
   }
 
+  /**
+   * A confirmation modal displayed on top of the Sharing modal, thus it needs the nested modal z-indexes.
+   */
+  renderRemovePermissionsPrompt() {
+    const [messageStart, messageEnd] = t('This action will remove all permissions for user ##username##').split(
+      '##username##',
+    )
+
+    return (
+      <ModalNew
+        opened={this.state.isRemovePermissionsPromptVisible}
+        onClose={this.hideRemovePermissionsPrompt.bind(this)}
+        title={t('Remove permissions?')}
+        size='sm'
+        zIndex={KOBO_Z_INDEX.nestedModal}
+        overlayProps={{
+          ...KOBO_MODAL_OVERLAY_PROPS,
+          zIndex: KOBO_Z_INDEX.nestedModalOverlay,
+        }}
+      >
+        {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
+        <FocusTrap.InitialFocus />
+
+        <Stack>
+          <Text>
+            {messageStart}
+            <strong>{this.props.username}</strong>
+            {messageEnd}
+          </Text>
+
+          <Group justify='flex-end'>
+            <ButtonNew size='md' variant='light' onClick={this.hideRemovePermissionsPrompt.bind(this)}>
+              {t('Cancel')}
+            </ButtonNew>
+
+            <ButtonNew size='md' variant='danger' onClick={this.removeAllPermissions.bind(this)}>
+              {t('Remove')}
+            </ButtonNew>
+          </Group>
+        </Stack>
+      </ModalNew>
+    )
+  }
+
   render() {
     if (!this.props.isPendingOwner && this.props.permissions.length === 0) {
       return null
@@ -136,6 +177,8 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
 
     return (
       <Paper withBorder p='sm'>
+        {this.renderRemovePermissionsPrompt()}
+
         <Stack gap='xs'>
           <Group
             justify='space-between'

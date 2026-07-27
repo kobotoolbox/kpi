@@ -17,7 +17,11 @@ export function openSharingModal(options: OpenSharingModalOptions) {
       <ClampedTitle>{t('Sharing Permissions: ##project name##').replace('##project name##', assetName)}</ClampedTitle>
     ),
     size: 'lg',
-    children: <SharingForm assetUid={options.asset.uid} />,
+    // Mantine listens for Escape on `window`, so a confirmation modal opened on top of this one would close both. We
+    // handle Escape inside `SharingForm` instead — nested modals render in their own portal, so their Escape presses
+    // never reach it.
+    closeOnEscape: false,
+    children: <SharingForm assetUid={options.asset.uid} onRequestClose={() => modals.close(modalId)} />,
   })
 
   return {

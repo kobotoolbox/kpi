@@ -29,6 +29,8 @@ import UserPermissionRow from './userPermissionRow.component'
 
 interface SharingFormProps {
   assetUid: string
+  /** Closes the modal this form lives in. Called when user presses Escape. */
+  onRequestClose?: () => void
 }
 
 /**
@@ -180,7 +182,22 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     const isManagingPossible = userCan('manage_asset', this.state.asset)
 
     return (
-      <Stack gap='xl'>
+      <Stack
+        gap='xl'
+        // The parent modal has `closeOnEscape` disabled (see `openSharingModal`), so we handle Escape here. Nested
+        // confirmation modals render in their own portal, so their Escape presses never bubble up to this handler.
+        onKeyDown={(evt: React.KeyboardEvent) => {
+          if (evt.key !== 'Escape' || evt.isPropagationStopped()) {
+            return
+          }
+          // Same check Mantine does internally: elements like an open Select dropdown consume Escape themselves, and
+          // that press should not also close the modal.
+          if ((evt.target as HTMLElement)?.getAttribute('data-mantine-stop-propagation') === 'true') {
+            return
+          }
+          this.props.onRequestClose?.()
+        }}
+      >
         {/* list of users and their permissions */}
         <Stack gap='sm'>
           <Title order={3} fz='inherit' fw='400'>
