@@ -8,7 +8,9 @@ API_PATH_PREFIXES = (
 
 # Auto-generated constant. Do not edit by hand.
 # Generated from CSV -> OPENAPI_VALIDATION_WHITELIST
-OPENAPI_VALIDATION_WHITELIST = {'kobo/apps/accounts/tests/test_current_user.py::CurrentUserAPITestCase::test_social_accounts': {'response-validation': {'me/': ['GET']}},
+OPENAPI_VALIDATION_WHITELIST = {'hub/tests/test_globalsettings.py::GlobalSettingsTestCase::test_mfa_disabled': {'response-validation': {'api/v2/environment/': ['GET']}},
+ 'hub/tests/test_globalsettings.py::GlobalSettingsTestCase::test_mfa_enabled': {'response-validation': {'api/v2/environment/': ['GET']}},
+ 'kobo/apps/accounts/tests/test_current_user.py::CurrentUserAPITestCase::test_social_accounts': {'response-validation': {'me/': ['GET']}},
  'kobo/apps/accounts/tests/test_current_user.py::CurrentUserAPITestCase::test_validate_extra_detail': {'response-validation': {'me/': ['PATCH']}},
  'kobo/apps/accounts/tests/test_current_user.py::CurrentUserAPITestCase::test_validate_extra_detail_organization_type': {'response-validation': {'me/': ['PATCH']}},
  'kobo/apps/accounts/tests/test_social_account.py::AccountsEmailTestCase::test_list': {'response-validation': {'me/social-accounts/': ['GET']}},
@@ -71,6 +73,9 @@ OPENAPI_VALIDATION_WHITELIST = {'kobo/apps/accounts/tests/test_current_user.py::
  'kobo/apps/audit_log/tests/test_signals.py::TestAdminAuditLogIntegration::test_admin_create_triggers_audit_log': {'response-validation': {'api/v2/audit-logs/': ['GET']}},
  'kobo/apps/audit_log/tests/test_signals.py::TestAdminAuditLogIntegration::test_admin_delete_triggers_audit_log': {'response-validation': {'api/v2/audit-logs/': ['GET']}},
  'kobo/apps/audit_log/tests/test_signals.py::TestAdminAuditLogIntegration::test_admin_update_triggers_audit_log': {'response-validation': {'api/v2/audit-logs/': ['GET']}},
+ 'kobo/apps/external_integrations/tests/test_cors.py::CorsTests::test_cors_response_with_trusted_origin': {'response-validation': {'api/v2/environment/': ['GET']}},
+ 'kobo/apps/external_integrations/tests/test_cors.py::CorsTests::test_no_cors_response_with_untrusted_origin': {'response-validation': {'api/v2/environment/': ['GET']}},
+ 'kobo/apps/external_integrations/tests/test_cors.py::CorsTests::test_no_cors_response_without_origin': {'response-validation': {'api/v2/environment/': ['GET']}},
  'kobo/apps/hook/tests/base.py::ApiHookTestCase::test_anonymous_access': {'response-validation': {'api/v2/assets/': ['POST']}},
  'kobo/apps/hook/tests/base.py::ApiHookTestCase::test_anonymous_cannot_create': {'response-validation': {'api/v2/assets/': ['POST']}},
  'kobo/apps/hook/tests/base.py::ApiHookTestCase::test_create_hook': {'response-validation': {'api/v2/assets/': ['POST']}},
@@ -810,6 +815,7 @@ OPENAPI_VALIDATION_WHITELIST = {'kobo/apps/accounts/tests/test_current_user.py::
  'kpi/tests/api/v2/test_api_environment.py::EnvironmentTests::test_mfa_value_globally_enabled': {'response-validation': {'api/v2/environment/': ['GET']}},
  'kpi/tests/api/v2/test_api_environment.py::EnvironmentTests::test_social_apps': {'response-validation': {'api/v2/environment/': ['GET']}},
  'kpi/tests/api/v2/test_api_environment.py::EnvironmentTests::test_social_apps_no_custom_data': {'response-validation': {'api/v2/environment/': ['GET']}},
+ 'kpi/tests/api/v2/test_api_environment.py::EnvironmentTests::test_stripe_public_key_when_stripe_disabled': {'response-validation': {'api/v2/environment/': ['GET']}},
  'kpi/tests/api/v2/test_api_environment.py::EnvironmentTests::test_stripe_public_key_when_stripe_enabled': {'response-validation': {'api/v2/environment/': ['GET']}},
  'kpi/tests/api/v2/test_api_environment.py::EnvironmentTests::test_tos_sitewide_message': {'response-validation': {'api/v2/environment/': ['GET']}},
  'kpi/tests/api/v2/test_api_exports.py::AssetExportTaskTestV2::test_export_asset_with_slashes': {'response-validation': {'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/(?P<uid_export>[^/.]+)/': ['GET']}},
