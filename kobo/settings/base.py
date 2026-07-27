@@ -2375,6 +2375,9 @@ AZURE_DELETE_BATCH_SIZE = 256
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
+# Number of transfer log records rendered inline on a transfer admin page
+PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
+
 # Maximum timeout (in minutes) for hook processing
 HOOK_STALLED_PENDING_TIMEOUT = 120
 HOOK_STALLED_RETRY_TIMEOUT = 1440
