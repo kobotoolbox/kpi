@@ -14,3 +14,7 @@
   color: var(--mantine-color-gray-0);
   width: 100%;
 }
+
+.header {
+  gap: var(--mantine-spacing-sm);
+}
