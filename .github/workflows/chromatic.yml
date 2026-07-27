@@ -58,7 +58,7 @@ jobs:
           ref: "main"
       - uses: actions/setup-node@v6
         with:
-          node-version: 22.17.0
+          node-version-file: '.node-version' # single source of truth for our Node version
       - name: Install dependencies
         run: npm ci
       - name: Run Chromatic

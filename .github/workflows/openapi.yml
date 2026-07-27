@@ -101,7 +101,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22.17.0  # version that's pinned in Dockerfile for kpi release
+          node-version-file: '.node-version' # single source of truth for our Node version
           check-latest: true # download newer semver match if available
           cache: 'npm'
 
@@ -109,7 +109,7 @@ jobs:
         id: resolved-node-version
         run: echo "NODE_VERSION=$(node --version)" >> "$GITHUB_OUTPUT"
       - name: Add "Node ${{ steps.resolved-node-version.outputs.NODE_VERSION }}" to summary
-        run: echo "22 → **${{ steps.resolved-node-version.outputs.NODE_VERSION }}**" >> "$GITHUB_STEP_SUMMARY"
+        run: echo "\`.node-version\` → **${{ steps.resolved-node-version.outputs.NODE_VERSION }}**" >> "$GITHUB_STEP_SUMMARY"
 
       # Cache: Use cache for node_modules
       #        Keyed on os, node version, package-lock, and patches
