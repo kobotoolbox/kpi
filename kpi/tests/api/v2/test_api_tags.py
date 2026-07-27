@@ -1,4 +1,3 @@
-from ddt import data, ddt, unpack
 from django.urls import reverse
 from rest_framework import status
 from taggit.models import Tag
@@ -30,7 +29,9 @@ class TagListTestCase(BaseTagTestCase):
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
-        assert response.data['results'][0]['name'] == self.tag.name
+        result = response.data['results'][0]
+        assert result['name'] == self.tag.name
+        assert result['uid'] == self.tag_uid.uid
 
     def test_user_cannot_see_others(self):
         self.client.login(username='anotheruser', password='anotheruser')
@@ -40,63 +41,15 @@ class TagListTestCase(BaseTagTestCase):
         assert response.data['count'] == 0
         assert response.data['results'] == []
 
-
-@ddt
-class TagDetailTestCase(BaseTagTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.url = reverse(
-            self._get_endpoint('tags-detail'), kwargs={'taguid__uid': self.tag_uid.uid}
+    def test_tag_on_multiple_assets(self):
+        # Previously was failing due to lack of `distinct()` on queryset with
+        # permission joins
+        second_asset = Asset.objects.create(
+            owner=User.objects.get(username='someuser')
         )
-
-    @data(
-        ('someuser',),
-        ('anotheruser',),
-        ('anonymous',),
-    )
-    @unpack
-    def test_nobody_can_edit(self, username):
-        if username != 'anonymous':
-            self.client.force_login(User.objects.get(username=username))
-        else:
-            self.client.logout()
-
-        response = self.client.post(self.url, data={'name': 'tag_edit'})
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    @data(
-        ('someuser',),
-        ('anotheruser',),
-        ('anonymous',),
-    )
-    @unpack
-    def test_nobody_can_delete(self, username):
-        if username != 'anonymous':
-            self.client.force_login(User.objects.get(username=username))
-        else:
-            self.client.logout()
-
-        response = self.client.delete(self.url)
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    def test_owner_can_see_their_own(self):
+        second_asset.tags.add(self.tag)
         response = self.client.get(self.url)
-
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == self.tag.name
-
-    @data(
-        ('anotheruser',),
-        ('anonymous',),
-    )
-    @unpack
-    def test_non_owner_cannot_see_tag(self, username):
-        if username != 'anonymous':
-            self.client.force_login(User.objects.get(username=username))
-        else:
-            self.client.logout()
-
-        response = self.client.get(self.url)
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data['count'] == 1
+        names = [r['name'] for r in response.data['results']]
+        assert names.count(self.tag.name) == 1

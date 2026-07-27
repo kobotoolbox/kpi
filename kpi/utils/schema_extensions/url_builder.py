@@ -54,7 +54,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'asset-export-settings-detail-format': '/api/v2/assets/{uid_asset}/export-settings/{uid_export_setting}/data.{format}',  # noqa
         'asset-export-detail': '/api/v2/assets/{uid_asset}/exports/{uid_export}/',
         'serve_private_file': '/private-media/{username}/exports/assets-{username}-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv',  # noqa
-        'serve_asset_private_file': '{path}',
+        'serve_asset_private_file': '/{path}',
         'asset-file-detail': '/api/v2/assets/{uid_asset}/files/{uid_file}/',
         'asset-file-content': '/api/v2/assets/{uid_asset}/files/{uid_file}/content/',  # noqa
         'hook-log-list': '/api/v2/assets/{uid_asset}/hooks/{uid_hook}/logs/',  # noqa
@@ -67,7 +67,6 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'language-detail': '/api/v2/language/{code}/',
         'user_profile': '/{username}',
         'organization-invites-detail': '/api/v2/organizations/{uid_organization}/invites/{guid}/',  # noqa
-        'tags-detail': '/api/v2/tags/{taguid__uid}/',
         'tags-list': '/api/v2/tags/',
         'terms-of-service-detail': '/api/v2/terms-of-service/{slug}/',
         'enketo_edit_link': '{path}',
