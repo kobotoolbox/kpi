@@ -30,6 +30,11 @@ interface TableColumnSortDropdownProps {
   onApproveSelectedSubmissions?: (fieldId: string) => void
   isBulkProcessingDisabled?: boolean
   /**
+   * `true` when none of the selected submissions has a transcript/translation
+   * awaiting approval in this column, so there is nothing to approve.
+   */
+  isBulkApproveDisabled?: boolean
+  /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
    * stopPropagation to be clickable.
@@ -175,7 +180,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canApproveSelectedSubmissions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled}
+                  disabled={props.isBulkProcessingDisabled || props.isBulkApproveDisabled}
                   onClick={approveSelectedSubmissions}
                   leftSection={<Icon name='check' size='inherit' />}
                 >

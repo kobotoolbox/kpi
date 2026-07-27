@@ -35,6 +35,7 @@ import type {
   SubmissionPageName,
   TableColumn,
 } from '#/components/submissions/table.types'
+import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
 import TableBulkOptions from '#/components/submissions/tableBulkOptions'
 import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
@@ -508,20 +509,22 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   /**
-   * Opens a bulk processing modal for selected submissions.
+   * Returns full submission objects for the currently selected rows.
    * Note: Only submissions from the currently loaded page are included, even if
    * rows from other pages are selected. This is intentional - the warning modal
    * alerts users when they've selected rows across multiple pages.
    */
+  private getSelectedSubmissions(): SubmissionResponse[] {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+    return this.state.submissions.filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
+  }
+
+  /**
+   * Opens a bulk processing modal for selected submissions.
+   */
   private openBulkProcessingModal(fieldId: string, modalType: 'transcribe' | 'translate' | 'approve') {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
-
-    // Filter to get full submission objects for the selected IDs.
-    // This only finds submissions on the current page - selections from other
-    // pages are intentionally excluded (user is warned about this).
-    const selectedSubmissions = this.state.submissions.filter((submission) =>
-      selectedSubmissionIds.includes(String(submission._id)),
-    )
+    const selectedSubmissions = this.getSelectedSubmissions()
 
     // Show warning if "Select All" would process more rows than are visible on current page
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
@@ -987,6 +990,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                   ) ||
                   (!this.state.selectAll && recordKeys(this.state.selectedRows).length === 0)
                 }
+                isBulkApproveDisabled={!hasAnyUnacceptedAutomaticContent(this.getSelectedSubmissions(), key)}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
