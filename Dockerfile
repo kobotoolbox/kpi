@@ -25,7 +25,7 @@
 #                       #
 #########################
 
-FROM node:22.17-bookworm-slim AS npm-install
+FROM node:22.23.1-bookworm-slim AS npm-install
 WORKDIR /srv/src/kpi
 
 # This is our non-root user 1000.
@@ -67,7 +67,7 @@ RUN npm clean-install \
 # 🛠️ Node 'webpack-build-prod' #
 #                              #
 ################################
-FROM node:22.17-bookworm-slim AS webpack-build-prod
+FROM node:22.23.1-bookworm-slim AS webpack-build-prod
 WORKDIR /srv/src/kpi
 RUN chown node:node .
 
@@ -165,7 +165,7 @@ RUN apt-get -qq update && \
         libproj-dev \
         locales \
         # pin an exact Node version for stability. update this regularly.
-        nodejs=$(apt-cache show nodejs | grep -F 'Version: 22.17.0' | cut -f 2 -d ' ') \
+        nodejs=$(apt-cache show nodejs | grep -F 'Version: 22.23.1' | cut -f 2 -d ' ') \
         openjdk-17-jre \
         postgresql-client \
         procps \

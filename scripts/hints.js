@@ -57,10 +57,8 @@ if (process.env.SKIP_TS_CHECK && tsCheckAffects.includes(hintName)) {
   Show on preinstall. Since it's easy to miss there, also show it on other
   run scripts such as 'watch'.
 */
-// Read the expected Node version from `.node-version`, so this file doesn't
-// become another place to remember to update.
-const ok_node = require('node:fs').readFileSync(`${__dirname}/../.node-version`, 'utf8').trim()
-const ok_npm = '10.9.4'
+const ok_node = 'v22.23.1'
+const ok_npm = '10.9.8'
 
 if (process.version !== ok_node) {
   const blu = '\u001b[94m' // bright blue
