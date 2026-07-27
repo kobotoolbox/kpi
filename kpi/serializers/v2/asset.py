@@ -61,7 +61,6 @@ from kpi.utils.schema_extensions.fields import (
     RelativePrefixHyperlinkedRelatedFieldWithSchemaField,
     WriteableJsonWithSchemaField,
 )
-from ...schema_extensions.v2.assets.extensions import ProjectOwnershipFieldExtension
 from ...schema_extensions.v2.assets.fields import (
     AccessTypeField,
     AdvancedFeatureField,
