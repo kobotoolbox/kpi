@@ -457,32 +457,6 @@ class PermissionsFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(schema=PERMISSION_ASSIGNMENT_SCHEMA)
 
 
-class ProjectOwnershipFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.ProjectOwnershipField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'invite': build_url_type('api_v2:project-ownership-invite-detail'),
-                'sender': GENERIC_STRING_SCHEMA,
-                'recipient': GENERIC_STRING_SCHEMA,
-                'status': {
-                    'type': 'string',
-                    'enum': [
-                        'accepted',
-                        'cancelled',
-                        'complete',
-                        'declined',
-                        'expired',
-                        'failed',
-                        'in_progress',
-                        'pending',
-                    ],
-                }
-            }
-        )
-
-
 class ReportCustomFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.ReportCustomField'
 

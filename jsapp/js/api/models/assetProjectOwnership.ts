@@ -9,11 +9,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { AssetProjectOwnershipStatus } from './assetProjectOwnershipStatus'
+import type { AssetProjectOwnershipAnyOf } from './assetProjectOwnershipAnyOf'
 
-export type AssetProjectOwnership = {
-  readonly invite?: string
-  readonly sender?: string
-  readonly recipient?: string
-  readonly status?: AssetProjectOwnershipStatus
-}
+export type AssetProjectOwnership = AssetProjectOwnershipAnyOf | null
