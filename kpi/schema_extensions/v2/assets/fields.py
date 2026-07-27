@@ -145,6 +145,10 @@ class PermissionsField(serializers.ListField):
     pass
 
 
+class ProjectOwnershipField(serializers.JSONField):
+    pass
+
+
 class ReportCustomField(serializers.JSONField):
     pass
 
