@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.db.models import Q
 from pymongo import UpdateOne
 
 from kobo.apps.long_running_migrations.exceptions import (
@@ -9,7 +8,6 @@ from kobo.apps.long_running_migrations.models import LongRunningMigration
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.utils.log import logging
-
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 
@@ -25,11 +23,7 @@ def run():
     while True:
         query = {
             '_id': {'$gt': last_id},
-            '$or': [
-                {'meta/rootUuid': {'$exists': False}},
-                {'meta/rootUuid': None},
-                {'meta/rootUuid': ''},
-            ],
+            'meta/rootUuid': {'$exists': False},
         }
 
         # Paginate forward by _id to guarantee no infinite loops
@@ -54,10 +48,10 @@ def run():
 def _check_lrm_0027_is_completed():
     """
     Raises `LongRunningMigrationDependencyError` if LRM 0027 has not yet
-    reached a terminal state (completed or failed).
+    reached a terminal state (i.e.: completed).
     """
     if not LongRunningMigration.objects.filter(
-        Q(status='completed') | Q(status='failed'),
+        status='completed',
         name__startswith='0027',
     ).exists():
         raise LongRunningMigrationDependencyError(
