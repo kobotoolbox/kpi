@@ -30,6 +30,16 @@ interface TableColumnSortDropdownProps {
   onApproveSelectedSubmissions?: (fieldId: string) => void
   isBulkProcessingDisabled?: boolean
   /**
+   * `true` when none of the selected submissions has an audio file in this
+   * column, so there is nothing to transcribe.
+   */
+  isBulkTranscriptionDisabled?: boolean
+  /**
+   * `true` when none of the selected submissions has an approved transcript in
+   * this column, so there is nothing to translate.
+   */
+  isBulkTranslationDisabled?: boolean
+  /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
    * stopPropagation to be clickable.
@@ -153,7 +163,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canTranscribeSelectedAudioFiles && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled}
+                  disabled={props.isBulkProcessingDisabled || props.isBulkTranscriptionDisabled}
                   onClick={transcribeSelectedAudioFiles}
                   leftSection={<Icon name='qt-audio' size='inherit' />}
                 >
@@ -164,7 +174,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canTranslateSelectedTranscriptions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled}
+                  disabled={props.isBulkProcessingDisabled || props.isBulkTranslationDisabled}
                   onClick={translateSelectedTranscriptions}
                   leftSection={<Icon name='transcripts' size='inherit' />}
                 >
