@@ -44,7 +44,6 @@ class TagListTestCase(BaseTagTestCase):
         assert response.data['count'] == 1
         assert response.data['results'][0]['name'] == self.tag.name
 
-
     def test_user_cannot_see_others(self):
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(self.url)
