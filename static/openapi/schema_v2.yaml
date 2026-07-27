@@ -15961,10 +15961,27 @@ components:
           example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/
           readOnly: true
         project_ownership:
-          type:
-          - object
-          - 'null'
-          additionalProperties: {}
+          type: object
+          properties:
+            invite:
+              type: string
+              format: uri
+              example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/{uid_invite}/
+            sender:
+              type: string
+            recipient:
+              type: string
+            status:
+              type: string
+              enum:
+              - accepted
+              - cancelled
+              - complete
+              - declined
+              - expired
+              - failed
+              - in_progress
+              - pending
           readOnly: true
         owner_label:
           type: string

@@ -61,6 +61,7 @@ from kpi.utils.schema_extensions.fields import (
     RelativePrefixHyperlinkedRelatedFieldWithSchemaField,
     WriteableJsonWithSchemaField,
 )
+from ...schema_extensions.v2.assets.extensions import ProjectOwnershipFieldExtension
 from ...schema_extensions.v2.assets.fields import (
     AccessTypeField,
     AdvancedFeatureField,
@@ -92,6 +93,7 @@ from ...schema_extensions.v2.assets.fields import (
     UserURLRelativeHyperlinkedRelatedField,
     XFormLinkField,
     XLSLinkField,
+    ProjectOwnershipField,
 )
 from ...utils.permissions import is_user_anonymous
 from .asset_export_settings import AssetExportSettingsSerializer
@@ -902,6 +904,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             filtered, many=True, context=context
         ).data
 
+    @extend_schema_field(ProjectOwnershipField)
     def get_project_ownership(self, asset) -> Optional[dict]:
         if not (transfer := asset.transfers.order_by('-date_created').first()):
             return
