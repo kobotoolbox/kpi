@@ -75,7 +75,8 @@ moment.locale(currentLang())
 const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]')
 if (gaTokenEl !== null && gaTokenEl.content) {
   window.dataLayer = window.dataLayer || []
-  window.gtag = () => {
+  // biome-ignore lint/complexity/useArrowFunction: arrow functions lack `arguments`
+  window.gtag = function () {
     window.dataLayer.push(arguments)
   }
   window.gtag('js', new Date())
