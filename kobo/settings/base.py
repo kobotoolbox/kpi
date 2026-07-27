@@ -1069,6 +1069,7 @@ SPECTACULAR_SETTINGS = {
         'user-facing application are represented in the API as "assets".'
     ),
     'VERSION': '2.0.0',
+    'OAS_VERSION': '3.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'POSTPROCESSING_HOOKS': [
         'drf_spectacular.hooks.postprocess_schema_enums',

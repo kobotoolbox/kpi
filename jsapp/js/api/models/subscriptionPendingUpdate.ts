@@ -12,6 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 /**
  * If specified, pending updates that will be applied to the subscription once the latest_invoice has been paid.
- * @nullable
  */
 export type SubscriptionPendingUpdate = unknown | null
