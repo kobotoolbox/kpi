@@ -84,12 +84,31 @@ const meta: Meta<typeof StoryTrigger> = {
   // the time the play function runs, so the textbox lookup could flake. Force
   // the store into a settled, logged-in state before every story so the form
   // renders deterministically.
+  //
+  // `sessionStore` is a singleton shared with every other story in the preview,
+  // so restore the previous flags afterwards. Otherwise stories that exercise
+  // anonymous or still-loading session state would depend on whether this story
+  // happened to run first.
   beforeEach: () => {
+    const previousSessionFlags = {
+      isInitialLoadComplete: sessionStore.isInitialLoadComplete,
+      isLoggedIn: sessionStore.isLoggedIn,
+      isAuthStateKnown: sessionStore.isAuthStateKnown,
+    }
+
     runInAction(() => {
       sessionStore.isInitialLoadComplete = true
       sessionStore.isLoggedIn = true
       sessionStore.isAuthStateKnown = true
     })
+
+    return () => {
+      runInAction(() => {
+        sessionStore.isInitialLoadComplete = previousSessionFlags.isInitialLoadComplete
+        sessionStore.isLoggedIn = previousSessionFlags.isLoggedIn
+        sessionStore.isAuthStateKnown = previousSessionFlags.isAuthStateKnown
+      })
+    }
   },
 }
 
