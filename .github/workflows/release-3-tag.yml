@@ -34,7 +34,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Formats the version number
       id: version
       run: |
@@ -82,7 +82,7 @@ jobs:
       - npm-test
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: deploy to master
       run: |
@@ -100,7 +100,7 @@ jobs:
     needs:
       - deploy-to-master
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Bump Kobotoolbox version in kobo-docker repo and tag it
       run: |
@@ -116,7 +116,7 @@ jobs:
   queue-deploy-to-production:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: create Linear issue to deploy on Global
       run: |
