@@ -32,6 +32,18 @@ class TagListTestCase(BaseTagTestCase):
         assert response.data['count'] == 1
         assert response.data['results'][0]['name'] == self.tag.name
 
+    def test_tag_shared_by_several_assets_is_returned_once(self):
+        other_asset = Asset.objects.create(
+            owner=User.objects.get(username='someuser')
+        )
+        other_asset.tags.add(self.tag)
+
+        response = self.client.get(self.url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['name'] == self.tag.name
+
     def test_user_cannot_see_others(self):
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(self.url)
