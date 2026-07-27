@@ -102,6 +102,7 @@ import LimitNotifications from '../usageLimits/limitNotifications.component'
 import { openBulkApproveModal } from './BulkProcessingModals/BulkApproveModal'
 import { openBulkTranscriptionModal } from './BulkProcessingModals/BulkTranscriptionModal'
 import { openBulkTranslationModal } from './BulkProcessingModals/BulkTranslationModal'
+import { openTableSettingsModal } from './openTableSettingsModal'
 
 const DEFAULT_PAGE_SIZE = 30
 const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
@@ -197,7 +198,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.resources.removeSubmissionValidationStatus.completed.listen(
         this.onSubmissionValidationStatusChange.bind(this),
       ),
-      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this)),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
@@ -1135,8 +1135,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onTableStoreChange(newData: TableStoreData) {
-    // Close table settings modal after settings are saved.
-    pageState.hideModal()
+    // Note: closing the table settings modal after a save is owned by the modal
+    // instance itself (see `TableSettings`), so it isn't handled here.
 
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
@@ -1156,12 +1156,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
 
     this.previousOverrides = clonedeep(newData.overrides)
-  }
-
-  onTableUpdateSettingsCompleted() {
-    // Close table settings modal after settings are saved.
-    pageState.hideModal()
-    // Any updates after table settings are saved are handled by `componentDidUpdate`.
   }
 
   /** Uses `fetchData` but with past instance. */
@@ -1218,8 +1212,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   showTableColumnsOptionsModal() {
-    pageState.showModal({
-      type: MODAL_TYPES.TABLE_SETTINGS,
+    // The modal closes itself once its own save resolves (see `TableSettings`).
+    openTableSettingsModal({
       asset: this.props.asset,
     })
   }
