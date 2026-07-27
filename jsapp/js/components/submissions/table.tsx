@@ -28,6 +28,7 @@ import {
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
+import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
@@ -35,7 +36,6 @@ import type {
   SubmissionPageName,
   TableColumn,
 } from '#/components/submissions/table.types'
-import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
 import TableBulkOptions from '#/components/submissions/tableBulkOptions'
 import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
