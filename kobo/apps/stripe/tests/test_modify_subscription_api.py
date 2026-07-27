@@ -1,12 +1,19 @@
-import stripe
 
+from unittest.mock import patch
+from urllib.parse import urlencode
+
+import pytest
 from django.urls import reverse
-
-from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem, SubscriptionSchedule
+from djstripe.models import (
+    Customer,
+    Price,
+    Product,
+    Subscription,
+    SubscriptionItem,
+    SubscriptionSchedule,
+)
 from model_bakery import baker
 from rest_framework import status
-from urllib.parse import urlencode
-from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
@@ -54,9 +61,9 @@ class TestChangePlanAPITestCase(BaseTestCase):
         subscription_item = baker.make(SubscriptionItem, price=price, quantity=quantity, livemode=False)
         return baker.make(Subscription, customer=customer, status='active', items=[subscription_item], livemode=False)
 
-    @patch("stripe.Subscription.modify")
-    @patch("stripe.SubscriptionSchedule.create")
-    @patch("stripe.SubscriptionSchedule.modify")
+    @patch('stripe.Subscription.modify')
+    @patch('stripe.SubscriptionSchedule.create')
+    @patch('stripe.SubscriptionSchedule.modify')
     def _modify_price(self, price_from, quantity_from, price_to, quantity_to, schedule_modify, subscription_schedule_create, subscription_modify):
         subscription_modify.return_value = {'pending_update': None}
         customer, organization = self._create_customer_organization()
@@ -79,11 +86,21 @@ class TestChangePlanAPITestCase(BaseTestCase):
         subscription_schedule_create.return_value = subscription_schedule
         return self.client.get(url)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/change-plan',
+        'GET',
+    )
     def test_upgrades_subscription(self):
         response = self._modify_price(self.low_price, 1, self.high_price, 1)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['status'] == 'success'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/change-plan',
+        'GET',
+    )
     def test_downgrades_subscription(self):
         response = self._modify_price(self.high_price, 1, self.low_price, 1)
         assert response.status_code == status.HTTP_200_OK
@@ -94,6 +111,11 @@ class TestChangePlanAPITestCase(BaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data['status'] == 'already subscribed'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/change-plan',
+        'GET',
+    )
     def test_upgrades_subscription_with_quantity(self):
         """
         If the user switches from a price with a higher unit amount to a lower unit amount with a greater
@@ -103,6 +125,11 @@ class TestChangePlanAPITestCase(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['status'] == 'success'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/change-plan',
+        'GET',
+    )
     def test_downgrades_subscription_with_quantity(self):
         """
         If the user switches from a price with a lower unit amount to a higher unit amount with a lower

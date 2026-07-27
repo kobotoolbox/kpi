@@ -1,3 +1,4 @@
+import pytest
 from ddt import data, ddt, unpack
 from django.db import connection
 from django.test import RequestFactory
@@ -118,6 +119,16 @@ class BaseAssetBulkActionsTestCase(BaseTestCase):
 
 class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_archive_all_with_confirm_true(self):
         # Create multiple assets
         self._login_user('someuser')
@@ -146,6 +157,16 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
                 == AssetDeploymentStatus.ARCHIVED.value
             )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_archive_all_without_confirm_true(self):
         # Create multiple assets
         self._login_user('someuser')
@@ -174,6 +195,16 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
                 == AssetDeploymentStatus.DEPLOYED.value
             )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_user_can_unarchive(self):
         # Archive a project
         self._login_user('someuser')
@@ -211,6 +242,16 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_other_user_cannot_archive_others_assets(self):
         self._login_user('anotheruser')
         asset = self._add_one_asset_for_someuser()
@@ -231,6 +272,16 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_anonymous_cannot_archive_public(self):
         asset = self._add_one_asset_for_someuser()
         anonymous = get_anonymous_user()
@@ -248,6 +299,16 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_project_editor_cannot_archive_project(self):
         editor = User.objects.get(username='anotheruser')
         asset = self._add_one_asset_for_someuser()
@@ -269,6 +330,16 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_project_manager_can_archive_project(self):
         manager = User.objects.get(username='anotheruser')
         asset = self._add_one_asset_for_someuser()
@@ -289,6 +360,11 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.ARCHIVED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
     def test_user_cannot_archive_drafts(self):
         self._login_user('someuser')
         deployed_asset = self._add_one_asset_for_someuser()
@@ -305,6 +381,16 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
 @ddt
 class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_anonymous_cannot_delete_public(self):
         asset = self._add_one_asset_for_someuser()
         anonymous = get_anonymous_user()
@@ -326,6 +412,11 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
     def test_delete_all_assets_with_confirm_true(self):
         # Create multiple assets
         self._login_user('someuser')
@@ -349,6 +440,16 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
             detail_response = self._get_asset_detail_results(deleted_asset.uid)
             assert detail_response.status_code == status.HTTP_404_NOT_FOUND
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_cannot_delete_all_assets_without_confirm_true(self):
         self._login_user('someuser')
         asset_uids = []
@@ -369,6 +470,16 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
             detail_response = self._get_asset_detail_results(deleted_asset.uid)
             assert detail_response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_delete_bulk_assets_for_one_user(self):
         self._login_user('someuser')
         asset_uids = []
@@ -394,6 +505,16 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(kept_asset_uid)
         assert detail_response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_other_user_cannot_delete_others_assets(self):
         asset = self._add_one_asset_for_someuser()
         self._login_user('anotheruser')
@@ -414,6 +535,16 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_superuser_can_undelete(self):
         self._login_user('someuser')
         asset = self._add_one_asset_for_someuser()
@@ -447,6 +578,11 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
     def test_users_cannot_undelete(self):
         self._login_user('someuser')
         asset = self._add_one_asset_for_someuser()
@@ -473,6 +609,17 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         detail_response = self._get_asset_detail_results(asset.uid)
         assert detail_response.status_code == status.HTTP_404_NOT_FOUND
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @data(
         # is creator, has manage_asset, is empty, can delete
         (True, True, True, True),
@@ -521,6 +668,17 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
             assert not a0.pending_delete
             assert not a1.pending_delete
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_deleting_mixed_assets_owned_and_created(self):
         # we own this asset, so should be able to delete it even if it has submissions
         owned_asset = self._add_one_asset_for_someuser()
@@ -542,6 +700,12 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         assert created_asset.pending_delete
         assert owned_asset.pending_delete
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_bulk_delete_permissions_check_uses_constant_queries(self):
         someuser = User.objects.get(username='someuser')
 

@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
+import pytest
 from ddt import data, ddt, unpack
 from django.urls import reverse
 from freezegun import freeze_time
@@ -23,6 +24,11 @@ from kpi.utils.object_permission import get_anonymous_user
 @ddt
 class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'GET',
+    )
     @data(
         # owner: Obviously, no need to share.
         (

@@ -1,13 +1,13 @@
-import stripe
-from kobo.apps.kobo_auth.shortcuts import User
-from django.urls import reverse
+from unittest.mock import patch
+from urllib.parse import urlencode
 
+import pytest
+from django.urls import reverse
 from djstripe.models import Customer, Price, Product
 from model_bakery import baker
 from rest_framework import status
-from urllib.parse import urlencode
-from unittest.mock import patch
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 
@@ -28,7 +28,7 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
             active=True,
             id='price_1LsSOSAR39rDI89svTKog9Hq',
             product=product,
-            metadata={"max_purchase_quantity": "3"},
+            metadata={'max_purchase_quantity': '3'},
         )
 
     @staticmethod
@@ -41,10 +41,10 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         customer = baker.make(Customer, subscriber=organization)
         return customer, organization
 
-    @patch("djstripe.models.Customer.sync_from_stripe_data")
-    @patch("stripe.Customer.modify")
-    @patch("djstripe.models.Customer.get_or_create")
-    @patch("stripe.checkout.Session.create")
+    @patch('djstripe.models.Customer.sync_from_stripe_data')
+    @patch('stripe.Customer.modify')
+    @patch('djstripe.models.Customer.get_or_create')
+    @patch('stripe.checkout.Session.create')
     def generate_url(
         self, query_params, stripe_checkout_session_create_mock, customer_get_or_create_mock, modify_customer_mock, stripe_sync_mock
     ):
@@ -64,11 +64,21 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         )
         return self.client.post(url)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/checkout-link',
+        'POST',
+    )
     def test_generates_url_for_price_without_quantity(self):
         response = self.generate_url({})
         assert response.status_code == status.HTTP_200_OK
         assert response.data['url'].startswith('https://checkout.stripe.com')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/checkout-link',
+        'POST',
+    )
     def test_generates_url_for_price_with_quantity(self):
         response = self.generate_url({'quantity': 100000})
         assert response.status_code == status.HTTP_200_OK
@@ -78,10 +88,15 @@ class TestCheckoutLinkAPITestCase(BaseTestCase):
         response = self.generate_url({'price_id': 'test', 'organization_id': 'test'})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @patch("djstripe.models.Customer.sync_from_stripe_data")
-    @patch("stripe.Customer.modify")
-    @patch("djstripe.models.Customer.get_or_create")
-    @patch("stripe.checkout.Session.create")
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/checkout-link',
+        'POST',
+    )
+    @patch('djstripe.models.Customer.sync_from_stripe_data')
+    @patch('stripe.Customer.modify')
+    @patch('djstripe.models.Customer.get_or_create')
+    @patch('stripe.checkout.Session.create')
     def test_creates_organization(
         self, stripe_checkout_session_create_mock, customer_get_or_create_mock, modify_customer_mock, stripe_sync_mock
     ):

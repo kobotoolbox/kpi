@@ -1,3 +1,4 @@
+import pytest
 from django.contrib.admin.sites import site
 from django.urls import reverse
 from rest_framework import status
@@ -116,6 +117,11 @@ class AttachmentTrashAdminTestCase(BaseTestCase, AssetSubmissionTestMixin):
             log_type=AuditType.ATTACHMENT_MANAGEMENT,
         ).exists()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/',
+        'GET',
+    )
     def test_put_back_action_updates_is_deleted_flag(self):
         """
         Test that the `put_back` action updates the `is_deleted` flag of the

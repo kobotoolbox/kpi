@@ -3,12 +3,18 @@
 import json
 import unittest
 
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY, \
-    ASSET_TYPE_TEMPLATE, ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
+from kpi.constants import (
+    ASSET_TYPE_ARG_NAME,
+    ASSET_TYPE_BLOCK,
+    ASSET_TYPE_QUESTION,
+    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
+)
 from kpi.exceptions import BadAssetTypeException
 from .kpi_test_case import KpiTestCase
 from .test_assets import AssetsTestCase
@@ -248,12 +254,24 @@ class TestCloning(KpiTestCase):
 
             return cloned_asset
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_asset(self):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset(
             'cloning_asset', tag_string='tag1,tag2')
         self._clone_asset(original_asset)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_asset_into_collection(self):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset('cloning_asset')
@@ -266,12 +284,24 @@ class TestCloning(KpiTestCase):
             original_asset, parent=parent_url)
         self.assertEqual(cloned_asset.parent, parent_collection)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_cannot_clone_unshared_asset(self):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset('cloning_asset')
         self.login(self.another_user.username, self.another_user_password)
         self._clone_asset(original_asset, expected_status_code=status.HTTP_404_NOT_FOUND)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_shared_asset(self):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset('cloning_asset')
@@ -279,30 +309,39 @@ class TestCloning(KpiTestCase):
         self.login(self.another_user.username, self.another_user_password)
         self._clone_asset(original_asset)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_survey_to_template(self):
         self.login(self.someuser.username, self.someuser_password)
         settings = {
-            "sector": {
-                "value": "Arts, Entertainment, and Recreation",
-                "label": "Arts, Entertainment, and Recreation"
+            'sector': {
+                'value': 'Arts, Entertainment, and Recreation',
+                'label': 'Arts, Entertainment, and Recreation',
             },
-            "country": [{
-                "value": "ALB",
-                "label": "Albania"
-            }],
-            "country_codes": ["ALB"],
-            "share-metadata": True,
-            "description": "This form can be cloned",
+            'country': [{'value': 'ALB', 'label': 'Albania'}],
+            'country_codes': ['ALB'],
+            'share-metadata': True,
+            'description': 'This form can be cloned',
             'organization': '',
         }
         original_asset = self.create_asset(
             'cloning_asset', settings=json.dumps(settings))
         template_asset = self._clone_asset(original_asset, asset_type=ASSET_TYPE_TEMPLATE)
 
-        settings.pop("share-metadata", None)
+        settings.pop('share-metadata', None)
         self.assertEqual(template_asset.asset_type, ASSET_TYPE_TEMPLATE)
         self.assertEqual(template_asset.settings, settings)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_kobo_locked_survey_to_template(self):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset(
@@ -316,20 +355,23 @@ class TestCloning(KpiTestCase):
         # Ensure that all the content has stayed intact
         assert template_asset.content == original_asset.content
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_template_to_survey(self):
         self.login(self.someuser.username, self.someuser_password)
         settings = {
-            "sector": {
-                "value": "Arts, Entertainment, and Recreation",
-                "label": "Arts, Entertainment, and Recreation"
+            'sector': {
+                'value': 'Arts, Entertainment, and Recreation',
+                'label': 'Arts, Entertainment, and Recreation',
             },
-            "country": [{
-                "value": "ALB",
-                "label": "Albania"
-            }],
-            "country_codes": ["ALB"],
-            "share-metadata": True,  # A template should not have this property
-            "description": "This form can be cloned",
+            'country': [{'value': 'ALB', 'label': 'Albania'}],
+            'country_codes': ['ALB'],
+            'share-metadata': True,  # A template should not have this property
+            'description': 'This form can be cloned',
             'organization': '',
         }
         original_asset = self.create_asset(
@@ -339,10 +381,16 @@ class TestCloning(KpiTestCase):
 
         survey_asset = self._clone_asset(original_asset, asset_type=ASSET_TYPE_SURVEY)
 
-        settings.pop("share-metadata", None)
+        settings.pop('share-metadata', None)
         self.assertEqual(survey_asset.asset_type, ASSET_TYPE_SURVEY)
         self.assertEqual(survey_asset.settings, settings)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_kobo_locked_template_to_survey(self):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset(
@@ -357,20 +405,23 @@ class TestCloning(KpiTestCase):
         # Ensure that all the content has stayed intact
         assert survey_asset.content == original_asset.content
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_survey_to_library(self):
         self.login(self.someuser.username, self.someuser_password)
         settings = {
-            "sector": {
-                "value": "Arts, Entertainment, and Recreation",
-                "label": "Arts, Entertainment, and Recreation"
+            'sector': {
+                'value': 'Arts, Entertainment, and Recreation',
+                'label': 'Arts, Entertainment, and Recreation',
             },
-            "country": [{
-                "value": "ALB",
-                "label": "Albania"
-            }],
-            "country_codes": ["ALB"],
-            "share-metadata": True,
-            "description": "This form can be cloned"
+            'country': [{'value': 'ALB', 'label': 'Albania'}],
+            'country_codes': ['ALB'],
+            'share-metadata': True,
+            'description': 'This form can be cloned',
         }
         original_asset = self.create_asset(
             'cloning_template', settings=json.dumps(settings))
@@ -378,6 +429,12 @@ class TestCloning(KpiTestCase):
         self.assertEqual(block_asset.asset_type, ASSET_TYPE_BLOCK)
         self.assertEqual(block_asset.settings, {})
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_clone_to_bad_asset_type(self):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset(
@@ -390,34 +447,28 @@ class TestCloning(KpiTestCase):
 
     def _create_sample_survey_and_template(self):
         survey_settings = {
-            "sector": {
-                "value": "Arts, Entertainment, and Recreation",
-                "label": "Arts, Entertainment, and Recreation"
+            'sector': {
+                'value': 'Arts, Entertainment, and Recreation',
+                'label': 'Arts, Entertainment, and Recreation',
             },
-            "country": {
-                "value": "ALB",
-                "label": "Albania"
-            },
-            "share-metadata": True,
-            "description": "This survey will be modified"
+            'country': {'value': 'ALB', 'label': 'Albania'},
+            'share-metadata': True,
+            'description': 'This survey will be modified',
         }
         survey_asset = self.create_asset(
-            "survey_asset",
+            'survey_asset',
             settings=json.dumps(survey_settings),
             asset_type=ASSET_TYPE_SURVEY
         )
 
         template_settings = {
-            "sector": {
-                "value": "Public Administration",
-                "label": "Public Administration"
+            'sector': {
+                'value': 'Public Administration',
+                'label': 'Public Administration',
             },
-            "country": {
-                "value": "CAN",
-                "label": "Canada"
-            },
-            "share-metadata": True,
-            "description": "A template to be cloned"
+            'country': {'value': 'CAN', 'label': 'Canada'},
+            'share-metadata': True,
+            'description': 'A template to be cloned',
         }
         template_asset = self.create_asset(
             'template_asset',
@@ -427,6 +478,17 @@ class TestCloning(KpiTestCase):
 
         return survey_asset, template_asset
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_clone_template_to_existing_asset(self):
         self.login(self.someuser.username, self.someuser_password)
         survey_asset, template_asset = self._create_sample_survey_and_template()
@@ -436,11 +498,26 @@ class TestCloning(KpiTestCase):
                                                   uid=survey_asset.uid,
                                                   asset_type=survey_asset.asset_type)
 
-        self.assertEqual(survey_asset.content.get("survey"), [])
-        self.assertEqual(modified_survey_asset.settings['description'], "A template to be cloned")
-        self.assertEqual(modified_survey_asset.settings['country'][0].get("value"), "CAN")
+        self.assertEqual(survey_asset.content.get('survey'), [])
+        self.assertEqual(
+            modified_survey_asset.settings['description'], 'A template to be cloned'
+        )
+        self.assertEqual(
+            modified_survey_asset.settings['country'][0].get('value'), 'CAN'
+        )
         self.assertEqual(modified_survey_asset.asset_type, survey_asset.asset_type)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_override_settings_while_cloning_template_to_existing_asset(self):
         self.login(self.someuser.username, self.someuser_password)
         survey_asset, template_asset = self._create_sample_survey_and_template()
@@ -455,9 +532,7 @@ class TestCloning(KpiTestCase):
             modified_survey_asset.settings['description'],
             'I prefer my own, thank you very much!'
         )
-        self.assertEqual(
-            modified_survey_asset.settings["country"][0]["value"], "CAN"
-        )
+        self.assertEqual(modified_survey_asset.settings['country'][0]['value'], 'CAN')
 
 
 # TODO
@@ -487,6 +562,6 @@ class TestCloning(KpiTestCase):
 #     def test_cannot_clone_unshared_collection(self):
 #         raise NotImplementedError
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

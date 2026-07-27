@@ -5,6 +5,7 @@ import json
 import uuid
 from unittest.mock import patch
 
+import pytest
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -196,6 +197,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         response = self.client.post(url, data=payload, format='json')
         return response
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_first_time_deployment_creates_log(self):
         post_data = {
             'active': True,
@@ -213,6 +219,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.asset.latest_version.uid,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
     def test_redeployment_creates_log(self):
         # first time deploy
         self.asset.deploy(backend='mock', active=True)
@@ -232,6 +243,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.asset.latest_version.uid,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
     def test_archive_creates_log(self):
         # can only archive deployed asset
         self.asset.deploy(backend='mock', active=True)
@@ -256,6 +272,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # we should log the attempt even if it didn't technically do anything
         self.assertEqual(archived_logs.count(), 2)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
     def test_unarchive_creates_log(self):
         # can only unarchive deployed asset
         self.asset.deploy(backend='mock', active=False)
@@ -301,6 +322,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # no logs should be created
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_change_project_name_creates_log(self):
         old_name = self.asset.name
 
@@ -318,6 +349,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log_metadata['name'][PROJECT_HISTORY_LOG_METADATA_FIELD_OLD], old_name
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_change_standard_project_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
         # both country and description are in Asset.STANDARDIZED_SETTINGS
@@ -360,6 +401,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             if setting not in ['country', 'settings', 'country_codes']:
                 self.assertNotIn(setting, log_metadata)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_unchanged_settings_not_recorded_on_log(self):
         """
         Check settings not included on log if in the request but did not change
@@ -384,6 +435,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertNotIn('operational_purpose', log_metadata)
         self.assertNotIn('collects_pii', log_metadata)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_no_log_if_settings_unchanged(self):
         # fill request with only existing values
         patch_data = {
@@ -404,6 +465,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_nullify_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
 
@@ -455,6 +526,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     old_value,
                 )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_add_new_settings_creates_log(self):
         log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
@@ -477,6 +558,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             None,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_enable_sharing_creates_log(self):
         log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
@@ -488,6 +579,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log_metadata['shared_fields'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED], []
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_truthy_field_creates_sharing_enabled_log(self):
         log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
@@ -499,6 +600,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log_metadata['shared_fields'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED], []
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_disable_sharing_creates_log(self):
         self.asset.data_sharing = {
             'enabled': True,
@@ -513,6 +624,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.DISABLE_SHARING,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_nullify_sharing_creates_sharing_disabled_log(self):
         self.asset.data_sharing = {
             'enabled': True,
@@ -527,6 +648,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.DISABLE_SHARING,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_falsy_field_creates_sharing_disabled_log(self):
         self.asset.data_sharing = {
             'enabled': True,
@@ -541,6 +672,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.DISABLE_SHARING,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_modify_sharing_creates_log(self):
         self.asset.data_sharing = {
             'enabled': True,
@@ -564,6 +705,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             ['settings_fixture_q1'],
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_update_content_creates_log(self):
         self._base_asset_detail_endpoint_test(
             patch=True,
@@ -572,6 +723,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.UPDATE_CONTENT,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_update_qa_creates_log(self):
         request_data = {
             'advanced_features': {
@@ -695,6 +856,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_register_service_creates_log(self):
         request_data = {
             'name': 'test',
@@ -720,6 +886,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['hook']['active'], True)
         self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.google.com')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/(?P<uid_hook>[^/.]+)/',
+        'PATCH',
+    )
     def test_modify_service_creates_log(self):
         new_hook = Hook.objects.create(
             name='test',
@@ -773,6 +944,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['hook']['active'], True)
         self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.example.com')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/paired-data/',
+        'POST',
+    )
     def test_connect_project_creates_log(self):
         source = Asset.objects.get(pk=1)
         source.data_sharing = {
@@ -869,6 +1050,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
         self.assertEqual(log_metadata['paired-data']['fields'], ['q2'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/files/',
+        'POST',
+    )
     def test_add_media_creates_log(self):
         crab_png_b64 = (
             'iVBORw0KGgoAAAANSUhEUgAAABIAAAAPAgMAAACU6HeBAAAADFBMVEU7PTqv'
@@ -1009,6 +1195,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/exports/',
+        'POST',
+    )
     @data(True, False)
     def test_export_creates_log(self, anonymous_user):
         self.asset.deploy(backend='mock', active=True)
@@ -1039,6 +1235,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/bulk/',
+        'POST',
+    )
     @data(
         ('archive', AuditAction.ARCHIVE),
         ('unarchive', AuditAction.UNARCHIVE),
@@ -1320,6 +1521,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(removal_log.metadata['permissions']['username'], 'someuser')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
+        'POST',
+    )
     @data(True, False)
     def test_create_partial_permission_creates_log(self, use_bulk):
         request_data = {
@@ -1458,6 +1669,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/permission-assignments/bulk/',
+        'POST',
+    )
     def test_no_logs_if_bulk_request_fails(self):
         someuser = User.objects.get(username='someuser')
         self.asset.assign_perm(user_obj=someuser, perm=PERM_VIEW_ASSET)
@@ -1506,6 +1722,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_metadata['cloned_from'], second_asset.uid)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     def test_transfer_creates_log(self):
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
@@ -1523,6 +1744,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_metadata['username'], 'someuser')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     def test_transfer_multiple_creates_logs(self):
         second_asset = Asset.objects.get(pk=2)
         # make admin the owner of the other asset so we can transfer it
@@ -1547,6 +1773,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertTrue(second_log.exists())
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     def test_no_log_created_for_non_project_transfer(self):
         new_asset = Asset.objects.create(
             owner=self.user,
@@ -1563,6 +1794,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/duplicate/',
+        'POST',
+    )
     @data('adminuser', 'someuser')
     def test_log_created_for_duplicate_submission(self, duplicating_user):
         instance, submission = self._add_submission('adminuser')
@@ -1647,6 +1883,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log.metadata, submitted_by, instance.root_uuid
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/bulk/',
+        'PATCH',
+    )
     def test_update_multiple_submissions_content(self):
         instance1, sub1 = self._add_submission('adminuser')
         instance2, sub2 = self._add_submission('someuser')
@@ -1695,6 +1936,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log3.metadata, 'AnonymousUser', instance3.root_uuid
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
+        'PATCH',
+    )
     @data('adminuser', None)
     def test_update_single_submission_validation_status(self, username):
         instance, submission = self._add_submission(username)
@@ -1717,6 +1963,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_metadata['submission']['status'], 'On Hold')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/validation_statuses/',
+        'PATCH',
+    )
     def test_multiple_submision_validation_statuses(self):
         instance1, sub1 = self._add_submission('adminuser')
         instance2, sub2 = self._add_submission('someuser')
@@ -2037,6 +2288,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             3,
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_request_automatic_qa_data(self):
         instance, submission = self._add_submission('adminuser')
         submission = list(
@@ -2086,6 +2342,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.assertEqual(llm_info['model'], OSS120.model_id)
             self.assertEqual(llm_info['request_id'], '12345')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_request_automatic_qa_data_bad_response(self):
         class MockErrorClient:
             def invoke_model(self, *args, **kwargs):
@@ -2140,6 +2401,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'Unable to extract answer from LLM response object',
             )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_request_automatic_qa_data_includes_backup_model_if_used(self):
         class MockErrorClient:
             def invoke_model(self, modelId, *args, **kwargs):
@@ -2201,6 +2467,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.assertEqual(llm_info['model'], ClaudeSonnet.model_id)
             self.assertEqual(llm_info['request_id'], '12345')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     @data(
         # verify? , automatic?, expected action
         (True, True, AuditAction.VERIFY_AUTOMATIC_QA_DATA),

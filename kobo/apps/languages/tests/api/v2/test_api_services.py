@@ -1,4 +1,5 @@
 # coding: utf-8
+import pytest
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -86,6 +87,11 @@ class TranslationServiceListApiTestCase(BaseApiTestCase):
             [service['code'] for service in response.data['results']],
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/translation-services/',
+        'GET',
+    )
     def test_list_with_2_characters_search(self):
         """
         Try to search with only 2 characters

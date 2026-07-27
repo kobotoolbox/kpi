@@ -1,3 +1,4 @@
+import pytest
 from constance.test import override_config
 from django.core import mail
 from rest_framework.reverse import reverse
@@ -6,7 +7,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-
 from ..models import Invite, InviteStatusChoices, Transfer, TransferStatusChoices
 from ..tasks import mark_as_expired
 
@@ -22,6 +22,11 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
         self.invite_url = reverse(self._get_endpoint('project-ownership-invite-list'))
         self.asset = Asset.objects.get(pk=1)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     def test_recipient_receives_invite(self):
         self.client.login(username='someuser', password='someuser')
         payload = {
@@ -37,6 +42,11 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
         self.assertIn(invite_uid, mail.outbox[0].body)
         self.assertNotIn('Because you are part of a team', mail.outbox[0].body)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/(?P<uid_invite>[^/.]+)/',
+        'PATCH',
+    )
     def test_sender_receives_new_owner_acceptance(self):
         invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
         invite_detail_url = reverse(
@@ -52,6 +62,11 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
             mail.outbox[0].subject, 'KoboToolbox project ownership transfer accepted'
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/(?P<uid_invite>[^/.]+)/',
+        'PATCH',
+    )
     def test_sender_receives_new_owner_refusal(self):
         invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
         invite_detail_url = reverse(
@@ -91,6 +106,11 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
             'KoboToolbox Notifications: Project ownership transfer failure',
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     def test_recipient_as_org_member_receives_invite(self):
         alice = User.objects.create_user(
             username='alice', password='alice', email='alice@example.com'

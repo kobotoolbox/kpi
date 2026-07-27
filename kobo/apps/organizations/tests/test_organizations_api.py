@@ -209,6 +209,11 @@ class OrganizationDetailAPITestCase(BaseTestCase):
             username='bob', password='bob', email='bob@bob.com'
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/organizations/(?P<uid_organization>[^/.]+)/asset_usage/',
+        'GET',
+    )
     @data(
         ('someuser', status.HTTP_200_OK),
         ('anotheruser', status.HTTP_200_OK),
@@ -420,6 +425,11 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
     permissions.
     """
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/organizations/(?P<uid_organization>[^/.]+)/assets/',
+        'GET',
+    )
     @data(
         ('someuser', status.HTTP_200_OK),
         ('anotheruser', status.HTTP_200_OK),
@@ -439,6 +449,23 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(self.org_assets_list_url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/organizations/(?P<uid_organization>[^/.]+)/assets/',
+        'GET',
+    )
     def test_list_only_organization_assets(self):
         # The organization's assets endpoint only returns assets where the `owner`
         # matches the User object who owns the organization.
@@ -602,9 +629,31 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
     have been explicitly shared with them.
     """
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_create_asset_is_owned_by_organization(self):
         self._create_asset_by_alice()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     @data(
         ('someuser', True, status.HTTP_200_OK),
         ('someuser', False, status.HTTP_200_OK),
@@ -638,6 +687,22 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         if expected_status_code == status.HTTP_200_OK:
             assert response.data['uid'] == response.data['uid']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     @data(
         ('someuser', True, status.HTTP_200_OK),
         ('someuser', False, status.HTTP_200_OK),
@@ -672,6 +737,17 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         if expected_status_code == status.HTTP_200_OK:
             assert response.data['name'] == response.data['name']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     @data(
         ('someuser', True, status.HTTP_204_NO_CONTENT),
         ('someuser', False, status.HTTP_403_FORBIDDEN),
@@ -704,6 +780,22 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.delete(assert_detail_url)
         assert response.status_code == expected_status_code
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
     @data(
         ('someuser', True, True, status.HTTP_200_OK),
         ('someuser', True, False, status.HTTP_200_OK),
@@ -749,6 +841,17 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         if expected_status_code == status.HTTP_200_OK:
             assert response.data['asset']['deployment__active'] == is_active
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     @data(
         ('someuser', True, status.HTTP_200_OK),
         ('someuser', False, status.HTTP_200_OK),
@@ -802,6 +905,27 @@ class OrganizationAdminsDataApiTestCase(
     and reusability.
     """
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/',
+        'GET',
+    )
     def test_can_access_data(self):
         response = self.client.get(self.data_url)
         assert response.status_code == status.HTTP_200_OK
@@ -811,6 +935,22 @@ class OrganizationAdminsDataApiTestCase(
         assert response.status_code == status.HTTP_200_OK
         assert response.data['_id'] == self.submission['_id']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
+        'GET',
+    )
     def test_can_bulk_delete_data(self):
         self.submission_bulk_url = reverse(
             self._get_endpoint('submission-bulk'),
@@ -820,17 +960,76 @@ class OrganizationAdminsDataApiTestCase(
         )
         self._delete_submissions()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
+        'GET',
+    )
     def test_can_delete_data(self):
         self._delete_submission(self.submission)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/edit/',
+        'GET',
+    )
     @responses.activate
     def test_can_get_edit_link(self):
         self._get_edit_link()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/enketo/view/',
+        'GET',
+    )
     @responses.activate
     def test_can_get_view_link(self):
         self._get_view_link()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_can_submit_data(self):
         """
         Test that anotheruser can submit data if they have the necessary permissions.
@@ -874,6 +1073,17 @@ class OrganizationAdminsAssetFileApiTestCase(
         )
         self.client.force_login(self.anotheruser)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_can_get_asset_files(self):
         self.client.force_login(self.someuser)
         self.current_username = 'someuser'
@@ -885,10 +1095,32 @@ class OrganizationAdminsAssetFileApiTestCase(
         assert response.status_code == status.HTTP_200_OK
         assert response.data['results'][0]['uid'] == af_uid
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_can_post_asset_files(self):
         response = self.create_asset_file()
         self.verify_asset_file(response)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_can_delete_asset_files(self):
         self.delete_asset_file()
 
@@ -909,9 +1141,61 @@ class OrganizationAdminsRestServiceApiTestCase(
         self.asset.deploy(backend='mock', active=True)
         self.client.force_login(self.anotheruser)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_can_add_rest_services(self):
         self._create_hook()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/(?P<uid_hook>[^/.]+)/',
+        'GET',
+    )
     def test_can_list_rest_services(self):
         hook = self._create_hook()
         list_url = reverse(
@@ -936,6 +1220,27 @@ class OrganizationAdminsRestServiceApiTestCase(
         assert response.status_code == status.HTTP_200_OK
         assert response.data['uid'] == hook.uid
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_can_delete_rest_services(self):
         hook = self._create_hook()
         detail_url = reverse(
@@ -945,6 +1250,32 @@ class OrganizationAdminsRestServiceApiTestCase(
         response = self.client.delete(detail_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/(?P<uid_hook>[^/.]+)/',
+        'PATCH',
+    )
     def test_can_update_rest_services(self):
         hook = self._create_hook()
         detail_url = reverse(
@@ -988,6 +1319,27 @@ class OrganizationAdminsValidationStatusApiTestCase(
             kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
+        'GET',
+    )
     def test_can_access_validation_status(self):
         response = self.client.get(self.submission_url)
         assert response.status_code == status.HTTP_200_OK
@@ -997,13 +1349,71 @@ class OrganizationAdminsValidationStatusApiTestCase(
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {}
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
+        'PATCH',
+    )
     def test_can_update_validation_status(self):
         self._update_status('anotheruser')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/validation_status/',
+        'PATCH',
+    )
     def test_can_delete_validation_status(self):
         self._update_status('anotheruser')
         self._delete_status()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
+        'GET',
+    )
     def test_can_bulk_validate_statuses(self):
         self._validate_statuses(empty=True)
         self._update_statuses(status_uid='validation_status_not_approved')
@@ -1011,5 +1421,21 @@ class OrganizationAdminsValidationStatusApiTestCase(
             uid='validation_status_not_approved', username='anotheruser'
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/',
+        'GET',
+    )
     def test_can_bulk_delete_statuses(self):
         self._delete_statuses()

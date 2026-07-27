@@ -75,6 +75,11 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             self.attachment.refresh_from_db()
             self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<pk>[^/.]+)/',
+        'GET',
+    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )

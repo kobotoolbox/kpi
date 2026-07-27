@@ -28,6 +28,17 @@ from .base import BaseHookTestCase
 
 class ApiHookTestCase(BaseHookTestCase):
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_anonymous_access(self):
         hook = self._create_hook()
         self.client.logout()
@@ -62,12 +73,55 @@ class ApiHookTestCase(BaseHookTestCase):
         response = self.client.get(log_list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_create_hook(self):
         self._create_hook()
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_create_minimal_hook(self):
         self._create_hook(minimal=True)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/(?P<uid_hook>[^/.]+)/',
+        'GET',
+    )
     def test_editor_access(self):
         hook = self._create_hook()
 
@@ -119,6 +173,17 @@ class ApiHookTestCase(BaseHookTestCase):
         response = self.client.get(log_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_editor_create(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
@@ -130,6 +195,17 @@ class ApiHookTestCase(BaseHookTestCase):
                                      name='Hook for asset I can edit')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_non_owner_cannot_access(self):
         hook = self._create_hook()
         self.client.logout()
@@ -165,6 +241,12 @@ class ApiHookTestCase(BaseHookTestCase):
         response = self.client.get(log_list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_non_owner_cannot_create(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
@@ -172,6 +254,12 @@ class ApiHookTestCase(BaseHookTestCase):
                                      name="Hook for asset I don't own")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_anonymous_cannot_create(self):
         self.client.logout()
         response = self._create_hook(
@@ -179,6 +267,22 @@ class ApiHookTestCase(BaseHookTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/(?P<uid_hook>[^/.]+)/',
+        'PATCH',
+    )
     def test_partial_update_hook(self):
         hook = self._create_hook()
         url = reverse(
@@ -192,6 +296,27 @@ class ApiHookTestCase(BaseHookTestCase):
         self.assertFalse(hook.active)
         self.assertEqual(hook.name, 'some disabled external service')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/(?P<uid_hook>[^/.]+)/logs/(?P<uid_log>[^/.]+)/retry/',  # noqa: E501
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/(?P<uid_hook>[^/.]+)/logs/(?P<uid_log>[^/.]+)/retry/',  # noqa: E501
+        'PATCH',
+    )
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -237,6 +362,17 @@ class ApiHookTestCase(BaseHookTestCase):
         response = self.client.patch(retry_url, format=SUBMISSION_FORMAT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -273,6 +409,12 @@ class ApiHookTestCase(BaseHookTestCase):
         response = self.client.get(detail_url, format=SUBMISSION_FORMAT_TYPE_JSON)
         self.assertEqual(response.data.get('tries'), 1)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -322,6 +464,12 @@ class ApiHookTestCase(BaseHookTestCase):
         self.assertEqual(json.loads(first_hooklog_response.get('message')),
                          expected_response)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     @override_config(ALLOW_UNSECURED_HOOK_ENDPOINTS=False)
     def test_unsecured_endpoint_validation(self):
 
@@ -330,6 +478,12 @@ class ApiHookTestCase(BaseHookTestCase):
         expected_response = {'endpoint': ['Unsecured endpoint is not allowed']}
         self.assertEqual(response.data, expected_response)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_payload_template_validation(self):
 
         # Test invalid JSON
@@ -359,6 +513,17 @@ class ApiHookTestCase(BaseHookTestCase):
         }
         self.assertEqual(response.data, expected_response)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -408,6 +573,17 @@ class ApiHookTestCase(BaseHookTestCase):
         )
         self.assertEqual(response.data.get('count'), 0)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -457,6 +633,17 @@ class ApiHookTestCase(BaseHookTestCase):
         )
         self.assertEqual(response.data.get('count'), 1)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_hook_log_filter_validation(self):
         # Create hook
         hook = self._create_hook(
@@ -478,6 +665,17 @@ class ApiHookTestCase(BaseHookTestCase):
         response = self.client.get(f'{hook_log_url}?status=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
         new=MagicMock(return_value=ip_address('1.2.3.4')),
@@ -544,6 +742,17 @@ class ApiHookTestCase(BaseHookTestCase):
         )
         self.assertEqual(response.data.get('count'), 0)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_hook_log_filter_date_validation(self):
         # Create hook
         hook = self._create_hook(

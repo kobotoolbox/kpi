@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import override_settings
@@ -51,6 +52,11 @@ class LookbackTestMixin:
     def get_baker_defaults(self):
         return {}
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/audit-logs/',
+        'GET',
+    )
     @override_settings(ACCESS_LOG_LIFESPAN=60, PROJECT_HISTORY_LOG_LIFESPAN=60)
     def test_results_limited_by_lookback_days(self):
         if settings.STRIPE_ENABLED:
@@ -326,6 +332,11 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase, LookbackTestMixin):
         assert audit_logs_count == 2
         assert response.data['results'] == expected
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/audit-logs/',
+        'GET',
+    )
     def test_view_log_from_deleted_user(self):
         someuser = get_user_model().objects.get(username='someuser')
         date_created = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')

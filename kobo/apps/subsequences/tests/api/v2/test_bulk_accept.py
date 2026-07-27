@@ -1,11 +1,11 @@
 import uuid
 
+import pytest
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
-
 
 TRANSCRIPTION_VERSION = {
     '_dateCreated': '2026-01-01T00:00:00.000000Z',
@@ -353,6 +353,11 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/supplements/bulk/',
+        'POST',
+    )
     def test_bulk_accept_missing_action_returns_400(self):
         """
         Test that omitting the `action` field returns HTTP 400
@@ -367,6 +372,11 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/supplements/bulk/',
+        'POST',
+    )
     def test_bulk_accept_invalid_action_returns_400(self):
         """
         Test that an unsupported `action` value returns HTTP 400
@@ -382,6 +392,11 @@ class BulkAcceptAPITestCase(SubsequenceBaseTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/supplements/bulk/',
+        'POST',
+    )
     def test_bulk_accept_invalid_action_id_returns_400(self):
         response = self._post_accept(
             {

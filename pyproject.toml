@@ -68,6 +68,7 @@ addopts = [
 ]
 markers = [
     "performance: marks test for performance that may unexpectedly fail on slower platforms (not executed by default - select with '-m \"performance\"')",
+    "allow_openapi_mismatch(error_code, route, method): allow a known OpenAPI schema mismatch to pass strict validation in this test (bare marker allows any mismatch)",
 ]
 
 # Types are not enforced but are a good practice

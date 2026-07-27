@@ -1,5 +1,6 @@
 # coding: utf-8
 import constance
+import pytest
 from constance.test import override_config
 from django.test import TestCase
 from django.urls import reverse
@@ -18,6 +19,11 @@ class GlobalSettingsTestCase(TestCase, RequiresStripeAPIKeyMixin):
     def setUpTestData(cls):
         cls.create_stripe_api_key()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/environment/',
+        'GET',
+    )
     @override_config(MFA_ENABLED=True)
     def test_mfa_enabled(self):
         self.client.login(username='someuser', password='someuser')
@@ -26,6 +32,11 @@ class GlobalSettingsTestCase(TestCase, RequiresStripeAPIKeyMixin):
         json_ = response.json()
         self.assertTrue(json_['mfa_enabled'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/environment/',
+        'GET',
+    )
     @override_config(MFA_ENABLED=False)
     def test_mfa_disabled(self):
         self.client.login(username='someuser', password='someuser')

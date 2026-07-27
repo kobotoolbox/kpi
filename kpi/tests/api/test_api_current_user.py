@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 from constance.test import override_config
 from django.conf import settings
 from django.test import RequestFactory
@@ -44,6 +45,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.extra_details.date_removal_requested is not None
         assert type(self.user.extra_details.date_removal_requested) is datetime
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'DELETE')
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_when_confirm_different_from_uid(self):
         # Check user account is as expected
@@ -63,6 +65,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_requested is None
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'DELETE')
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_without_confirm(self):
         # Check user account is as expected
@@ -82,6 +85,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_requested is None
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'DELETE')
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_without_payload(self):
         # Check user account is as expected
@@ -134,6 +138,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_requested is None
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'DELETE')
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_if_account_is_not_empty(self):
         Asset.objects.create(
@@ -217,6 +222,7 @@ class CurrentUserTestCase(BaseTestCase):
         self.user.organization.mmo_override = True
         self.user.organization.save()
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'PATCH')
     def test_cannot_change_statuses(self):
         self.client.force_authenticate(self.user)
         for flag in ['is_superuser', 'is_staff']:
@@ -229,6 +235,7 @@ class CurrentUserTestCase(BaseTestCase):
             # Validate the flag kept the original value
             assert getattr(self.user, flag, False) is False
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'GET')
     def test_expected_result(self):
         request = RequestFactory().get('/')
         self.client.force_authenticate(self.user)
@@ -267,6 +274,7 @@ class CurrentUserTestCase(BaseTestCase):
             'extra_details__uid': self.user.extra_details.uid,
         }
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'PATCH')
     def test_cannot_update_uid(self):
         self.client.force_authenticate(self.user)
         uid = self.user.extra_details.uid

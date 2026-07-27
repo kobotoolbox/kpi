@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from django.test import Client
 from django.urls import reverse
 from rest_framework import status
@@ -59,6 +60,16 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         self.action.refresh_from_db()
         assert self.action.params == [{'language': 'en'}, {'language': 'es'}]
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/(?P<uid_advanced_feature>[^/.]+)/',  # noqa: E501
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/(?P<uid_advanced_feature>[^/.]+)/',  # noqa: E501
+        'PATCH',
+    )
     def test_cannot_update_feature_with_invalid_params(self):
         res = self.client.patch(
             self.action_detail_url,
@@ -104,6 +115,11 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         # what's actually created is tested elsewhere, just check that we migrated
         assert self.asset.advanced_features.get('_version') == '20250820'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/advanced-features/',
+        'POST',
+    )
     def test_create_advanced_features_fails_if_feature_exists_in_old_field(self):
         QuestionAdvancedFeature.objects.all().delete()
         Asset.objects.filter(pk=self.asset.pk).update(

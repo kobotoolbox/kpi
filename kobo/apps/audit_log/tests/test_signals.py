@@ -1,5 +1,6 @@
 from unittest.mock import Mock, patch
 
+import pytest
 from allauth.account.models import EmailAddress
 from constance.signals import config_updated
 from ddt import data, ddt
@@ -278,6 +279,11 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         self.organization.add_user(self.someuser)
         self.client.force_login(self.admin)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/audit-logs/',
+        'GET',
+    )
     def test_admin_create_triggers_audit_log(self):
         """
         Tests that creating a new object via the Admin generates an ADMIN_CREATE log
@@ -318,6 +324,11 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
         self.assertEqual(audit_log['action'], AuditAction.ADMIN_CREATE)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/audit-logs/',
+        'GET',
+    )
     def test_admin_update_triggers_audit_log(self):
         """
         Tests that submitting a change via the Admin generates an ADMIN_UPDATE log
@@ -369,6 +380,11 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
         self.assertEqual(audit_log['action'], AuditAction.ADMIN_UPDATE)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/audit-logs/',
+        'GET',
+    )
     def test_admin_delete_triggers_audit_log(self):
         """
         Tests that deleting an object via the Admin generates an ADMIN_DELETE log

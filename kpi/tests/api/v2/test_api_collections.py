@@ -1,6 +1,7 @@
 # coding: utf-8
 import re
 
+import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils.translation import gettext as t
@@ -39,6 +40,12 @@ class CollectionsTests(BaseTestCase):
         self.client.logout()
         self.client.login(username=username, password=password)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_create_collection(self):
         """
         Ensure we can create a new collection object.
@@ -49,6 +56,11 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name'], 'my collection')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_collection_detail(self):
         url = reverse(
             self._get_endpoint('asset-detail'), kwargs={'uid_asset': self.coll.uid}
@@ -68,6 +80,16 @@ class CollectionsTests(BaseTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_collection_rename(self):
         url = reverse(
             self._get_endpoint('asset-detail'), kwargs={'uid_asset': self.coll.uid}
@@ -83,6 +105,7 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], "what's in a name")
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_collection_list(self):
         url = reverse(self._get_endpoint('asset-list'))
         response = self.client.get(url)
@@ -94,6 +117,7 @@ class CollectionsTests(BaseTestCase):
                 break
         self.assertTrue(uid_found)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_collection_filtered_list(self):
 
         another_user = User.objects.get(username='anotheruser')
@@ -218,6 +242,7 @@ class CollectionsTests(BaseTestCase):
             response.data['results'][0]['uid'], shared_collection.uid
         )
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_collection_statuses_and_access_types(self):
 
         another_user = User.objects.get(username='anotheruser')
@@ -301,6 +326,7 @@ class CollectionsTests(BaseTestCase):
             assert expected_collection['status'] == collection['status']
             assert expected_collection['access_types'] == collection['access_types']
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_collection_subscribe(self):
         public_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,
@@ -338,6 +364,7 @@ class CollectionsTests(BaseTestCase):
             response.data['results'][0]['url'].endswith(pub_coll_url)
         )
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_get_subscribed_collection(self):
         public_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,
@@ -382,6 +409,7 @@ class CollectionsTests(BaseTestCase):
         response_child_uid = [c['uid'] for c in response.data['results']]
         assert sorted(expected_child_uid) == sorted(response_child_uid)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_collection_unsubscribe(self):
         public_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,

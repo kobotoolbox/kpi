@@ -93,6 +93,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         )
         assert rr.status_code == 404
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'GET',
+    )
     def test_get_submission_after_edit(self):
         # Simulate edit
         instance = Instance.objects.only('pk').get(root_uuid=self.submission_uuid)
@@ -123,6 +128,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         rr = self.client.get(self.supplement_details_url)
         assert rr.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'GET',
+    )
     def test_get_submission_with_null_root_uuid(self):
         # Simulate an old submission (never edited) where `root_uuid` was not yet set
         Instance.objects.filter(root_uuid=self.submission_uuid).update(root_uuid=None)
@@ -204,6 +214,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_valid_manual_translation(self):
         self._simulate_completed_transcripts()
         QuestionAdvancedFeature.objects.create(
@@ -263,6 +278,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_valid_automatic_translation(self):
         self._simulate_completed_transcripts()
         # Set up the asset to allow automatic google translation
@@ -299,6 +319,16 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_set_value_with_automatic_actions(self):
         self._simulate_completed_transcripts()
         # Set up the asset to allow automatic actions
@@ -328,6 +358,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'Invalid payload' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_accept_incomplete_automatic_translation(self):
         self._simulate_completed_transcripts()
         QuestionAdvancedFeature.objects.create(
@@ -362,6 +397,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'No response to accept' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'GET',
+    )
     def test_retrieve_does_migrate_data(self):
         """
         The migration utils are already covered by other tests (`test_versioning.py),
@@ -634,6 +674,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
 class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_patch_if_question_does_not_have_action_configured(self):
         payload = {
             '_version': '20250820',
@@ -655,6 +700,16 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             in str(response.data)
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_patch_if_action_is_invalid(self):
         QuestionAdvancedFeature.objects.create(
             asset=self.asset,
@@ -682,6 +737,16 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             in str(response.data)
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_patch_with_invalid_payload(self):
         QuestionAdvancedFeature.objects.create(
             asset=self.asset,
@@ -707,6 +772,11 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'Invalid payload' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
         QuestionAdvancedFeature.objects.create(
@@ -741,6 +811,11 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'No response to accept' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_request_translation_without_transcription(self):
         # Set up the asset to allow automatic google actions
         QuestionAdvancedFeature.objects.create(
@@ -779,6 +854,16 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'No transcription found' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_delete_non_existent_transcription(self):
         """
         Users should not be able to delete a transcription from a submission
@@ -830,6 +915,11 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         supplement.refresh_from_db()
         assert 'q1' in supplement.content
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_delete_non_existent_automatic_transcription(self):
         QuestionAdvancedFeature.objects.create(
             asset=self.asset,
@@ -883,6 +973,16 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         # Should fail because there's nothing to delete
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_translate_deleted_manual_transcription(self):
         """
         Verify that if a user deletes a manual transcript, a subsequent translation
@@ -946,6 +1046,11 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'No transcription found' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_cannot_translate_deleted_automatic_transcription(self):
         """
         Verify that if an automatic transcript is marked as 'deleted',
@@ -1015,6 +1120,11 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'No transcription found' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_translation_does_not_falls_back_to_automatic_when_manual_deleted(self):
         """
         Verify that deleting a manual transcript does not cause the system to
@@ -1105,6 +1215,11 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'No transcription found' in str(response.data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_translation_works_when_transcript_is_replaced_by_different_action(self):
         """
         Verify that translation works when the existing transcription
@@ -1216,6 +1331,11 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
             params=[{'language': 'es'}],
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
@@ -1298,6 +1418,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         }
         return self.client.patch(url, data=payload, format='json')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_tags_are_tracked_when_qual_tags_answer_is_saved(self):
         """
         Test that a QATagTracker row is created for each tag when a
@@ -1312,6 +1442,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         assert trackers.count() == 2
         assert set(trackers.values_list('value', flat=True)) == {'poverty', 'health'}
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_duplicate_tags_across_submissions_are_not_duplicated_in_tracker(self):
         """
         Test that submitting the same tag for the same question on a second
@@ -1335,6 +1475,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         assert trackers.count() == 2
         assert set(trackers.values_list('value', flat=True)) == {'poverty', 'health'}
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_new_tags_from_subsequent_submissions_are_added_to_tracker(self):
         """
         Test that a tag appearing for the first time on a later submission
@@ -1359,6 +1509,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         )
         assert tracked_values == {'poverty', 'resilience'}
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_non_tag_question_types_do_not_create_trackers(self):
         """
         Test that saving an answer to a qualText question does not create
@@ -1380,6 +1540,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert not QATagTracker.objects.filter(asset=self.asset).exists()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_tags_are_scoped_to_their_question_uuid(self):
         """
         Test that tags saved for one qualTags question are not visible
@@ -1398,6 +1568,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
             args=[self.asset.uid, question_uuid],
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_list_returns_tracked_tags_sorted_alphabetically(self):
         """
         Test that the list endpoint returns previously tracked tags for the
@@ -1424,6 +1604,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data == []
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_list_only_returns_tags_for_requested_question(self):
         """
         Test that the list endpoint scopes results to the `uid_qa_question`
@@ -1440,6 +1630,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data == [{'value': 'poverty'}]
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_list_requires_asset_access(self):
         """
         Test that a user without submission-editing access to the asset
@@ -1453,6 +1653,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_list_denied_for_read_only_submission_viewer(self):
         """
         Test that a user with only `view_submissions` (read-only submission
@@ -1470,6 +1680,16 @@ class QATagTrackerAPITestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_list_denied_for_anonymous_user(self):
         """
         Test that an unauthenticated (anonymous) request cannot list tracked

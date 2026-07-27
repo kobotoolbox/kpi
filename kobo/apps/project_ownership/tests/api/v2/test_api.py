@@ -2,6 +2,7 @@
 import uuid
 from unittest.mock import MagicMock, patch
 
+import pytest
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -52,6 +53,11 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         )
         self.asset = Asset.objects.get(pk=1)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     def test_can_create_invite_as_asset_owner(self):
 
         self.client.login(username='someuser', password='someuser')
@@ -145,6 +151,11 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
             args=[self.invite.uid],
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/(?P<uid_invite>[^/.]+)/',
+        'PATCH',
+    )
     def test_can_cancel_invite_as_sender(self):
 
         self.client.login(username='someuser', password='someuser')
@@ -179,6 +190,11 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/(?P<uid_invite>[^/.]+)/',
+        'PATCH',
+    )
     def test_can_accept_invite_as_recipient(self):
 
         self.client.login(username='anotheruser', password='anotheruser')
@@ -191,6 +207,11 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.json()['status'] == InviteStatusChoices.IN_PROGRESS
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/(?P<uid_invite>[^/.]+)/',
+        'PATCH',
+    )
     def test_can_decline_invite_as_recipient(self):
 
         self.client.login(username='anotheruser', password='anotheruser')
@@ -278,6 +299,11 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/(?P<uid_invite>[^/.]+)/',
+        'GET',
+    )
     def test_invite_set_as_cancelled_on_project_deletion(self):
 
         self.client.login(username='someuser', password='someuser')
@@ -386,6 +412,16 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.asset.deployment.mock_submissions(submissions)
         self.submissions = submissions
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/service_usage/',
+        'GET',
+    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
@@ -476,6 +512,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert response.data['total_storage_bytes'] == expected_data['total_storage_bytes']
         assert response.data['total_submission_count'] == expected_data['total_submission_count']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
@@ -547,6 +588,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ) == 1
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_thumbnails_are_deleted_after_transfer(self):
         """
@@ -585,6 +631,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             thumbnail = f'{filename}-{size}.jpg'
             self.assertFalse(default_storage.exists(thumbnail))
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
@@ -639,6 +690,16 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ) == 0
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
@@ -722,6 +783,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # Make sure XForm id_string does not equal 'foo' anymore
         assert asset_someuser.deployment.xform.id_string == asset_someuser.uid
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_missing_source_file_does_not_fail_invite(self):
         # A gone source file is a non-failing skip.
@@ -778,6 +844,11 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             attachment.user_id == self.anotheruser.pk for attachment in attachments
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_interrupted_move_is_completed_on_retry(self):
         # A run that died after moving leaves the file at the new path and the
@@ -833,6 +904,11 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
             username='alice', password='alice', email='alice@example.com'
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_shared_users_receive_in_app_message(self):
 
@@ -860,6 +936,11 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         assert in_app_response.status_code == status.HTTP_200_OK
         assert in_app_response.data['count'] == 1
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_other_users_do_not_receive_in_app_message(self):
         self.client.login(username='alice', password='alice')
@@ -884,6 +965,11 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         assert in_app_response.status_code == status.HTTP_200_OK
         assert in_app_response.data['count'] == 0
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_previous_owner_do_not_receive_in_app_message(self):
 
@@ -906,6 +992,11 @@ class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
         assert in_app_response.status_code == status.HTTP_200_OK
         assert in_app_response.data['count'] == 0
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-ownership/invites/',
+        'POST',
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_new_owner_do_not_receive_in_app_message(self):
 

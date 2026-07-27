@@ -1,3 +1,4 @@
+import pytest
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.urls import reverse
 from rest_framework.test import APITestCase
@@ -193,6 +194,11 @@ class ScimAuditLogTests(APITestCase):
             self.assertEqual(log.metadata['status_code'], 200)
             self.assertIn('re-provisioning', log.metadata['reason'].lower())
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
+        'POST',
+    )
     def test_post_create_with_existing_email_logs_error(self):
         AuditLog.objects.filter(object_id__isnull=True).delete()
 
@@ -224,6 +230,11 @@ class ScimAuditLogTests(APITestCase):
         self.assertEqual(log.metadata['error'], 'email_already_exists')
         self.assertIn('email address already exists', log.metadata['reason'].lower())
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
+        'POST',
+    )
     def test_post_create_success_logs_provisioning(self):
         AuditLog.objects.all().delete()
 
@@ -254,6 +265,11 @@ class ScimAuditLogTests(APITestCase):
         self.assertEqual(log.metadata['email'], 'newuser@example.com')
         self.assertEqual(log.metadata['status_code'], 201)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
+        'POST',
+    )
     def test_post_reactivate_multiple_users_same_email_logs_all(self):
         user1_alt = User.objects.create_user(
             username='jdoe_alt',
@@ -299,6 +315,11 @@ class ScimAuditLogTests(APITestCase):
 
         self.assertEqual(audit_logs.count(), 2)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
+        'POST',
+    )
     def test_post_reactivate_inactive_user_logs_reprovisioning(self):
         self.user1.is_active = False
         self.user1.save()
@@ -330,6 +351,11 @@ class ScimAuditLogTests(APITestCase):
         self.assertEqual(log.metadata['status_code'], 201)
         self.assertIn('re-provisioning', log.metadata['reason'].lower())
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
+        'POST',
+    )
     def test_post_create_inactive_user_logs_provisioning_and_deactivation(self):
         payload = {
             'schemas': [SCIM_SCHEMA_USER],
@@ -361,6 +387,11 @@ class ScimAuditLogTests(APITestCase):
         )
         self.assertEqual(deactivation_logs.count(), 1)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/scim/v2/(?P<idp_slug>[^/.]+)/Users',
+        'POST',
+    )
     def test_post_existing_linked_inactive_user_logs_reprovisioning_and_deactivation(
         self,
     ):

@@ -54,6 +54,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_list_view_succeeds_for_superuser(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -81,6 +86,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             },
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
@@ -122,6 +132,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             self.subscription.metadata['organization_id'],
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
@@ -170,6 +185,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(len(social), 1)
         self.assertEqual(social[0]['uid'], 'test-social-uid')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_service_usage_data_is_correctly_returned(self):
         """
         Test that the service usage data is correctly calculated and returned
@@ -259,6 +279,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(balances['mt_characters']['balance_value'], 5)
         self.assertEqual(balances['mt_characters']['balance_percent'], 0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_organization_data_is_correctly_returned(self):
         someuser_data = self._get_someuser_data()
 
@@ -268,6 +293,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(organization_data['uid'], str(self.someuser.organization.id))
         self.assertEqual(organization_data['role'], 'owner')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_account_restricted_field(self):
         # Verify `account_restricted` is initially false
         response = self.client.get(self.url)
@@ -308,6 +338,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             someuser_data = self._get_someuser_data()
             self.assertTrue(someuser_data['account_restricted'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_accepted_tos_field(self):
         # Verify `accepted_tos` is initially false
         response = self.client.get(self.url)
@@ -330,6 +365,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         results = response.data['results']
         self.assertTrue(results[0]['accepted_tos'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_ordering_by_date_joined(self):
         base_date = datetime(2023, 1, 1, tzinfo=ZoneInfo('UTC'))
         adminuser = User.objects.get(username='adminuser')
@@ -353,6 +393,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(results[1]['username'], 'someuser')
         self.assertEqual(results[2]['username'], 'anotheruser')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_service_usage_handles_unlimited_limits(self):
         """
         Test that when limits are NULL (unlimited), the API returns a balance object
@@ -395,6 +440,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertIsNotNone(balances['mt_characters'])
         self.assertIsNone(balances['mt_characters']['effective_limit'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_last_updated_fallback_for_users_without_snapshot(self):
         """
         Test that users without a BillingAndUsageSnapshot (e.g., no org) still
@@ -415,6 +465,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         last_updated_str = new_user_data.get('last_updated')
         self.assertIsNotNone(last_updated_str)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
@@ -457,6 +512,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(sub_data['customer'], customer.id)
         self.assertEqual(sub_data['metadata'], {})
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_offset_limit_set_by_constance(self):
         for i in range(20):
             User.objects.create(username=f'user_{i}')
@@ -507,16 +567,31 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         return resp.json()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_username_prefix_filter(self):
         res = self._get_results({'q': 'username__icontains:some'})
         self.assertEqual(len(res['results']), 1)
         self.assertEqual(res['results'][0]['username'], 'someuser')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_email_prefix_filter(self):
         res = self._get_results({'q': 'email__icontains:some@user'})
         self.assertEqual(len(res['results']), 1)
         self.assertEqual(res['results'][0]['email'], 'some@user.com')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_date_joined_gte_and_lte_filters(self):
         all_results = self._get_results()
         filtered_results = self._get_results({'q': 'date_joined__gte:2012-01-01'})
@@ -527,6 +602,11 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         no_results = self._get_results({'q': 'date_joined__gte:3020-01-01'})
         self.assertEqual(len(no_results['results']), 0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_storage_bytes_gte_and_lte_filters(self):
         # Update someuser's storage to simulate storage usage
         UserProfile.objects.filter(user_id=self.someuser.id).update(
@@ -544,6 +624,11 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_current_period_submissions_gte_and_lte_filters(self):
         # Create a submission counter entry to simulate usage
         DailyXFormSubmissionCounter.objects.create(
@@ -561,6 +646,11 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     def test_balances_nested_json_filter(self):
         """
         Test filtering by nested balances JSON value
@@ -586,6 +676,11 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
             )
             self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/user-reports/',
+        'GET',
+    )
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )

@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 import dateutil.parser
+import pytest
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.db import connection
@@ -88,23 +89,47 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         self.login_as_other_user(username='anotheruser', password='anotheruser')
         self.client.logout()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_create_asset(self):
         """
         Ensure we can create a new asset
         """
         self.create_asset()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_last_modified_by_field_not_assigned(self):
         extra_data = {'last_modified_by': 'anotheruser'}
         response = self.create_asset(**extra_data)
         assert response.data['last_modified_by'] == response.data['owner__username']
         assert response.data['last_modified_by'] != 'anotheruser'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_created_by_field_not_assigned(self):
         extra_data = {'created_by': 'anotheruser'}
         response = self.create_asset(**extra_data)
         assert response.data['created_by'] == 'someuser'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_delete_asset(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
@@ -115,6 +140,13 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             response.status_code, status.HTTP_204_NO_CONTENT, msg=response.data
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_asset_list_matches_detail(self):
         detail_response = self.create_asset()
         list_response = self.client.get(self.list_url)
@@ -139,6 +171,13 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, list_result_detail)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_asset_owner_label(self):
         """
         Test the behavior of the owner_label field in the Asset API.
@@ -210,6 +249,12 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             anotheruser_assets[someuser_asset.uid], self.organization.name
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_assets_hash(self):
         another_user = User.objects.get(username='anotheruser')
         user_asset = Asset.objects.get(pk=1)
@@ -233,6 +278,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get('hash'), expected_hash)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_assets_search_query(self):
         someuser = User.objects.get(username='someuser')
         question = Asset.objects.create(
@@ -306,6 +352,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_numeric_search_for_assets_does_not_crash(self):
         someuser = User.objects.get(username='someuser')
 
@@ -340,6 +387,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert res.status_code == status.HTTP_200_OK
         assert res.data['results'] == []
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_assets_ordering(self):
 
         someuser = User.objects.get(username='someuser')
@@ -453,6 +501,17 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         })
         assert expected_order_by_name_collections_first == uids
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_creator_permissions_on_import(self):
         someuser = User.objects.get(username='someuser')
         anotheruser = User.objects.get(username='anotheruser')
@@ -492,6 +551,13 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert asset.has_perm(anotheruser, PERM_VALIDATE_SUBMISSIONS)
         assert asset.has_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_query_counts(self):
         self.create_asset()
         with self.assertNumQueries(FuzzyInt(28, 50)):
@@ -508,6 +574,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         with self.assertNumQueries(FuzzyInt(28, 50)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_list_can_load_with_desynchronized_assets(self):
         asset = Asset.objects.get(pk=1)
         asset.save()
@@ -524,6 +591,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert response.data['results'][0]['uid'] == asset.uid
         assert response.data['results'][0]['date_deployed'] is None
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_current_user_permissions_only_owner_without_param(self):
         """
         Owner (someuser, has manage_asset) without the param sees all users'
@@ -540,6 +608,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         self.assertIn('anotheruser', usernames)
         self.assertIn(thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_current_user_permissions_only_owner_with_param(self):
         """
         Owner (someuser, has manage_asset) with the param sees only their own
@@ -556,6 +625,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         self.assertNotIn('anotheruser', usernames)
         self.assertNotIn(thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_current_user_permissions_only_view_only_without_param(self):
         """
         anotheruser with view_asset (no manage_asset) without the param sees
@@ -572,6 +642,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         self.assertIn('anotheruser', usernames)
         self.assertNotIn(thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_current_user_permissions_only_view_only_with_param(self):
         """
         anotheruser with view_asset (no manage_asset) with the param sees only
@@ -589,6 +660,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         self.assertIn('anotheruser', usernames)
         self.assertNotIn(thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_current_user_permissions_only_manager_without_param(self):
         """
         anotheruser with manage_asset without the param sees all users'
@@ -605,6 +677,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         self.assertIn('anotheruser', usernames)
         self.assertIn(thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_current_user_permissions_only_manager_with_param(self):
         """
         anotheruser with manage_asset with the param sees only their own
@@ -640,6 +713,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             self.assertNotIn('anotheruser', usernames)
             self.assertNotIn(thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_shared_asset_appears_in_grantee_list(self):
         """
         An asset owned by someuser and shared with anotheruser must appear
@@ -670,6 +744,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         # Anotheruser's own asset must also appear
         assert own_asset.uid in result_uids
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
     def test_shared_asset_hidden_when_owner_inactive(self):
         """
         When someuser becomes inactive (is_active=False), assets owned by
@@ -706,6 +781,12 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         # Anotheruser's own asset must still appear
         assert own_asset.uid in result_uids
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     @data(
         # is creator, has manage_asset, is empty, can delete
         (True, True, True, True),
@@ -1080,6 +1161,11 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         for result in response.data['results']:
             assert set(result.keys()) == {'uid', 'name', 'deployment_status'}
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_project_views_anotheruser_submission_count(self):
         self.client.force_login(self.anotheruser)
         for asset in Asset.objects.all():
@@ -1110,6 +1196,11 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         assert asset_detail_response.data['deployment__submission_count'] == 1
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-views/(?P<uid_project_view>[^/.]+)/assets/',
+        'GET',
+    )
     def test_project_views_for_anotheruser(self):
         self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
@@ -1152,6 +1243,11 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         data_res = self.client.get(url, headers={'accept': 'application/json'})
         assert data_res.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_project_views_for_anotheruser_can_view_asset_detail(self):
         self.client.force_login(self.anotheruser)
         user = User.objects.get(username='anotheruser')
@@ -1177,6 +1273,11 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_project_views_for_anotheruser_can_view_all_asset_permission_assignments(
         self,
     ):
@@ -1212,7 +1313,16 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         ]
         assert proj_view_asset_perms == all_asset_perms
 
-
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/(?P<uid_asset_snapshot>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_project_views_for_anotheruser_can_preview_form(self):
         someuser = User.objects.get(username='someuser')
         anotheruser = User.objects.get(username='anotheruser')
@@ -1262,6 +1372,21 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         snap_response = self.client.get(snapshot_detail_url)
         assert snap_response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/project-views/(?P<uid_project_view>[^/.]+)/assets/',
+        'GET',
+    )
     def test_project_views_for_anotheruser_can_change_metadata(self):
         self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
@@ -1517,10 +1642,37 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         super().setUpClass()
         cls.thirduser = baker.make(settings.AUTH_USER_MODEL)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_asset_exists(self):
         resp = self.client.get(self.asset_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_can_update_asset_settings(self):
         data = {
             'settings': json.dumps({
@@ -1538,6 +1690,22 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         }
         self.assertEqual(resp.data['settings'], expected)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_update_settings_does_not_produce_new_version(self):
         initial_version_count = self.asset.asset_versions.count()
         data = {
@@ -1549,6 +1717,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         assert self.asset.asset_versions.count() == initial_version_count
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_asset_has_deployment_data(self):
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1614,6 +1793,12 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         )
         self.assertEqual(response.data.get('has_deployment'), True)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_can_clone_asset(self):
         response = self.client.post(reverse(self._get_endpoint('asset-list')),
                                     format='json',
@@ -1626,6 +1811,12 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(new_asset.content, self.EMPTY_SURVEY)
         self.assertEqual(new_asset.name, 'clones_name')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_can_clone_version_of_asset(self):
         v1_uid = self.asset.asset_versions.first().uid
         self.asset.content = {'survey': [{'type': 'note', 'label': 'v2'}]}
@@ -1650,6 +1841,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(new_asset.content['survey'][0]['label'], ['v2'])
         self.assertEqual(new_asset.content['translations'], [None])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_deployed_version_pagination(self):
         page_length = settings.DEFAULT_API_PAGE_SIZE
         version = self.asset.latest_version
@@ -1694,9 +1896,51 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[field_name], test_data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_report_custom_field(self):
         self.check_asset_writable_json_field('report_custom')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_report_styles_field(self):
         test_data = copy.deepcopy(self.asset.report_styles)
         test_data['default'] = {'report_type': 'vertical'}
@@ -1706,6 +1950,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             test_data=test_data
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/reports/',
+        'GET',
+    )
     def test_report_submissions(self):
         # Prepare the mock data
         report_url = reverse(
@@ -1776,6 +2031,12 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_report_non_finite_float_counted_as_not_provided(self):
         """
         Submissions with a non-finite decimal value (Infinity, -Infinity, NaN)
@@ -1809,12 +2070,65 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(data['not_provided'], 1)
         self.assertEqual(data['mean'], 15.0)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_map_styles_field(self):
         self.check_asset_writable_json_field('map_styles')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_map_custom_field(self):
         self.check_asset_writable_json_field('map_custom')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_asset_version_id_and_content_hash(self):
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1824,6 +2138,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(response.data['version__content_hash'],
                          self.asset.latest_version.content_hash)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_submission_count(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.asset.deploy(backend='mock', active=True)
@@ -1862,6 +2187,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         # row-level permissions
         self.assertEqual(response.data['deployment__submission_count'], None)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_assignable_permissions(self):
         self.assertEqual(self.asset.asset_type, 'survey')
         response = self.client.get(self.asset_url, format='json')
@@ -1932,6 +2268,22 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             self.assertEqual(assignable_perm['url'], expected_response[index]['url'])
             self.assertEqual(assignable_perm['label'], expected_response[index]['label'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_cannot_update_data_sharing_with_invalid_payload(self):
 
         if not self.URL_NAMESPACE:
@@ -2003,6 +2355,22 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             )
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_can_update_data_sharing(self):
 
         if not self.URL_NAMESPACE:
@@ -2043,6 +2411,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         # exist after `PATCH`
         self.assertTrue('fields' in data_sharing)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_ownership_transfer_status(self):
         # No transfer yet, no status
         response = self.client.get(self.asset_url)
@@ -2068,6 +2447,22 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             == InviteStatusChoices.EXPIRED
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_cannot_modified_last_modified_by(self):
         assert self.asset.last_modified_by == self.asset.owner.username
         anotheruser = User.objects.get(username='anotheruser')
@@ -2087,6 +2482,22 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         assert response.data['last_modified_by'] == anotheruser.username
         assert self.asset.last_modified_by == anotheruser.username
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_cannot_modify_created_by(self):
         assert self.asset.created_by == self.asset.owner.username
         payload = {'created_by': 'bob'}
@@ -2097,6 +2508,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         assert response.data['created_by'] == self.asset.owner.username
         assert self.asset.created_by == self.asset.owner.username
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_analysis_form_json_with_nlp_actions(self):
         for action in [
             Action.MANUAL_TRANSLATION,
@@ -2129,6 +2551,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         assert translation_field['type'] == 'translation'
         assert translation_field['dtpath'] == 'q1/translation_es'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_detail_permissions_visibility_owner(self):
         """
         Owner (someuser, has manage_asset) always sees all users' permissions
@@ -2147,6 +2580,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             self.assertIn('anotheruser', usernames)
             self.assertIn(self.thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_detail_permissions_visibility_view_only(self):
         """
         anotheruser with view_asset (no manage_asset) sees only the owner's and
@@ -2166,6 +2610,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             self.assertIn('anotheruser', usernames)
             self.assertNotIn(self.thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_detail_permissions_visibility_manager(self):
         """
         anotheruser with manage_asset always sees all users' permissions on the
@@ -2186,6 +2641,17 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             self.assertIn('anotheruser', usernames)
             self.assertIn(self.thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_detail_permissions_visibility_org_admin(self):
         """
         An org admin (no explicit ObjectPermission) always sees all users'
@@ -2207,6 +2673,12 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertIn('someuser', usernames)
         self.assertIn(self.thirduser.username, usernames)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_detail_access_types_reuses_permission_fetch(self):
         """
         On the detail endpoint, get_access_types reuses the per-request
@@ -2256,6 +2728,8 @@ class AssetSettingsFieldTest(KpiTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'GET')
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_query_settings(self):
         content = {
             'settings': [
@@ -2582,6 +3056,20 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
 
 class AssetDeploymentTest(BaseAssetDetailTestCase):
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation', 'api/v2/assets/', 'POST'
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_asset_deployment(self):
         deployment_url = reverse(
             self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
@@ -2604,6 +3092,17 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_asset_deployment_validation_error(self):
         bad_content = {
             'survey': [
@@ -2654,6 +3153,17 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             "The survey element named 'Enter_an_int_number' has no label or hint.",
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_asset_deployment_duplicate_name_error(self):
         self.maxDiff = None
         bad_content = {
@@ -2707,6 +3217,32 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
         assert 'duplicate_question' in deploy_response.data['error']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_asset_redeployment_validation_error(self):
         content = {
             'survey': [
@@ -2779,6 +3315,17 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             == "The survey element named 'Enter_a_float_number' has no label or hint."
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_asset_deployment_with_sheet_name_Settings(self):  # noqa
         content = {
             'schema': '1',
@@ -2820,6 +3367,37 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             in deploy_response.data['error']
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_asset_redeployment(self):
         self.test_asset_deployment()
 
@@ -2864,6 +3442,27 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.assertEqual(self.asset.deployment.version_id,
                          version_id)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_asset_deployment_dates(self):
         p = dateutil.parser.parse
 
@@ -2942,6 +3541,27 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             ' modification date of that version'
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_archive_asset(self):
         self.test_asset_deployment()
 
@@ -2967,6 +3587,27 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             == AssetDeploymentStatus.ARCHIVED.value
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'PATCH',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/deployment/',
+        'POST',
+    )
     def test_archive_asset_does_not_modify_date_deployed(self):
         self.test_asset_deployment()
         self.asset.refresh_from_db()
@@ -3010,12 +3651,29 @@ class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
         return Asset.objects.order_by('date_created').last(), create_response
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_created_by_field(self):
         # Fetch the most recently created asset and check if
         # 'created_by' is correct
         asset, _ = self.create_and_fetch_asset()
         self.assertEqual(asset.created_by, self.some_user.username)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_last_modified_by_field(self):
         # Fetch the most recently created asset and check if
         # 'last_modified_by' is correct
@@ -3052,6 +3710,12 @@ class TestAssetMetadataViewSet(BaseAssetTestCase):
         cls.user = User.objects.create_user(username='user')
         cls.another_user = User.objects.create_user(username='anotheruser')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_asset_metadata_view(self):
         self.client.force_login(self.user)
         self.create_asset(
@@ -3103,6 +3767,12 @@ class TestAssetMetadataViewSet(BaseAssetTestCase):
         ]
         assert orgs == ['org1']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_asset_metadata_does_not_include_public_assets_not_by_owner(self):
         # regression test
         self.client.force_login(self.user)
@@ -3153,6 +3823,12 @@ class TestAssetMetadataViewSet(BaseAssetTestCase):
         ]
         assert orgs == ['org1']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_asset_metadata_does_not_include_public_assets_superuser(self):
         # regression test
         superuser = User.objects.create_user(username='super', is_superuser=True)

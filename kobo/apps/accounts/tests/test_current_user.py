@@ -2,6 +2,7 @@ import re
 from datetime import timedelta
 
 import dateutil
+import pytest
 from constance.test import override_config
 from django.conf import settings
 from django.core import mail
@@ -21,6 +22,7 @@ class CurrentUserAPITestCase(APITestCase):
         self.client.force_login(self.user)
         self.url = reverse('currentuser-detail')
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'GET')
     def test_social_accounts(self):
         social_accounts = baker.make(
             'socialaccount.SocialAccount', user=self.user, _quantity=2
@@ -52,6 +54,7 @@ class CurrentUserAPITestCase(APITestCase):
         # …and what we didn't touch should still be there as well
         assert response_extra_details['name'] == 'SpongeBob'
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'PATCH')
     @override_config(USER_METADATA_FIELDS=[{'name': 'organization', 'required': True}])
     def test_validate_extra_detail(self):
         # Setting an unrelated field should not be subject to validation
@@ -162,6 +165,7 @@ class CurrentUserAPITestCase(APITestCase):
             response = self.client.get(self.url)
             assert response.data['accepted_tos'] is True
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'me/', 'PATCH')
     @override_config(
         USER_METADATA_FIELDS=[
             {'name': 'organization', 'required': True},

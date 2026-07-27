@@ -1,6 +1,7 @@
 import uuid
 from datetime import timedelta
 
+import pytest
 from ddt import data, ddt, unpack
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -150,6 +151,11 @@ class UserActivityQueryTests(BaseTestCase):
         self.assertEqual(expected_inactive, user in inactive_users)
         self.assertEqual(expected_active, user in active_users)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_users_based_on_form_activity(self):
         """
         Test that a user initially marked as inactive due to old assets and
@@ -293,6 +299,11 @@ class UserActivityQueryTests(BaseTestCase):
         assert asset_owner not in inactive_users
         assert asset_owner in active_users
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'PATCH',
+    )
     def test_last_project_activity_set_when_collaborator_modifies_asset(self):
         """
         Verify that modifying another user's asset sets last_project_activity
@@ -313,6 +324,7 @@ class UserActivityQueryTests(BaseTestCase):
         assert owner.extra_details.last_project_activity is not None
         assert collaborator.extra_details.last_project_activity is not None
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_last_project_activity_set_on_asset_creation(self):
         """
         Verify that creating a new asset via the API sets last_project_activity

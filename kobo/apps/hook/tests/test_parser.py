@@ -1,6 +1,8 @@
 import json
 import re
 
+import pytest
+
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.utils.strings import to_str
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
@@ -9,6 +11,17 @@ from .base import BaseHookTestCase
 
 class ParserTestCase(BaseHookTestCase):
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_json_parser(self):
         hook = self._create_hook(subset_fields=['_id', 'subgroup1', 'q3'])
 
@@ -25,6 +38,17 @@ class ParserTestCase(BaseHookTestCase):
         }
         self.assertEqual(service_definition._get_data(), expected_data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/hooks/',
+        'POST',
+    )
     def test_xml_parser(self):
         self.asset = self.create_asset(
             'some_asset_with_xml_submissions',

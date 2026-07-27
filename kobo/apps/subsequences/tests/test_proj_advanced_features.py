@@ -1,3 +1,4 @@
+import pytest
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
@@ -27,6 +28,11 @@ class ProjectAdvancedFeaturesRefactoredTestCase(TestCase):
             self.asset.advanced_features = advanced_features
         return self.asset
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_qpath_to_xpath_with_renamed_question(self):
         asset = self.sample_asset(
             advanced_features={

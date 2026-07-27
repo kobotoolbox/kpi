@@ -80,3 +80,22 @@ def user_reports_materialized_view(django_db_setup, django_db_blocker):
         if cursor.fetchone() is None:
             cursor.execute(CREATE_MV_SQL)
             cursor.execute(CREATE_INDEXES_SQL)
+
+
+@fixture(autouse=True)
+def openapi_validation_context(request):
+    """
+    Expose the running test's node id and `allow_openapi_mismatch` markers
+    to OpenAPIValidationMiddleware (see kobo/apps/openapi_validator/).
+    """
+    from kobo.apps.openapi_validator import context
+
+    allowances = tuple(
+        tuple(marker.args)
+        for marker in request.node.iter_markers('allow_openapi_mismatch')
+    )
+    nodeid_token = context.current_test_nodeid.set(request.node.nodeid)
+    allowances_token = context.current_test_allowances.set(allowances)
+    yield
+    context.current_test_nodeid.reset(nodeid_token)
+    context.current_test_allowances.reset(allowances_token)

@@ -4,6 +4,7 @@ import unittest
 from io import BytesIO
 
 import openpyxl
+import pytest
 import responses
 import xlwt
 from django.db import transaction
@@ -117,6 +118,11 @@ class AssetImportTaskTest(BaseTestCase):
             task_data
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     @responses.activate
     def test_import_asset_from_xls_url(self):
         # Host the XLS on a mock HTTP server
@@ -131,6 +137,11 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_asset_base64_xls(self):
         encoded_xls = base64.b64encode(self.asset.to_xlsx_io().read())
         task_data = {
@@ -140,6 +151,12 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_basic_survey_base64_xls(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)'],
@@ -169,6 +186,12 @@ class AssetImportTaskTest(BaseTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         detail_response = self.client.get(response.data['url'])
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_basic_survey_base64_xlsx(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)'],
@@ -198,6 +221,12 @@ class AssetImportTaskTest(BaseTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         detail_response = self.client.get(response.data['url'])
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_locking_xls_as_survey(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
@@ -384,6 +413,12 @@ class AssetImportTaskTest(BaseTestCase):
             ][0]
             assert expected_restrictions == actual_restrictions
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_locking_xls_as_survey_with_kobo_n_and_m_dash(self):
         # n-dash in survey column name
         survey_sheet_content = [
@@ -574,6 +609,12 @@ class AssetImportTaskTest(BaseTestCase):
             ][0]
             assert expected_restrictions == actual_restrictions
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_locking_xls_as_block(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
@@ -687,6 +728,12 @@ class AssetImportTaskTest(BaseTestCase):
         assert expected_content_settings == created_asset.content['settings']
         assert not created_asset.content['kobo--locking-profiles']
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_locking_xls_as_question(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
@@ -896,12 +943,27 @@ class AssetImportTaskTest(BaseTestCase):
             tagged_as_useless[1], non_block_assets[1]
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_library_bulk_xls(self):
         self._test_import_library_bulk('xls')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_library_bulk_xlsx(self):
         self._test_import_library_bulk('xlsx')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_asset_xls(self):
         xlsx_io = self.asset.to_xlsx_io()
         task_data = {
@@ -911,6 +973,11 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     @responses.activate
     def test_import_non_xls_url(self):
         """
@@ -955,6 +1022,11 @@ class AssetImportTaskTest(BaseTestCase):
         # after the POST returns a 201!
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_xls_with_default_language_but_no_translations(self):
         xlsx_io = self.asset.to_xlsx_io(
             append={'settings': {'default_language': 'English (en)'}}
@@ -970,6 +1042,11 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['status'], 'complete')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_xls_with_default_language_not_in_translations(self):
         asset = Asset.objects.get(pk=2)
         xlsx_io = asset.to_xlsx_io(
@@ -993,6 +1070,17 @@ class AssetImportTaskTest(BaseTestCase):
             )
         )
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/imports/(?P<uid_import>[^/.]+)/',
+        'GET',
+    )
     def test_import_strip_newline_from_form_title_setting(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)'],

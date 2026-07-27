@@ -1,5 +1,4 @@
 import csv
-import inspect
 import json
 import os
 import re
@@ -17,7 +16,8 @@ from kpi.exceptions import (
     OpenAPIRequiredParameterError,
 )
 from kpi.utils.log import logging
-from .constants import API_PATH_PREFIXES, OPENAPI_VALIDATION_WHITELIST
+from . import context
+from .constants import API_PATH_PREFIXES
 from .utils import get_django_route
 
 
@@ -271,58 +271,16 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
         return schema
 
-    def _get_test_info(self):
+    def _get_test_info(self) -> str | None:
         """
-        Return pytest-style test identifier (file::Class::test_*) when running tests.
-        Otherwise None.
-
-        This method handles two scenarios:
-        1. Direct test method execution: finds test_* methods in the stack
-        2. Test setup/teardown: extracts the actual test name from _testMethodName
+        Pytest node id of the running test (stashed by the autouse fixture in
+        the root conftest.py), or None outside of tests.
         """
 
         if not settings.TESTING:
             return None
 
-        def relative_path(filename: str) -> str:
-            for base in (Path.cwd(), Path(settings.BASE_DIR)):
-                try:
-                    return str(Path(filename).relative_to(base))
-                except ValueError:
-                    continue
-            return Path(filename).name
-
-        test_candidates = []
-        try:
-            for frame_info in inspect.stack():
-                filename = frame_info.filename
-                method_name = frame_info.frame.f_code.co_name
-                instance = frame_info.frame.f_locals.get('self')
-
-                is_test_file = '/tests/' in filename or '\\tests\\' in filename
-                if method_name.startswith('test_') and is_test_file:
-                    path_parts = [relative_path(filename)]
-                    if instance is not None:
-                        path_parts.append(instance.__class__.__name__)
-                    path_parts.append(method_name)
-                    test_candidates.append('::'.join(path_parts))
-                elif (
-                    method_name in ('setUp', 'tearDown', 'setUpClass', 'tearDownClass')
-                    and instance is not None
-                    and getattr(instance, '_testMethodName', None)
-                ):
-                    # Catch errors that occur during test setup/teardown
-                    test_candidates.append(
-                        f'{relative_path(filename)}::'
-                        f'{instance.__class__.__name__}::'
-                        f'{instance._testMethodName}'
-                    )
-        except Exception:
-            # Never let test detection break the request cycle
-            return None
-
-        # The last candidate is the deepest in the stack, i.e. the actual test
-        return test_candidates[-1] if test_candidates else None
+        return context.current_test_nodeid.get()
 
     def _handle_validation_error(
         self,
@@ -343,48 +301,48 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not settings.OPENAPI_VALIDATION_STRICT:
             return
 
-        test_path = self._get_test_info()
-
-        if self._is_whitelisted(test_path, request.path, request.method, error_code):
+        if self._is_whitelisted(request.path, request.method, error_code):
             return
 
         raise AssertionError(error_message)
 
     def _is_whitelisted(
         self,
-        test_path: str | None,
         request_path: str,
         method: str,
         error_code: str,
     ) -> bool:
         """
-        Whitelist lookup using Django-resolved route only (no regex matching by us).
-
-        Rules:
-          - If test_path is None -> not whitelisted
-          - Resolve request_path to django_route; only compare that route string to
-            constants keys
+        A mismatch is allowed when the running test carries a matching
+        `allow_openapi_mismatch` marker (stashed by the autouse fixture in the
+        root conftest.py). A bare marker allows any mismatch in the test; a
+        marker with args must match (error_code, route, method) exactly, where
+        route is the Django-resolved route of the request path.
         """
-        if not test_path:
-            return False
-
-        test_entry = OPENAPI_VALIDATION_WHITELIST.get(test_path)
-        if not test_entry:
-            return False
-
-        code_entry = test_entry.get(error_code)
-        if not code_entry:
+        allowances = context.current_test_allowances.get()
+        if not allowances:
             return False
 
         django_route = get_django_route(request_path)
-        if not django_route:
-            return False
 
-        allowed_methods = code_entry.get(django_route)
-        if not allowed_methods:
-            return False
+        for rule in allowances:
+            if not rule:
+                # Bare marker: allow any mismatch in this test
+                return True
+            if len(rule) != 3:
+                logging.warning(
+                    f'Ignoring malformed allow_openapi_mismatch marker: {rule!r}'
+                )
+                continue
+            allowed_code, allowed_route, allowed_method = rule
+            if (
+                allowed_code == error_code
+                and allowed_route == django_route
+                and allowed_method.upper() == method.upper()
+            ):
+                return True
 
-        return method.upper() in allowed_methods
+        return False
 
     def _load_schema(self) -> Optional[dict[str, Any]]:
         """

@@ -1,6 +1,7 @@
 import uuid
 from unittest.mock import patch
 
+import pytest
 from django.http import QueryDict
 from django.test import override_settings
 from django.urls import reverse
@@ -127,6 +128,11 @@ class AttachmentApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'audio/mpeg'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<uid_data>[^/.]+)/attachments/',
+        'GET',
+    )
     def test_reject_image_with_conversion(self):
         query_dict = QueryDict('', mutable=True)
         query_dict.update(
@@ -240,6 +246,11 @@ class AttachmentApiTests(BaseAssetTestCase):
             with default_storage.open(str(duplicate_file), 'rb') as df:
                 assert of.read() == df.read()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<uid_data>[^/.]+)/attachments/',
+        'GET',
+    )
     def test_xpath_not_found(self):
         query_dict = QueryDict('', mutable=True)
         query_dict.update(
@@ -264,6 +275,11 @@ class AttachmentApiTests(BaseAssetTestCase):
         assert response['Content-Type'] == 'application/json'
         assert response.data['detail'].code == 'xpath_not_found'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/data/(?P<uid_data>[^/.]+)/attachments/',
+        'GET',
+    )
     def test_invalid_xpath_syntax(self):
         query_dict = QueryDict('', mutable=True)
         query_dict.update(

@@ -1,3 +1,4 @@
+import pytest
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -18,6 +19,11 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/service_usage/',
+        'GET',
+    )
     def test_check_api_response(self):
         """
         Test the endpoint aggregates all data correctly
@@ -38,6 +44,11 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
         assert response.data['total_storage_bytes'] == self.expected_file_size()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/service_usage/',
+        'GET',
+    )
     def test_multiple_forms(self):
         """
         Test that the endpoint functions with multiple assets and the data is
@@ -57,6 +68,11 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
             self.expected_file_size() * 3
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/service_usage/',
+        'GET',
+    )
     @override_settings(
         CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
     )
@@ -84,6 +100,11 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert response.data['total_submission_count']['all_time'] == 3
         assert response.data['total_storage_bytes'] == 0
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/service_usage/',
+        'GET',
+    )
     def test_no_data(self):
         """
         Test the endpoint functions when assets have no data
@@ -97,6 +118,11 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 0
         assert response.data['total_storage_bytes'] == 0
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/service_usage/',
+        'GET',
+    )
     def test_no_deployment(self):
         """
         Test the endpoint does not throw a 500 error if an asset is not deployed

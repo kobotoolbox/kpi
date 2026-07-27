@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from djstripe.enums import BillingScheme
 from djstripe.models import Customer
@@ -36,6 +37,16 @@ class SubscriptionAPITestCase(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['results'] == []
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/subscriptions/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/stripe/subscriptions/(?P<id>[^/.]+)/',
+        'GET',
+    )
     def test_get_endpoint(self):
         self._insert_data()
         response_get_list = self.client.get(self.url_list)

@@ -1,3 +1,5 @@
+import pytest
+
 from kpi.tests.base_test_case import BaseAssetDetailTestCase
 
 
@@ -15,24 +17,48 @@ class RendererNegotiationTests(BaseAssetDetailTestCase):
         super().setUp()
         self.data_url = self.r.data['data']
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_accept_any_defaults_to_json(self):
         resp = self.client.get(self.data_url, headers={'accept': '*/*'})
         assert self._is_json(
             resp['Content-Type']
         ), f'Expected JSON, got {resp["Content-Type"]}'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_accept_html_returns_html_when_no_format(self):
         resp = self.client.get(self.data_url, headers={'accept': 'text/html'})
         assert self._is_html(
             resp['Content-Type']
         ), f'Expected HTML, got {resp["Content-Type"]}'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_explicit_format_json_via_query_param(self):
         resp = self.client.get(self.data_url, {'format': 'json'})
         assert self._is_json(
             resp['Content-Type']
         ), f'Expected JSON, got {resp["Content-Type"]}'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_explicit_format_xml_via_query_param(self):
         resp = self.client.get(self.data_url, {'format': 'xml'})
         assert self._is_xml(
@@ -42,6 +68,12 @@ class RendererNegotiationTests(BaseAssetDetailTestCase):
             b'<'
         ), 'Expected XML payload to start with "<"'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_explicit_format_json_via_suffix(self):
         url = self.data_url.rstrip('/') + '.json'
         resp = self.client.get(url)
@@ -49,6 +81,12 @@ class RendererNegotiationTests(BaseAssetDetailTestCase):
             resp['Content-Type']
         ), f'Expected JSON, got {resp["Content-Type"]}'
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/assets/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_explicit_format_xml_via_suffix(self):
         url = self.data_url.rstrip('/') + '.xml'
         resp = self.client.get(url)

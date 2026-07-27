@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -461,6 +462,11 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
             attachment_id__in=self.attachment_ids
         ).exists()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/attachments/bulk/',
+        'DELETE',
+    )
     def test_bulk_delete_attachments_no_payload(self):
         response = self.client.delete(
             self.bulk_delete_url, data='invalid json', content_type='application/json'

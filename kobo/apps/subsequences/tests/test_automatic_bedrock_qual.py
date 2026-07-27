@@ -33,9 +33,9 @@ from kobo.apps.subsequences.constants import (
     Action,
 )
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     ManualQualNotFound,
-    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
@@ -261,6 +261,11 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
             with pytest.raises(jsonschema.exceptions.ValidationError):
                 self.action.validate_external_data(data)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     def test_update_supplement_api(self):
         sub_uuid = self._add_submission()
         transcript_dict = self._add_manual_transcription(sub_uuid)
@@ -809,6 +814,11 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
             }
         }
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
     @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
@@ -857,6 +867,11 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
             )
             assert response.status_code == status.HTTP_200_OK
 
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/<uid_asset>/data/<root_uuid>/supplement/',
+        'PATCH',
+    )
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
     @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')

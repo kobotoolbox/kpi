@@ -1,6 +1,7 @@
 # coding: utf-8
 import re
 
+import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -48,9 +49,34 @@ class AssetSnapshotBase(KpiTestCase):
 
 class TestAssetSnapshotList(AssetSnapshotBase):
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
     def test_create_asset_snapshot_from_source(self):
         self._create_asset_snapshot_from_source()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/(?P<uid_asset_snapshot>[^/.]+)/',
+        'GET',
+    )
     def test_owner_can_access_snapshot_from_source(self):
         creation_response = self._create_asset_snapshot_from_source()
         snapshot_uid = creation_response.data['uid']
@@ -76,9 +102,31 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         self.client.logout()
         return response
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_create_asset_snapshot_from_asset(self):
         self._create_asset_snapshot_from_asset()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_create_two_asset_snapshots_from_source_and_asset(self):
         """
         Make sure it's possible to preview unsaved changes to an asset multiple
@@ -98,6 +146,22 @@ class TestAssetSnapshotList(AssetSnapshotBase):
             self.assertTrue(len(xml_resp.content) > 0)
         self.client.logout()
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/(?P<uid_asset_snapshot>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_asset_owner_can_access_snapshot(self):
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
@@ -108,6 +172,17 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         self.assertEqual(
             creation_response.data['source'], detail_response.data['source'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_other_user_cannot_access_snapshot(self):
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
@@ -118,6 +193,22 @@ class TestAssetSnapshotList(AssetSnapshotBase):
             status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND
         ))
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/(?P<uid_asset_snapshot>[^/.]+)/',
+        'GET',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_shared_user_can_access_snapshot(self):
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
@@ -135,6 +226,17 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         self.assertEqual(
             creation_response.data['source'], detail_response.data['source'])
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_anon_can_access_snapshot_xml(self):
         # Behavior for Enketo integration; see
         # AssetSnapshotViewSet.get_queryset()
@@ -155,6 +257,17 @@ class TestAssetSnapshotList(AssetSnapshotBase):
             detail_response = self.client.get(xml_url)
             self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_head_requests_return_empty_responses(self):
         """
         HEAD requests sent to OpenRosa endpoints must return empty responses
@@ -179,6 +292,17 @@ class TestAssetSnapshotList(AssetSnapshotBase):
             assert 'X-OpenRosa-Accept-Content-Length' in response
             assert 'X-OpenRosa-Version' in response
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_xml_renderer(self):
         """
         Make sure the API endpoint returns the same XML as the ORM
@@ -212,6 +336,12 @@ class TestAssetSnapshotList(AssetSnapshotBase):
                 kludgy_is_xml_equal(xml_response.content, snapshot_orm_xml)
             )
 
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/assets/(?P<uid_asset>[^/.]+)/',
+        'GET',
+    )
     def test_xml_renderer_with_invalid_asset(self):
         form_source = """
             {
@@ -244,6 +374,17 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         # Check that the error message contains the expected substring
         self.assertIn('${fail}', str(context.exception))
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_anonymous_can_create_snapshot_when_asset_shared_public(self):
         self.client.login(username='someuser', password='someuser')
         asset = self.create_asset('Public asset', self.form_source, format='json')
@@ -306,6 +447,17 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
             message='Global message in English'
         )
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_preview_with_global_form_disclaimer(self):
         self.client.login(username='someuser', password='someuser')
         asset = self.create_asset(
@@ -325,6 +477,17 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         xml_response = self.client.get(snapshot_url)
         self.assertContains(xml_response, 'Global message in English')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_preview_with_overridden_form_disclaimer(self):
         self.client.login(username='someuser', password='someuser')
         asset = self.create_asset(
@@ -350,6 +513,17 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         self.assertContains(xml_response, 'Overridden message in English')
         self.assertNotContains(xml_response, 'Global message in English')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_preview_with_hidden_global_form_disclaimer(self):
         self.client.login(username='someuser', password='someuser')
         asset = self.create_asset(
@@ -374,6 +548,17 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         self.assertNotContains(xml_response, 'Global message in English')
         self.assertNotContains(xml_response, '<input appearance="kobo-disclaimer"')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_preview_with_multilanguages_form_and_global_disclaimer(self):
         self.client.login(username='someuser', password='someuser')
         asset = self.create_asset(
@@ -398,6 +583,17 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         self.assertContains(xml_response, 'Global message in English')
         self.assertContains(xml_response, 'Message global en français')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_preview_with_multilanguages_form_and_overridden_disclaimer(self):
         self.client.login(username='someuser', password='someuser')
 
@@ -431,6 +627,17 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         self.assertContains(xml_response, 'Overridden message in English')
         self.assertContains(xml_response, 'Message remplacé en français')
 
+    @pytest.mark.allow_openapi_mismatch(
+        'request-payload-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch(
+        'response-validation',
+        'api/v2/asset_snapshots/',
+        'POST',
+    )
+    @pytest.mark.allow_openapi_mismatch('response-validation', 'api/v2/assets/', 'POST')
     def test_preview_with_multilanguages_form_and_hidden_disclaimer(self):
         self.client.login(username='someuser', password='someuser')
 
