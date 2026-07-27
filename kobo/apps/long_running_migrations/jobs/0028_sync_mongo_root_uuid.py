@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Q
 from pymongo import UpdateOne
 
@@ -12,6 +13,7 @@ from kpi.utils.log import logging
 
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
+LAST_ID_CACHE_KEY = 'lrm_0028_last_id'
 
 
 def run():
@@ -21,7 +23,12 @@ def run():
     """
     _check_lrm_0027_is_completed()
 
-    last_id = 0
+    # Persisted across Celery restarts: instances belonging to XForms that LRM
+    # 0027 permanently skips (pending_delete, or tagged failed) never get
+    # `meta/rootUuid` set, so they always match the query below. Without a
+    # persisted cursor, every restart would re-scan past them from `_id` 0,
+    # potentially never reaching a fully empty batch within a single run.
+    last_id = cache.get(LAST_ID_CACHE_KEY, 0)
     while True:
         query = {
             '_id': {'$gt': last_id},
@@ -42,6 +49,7 @@ def run():
         docs = list(cursor)
 
         if not docs:
+            cache.delete(LAST_ID_CACHE_KEY)
             break
 
         logging.info(
@@ -49,6 +57,7 @@ def run():
         )
         _process_batch(docs)
         last_id = docs[-1]['_id']
+        cache.set(LAST_ID_CACHE_KEY, last_id, timeout=None)
 
 
 def _check_lrm_0027_is_completed():
@@ -68,10 +77,13 @@ def _check_lrm_0027_is_completed():
 def _process_batch(docs: list):
     doc_ids = [doc['_id'] for doc in docs]
 
-    # Only fetch Postgres records that actually have a root_uuid populated
+    # Only fetch Postgres records that actually have a root_uuid populated,
+    # excluding trashed XForms: LRM 0027 never backfills them, but a race with
+    # some other write path could leave `root_uuid` set without us wanting to
+    # push it to Mongo for a project that's being deleted.
     instances_map = dict(
         Instance.objects.filter(
-            pk__in=doc_ids, root_uuid__isnull=False
+            pk__in=doc_ids, root_uuid__isnull=False, xform__pending_delete=False
         ).values_list('pk', 'root_uuid')
     )
 
