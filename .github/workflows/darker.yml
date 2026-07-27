@@ -41,14 +41,23 @@ jobs:
           MERGE_PARENTS=($(git rev-list --parents -1 ${{ github.sha }}))
           LATEST_IN_BASE_BRANCH=${MERGE_PARENTS[1]}
 
+          if [[ -z "$LATEST_IN_BASE_BRANCH" ]]; then
+            echo "::error::Could not resolve the base-branch SHA from ${{ github.sha }}."
+            exit 1
+          fi
+
           # Run darker. (https://github.com/akaihola/darker)
           # -L runs the linter
           #  `--ignore=F821` avoids raising false positive error in typing
           #   annotations with string, e.g. def my_method(my_model: 'ModelName')
           # -r REV specifies a commit to compare with the worktree
-          output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH)
-
-          # darker still exits with code 1 even with no errors on changes
-          # So, make this fail CI only if there is output from darker.
-          [[ -n "$output" ]] && echo "$output" && exit 1 || exit 0
-        shell: /usr/bin/bash {0}
+          #
+          # Let darker's exit code decide: it is 0 when there is nothing to
+          # report, and non-zero both for findings and for crashes (bad
+          # revision, missing linter, …). Do not capture the output — darker
+          # writes crash details to stderr, so capturing stdout and testing it
+          # for emptiness makes every crash look like a pass.
+          darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH
+        # `bash` (not a bare `/usr/bin/bash`) so the step keeps `-e -o pipefail`
+        # and aborts on the first failing command.
+        shell: bash
