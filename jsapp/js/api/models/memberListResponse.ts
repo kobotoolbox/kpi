@@ -20,6 +20,7 @@ export interface MemberListResponse {
   user__email: string
   user__extra_details__name: string
   user__has_mfa_enabled: boolean
+  user__has_sso_enabled: boolean
   date_joined: string
   user__is_active: boolean
   /** @nullable */
