@@ -52,8 +52,6 @@ import type { PaginatedVersionListResponseList } from '../../models/paginatedVer
 
 import type { ProjectInviteResponse } from '../../models/projectInviteResponse'
 
-import type { TagRetrieveResponse } from '../../models/tagRetrieveResponse'
-
 import type { TransferListResponse } from '../../models/transferListResponse'
 
 import type { VersionRetrieveResponse } from '../../models/versionRetrieveResponse'
@@ -4196,21 +4194,8 @@ export const getApiV2TagsListResponseMock = (
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    url: faker.internet.url(),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
-  ...overrideResponse,
-})
-
-export const getApiV2TagsRetrieveResponseMock = (
-  overrideResponse: Partial<TagRetrieveResponse> = {},
-): TagRetrieveResponse => ({
-  name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  url: faker.internet.url(),
-  assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.internet.url(),
-  ),
-  parent: faker.internet.url(),
-  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   ...overrideResponse,
 })
 
@@ -4855,30 +4840,6 @@ export const getApiV2TagsListMockHandler = (
     options,
   )
 }
-
-export const getApiV2TagsRetrieveMockHandler = (
-  overrideResponse?:
-    | TagRetrieveResponse
-    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TagRetrieveResponse> | TagRetrieveResponse),
-  options?: RequestHandlerOptions,
-) => {
-  return http.get(
-    '*/api/v2/tags/:taguidUid{/}?',
-    async (info) => {
-      return new HttpResponse(
-        JSON.stringify(
-          overrideResponse !== undefined
-            ? typeof overrideResponse === 'function'
-              ? await overrideResponse(info)
-              : overrideResponse
-            : getApiV2TagsRetrieveResponseMock(),
-        ),
-        { status: 200, headers: { 'Content-Type': 'application/json' } },
-      )
-    },
-    options,
-  )
-}
 export const getManageProjectsAndLibraryContentMock = () => [
   getApiV2AssetsListMockHandler(),
   getApiV2AssetsCreateMockHandler(),
@@ -4907,5 +4868,4 @@ export const getManageProjectsAndLibraryContentMock = () => [
   getApiV2ProjectOwnershipInvitesDestroyMockHandler(),
   getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler(),
   getApiV2TagsListMockHandler(),
-  getApiV2TagsRetrieveMockHandler(),
 ]
