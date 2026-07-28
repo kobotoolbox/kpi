@@ -155,6 +155,11 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     // when the backend value isn't available.
     const totalTime = this.props.durationSeconds ?? this.state.totalTime
 
+    // A backend duration of 0 is a real answer: the backend truncates, so any
+    // recording under a second comes back as 0. We only hide the label while the
+    // duration is still unknown, which for the browser-decoded value means 0.
+    const isTotalTimeKnown = this.props.durationSeconds !== undefined || this.state.totalTime > 0
+
     return (
       <React.Fragment>
         <Button
@@ -164,7 +169,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
           onClick={this.onButtonClick.bind(this)}
         />
 
-        {totalTime > 0 && (
+        {isTotalTimeKnown && (
           <bem.MiniAudioPlayer__time dateTime={totalTime}>
             {this.state.isPlaying && formatSeconds(this.state.currentTime)}
             {!this.state.isPlaying && formatSeconds(totalTime)}
