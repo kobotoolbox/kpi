@@ -1,6 +1,7 @@
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { hasTranscribableAudio, hasTranslatableTranscript } from '#/components/submissions/bulkProcessingUtils'
 import type { AlertEvaluationContext, AlertEvaluationResult } from './types'
 
 /**
@@ -175,23 +176,12 @@ export function evaluateNoSource(context: AlertEvaluationContext): AlertEvaluati
       return
     }
 
-    let hasSource = false
-
-    if (actionType === 'transcript') {
-      // For transcription: check if there's an audio attachment for this field
-      hasSource =
-        submission._attachments?.some(
-          (attachment) => attachment.question_xpath === fieldXpath && !attachment.is_deleted,
-        ) ?? false
-    } else {
-      // For translation: check if there's a transcript
-      // Note 1: we assume here that there can be only one transcript
-      // Note 2: `fieldXpath` can be question xpath for transcript case, but for translation case it would be path to
-      // supplementalDetails, but we need to compare it to question xpath, so we use utility function
-      const { sourceRowPath } = getSupplementalPathParts(fieldXpath)
-      const transcript = submission._supplementalDetails?.[sourceRowPath]?.transcript
-      hasSource = Boolean(transcript?.value)
-    }
+    // Both checks are shared with the ones gating the matching table header menu
+    // items, so the menu and this alert can't disagree on what has a source.
+    const hasSource =
+      actionType === 'transcript'
+        ? hasTranscribableAudio(submission, fieldXpath)
+        : hasTranslatableTranscript(submission, fieldXpath)
 
     if (!hasSource) {
       missingSource.push(submission._uuid)

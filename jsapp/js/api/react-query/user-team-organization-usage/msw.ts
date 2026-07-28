@@ -216,7 +216,7 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
     url: faker.internet.url(),
     owner: faker.internet.url(),
     owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    parent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+    parent: faker.helpers.arrayElement([faker.internet.url(), undefined]),
     settings: faker.helpers.arrayElement([
       {
         sector: faker.helpers.arrayElement([faker.helpers.arrayElement([null]), undefined]),
@@ -326,10 +326,7 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
     },
     date_created: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     date_modified: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
-    date_deployed: faker.helpers.arrayElement([
-      faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
-      undefined,
-    ]),
+    date_deployed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
     version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     version_count: faker.number.int({ min: undefined, max: undefined }),
@@ -360,10 +357,7 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
       zip_legacy: faker.string.alpha({ length: { min: 10, max: 20 } }),
     },
     deployment__submission_count: faker.number.int({ min: undefined, max: undefined }),
-    deployment__last_submission_time: faker.helpers.arrayElement([
-      `${faker.date.past().toISOString().split('.')[0]}Z`,
-      null,
-    ]),
+    deployment__last_submission_time: `${faker.date.past().toISOString().split('.')[0]}Z`,
     deployment__encrypted: faker.datatype.boolean(),
     deployment__uuid: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     deployment_status: faker.helpers.arrayElement(Object.values(AssetDeploymentStatusEnum)),
@@ -730,12 +724,10 @@ export const getApiV2OrganizationsAssetsRetrieveResponseMock = (
     children: { count: faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), undefined]) },
     subscribers_count: faker.number.int({ min: undefined, max: undefined }),
     status: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    access_types: faker.helpers.arrayElement([[], null]),
+    access_types: faker.helpers.arrayElement([[], null, null]),
     data_sharing: faker.helpers.arrayElement([{}, undefined]),
     paired_data: faker.internet.url(),
-    project_ownership: {
-      [faker.string.alphanumeric(5)]: {},
-    },
+    project_ownership: faker.helpers.arrayElement([null]),
     owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
     last_modified_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     created_by: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
@@ -824,6 +816,22 @@ export const getApiV2OrganizationsInvitesPartialUpdateResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2OrganizationsMembersListResponseInviteResponseMock = (
+  overrideResponse: Partial<InviteResponse> = {},
+): InviteResponse => ({
+  ...{
+    invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    url: faker.internet.url(),
+    invited_by: faker.internet.url(),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2OrganizationsMembersListResponseMock = (
   overrideResponse: Partial<PaginatedMemberListResponseList> = {},
 ): PaginatedMemberListResponseList => ({
@@ -840,19 +848,24 @@ export const getApiV2OrganizationsMembersListResponseMock = (
     user__has_mfa_enabled: faker.datatype.boolean(),
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
     user__is_active: faker.datatype.boolean(),
-    invite: {
-      ...{
-        invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
-        status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-        url: faker.internet.url(),
-        invited_by: faker.internet.url(),
-        organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        created: `${faker.date.past().toISOString().split('.')[0]}Z`,
-        modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
-        invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
-      },
-    },
+    invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersListResponseInviteResponseMock() }, null]),
   })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock = (
+  overrideResponse: Partial<InviteResponse> = {},
+): InviteResponse => ({
+  ...{
+    invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    url: faker.internet.url(),
+    invited_by: faker.internet.url(),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  },
   ...overrideResponse,
 })
 
@@ -868,17 +881,22 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   user__has_mfa_enabled: faker.datatype.boolean(),
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.datatype.boolean(),
-  invite: {
-    ...{
-      invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
-      status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-      url: faker.internet.url(),
-      invited_by: faker.internet.url(),
-      organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-      created: `${faker.date.past().toISOString().split('.')[0]}Z`,
-      modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
-      invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    },
+  invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock() }, null]),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock = (
+  overrideResponse: Partial<InviteResponse> = {},
+): InviteResponse => ({
+  ...{
+    invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    url: faker.internet.url(),
+    invited_by: faker.internet.url(),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
   },
   ...overrideResponse,
 })
@@ -895,18 +913,10 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   user__has_mfa_enabled: faker.datatype.boolean(),
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.datatype.boolean(),
-  invite: {
-    ...{
-      invitee_role: faker.helpers.arrayElement(Object.values(InviteeRoleEnum)),
-      status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-      url: faker.internet.url(),
-      invited_by: faker.internet.url(),
-      organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
-      created: `${faker.date.past().toISOString().split('.')[0]}Z`,
-      modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
-      invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    },
-  },
+  invite: faker.helpers.arrayElement([
+    { ...getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock() },
+    null,
+  ]),
   ...overrideResponse,
 })
 
@@ -1299,7 +1309,7 @@ export const getMeRetrieveResponseMock = (overrideResponse: Partial<MeListRespon
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   projects_url: faker.internet.url(),
   gravatar: faker.internet.url(),
-  last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+  last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
   extra_details: {
     bio: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     city: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
@@ -1369,7 +1379,7 @@ export const getMePartialUpdateResponseMock = (overrideResponse: Partial<MeListR
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   projects_url: faker.internet.url(),
   gravatar: faker.internet.url(),
-  last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]),
+  last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
   extra_details: {
     bio: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     city: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),

@@ -11,6 +11,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { AuthLevelEnum } from './authLevelEnum'
 import type { ExportTypeEnum } from './exportTypeEnum'
+import type { PatchedHookPayloadTemplate } from './patchedHookPayloadTemplate'
 import type { PatchedHookSettings } from './patchedHookSettings'
 
 export interface PatchedHook {
@@ -26,8 +27,7 @@ export interface PatchedHook {
   readonly logs_url?: string
   /** @maxLength 255 */
   name?: string
-  /** @nullable */
-  payload_template?: string | null
+  payload_template?: PatchedHookPayloadTemplate
   readonly pending_count?: number
   settings?: PatchedHookSettings
   subset_fields?: string[]
