@@ -271,13 +271,6 @@ class BigModal extends React.Component {
               <LoadingSpinner message={false} />
             </div>
           )}
-<<<<<<< HEAD
-          {this.props.params.type === MODAL_TYPES.TABLE_SETTINGS && <TableSettings asset={this.props.params.asset} />}
-=======
-          {this.props.params.type === MODAL_TYPES.REST_SERVICES && (
-            <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
-          )}
->>>>>>> origin/main
           {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
             <BulkEditSubmissionsForm
               onSetModalTitle={this.setModalTitle}
