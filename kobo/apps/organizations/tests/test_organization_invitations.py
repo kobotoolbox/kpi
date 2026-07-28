@@ -189,7 +189,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             response.data['detail'],
             replace_placeholders(
-                t(INVITE_RESENT_TOO_QUICKLY_ERROR),
+                str(INVITE_RESENT_TOO_QUICKLY_ERROR),
                 minutes=str(math.ceil(int(response.headers['Retry-After']) / 60)),
             ),
         )
@@ -752,7 +752,7 @@ class OrganizationInviteErrorFormatTestCase(BaseOrganizationInviteTestCase):
         response = self._update_invite(
             self.owner_user, invitation.guid, OrganizationInviteStatusChoices.RESENT
         )
-        self._assert_detail(response, t(INVITE_CANNOT_BE_RESENT_ERROR))
+        self._assert_detail(response, str(INVITE_CANNOT_BE_RESENT_ERROR))
 
     def test_reserved_status_returns_detail(self):
         self._create_invite(self.owner_user)
@@ -764,7 +764,7 @@ class OrganizationInviteErrorFormatTestCase(BaseOrganizationInviteTestCase):
         self._assert_detail(
             response,
             replace_placeholders(
-                t(INVITE_STATUS_RESERVED_ERROR),
+                str(INVITE_STATUS_RESERVED_ERROR),
                 status=OrganizationInviteStatusChoices.EXPIRED,
             ),
         )
@@ -782,7 +782,7 @@ class OrganizationInviteErrorFormatTestCase(BaseOrganizationInviteTestCase):
         response = self.client.patch(
             self.detail_url(invitation.guid), data={'role': ORG_ADMIN_ROLE}
         )
-        self._assert_detail(response, t(INVITE_ROLE_LOCKED_ERROR))
+        self._assert_detail(response, str(INVITE_ROLE_LOCKED_ERROR))
 
     def test_updating_member_with_invalid_role_returns_detail(self):
         self.client.force_login(self.owner_user)

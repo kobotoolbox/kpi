@@ -462,17 +462,17 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             organization = self.instance.invited_by.organization
 
             if not organization.is_admin(user):
-                raise InvalidMembershipRequest(t(NOT_ENOUGH_PERMISSIONS_ERROR))
+                raise InvalidMembershipRequest(NOT_ENOUGH_PERMISSIONS_ERROR)
 
             if self.instance.status == InviteStatusChoices.ACCEPTED:
-                raise InvalidMembershipRequest(t(INVITE_ROLE_LOCKED_ERROR))
+                raise InvalidMembershipRequest(INVITE_ROLE_LOCKED_ERROR)
         return value
 
     def validate_status(self, value):
 
         if value in OrganizationInviteStatusChoices.get_calculated_choices():
             raise InvalidMembershipRequest(
-                replace_placeholders(t(INVITE_STATUS_RESERVED_ERROR), status=value)
+                replace_placeholders(INVITE_STATUS_RESERVED_ERROR, status=value)
             )
 
         if not self.instance:
@@ -481,9 +481,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 or value in OrganizationInviteStatusChoices.get_member_choices()
             ):
                 raise InvalidMembershipRequest(
-                    replace_placeholders(
-                        t(INVITE_STATUS_UNSETTABLE_ERROR), status=value
-                    )
+                    replace_placeholders(INVITE_STATUS_UNSETTABLE_ERROR, status=value)
                 )
 
         else:
@@ -495,13 +493,13 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 value in OrganizationInviteStatusChoices.get_admin_choices()
                 and not organization.is_admin(user)
             ):
-                raise InvalidMembershipRequest(t(NOT_ENOUGH_PERMISSIONS_ERROR))
+                raise InvalidMembershipRequest(NOT_ENOUGH_PERMISSIONS_ERROR)
 
             # if value equals 'resent', all the validations have been already
             # performed to ensure, only an admin can call this.
             if value == OrganizationInviteStatusChoices.RESENT:
                 if self.instance.status != OrganizationInviteStatusChoices.PENDING:
-                    raise InvalidMembershipRequest(t(INVITE_CANNOT_BE_RESENT_ERROR))
+                    raise InvalidMembershipRequest(INVITE_CANNOT_BE_RESENT_ERROR)
 
                 retry_after = self.instance.modified + timedelta(
                     seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER
@@ -514,7 +512,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     # message is rounded up to minutes to stay readable.
                     raise RetryAfterAPIException(
                         replace_placeholders(
-                            t(INVITE_RESENT_TOO_QUICKLY_ERROR),
+                            INVITE_RESENT_TOO_QUICKLY_ERROR,
                             minutes=str(math.ceil(remaining_seconds / 60)),
                         ),
                         retry_after=remaining_seconds,

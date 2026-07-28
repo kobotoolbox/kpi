@@ -32,21 +32,22 @@ INVITE_MEMBER_ERROR = (
     'create one.'
 )
 
-# Wrapped here rather than at the call site so `makemessages` keeps extracting
-# it - it already has translations. `t(CONSTANT)` would not be extractable.
+# These reach the UI, so they must be translatable. Wrap here rather than at the
+# call site: `makemessages` only extracts literal arguments, so `t(CONSTANT)`
+# would leave the string out of the catalogs entirely.
 INVALID_ROLE_ERROR = t("Invalid role. Only 'admin' or 'member' are allowed")
 INVITE_ALREADY_ACCEPTED_ERROR = 'Invite has already been accepted.'
-INVITE_CANNOT_BE_RESENT_ERROR = 'Invitation cannot be resent'
+INVITE_CANNOT_BE_RESENT_ERROR = t('Invitation cannot be resent')
 INVITE_NOT_FOUND_ERROR = 'Invite not found.'
-INVITE_RESENT_TOO_QUICKLY_ERROR = (
+INVITE_RESENT_TOO_QUICKLY_ERROR = t(
     'Invitation resent too quickly, wait for ##minutes## minutes before retrying'
 )
-INVITE_ROLE_LOCKED_ERROR = 'Role cannot be changed after acceptance'
-INVITE_STATUS_RESERVED_ERROR = '`##status##` is reserved and cannot be set'
-INVITE_STATUS_UNSETTABLE_ERROR = (
+INVITE_ROLE_LOCKED_ERROR = t('Role cannot be changed after acceptance')
+INVITE_STATUS_RESERVED_ERROR = t('`##status##` is reserved and cannot be set')
+INVITE_STATUS_UNSETTABLE_ERROR = t(
     '`##status##` cannot be set on a newly created invitation'
 )
-NOT_ENOUGH_PERMISSIONS_ERROR = (
+NOT_ENOUGH_PERMISSIONS_ERROR = t(
     'You do not have enough permissions to perform this action'
 )
 ORG_ADMIN_ROLE = 'admin'
