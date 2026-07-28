@@ -988,7 +988,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                   userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
                   userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
                 }
-                hasRowsSelected={this.state.selectAll || recordKeys(this.state.selectedRows).length === 0}
+                hasRowsSelected={this.state.selectAll || recordKeys(this.state.selectedRows).length !== 0}
                 hasAnyTranscribableAudio={hasAnyTranscribableAudio(this.getSelectedSubmissions(), key)}
                 hasAnyTranslatableTranscript={hasAnyTranslatableTranscript(this.getSelectedSubmissions(), key)}
                 additionalTriggerContent={
