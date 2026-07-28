@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
-from django.utils.translation import gettext as t
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -398,7 +397,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         # Check if the invitation has already been accepted
         if instance.status == InviteStatusChoices.ACCEPTED:
-            raise PermissionDenied({'detail': t(INVITE_ALREADY_ACCEPTED_ERROR)})
+            raise PermissionDenied({'detail': INVITE_ALREADY_ACCEPTED_ERROR})
 
         # Validate email or username
         is_email_match = request_user.email == instance.invitee_identifier
@@ -406,7 +405,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             instance.invitee and request_user.username == instance.invitee.username
         )
         if not (is_email_match or is_username_match):
-            raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
+            raise NotFound({'detail': INVITE_NOT_FOUND_ERROR})
 
         # Check if the invitee is already a member of the organization
         if instance.invitee.organization.is_mmo:
@@ -414,7 +413,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise PermissionDenied(
                     {
                         'detail': replace_placeholders(
-                            t(INVITE_OWNER_ERROR),
+                            INVITE_OWNER_ERROR,
                             organization_name=instance.invitee.organization.name,
                         )
                     }
@@ -423,7 +422,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise PermissionDenied(
                     {
                         'detail': replace_placeholders(
-                            t(INVITE_MEMBER_ERROR),
+                            INVITE_MEMBER_ERROR,
                             organization_name=instance.invitee.organization.name,
                         )
                     }
@@ -556,7 +555,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             organization=organization, user=user
         ).exists():
             raise serializers.ValidationError(
-                replace_placeholders(t(INVITEE_ALREADY_MEMBER_ERROR), invitee=invitee)
+                replace_placeholders(INVITEE_ALREADY_MEMBER_ERROR, invitee=invitee)
             )
 
     def _check_existing_invites(self, organization, search_filter, invitee):
@@ -569,7 +568,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             status=OrganizationInviteStatusChoices.PENDING,
         ).exists():
             raise serializers.ValidationError(
-                replace_placeholders(t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee)
+                replace_placeholders(INVITE_ALREADY_EXISTS_ERROR, invitee=invitee)
             )
 
     def _get_valid_user(self, username):
@@ -579,7 +578,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         user = User.objects.filter(username=username, is_active=True).first()
         if not user:
             raise serializers.ValidationError(
-                replace_placeholders(t(USER_DOES_NOT_EXIST_ERROR), invitee=username)
+                replace_placeholders(USER_DOES_NOT_EXIST_ERROR, invitee=username)
             )
         return user
 
@@ -594,7 +593,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 instance.invitee = self.context['request'].user
                 instance.save(update_fields=['invitee'])
             except User.DoesNotExist:
-                raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
+                raise NotFound({'detail': INVITE_NOT_FOUND_ERROR})
 
     def _handle_status_update(self, instance, status):
         if status == OrganizationInviteStatusChoices.RESENT:

@@ -15,7 +15,10 @@ USAGE_TYPES_WITH_COUNTERS = [
     choice for choice in UsageType.choices if choice[0] != UsageType.LOG_LOOKBACK_DAYS
 ]
 
-INVITE_OWNER_ERROR = (
+# Every message below reaches the UI, so it must be translatable. Wrap here
+# rather than at the call site: `makemessages` only extracts literal arguments,
+# so `t(CONSTANT)` would leave the string out of the catalogs entirely.
+INVITE_OWNER_ERROR = t(
     'This account is already the owner of ##organization_name##. '
     'You cannot join multiple organizations with the same account. '
     'To accept this invitation, you must either transfer ownership of '
@@ -24,7 +27,7 @@ INVITE_OWNER_ERROR = (
     'account, you can create one.'
 )
 
-INVITE_MEMBER_ERROR = (
+INVITE_MEMBER_ERROR = t(
     'This account is already a member in ##organization_name##. '
     'You cannot join multiple organizations with the same account. '
     'To accept this invitation, sign in using a different account with the '
@@ -32,13 +35,10 @@ INVITE_MEMBER_ERROR = (
     'create one.'
 )
 
-# These reach the UI, so they must be translatable. Wrap here rather than at the
-# call site: `makemessages` only extracts literal arguments, so `t(CONSTANT)`
-# would leave the string out of the catalogs entirely.
 INVALID_ROLE_ERROR = t("Invalid role. Only 'admin' or 'member' are allowed")
-INVITE_ALREADY_ACCEPTED_ERROR = 'Invite has already been accepted.'
+INVITE_ALREADY_ACCEPTED_ERROR = t('Invite has already been accepted.')
 INVITE_CANNOT_BE_RESENT_ERROR = t('Invitation cannot be resent')
-INVITE_NOT_FOUND_ERROR = 'Invite not found.'
+INVITE_NOT_FOUND_ERROR = t('Invite not found.')
 INVITE_RESENT_TOO_QUICKLY_ERROR = t(
     'Invitation resent too quickly, wait for ##minutes## minutes before retrying'
 )
@@ -54,8 +54,8 @@ ORG_ADMIN_ROLE = 'admin'
 ORG_EXTERNAL_ROLE = 'external'
 ORG_MEMBER_ROLE = 'member'
 ORG_OWNER_ROLE = 'owner'
-USER_DOES_NOT_EXIST_ERROR = (
+USER_DOES_NOT_EXIST_ERROR = t(
     'User with username or email `##invitee##` does not exist or is not active.'
 )
-INVITE_ALREADY_EXISTS_ERROR = 'An active invitation already exists for `##invitee##`'
-INVITEE_ALREADY_MEMBER_ERROR = 'User is already a member of this organization.'
+INVITE_ALREADY_EXISTS_ERROR = t('An active invitation already exists for `##invitee##`')
+INVITEE_ALREADY_MEMBER_ERROR = t('User is already a member of this organization.')

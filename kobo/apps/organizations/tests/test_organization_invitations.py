@@ -8,7 +8,6 @@ from django.core import mail
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as t
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -490,7 +489,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data['detail'], INVITE_ALREADY_ACCEPTED_ERROR)
+        self.assertEqual(response.data['detail'], str(INVITE_ALREADY_ACCEPTED_ERROR))
 
     def test_invitee_cannot_accept_if_already_member_of_organization(self):
         """
@@ -527,7 +526,8 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             response.data['detail'],
             replace_placeholders(
-                t(INVITE_OWNER_ERROR), organization_name=self.another_organization.name
+                str(INVITE_OWNER_ERROR),
+                organization_name=self.another_organization.name,
             ),
         )
 
@@ -543,7 +543,8 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             response.data['detail'],
             replace_placeholders(
-                t(INVITE_MEMBER_ERROR), organization_name=self.another_organization.name
+                str(INVITE_MEMBER_ERROR),
+                organization_name=self.another_organization.name,
             ),
         )
 
