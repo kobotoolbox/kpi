@@ -205,12 +205,12 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
 
     if (type === 'column') {
       cols.forEach((ch) => {
-        names.push(data.getIn([ch, '$autoname']))
+        names.push(data.getIn([ch, '$autoname']) as string)
       })
     } else {
       choices.forEach((ch) => {
         if (ch && ch.get('list_name') === ln) {
-          names.push(ch.get('$autovalue'))
+          names.push(ch.get('$autovalue') as string)
         }
       })
     }
@@ -343,7 +343,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
     const newType = e?.value || null
-    const prevType = data.getIn([colKuid, 'type'])
+    const prevType = data.getIn([colKuid, 'type']) as string
 
     // warn only if existing column type is one of (Select One, Select Many)
     // and new type is NOT one of (Select One, Select Many)
@@ -441,7 +441,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
    * Finds value of given property of given column
    */
   getCol(colKuid: string, field: string) {
-    return this.state.data.getIn([colKuid, field])
+    return this.state.data.getIn([colKuid, field]) as string | undefined
   }
 
   /**
@@ -456,7 +456,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
    * Finds value of given property of given column choice
    */
   getChoiceField(kuid: string, field: string) {
-    return this.state.data.getIn(['choices', kuid, field])
+    return this.state.data.getIn(['choices', kuid, field]) as string | undefined
   }
 
   /**
@@ -614,7 +614,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
 
     list.forEach((item) => {
       if (item && item.get('list_name') === listName) {
-        _list.push(item.toJS())
+        _list.push(item.toJS() as unknown as KoboMatrixDataRowObject)
       }
     })
 
@@ -630,7 +630,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
     // Sort by label and then by order
     const immutableSortByOutput = choices.sortBy((ch) => ch?.get('label') ?? '').sortBy((ch) => ch?.get('order') ?? 0)
 
-    return immutableSortByOutput.toArray()
+    return immutableSortByOutput.valueSeq().toArray()
   }
 
   render() {
@@ -712,7 +712,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                   </div>
                   {orderedChoices.map((choice) => {
                     if (choice.get('list_name') === this.getCol(expandedCol, 'select_from_list_name')) {
-                      const ch = choice.get('$kuid')
+                      const ch = choice.get('$kuid') as string
                       return (
                         <div className='matrix-cols__options--row' key={ch}>
                           <span>
