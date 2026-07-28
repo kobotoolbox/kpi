@@ -3,9 +3,11 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 from django.db.models import F, QuerySet
 from django.db.models.aggregates import Count
 from more_itertools import chunked
+from pymongo import UpdateOne
 
 from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
@@ -13,9 +15,20 @@ from kobo.apps.openrosa.apps.logger.models import (
 )
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.logger.utils import delete_instances
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
+from kobo.apps.openrosa.apps.logger.utils import (
+    delete_instances,
+    resolve_root_uuid_conflict,
+)
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    set_meta,
+)
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    META_INSTANCE_ID,
+    META_ROOT_UUID,
+    UUID,
+)
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 
@@ -150,9 +163,21 @@ class Command(BaseCommand):
         # held the same value.
         ref_instance = parsed_instance.instance
         if not ref_instance.root_uuid:
-            Instance.objects.filter(pk=ref_instance.pk).update(
-                root_uuid=ref_instance.uuid
-            )
+            try:
+                # Isolate the write in its own atomic block so a caught
+                # IntegrityError cannot poison an enclosing transaction: a
+                # savepoint when the command runs inside one (e.g. under
+                # TestCase), or its own transaction when run standalone.
+                # Otherwise the conflict resolution below would run on an
+                # aborted transaction.
+                with kc_transaction_atomic():
+                    Instance.objects.filter(pk=ref_instance.pk).update(
+                        root_uuid=ref_instance.uuid
+                    )
+            except IntegrityError:
+                # Another submission in this xform already holds this root_uuid;
+                # give the reference a unique one instead.
+                resolve_root_uuid_conflict(ref_instance, xform.id_string)
 
         if self._verbosity > 1:
             self.stdout.write(
@@ -236,28 +261,18 @@ class Command(BaseCommand):
                     instance.xml = set_meta(
                         instance.xml, 'instanceID', instance.uuid
                     )
-                except ValueError:
-                    # Legacy submission without an instanceID node in its XML.
-                    # The DB `uuid` update above already resolves the collision.
-                    pass
-                instance.xml_hash = instance.get_hash(instance.xml)
-                try:
-                    instance._populate_root_uuid()  # noqa
-                except AssertionError:
-                    # No derivable root_uuid on this legacy submission; fall
-                    # back to its uuid, as LRM 0027 does.
-                    instance.root_uuid = instance.uuid
-                instances_to_update.append(instance)
-
-                # Save the parsed instance to sync MongoDB
-                try:
-                    parsed_instance = instance.parsed_instance
-                except Instance.parsed_instance.RelatedObjectDoesNotExist:
-                    pass
-                else:
-                    parsed_instance.update_mongo(
-                        asynchronous=False, use_cached_parser=True
+                    instance.xml = set_meta(
+                        instance.xml, 'rootUuid', add_uuid_prefix(instance.uuid)
                     )
+                except ValueError:
+                    # Legacy submission without an instanceID/rootUuid node in
+                    # its XML; the DB fields below are what enforce uniqueness.
+                    pass
+                # The new uuid makes this a distinct submission, so its
+                # root_uuid must follow it to stay unique per xform.
+                instance.root_uuid = instance.uuid
+                instance.xml_hash = instance.get_hash(instance.xml)
+                instances_to_update.append(instance)
                 idx += 1
 
             if self._verbosity >= 3:
@@ -265,3 +280,23 @@ class Command(BaseCommand):
             Instance.objects.bulk_update(
                 instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
             )
+            # Only the identity fields changed, so sync just those to Mongo with
+            # a single bulk `$set` instead of a full `update_mongo()` per
+            # instance; the submission data and `_submitted_by` are untouched.
+            # If a Mongo write is missed, LRM 0028 syncs `meta/rootUuid` from the
+            # DB afterwards.
+            mongo_updates = [
+                UpdateOne(
+                    {'_id': instance.pk},
+                    {
+                        '$set': {
+                            UUID: instance.uuid,
+                            META_INSTANCE_ID: add_uuid_prefix(instance.uuid),
+                            META_ROOT_UUID: add_uuid_prefix(instance.root_uuid),
+                        }
+                    },
+                )
+                for instance in instances_to_update
+            ]
+            if mongo_updates:
+                settings.MONGO_DB.instances.bulk_write(mongo_updates, ordered=False)

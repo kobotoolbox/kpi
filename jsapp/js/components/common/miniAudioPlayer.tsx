@@ -14,6 +14,13 @@ interface MiniAudioPlayerProps {
   /** Not adviseable when you display multiple players at once. */
   preload?: boolean
   mediaURL: string
+  /**
+   * Backend-calculated duration in whole seconds. When provided, it is shown
+   * instead of the browser-decoded duration so the value matches the bulk
+   * processing feature exactly. The browser value is still used for seeking
+   * and the playhead while playing.
+   */
+  durationSeconds?: number
 }
 
 interface MiniAudioPlayerState {
@@ -143,6 +150,16 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   }
 
   renderPlayer() {
+    // Prefer the backend-calculated duration for the idle display so it matches
+    // the bulk processing feature. Fall back to the browser-decoded duration
+    // when the backend value isn't available.
+    const totalTime = this.props.durationSeconds ?? this.state.totalTime
+
+    // A backend duration of 0 is a real answer: the backend truncates, so any
+    // recording under a second comes back as 0. We only hide the label while the
+    // duration is still unknown, which for the browser-decoded value means 0.
+    const isTotalTimeKnown = this.props.durationSeconds !== undefined || this.state.totalTime > 0
+
     return (
       <React.Fragment>
         <Button
@@ -152,10 +169,10 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
           onClick={this.onButtonClick.bind(this)}
         />
 
-        {this.state.totalTime > 0 && (
-          <bem.MiniAudioPlayer__time dateTime={this.state.totalTime}>
+        {isTotalTimeKnown && (
+          <bem.MiniAudioPlayer__time dateTime={totalTime}>
             {this.state.isPlaying && formatSeconds(this.state.currentTime)}
-            {!this.state.isPlaying && formatSeconds(this.state.totalTime)}
+            {!this.state.isPlaying && formatSeconds(totalTime)}
           </bem.MiniAudioPlayer__time>
         )}
       </React.Fragment>

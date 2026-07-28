@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { fromJS } from 'immutable'
+import { List, Map } from 'immutable'
 import { createRoot } from 'react-dom/client'
 import { recordKeys } from '#/utils'
 import KoboMatrix from './containers/KoboMatrix'
@@ -38,8 +38,15 @@ class KoboMatrixRow {
 
     const _b = _o.toJSON()
     this.kobomatrix_list = _b['kobo--matrix_list']
-    this.data = fromJS(obj2)
-    var _c = fromJS(choices)
+    const colKuids = obj2.cols
+    const colEntries = colKuids.map((kuid) => [kuid, Map(obj2[kuid])])
+    this.data = Map({
+      ...Object.fromEntries(colEntries),
+      label: obj2.label,
+      cols: List(colKuids),
+    })
+    const choiceEntries = Object.entries(choices).map(([kuid, val]) => [kuid, Map(val)])
+    var _c = Map(Object.fromEntries(choiceEntries))
     this.data = this.data.set('choices', _c.toOrderedMap())
     this.kuid = _b.$kuid
   }

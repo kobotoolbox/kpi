@@ -354,7 +354,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
     if (
       currentState.selectedExportType.value === EXPORT_TYPES.xls.value ||
-      currentState.selectedExportType.value === EXPORT_TYPES.csv.value
+      currentState.selectedExportType.value === EXPORT_TYPES.csv.value ||
+      currentState.selectedExportType.value === EXPORT_TYPES.geojson.value
     ) {
       payload.export_settings.include_media_url = currentState.isIncludeMediaUrlEnabled
     }
@@ -592,7 +593,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
           )}
 
           {(state.selectedExportType.value === EXPORT_TYPES.xls.value ||
-            state.selectedExportType.value === EXPORT_TYPES.csv.value) && (
+            state.selectedExportType.value === EXPORT_TYPES.csv.value ||
+            state.selectedExportType.value === EXPORT_TYPES.geojson.value) && (
             <bem.ProjectDownloads__columnRow>
               <Checkbox
                 checked={state.isIncludeMediaUrlEnabled}

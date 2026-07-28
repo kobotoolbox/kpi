@@ -1069,6 +1069,7 @@ SPECTACULAR_SETTINGS = {
         'user-facing application are represented in the API as "assets".'
     ),
     'VERSION': '2.0.0',
+    'OAS_VERSION': '3.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'POSTPROCESSING_HOOKS': [
         'drf_spectacular.hooks.postprocess_schema_enums',
@@ -2374,6 +2375,9 @@ AZURE_DELETE_BATCH_SIZE = 256
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Number of transfer log records rendered inline on a transfer admin page
+PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
 
 # Maximum timeout (in minutes) for hook processing
 HOOK_STALLED_PENDING_TIMEOUT = 120
