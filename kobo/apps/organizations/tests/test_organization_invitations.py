@@ -796,4 +796,4 @@ class OrganizationInviteErrorFormatTestCase(BaseOrganizationInviteTestCase):
             ),
             data={'role': 'not-a-role'},
         )
-        self._assert_detail(response, t(INVALID_ROLE_ERROR))
+        self._assert_detail(response, str(INVALID_ROLE_ERROR))

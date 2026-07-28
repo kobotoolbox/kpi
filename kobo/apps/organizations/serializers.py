@@ -166,7 +166,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
     def validate_role(self, role):
         if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
-            raise InvalidMembershipRequest(t(INVALID_ROLE_ERROR))
+            raise InvalidMembershipRequest(INVALID_ROLE_ERROR)
         return role
 
 

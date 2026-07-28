@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as t
 
 
 class UsageType(models.TextChoices):
@@ -31,7 +32,9 @@ INVITE_MEMBER_ERROR = (
     'create one.'
 )
 
-INVALID_ROLE_ERROR = "Invalid role. Only 'admin' or 'member' are allowed"
+# Wrapped here rather than at the call site so `makemessages` keeps extracting
+# it - it already has translations. `t(CONSTANT)` would not be extractable.
+INVALID_ROLE_ERROR = t("Invalid role. Only 'admin' or 'member' are allowed")
 INVITE_ALREADY_ACCEPTED_ERROR = 'Invite has already been accepted.'
 INVITE_CANNOT_BE_RESENT_ERROR = 'Invitation cannot be resent'
 INVITE_NOT_FOUND_ERROR = 'Invite not found.'
