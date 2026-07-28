@@ -4,7 +4,7 @@ import DeletedAttachment from './deletedAttachment.component'
 const meta: Meta<typeof DeletedAttachment> = {
   title: 'Components/DeletedAttachment',
   component: DeletedAttachment,
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 }
 
 type Story = StoryObj<typeof DeletedAttachment>

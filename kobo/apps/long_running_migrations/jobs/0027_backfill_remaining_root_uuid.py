@@ -1,6 +1,8 @@
 # Generated on 2026-06-23
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
+from django.core.cache import cache
 from django.core.management import call_command
 from django.db import IntegrityError
 from django.db.models import Q
@@ -18,6 +20,7 @@ from kpi.utils.log import logging
 
 CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
 FAILED_TAG = 'kobo-root-uuid-failed-0027'
+LAST_XFORM_ID_CACHE_KEY = 'lrm_0027_last_xform_id'
 
 
 def run():
@@ -36,11 +39,18 @@ def run():
 
     _check_lrm_0005_is_completed()
 
-    last_xform_id = 0
+    # Persisted across Celery restarts: instances belonging to XForms this job
+    # permanently skips (pending_delete, or tagged failed) never get a
+    # `root_uuid`, so they always match the query in `get_xforms_queryset`.
+    # Without a persisted cursor, every restart would re-scan past them from
+    # XForm pk 0, potentially never reaching a fully empty batch within a
+    # single run.
+    last_xform_id = cache.get(LAST_XFORM_ID_CACHE_KEY, 0)
     with use_db(settings.OPENROSA_DB_ALIAS):
         while True:
-            xforms, last_xform_id = get_xforms_queryset(last_xform_id)
-            if last_xform_id == -1:
+            xforms, next_xform_id = get_xforms_queryset(last_xform_id)
+            if next_xform_id == -1:
+                cache.delete(LAST_XFORM_ID_CACHE_KEY)
                 break
             for xform in xforms:
                 logging.info(
@@ -56,6 +66,13 @@ def run():
                     logging.info(
                         f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - Done'
                     )
+
+            # Only advance the persisted cursor once every XForm in this batch
+            # has reached a terminal outcome (done or tagged failed), so a
+            # crash mid-batch re-processes the same small batch on restart
+            # instead of permanently skipping whatever wasn't finished yet.
+            last_xform_id = next_xform_id
+            cache.set(LAST_XFORM_ID_CACHE_KEY, last_xform_id, timeout=None)
 
 
 def get_instances_queryset(xform_id: int) -> QuerySet:
@@ -117,6 +134,25 @@ def _check_lrm_0005_is_completed():
         )
 
 
+def _find_timeout_in_chain(exc: BaseException) -> BaseException | None:
+    """
+    Walk the exception's cause/context chain and return the first Celery
+    timeout found, or `None`. A lower layer may catch a timeout and re-raise it
+    wrapped in another exception type, which would otherwise be mistaken for an
+    unrecoverable data error.
+    """
+
+    seen = set()
+    current = exc
+    while current is not None and id(current) not in seen:
+        if isinstance(current, (SoftTimeLimitExceeded, TimeLimitExceeded)):
+            return current
+        seen.add(id(current))
+        current = current.__cause__ or current.__context__
+
+    return None
+
+
 def _process_instances_batch(
     xform: XForm, instance_queryset: QuerySet, first_try=True
 ) -> bool:
@@ -139,18 +175,38 @@ def _process_instances_batch(
         Instance.objects.bulk_update(instance_batch, fields=['root_uuid'])
     except IntegrityError:
         if first_try:
+            logging.info(
+                f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - '
+                f'Cleaning duplicated submissions'
+            )
             try:
                 call_command(
                     'clean_duplicated_submissions_root_uuid',
                     xform=xform.id_string,
                     verbosity=2,
                 )
+            except (SoftTimeLimitExceeded, TimeLimitExceeded):
+                # Celery interrupted the command mid-run: this is not an
+                # unrecoverable data error, so do not tag the XForm as failed.
+                # Let it propagate to `execute()`, which resumes on the next
+                # Celery beat cycle.
+                raise
             except Exception as e:
+                # A lower layer may have caught a Celery timeout and re-raised
+                # it wrapped in another exception type (e.g. CommandError).
+                # Treat it as a timeout, not an unrecoverable data error.
+                if timeout := _find_timeout_in_chain(e):
+                    raise timeout
                 logging.error(
                     f'[LRM 0027] - Failed to clean duplicated submissions: {str(e)}'
                 )
                 xform.tags.add(FAILED_TAG)
                 return False
+
+            logging.info(
+                f'[LRM 0027] - XForm #{xform.pk} ({xform.id_string}) - '
+                f'Cleaned duplicated submissions!'
+            )
 
             # Need to reload instance_batch to get updated root_uuids
             instance_batch_retry = Instance.objects.only(

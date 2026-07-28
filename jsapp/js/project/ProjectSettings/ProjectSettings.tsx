@@ -600,8 +600,10 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
           {errorType}: {escapeHtml(importError)}
         </code>,
       )
-      // join returns an array of React nodes (strings and JSX elements with <br /> separators)
-      const message = <>{join(errLines, <br />)}</>
+      // join returns an array of React nodes (strings and JSX elements with <br /> separators).
+      // The wrapping <div> is required: the toast container lays out its direct children with
+      // `display: flex`, so without a block-level wrapper the lines render side-by-side as columns.
+      const message = <div>{join(errLines, <br />)}</div>
       notify.error(message)
     } else {
       // Fallback for responses without structured error messages

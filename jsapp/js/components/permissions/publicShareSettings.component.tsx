@@ -18,7 +18,6 @@ const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html'
 interface PublicShareSettingsProps {
   publicPerms: PermissionResponse[]
   assetUid: string
-  deploymentActive: boolean
   userCanShare: boolean
 }
 
@@ -82,16 +81,14 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           />
         </bem.FormModal__item>
 
-        {this.props.deploymentActive && (
-          <bem.FormModal__item>
-            <Checkbox
-              checked={anonCanViewData}
-              disabled={!this.props.userCanShare}
-              onChange={this.togglePerms.bind(this, 'view_submissions')}
-              label={t('Anyone can view submissions made to this form')}
-            />
-          </bem.FormModal__item>
-        )}
+        <bem.FormModal__item>
+          <Checkbox
+            checked={anonCanViewData}
+            disabled={!this.props.userCanShare}
+            onChange={this.togglePerms.bind(this, 'view_submissions')}
+            label={t('Anyone can view submissions made to this form')}
+          />
+        </bem.FormModal__item>
 
         {anonCanView && <TextBox label={t('Shareable link')} type='text' readOnly value={url} />}
       </bem.FormModal__item>

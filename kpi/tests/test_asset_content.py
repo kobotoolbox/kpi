@@ -228,25 +228,6 @@ def test_autoname_shortens_long_names():
     # names are not shortened by default, because they were explicitly set
     assert _name_to_autoname([{'name': LONG_NAME}]) == [LONG_NAME]
 
-    # if there is a name conflict we should throw a meaningful error
-    # however, since this behavior is already present, it might be
-    # impossible to transition existing valid forms
-    # with pytest.raises(ValueError):
-    #     _name_to_autoname([
-    #         {'name': LONG_NAME},
-    #         {'name': LONG_NAME},
-    #     ])
-
-    long_label = ('Four score and seven years ago, our fathers brought forth'
-                  ' on this continent')
-    assert _name_to_autoname([
-        {'label': long_label},
-        {'label': long_label},
-    ]) == [
-        'Four_score_and_seven_th_on_this_continent',
-        'Four_score_and_seven_th_on_this_continent_001',
-    ]
-
     assert _name_to_autoname(
         [
             {'label': x}

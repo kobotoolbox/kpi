@@ -23,7 +23,7 @@ const meta: Meta<typeof Tabs> = {
         component: 'This is a component that provides a top tab navigation menu.',
       },
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 }
 

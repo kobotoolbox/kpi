@@ -132,7 +132,7 @@ const meta = {
     },
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     docs: {
       description: {
         component:

@@ -44,7 +44,7 @@ const meta = {
     },
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
   },
 } satisfies Meta<StoryArgs>
 

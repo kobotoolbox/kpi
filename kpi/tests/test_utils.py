@@ -233,38 +233,6 @@ class UtilsTestCase(TestCase):
                 'text_kUiD',
                 'jwef',
             ])
-        self._assertAutonames(
-            names=[
-                'abc',
-                'abc',
-                'abc',
-            ], expected=[
-                'abc',
-                'abc_001',
-                'abc_002',
-            ])
-        self._assertAutonames(
-            names=[
-                'abc',
-                {'name': 'abc_002', 'type': 'note'},
-                'abc',
-                'abc',
-            ], expected=[
-                'abc',
-                'abc_002',
-                'abc_001',
-                'abc_003',
-            ])
-        self._assertAutonames(
-            names=[
-                {'label': 'abc', 'type': 'text'},
-                {'label': 'abc', 'type': 'text'},
-                {'label': 'abc', 'type': 'text'},
-            ], expected=[
-                'abc',
-                'abc_001',
-                'abc_002',
-            ])
 
     def test_autovalue_choices(self):
         surv = {

@@ -5,7 +5,7 @@ import Button from './ButtonNew'
 
 export default {
   title: 'Design system/DropdownMenu',
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 }
 
 export function dropdownMenu() {

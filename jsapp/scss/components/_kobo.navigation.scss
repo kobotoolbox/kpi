@@ -157,27 +157,6 @@
     padding: 15px;
     padding-bottom: 15px;
 
-    a {
-      color: colors.$kobo-gray-700;
-      cursor: pointer;
-      font-weight: normal;
-      display: block;
-
-      i {
-        font-size: 24px;
-        margin: 3px;
-        vertical-align: -6px;
-      }
-
-      span {
-        vertical-align: middle;
-      }
-
-      &:hover {
-        color: colors.$kobo-blue;
-      }
-    }
-
     &.environment-links {
       display: flex;
       justify-content: space-evenly;
@@ -189,6 +168,13 @@
         font-size: 12px;
         text-align: center;
         text-wrap: balance;
+        color: colors.$kobo-gray-700;
+        cursor: pointer;
+        font-weight: normal;
+
+        &:hover {
+          color: colors.$kobo-blue;
+        }
       }
     }
   }

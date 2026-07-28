@@ -279,7 +279,6 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
               <PublicShareSettings
                 publicPerms={this.state.publicPerms}
                 assetUid={this.props.assetUid}
-                deploymentActive={this.state.asset.deployment__active}
                 userCanShare={isManagingPossible}
               />
             </bem.FormModal__item>

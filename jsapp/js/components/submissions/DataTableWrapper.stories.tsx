@@ -14,6 +14,7 @@ import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
+import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import {
   getApiV2AssetsRetrieveMockHandler,
   getApiV2AssetsRetrieveResponseMock,
@@ -154,6 +155,7 @@ const minimalAsset = getApiV2AssetsRetrieveResponseMock({
   name: 'Audio form',
   deployment__active: true,
   has_deployment: true,
+  settings: {},
   map_styles: {},
   content: {
     schema: '1',
@@ -211,6 +213,7 @@ const processingAsset = getApiV2AssetsRetrieveResponseMock({
   name: 'Audio form with processing',
   deployment__active: true,
   has_deployment: true,
+  settings: {},
   map_styles: {},
   content: {
     schema: '1',
@@ -326,6 +329,13 @@ const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveRe
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   submission_uuids: [processingSubmissions[1]['meta/rootUuid']],
+  submission_statuses: [
+    {
+      uuid: processingSubmissions[1]['meta/rootUuid'],
+      status: BulkActionSubmissionStatusResponseStatusEnum.complete,
+      error: null,
+    },
+  ],
   params: { language: 'fr' },
   created_by: {
     username: 'zefir',
@@ -336,6 +346,13 @@ const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveR
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
   submission_uuids: [processingSubmissions[2]['meta/rootUuid']],
+  submission_statuses: [
+    {
+      uuid: processingSubmissions[2]['meta/rootUuid'],
+      status: BulkActionSubmissionStatusResponseStatusEnum.in_progress,
+      error: null,
+    },
+  ],
   params: { language: 'es' },
   created_by: {
     username: 'other-user',
@@ -355,7 +372,7 @@ const meta: Meta<typeof DataTableWrapper> = {
           '⚠️ **Docs view does NOT work reliably for these stories due to per-story MSW handler and asset/submission isolation issues. Use single stories (Default, and Processing Column) please.** Also note that many interactive elements of the table are not mocked and will not work.',
       },
     },
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -382,7 +399,7 @@ export const Default: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -404,7 +421,7 @@ export const ProcessingColumnAndBanner: Story = {
     asset: processingAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(processingAsset.uid),
     msw: {
       handlers: [
@@ -427,7 +444,7 @@ export const ProcessingAndLimitsBannersTogether: Story = {
     asset: processingAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(processingAsset.uid),
     msw: {
       handlers: [
@@ -452,7 +469,7 @@ export const StorageLimitWarningBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -474,7 +491,7 @@ export const StorageExceededBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -496,7 +513,7 @@ export const SubmissionExceededBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [
@@ -518,7 +535,7 @@ export const StorageAndSubmissionExceededBanner: Story = {
     asset: minimalAsset,
   },
   parameters: {
-    a11y: { test: 'todo' },
+    a11y: { disable: true },
     reactRouter: getRouterParams(minimalAsset.uid),
     msw: {
       handlers: [

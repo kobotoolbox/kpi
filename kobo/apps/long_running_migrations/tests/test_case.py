@@ -1,12 +1,19 @@
 import os
+import threading
 from unittest.mock import MagicMock, patch
 
+from django.core.cache import cache
 from django.core.exceptions import SuspiciousOperation
-from django.test import TestCase, override_settings
+from django.test import TestCase, TransactionTestCase, override_settings
 from freezegun import freeze_time
 
 from ..models import LongRunningMigration, LongRunningMigrationStatus
-from ..tasks import execute_long_running_migrations
+from ..tasks import _heartbeat, async_execute, execute_long_running_migrations
+
+FIXTURES_DIR = os.path.join(
+    'kobo', 'apps', 'long_running_migrations', 'tests', 'fixtures'
+)
+LOCMEM_CACHE = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
 
 
 @override_settings(
@@ -125,3 +132,78 @@ class LongRunningMigrationPeriodicTaskTestCase(TestCase):
         execute_long_running_migrations()
         self.migration.refresh_from_db()
         self.assertEqual(self.migration.status, LongRunningMigrationStatus.COMPLETED)
+
+    def test_multiple_migrations_all_run(self):
+        second_migration = LongRunningMigration.objects.create(name='sample_task_2')
+        execute_long_running_migrations()
+        self.migration.refresh_from_db()
+        second_migration.refresh_from_db()
+        assert self.migration.status == LongRunningMigrationStatus.COMPLETED
+        assert second_migration.status == LongRunningMigrationStatus.COMPLETED
+
+
+@override_settings(CACHES=LOCMEM_CACHE)
+@patch.object(LongRunningMigration, 'LONG_RUNNING_MIGRATIONS_DIR', FIXTURES_DIR)
+class LongRunningMigrationLockTestCase(TestCase):
+
+    def setUp(self):
+        cache.clear()
+
+    def test_lock_prevents_duplicate_execution(self):
+        migration = LongRunningMigration.objects.create(name='sample_task')
+        lock_key = f'execute_long_running_migrations:{migration.name}'
+        # Simulate the migration already running on another worker.
+        cache.add(lock_key, 'true', timeout=300)
+        with patch.object(LongRunningMigration, 'execute') as mocked_execute:
+            async_execute(migration.pk)
+        mocked_execute.assert_not_called()
+
+    def test_lock_released_after_execution(self):
+        migration = LongRunningMigration.objects.create(name='sample_task')
+        lock_key = f'execute_long_running_migrations:{migration.name}'
+        async_execute(migration.pk)
+        assert cache.get(lock_key) is None
+
+    def test_distinct_migrations_use_distinct_locks(self):
+        first = LongRunningMigration.objects.create(name='sample_task')
+        second = LongRunningMigration.objects.create(name='sample_task_2')
+        # Hold the lock of the first migration only.
+        cache.add(f'execute_long_running_migrations:{first.name}', 'true', timeout=300)
+        async_execute(first.pk)
+        async_execute(second.pk)
+        first.refresh_from_db()
+        second.refresh_from_db()
+        # First is blocked by its lock, second runs on its own lock.
+        assert first.status == LongRunningMigrationStatus.CREATED
+        assert second.status == LongRunningMigrationStatus.COMPLETED
+
+
+@override_settings(CACHES=LOCMEM_CACHE)
+@patch.object(LongRunningMigration, 'LONG_RUNNING_MIGRATIONS_DIR', FIXTURES_DIR)
+class LongRunningMigrationHeartbeatTestCase(TransactionTestCase):
+
+    def setUp(self):
+        cache.clear()
+
+    def test_heartbeat_refreshes_lock_and_timestamp(self):
+        migration = LongRunningMigration.objects.create(name='sample_task')
+        lock_key = f'execute_long_running_migrations:{migration.name}'
+        original_date_modified = migration.date_modified
+
+        # Make wait() return False once so the body runs a single time, then
+        # True so the loop exits. The thread stops on its own, so we don't need
+        # to sleep. We use a real thread so the DB write happens on its own
+        # connection, like in production.
+        stop_event = MagicMock()
+        stop_event.wait.side_effect = [False, True]
+        heartbeat = threading.Thread(
+            target=_heartbeat, args=(stop_event, lock_key, migration.pk)
+        )
+        heartbeat.start()
+        heartbeat.join(timeout=5)
+
+        assert not heartbeat.is_alive()
+        migration.refresh_from_db()
+        # `date_modified` moved forward and the lock is still held.
+        assert migration.date_modified > original_date_modified
+        assert cache.get(lock_key) == 'true'

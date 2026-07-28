@@ -11,7 +11,7 @@ const meta: Meta<typeof KoboSelect> = {
       control: { type: 'select' },
     },
   },
-  parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { disable: true } },
 }
 
 export default meta

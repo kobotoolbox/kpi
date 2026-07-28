@@ -1,11 +1,10 @@
 import { IconLogout, IconWorldFilled } from '@tabler/icons-react'
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import bem from '#/bem'
 import Menu from '#/components/common/Menu'
 import Avatar from '#/components/common/avatar'
-import Button from '#/components/common/button'
 import type { LabelValuePair } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -23,8 +22,6 @@ import OrganizationBadge from './organizationBadge.component'
  * Note: this displays a simplified content for user with invalidated password.
  */
 export default function AccountMenu() {
-  const navigate = useNavigate()
-
   const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState<boolean>(false)
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
@@ -66,11 +63,6 @@ export default function AccountMenu() {
     )
   }
 
-  const openAccountSettings = () => {
-    setIsMenuOpen(false)
-    navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS)
-  }
-
   if (!sessionStore.isLoggedIn) {
     return null
   }
@@ -101,13 +93,16 @@ export default function AccountMenu() {
               */}
               {!isAnyRouteBlockerActive() && (
                 <bem.AccountBox__menuItem m={'settings'}>
-                  <Button
-                    type='primary'
-                    size='l'
-                    isFullWidth
-                    onClick={openAccountSettings}
-                    label={t('Account Settings')}
-                  />
+                  <ButtonNew
+                    variant='filled'
+                    fullWidth
+                    size='md'
+                    component={Link}
+                    to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('Account Settings')}
+                  </ButtonNew>
                 </bem.AccountBox__menuItem>
               )}
             </bem.AccountBox__menuLI>

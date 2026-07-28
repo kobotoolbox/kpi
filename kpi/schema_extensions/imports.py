@@ -9,6 +9,7 @@ import kpi.schema_extensions.v2.data.extensions
 import kpi.schema_extensions.v2.export_settings.extensions
 import kpi.schema_extensions.v2.export_tasks.extensions
 import kpi.schema_extensions.v2.files.extensions
+import kpi.schema_extensions.v2.generic.extensions
 import kpi.schema_extensions.v2.imports.extensions
 import kpi.schema_extensions.v2.invites.extensions
 import kpi.schema_extensions.v2.me.extensions
@@ -19,7 +20,6 @@ import kpi.schema_extensions.v2.paired_data.extensions
 import kpi.schema_extensions.v2.permissions.extensions
 import kpi.schema_extensions.v2.service_usage.extensions
 import kpi.schema_extensions.v2.subsequences.extensions
-import kpi.schema_extensions.v2.tags.extensions
 import kpi.schema_extensions.v2.tos.extensions
 import kpi.schema_extensions.v2.user_reports.extensions
 import kpi.schema_extensions.v2.users.extensions
