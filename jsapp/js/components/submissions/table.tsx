@@ -992,7 +992,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 hasRowsSelected={this.state.selectAll || recordKeys(this.state.selectedRows).length !== 0}
                 hasAnyTranscribableAudio={hasAnyTranscribableAudio(this.getSelectedSubmissions(), key)}
                 hasAnyTranslatableTranscript={hasAnyTranslatableTranscript(this.getSelectedSubmissions(), key)}
-                isBulkApproveDisabled={!hasAnyUnacceptedAutomaticContent(this.getSelectedSubmissions(), key)}
+                hasAnyUnacceptedAutomaticContent={hasAnyUnacceptedAutomaticContent(this.getSelectedSubmissions(), key)}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
