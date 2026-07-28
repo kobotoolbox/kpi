@@ -25,6 +25,8 @@ import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
 import TableTextFilter from '#/components/submissions/TableTextFilter'
 import {
   getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  hasAnyTranscribableAudio,
+  hasAnyTranslatableTranscript,
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
@@ -508,20 +510,22 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   /**
-   * Opens a bulk processing modal for selected submissions.
+   * Returns full submission objects for the currently selected rows.
    * Note: Only submissions from the currently loaded page are included, even if
    * rows from other pages are selected. This is intentional - the warning modal
    * alerts users when they've selected rows across multiple pages.
    */
+  private getSelectedSubmissions(): SubmissionResponse[] {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+    return this.state.submissions.filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
+  }
+
+  /**
+   * Opens a bulk processing modal for selected submissions.
+   */
   private openBulkProcessingModal(fieldId: string, modalType: 'transcribe' | 'translate' | 'approve') {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
-
-    // Filter to get full submission objects for the selected IDs.
-    // This only finds submissions on the current page - selections from other
-    // pages are intentionally excluded (user is warned about this).
-    const selectedSubmissions = this.state.submissions.filter((submission) =>
-      selectedSubmissionIds.includes(String(submission._id)),
-    )
+    const selectedSubmissions = this.getSelectedSubmissions()
 
     // Show warning if "Select All" would process more rows than are visible on current page
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
@@ -980,13 +984,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
                 onApproveSelectedSubmissions={this.onApproveSelectedSubmissions.bind(this)}
-                isBulkProcessingDisabled={
-                  !(
-                    userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-                    userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
-                  ) ||
-                  (!this.state.selectAll && recordKeys(this.state.selectedRows).length === 0)
+                userCanChangeSubmissions={
+                  userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+                  userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
                 }
+                hasRowsSelected={this.state.selectAll || recordKeys(this.state.selectedRows).length !== 0}
+                hasAnyTranscribableAudio={hasAnyTranscribableAudio(this.getSelectedSubmissions(), key)}
+                hasAnyTranslatableTranscript={hasAnyTranslatableTranscript(this.getSelectedSubmissions(), key)}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
