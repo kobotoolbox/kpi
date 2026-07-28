@@ -119,7 +119,9 @@ class ProjectOwnershipTransferStatusTestCase(TestCase):
         for transfer_status in self.transfer.statuses.all():
             assert transfer_status.status == TransferStatusChoices.SUCCESS
 
-    def test_update_status_of_previously_succeeded_transfer(self):
+    def test_update_status_of_previously_succeeded_transfer_is_noop(self):
+        # `success` is terminal: a later update must not downgrade the row or
+        # write an error.
         submissions_status = self.transfer.statuses.get(
             status_type=TransferStatusTypeChoices.SUBMISSIONS
         )
@@ -132,13 +134,35 @@ class ProjectOwnershipTransferStatusTestCase(TestCase):
             transfer_id=self.transfer.id,
             status_type=TransferStatusTypeChoices.SUBMISSIONS,
             status=TransferStatusChoices.FAILED,
+            error='late failure signal',
         )
-        errors_qset = submissions_status.errors
-        assert errors_qset.count() == 1
-        error = errors_qset.first()
-        assert (
-            error.error == 'Updating status of previously successful transfer to failed'
+        submissions_status.refresh_from_db()
+        assert submissions_status.status == TransferStatusChoices.SUCCESS
+        assert submissions_status.errors.count() == 0
+
+    def test_terminal_success_does_not_flip_completed_invite(self):
+        # Bring every sub-task to success so the invite is complete.
+        self.transfer.status = TransferStatusChoices.IN_PROGRESS
+        for status_type, _ in TransferStatusTypeChoices.choices:
+            if status_type == TransferStatusTypeChoices.GLOBAL:
+                continue
+            TransferStatus.update_status(
+                self.transfer.id, TransferStatusChoices.SUCCESS, status_type
+            )
+        self.invite.refresh_from_db()
+        assert self.invite.status == InviteStatusChoices.COMPLETE
+
+        # A late FAILED signal on an already-successful sub-task is ignored.
+        TransferStatus.update_status(
+            self.transfer.id,
+            TransferStatusChoices.FAILED,
+            TransferStatusTypeChoices.ATTACHMENTS,
+            error='late failure signal',
         )
+        self.transfer.refresh_from_db()
+        self.invite.refresh_from_db()
+        assert self.transfer.status == TransferStatusChoices.SUCCESS
+        assert self.invite.status == InviteStatusChoices.COMPLETE
 
     def test_transfer_does_not_produce_new_version(self):
         asset = self.transfer.asset

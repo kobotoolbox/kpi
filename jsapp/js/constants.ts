@@ -80,7 +80,6 @@ export const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  TABLE_SETTINGS: 'table-settings',
   REST_SERVICES: 'rest-services',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',

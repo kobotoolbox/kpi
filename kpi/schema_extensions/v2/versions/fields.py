@@ -23,3 +23,7 @@ class UidField(serializers.ReadOnlyField):
 
 class UrlField(serializers.SerializerMethodField):
     pass
+
+
+class VersionNumberField(serializers.SerializerMethodField):
+    pass
