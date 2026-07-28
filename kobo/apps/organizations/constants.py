@@ -31,8 +31,21 @@ INVITE_MEMBER_ERROR = (
     'create one.'
 )
 
+INVALID_ROLE_ERROR = "Invalid role. Only 'admin' or 'member' are allowed"
 INVITE_ALREADY_ACCEPTED_ERROR = 'Invite has already been accepted.'
+INVITE_CANNOT_BE_RESENT_ERROR = 'Invitation cannot be resent'
 INVITE_NOT_FOUND_ERROR = 'Invite not found.'
+INVITE_RESENT_TOO_QUICKLY_ERROR = (
+    'Invitation resent too quickly, wait for ##minutes## minutes before retrying'
+)
+INVITE_ROLE_LOCKED_ERROR = 'Role cannot be changed after acceptance'
+INVITE_STATUS_RESERVED_ERROR = '`##status##` is reserved and cannot be set'
+INVITE_STATUS_UNSETTABLE_ERROR = (
+    '`##status##` cannot be set on a newly created invitation'
+)
+NOT_ENOUGH_PERMISSIONS_ERROR = (
+    'You do not have enough permissions to perform this action'
+)
 ORG_ADMIN_ROLE = 'admin'
 ORG_EXTERNAL_ROLE = 'external'
 ORG_MEMBER_ROLE = 'member'
