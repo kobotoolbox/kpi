@@ -90,7 +90,7 @@
     "@faker-js/faker": "^9.9.0",
     "@jest/create-cache-key-function": "^30.3.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
-    "@storybook/addon-a11y": "^10.4.6",
+    "@storybook/addon-a11y": "^10.5.5",
     "@storybook/addon-docs": "^10.4.6",
     "@storybook/addon-webpack5-compiler-babel": "^4.0.1",
     "@storybook/react-webpack5": "^10.4.6",
