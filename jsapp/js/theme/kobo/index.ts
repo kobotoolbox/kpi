@@ -22,6 +22,7 @@ import { PillThemeKobo } from './Pill'
 import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
+import { TabsThemeKobo } from './Tabs'
 import { TagsInputThemeKobo } from './TagsInput'
 import { TextareaThemeKobo } from './Textarea'
 import { ThemeIconThemeKobo } from './ThemeIcon'
@@ -166,6 +167,7 @@ export const themeKobo = createTheme({
     Select: SelectThemeKobo,
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
+    Tabs: TabsThemeKobo,
     Divider: DividerThemeKobo,
     Dropzone: DropzoneThemeKobo,
     TagsInput: TagsInputThemeKobo,
