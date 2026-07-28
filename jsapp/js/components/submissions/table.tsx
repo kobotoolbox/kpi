@@ -25,6 +25,8 @@ import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
 import TableTextFilter from '#/components/submissions/TableTextFilter'
 import {
   getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  hasAnyTranscribableAudio,
+  hasAnyTranslatableTranscript,
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
@@ -983,13 +985,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
                 onApproveSelectedSubmissions={this.onApproveSelectedSubmissions.bind(this)}
-                isBulkProcessingDisabled={
-                  !(
-                    userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-                    userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
-                  ) ||
-                  (!this.state.selectAll && recordKeys(this.state.selectedRows).length === 0)
+                userCanChangeSubmissions={
+                  userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+                  userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
                 }
+                hasRowsSelected={this.state.selectAll || recordKeys(this.state.selectedRows).length !== 0}
+                hasAnyTranscribableAudio={hasAnyTranscribableAudio(this.getSelectedSubmissions(), key)}
+                hasAnyTranslatableTranscript={hasAnyTranslatableTranscript(this.getSelectedSubmissions(), key)}
                 isBulkApproveDisabled={!hasAnyUnacceptedAutomaticContent(this.getSelectedSubmissions(), key)}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>

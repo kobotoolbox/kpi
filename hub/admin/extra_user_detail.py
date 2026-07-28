@@ -7,6 +7,7 @@ class ExtraUserDetailAdmin(admin.ModelAdmin):
     ordering = ('user__username',)
     search_fields = ('user__username',)
     autocomplete_fields = ['user']
+    readonly_fields = ('uid',)
 
     def get_queryset(self, request):
         return (

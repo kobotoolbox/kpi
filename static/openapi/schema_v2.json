@@ -33680,6 +33680,10 @@
                         "type": "string",
                         "format": "date-time",
                         "readOnly": true
+                    },
+                    "version_number": {
+                        "type": "string",
+                        "readOnly": true
                     }
                 },
                 "required": [
@@ -33687,7 +33691,8 @@
                     "date_deployed",
                     "date_modified",
                     "uid",
-                    "url"
+                    "url",
+                    "version_number"
                 ]
             },
             "VersionRetrieveResponse": {
@@ -33725,6 +33730,10 @@
                     "date_modified": {
                         "type": "string",
                         "format": "date-time",
+                        "readOnly": true
+                    },
+                    "version_number": {
+                        "type": "string",
                         "readOnly": true
                     },
                     "content": {
@@ -33798,7 +33807,8 @@
                     "date_deployed",
                     "date_modified",
                     "uid",
-                    "url"
+                    "url",
+                    "version_number"
                 ]
             },
             "historyExportResponse": {

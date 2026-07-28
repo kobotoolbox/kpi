@@ -3806,6 +3806,7 @@ export const getApiV2AssetsVersionsListResponseMock = (
       faker.datatype.boolean(),
     ]),
     date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    version_number: faker.string.alpha({ length: { min: 10, max: 20 } }),
   })),
   ...overrideResponse,
 })
@@ -3821,6 +3822,7 @@ export const getApiV2AssetsVersionsRetrieveResponseMock = (
     faker.datatype.boolean(),
   ]),
   date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  version_number: faker.string.alpha({ length: { min: 10, max: 20 } }),
   content: {
     schema: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     survey: faker.helpers.arrayElement([

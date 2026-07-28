@@ -1,9 +1,6 @@
 import './tableColumnSortDropdown.scss'
-
-import React from 'react'
-import { useState } from 'react'
-
 import { Group } from '@mantine/core'
+import React, { useState } from 'react'
 import Menu from '#/components/common/Menu'
 import Icon from '#/components/common/icon'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
@@ -28,7 +25,11 @@ interface TableColumnSortDropdownProps {
   onTranscribeSelectedAudioFiles?: (fieldId: string) => void
   onTranslateSelectedTranscriptions?: (fieldId: string) => void
   onApproveSelectedSubmissions?: (fieldId: string) => void
-  isBulkProcessingDisabled?: boolean
+  // Props below are being used by bulk processing code
+  userCanChangeSubmissions?: boolean
+  hasRowsSelected?: boolean
+  hasAnyTranscribableAudio?: boolean
+  hasAnyTranslatableTranscript?: boolean
   /**
    * `true` when none of the selected submissions has a transcript/translation
    * awaiting approval in this column, so there is nothing to approve.
@@ -158,7 +159,9 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canTranscribeSelectedAudioFiles && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled}
+                  disabled={
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || !props.hasAnyTranscribableAudio
+                  }
                   onClick={transcribeSelectedAudioFiles}
                   leftSection={<Icon name='qt-audio' size='inherit' />}
                 >
@@ -169,7 +172,9 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canTranslateSelectedTranscriptions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled}
+                  disabled={
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || props.hasAnyTranslatableTranscript
+                  }
                   onClick={translateSelectedTranscriptions}
                   leftSection={<Icon name='transcripts' size='inherit' />}
                 >
@@ -180,7 +185,9 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canApproveSelectedSubmissions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={props.isBulkProcessingDisabled || props.isBulkApproveDisabled}
+                  disabled={
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || props.isBulkApproveDisabled
+                  }
                   onClick={approveSelectedSubmissions}
                   leftSection={<Icon name='check' size='inherit' />}
                 >

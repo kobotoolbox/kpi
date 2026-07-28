@@ -94,7 +94,9 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
             _queryset = _queryset.filter(deployed=_deployed)
         if self.action == 'list':
             # Save time by only retrieving fields from the DB that the
-            # serializer will use
+            # serializer will use. The `version_number` is derived from the
+            # asset's full history by `AssetVersionListSerializer` (one memoized
+            # query per request), so no queryset annotation is needed here
             _queryset = _queryset.only(
                 'uid', 'deployed', 'date_modified', 'asset_id', '_content_hash'
             )
