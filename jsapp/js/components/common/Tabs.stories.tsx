@@ -1,8 +1,9 @@
 import { Box, Group, Stack, Tabs, type TabsProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import type { TabsSizeCustom, TabsVariantCustom } from '#/theme/kobo/Tabs'
 
-const tabsVariants = ['default', 'pills', 'bubble'] as const
-const tabsSizes = ['sm', 'md', 'lg'] as const
+const tabsVariants: TabsVariantCustom[] = ['default', 'pills', 'bubble']
+const tabsSizes: TabsSizeCustom[] = ['sm', 'md', 'lg']
 
 const SampleTabs = (props: Partial<TabsProps>) => (
   <Tabs defaultValue='overview' {...props}>

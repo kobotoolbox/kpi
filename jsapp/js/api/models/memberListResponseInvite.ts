@@ -11,7 +11,4 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { InviteResponse } from './inviteResponse'
 
-/**
- * @nullable
- */
 export type MemberListResponseInvite = InviteResponse | null

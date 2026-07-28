@@ -12,6 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 /**
  * Describes the current discount applied to this subscription, if there is one. When billing, a discount applied to a subscription overrides a discount applied on a customer-wide basis.
- * @nullable
  */
 export type SubscriptionDiscount = unknown | null

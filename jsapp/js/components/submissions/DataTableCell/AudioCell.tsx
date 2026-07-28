@@ -9,6 +9,7 @@ import MiniAudioPlayer from '#/components/common/miniAudioPlayer'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
+import { useAttachmentDuration } from '../AudioDurationsContext'
 import { shouldProcessingBeAccessible } from '../submissionUtils'
 
 bem.AudioCell = makeBem(null, 'audio-cell')
@@ -28,6 +29,9 @@ interface AudioCellProps {
 export default function AudioCell(props: AudioCellProps) {
   const submissionEditId = removeDefaultUuidPrefix(props.submissionData['meta/rootUuid']) || props.submissionData._uuid
 
+  const attachmentUid = typeof props.mediaAttachment === 'string' ? undefined : props.mediaAttachment?.uid
+  const durationSeconds = useAttachmentDuration(attachmentUid)
+
   return (
     <bem.AudioCell>
       {typeof props.mediaAttachment === 'string' ? (
@@ -37,7 +41,7 @@ export default function AudioCell(props: AudioCellProps) {
       ) : props.mediaAttachment?.is_deleted ? (
         <DeletedAttachment />
       ) : props.mediaAttachment?.download_url ? (
-        <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
+        <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} durationSeconds={durationSeconds} />
       ) : null}
 
       {typeof props.mediaAttachment !== 'string' &&
