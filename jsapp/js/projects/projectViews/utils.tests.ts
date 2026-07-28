@@ -88,7 +88,7 @@ describe('projectViewsUtils', () => {
         },
         {
           in: { fieldName: 'ownerOrganization', condition: 'isEmpty' },
-          out: 'owner__extra_details__data__organization:""',
+          out: 'owner__organizations_organization__name:""',
         },
         {
           in: { fieldName: 'description', condition: 'isNot', value: 'foo' },
