@@ -19,6 +19,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { AudioDurationsProvider } from '#/components/submissions/AudioDurationsContext'
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
 import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
@@ -58,6 +59,7 @@ import {
   getBackgroundAudioQuestionName,
   getColumnHXLTags,
   getColumnLabel,
+  getVisibleAudioXpaths,
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
@@ -1487,45 +1489,51 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
           </bem.FormView__item>
         </bem.FormView__group>
-        <ReactTable
-          data={this.state.submissions}
-          columns={this.state.columns}
-          defaultPageSize={DEFAULT_PAGE_SIZE}
-          pageSizeOptions={[10, 30, 50, 100, 200, 500]}
-          minRows={0}
-          className={tableClasses.join(' ')}
-          pages={pages}
-          manual
-          onFetchData={this.fetchData.bind(this)}
-          loading={this.state.loading}
-          previousText={
-            <React.Fragment>
-              <i className='k-icon k-icon-caret-left' />
-              {t('Prev')}
-            </React.Fragment>
-          }
-          nextText={
-            <React.Fragment>
-              {t('Next')}
-              <i className='k-icon k-icon-caret-right' />
-            </React.Fragment>
-          }
-          loadingText={<LoadingSpinner />}
-          noDataText={t('Your filters returned no submissions.')}
-          pageText={t('Page')}
-          ofText={t('of')}
-          rowsText={t('rows')}
-          getTableProps={() => {
-            return {
-              onScroll: this.onTableScroll.bind(this),
+        <AudioDurationsProvider
+          assetUid={this.props.asset.uid}
+          submissions={this.state.submissions}
+          visibleAudioXpaths={getVisibleAudioXpaths(this.state.columns)}
+        >
+          <ReactTable
+            data={this.state.submissions}
+            columns={this.state.columns}
+            defaultPageSize={DEFAULT_PAGE_SIZE}
+            pageSizeOptions={[10, 30, 50, 100, 200, 500]}
+            minRows={0}
+            className={tableClasses.join(' ')}
+            pages={pages}
+            manual
+            onFetchData={this.fetchData.bind(this)}
+            loading={this.state.loading}
+            previousText={
+              <React.Fragment>
+                <i className='k-icon k-icon-caret-left' />
+                {t('Prev')}
+              </React.Fragment>
             }
-          }}
-          filterable
-          // Enables RTL support in table cells
-          getTdProps={() => {
-            return { dir: 'auto' }
-          }}
-        />
+            nextText={
+              <React.Fragment>
+                {t('Next')}
+                <i className='k-icon k-icon-caret-right' />
+              </React.Fragment>
+            }
+            loadingText={<LoadingSpinner />}
+            noDataText={t('Your filters returned no submissions.')}
+            pageText={t('Page')}
+            ofText={t('of')}
+            rowsText={t('rows')}
+            getTableProps={() => {
+              return {
+                onScroll: this.onTableScroll.bind(this),
+              }
+            }}
+            filterable
+            // Enables RTL support in table cells
+            getTdProps={() => {
+              return { dir: 'auto' }
+            }}
+          />
+        </AudioDurationsProvider>
       </bem.FormView>
     )
   }
