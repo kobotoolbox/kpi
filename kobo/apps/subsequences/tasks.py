@@ -225,10 +225,12 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
     impatient watchdog tasks from spawning duplicate requests while we wait for
     Google to reply.
     """
+    from .audit import sync_bulk_action_history_log_by_uid
     from .models import (
+        PENDING_OPERATION_MARKER,
+        TERMINAL_BULK_ACTION_ITEM_STATUSES,
         BulkActionItemStatus,
         BulkActionStatus,
-        PENDING_OPERATION_MARKER,
     )
 
     SubsequenceBulkActionItem = apps.get_model(  # noqa: N806
@@ -398,6 +400,12 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 update_fields.append('service_id')
         item.save(update_fields=update_fields)
 
+        # Google occasionally finishes inside the initial synchronous wait, so
+        # an item can reach a terminal state without ever going through
+        # `poll_run_external_process()`. Keep the activity log current here too
+        if extracted_status in TERMINAL_BULK_ACTION_ITEM_STATUSES:
+            sync_bulk_action_history_log_by_uid(item.parent_id)
+
         if extracted_status == BulkActionItemStatus.IN_PROGRESS:
             poll_run_external_process.apply_async(
                 kwargs={
@@ -428,6 +436,10 @@ def update_batch_status(subsequence_bulk_action_id: str):
 
     The parent stays in_progress while any item is active. Once all items are in
     terminal states, the parent is marked complete and progress reaches 100.
+
+    This task is the only thing that advances `progress` and moves the parent to
+    a terminal status, so it must keep re-queueing itself for as long as the
+    batch is running, including on the paths where it does no work
     """
     from .audit import sync_bulk_action_history_log
     from .models import BulkActionItemStatus, BulkActionStatus
@@ -549,6 +561,7 @@ def _mark_bulk_item_failed(item, error: str | None = None) -> None:
     """
     Move a child item to failed so the parent batch can reach a terminal state
     """
+    from .audit import sync_bulk_action_history_log_by_uid
     from .models import PENDING_OPERATION_MARKER
 
     item.status = 'failed'
@@ -566,6 +579,9 @@ def _mark_bulk_item_failed(item, error: str | None = None) -> None:
         )
     else:
         item.save(update_fields=['status', 'service_id', 'date_modified'])
+
+    # 'failed' is terminal, so the batch progress just moved
+    sync_bulk_action_history_log_by_uid(item.parent_id)
 
 
 def _clear_pending_operation_marker(item) -> None:
@@ -721,7 +737,11 @@ def _update_bulk_action_item_status(
     """
     Mirror an async supplement status back to the matching bulk child item
     """
-    from .models import BulkActionItemStatus
+    from .audit import sync_bulk_action_history_log_by_uid
+    from .models import (
+        TERMINAL_BULK_ACTION_ITEM_STATUSES,
+        BulkActionItemStatus,
+    )
 
     bulk_action_uid = action_data.get('bulk_action_uid')
     if not bulk_action_uid:
@@ -741,8 +761,19 @@ def _update_bulk_action_item_status(
     elif status != BulkActionItemStatus.FAILED:
         updates['failure_error'] = None
 
-    SubsequenceBulkActionItem.objects.filter(
+    updated = SubsequenceBulkActionItem.objects.filter(
         parent__uid=bulk_action_uid,
         submission_root_uuid=submission_uuid,
         status__in=[BulkActionItemStatus.PENDING, BulkActionItemStatus.IN_PROGRESS],
     ).update(**updates)
+
+    # Refresh the activity log as soon as the item lands in a terminal state, so
+    # the progress there matches what the data table already shows. Waiting for
+    # the next `update_batch_status()` tick instead left the activity page up to
+    # `BULK_ACTION_STATUS_POLL_INTERVAL` behind
+    #
+    # The filter above only matches items that are still active, so `updated` is
+    # 1 only on a real transition. Repeated polls that re-assert 'in_progress'
+    # match nothing and cost no extra writes
+    if updated and status in TERMINAL_BULK_ACTION_ITEM_STATUSES:
+        sync_bulk_action_history_log_by_uid(bulk_action_uid)
