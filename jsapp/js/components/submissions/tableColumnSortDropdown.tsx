@@ -30,6 +30,7 @@ interface TableColumnSortDropdownProps {
   hasRowsSelected?: boolean
   hasAnyTranscribableAudio?: boolean
   hasAnyTranslatableTranscript?: boolean
+  hasAnyUnacceptedAutomaticContent?: boolean
   /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
@@ -168,7 +169,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
                 <Menu.Item
                   className='sort-dropdown-menu-button'
                   disabled={
-                    !props.userCanChangeSubmissions || !props.hasRowsSelected || props.hasAnyTranslatableTranscript
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || !props.hasAnyTranslatableTranscript
                   }
                   onClick={translateSelectedTranscriptions}
                   leftSection={<Icon name='transcripts' size='inherit' />}
@@ -180,7 +181,9 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               {canApproveSelectedSubmissions && (
                 <Menu.Item
                   className='sort-dropdown-menu-button'
-                  disabled={!props.userCanChangeSubmissions || !props.hasRowsSelected}
+                  disabled={
+                    !props.userCanChangeSubmissions || !props.hasRowsSelected || !props.hasAnyUnacceptedAutomaticContent
+                  }
                   onClick={approveSelectedSubmissions}
                   leftSection={<Icon name='check' size='inherit' />}
                 >

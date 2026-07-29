@@ -14,7 +14,6 @@ export type AssetDeploymentDataDownloadLinks = {
   readonly csv_legacy: string
   readonly csv: string
   readonly geojson?: string
-  readonly kml_legacy: string
   readonly spss_labels?: string
   readonly xls_legacy: string
   readonly xls: string

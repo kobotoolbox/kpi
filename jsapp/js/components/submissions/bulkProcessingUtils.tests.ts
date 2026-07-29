@@ -2,7 +2,8 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
-import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import type { SubmissionAttachment } from '#/dataInterface'
+import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   getBulkProcessingColumnKey,
   getVisibleBulkProcessingSubmissionUuidsToRefresh,
@@ -14,10 +15,19 @@ import {
 } from './bulkProcessingUtils'
 
 describe('bulkProcessingUtils', () => {
-  const submission = {
-    _uuid: 'faa38eee-4e3f-419e-bac0-e95f1085d998',
-    'meta/rootUuid': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
-  } as SubmissionResponse
+  const submission = assetDataFactory(1)
+
+  function buildAttachment(overrides: Partial<SubmissionAttachment> = {}): SubmissionAttachment {
+    return {
+      download_url: 'http://localhost/media/mock-attachment.mp3',
+      mimetype: 'audio/mp3',
+      filename: 'mock-attachment.mp3',
+      media_file_basename: 'mock-attachment.mp3',
+      question_xpath: 'Secret_password_as_an_audio_file',
+      uid: 'mock-attachment-uid',
+      ...overrides,
+    }
+  }
 
   function buildBulkAction(overrides: Partial<BulkActionResponse> = {}) {
     return {
@@ -157,10 +167,7 @@ describe('bulkProcessingUtils', () => {
       }),
     ]
 
-    const notVisibleSubmission = {
-      _uuid: 'another-uuid',
-      'meta/rootUuid': 'uuid:another-uuid',
-    } as SubmissionResponse
+    const notVisibleSubmission = assetDataFactory(2)
 
     const test = getVisibleBulkProcessingSubmissionUuidsToRefresh(prev, [], [notVisibleSubmission])
 
@@ -170,16 +177,11 @@ describe('bulkProcessingUtils', () => {
   describe('hasTranscribableAudio', () => {
     const audioQuestionXpath = 'Secret_password_as_an_audio_file'
 
-    function buildSubmission(attachments?: Array<Partial<SubmissionAttachment>>) {
-      return {
-        ...submission,
-        _attachments: attachments,
-      } as SubmissionResponse
-    }
-
     it('should return true for an attachment of given question', () => {
       const test = hasTranscribableAudio(
-        buildSubmission([{ question_xpath: audioQuestionXpath, uid: 'att1' }]),
+        assetDataFactory(1, {
+          _attachments: [buildAttachment({ question_xpath: audioQuestionXpath, uid: 'att1' })],
+        }),
         audioQuestionXpath,
       )
 
@@ -188,7 +190,9 @@ describe('bulkProcessingUtils', () => {
 
     it('should return false for a deleted attachment', () => {
       const test = hasTranscribableAudio(
-        buildSubmission([{ question_xpath: audioQuestionXpath, uid: 'att1', is_deleted: true }]),
+        assetDataFactory(1, {
+          _attachments: [buildAttachment({ question_xpath: audioQuestionXpath, uid: 'att1', is_deleted: true })],
+        }),
         audioQuestionXpath,
       )
 
@@ -197,7 +201,9 @@ describe('bulkProcessingUtils', () => {
 
     it('should return false for an attachment of another question', () => {
       const test = hasTranscribableAudio(
-        buildSubmission([{ question_xpath: 'Some_other_question', uid: 'att1' }]),
+        assetDataFactory(1, {
+          _attachments: [buildAttachment({ question_xpath: 'Some_other_question', uid: 'att1' })],
+        }),
         audioQuestionXpath,
       )
 
@@ -205,30 +211,22 @@ describe('bulkProcessingUtils', () => {
     })
 
     it('should return false when there are no attachments at all', () => {
-      chai.expect(hasTranscribableAudio(buildSubmission([]), audioQuestionXpath)).to.be.false
-      chai.expect(hasTranscribableAudio(buildSubmission(), audioQuestionXpath)).to.be.false
+      chai.expect(hasTranscribableAudio(assetDataFactory(1), audioQuestionXpath)).to.be.false
     })
   })
 
   describe('hasAnyTranscribableAudio', () => {
     const audioQuestionXpath = 'Secret_password_as_an_audio_file'
 
-    const audioSubmission = {
-      ...submission,
-      _attachments: [{ question_xpath: audioQuestionXpath, uid: 'att1' }],
-    } as SubmissionResponse
+    const audioSubmission = assetDataFactory(1, {
+      _attachments: [buildAttachment({ question_xpath: audioQuestionXpath, uid: 'att1' })],
+    })
 
-    const deletedAudioSubmission = {
-      ...submission,
-      _uuid: 'deleted-audio-uuid',
-      _attachments: [{ question_xpath: audioQuestionXpath, uid: 'att2', is_deleted: true }],
-    } as SubmissionResponse
+    const deletedAudioSubmission = assetDataFactory(2, {
+      _attachments: [buildAttachment({ question_xpath: audioQuestionXpath, uid: 'att2', is_deleted: true })],
+    })
 
-    const noAudioSubmission = {
-      ...submission,
-      _uuid: 'no-audio-uuid',
-      _attachments: [],
-    } as SubmissionResponse
+    const noAudioSubmission = assetDataFactory(3)
 
     it('should return false for an empty selection', () => {
       chai.expect(hasAnyTranscribableAudio([], audioQuestionXpath)).to.be.false
@@ -253,18 +251,13 @@ describe('bulkProcessingUtils', () => {
   describe('hasTranslatableTranscript', () => {
     const transcriptColumnKey = '_supplementalDetails/Secret_password_as_an_audio_file/transcript_en'
 
-    function buildSubmission(supplementalDetails?: SubmissionResponse['_supplementalDetails']) {
-      return {
-        ...submission,
-        _supplementalDetails: supplementalDetails,
-      } as SubmissionResponse
-    }
-
     it('should return true for an approved transcript', () => {
       const test = hasTranslatableTranscript(
-        buildSubmission({
-          Secret_password_as_an_audio_file: {
-            transcript: { languageCode: 'en', value: 'Hello world' },
+        assetDataFactory(1, {
+          _supplementalDetails: {
+            Secret_password_as_an_audio_file: {
+              transcript: { languageCode: 'en', value: 'Hello world' },
+            },
           },
         }),
         transcriptColumnKey,
@@ -275,9 +268,11 @@ describe('bulkProcessingUtils', () => {
 
     it('should return false for a transcript still awaiting approval', () => {
       const test = hasTranslatableTranscript(
-        buildSubmission({
-          Secret_password_as_an_audio_file: {
-            transcript: { languageCode: 'en', pendingReview: true },
+        assetDataFactory(1, {
+          _supplementalDetails: {
+            Secret_password_as_an_audio_file: {
+              transcript: { languageCode: 'en', pendingReview: true },
+            },
           },
         }),
         transcriptColumnKey,
@@ -288,7 +283,7 @@ describe('bulkProcessingUtils', () => {
 
     it('should return false when there is no transcript at all', () => {
       const test = hasTranslatableTranscript(
-        buildSubmission({ Secret_password_as_an_audio_file: {} }),
+        assetDataFactory(1, { _supplementalDetails: { Secret_password_as_an_audio_file: {} } }),
         transcriptColumnKey,
       )
 
@@ -296,16 +291,18 @@ describe('bulkProcessingUtils', () => {
     })
 
     it('should return false when there are no supplemental details', () => {
-      const test = hasTranslatableTranscript(buildSubmission(), transcriptColumnKey)
+      const test = hasTranslatableTranscript(assetDataFactory(1), transcriptColumnKey)
 
       chai.expect(test).to.be.false
     })
 
     it('should return false for a transcript of another question', () => {
       const test = hasTranslatableTranscript(
-        buildSubmission({
-          Some_other_question: {
-            transcript: { languageCode: 'en', value: 'Hello world' },
+        assetDataFactory(1, {
+          _supplementalDetails: {
+            Some_other_question: {
+              transcript: { languageCode: 'en', value: 'Hello world' },
+            },
           },
         }),
         transcriptColumnKey,
@@ -318,29 +315,23 @@ describe('bulkProcessingUtils', () => {
   describe('hasAnyTranslatableTranscript', () => {
     const transcriptColumnKey = '_supplementalDetails/Secret_password_as_an_audio_file/transcript_en'
 
-    const approvedTranscriptSubmission = {
-      ...submission,
+    const approvedTranscriptSubmission = assetDataFactory(1, {
       _supplementalDetails: {
         Secret_password_as_an_audio_file: {
           transcript: { languageCode: 'en', value: 'Hello world' },
         },
       },
-    } as SubmissionResponse
+    })
 
-    const pendingTranscriptSubmission = {
-      ...submission,
-      _uuid: 'pending-uuid',
+    const pendingTranscriptSubmission = assetDataFactory(2, {
       _supplementalDetails: {
         Secret_password_as_an_audio_file: {
           transcript: { languageCode: 'en', pendingReview: true },
         },
       },
-    } as SubmissionResponse
+    })
 
-    const noTranscriptSubmission = {
-      ...submission,
-      _uuid: 'no-transcript-uuid',
-    } as SubmissionResponse
+    const noTranscriptSubmission = assetDataFactory(3)
 
     it('should return false for an empty selection', () => {
       chai.expect(hasAnyTranslatableTranscript([], transcriptColumnKey)).to.be.false
