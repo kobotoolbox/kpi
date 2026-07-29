@@ -28,6 +28,39 @@ export interface TableStoreData {
 }
 
 /**
+ * Settings that a user without `change_asset` can change for themselves. These
+ * live in `data.overrides` for the session only and are never persisted.
+ */
+const OVERRIDABLE_SETTINGS = [
+  DATA_TABLE_SETTINGS.SELECTED_COLUMNS,
+  DATA_TABLE_SETTINGS.FROZEN_COLUMN,
+  DATA_TABLE_SETTINGS.SHOW_GROUP,
+  DATA_TABLE_SETTINGS.TRANSLATION,
+  DATA_TABLE_SETTINGS.SHOW_HXL,
+  DATA_TABLE_SETTINGS.SORT_BY,
+] as const
+
+/**
+ * Copies one setting from `source` to `target`, skipping it if `source` has no
+ * value for it.
+ *
+ * `null` counts as a value here: `selected-columns: null` means "all columns
+ * visible", `frozen-column: null` means "nothing frozen". Hence the `undefined`
+ * check rather than a falsiness one.
+ */
+function applySetting<SettingName extends keyof AssetTableSettings>(
+  target: AssetTableSettings,
+  source: AssetTableSettings,
+  settingName: SettingName,
+) {
+  if (typeof source[settingName] !== 'undefined') {
+    // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
+    // prepends the frozen column to the selected columns).
+    target[settingName] = clonedeep(source[settingName])
+  }
+}
+
+/**
  * NOTE: tableStore should be handling all data required by table.js, but as
  * this would mean a huge refactor (and most probably dropping react-table),
  * we will stick to providing a one way interface for changing things in asset
@@ -56,18 +89,9 @@ class TableStore extends Reflux.Store {
     const tableSettings: AssetTableSettings = clonedeep(asset?.settings?.[DATA_TABLE_SETTING]) || {}
 
     // overrides take precedense over asset endpoint settings
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP]
-    }
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION]
-    }
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL]
-    }
-    if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
-      tableSettings[DATA_TABLE_SETTINGS.SORT_BY] = this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY]
-    }
+    OVERRIDABLE_SETTINGS.forEach((settingName) => {
+      applySetting(tableSettings, this.data.overrides, settingName)
+    })
 
     return tableSettings
   }
@@ -111,21 +135,13 @@ class TableStore extends Reflux.Store {
   }
 
   /**
-   * @param {object} newOverrides
+   * Stores session-local settings for users who can't persist them to the asset.
+   * Only `OVERRIDABLE_SETTINGS` are picked up, the rest is ignored.
    */
   setOverrides(newOverrides: AssetTableSettings) {
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] = newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP]
-    }
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] = newOverrides[DATA_TABLE_SETTINGS.TRANSLATION]
-    }
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] = newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL]
-    }
-    if (typeof newOverrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
-      this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] = newOverrides[DATA_TABLE_SETTINGS.SORT_BY]
-    }
+    OVERRIDABLE_SETTINGS.forEach((settingName) => {
+      applySetting(this.data.overrides, newOverrides, settingName)
+    })
 
     this.trigger(this.data)
   }
