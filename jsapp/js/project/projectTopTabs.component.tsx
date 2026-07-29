@@ -1,6 +1,6 @@
 import { Tabs } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import assetStore from '#/assetStore'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -13,7 +13,6 @@ import {
   isFormSummaryRoute,
 } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
-import styles from './projectTopTabs.module.scss'
 
 export default function ProjectTopTabs() {
   // First check if uid is available
@@ -23,7 +22,6 @@ export default function ProjectTopTabs() {
   }
 
   const [asset, setAsset] = useState<AssetResponse | undefined>(undefined)
-  const navigate = useNavigate()
 
   useEffect(() => {
     assetStore.whenLoaded(assetUid, setAsset)
@@ -39,7 +37,7 @@ export default function ProjectTopTabs() {
   const dataRoute = ROUTES.FORM_DATA.replace(':uid', assetUid)
   const settingsRoute = ROUTES.FORM_SETTINGS.replace(':uid', assetUid)
 
-  // Keep track of active tab via route to preserve back/forward browser navigation
+  // Keep track of active tab via route to sync selected tab with browser forward/back navigation
   let activeTab: string | null = null
   if (isFormSummaryRoute(assetUid)) {
     activeTab = summaryRoute
@@ -51,28 +49,34 @@ export default function ProjectTopTabs() {
     activeTab = settingsRoute
   }
 
-  const handleTabChange = (route: string | null) => {
-    if (route) {
-      navigate(route)
-    }
-  }
-
   return (
-    <nav className={styles.root}>
-      <Tabs size='md' value={activeTab} onChange={handleTabChange} className={styles.tabs}>
-        <Tabs.List justify='center'>
-          <Tabs.Tab value={summaryRoute} disabled={!sessionStore.isLoggedIn}>
-            {t('Summary')}
-          </Tabs.Tab>
-          <Tabs.Tab value={formRoute}>{t('Form')}</Tabs.Tab>
-          <Tabs.Tab value={dataRoute} disabled={!isDataTabEnabled}>
-            {t('Data')}
-          </Tabs.Tab>
-          <Tabs.Tab value={settingsRoute} disabled={!isSettingsTabEnabled}>
-            {t('Settings')}
-          </Tabs.Tab>
-        </Tabs.List>
-      </Tabs>
-    </nav>
+    <Tabs size='lg' value={activeTab}>
+      <Tabs.List justify='center'>
+        <Tabs.Tab
+          value={summaryRoute}
+          disabled={!sessionStore.isLoggedIn}
+          renderRoot={(props) => <Link to={summaryRoute} {...props} />}
+        >
+          {t('Summary')}
+        </Tabs.Tab>
+        <Tabs.Tab value={formRoute} renderRoot={(props) => <Link to={formRoute} {...props} />}>
+          {t('Form')}
+        </Tabs.Tab>
+        <Tabs.Tab
+          value={dataRoute}
+          disabled={!isDataTabEnabled}
+          renderRoot={(props) => <Link to={dataRoute} {...props} />}
+        >
+          {t('Data')}
+        </Tabs.Tab>
+        <Tabs.Tab
+          value={settingsRoute}
+          disabled={!isSettingsTabEnabled}
+          renderRoot={(props) => <Link to={settingsRoute} {...props} />}
+        >
+          {t('Settings')}
+        </Tabs.Tab>
+      </Tabs.List>
+    </Tabs>
   )
 }
