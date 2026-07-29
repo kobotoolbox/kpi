@@ -436,10 +436,6 @@ def update_batch_status(subsequence_bulk_action_id: str):
 
     The parent stays in_progress while any item is active. Once all items are in
     terminal states, the parent is marked complete and progress reaches 100.
-
-    This task is the only thing that advances `progress` and moves the parent to
-    a terminal status, so it must keep re-queueing itself for as long as the
-    batch is running, including on the paths where it does no work
     """
     from .audit import sync_bulk_action_history_log
     from .models import BulkActionItemStatus, BulkActionStatus

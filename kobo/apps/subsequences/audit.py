@@ -69,8 +69,8 @@ def _sync_bulk_action_history_log(bulk_action_uid: str) -> None:
         # once. Refreshing the log is a read-modify-write of a single JSON blob,
         # which loses updates under concurrency: two workers both read `3`,
         # then write `4` and `5` in either order, and the counter can visibly go
-        # backwards. Taking the row lock first, and only then reading the item
-        # counts, keeps the stored progress monotonic
+        # backwards. Taking the row lock first keeps the stored snapshot
+        # monotonic
         with transaction.atomic():
             history_log = (
                 ProjectHistoryLog.objects.select_for_update()
@@ -85,6 +85,7 @@ def _sync_bulk_action_history_log(bulk_action_uid: str) -> None:
             if history_log is None:
                 return
 
+            bulk_action.refresh_from_db()
             metadata = history_log.metadata.copy()
             metadata['bulk_action'] = bulk_action.get_history_log_metadata()
             history_log.metadata = metadata
