@@ -32,6 +32,7 @@ class CSVRenderer(BaseRenderer):
     format = 'csv'
     charset = 'utf-8'
 
+
 # TODO add ZIP(attachments) support
 
 
