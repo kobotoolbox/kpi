@@ -55,7 +55,9 @@ export default function ProjectTopTabs() {
         <Tabs.Tab
           value={summaryRoute}
           disabled={!sessionStore.isLoggedIn}
-          renderRoot={(props) => <Link to={summaryRoute} {...props} />}
+          renderRoot={(props) =>
+            sessionStore.isLoggedIn ? <Link to={summaryRoute} {...props} /> : <span {...props} />
+          }
         >
           {t('Summary')}
         </Tabs.Tab>
@@ -65,14 +67,14 @@ export default function ProjectTopTabs() {
         <Tabs.Tab
           value={dataRoute}
           disabled={!isDataTabEnabled}
-          renderRoot={(props) => <Link to={dataRoute} {...props} />}
+          renderRoot={(props) => (isDataTabEnabled ? <Link to={summaryRoute} {...props} /> : <span {...props} />)}
         >
           {t('Data')}
         </Tabs.Tab>
         <Tabs.Tab
           value={settingsRoute}
           disabled={!isSettingsTabEnabled}
-          renderRoot={(props) => <Link to={settingsRoute} {...props} />}
+          renderRoot={(props) => (isSettingsTabEnabled ? <Link to={summaryRoute} {...props} /> : <span {...props} />)}
         >
           {t('Settings')}
         </Tabs.Tab>
