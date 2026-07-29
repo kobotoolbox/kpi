@@ -2286,4 +2286,3 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             request_data=None,
         )
-
