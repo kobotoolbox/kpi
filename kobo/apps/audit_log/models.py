@@ -615,7 +615,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
-                'project_owner': asset.owner.username
+                'project_owner': asset.owner.username,
             },
         )
 
