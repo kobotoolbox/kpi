@@ -2,6 +2,7 @@ import jsonschema.exceptions
 from copy import deepcopy
 from django.db import IntegrityError, transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
@@ -17,7 +18,10 @@ from kobo.apps.subsequences.models import (
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 
-INVALID_PARAMS_ERROR = 'Invalid parameters for this action'
+# This message reaches the UI, so it must be translatable. Wrap here rather
+# than at the call site: `makemessages` only extracts literal arguments, so
+# `t(CONSTANT)` would leave the string out of the catalogs entirely.
+INVALID_PARAMS_ERROR = t('Invalid parameters for this action')
 
 
 class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
