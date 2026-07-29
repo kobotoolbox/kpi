@@ -520,10 +520,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
     def test_query_counts_for_list_submissions(self):
         # query count differs when stripe is enabled/disabled
-        with self.assertNumQueries(FuzzyInt(16, 18)):
+        with self.assertNumQueries(FuzzyInt(17, 19)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(FuzzyInt(16, 18)):
+        with self.assertNumQueries(FuzzyInt(17, 19)):
             # with params
             self.client.get(
                 self.submission_list_url,

@@ -513,7 +513,6 @@ class ProjectHistoryLog(AuditLog):
             'advanced-features-detail': cls._create_from_question_advanced_feature_request,  # noqa
         }
         url_name = request.resolver_match.url_name
-        print(f'{url_name=}')
         method = url_name_to_action.get(url_name, None)
         if not method:
             return
@@ -602,14 +601,17 @@ class ProjectHistoryLog(AuditLog):
     @staticmethod
     def _create_from_data_request(request):
         asset = getattr(request, 'asset', None)
+        if request.method != 'GET':
+            return
         if asset is None:
             return
         asset_uid = request.resolver_match.kwargs['uid_asset']
+        user = get_database_user(request.user)
 
         ProjectHistoryLog.objects.create(
             object_id=asset.id,
             action=AuditAction.VIEW_DATA,
-            user=request.user,
+            user=user,
             metadata={
                 'asset_uid': asset_uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
