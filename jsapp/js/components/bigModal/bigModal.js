@@ -4,7 +4,6 @@ import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
-import RESTServicesForm from '#/components/RESTServices/RESTServicesForm'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
@@ -111,14 +110,6 @@ class BigModal extends React.Component {
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid,
         })
-        break
-
-      case MODAL_TYPES.REST_SERVICES:
-        if (this.props.params.hookUid) {
-          this.setState({ title: t('Edit REST Service') })
-        } else {
-          this.setState({ title: t('New REST Service') })
-        }
         break
 
       case MODAL_TYPES.REPLACE_PROJECT:
@@ -271,9 +262,6 @@ class BigModal extends React.Component {
             <div>
               <LoadingSpinner message={false} />
             </div>
-          )}
-          {this.props.params.type === MODAL_TYPES.REST_SERVICES && (
-            <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
           )}
           {this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS && (
             <BulkEditSubmissionsForm

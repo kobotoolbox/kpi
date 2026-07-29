@@ -1,12 +1,12 @@
-import React from 'react'
-
-import alertify from 'alertifyjs'
+import { Group, Stack, Text, Title } from '@mantine/core'
+import { IconChevronLeft, IconRefresh } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
-import bem from '#/bem'
+import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
-import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { HOOK_LOG_STATUSES, MODAL_TYPES } from '#/constants'
 import { dataInterface } from '#/dataInterface'
@@ -21,166 +21,140 @@ import pageState from '#/pageState.store'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { formatTime, notify } from '#/utils'
+import RESTServiceLogStatus from './RESTServiceLogStatus'
+import { openRESTServiceLogInfoModal } from './openRESTServiceLogInfoModal'
 
 interface RESTServiceLogsProps {
   assetUid: string
   hookUid: string
 }
 
-interface RESTServiceLogsState {
-  hookName: string | null
-  isHookActive: boolean
-  assetUid: string
-  hookUid: string
-  isLoadingHook: boolean
-  isLoadingLogs: boolean
-  logs: ExternalServiceLogResponse[]
-  totalLogsCount?: number
-  nextPageUrl: string | null
-}
+/**
+ * Shows the delivery logs for a single REST Service (identified by `hookUid`).
+ * Each row is one attempt to send a submission to the service's endpoint, with
+ * its status and date. Failed attempts can be retried individually or all at
+ * once, and logs with a message can be expanded for the failure detail.
+ *
+ * Logs are paginated: we load the first page on mount and append more via the
+ * "Load more" button. Like the list view, data lives in the Reflux `hooks`
+ * store rather than in props.
+ */
+export default function RESTServiceLogs({ assetUid, hookUid }: RESTServiceLogsProps) {
+  const [hookName, setHookName] = useState<string | null>(null)
+  const [isHookActive, setIsHookActive] = useState(false)
+  const [isLoadingHook, setIsLoadingHook] = useState(true)
+  const [isLoadingLogs, setIsLoadingLogs] = useState(true)
+  const [logs, setLogs] = useState<ExternalServiceLogResponse[]>([])
+  // URL of the next page of logs, or null when we've reached the end.
+  const [nextPageUrl, setNextPageUrl] = useState<string | null>(null)
 
-export default class RESTServiceLogs extends React.Component<RESTServiceLogsProps, RESTServiceLogsState> {
-  constructor(props: RESTServiceLogsProps) {
-    super(props)
-    this.state = {
-      hookName: null,
-      isHookActive: false,
-      assetUid: props.assetUid,
-      hookUid: props.hookUid,
-      isLoadingHook: true,
-      isLoadingLogs: true,
-      logs: [],
-      nextPageUrl: null,
-    }
-  }
-
-  componentDidMount() {
-    actions.hooks.getLogs.completed.listen(this.onLogsUpdated.bind(this))
+  useEffect(() => {
+    // Subscribe to log updates from the shared store, then load the hook's
+    // details and its first page of logs. `listen()` returns an unsubscribe
+    // function that we call in the cleanup below.
+    const unlisteners = [
+      actions.hooks.getLogs.completed.listen((data: PaginatedResponse<ExternalServiceLogResponse>) => {
+        setLogs(data.results)
+      }),
+    ]
 
     dataInterface
-      .getHook(this.state.assetUid, this.state.hookUid)
+      .getHook(assetUid, hookUid)
       .done((data: ExternalServiceHookResponse) => {
-        this.setState({
-          isLoadingHook: false,
-          hookName: data.name,
-          isHookActive: data.active,
-        })
+        setIsLoadingHook(false)
+        setHookName(data.name)
+        setIsHookActive(data.active)
       })
       .fail(() => {
-        this.setState({ isLoadingHook: false })
+        setIsLoadingHook(false)
         notify.error(t('Could not load REST Service'))
       })
 
-    actions.hooks.getLogs(this.state.assetUid, this.state.hookUid, {
-      onComplete: (data) => {
-        this.setState({
-          isLoadingLogs: false,
-          logs: data.results,
-          nextPageUrl: data.next,
-          totalLogsCount: data.count,
-        })
+    actions.hooks.getLogs(assetUid, hookUid, {
+      onComplete: (data: PaginatedResponse<ExternalServiceLogResponse>) => {
+        setIsLoadingLogs(false)
+        setLogs(data.results)
+        setNextPageUrl(data.next)
       },
       onFail: () => {
-        this.setState({ isLoadingLogs: false })
+        setIsLoadingLogs(false)
         notify.error(t('Could not load REST Service logs'))
       },
     })
-  }
 
-  loadMore() {
-    this.setState({ isLoadingLogs: false })
+    return () => {
+      unlisteners.forEach((clb) => clb())
+    }
+  }, [assetUid, hookUid])
 
-    if (this.state.nextPageUrl === null) {
+  const loadMore = () => {
+    if (nextPageUrl === null) {
       return
     }
-    ;(
-      dataInterface.loadNextPageUrl(this.state.nextPageUrl) as JQuery.jqXHR<
-        PaginatedResponse<ExternalServiceLogResponse>
-      >
-    )
+
+    setIsLoadingLogs(true)
+    ;(dataInterface.loadNextPageUrl(nextPageUrl) as JQuery.jqXHR<PaginatedResponse<ExternalServiceLogResponse>>)
       .done((data) => {
-        let newLogs: ExternalServiceLogResponse[] = []
-        newLogs = newLogs.concat(this.state.logs, data.results)
-        this.setState({
-          isLoadingLogs: false,
-          logs: newLogs,
-          nextPageUrl: data.next,
-          totalLogsCount: data.count,
-        })
+        setIsLoadingLogs(false)
+        // Append the new page to the logs we already have, rather than replacing.
+        setLogs((currentLogs) => [...currentLogs, ...data.results])
+        setNextPageUrl(data.next)
       })
       .fail(() => {
-        this.setState({ isLoadingLogs: false })
+        setIsLoadingLogs(false)
         notify.error(t('Could not load REST Service logs'))
       })
   }
 
-  onLogsUpdated(data: PaginatedResponse<ExternalServiceLogResponse>) {
-    this.setState({ logs: data.results })
+  // Optimistically flip the given logs to a new status locally, so the UI reacts
+  // immediately (e.g. show "Pending" the moment you click retry) instead of
+  // waiting for the backend to confirm. `map` builds a new array with new objects
+  // for the changed rows — React only re-renders when the reference changes, so
+  // we must not mutate the existing logs in place.
+  const overrideLogsStatus = (logUids: string[], newStatus: number) => {
+    setLogs((currentLogs) =>
+      currentLogs.map((log) => (logUids.includes(log.uid) ? { ...log, status: newStatus } : log)),
+    )
   }
 
-  retryAll() {
-    const failedLogUids: string[] = []
-    this.state.logs.forEach((log) => {
-      if (log.status === HOOK_LOG_STATUSES.FAILED) {
-        failedLogUids.push(log.uid)
-      }
-    })
-    this.overrideLogsStatus(failedLogUids, HOOK_LOG_STATUSES.PENDING)
+  const overrideLogMessage = (logUid: string, newMessage: string) => {
+    setLogs((currentLogs) => currentLogs.map((log) => (log.uid === logUid ? { ...log, message: newMessage } : log)))
+  }
 
-    actions.hooks.retryLogs(this.state.assetUid, this.state.hookUid, {
+  const retryAll = () => {
+    const failedLogUids = logs.filter((log) => log.status === HOOK_LOG_STATUSES.FAILED).map((log) => log.uid)
+    overrideLogsStatus(failedLogUids, HOOK_LOG_STATUSES.PENDING)
+
+    actions.hooks.retryLogs(assetUid, hookUid, {
       onComplete: (response: RetryExternalServiceLogsResponse) => {
-        this.overrideLogsStatus(response.pending_uids, HOOK_LOG_STATUSES.PENDING)
+        overrideLogsStatus(response.pending_uids, HOOK_LOG_STATUSES.PENDING)
       },
     })
   }
 
-  retryLog(log: ExternalServiceLogResponse) {
+  const retryLog = (log: ExternalServiceLogResponse) => {
     // make sure to allow only retrying failed logs
     if (log.status !== HOOK_LOG_STATUSES.FAILED) {
       return
     }
 
-    this.overrideLogsStatus([log.uid], HOOK_LOG_STATUSES.PENDING)
+    overrideLogsStatus([log.uid], HOOK_LOG_STATUSES.PENDING)
 
-    actions.hooks.retryLog(this.state.assetUid, this.state.hookUid, log.uid, {
+    actions.hooks.retryLog(assetUid, hookUid, log.uid, {
       onFail: (response: FailResponse) => {
         if (response.responseJSON?.detail) {
-          this.overrideLogMessage(log.uid, response.responseJSON.detail)
+          overrideLogMessage(log.uid, response.responseJSON.detail)
         }
-        this.overrideLogsStatus([log.uid], HOOK_LOG_STATUSES.FAILED)
+        overrideLogsStatus([log.uid], HOOK_LOG_STATUSES.FAILED)
       },
     })
   }
 
-  overrideLogMessage(logUid: string, newMessage: string) {
-    const currentLogs = this.state.logs
-    currentLogs.forEach((currentLog) => {
-      if (currentLog.uid === logUid) {
-        currentLog.message = newMessage
-      }
-    })
-    this.setState({ logs: currentLogs })
+  const showLogInfo = (log: ExternalServiceLogResponse) => {
+    openRESTServiceLogInfoModal({ submissionId: log.submission_id, message: log.message })
   }
 
-  // useful to mark logs as pending, before BE tells about it
-  // NOTE: logUids is an array
-  overrideLogsStatus(logUids: string[], newStatus: number) {
-    const currentLogs = this.state.logs
-    currentLogs.forEach((currentLog) => {
-      if (logUids.includes(currentLog.uid)) {
-        currentLog.status = newStatus
-      }
-    })
-    this.setState({ logs: currentLogs })
-  }
-
-  showLogInfo(log: ExternalServiceLogResponse) {
-    const title = t('Submission Failure Detail (##id##)').replace('##id##', String(log.submission_id))
-    const escapedMessage = $('<div/>').text(log.message).html()
-    alertify.alert(title, `<pre>${escapedMessage}</pre>`)
-  }
-
-  openSubmissionModal(log: ExternalServiceLogResponse) {
+  const openSubmissionModal = (log: ExternalServiceLogResponse) => {
     const currentAssetUid = getRouteAssetUid()
     if (currentAssetUid !== null) {
       const currentAsset = assetStore.getAsset(currentAssetUid)
@@ -193,174 +167,96 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
     }
   }
 
-  hasAnyFailedLogs() {
-    let hasAny = false
-    this.state.logs.forEach((log) => {
-      if (log.status === HOOK_LOG_STATUSES.FAILED) {
-        hasAny = true
-      }
-    })
-    return hasAny
+  const hasAnyFailedLogs = () => logs.some((log) => log.status === HOOK_LOG_STATUSES.FAILED)
+
+  if (isLoadingHook || (isLoadingLogs && logs.length === 0)) {
+    return <LoadingSpinner />
   }
 
-  hasInfoToDisplay(log: ExternalServiceLogResponse) {
-    return log.status !== HOOK_LOG_STATUSES.SUCCESS && log.message.length > 0
-  }
+  const columns: Array<UniversalTableColumn<ExternalServiceLogResponse>> = [
+    {
+      key: 'submission_id',
+      label: t('Submission'),
+      grow: true,
+      cellFormatter: (log) =>
+        log.status === HOOK_LOG_STATUSES.SUCCESS ? (
+          <ButtonNew variant='transparent' onClick={() => openSubmissionModal(log)}>
+            {log.submission_id}
+          </ButtonNew>
+        ) : (
+          log.submission_id
+        ),
+    },
+    {
+      key: 'status',
+      label: (
+        <Group gap='xs' wrap='nowrap'>
+          {t('Status')}
+          {hasAnyFailedLogs() && (
+            <ActionIcon
+              variant='transparent'
+              size='md'
+              icon={IconRefresh}
+              disabled={!isHookActive}
+              onClick={retryAll}
+              tooltip={t('Retry all submissions')}
+            />
+          )}
+        </Group>
+      ),
+      cellFormatter: (log) => (
+        <RESTServiceLogStatus
+          log={log}
+          isHookActive={isHookActive}
+          onRetry={(retriedLog) => retryLog(retriedLog)}
+          onShowInfo={(infoLog) => showLogInfo(infoLog)}
+        />
+      ),
+    },
+    {
+      key: 'date_modified',
+      label: t('Date'),
+      cellFormatter: (log) => formatTime(log.date_modified),
+    },
+  ]
 
-  /*
-   * rendering methods
-   */
-
-  renderHeader() {
-    return (
-      <header className='rest-services-list__header'>
+  return (
+    <Stack gap='md'>
+      <Group>
         <ButtonNew
           size='md'
           variant='light'
           component={Link}
-          to={ROUTES.FORM_REST.replace(':uid', this.state.assetUid)}
-          leftIcon='angle-left'
+          to={ROUTES.FORM_REST.replace(':uid', assetUid)}
+          leftIcon={IconChevronLeft}
         >
           {t('Back to REST Services')}
         </ButtonNew>
 
-        <h2 className='rest-services-list__header-label rest-services-list__header-label--big'>
-          {this.state.hookName}
-        </h2>
-      </header>
-    )
-  }
+        <Title order={2} fz='inherit'>
+          {hookName}
+        </Title>
+      </Group>
 
-  renderLoadMoreButton() {
-    if (this.state.nextPageUrl === null) {
-      return null
-    }
-
-    return (
-      <Button
-        type='secondary'
-        size='l'
-        isPending={this.state.isLoadingLogs}
-        onClick={this.loadMore.bind(this)}
-        label={t('Load more')}
-      />
-    )
-  }
-
-  renderEmptyView() {
-    return (
-      <bem.FormView m={'form-settings'} className='rest-services'>
-        <bem.FormView__cell m='rest-services-list' className='rest-services-list--empty'>
-          {this.renderHeader()}
-
-          <bem.EmptyContent>
-            <bem.EmptyContent__message>{t('There are no logs yet')}</bem.EmptyContent__message>
-          </bem.EmptyContent>
-        </bem.FormView__cell>
-      </bem.FormView>
-    )
-  }
-
-  renderListView() {
-    return (
-      <bem.FormView m={'form-settings'} className='rest-services'>
-        <bem.FormView__cell m='rest-services-list'>
-          {this.renderHeader()}
-
-          <bem.FormView__cell m={['box']}>
-            <bem.ServiceRow m='header'>
-              <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
-              <bem.ServiceRow__column m='status'>
-                {t('Status')}
-                {this.hasAnyFailedLogs() && (
-                  <Button
-                    type='text'
-                    size='m'
-                    onClick={this.retryAll.bind(this)}
-                    tooltip={t('Retry all submissions')}
-                    isDisabled={!this.state.isHookActive}
-                    startIcon='replace'
-                  />
-                )}
-              </bem.ServiceRow__column>
-              <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
-            </bem.ServiceRow>
-
-            {this.state.logs.map((log, n) => {
-              const rowProps: { m?: string; onClick?: () => void } = {}
-              let statusMod = ''
-              let statusLabel = ''
-              if (log.status === HOOK_LOG_STATUSES.SUCCESS) {
-                statusMod = 'success'
-                statusLabel = t('Success')
-                rowProps.m = 'clickable'
-                rowProps.onClick = this.openSubmissionModal.bind(this, log)
-              }
-              if (log.status === HOOK_LOG_STATUSES.PENDING) {
-                statusMod = 'pending'
-                statusLabel = t('Pending')
-
-                if (log.tries && log.tries > 1) {
-                  statusLabel = t('Pending (##count##×)').replace('##count##', String(log.tries))
-                }
-              }
-              if (log.status === HOOK_LOG_STATUSES.FAILED) {
-                statusMod = 'failed'
-                statusLabel = t('Failed')
-              }
-              if (log.status === HOOK_LOG_STATUSES.PROCESSING) {
-                statusMod = 'processing'
-                statusLabel = t('Processing')
-              }
-
-              return (
-                <bem.ServiceRow {...rowProps} key={n}>
-                  <bem.ServiceRow__column m='submission'>{log.submission_id}</bem.ServiceRow__column>
-
-                  <bem.ServiceRow__column m={['status', statusMod]}>
-                    {statusLabel}
-
-                    {log.status === HOOK_LOG_STATUSES.FAILED && (
-                      <Button
-                        type='text'
-                        size='m'
-                        isDisabled={!this.state.isHookActive}
-                        onClick={this.retryLog.bind(this, log)}
-                        tooltip={t('Retry submission')}
-                        startIcon='replace'
-                      />
-                    )}
-
-                    {this.hasInfoToDisplay(log) && (
-                      <Button
-                        type='text'
-                        size='m'
-                        onClick={this.showLogInfo.bind(this, log)}
-                        tooltip={t('More info')}
-                        startIcon='information'
-                      />
-                    )}
-                  </bem.ServiceRow__column>
-
-                  <bem.ServiceRow__column m='date'>{formatTime(log.date_modified)}</bem.ServiceRow__column>
-                </bem.ServiceRow>
-              )
-            })}
-          </bem.FormView__cell>
-
-          {this.renderLoadMoreButton()}
-        </bem.FormView__cell>
-      </bem.FormView>
-    )
-  }
-
-  render() {
-    if (this.state.isLoadingHook || (this.state.isLoadingLogs && this.state.logs.length === 0)) {
-      return <LoadingSpinner />
-    } else if (this.state.logs.length === 0) {
-      return this.renderEmptyView()
-    } else {
-      return this.renderListView()
-    }
-  }
+      {logs.length === 0 ? (
+        <Text ta='center' p='xl'>
+          {t('There are no logs yet')}
+        </Text>
+      ) : (
+        <UniversalTableCore<ExternalServiceLogResponse>
+          columns={columns}
+          data={logs}
+          bottomContent={
+            nextPageUrl !== null && (
+              <Group justify='center'>
+                <ButtonNew variant='light' size='md' loading={isLoadingLogs} onClick={loadMore}>
+                  {t('Load more')}
+                </ButtonNew>
+              </Group>
+            )
+          }
+        />
+      )}
+    </Stack>
+  )
 }

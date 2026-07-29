@@ -28,6 +28,7 @@ import {
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
+import type { TableColumn } from './table.types'
 
 const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
   QUESTION_TYPES.audio.id,
@@ -585,4 +586,25 @@ export function isTableColumnFilterableByTextInput(questionType: AnyRowTypeName 
  */
 export function isTableColumnFilterableByDropdown(questionType: AnyRowTypeName | undefined) {
   return questionType && DROPDOWN_FILTER_QUESTION_TYPES.includes(questionType)
+}
+
+/**
+ * Returns xpaths of the audio question columns among the given Data Table
+ * columns. Pass the columns the table is rendering to get only the audio
+ * columns the user can actually see, which is how we avoid looking up durations
+ * for hidden columns.
+ */
+export function getVisibleAudioXpaths(columns: TableColumn[]): string[] {
+  const xpaths: string[] = []
+  columns.forEach((column) => {
+    const question = column.question
+    const xpath = question?.$xpath
+    if (
+      xpath &&
+      (question?.type === QUESTION_TYPES.audio.id || question?.type === QUESTION_TYPES['background-audio'].id)
+    ) {
+      xpaths.push(xpath)
+    }
+  })
+  return xpaths
 }

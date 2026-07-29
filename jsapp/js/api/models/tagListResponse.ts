@@ -12,5 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export interface TagListResponse {
   name: string
-  url: string
+  uid: string
 }

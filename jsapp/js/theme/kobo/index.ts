@@ -6,6 +6,7 @@ import { AutocompleteThemeKobo } from './Autocomplete'
 import { ButtonThemeKobo } from './Button'
 import { CheckboxThemeKobo } from './Checkbox'
 import { CloseButtonThemeKobo } from './CloseButton'
+import { CodeThemeKobo } from './Code'
 import { DividerThemeKobo } from './Divider'
 import { DropzoneThemeKobo } from './Dropzone'
 import { InputBaseThemeKobo } from './InputBase'
@@ -16,10 +17,12 @@ import { MultiSelectThemeKobo } from './MultiSelect'
 import { NotificationThemeKobo } from './Notification'
 import { NumberInputThemeKobo } from './NumberInput'
 import { PaperThemeKobo } from './Paper'
+import { PasswordInputThemeKobo } from './PasswordInput'
 import { PillThemeKobo } from './Pill'
 import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
+import { TabsThemeKobo } from './Tabs'
 import { TagsInputThemeKobo } from './TagsInput'
 import { TextareaThemeKobo } from './Textarea'
 import { ThemeIconThemeKobo } from './ThemeIcon'
@@ -159,6 +162,7 @@ export const themeKobo = createTheme({
     Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
     CloseButton: CloseButtonThemeKobo,
+    Code: CodeThemeKobo,
     InputBase: InputBaseThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
@@ -167,11 +171,13 @@ export const themeKobo = createTheme({
     Select: SelectThemeKobo,
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
+    Tabs: TabsThemeKobo,
     Divider: DividerThemeKobo,
     Dropzone: DropzoneThemeKobo,
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
     NumberInput: NumberInputThemeKobo,
+    PasswordInput: PasswordInputThemeKobo,
     Textarea: TextareaThemeKobo,
     Paper: PaperThemeKobo,
     Pill: PillThemeKobo,
