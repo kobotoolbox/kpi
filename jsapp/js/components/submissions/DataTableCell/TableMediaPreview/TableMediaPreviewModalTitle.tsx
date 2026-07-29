@@ -24,7 +24,7 @@ export default function TableMediaPreviewModalTitle(props: TableMediaPreviewModa
 
         <Group gap='sm'>
           {props.questionIcon && <Icon name={props.questionIcon} />}
-          <Text truncate='end' title={props.titleTextTooltip ?? props.titleText}>
+          <Text dir='auto' truncate='end' title={props.titleTextTooltip ?? props.titleText}>
             {props.titleText}
           </Text>
         </Group>
