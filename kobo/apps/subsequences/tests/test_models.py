@@ -245,7 +245,9 @@ class SubmissionSupplementTestCase(TestCase):
         When a transcription or translation version has a value but no
         `_dateAccepted`, `retrieve_data(for_output=True)` must include it
         with `pendingReview: True` so the FE can render the "Review" button.
-        `value` is intentionally absent from the pending payload.
+        `value` is intentionally blanked out (empty string) from the pending
+        payload so the unreviewed result isn't leaked, while still letting
+        formpack exports read `value` unconditionally without crashing.
         """
         self._add_manual_nlp_action('transcription', 'en', 'Hello')
         self._add_manual_nlp_action('translation', 'es', 'Hola')
@@ -267,16 +269,16 @@ class SubmissionSupplementTestCase(TestCase):
         transcription_data = output[self.xpath].get('transcript')
         translation_data = output[self.xpath].get('translation')
 
-        # Pending transcription: pendingReview present, value absent
+        # Pending transcription: pendingReview present, value blanked out
         assert transcription_data is not None
         assert transcription_data.get('pendingReview') is True
-        assert 'value' not in transcription_data
+        assert transcription_data['value'] == ''
         assert transcription_data['languageCode'] == 'en'
 
-        # Pending translation: pendingReview present, value absent
+        # Pending translation: pendingReview present, value blanked out
         assert translation_data is not None
         assert translation_data['es'].get('pendingReview') is True
-        assert 'value' not in translation_data['es']
+        assert translation_data['es']['value'] == ''
         assert translation_data['es']['languageCode'] == 'es'
 
     def test_retrieve_data_for_output_selects_most_recent_transcript(self):
@@ -374,7 +376,7 @@ class SubmissionSupplementTestCase(TestCase):
 
         assert transcript is not None
         assert transcript.get('pendingReview') is True
-        assert 'value' not in transcript
+        assert transcript['value'] == ''
         assert transcript['languageCode'] == 'en'
 
     def test_retrieve_data_for_output_accepted_transcript_has_no_pending_review(self):

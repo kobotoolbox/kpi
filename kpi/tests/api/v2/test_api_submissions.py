@@ -1571,7 +1571,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             response.data['results'][0]['_supplementalDetails']['q1']['transcript']
         )
         assert transcript.get('pendingReview') is True
-        assert 'value' not in transcript
+        assert transcript['value'] == ''
 
         transcription_data['q1']['automatic_google_transcription']['_versions'][0][
             '_dateAccepted'
