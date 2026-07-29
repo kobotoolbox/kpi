@@ -67,14 +67,14 @@ export default function ProjectTopTabs() {
         <Tabs.Tab
           value={dataRoute}
           disabled={!isDataTabEnabled}
-          renderRoot={(props) => (isDataTabEnabled ? <Link to={summaryRoute} {...props} /> : <span {...props} />)}
+          renderRoot={(props) => (isDataTabEnabled ? <Link to={dataRoute} {...props} /> : <span {...props} />)}
         >
           {t('Data')}
         </Tabs.Tab>
         <Tabs.Tab
           value={settingsRoute}
           disabled={!isSettingsTabEnabled}
-          renderRoot={(props) => (isSettingsTabEnabled ? <Link to={summaryRoute} {...props} /> : <span {...props} />)}
+          renderRoot={(props) => (isSettingsTabEnabled ? <Link to={settingsRoute} {...props} /> : <span {...props} />)}
         >
           {t('Settings')}
         </Tabs.Tab>
