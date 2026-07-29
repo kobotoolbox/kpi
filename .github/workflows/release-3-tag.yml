@@ -14,6 +14,11 @@ on:
         description: 'Release branch to tag (e.g. release/2.026.27). Leave empty to auto-detect the latest.'
         required: false
         type: string
+      force:
+        description: 'Skip branch eligibility checks (for security hotfixes on older branches).'
+        required: false
+        type: boolean
+        default: false
 
 
 jobs:
@@ -63,10 +68,52 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
+  # Validate that this branch is eligible for tagging:
+  # - The latest minor is always allowed (next_branch == 'main')
+  # - The previous minor is allowed only if the latest minor is unreleased
+  # - Older branches require the `force` input
+  validate:
+    needs:
+      - version
+    if: ${{ !cancelled() && !failure() && inputs.force != true }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: Check branch eligibility
+      env:
+        NEXT_BRANCH: ${{ needs.version.outputs.next_branch }}
+        CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        LATEST=$(git branch -r --list 'origin/release/*' | sed 's|origin/||' | sort -V | tail -1 | xargs)
+
+        # Must be the latest minor or the one directly before it
+        if [[ "$NEXT_BRANCH" != "main" && "$NEXT_BRANCH" != "$LATEST" ]]; then
+          echo "::error::Cannot tag $CURRENT_BRANCH: only the latest ($LATEST) or the one before it are eligible. Use 'force' input for deep security hotfixes."
+          exit 1
+        fi
+
+        # If not the latest, the latest must be unreleased
+        if [[ "$NEXT_BRANCH" != "main" ]]; then
+          LATEST_TAG=$(git tag --list --sort=-version:refname "${LATEST#release/}*" | head -1)
+          LATEST_TIP=$(git rev-parse "origin/$LATEST")
+          TAG_COMMIT=$(git rev-parse "${LATEST_TAG:-HEAD}^{commit}" 2>/dev/null || echo "none")
+          if [[ -n "$LATEST_TAG" && "$LATEST_TIP" == "$TAG_COMMIT" ]]; then
+            echo "::error::Cannot tag $CURRENT_BRANCH: the latest minor ($LATEST) is already released. Use 'force' input for deep security hotfixes."
+            exit 1
+          fi
+        fi
+
+        echo "::notice::Branch $CURRENT_BRANCH is eligible for tagging."
+
+
   # Pull translations and commit if changed, before tagging.
   pull-transifex:
     needs:
       - version
+      - validate
     if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-24.04
     steps:
@@ -399,6 +446,7 @@ jobs:
   on-failure:
     needs:
       - version
+      - validate
       - pull-transifex
       - tag
       - build-image
