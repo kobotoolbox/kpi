@@ -40,6 +40,7 @@ export enum AuditActions {
   transfer = 'transfer',
   'verify-automatic-qa-data' = 'verify-automatic-qa-data',
   'verify-manual-qa-data' = 'verify-manual-qa-data',
+  'view-data' = 'view-data',
   'unverify-automatic-qa-data' = 'unverify-automatic-qa-data',
   'unverify-manual-qa-data' = 'unverify-manual-qa-data',
   unarchive = 'unarchive',
@@ -274,6 +275,11 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
     label: t('delete a submission'),
     message: t('##username## deleted a submission'),
   },
+  {
+    name: AuditActions['view-data'],
+    label: t('view survey data'),
+    message: t('##username## accessed survey data')
+  }
 ]
 
 type AuditActionTypes = {
