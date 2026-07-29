@@ -63,9 +63,7 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
-  # Design doc step 2: "pull transifex translations (TODO DEV-1916) & commit if there's any"
-  #
-  # If translations changed, commit them to the release branch before tagging.
+  # Pull translations and commit if changed, before tagging.
   # TODO DEV-1916: validate this works end-to-end with real Transifex config.
   pull-transifex:
     needs:
@@ -92,13 +90,20 @@ jobs:
     - name: Commit translations if changed
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
+        BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
         if git diff-index --quiet HEAD; then
-        else
-          git add .
-          git commit -m "chore: pull transifex translations for $VERSION"
-          git push
+          exit 0
         fi
+        # Abort if someone pushed to the branch while translations were being pulled
+        git fetch origin "$BRANCH"
+        if [[ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$BRANCH")" ]]; then
+          echo "::error::Unexpected commits on $BRANCH since checkout. Aborting."
+          exit 1
+        fi
+        git add .
+        git commit -m "chore: pull transifex translations for $VERSION"
+        git push
 
 
   # Create and push the tag on the release branch (after any transifex commit).
@@ -119,9 +124,21 @@ jobs:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    # TODO: abort if new commits appeared
     - name: Pull latest (in case transifex committed)
-      run: git pull --ff-only
+      env:
+        BRANCH: ${{ needs.version.outputs.current_branch }}
+      run: |
+        git fetch origin "$BRANCH"
+        LOCAL=$(git rev-parse HEAD)
+        REMOTE=$(git rev-parse "origin/$BRANCH")
+        if [[ "$LOCAL" != "$REMOTE" ]]; then
+          # Only allow fast-forward (transifex commit). Abort if unrelated commits appeared.
+          if ! git merge-base --is-ancestor "$LOCAL" "$REMOTE"; then
+            echo "::error::Unexpected commits on $BRANCH since workflow started. Aborting."
+            exit 1
+          fi
+          git merge --ff-only "origin/$BRANCH"
+        fi
 
     - name: Create and push tag
       env:
@@ -137,10 +154,7 @@ jobs:
         git push origin "refs/tags/$VERSION"
 
 
-  # Design doc step 5: "create and upload image to docker-hub"
-  #
-  # Builds the Docker image from the tagged commit and pushes to GHCR.
-  # Design doc: "on failure, delete the tag (push it again to retry)"
+  # Build the Docker image from the tagged commit and push to GHCR.
   build-image:
     runs-on: ubuntu-24.04
     needs:
@@ -189,22 +203,19 @@ jobs:
         # Push the image to GHCR
         docker push "$CI_REGISTRY_IMAGE:$VERSION"
 
-    # Design doc: "on failure, delete the tag (push it again to retry)"
+    # On failure, delete the remote tag so the workflow can be re-run.
     - name: Delete tag on build failure
       if: failure()
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Uses the GitHub API because `git tag -d` only deletes locally and
+      # `git push --delete` would require push credentials in this step.
       run: |
         echo "::warning::Image build failed. Deleting tag so the workflow can be re-run to retry."
-        # TODO: why not use `git tag -d`?
         gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ needs.version.outputs.current_patch }}" || true
 
 
-  # Design doc step 5 (cont): "commit 'Upgrade KPI to 2.0XX.XX' to GitHub"
-  # Design doc step 6: "tag/push to kobo-docker"
-  # Design doc step 7: "update/commit/tag/push to kobo-install"
-  #
-  # Replaces the manual create-kobo-release.sh from release-notes-writer repo.
+  # Bump version references in kobo-docker and kobo-install, then tag them.
   bump:
     runs-on: ubuntu-24.04
     needs:
@@ -213,22 +224,13 @@ jobs:
     if: ${{ !cancelled() && !failure() }}
     steps:
     - uses: actions/checkout@v6
-
-    # Generate a token scoped to kobo-docker and kobo-install repos.
-    - name: Generate cross-repo token
+    - uses: ./.github/actions/checkout-with-github-app-token
       id: app-token
-      uses: actions/create-github-app-token@v3
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
         owner: kobotoolbox
         repositories: "kobo-docker,kobo-install"
-
-    # user "Checkout with Github App token" action instead
-    - name: Configure git identity
-      run: |
-        git config --global user.name 'kobo-bot[bot]'
-        git config --global user.email '200aborting+kobo-bot[bot]@users.noreply.github.com'
 
     - name: Bump KoboToolbox version in kobo-docker and tag it
       env:
@@ -314,15 +316,14 @@ jobs:
         release_version: ${{ needs.version.outputs.current_patch }}
         stage: "Pending Release (preview on kf.master)"
 
+    # Heuristic: flag migrations that use RunPython/RunSQL as "heavy" so Infra
+    # can plan downtime or run them separately from the main deploy.
     - name: Detect SKIP_HEAVY_MIGRATIONS
       id: migrations
       env:
         PREV_TAG: ${{ needs.version.outputs.prev_patch }}
         CURRENT_TAG: ${{ needs.version.outputs.current_patch }}
-      # TODO: where's the source of this so that I can review it?
       run: |
-        # Check if there are new migration files between prev and current tag
-        # that contain RunPython or RunSQL (heavy migrations)
         HEAVY="false"
         MIGRATION_FILES=$(git diff --name-only "$PREV_TAG"..HEAD -- '*/migrations/*.py' 2>/dev/null || true)
         if [[ -n "$MIGRATION_FILES" ]]; then

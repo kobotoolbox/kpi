@@ -6,6 +6,17 @@ inputs:
     required: true
   private-key:
     required: true
+  owner:
+    description: 'GitHub organization for cross-repo token scope (optional)'
+    required: false
+  repositories:
+    description: 'Comma-separated list of repos for cross-repo token scope (optional)'
+    required: false
+
+outputs:
+  token:
+    description: 'The generated GitHub App token'
+    value: ${{ steps.app-token.outputs.token }}
 
 runs:
   using: "composite"
@@ -17,6 +28,8 @@ runs:
     with:
       app-id: ${{ inputs.app-id }}
       private-key: ${{ inputs.private-key }}
+      owner: ${{ inputs.owner }}
+      repositories: ${{ inputs.repositories }}
 
   - name: Get GitHub App user id
     id: get-user-id

@@ -1,9 +1,6 @@
 name: 'CD: announce'
 
 
-# Design doc: "When minor or patch release is in 'Pending Release' status:
-# 1. (manually by Release Manager) run a GHA action that does the following steps"
-#
 # Pipeline: validate tag → generate changelog → [kpi, kobo-docker, kobo-install] → linear → notify
 on:
   workflow_dispatch:
@@ -49,7 +46,7 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
-  # TODO: take from changelog branch. In case human edited/cleaned it.
+  # Prefer the human-editable changelog branch; fall back to generating fresh.
   changelog:
     runs-on: ubuntu-24.04
     needs:
@@ -62,12 +59,23 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Generate changelog for this release
+    - name: Get changelog
       id: changelog
       env:
         VERSION: ${{ inputs.tag }}
       run: |
-        BODY=$(npx git-cliff@2.10.0 -u --tag "$VERSION")
+        # Try fetching the curated changelog from the changelog branch
+        CHANGELOG_BRANCH="changelog/$VERSION"
+        if git ls-remote --exit-code origin "refs/heads/$CHANGELOG_BRANCH" >/dev/null 2>&1; then
+          BODY=$(git show "origin/$CHANGELOG_BRANCH:CHANGELOG.md" 2>/dev/null || true)
+        fi
+
+        # Fall back to generating with git-cliff if branch doesn't exist or is empty
+        if [[ -z "${BODY:-}" ]]; then
+          echo "::notice::Changelog branch not found, generating with git-cliff"
+          BODY=$(npx git-cliff@2.10.0 -u --tag "$VERSION")
+        fi
+
         {
           echo 'body<<EOF'
           echo "${BODY}"
