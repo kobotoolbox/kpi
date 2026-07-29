@@ -24,7 +24,7 @@ jobs:
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - name: determine current release branch name
+    - name: Determine current release branch name
       id: branch
       run: |
         set -xe
@@ -53,8 +53,7 @@ jobs:
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-    - name: create next RC branch
-      id: branch
+    - name: Create release branch
       env:
         NEW_BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
@@ -63,6 +62,7 @@ jobs:
         git push origin $NEW_BRANCH
 
 
+  # Create Linear release and link issues from commits since last release.
   linear:
     needs:
       - version
@@ -122,4 +122,4 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) something went wrong."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to create release branch or link Linear issues."

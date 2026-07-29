@@ -59,7 +59,7 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Get changelog
+    - name: Fetch changelog from branch or generate
       id: changelog
       env:
         VERSION: ${{ inputs.tag }}
@@ -83,8 +83,8 @@ jobs:
         } >> "$GITHUB_OUTPUT"
 
 
-  # Create the primary GitHub release on kpi with the full changelog body.
-  kpi:
+  # Create GitHub Release on kpi with the full changelog body.
+  github-release-kpi:
     runs-on: ubuntu-24.04
     needs:
       - version
@@ -106,8 +106,8 @@ jobs:
           --verify-tag
 
 
-  # Create a GitHub release on kobo-docker that links back to the kpi release.
-  kobo-docker:
+  # Create GitHub Release on kobo-docker that links back to the kpi release.
+  github-release-kobo-docker:
     runs-on: ubuntu-24.04
     needs:
       - version
@@ -135,8 +135,8 @@ jobs:
           --verify-tag
 
 
-  # Create a GitHub release on kobo-install that links back to the kpi release.
-  kobo-install:
+  # Create GitHub Release on kobo-install that links back to the kpi release.
+  github-release-kobo-install:
     runs-on: ubuntu-24.04
     needs:
       - version
@@ -169,9 +169,9 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - version
-      - kpi
-      - kobo-docker
-      - kobo-install
+      - github-release-kpi
+      - github-release-kobo-docker
+      - github-release-kobo-install
     if: ${{ !cancelled() && !failure() }}
     steps:
     - uses: actions/checkout@v6
@@ -188,9 +188,9 @@ jobs:
   notify:
     needs:
       - version
-      - kpi
-      - kobo-docker
-      - kobo-install
+      - github-release-kpi
+      - github-release-kobo-docker
+      - github-release-kobo-install
       - linear
     if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
@@ -204,12 +204,13 @@ jobs:
     needs:
       - version
       - changelog
-      - kpi
-      - kobo-docker
-      - kobo-install
+      - github-release-kpi
+      - github-release-kobo-docker
+      - github-release-kobo-install
+      - linear
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to create GitHub release(s) for `${{ inputs.tag }}`."
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to announce `${{ inputs.tag }}`. @*devs* please investigate."

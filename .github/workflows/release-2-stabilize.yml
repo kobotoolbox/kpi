@@ -116,11 +116,11 @@ jobs:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: draft a changelog
+    - name: Draft changelog
       run: |
         npx git-cliff@2.10.0 -u --tag $CURRENT_PATCH
 
-    - name: commit the changelog to a dedicated branch
+    - name: Commit changelog to a dedicated branch
       run: |
         git checkout -B changelog/$CURRENT_PATCH
         git add -f CHANGELOG.md
@@ -149,12 +149,13 @@ jobs:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: deploy to beta
+    - name: Deploy to beta
       run: |
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
   # Note: push only current release branch instead of all past or the next release branch.
+  # Push translation strings only for the latest tagged release (not older cascading branches).
   push-to-transifex:
     needs:
       - version
@@ -172,6 +173,7 @@ jobs:
       push: true
 
 
+  # Upsert Linear release and link issues added since last tag.
   linear-upsert:
     needs:
       - version
@@ -217,13 +219,13 @@ jobs:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-    - name: Merge
+    - name: Merge release branch forward
       env:
         current_branch: ${{ needs.version.outputs.current_branch }}
         next_branch: ${{ needs.version.outputs.next_branch }}
       run: |
         git checkout "$next_branch"
-        echo 'TODO: squash migrations, if any'
+        echo '::notice::TODO: squash migrations, if any'
         git merge --no-ff "$current_branch"
         git push
 
