@@ -63,7 +63,6 @@ jobs:
         git push origin $NEW_BRANCH
 
 
-  # Design doc step 2: "create Linear release, link related Linear issues, and set status to 'Pending QA'"
   linear:
     needs:
       - version
@@ -78,7 +77,7 @@ jobs:
       with:
         access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
         release_version: ${{ needs.version.outputs.current_minor }}
-        base_ref: origin/${{ needs.version.outputs.prev_branch }}
+        base_ref: ${{ needs.version.outputs.prev_patch }}
 
 
   notify-current:

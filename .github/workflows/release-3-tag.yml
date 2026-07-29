@@ -6,9 +6,6 @@ concurrency:
   cancel-in-progress: false
 
 
-# Design doc: "(manually by Release Manager) run a GitHub Actions (GHA) action
-# that does the following steps"
-#
 # Pipeline: determine version → pull-transifex → tag → build-image → [bump, linear, deploy-to-master] → notify
 on:
   workflow_dispatch:
@@ -57,7 +54,6 @@ jobs:
         fi
 
 
-  # Design doc step 3: "determine the next patch version tag (first release or next letter suffix)"
   version:
     needs:
       - current-branch
@@ -94,24 +90,18 @@ jobs:
         args: 'pull -a -f --mode reviewed'
 
     - name: Commit translations if changed
-      id: pull-changed
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
       run: |
         if git diff-index --quiet HEAD; then
-          echo "changed=false" >> $GITHUB_OUTPUT
         else
           git add .
           git commit -m "chore: pull transifex translations for $VERSION"
           git push
-          echo "changed=true" >> $GITHUB_OUTPUT
         fi
 
 
-  # Design doc steps 3-4: "determine the next patch version tag" and "tag and push the tag to kpi"
-  #
-  # The version was already determined by find-releases.yml (current_patch output).
-  # Now we create and push the tag on the release branch (after any transifex commit).
+  # Create and push the tag on the release branch (after any transifex commit).
   tag:
     needs:
       - version
@@ -129,6 +119,7 @@ jobs:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
+    # TODO: abort if new commits appeared
     - name: Pull latest (in case transifex committed)
       run: git pull --ff-only
 
@@ -205,6 +196,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "::warning::Image build failed. Deleting tag so the workflow can be re-run to retry."
+        # TODO: why not use `git tag -d`?
         gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ needs.version.outputs.current_patch }}" || true
 
 
@@ -232,12 +224,12 @@ jobs:
         owner: kobotoolbox
         repositories: "kobo-docker,kobo-install"
 
+    # user "Checkout with Github App token" action instead
     - name: Configure git identity
       run: |
         git config --global user.name 'kobo-bot[bot]'
         git config --global user.email '200aborting+kobo-bot[bot]@users.noreply.github.com'
 
-    # Design doc step 6: "tag/push to kobo-docker"
     - name: Bump KoboToolbox version in kobo-docker and tag it
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
@@ -257,7 +249,7 @@ jobs:
           echo "No changes needed in kobo-docker (already at $VERSION)"
         else
           git add docker-compose.frontend.yml
-          git commit -m "Upgrade KPI to ${VERSION}"
+          git commit -m "chore(deps): upgrade KPI to ${VERSION}"
           git push origin master
         fi
 
@@ -269,7 +261,6 @@ jobs:
           git push origin "refs/tags/${VERSION}"
         fi
 
-    # Design doc step 7: "update/commit/tag/push to kobo-install"
     - name: Bump KoboToolbox version in kobo-install and tag it
       env:
         VERSION: ${{ needs.version.outputs.current_patch }}
@@ -289,7 +280,7 @@ jobs:
           echo "No changes needed in kobo-install (already at $VERSION)"
         else
           git add helpers/config.py
-          git commit -m "Use release ${VERSION} of kobo-docker"
+          git commit -m "chore(deps): use release ${VERSION} of kobo-docker"
           git push origin master
         fi
 
@@ -302,9 +293,7 @@ jobs:
         fi
 
 
-  # Design doc step 8: "set Linear release status to 'Pending Release'"
-  # Design doc step 9: "create Linear issue for Infra team to deploy it,
-  #                     and detect SKIP_HEAVY_MIGRATIONS for that (TODO: DEV-653)"
+  # Create deployment Linear issue
   linear:
     runs-on: ubuntu-24.04
     needs:
@@ -330,6 +319,7 @@ jobs:
       env:
         PREV_TAG: ${{ needs.version.outputs.prev_patch }}
         CURRENT_TAG: ${{ needs.version.outputs.current_patch }}
+      # TODO: where's the source of this so that I can review it?
       run: |
         # Check if there are new migration files between prev and current tag
         # that contain RunPython or RunSQL (heavy migrations)
@@ -362,37 +352,26 @@ jobs:
         # Linear GraphQL mutation: issueCreate
 
 
-  # Deploy the newly-built image to kf.master.kbtdev (internal test instance).
   deploy-to-master:
     runs-on: ubuntu-24.04
     needs:
       - version
-      - build-image
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - name: Generate cross-repo token
-      id: app-token
-      uses: actions/create-github-app-token@v3
-      with:
-        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
-        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-        owner: kobotoolbox
-        repositories: "devops"
+    - uses: actions/checkout@v6
 
-    - name: Trigger kfmaster deploy
-      uses: benc-uk/workflow-dispatch@v1
-      with:
-        workflow: deploy-kfmaster.yml
-        repo: kobotoolbox/devops
-        ref: instance/kfmaster
-        token: ${{ steps.app-token.outputs.token }}
-        inputs: |
-          {
-            "kpi_image_sha": "${{ needs.version.outputs.current_patch }}"
-          }
+    - name: deploy to master
+      run: |
+        echo 'TODO, for now deploy manually on kf.master.kbtdev'
+        ## see https://github.com/kobotoolbox/kobo-deployments
+        ## see https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/2.2E024.2E33.20Release/near/472818
+        ## Note: script does two things - deploys and updates docker-compose - see if can seperate that for easier reruns
+        ## Note: this server has lots of data, run migrations or smtg with a 1 minute timeout to flag if some migrations run too long
+        # pipenv shell
+        # fab update_kpi:$VERSION
+        # fab dev_deploy:master,kpi,$GITHUB_REF
 
 
-  # Design doc step 10: "notify on zulip"
   notify:
     needs:
       - version
@@ -408,7 +387,6 @@ jobs:
       content: ":label: `${{ needs.version.outputs.current_patch }}` tagged, image built and pushed to GHCR. Bumped kobo-docker and kobo-install. Triggered deploy to kf.master."
 
 
-  # Catch-all failure notification.
   on-failure:
     needs:
       - version

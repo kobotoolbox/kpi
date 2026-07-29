@@ -49,9 +49,7 @@ jobs:
       current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
-  # Design doc step 2: "create GitHub releases with a changelog"
-  #
-  # Generate changelog using git-cliff (same tool used in release-2-stabilize.yml).
+  # TODO: take from changelog branch. In case human edited/cleaned it.
   changelog:
     runs-on: ubuntu-24.04
     needs:
@@ -158,7 +156,7 @@ jobs:
           --verify-tag
 
 
-  # Design doc step 3: "set Linear release status to 'Released'"
+  # Set Linear release status to 'Released'
   linear:
     runs-on: ubuntu-24.04
     needs:
@@ -179,7 +177,6 @@ jobs:
         release_version: ${{ inputs.tag }}
 
 
-  # Design doc step 4: "notify on zulip"
   notify:
     needs:
       - version
