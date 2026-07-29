@@ -880,3 +880,15 @@ export function hasUnacceptedAutomaticContent(
 
   return false
 }
+
+/**
+ * Checks if any of given submissions has content awaiting approval in given
+ * supplemental details column, i.e. if a bulk approve action would do anything
+ * at all.
+ */
+export function hasAnyUnacceptedAutomaticContent(
+  submissions: Array<DataResponse | SubmissionResponse>,
+  columnKey: string,
+): boolean {
+  return submissions.some((submission) => hasUnacceptedAutomaticContent(submission, columnKey))
+}

@@ -15,8 +15,7 @@
  */
 .mantine-Textarea-input:focus-visible:not([data-error]),
 .mantine-TextInput-input:focus-visible:not([data-error]),
-.mantine-NumberInput-input:focus-visible:not([data-error]),
-.mantine-PasswordInput-input:focus-visible:not([data-error]) {
+.mantine-NumberInput-input:focus-visible:not([data-error]) {
   outline: var(--kobo-focus-ring);
   outline-offset: var(--kobo-focus-ring-offset);
 }
@@ -27,6 +26,7 @@
  * focus styles when the inner input has keyboard focus.
  */
 .mantine-MultiSelect-input:focus-within:has(:focus-visible),
+.mantine-PasswordInput-input:focus-within:has(:focus-visible),
 .mantine-TagsInput-input:focus-within:has(:focus-visible) {
   outline: var(--kobo-focus-ring);
   outline-offset: var(--kobo-focus-ring-offset);

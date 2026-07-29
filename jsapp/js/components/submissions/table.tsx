@@ -19,15 +19,19 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { AudioDurationsProvider } from '#/components/submissions/AudioDurationsContext'
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
 import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
 import TableTextFilter from '#/components/submissions/TableTextFilter'
 import {
   getVisibleBulkProcessingSubmissionUuidsToRefresh,
+  hasAnyTranscribableAudio,
+  hasAnyTranslatableTranscript,
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
+import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
@@ -55,6 +59,7 @@ import {
   getBackgroundAudioQuestionName,
   getColumnHXLTags,
   getColumnLabel,
+  getVisibleAudioXpaths,
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
@@ -508,20 +513,22 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   /**
-   * Opens a bulk processing modal for selected submissions.
+   * Returns full submission objects for the currently selected rows.
    * Note: Only submissions from the currently loaded page are included, even if
    * rows from other pages are selected. This is intentional - the warning modal
    * alerts users when they've selected rows across multiple pages.
    */
+  private getSelectedSubmissions(): SubmissionResponse[] {
+    const selectedSubmissionIds = recordKeys(this.state.selectedRows)
+    return this.state.submissions.filter((submission) => selectedSubmissionIds.includes(String(submission._id)))
+  }
+
+  /**
+   * Opens a bulk processing modal for selected submissions.
+   */
   private openBulkProcessingModal(fieldId: string, modalType: 'transcribe' | 'translate' | 'approve') {
     const selectedSubmissionIds = recordKeys(this.state.selectedRows)
-
-    // Filter to get full submission objects for the selected IDs.
-    // This only finds submissions on the current page - selections from other
-    // pages are intentionally excluded (user is warned about this).
-    const selectedSubmissions = this.state.submissions.filter((submission) =>
-      selectedSubmissionIds.includes(String(submission._id)),
-    )
+    const selectedSubmissions = this.getSelectedSubmissions()
 
     // Show warning if "Select All" would process more rows than are visible on current page
     const showWarningModal = this.state.selectAll && this.state.resultsTotal > selectedSubmissionIds.length
@@ -980,13 +987,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
                 onApproveSelectedSubmissions={this.onApproveSelectedSubmissions.bind(this)}
-                isBulkProcessingDisabled={
-                  !(
-                    userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-                    userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
-                  ) ||
-                  (!this.state.selectAll && recordKeys(this.state.selectedRows).length === 0)
+                userCanChangeSubmissions={
+                  userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+                  userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
                 }
+                hasRowsSelected={this.state.selectAll || recordKeys(this.state.selectedRows).length !== 0}
+                hasAnyTranscribableAudio={hasAnyTranscribableAudio(this.getSelectedSubmissions(), key)}
+                hasAnyTranslatableTranscript={hasAnyTranslatableTranscript(this.getSelectedSubmissions(), key)}
+                hasAnyUnacceptedAutomaticContent={hasAnyUnacceptedAutomaticContent(this.getSelectedSubmissions(), key)}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
@@ -1481,45 +1489,51 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
           </bem.FormView__item>
         </bem.FormView__group>
-        <ReactTable
-          data={this.state.submissions}
-          columns={this.state.columns}
-          defaultPageSize={DEFAULT_PAGE_SIZE}
-          pageSizeOptions={[10, 30, 50, 100, 200, 500]}
-          minRows={0}
-          className={tableClasses.join(' ')}
-          pages={pages}
-          manual
-          onFetchData={this.fetchData.bind(this)}
-          loading={this.state.loading}
-          previousText={
-            <React.Fragment>
-              <i className='k-icon k-icon-caret-left' />
-              {t('Prev')}
-            </React.Fragment>
-          }
-          nextText={
-            <React.Fragment>
-              {t('Next')}
-              <i className='k-icon k-icon-caret-right' />
-            </React.Fragment>
-          }
-          loadingText={<LoadingSpinner />}
-          noDataText={t('Your filters returned no submissions.')}
-          pageText={t('Page')}
-          ofText={t('of')}
-          rowsText={t('rows')}
-          getTableProps={() => {
-            return {
-              onScroll: this.onTableScroll.bind(this),
+        <AudioDurationsProvider
+          assetUid={this.props.asset.uid}
+          submissions={this.state.submissions}
+          visibleAudioXpaths={getVisibleAudioXpaths(this.state.columns)}
+        >
+          <ReactTable
+            data={this.state.submissions}
+            columns={this.state.columns}
+            defaultPageSize={DEFAULT_PAGE_SIZE}
+            pageSizeOptions={[10, 30, 50, 100, 200, 500]}
+            minRows={0}
+            className={tableClasses.join(' ')}
+            pages={pages}
+            manual
+            onFetchData={this.fetchData.bind(this)}
+            loading={this.state.loading}
+            previousText={
+              <React.Fragment>
+                <i className='k-icon k-icon-caret-left' />
+                {t('Prev')}
+              </React.Fragment>
             }
-          }}
-          filterable
-          // Enables RTL support in table cells
-          getTdProps={() => {
-            return { dir: 'auto' }
-          }}
-        />
+            nextText={
+              <React.Fragment>
+                {t('Next')}
+                <i className='k-icon k-icon-caret-right' />
+              </React.Fragment>
+            }
+            loadingText={<LoadingSpinner />}
+            noDataText={t('Your filters returned no submissions.')}
+            pageText={t('Page')}
+            ofText={t('of')}
+            rowsText={t('rows')}
+            getTableProps={() => {
+              return {
+                onScroll: this.onTableScroll.bind(this),
+              }
+            }}
+            filterable
+            // Enables RTL support in table cells
+            getTdProps={() => {
+              return { dir: 'auto' }
+            }}
+          />
+        </AudioDurationsProvider>
       </bem.FormView>
     )
   }
