@@ -190,22 +190,15 @@ jobs:
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' }}
     runs-on: ubuntu-24.04
     steps:
-    - name: Upsert Linear release and set status to "Pending Image"
-      env:
-        CURRENT_MINOR: ${{ needs.version.outputs.current_minor }}
-        CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
-        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
-      run: |
-        echo "::notice::TODO: upsert Linear release for $CURRENT_PATCH and set status to 'Pending Image'"
-        echo "Requires Linear GraphQL API integration (see workflow comments)"
-        # TODO: Implement Linear GraphQL API integration.
-        # Requirements:
-        #   - Find or create a Linear project release named "$CURRENT_MINOR"
-        #   - Link the Linear issues related to commits pushed since the last tag
-        #   - Set/update the release status to "Pending Image"
-        #   - Note: Patch releases skip QA status and process
-        # Linear GraphQL endpoint: https://api.linear.app/graphql
-        # Relevant mutations: projectCreate or projectUpdate, issueUpdate
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        release_version: ${{ needs.version.outputs.current_patch }}
+        base_ref: ${{ needs.version.outputs.prev_patch }}
 
 
   merge-forward:

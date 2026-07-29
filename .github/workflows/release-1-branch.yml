@@ -70,20 +70,15 @@ jobs:
       - create-current-branch
     runs-on: ubuntu-24.04
     steps:
-    - name: Create Linear release and set status to "Pending QA"
-      env:
-        CURRENT_MINOR: ${{ needs.version.outputs.current_minor }}
-        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
-      run: |
-        echo "::notice::TODO: create Linear release for $CURRENT_MINOR and set status to 'Pending QA'"
-        echo "Requires Linear GraphQL API integration (see workflow comments)"
-        # TODO: Implement Linear GraphQL API integration.
-        # Requirements:
-        #   - Create a Linear project release named "$CURRENT_MINOR"
-        #   - Link all Linear issues whose PRs were merged to main since the previous release branch was cut
-        #   - Set the release status to "Pending QA"
-        # Linear GraphQL endpoint: https://api.linear.app/graphql
-        # Relevant mutations: projectCreate, issueUpdate (to link to project)
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        release_version: ${{ needs.version.outputs.current_minor }}
+        base_ref: origin/${{ needs.version.outputs.prev_branch }}
 
 
   notify-current:

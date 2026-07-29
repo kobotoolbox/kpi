@@ -168,19 +168,15 @@ jobs:
       - kobo-install
     if: ${{ !cancelled() && !failure() }}
     steps:
-    - name: Set Linear release status to "Released"
-      env:
-        VERSION: ${{ inputs.tag }}
-        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
-      run: |
-        echo "::notice::TODO: set Linear release status to 'Released' for $VERSION"
-        echo "Requires Linear GraphQL API integration (see workflow comments)"
-        # TODO: Implement Linear GraphQL API integration.
-        # Requirements:
-        #   - Find the Linear project release by name matching $VERSION
-        #   - Update its status to "Released"
-        # Linear GraphQL endpoint: https://api.linear.app/graphql
-        # Relevant mutations: updateProjectUpdate, or project status field update
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: complete
+        release_version: ${{ inputs.tag }}
 
 
   # Design doc step 4: "notify on zulip"

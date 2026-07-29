@@ -318,18 +318,12 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Set Linear release status to "Pending Release"
-      env:
-        VERSION: ${{ needs.version.outputs.current_patch }}
-        LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
-      run: |
-        echo "::notice::TODO: set Linear release status to 'Pending Release' for $VERSION"
-        echo "Requires Linear GraphQL API integration (see workflow comments)"
-        # TODO: Implement Linear GraphQL API integration.
-        # Requirements:
-        #   - Find the Linear project release by name matching $VERSION
-        #   - Update its status to "Pending Release"
-        # Linear GraphQL endpoint: https://api.linear.app/graphql
+    - uses: linear/linear-release-action@v0
+      with:
+        access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+        command: update
+        release_version: ${{ needs.version.outputs.current_patch }}
+        stage: "Pending Release (preview on kf.master)"
 
     - name: Detect SKIP_HEAVY_MIGRATIONS
       id: migrations
